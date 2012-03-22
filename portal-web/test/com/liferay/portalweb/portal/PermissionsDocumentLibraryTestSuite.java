@@ -31,7 +31,7 @@ public class PermissionsDocumentLibraryTestSuite extends BaseTestSuite {
 
 		testSuite.addTest(LoginTests.suite());
 		testSuite.addTest(DocumentLibraryTestPlan.suite());
-		testSuite.addTest(DocumentsAndMediaTestPlan.suite());
+		//testSuite.addTest(DocumentsAndMediaTestPlan.suite());
 
 		testSuite.addTestSuite(StopSeleniumTest.class);
 

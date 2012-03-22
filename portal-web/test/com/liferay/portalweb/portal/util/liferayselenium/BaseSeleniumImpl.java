@@ -65,6 +65,10 @@ public abstract class BaseSeleniumImpl
 			"getFirstNumberIncrement", new String[] {locator,});
 	}
 
+	/*public void InsertCKEditor(String locator, String value){
+		CKEDITOR.instances(locator).setData(value);
+	}*/
+
 	public boolean isPartialText(String locator, String value) {
 		return _commandProcessor.getBoolean(
 			"isPartialText", new String[] {locator, value,});

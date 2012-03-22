@@ -53,3 +53,11 @@ Selenium.prototype.isPartialText = function(locator, value) {
 
 	return (index != -1);
 };
+
+/*Selenium.prototype.doInsertCKEditor = function(locator, value) { 
+    this.doWaitForCondition("var x = 
+Selenium.browserbot.findElementOrNull('//td[@id=\"cke_contents_form 
+\"]');x != null;", "50000"); 
+    this.doRunScript("CKEDITOR.instances['"+locator+"'].setData('"+word 
++"');"); 
+} */

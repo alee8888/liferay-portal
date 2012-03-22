@@ -33,6 +33,8 @@ public interface LiferaySelenium extends Selenium {
 
 	public String getFirstNumberIncrement(String locator);
 
+	//public void insertCKEditor(String Locator, String value);
+
 	public boolean isPartialText(String locator, String value);
 
 	public void saveScreenShotAndSource() throws Exception;
@@ -42,5 +44,5 @@ public interface LiferaySelenium extends Selenium {
 	public void uploadCommonFile(String locator, String value);
 
 	public void uploadTempFile(String locator, String value);
-
+	
 }
