@@ -26,7 +26,14 @@ public class DefinePermissionsRoleAddDocumentSiteOffTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
-		selenium.waitForElementPresent("link=Control Panel");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		selenium.waitForElementPresent(
+			"//script[contains(@src,'/aui/aui-editable/aui-editable-min.js')]");
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
+		selenium.waitForVisible("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
 		selenium.waitForPageToLoad("30000");
@@ -57,8 +64,8 @@ public class DefinePermissionsRoleAddDocumentSiteOffTest extends BaseTestCase {
 		selenium.select("//select[@id='_128_add-permissions']",
 			RuntimeVariables.replace("Documents and Media"));
 		selenium.waitForPageToLoad("30000");
-		assertEquals(RuntimeVariables.replace("Document Library"),
-			selenium.getText("//h3"));
+		assertEquals(RuntimeVariables.replace("Documents and Media"),
+			selenium.getText("//h3[4]"));
 		assertFalse(selenium.isChecked(
 				"//input[@value='com.liferay.portlet.documentlibraryADD_DOCUMENT']"));
 		selenium.clickAt("//input[@value='com.liferay.portlet.documentlibraryADD_DOCUMENT']",
@@ -66,14 +73,16 @@ public class DefinePermissionsRoleAddDocumentSiteOffTest extends BaseTestCase {
 		assertTrue(selenium.isChecked(
 				"//input[@value='com.liferay.portlet.documentlibraryADD_DOCUMENT']"));
 		assertEquals(RuntimeVariables.replace("Add Document"),
-			selenium.getText("//tr[3]/td[2]"));
+			selenium.getText("//div[4]/div/div/table/tbody/tr[4]/td[2]"));
 		assertEquals(RuntimeVariables.replace("Portal"),
-			selenium.getText("//tr[3]/td[3]"));
+			selenium.getText(
+				"//div[4]/div/div/table/tbody/tr[4]/td[3]/div/span"));
 		assertEquals(RuntimeVariables.replace("Limit Scope"),
-			selenium.getText("//tr[3]/td[4]/span/a/span"));
-		selenium.clickAt("//tr[3]/td[4]/span/a/span",
+			selenium.getText(
+				"//div[4]/div/div/table/tbody/tr[4]/td[4]/span/a/span"));
+		selenium.clickAt("//div[4]/div/div/table/tbody/tr[4]/td[4]/span/a/span",
 			RuntimeVariables.replace("Limit Scope"));
-		selenium.waitForPopUp("site", RuntimeVariables.replace("30000"));
+		Thread.sleep(5000);
 		selenium.selectWindow("title=Roles");
 		Thread.sleep(5000);
 		selenium.waitForVisible("//tr[3]/td[1]/a");
@@ -82,9 +91,11 @@ public class DefinePermissionsRoleAddDocumentSiteOffTest extends BaseTestCase {
 		selenium.click("//tr[3]/td[1]/a");
 		selenium.selectWindow("null");
 		Thread.sleep(5000);
-		selenium.waitForText("//tr[3]/td[3]/div/span/span/span", "Global");
+		selenium.waitForText("//div[4]/div/div/table/tbody/tr[4]/td[3]/div/span",
+			"Global");
 		assertEquals(RuntimeVariables.replace("Global"),
-			selenium.getText("//tr[3]/td[3]/div/span/span/span"));
+			selenium.getText(
+				"//div[4]/div/div/table/tbody/tr[4]/td[3]/div/span"));
 		selenium.clickAt("//input[@value='Save']",
 			RuntimeVariables.replace("Save"));
 		selenium.waitForPageToLoad("30000");
@@ -93,7 +104,7 @@ public class DefinePermissionsRoleAddDocumentSiteOffTest extends BaseTestCase {
 			selenium.getText("//div[@class='portlet-msg-success']"));
 		assertEquals(RuntimeVariables.replace("Documents and Media"),
 			selenium.getText("//tr[3]/td[1]/a"));
-		assertEquals(RuntimeVariables.replace("Document Library"),
+		assertEquals(RuntimeVariables.replace("Documents and Media"),
 			selenium.getText("//tr[3]/td[2]"));
 		assertEquals(RuntimeVariables.replace("Add Document"),
 			selenium.getText("//tr[3]/td[3]"));

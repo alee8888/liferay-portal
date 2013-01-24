@@ -17,6 +17,8 @@ package com.liferay.portalweb.portal.permissions.documentsandmedia.folder.guestv
 import com.liferay.portalweb.portal.BaseTestSuite;
 import com.liferay.portalweb.portal.controlpanel.users.user.signin.SignInTest;
 import com.liferay.portalweb.portal.controlpanel.users.user.signin.SignOutTest;
+import com.liferay.portalweb.portal.permissions.documentsandmedia.document.guestviewdldocumentinline.TearDownDLDocumentTest;
+import com.liferay.portalweb.portal.permissions.documentsandmedia.folder.guestaccessdmfolderinline.AddDmFolderTest;
 import com.liferay.portalweb.portal.util.TearDownPageTest;
 import com.liferay.portalweb.portlet.documentsandmedia.portlet.addportletdm.AddPageDMTest;
 import com.liferay.portalweb.portlet.documentsandmedia.portlet.addportletdm.AddPortletDMTest;

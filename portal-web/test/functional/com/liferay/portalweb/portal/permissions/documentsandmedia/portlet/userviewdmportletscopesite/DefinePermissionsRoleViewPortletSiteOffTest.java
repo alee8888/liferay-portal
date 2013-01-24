@@ -26,7 +26,14 @@ public class DefinePermissionsRoleViewPortletSiteOffTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
-		selenium.waitForElementPresent("link=Control Panel");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		selenium.waitForElementPresent(
+			"//script[contains(@src,'/aui/aui-editable/aui-editable-min.js')]");
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
+		selenium.waitForVisible("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
 		selenium.waitForPageToLoad("30000");
@@ -47,18 +54,18 @@ public class DefinePermissionsRoleViewPortletSiteOffTest extends BaseTestCase {
 		selenium.clickAt("//td[4]/span/ul/li/strong/a/span",
 			RuntimeVariables.replace("Actions"));
 		selenium.waitForVisible(
-			"//div[@class='lfr-component lfr-menu-list']/ul/li[3]/a");
+			"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Define Permissions')]/a");
 		assertEquals(RuntimeVariables.replace("Define Permissions"),
 			selenium.getText(
-				"//div[@class='lfr-component lfr-menu-list']/ul/li[3]/a"));
+				"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Define Permissions')]/a"));
 		selenium.click(RuntimeVariables.replace(
-				"//div[@class='lfr-component lfr-menu-list']/ul/li[3]/a"));
+				"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Define Permissions')]/a"));
 		selenium.waitForPageToLoad("30000");
 		selenium.select("//select[@id='_128_add-permissions']",
 			RuntimeVariables.replace("Documents and Media"));
-		selenium.waitForPageToLoad("30000");
-		assertEquals(RuntimeVariables.replace("Document Library"),
-			selenium.getText("//h3"));
+		selenium.waitForVisible("//h3[4]");
+		assertEquals(RuntimeVariables.replace("Documents and Media"),
+			selenium.getText("//h3[4]"));
 		assertFalse(selenium.isChecked(
 				"//input[@value='com.liferay.portlet.documentlibraryVIEW']"));
 		selenium.clickAt("//input[@value='com.liferay.portlet.documentlibraryVIEW']",
@@ -66,14 +73,13 @@ public class DefinePermissionsRoleViewPortletSiteOffTest extends BaseTestCase {
 		assertTrue(selenium.isChecked(
 				"//input[@value='com.liferay.portlet.documentlibraryVIEW']"));
 		assertEquals(RuntimeVariables.replace("View"),
-			selenium.getText("//tr[11]/td[2]"));
+			selenium.getText("//tr[13]/td[2]"));
 		assertEquals(RuntimeVariables.replace("Portal"),
-			selenium.getText("//tr[11]/td[3]"));
+			selenium.getText("//tr[13]/td[3]"));
 		assertEquals(RuntimeVariables.replace("Limit Scope"),
-			selenium.getText("//tr[11]/td[4]/span/a/span"));
-		selenium.clickAt("//tr[11]/td[4]/span/a/span",
+			selenium.getText("//tr[13]/td[4]/span/a/span"));
+		selenium.clickAt("//tr[13]/td[4]/span/a/span",
 			RuntimeVariables.replace("Limit Scope"));
-		selenium.waitForPopUp("site", RuntimeVariables.replace("30000"));
 		selenium.selectWindow("title=Roles");
 		Thread.sleep(5000);
 		selenium.waitForVisible("//tr[3]/td[1]/a");
@@ -82,9 +88,9 @@ public class DefinePermissionsRoleViewPortletSiteOffTest extends BaseTestCase {
 		selenium.click("//tr[3]/td[1]/a");
 		selenium.selectWindow("null");
 		Thread.sleep(5000);
-		selenium.waitForText("//tr[11]/td[3]/div/span/span/span", "Global");
+		selenium.waitForText("//tr[13]/td[3]/div/span/span/span", "Global");
 		assertEquals(RuntimeVariables.replace("Global"),
-			selenium.getText("//tr[11]/td[3]/div/span/span/span"));
+			selenium.getText("//tr[13]/td[3]/div/span/span/span"));
 		selenium.clickAt("//input[@value='Save']",
 			RuntimeVariables.replace("Save"));
 		selenium.waitForPageToLoad("30000");

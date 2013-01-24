@@ -14,11 +14,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForVisible</td>
-	<td>link=Documents and Media Test Page</td>
-	<td>Documents and Media Test Page</td>
-</tr>
-<tr>
 	<td>clickAtAndWait</td>
 	<td>link=Documents and Media Test Page</td>
 	<td>Documents and Media Test Page</td>
@@ -40,23 +35,23 @@
 </tr>
 <tr>
 	<td>waitForVisible</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li/a[contains(.,'Basic Document')]</td>
 	<td>Basic Document</td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li/a[contains(.,'Basic Document')]</td>
 	<td>Basic Document</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li/a[contains(.,'Basic Document')]</td>
 	<td>Basic Document</td>
 </tr>
 <tr>
-	<td>type</td>
+	<td>uploadCommonFile</td>
 	<td>//input[@id='_20_file']</td>
-	<td>L:\portal\build\portal-web\test\com\liferay\portalweb\portal\permissions\documentsandmedia\dependencies\document_1.doc</td>
+	<td>Document_1.doc</td>
 </tr>
 <tr>
 	<td>type</td>
@@ -80,12 +75,12 @@
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//a[@class='document-link']/span[@class='entry-title']</td>
+	<td>//a[@class='entry-link']/span[@class='entry-title']</td>
 	<td>DM Document Title</td>
 </tr>
 <tr>
 	<td>clickAtAndWait</td>
-	<td>//a[@class='document-link']/span[@class='entry-title']</td>
+	<td>//a[@class='entry-link']/span[@class='entry-title']</td>
 	<td>DM Document Title</td>
 </tr>
 <tr>
@@ -121,7 +116,7 @@
 <tr>
 	<td>assertText</td>
 	<td>//span[@class='aui-toolbar-content']/button[6]</td>
-	<td>Delete</td>
+	<td>Move to the Recycle Bin</td>
 </tr>
 <tr>
 	<td>assertText</td>
@@ -146,7 +141,7 @@
 <tr>
 	<td>assertText</td>
 	<td>//span[@class='download-document']/span/a/span</td>
-	<td>Download (10.0k)</td>
+	<td>Download (22k)</td>
 </tr>
 </tbody></table>
 </body>

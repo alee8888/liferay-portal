@@ -22,41 +22,110 @@ import com.liferay.portalweb.portal.util.RuntimeVariables;
  */
 public class TearDownDLDocumentTest extends BaseTestCase {
 	public void testTearDownDLDocument() throws Exception {
-		selenium.selectWindow("null");
-		selenium.selectFrame("relative=top");
-		selenium.open("/web/guest/home/");
-		selenium.waitForVisible("link=Documents and Media Test Page");
-		selenium.clickAt("link=Documents and Media Test Page",
-			RuntimeVariables.replace("Documents and Media Test Page"));
-		selenium.waitForPageToLoad("30000");
-		selenium.clickAt("//button[@title='Icon View']",
-			RuntimeVariables.replace("Icon View"));
-		selenium.waitForVisible(
-			"//button[contains(@class,'aui-state-active') and @title='Icon View']");
-		Thread.sleep(5000);
-		assertFalse(selenium.isChecked("//input[@id='_20_allRowIdsCheckbox']"));
-		selenium.clickAt("//input[@id='_20_allRowIdsCheckbox']",
-			RuntimeVariables.replace("All Entries Check Box"));
-		assertTrue(selenium.isChecked("//input[@id='_20_allRowIdsCheckbox']"));
-		assertEquals(RuntimeVariables.replace("Actions"),
-			selenium.getText("//span[@title='Actions']/ul/li/strong/a/span"));
-		selenium.clickAt("//span[@title='Actions']/ul/li/strong/a/span",
-			RuntimeVariables.replace("Actions"));
-		selenium.waitForVisible(
-			"//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a");
-		assertEquals(RuntimeVariables.replace("Delete"),
-			selenium.getText(
-				"//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a"));
-		selenium.click(RuntimeVariables.replace(
-				"//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a"));
-		selenium.waitForPageToLoad("30000");
-		assertTrue(selenium.getConfirmation()
-						   .matches("^Are you sure you want to delete the selected entries[\\s\\S]$"));
-		assertEquals(RuntimeVariables.replace(
-				"Your request completed successfully."),
-			selenium.getText("//div[@class='portlet-msg-success']"));
-		assertEquals(RuntimeVariables.replace(
-				"There are no documents or media files in this folder."),
-			selenium.getText("//div[@class='portlet-msg-info']"));
+		int label = 1;
+
+		while (label >= 1) {
+			switch (label) {
+			case 1:
+				selenium.selectWindow("null");
+				selenium.selectFrame("relative=top");
+				selenium.open("/web/guest/home/");
+				selenium.clickAt("link=Documents and Media Test Page",
+					RuntimeVariables.replace("Documents and Media Test Page"));
+				selenium.waitForPageToLoad("30000");
+				selenium.waitForVisible("//button[@title='Icon View']");
+				selenium.clickAt("//button[@title='Icon View']",
+					RuntimeVariables.replace("Icon View"));
+				Thread.sleep(5000);
+				selenium.waitForVisible(
+					"//button[contains(@class,'aui-state-active') and @title='Icon View']");
+				assertTrue(selenium.isVisible(
+						"//button[contains(@class,'aui-state-active') and @title='Icon View']"));
+
+				boolean dmFolderNotRecycled = selenium.isElementPresent(
+						"//a[contains(@class,'entry-link')]/span[@class='entry-title']");
+
+				if (!dmFolderNotRecycled) {
+					label = 2;
+
+					continue;
+				}
+
+				assertFalse(selenium.isChecked(
+						"//input[@id='_20_allRowIdsCheckbox']"));
+				selenium.clickAt("//input[@id='_20_allRowIdsCheckbox']",
+					RuntimeVariables.replace("All Entries Check Box"));
+				assertTrue(selenium.isChecked(
+						"//input[@id='_20_allRowIdsCheckbox']"));
+				selenium.waitForVisible(
+					"//div[contains(@class,'display-icon selectable selected')]");
+				assertEquals(RuntimeVariables.replace("Actions"),
+					selenium.getText(
+						"//span[@title='Actions']/ul/li/strong/a/span"));
+				selenium.clickAt("//span[@title='Actions']/ul/li/strong/a/span",
+					RuntimeVariables.replace("Actions"));
+				selenium.waitForVisible(
+					"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Move to the Recycle Bin')]/a");
+				assertEquals(RuntimeVariables.replace("Move to the Recycle Bin"),
+					selenium.getText(
+						"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Move to the Recycle Bin')]/a"));
+				selenium.click(RuntimeVariables.replace(
+						"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Move to the Recycle Bin')]/a"));
+				selenium.waitForPageToLoad("30000");
+				assertTrue(selenium.isPartialText(
+						"//div[@class='portlet-msg-success taglib-trash-undo']",
+						"moved to the Recycle Bin. Undo"));
+
+			case 2:
+				assertEquals(RuntimeVariables.replace(
+						"There are no documents or media files in this folder."),
+					selenium.getText(
+						"//div[@class='entries-empty portlet-msg-info']"));
+				selenium.open("/web/guest/home/");
+				selenium.clickAt("//div[@id='dockbar']",
+					RuntimeVariables.replace("Dockbar"));
+				selenium.waitForElementPresent(
+					"//script[contains(@src,'/aui/aui-editable/aui-editable-min.js')]");
+				assertEquals(RuntimeVariables.replace("Go to"),
+					selenium.getText("//li[@id='_145_mySites']/a/span"));
+				selenium.mouseOver("//li[@id='_145_mySites']/a/span");
+				selenium.waitForVisible("link=Control Panel");
+				selenium.clickAt("link=Control Panel",
+					RuntimeVariables.replace("Control Panel"));
+				selenium.waitForPageToLoad("30000");
+				selenium.clickAt("link=Recycle Bin",
+					RuntimeVariables.replace("Recycle Bin"));
+				selenium.waitForPageToLoad("30000");
+
+				boolean dmFolderNotDeleted = selenium.isElementPresent(
+						"//span[@title='Actions']/ul/li/strong/a");
+
+				if (!dmFolderNotDeleted) {
+					label = 3;
+
+					continue;
+				}
+
+				assertEquals(RuntimeVariables.replace("Empty the Recycle Bin"),
+					selenium.getText("//a[@class='trash-empty-link']"));
+				selenium.clickAt("//a[@class='trash-empty-link']",
+					RuntimeVariables.replace("Empty the Recycle Bin"));
+				selenium.waitForPageToLoad("30000");
+				assertTrue(selenium.getConfirmation()
+								   .matches("^Are you sure you want to empty the Recycle Bin[\\s\\S]$"));
+				assertEquals(RuntimeVariables.replace(
+						"Your request completed successfully."),
+					selenium.getText("//div[@class='portlet-msg-success']"));
+
+			case 3:
+				assertEquals(RuntimeVariables.replace(
+						"The Recycle Bin is empty."),
+					selenium.getText(
+						"//div[@class='portlet-msg-info' and contains(.,'The Recycle Bin is empty.')]"));
+
+			case 100:
+				label = -1;
+			}
+		}
 	}
 }

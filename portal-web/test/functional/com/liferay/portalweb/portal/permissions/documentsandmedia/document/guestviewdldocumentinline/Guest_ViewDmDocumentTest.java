@@ -31,8 +31,8 @@ public class Guest_ViewDmDocumentTest extends BaseTestCase {
 		selenium.waitForPageToLoad("30000");
 		assertEquals(RuntimeVariables.replace("DM Document Title"),
 			selenium.getText(
-				"//a[@class='document-link']/span[@class='entry-title']"));
-		selenium.clickAt("//a[@class='document-link']/span[@class='entry-title']",
+				"//a[@class='entry-link']/span[@class='entry-title']"));
+		selenium.clickAt("//a[@class='entry-link']/span[@class='entry-title']",
 			RuntimeVariables.replace("DM Document Title"));
 		selenium.waitForPageToLoad("30000");
 		assertEquals(RuntimeVariables.replace("Download"),
@@ -43,7 +43,7 @@ public class Guest_ViewDmDocumentTest extends BaseTestCase {
 				"//span[@class='user-date']/span/span", "Uploaded by Joe Bloggs"));
 		assertEquals(RuntimeVariables.replace("Status: Approved"),
 			selenium.getText("//span[@class='workflow-status']"));
-		assertEquals(RuntimeVariables.replace("Download (10.0k)"),
+		assertEquals(RuntimeVariables.replace("Download (22k)"),
 			selenium.getText("//span[@class='download-document']/span/a/span"));
 	}
 }

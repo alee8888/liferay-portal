@@ -25,7 +25,6 @@ public class PermissionsGuestViewPortletOffTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
-		selenium.waitForVisible("link=Documents and Media Test Page");
 		selenium.clickAt("link=Documents and Media Test Page",
 			RuntimeVariables.replace("Documents and Media Test Page"));
 		selenium.waitForPageToLoad("30000");
@@ -35,27 +34,27 @@ public class PermissionsGuestViewPortletOffTest extends BaseTestCase {
 		selenium.clickAt("//span/span/ul/li/strong/a",
 			RuntimeVariables.replace("Actions"));
 		selenium.waitForVisible(
-			"//div[@class='lfr-component lfr-menu-list']/ul/li[1]/a");
+			"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Permissions')]/a");
 		assertEquals(RuntimeVariables.replace("Permissions"),
 			selenium.getText(
-				"//div[@class='lfr-component lfr-menu-list']/ul/li[1]/a"));
+				"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Permissions')]/a"));
 		selenium.click(RuntimeVariables.replace(
-				"//div[@class='lfr-component lfr-menu-list']/ul/li[1]/a"));
+				"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Permissions')]/a"));
 		selenium.waitForPageToLoad("30000");
 		assertEquals(RuntimeVariables.replace("Guest"),
 			selenium.getText("//tr[3]/td[1]/a"));
 		assertEquals(RuntimeVariables.replace("View"),
-			selenium.getText("//tr[1]/th[10]"));
-		assertTrue(selenium.isChecked("//tr[3]/td[10]/input"));
-		selenium.clickAt("//tr[3]/td[10]/input",
+			selenium.getText("//tr[1]/th[12]"));
+		assertTrue(selenium.isChecked("//tr[3]/td[12]/input"));
+		selenium.clickAt("//tr[3]/td[12]/input",
 			RuntimeVariables.replace("View Permission"));
-		assertFalse(selenium.isChecked("//tr[3]/td[10]/input"));
+		assertFalse(selenium.isChecked("//tr[3]/td[12]/input"));
 		selenium.clickAt("//input[@value='Save']",
 			RuntimeVariables.replace("Save"));
 		selenium.waitForPageToLoad("30000");
 		assertEquals(RuntimeVariables.replace(
 				"Your request completed successfully."),
 			selenium.getText("//div[@class='portlet-msg-success']"));
-		assertFalse(selenium.isChecked("//tr[3]/td[10]/input"));
+		assertFalse(selenium.isChecked("//tr[3]/td[12]/input"));
 	}
 }

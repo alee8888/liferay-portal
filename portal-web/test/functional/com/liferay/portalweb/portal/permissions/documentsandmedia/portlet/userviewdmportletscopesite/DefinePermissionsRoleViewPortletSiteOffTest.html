@@ -14,7 +14,27 @@
 	<td></td>
 </tr>
 <tr>
+	<td>clickAt</td>
+	<td>//div[@id='dockbar']</td>
+	<td>Dockbar</td>
+</tr>
+<tr>
 	<td>waitForElementPresent</td>
+	<td>//script[contains(@src,'/aui/aui-editable/aui-editable-min.js')]</td>
+	<td>AUI Editable Min</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//li[@id='_145_mySites']/a/span</td>
+	<td>Go to</td>
+</tr>
+<tr>
+	<td>mouseOver</td>
+	<td>//li[@id='_145_mySites']/a/span</td>
+	<td>Go to</td>
+</tr>
+<tr>
+	<td>waitForVisible</td>
 	<td>link=Control Panel</td>
 	<td>Control Panel</td>
 </tr>
@@ -65,28 +85,33 @@
 </tr>
 <tr>
 	<td>waitForVisible</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[3]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Define Permissions')]/a</td>
 	<td>Define Permissions</td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[3]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Define Permissions')]/a</td>
 	<td>Define Permissions</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[3]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Define Permissions')]/a</td>
 	<td>Define Permissions</td>
 </tr>
 <tr>
-	<td>selectAndWait</td>
+	<td>select</td>
 	<td>//select[@id='_128_add-permissions']</td>
 	<td>Documents and Media</td>
 </tr>
 <tr>
+	<td>waitForVisible</td>
+	<td>//h3[4]</td>
+	<td>Documents and Media</td>
+</tr>
+<tr>
 	<td>assertText</td>
-	<td>//h3</td>
-	<td>Document Library</td>
+	<td>//h3[4]</td>
+	<td>Documents and Media</td>
 </tr>
 <tr>
 	<td>assertNotChecked</td>
@@ -105,28 +130,23 @@
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//tr[11]/td[2]</td>
+	<td>//tr[13]/td[2]</td>
 	<td>View</td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//tr[11]/td[3]</td>
+	<td>//tr[13]/td[3]</td>
 	<td>Portal</td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//tr[11]/td[4]/span/a/span</td>
+	<td>//tr[13]/td[4]/span/a/span</td>
 	<td>Limit Scope</td>
 </tr>
 <tr>
 	<td>clickAt</td>
-	<td>//tr[11]/td[4]/span/a/span</td>
+	<td>//tr[13]/td[4]/span/a/span</td>
 	<td>Limit Scope</td>
-</tr>
-<tr>
-	<td>waitForPopUp</td>
-	<td>site</td>
-	<td>30000</td>
 </tr>
 <tr>
 	<td>selectWindow</td>
@@ -165,12 +185,12 @@
 </tr>
 <tr>
 	<td>waitForText</td>
-	<td>//tr[11]/td[3]/div/span/span/span</td>
+	<td>//tr[13]/td[3]/div/span/span/span</td>
 	<td>Global</td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//tr[11]/td[3]/div/span/span/span</td>
+	<td>//tr[13]/td[3]/div/span/span/span</td>
 	<td>Global</td>
 </tr>
 <tr>

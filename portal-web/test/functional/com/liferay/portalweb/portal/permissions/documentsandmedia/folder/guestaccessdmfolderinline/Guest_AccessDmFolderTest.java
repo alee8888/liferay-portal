@@ -25,25 +25,25 @@ public class Guest_AccessDmFolderTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
-		selenium.waitForVisible("link=Documents and Media Test Page");
 		selenium.clickAt("link=Documents and Media Test Page",
 			RuntimeVariables.replace("Documents and Media Test Page"));
 		selenium.waitForPageToLoad("30000");
 		assertEquals(RuntimeVariables.replace("Home"),
-			selenium.getText("//li[@class='folder selected']/a/span[2]"));
+			selenium.getText(
+				"//li[@class='app-view-navigation-entry folder selected']/a/span[2]"));
 		assertEquals(RuntimeVariables.replace("DM Folder Name"),
 			selenium.getText(
-				"//a[contains(@class,'document-link')]/span[@class='entry-title']"));
-		selenium.clickAt("//a[contains(@class,'document-link')]/span[@class='entry-title']",
+				"//a[contains(@class,'entry-link')]/span[@class='entry-title']"));
+		selenium.clickAt("//a[contains(@class,'entry-link')]/span[@class='entry-title']",
 			RuntimeVariables.replace("DM Folder Name"));
-		selenium.waitForText("//li[@class='folder selected']/a/span[2]",
+		selenium.waitForText("xpath=(//span[@class='entry-title'])[2]",
 			"DM Folder Name");
 		assertEquals(RuntimeVariables.replace("DM Folder Name"),
-			selenium.getText("//li[@class='folder selected']/a/span[2]"));
+			selenium.getText("xpath=(//span[@class='entry-title'])[2]"));
 		assertEquals(RuntimeVariables.replace("DM Folder Image Title"),
 			selenium.getText(
-				"//a[@class='document-link']/span[@class='entry-title']"));
-		selenium.clickAt("//a[@class='document-link']/span[@class='entry-title']",
+				"//a[@class='entry-link']/span[@class='entry-title']"));
+		selenium.clickAt("//a[@class='entry-link']/span[@class='entry-title']",
 			RuntimeVariables.replace("DM Folder Image Title"));
 		selenium.waitForPageToLoad("30000");
 		assertEquals(RuntimeVariables.replace("URL"),

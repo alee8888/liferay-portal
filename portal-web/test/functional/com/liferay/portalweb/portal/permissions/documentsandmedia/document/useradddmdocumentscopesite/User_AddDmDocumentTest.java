@@ -42,9 +42,8 @@ public class User_AddDmDocumentTest extends BaseTestCase {
 		selenium.click(RuntimeVariables.replace(
 				"//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a"));
 		selenium.waitForPageToLoad("30000");
-		selenium.type("//input[@id='_20_file']",
-			RuntimeVariables.replace(
-				"L:\\portal\\build\\portal-web\\test\\com\\liferay\\portalweb\\portal\\permissions\\documentsandmedia\\dependencies\\document_1.doc"));
+		selenium.uploadCommonFile("//input[@id='_20_file']",
+			RuntimeVariables.replace("Document_1.doc"));
 		selenium.type("//input[@id='_20_title']",
 			RuntimeVariables.replace("DM Document Title"));
 		selenium.clickAt("//input[@value='Publish']",
@@ -57,8 +56,8 @@ public class User_AddDmDocumentTest extends BaseTestCase {
 			selenium.getText("//div[@class='portlet-msg-success']"));
 		assertEquals(RuntimeVariables.replace("DM Document Title"),
 			selenium.getText(
-				"//a[@class='document-link']/span[@class='entry-title']"));
-		selenium.clickAt("//a[@class='document-link']/span[@class='entry-title']",
+				"//a[@class='entry-link']/span[@class='entry-title']"));
+		selenium.clickAt("//a[@class='entry-link']/span[@class='entry-title']",
 			RuntimeVariables.replace("DM Document Title"));
 		selenium.waitForPageToLoad("30000");
 		selenium.waitForText("//span[@class='aui-toolbar-content']/button[1]",
@@ -73,7 +72,7 @@ public class User_AddDmDocumentTest extends BaseTestCase {
 			selenium.getText("//span[@class='aui-toolbar-content']/button[4]"));
 		assertEquals(RuntimeVariables.replace("Permissions"),
 			selenium.getText("//span[@class='aui-toolbar-content']/button[5]"));
-		assertEquals(RuntimeVariables.replace("Delete"),
+		assertEquals(RuntimeVariables.replace("Move to the Recycle Bin"),
 			selenium.getText("//span[@class='aui-toolbar-content']/button[6]"));
 		assertEquals(RuntimeVariables.replace("DM Document Title"),
 			selenium.getText("//h1[@class='header-title']/span"));
@@ -84,7 +83,7 @@ public class User_AddDmDocumentTest extends BaseTestCase {
 			selenium.getText("//h3[contains(@class,'version')]"));
 		assertEquals(RuntimeVariables.replace("Status: Approved"),
 			selenium.getText("//span[@class='workflow-status']"));
-		assertEquals(RuntimeVariables.replace("Download (10.0k)"),
+		assertEquals(RuntimeVariables.replace("Download (22k)"),
 			selenium.getText("//span[@class='download-document']/span/a/span"));
 	}
 }

@@ -30,23 +30,22 @@ public class PermissionsGuestAccessFolderOnTest extends BaseTestCase {
 				selenium.selectWindow("null");
 				selenium.selectFrame("relative=top");
 				selenium.open("/web/guest/home/");
-				selenium.waitForVisible("link=Documents and Media Test Page");
 				selenium.clickAt("link=Documents and Media Test Page",
 					RuntimeVariables.replace("Documents and Media Test Page"));
 				selenium.waitForPageToLoad("30000");
 				Thread.sleep(5000);
 				assertEquals(RuntimeVariables.replace("DM Folder Name"),
 					selenium.getText(
-						"//a[contains(@class,'document-link')]/span[@class='entry-title']"));
-				selenium.clickAt("xPath=(//span[contains(@class,'document-action')])[2]/span/ul/li/strong/a",
+						"//a[contains(@class,'entry-link')]/span[@class='entry-title']"));
+				selenium.clickAt("//a[@id='_20_bbln_menuButton']",
 					RuntimeVariables.replace("Actions"));
 				selenium.waitForVisible(
-					"//div[@class='lfr-component lfr-menu-list']/ul/li[3]/a");
+					"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Permissions')]/a");
 				assertEquals(RuntimeVariables.replace("Permissions"),
 					selenium.getText(
-						"//div[@class='lfr-component lfr-menu-list']/ul/li[3]/a"));
+						"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Permissions')]/a"));
 				selenium.click(RuntimeVariables.replace(
-						"//div[@class='lfr-component lfr-menu-list']/ul/li[3]/a"));
+						"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Permissions')]/a"));
 				selenium.waitForPageToLoad("30000");
 				assertEquals(RuntimeVariables.replace("Guest"),
 					selenium.getText("//tr[3]/td[1]/a"));

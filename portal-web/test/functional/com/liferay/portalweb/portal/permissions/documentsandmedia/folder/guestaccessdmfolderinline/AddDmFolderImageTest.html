@@ -25,22 +25,22 @@
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//a[contains(@class,'document-link')]/span[@class='entry-title']</td>
+	<td>//a[contains(@class,'entry-link')]/span[@class='entry-title']</td>
 	<td>DM Folder Name</td>
 </tr>
 <tr>
 	<td>clickAt</td>
-	<td>//a[contains(@class,'document-link')]/span[@class='entry-title']</td>
+	<td>//a[contains(@class,'entry-link')]/span[@class='entry-title']</td>
 	<td>DM Folder Name</td>
 </tr>
 <tr>
 	<td>waitForText</td>
-	<td>//li[@class='folder selected']/a/span[2]</td>
+	<td>xpath=(//span[@class='entry-title'])[2]</td>
 	<td>DM Folder Name</td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//li[@class='folder selected']/a/span[2]</td>
+	<td>xpath=(//span[@class='entry-title'])[2]</td>
 	<td>DM Folder Name</td>
 </tr>
 <tr>
@@ -60,23 +60,23 @@
 </tr>
 <tr>
 	<td>waitForVisible</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li/a[contains(.,'Basic Document')]</td>
 	<td>Basic Document</td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[4]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li/a[contains(.,'Basic Document')]</td>
 	<td>Basic Document</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[4]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li/a[contains(.,'Basic Document')]</td>
 	<td>Basic Document</td>
 </tr>
 <tr>
-	<td>type</td>
+	<td>uploadCommonFile</td>
 	<td>//input[@id='_20_file']</td>
-	<td>L:\portal\build\portal-web\test\com\liferay\portalweb\portal\permissions\documentsandmedia\dependencies\image_1.jpg</td>
+	<td>Document_1.jpg</td>
 </tr>
 <tr>
 	<td>type</td>
@@ -100,7 +100,7 @@
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//a[@class='document-link']/span[@class='entry-title']</td>
+	<td>//a[@class='entry-link']/span[@class='entry-title']</td>
 	<td>DM Folder Image Title</td>
 </tr>
 </tbody></table>

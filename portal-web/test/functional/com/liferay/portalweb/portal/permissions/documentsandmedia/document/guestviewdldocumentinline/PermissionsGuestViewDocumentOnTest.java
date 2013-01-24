@@ -30,31 +30,30 @@ public class PermissionsGuestViewDocumentOnTest extends BaseTestCase {
 				selenium.selectWindow("null");
 				selenium.selectFrame("relative=top");
 				selenium.open("/web/guest/home/");
-				selenium.waitForVisible("link=Documents and Media Test Page");
 				selenium.clickAt("link=Documents and Media Test Page",
 					RuntimeVariables.replace("Documents and Media Test Page"));
 				selenium.waitForPageToLoad("30000");
 				Thread.sleep(5000);
 				assertEquals(RuntimeVariables.replace("DM Document Title"),
 					selenium.getText(
-						"//a[@class='document-link']/span[@class='entry-title']"));
-				selenium.clickAt("xPath=(//span[contains(@class,'document-action')])[2]/span/ul/li/strong/a",
+						"//a[@class='entry-link']/span[@class='entry-title']"));
+				selenium.clickAt("//a[@id='_20_bbln_menuButton']",
 					RuntimeVariables.replace("Actions"));
 				selenium.waitForVisible(
-					"//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a");
+					"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Permissions')]/a");
 				assertEquals(RuntimeVariables.replace("Permissions"),
 					selenium.getText(
-						"//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a"));
+						"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Permissions')]/a"));
 				selenium.click(RuntimeVariables.replace(
 						"//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a"));
 				selenium.waitForPageToLoad("30000");
 				assertEquals(RuntimeVariables.replace("Guest"),
 					selenium.getText("//tr[3]/td[1]/a"));
 				assertEquals(RuntimeVariables.replace("View"),
-					selenium.getText("//tr[1]/th[8]"));
+					selenium.getText("//tr[1]/th[9]"));
 
 				boolean viewDocumentPermissionsChecked = selenium.isChecked(
-						"//tr[3]/td[8]/input");
+						"//tr[3]/td[9]/input");
 
 				if (viewDocumentPermissionsChecked) {
 					label = 2;
@@ -62,19 +61,19 @@ public class PermissionsGuestViewDocumentOnTest extends BaseTestCase {
 					continue;
 				}
 
-				assertFalse(selenium.isChecked("//tr[3]/td[8]/input"));
-				selenium.clickAt("//tr[3]/td[8]/input",
+				assertFalse(selenium.isChecked("//tr[3]/td[9]/input"));
+				selenium.clickAt("//tr[3]/td[9]/input",
 					RuntimeVariables.replace("View Document Permission"));
 
 			case 2:
-				assertTrue(selenium.isChecked("//tr[3]/td[8]/input"));
+				assertTrue(selenium.isChecked("//tr[3]/td[9]/input"));
 				selenium.clickAt("//input[@value='Save']",
 					RuntimeVariables.replace("Save"));
 				selenium.waitForPageToLoad("30000");
 				assertEquals(RuntimeVariables.replace(
 						"Your request completed successfully."),
 					selenium.getText("//div[@class='portlet-msg-success']"));
-				assertTrue(selenium.isChecked("//tr[3]/td[8]/input"));
+				assertTrue(selenium.isChecked("//tr[3]/td[9]/input"));
 
 			case 100:
 				label = -1;

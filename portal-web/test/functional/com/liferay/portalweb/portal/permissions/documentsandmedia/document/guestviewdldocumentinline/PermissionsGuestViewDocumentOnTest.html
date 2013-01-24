@@ -14,11 +14,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>waitForVisible</td>
-	<td>link=Documents and Media Test Page</td>
-	<td>Documents and Media Test Page</td>
-</tr>
-<tr>
 	<td>clickAtAndWait</td>
 	<td>link=Documents and Media Test Page</td>
 	<td>Documents and Media Test Page</td>
@@ -30,28 +25,28 @@
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//a[@class='document-link']/span[@class='entry-title']</td>
+	<td>//a[@class='entry-link']/span[@class='entry-title']</td>
 	<td>DM Document Title</td>
 </tr>
 <tr>
 	<td>clickAt</td>
-	<td>xPath=(//span[contains(@class,'document-action')])[2]/span/ul/li/strong/a</td>
+	<td>//a[@id='_20_bbln_menuButton']</td>
 	<td>Actions</td>
 </tr>
 <tr>
 	<td>waitForVisible</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Permissions')]/a</td>
 	<td>Permissions</td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Permissions')]/a</td>
 	<td>Permissions</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
 	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a</td>
-	<td>Permissions</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Permissions')]/a</td>
 </tr>
 <tr>
 	<td>assertText</td>
@@ -60,12 +55,12 @@
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//tr[1]/th[8]</td>
+	<td>//tr[1]/th[9]</td>
 	<td>View</td>
 </tr>
 <tr>
 	<td>store</td>
-	<td>eval(selenium.isChecked('//tr[3]/td[8]/input'))</td>
+	<td>eval(selenium.isChecked('//tr[3]/td[9]/input'))</td>
 	<td>viewDocumentPermissionsChecked</td>
 </tr>
 <tr>
@@ -75,12 +70,12 @@
 </tr>
 <tr>
 	<td>assertNotChecked</td>
-	<td>//tr[3]/td[8]/input</td>
+	<td>//tr[3]/td[9]/input</td>
 	<td>Add Document Permission</td>
 </tr>
 <tr>
 	<td>clickAt</td>
-	<td>//tr[3]/td[8]/input</td>
+	<td>//tr[3]/td[9]/input</td>
 	<td>View Document Permission</td>
 </tr>
 <tr>
@@ -90,7 +85,7 @@
 </tr>
 <tr>
 	<td>assertChecked</td>
-	<td>//tr[3]/td[8]/input</td>
+	<td>//tr[3]/td[9]/input</td>
 	<td>View Document Permission</td>
 </tr>
 <tr>
@@ -105,11 +100,9 @@
 </tr>
 <tr>
 	<td>assertChecked</td>
-	<td>//tr[3]/td[8]/input</td>
+	<td>//tr[3]/td[9]/input</td>
 	<td>View Document Permission</td>
 </tr>
-
-
 </tbody></table>
 </body>
 </html>
