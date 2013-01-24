@@ -25,6 +25,11 @@ public class Member_AssertFolderPermissionsTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
@@ -32,14 +37,14 @@ public class Member_AssertFolderPermissionsTest extends BaseTestCase {
 		selenium.clickAt("link=Documents and Media",
 			RuntimeVariables.replace("Documents and Media"));
 		selenium.waitForPageToLoad("30000");
-		selenium.click(
-			"//span[@class='overlay document-action']/span/ul/li/strong/a");
-		selenium.waitForVisible(
-			"//div[@class='lfr-component lfr-menu-list']/ul/li[1]/a");
+		selenium.clickAt("//a[@id='_20_bbln_menuButton']",
+			RuntimeVariables.replace("Folder Actions"));
+		selenium.waitForVisible("//a[@id='_20_bbln_menuButton']");
 		selenium.click(RuntimeVariables.replace(
 				"//div[@class='lfr-component lfr-menu-list']/ul/li[1]/a"));
 		selenium.waitForPageToLoad("30000");
-		assertTrue(selenium.isVisible("//div[@id='rolesSearchContainer']"));
+		assertTrue(selenium.isVisible(
+				"//div[@id='_86_rolesSearchContainerSearchContainer']"));
 		selenium.clickAt("//input[@value='Save']",
 			RuntimeVariables.replace("Save"));
 		selenium.waitForPageToLoad("30000");

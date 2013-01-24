@@ -14,6 +14,21 @@
 	<td></td>
 </tr>
 <tr>
+	<td>clickAt</td>
+	<td>//div[@id='dockbar']</td>
+	<td>Dockbar</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//li[@id='_145_mySites']/a/span</td>
+	<td>Go to</td>
+</tr>
+<tr>
+	<td>mouseOver</td>
+	<td>//li[@id='_145_mySites']/a/span</td>
+	<td>Go to</td>
+</tr>
+<tr>
 	<td>waitForElementPresent</td>
 	<td>link=Control Panel</td>
 	<td>Control Panel</td>
@@ -34,24 +49,44 @@
 	<td>Edit</td>
 </tr>
 <tr>
-	<td>assertNotVisible</td>
-	<td>link=Move</td>
-	<td>Move</td>
+	<td>clickAt</td>
+	<td>//a[@id='_20_bbln_menuButton']</td>
+	<td>Document Actions</td>
 </tr>
 <tr>
-	<td>assertNotVisible</td>
-	<td>link=Checkout</td>
-	<td>Checkout</td>
+	<td>waitForVisible</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,' Download (0k) ')]/a</td>
+	<td>Download (0k) </td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//a[contains(@class,'document-link')]/span[@class='entry-title']</td>
-	<td>TestDocument.txt</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,' Download (0k) ')]/a</td>
+	<td>Download (0k)</td>
+</tr>
+<tr>
+	<td>assertElementNotPresent</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Edit')]/a</td>
+	<td>Edit</td>
+</tr>
+<tr>
+	<td>assertElementNotPresent</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Move')]/a</td>
+	<td>Move</td>
+</tr>
+<tr>
+	<td>assertElementNotPresent</td>
+	<td>div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Checkout')]/a</td>
+	<td>Move</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//a[contains(@class,'entry-link')]/span[@class='entry-title']</td>
+	<td>Document_1.txt</td>
 </tr>
 <tr>
 	<td>clickAtAndWait</td>
-	<td>//a[contains(@class,'document-link')]/span[@class='entry-title']</td>
-	<td>TestDocument.txt</td>
+	<td>//a[contains(@class,'entry-link')]/span[@class='entry-title']</td>
+	<td>Document_1.txt</td>
 </tr>
 <tr>
 	<td>assertText</td>
@@ -88,8 +123,6 @@
 	<td>Checkout</td>
 	<td></td>
 </tr>
-
-
 </tbody></table>
 </body>
 </html>

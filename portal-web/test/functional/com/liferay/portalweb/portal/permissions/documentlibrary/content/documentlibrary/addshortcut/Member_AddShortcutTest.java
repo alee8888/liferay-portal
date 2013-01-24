@@ -25,6 +25,11 @@ public class Member_AddShortcutTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
@@ -34,7 +39,7 @@ public class Member_AddShortcutTest extends BaseTestCase {
 		selenium.waitForPageToLoad("30000");
 		assertEquals(RuntimeVariables.replace(
 				"There are no documents or media files in this folder."),
-			selenium.getText("//div[@class='portlet-msg-info']"));
+			selenium.getText("//div[@class='entries-empty portlet-msg-info']"));
 		assertTrue(selenium.isVisible("link=Add"));
 		selenium.clickAt("link=Add", RuntimeVariables.replace("Add"));
 		selenium.waitForVisible(
@@ -61,11 +66,11 @@ public class Member_AddShortcutTest extends BaseTestCase {
 		selenium.selectWindow("title=Documents and Media");
 		selenium.waitForVisible("//tr[3]/td/a");
 		selenium.clickAt("//tr[3]/td/a",
-			RuntimeVariables.replace("TestDocument.txt"));
+			RuntimeVariables.replace("Document_1.txt"));
 		selenium.selectWindow("null");
 		selenium.waitForText("//span[@id='_20_toFileEntryTitle']",
-			"TestDocument.txt");
-		assertEquals(RuntimeVariables.replace("TestDocument.txt"),
+			"Document_1.txt");
+		assertEquals(RuntimeVariables.replace("Document_1.txt"),
 			selenium.getText("//span[@id='_20_toFileEntryTitle']"));
 		selenium.clickAt("//input[@value='Save']",
 			RuntimeVariables.replace("Save"));
@@ -73,8 +78,8 @@ public class Member_AddShortcutTest extends BaseTestCase {
 		assertEquals(RuntimeVariables.replace(
 				"Your request completed successfully."),
 			selenium.getText("//div[@class='portlet-msg-success']"));
-		assertEquals(RuntimeVariables.replace("TestDocument.txt"),
+		assertEquals(RuntimeVariables.replace("Document_1.txt"),
 			selenium.getText(
-				"//a[contains(@class,'document-link')]/span[@class='entry-title']"));
+				"//a[contains(@class,'entry-link')]/span[@class='entry-title']"));
 	}
 }

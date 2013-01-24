@@ -26,6 +26,11 @@ public class Member_AssertCannotUpdateDocumentTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
@@ -34,13 +39,24 @@ public class Member_AssertCannotUpdateDocumentTest extends BaseTestCase {
 			RuntimeVariables.replace("Documents and Media"));
 		selenium.waitForPageToLoad("30000");
 		assertTrue(selenium.isElementNotPresent("link=Edit"));
-		assertFalse(selenium.isVisible("link=Move"));
-		assertFalse(selenium.isVisible("link=Checkout"));
-		assertEquals(RuntimeVariables.replace("TestDocument.txt"),
+		selenium.clickAt("//a[@id='_20_bbln_menuButton']",
+			RuntimeVariables.replace("Document Actions"));
+		selenium.waitForVisible(
+			"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,' Download (0k) ')]/a");
+		assertEquals(RuntimeVariables.replace("Download (0k)"),
 			selenium.getText(
-				"//a[contains(@class,'document-link')]/span[@class='entry-title']"));
-		selenium.clickAt("//a[contains(@class,'document-link')]/span[@class='entry-title']",
-			RuntimeVariables.replace("TestDocument.txt"));
+				"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,' Download (0k) ')]/a"));
+		assertTrue(selenium.isElementNotPresent(
+				"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Edit')]/a"));
+		assertTrue(selenium.isElementNotPresent(
+				"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Move')]/a"));
+		assertTrue(selenium.isElementNotPresent(
+				"div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Checkout')]/a"));
+		assertEquals(RuntimeVariables.replace("Document_1.txt"),
+			selenium.getText(
+				"//a[contains(@class,'entry-link')]/span[@class='entry-title']"));
+		selenium.clickAt("//a[contains(@class,'entry-link')]/span[@class='entry-title']",
+			RuntimeVariables.replace("Document_1.txt"));
 		selenium.waitForPageToLoad("30000");
 		assertEquals(RuntimeVariables.replace("Download"),
 			selenium.getText("//div[@id='_20_fileEntryToolbar']/span/button[1]"));

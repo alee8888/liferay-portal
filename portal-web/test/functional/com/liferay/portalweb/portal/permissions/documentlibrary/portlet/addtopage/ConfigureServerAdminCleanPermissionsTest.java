@@ -26,6 +26,13 @@ public class ConfigureServerAdminCleanPermissionsTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		selenium.waitForElementPresent(
+			"//script[contains(@src,'/aui/aui-editable/aui-editable-min.js')]");
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
@@ -35,10 +42,10 @@ public class ConfigureServerAdminCleanPermissionsTest extends BaseTestCase {
 		selenium.waitForPageToLoad("30000");
 		assertEquals(RuntimeVariables.replace(
 				"Clean Up Permissions This process removes the assignment of some permissions on the Guest, User and Power User roles in order to simplify the management of \"User Customizable Pages\". Notably, \"Add To Page\" permissions is removed from the Guest, and User role for all portlets. Likewise the same permission is reduced in scope for Power Users from portal wide to scoped to \"User Personal Site\"."),
-			selenium.getText("//tr[9]/td"));
-		selenium.clickAt("xpath=(//input[@value='Execute'])[9]",
+			selenium.getText("//tr[11]/td"));
+		selenium.clickAt("xpath=(//input[@value='Execute'])[11]",
 			RuntimeVariables.replace("Clean Up Permissions"));
-		selenium.waitForPageToLoad("30000");
+		selenium.waitForVisible("//div[@class='portlet-msg-success']");
 		assertEquals(RuntimeVariables.replace(
 				"Your request completed successfully."),
 			selenium.getText("//div[@class='portlet-msg-success']"));

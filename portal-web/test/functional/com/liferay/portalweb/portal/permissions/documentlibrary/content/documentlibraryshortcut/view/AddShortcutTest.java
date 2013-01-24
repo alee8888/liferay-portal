@@ -25,6 +25,13 @@ public class AddShortcutTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		selenium.waitForElementPresent(
+			"//script[contains(@src,'/aui/aui-editable/aui-editable-min.js')]");
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
@@ -32,19 +39,20 @@ public class AddShortcutTest extends BaseTestCase {
 		selenium.clickAt("link=Documents and Media",
 			RuntimeVariables.replace("Documents and Media"));
 		selenium.waitForPageToLoad("30000");
-		assertTrue(selenium.isVisible("link=Add"));
-		selenium.clickAt("link=Add", RuntimeVariables.replace("Add"));
+		assertTrue(selenium.isVisible("//span[@title='Add']/ul/li/strong/a"));
+		selenium.clickAt("//span[@title='Add']/ul/li/strong/a",
+			RuntimeVariables.replace("Add"));
 		selenium.waitForVisible(
-			"//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a");
+			"//div[@class='lfr-component lfr-menu-list']/ul/li/a[contains(.,'Shortcut')]");
 		assertEquals(RuntimeVariables.replace("Shortcut"),
 			selenium.getText(
-				"//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a"));
+				"//div[@class='lfr-component lfr-menu-list']/ul/li/a[contains(.,'Shortcut')]"));
 		selenium.click(RuntimeVariables.replace(
-				"//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a"));
+				"//div[@class='lfr-component lfr-menu-list']/ul/li/a[contains(.,'Shortcut')]"));
 		selenium.waitForPageToLoad("30000");
 		selenium.clickAt("xPath=(//input[@value='Select'])[1]",
 			RuntimeVariables.replace("Select Site"));
-		Thread.sleep(5000);
+		Thread.sleep(1000);
 		selenium.selectWindow("title=Documents and Media");
 		selenium.waitForVisible("link=Liferay");
 		selenium.clickAt("link=Liferay", RuntimeVariables.replace("Liferay"));
@@ -54,17 +62,17 @@ public class AddShortcutTest extends BaseTestCase {
 			selenium.getText("//span[@id='_20_toGroupName']"));
 		selenium.clickAt("xPath=(//input[@value='Select'])[2]",
 			RuntimeVariables.replace("Select Site"));
-		Thread.sleep(5000);
+		Thread.sleep(1000);
 		selenium.selectWindow("title=Documents and Media");
 		selenium.waitForVisible("//tr[3]/td/a");
 		selenium.clickAt("//tr[3]/td/a",
-			RuntimeVariables.replace("TestDocument.txt"));
+			RuntimeVariables.replace("Document_1.txt"));
 		selenium.selectWindow("null");
 		selenium.waitForText("//span[@id='_20_toFileEntryTitle']",
-			"TestDocument.txt");
+			"Document_1.txt");
 		assertEquals(RuntimeVariables.replace("Liferay"),
 			selenium.getText("//span[@id='_20_toGroupName']"));
-		assertEquals(RuntimeVariables.replace("TestDocument.txt"),
+		assertEquals(RuntimeVariables.replace("Document_1.txt"),
 			selenium.getText("//span[@id='_20_toFileEntryTitle']"));
 		selenium.select("//select[@id='_20_inputPermissionsViewRole']",
 			RuntimeVariables.replace("Owner"));
@@ -84,11 +92,11 @@ public class AddShortcutTest extends BaseTestCase {
 		assertEquals(RuntimeVariables.replace(
 				"Your request completed successfully."),
 			selenium.getText("//div[@class='portlet-msg-success']"));
-		assertEquals(RuntimeVariables.replace("TestDocument.txt"),
+		assertEquals(RuntimeVariables.replace("Document_1.txt"),
 			selenium.getText(
-				"xPath=(//a[contains(@class,'document-link')]/span[@class='entry-title'])[1]"));
-		assertEquals(RuntimeVariables.replace("TestDocument.txt"),
+				"xPath=(//a[contains(@class,'entry-link')]/span[@class='entry-title'])[1]"));
+		assertEquals(RuntimeVariables.replace("Document_1.txt"),
 			selenium.getText(
-				"xPath=(//a[contains(@class,'document-link')]/span[@class='entry-title'])[2]"));
+				"xPath=(//a[contains(@class,'entry-link')]/span[@class='entry-title'])[2]"));
 	}
 }

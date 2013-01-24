@@ -14,6 +14,21 @@
 	<td></td>
 </tr>
 <tr>
+	<td>clickAt</td>
+	<td>//div[@id='dockbar']</td>
+	<td>Dockbar</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//li[@id='_145_mySites']/a/span</td>
+	<td>Go to</td>
+</tr>
+<tr>
+	<td>mouseOver</td>
+	<td>//li[@id='_145_mySites']/a/span</td>
+	<td>Go to</td>
+</tr>
+<tr>
 	<td>waitForElementPresent</td>
 	<td>link=Control Panel</td>
 	<td>Control Panel</td>
@@ -45,13 +60,13 @@
 </tr>
 <tr>
 	<td>assertNotVisible</td>
-	<td>link=Actions</td>
+	<td>//span[@title='Actions']/ul/li/strong/a</td>
 	<td>Actions</td>
 </tr>
 <tr>
-	<td>assertNotVisible</td>
-	<td>link=Delete</td>
-	<td>Delete</td>
+	<td>assertElementNotPresent</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a</td>
+	<td>Move to the Recycle Bin</td>
 </tr>
 </tbody></table>
 </body>

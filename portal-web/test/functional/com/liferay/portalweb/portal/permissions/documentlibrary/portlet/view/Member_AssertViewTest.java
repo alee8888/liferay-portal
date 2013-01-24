@@ -25,7 +25,6 @@ public class Member_AssertViewTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
-		selenium.waitForVisible("link=Document Library Permissions Page");
 		selenium.clickAt("link=Document Library Permissions Page",
 			RuntimeVariables.replace("Document Library Permissions Page"));
 		selenium.waitForPageToLoad("30000");
@@ -33,6 +32,6 @@ public class Member_AssertViewTest extends BaseTestCase {
 			selenium.getText("//span[@class='portlet-title-text']"));
 		assertEquals(RuntimeVariables.replace(
 				"There are no documents or media files in this folder."),
-			selenium.getText("//div[@class='portlet-msg-info']"));
+			selenium.getText("//div[@class='entries-empty portlet-msg-info']"));
 	}
 }

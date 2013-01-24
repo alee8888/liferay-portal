@@ -25,6 +25,11 @@ public class Member_AssertViewShortcutTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
@@ -33,8 +38,8 @@ public class Member_AssertViewShortcutTest extends BaseTestCase {
 			RuntimeVariables.replace("Documents and Media"));
 		selenium.waitForPageToLoad("30000");
 		assertTrue(selenium.isVisible(
-				"xPath=(//a[contains(@class,'document-link')]/span[@class='entry-title'])[1]"));
+				"xPath=(//a[contains(@class,'entry-link')]/span[@class='entry-title'])[1]"));
 		assertTrue(selenium.isVisible(
-				"xPath=(//a[contains(@class,'document-link')]/span[@class='entry-title'])[2]"));
+				"xPath=(//a[contains(@class,'entry-link')]/span[@class='entry-title'])[2]"));
 	}
 }

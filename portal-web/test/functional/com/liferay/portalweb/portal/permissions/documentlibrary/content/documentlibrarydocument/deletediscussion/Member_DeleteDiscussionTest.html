@@ -14,6 +14,21 @@
 	<td></td>
 </tr>
 <tr>
+	<td>clickAt</td>
+	<td>//div[@id='dockbar']</td>
+	<td>Dockbar</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//li[@id='_145_mySites']/a/span</td>
+	<td>Go to</td>
+</tr>
+<tr>
+	<td>mouseOver</td>
+	<td>//li[@id='_145_mySites']/a/span</td>
+	<td>Go to</td>
+</tr>
+<tr>
 	<td>waitForElementPresent</td>
 	<td>link=Control Panel</td>
 	<td>Control Panel</td>
@@ -30,8 +45,8 @@
 </tr>
 <tr>
 	<td>clickAtAndWait</td>
-	<td>//a[contains(@class,'document-link')]/span[@class='entry-title']</td>
-	<td>TestDocument.txt</td>
+	<td>//a[contains(@class,'entry-link')]/span[@class='entry-title']</td>
+	<td>Document_1.txt</td>
 </tr>
 <tr>
 	<td>assertText</td>
@@ -44,8 +59,8 @@
 	<td>Delete</td>
 </tr>
 <tr>
-	<td>assertConfirmation</td>
-	<td>Are you sure you want to delete this?</td>
+	<td>waitForConfirmation</td>
+	<td>Are you sure you want to delete this? It will be deleted immediately.</td>
 	<td></td>
 </tr>
 <tr>
@@ -58,7 +73,6 @@
 	<td>//div[@id='_20_discussion-status-messages']</td>
 	<td>Your request processed successfully.</td>
 </tr>
-
 </tbody></table>
 </body>
 </html>

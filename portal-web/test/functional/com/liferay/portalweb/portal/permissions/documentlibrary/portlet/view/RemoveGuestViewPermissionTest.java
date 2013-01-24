@@ -22,36 +22,71 @@ import com.liferay.portalweb.portal.util.RuntimeVariables;
  */
 public class RemoveGuestViewPermissionTest extends BaseTestCase {
 	public void testRemoveGuestViewPermission() throws Exception {
-		selenium.selectWindow("null");
-		selenium.selectFrame("relative=top");
-		selenium.open("/web/guest/home/");
-		selenium.waitForVisible("link=Document Library Permissions Page");
-		selenium.clickAt("link=Document Library Permissions Page",
-			RuntimeVariables.replace("Document Library Permissions Page"));
-		selenium.waitForPageToLoad("30000");
-		Thread.sleep(5000);
-		assertEquals(RuntimeVariables.replace("Options"),
-			selenium.getText("//span[@title='Options']/ul/li/strong/a"));
-		selenium.clickAt("//span[@title='Options']/ul/li/strong/a",
-			RuntimeVariables.replace("Options"));
-		selenium.waitForVisible(
-			"//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a");
-		assertEquals(RuntimeVariables.replace("Configuration"),
-			selenium.getText(
-				"//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a"));
-		selenium.click("//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a");
-		selenium.waitForVisible("//input[@value='Save']");
-		assertEquals(RuntimeVariables.replace("Permissions"),
-			selenium.getText("//ul[@class='aui-tabview-list']/li[2]/span/a"));
-		selenium.clickAt("//ul[@class='aui-tabview-list']/li[2]/span/a",
-			RuntimeVariables.replace("Permissions"));
-		selenium.waitForPageToLoad("30000");
-		selenium.uncheck("//tbody/tr[3]/td[5]/input");
-		selenium.clickAt("//input[@value='Save']",
-			RuntimeVariables.replace("Save"));
-		selenium.waitForPageToLoad("30000");
-		assertEquals(RuntimeVariables.replace(
-				"Your request completed successfully."),
-			selenium.getText("//div[@class='portlet-msg-success']"));
+		int label = 1;
+
+		while (label >= 1) {
+			switch (label) {
+			case 1:
+				selenium.selectWindow("null");
+				selenium.selectFrame("relative=top");
+				selenium.open("/web/guest/home/");
+				selenium.clickAt("link=Document Library Permissions Page",
+					RuntimeVariables.replace(
+						"Document Library Permissions Page"));
+				selenium.waitForPageToLoad("30000");
+				Thread.sleep(5000);
+				assertEquals(RuntimeVariables.replace("Options"),
+					selenium.getText("//span[@title='Options']/ul/li/strong/a"));
+				selenium.clickAt("//span[@title='Options']/ul/li/strong/a",
+					RuntimeVariables.replace("Options"));
+				selenium.waitForVisible(
+					"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Configuration')]/a");
+				assertEquals(RuntimeVariables.replace("Configuration"),
+					selenium.getText(
+						"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Configuration')]/a"));
+				selenium.click(
+					"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Configuration')]/a");
+				selenium.waitForVisible(
+					"//iframe[contains(@id,'configurationIframeDialog')]");
+				selenium.selectFrame(
+					"//iframe[contains(@id,'configurationIframeDialog')]");
+				selenium.waitForElementPresent(
+					"//script[contains(@src,'/liferay/navigation_interaction.js')]");
+				selenium.waitForVisible(
+					"//ul[@class='aui-tabview-list']/li/span/a[contains(.,'Permissions')]");
+				assertEquals(RuntimeVariables.replace("Permissions"),
+					selenium.getText(
+						"//ul[@class='aui-tabview-list']/li/span/a[contains(.,'Permissions')]"));
+				selenium.clickAt("//ul[@class='aui-tabview-list']/li/span/a[contains(.,'Permissions')]",
+					RuntimeVariables.replace("Permissions"));
+				selenium.waitForPageToLoad("30000");
+
+				boolean guestView = selenium.isChecked(
+						"//input[@id='guest_ACTION_VIEW']");
+
+				if (!guestView) {
+					label = 2;
+
+					continue;
+				}
+
+				selenium.clickAt("//input[@id='guest_ACTION_VIEW']",
+					RuntimeVariables.replace("Guest View"));
+
+			case 2:
+				assertFalse(selenium.isChecked(
+						"//input[@id='guest_ACTION_VIEW']"));
+				selenium.clickAt("//input[@value='Save']",
+					RuntimeVariables.replace("Save"));
+				selenium.waitForPageToLoad("30000");
+				assertEquals(RuntimeVariables.replace(
+						"Your request completed successfully."),
+					selenium.getText("//div[@class='portlet-msg-success']"));
+				selenium.selectFrame("relative=top");
+
+			case 100:
+				label = -1;
+			}
+		}
 	}
 }

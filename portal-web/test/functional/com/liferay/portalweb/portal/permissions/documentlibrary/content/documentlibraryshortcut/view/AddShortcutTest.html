@@ -14,6 +14,26 @@
 	<td></td>
 </tr>
 <tr>
+	<td>clickAt</td>
+	<td>//div[@id='dockbar']</td>
+	<td>Dockbar</td>
+</tr>
+<tr>
+	<td>waitForElementPresent</td>
+	<td>//script[contains(@src,'/aui/aui-editable/aui-editable-min.js')]</td>
+	<td>AUI Editable Min</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//li[@id='_145_mySites']/a/span</td>
+	<td>Go to</td>
+</tr>
+<tr>
+	<td>mouseOver</td>
+	<td>//li[@id='_145_mySites']/a/span</td>
+	<td>Go to</td>
+</tr>
+<tr>
 	<td>waitForElementPresent</td>
 	<td>link=Control Panel</td>
 	<td>Control Panel</td>
@@ -30,27 +50,27 @@
 </tr>
 <tr>
 	<td>assertVisible</td>
-	<td>link=Add</td>
+	<td>//span[@title='Add']/ul/li/strong/a</td>
 	<td>Add</td>
 </tr>
 <tr>
 	<td>clickAt</td>
-	<td>link=Add</td>
+	<td>//span[@title='Add']/ul/li/strong/a</td>
 	<td>Add</td>
 </tr>
 <tr>
 	<td>waitForVisible</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li/a[contains(.,'Shortcut')]</td>
 	<td>Shortcut</td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li/a[contains(.,'Shortcut')]</td>
 	<td>Shortcut</td>
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a</td>
+	<td>//div[@class='lfr-component lfr-menu-list']/ul/li/a[contains(.,'Shortcut')]</td>
 	<td>Shortcut</td>
 </tr>
 <tr>
@@ -60,7 +80,7 @@
 </tr>
 <tr>
 	<td>pause</td>
-	<td>5000</td>
+	<td>1000</td>
 	<td></td>
 </tr>
 <tr>
@@ -100,7 +120,7 @@
 </tr>
 <tr>
 	<td>pause</td>
-	<td>5000</td>
+	<td>1000</td>
 	<td></td>
 </tr>
 <tr>
@@ -111,12 +131,12 @@
 <tr>
 	<td>waitForVisible</td>
 	<td>//tr[3]/td/a</td>
-	<td>TestDocument.txt</td>
+	<td>Document_1.txt</td>
 </tr>
 <tr>
 	<td>clickAt</td>
 	<td>//tr[3]/td/a</td>
-	<td>TestDocument.txt</td>
+	<td>Document_1.txt</td>
 </tr>
 <tr>
 	<td>selectWindow</td>
@@ -126,7 +146,7 @@
 <tr>
 	<td>waitForText</td>
 	<td>//span[@id='_20_toFileEntryTitle']</td>
-	<td>TestDocument.txt</td>
+	<td>Document_1.txt</td>
 </tr>
 <tr>
 	<td>assertText</td>
@@ -136,7 +156,7 @@
 <tr>
 	<td>assertText</td>
 	<td>//span[@id='_20_toFileEntryTitle']</td>
-	<td>TestDocument.txt</td>
+	<td>Document_1.txt</td>
 </tr>
 <tr>
 	<td>select</td>
@@ -180,13 +200,13 @@
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>xPath=(//a[contains(@class,'document-link')]/span[@class='entry-title'])[1]</td>
-	<td>TestDocument.txt</td>
+	<td>xPath=(//a[contains(@class,'entry-link')]/span[@class='entry-title'])[1]</td>
+	<td>Document_1.txt</td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>xPath=(//a[contains(@class,'document-link')]/span[@class='entry-title'])[2]</td>
-	<td>TestDocument.txt</td>
+	<td>xPath=(//a[contains(@class,'entry-link')]/span[@class='entry-title'])[2]</td>
+	<td>Document_1.txt</td>
 </tr>
 </tbody></table>
 </body>

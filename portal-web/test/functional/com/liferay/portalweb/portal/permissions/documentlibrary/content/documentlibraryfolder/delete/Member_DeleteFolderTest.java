@@ -25,6 +25,11 @@ public class Member_DeleteFolderTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
@@ -32,22 +37,24 @@ public class Member_DeleteFolderTest extends BaseTestCase {
 		selenium.clickAt("link=Documents and Media",
 			RuntimeVariables.replace("Documents and Media"));
 		selenium.waitForPageToLoad("30000");
-		selenium.waitForVisible(
-			"//input[@id='_20_rowIds_com.liferay.portal.kernel.repository.model.FolderCheckbox']");
-		selenium.clickAt("//input[@id='_20_rowIds_com.liferay.portal.kernel.repository.model.FolderCheckbox']",
+		selenium.waitForVisible("//input[@id='_20_rowIdsFolderCheckbox']");
+		selenium.clickAt("//input[@id='_20_rowIdsFolderCheckbox']",
 			RuntimeVariables.replace("Folder Checkbox"));
 		selenium.clickAt("//span[@title='Actions']/ul/li/strong/a",
 			RuntimeVariables.replace("Actions"));
 		selenium.waitForVisible(
-			"//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a");
-		selenium.clickAt("//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a",
-			RuntimeVariables.replace("Delete"));
-		selenium.waitForPageToLoad("30000");
+			"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Move to the Recycle Bin')]/a");
+		assertEquals(RuntimeVariables.replace("Move to the Recycle Bin"),
+			selenium.getText(
+				"//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Move to the Recycle Bin')]/a"));
+		selenium.clickAt("//div[@class='lfr-component lfr-menu-list']/ul/li[contains(.,'Move to the Recycle Bin')]/a",
+			RuntimeVariables.replace("Move to the Recycle Bin"));
+		selenium.waitForVisible("//div[@class='portlet-msg-success']");
 		assertEquals(RuntimeVariables.replace(
 				"Your request completed successfully."),
 			selenium.getText("//div[@class='portlet-msg-success']"));
 		assertEquals(RuntimeVariables.replace(
 				"There are no documents or media files in this folder."),
-			selenium.getText("//div[@class='portlet-msg-info']"));
+			selenium.getText("//div[@class='entries-empty portlet-msg-info']"));
 	}
 }

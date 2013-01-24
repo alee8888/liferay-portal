@@ -25,6 +25,11 @@ public class Member_AssertPermissionsTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
@@ -32,6 +37,7 @@ public class Member_AssertPermissionsTest extends BaseTestCase {
 		selenium.clickAt("link=Documents and Media",
 			RuntimeVariables.replace("Documents and Media"));
 		selenium.waitForPageToLoad("30000");
+		selenium.waitForVisible("//form/div/div/span/span/ul/li/strong/a");
 		selenium.clickAt("//form/div/div/span/span/ul/li/strong/a",
 			RuntimeVariables.replace("Actions"));
 		selenium.waitForVisible(
@@ -39,8 +45,8 @@ public class Member_AssertPermissionsTest extends BaseTestCase {
 		assertEquals(RuntimeVariables.replace("Permissions"),
 			selenium.getText(
 				"//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a"));
-		selenium.clickAt("//a[contains(@class,'document-link')]/span[@class='entry-title']",
-			RuntimeVariables.replace("TestDocument.txt"));
+		selenium.clickAt("//a[contains(@class,'entry-link')]/span[@class='entry-title']",
+			RuntimeVariables.replace("Document_1.txt"));
 		selenium.waitForPageToLoad("30000");
 		assertTrue(selenium.isTextPresent("Permissions"));
 		assertEquals(RuntimeVariables.replace("Download"),

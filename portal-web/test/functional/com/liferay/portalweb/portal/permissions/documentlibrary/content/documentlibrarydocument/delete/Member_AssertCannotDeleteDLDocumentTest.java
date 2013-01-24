@@ -26,6 +26,11 @@ public class Member_AssertCannotDeleteDLDocumentTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
@@ -37,7 +42,9 @@ public class Member_AssertCannotDeleteDLDocumentTest extends BaseTestCase {
 		selenium.clickAt("//input[@id='_20_allRowIdsCheckbox']",
 			RuntimeVariables.replace("All Rows"));
 		assertTrue(selenium.isChecked("//input[@id='_20_allRowIdsCheckbox']"));
-		assertFalse(selenium.isVisible("link=Actions"));
-		assertFalse(selenium.isVisible("link=Delete"));
+		assertFalse(selenium.isVisible(
+				"//span[@title='Actions']/ul/li/strong/a"));
+		assertTrue(selenium.isElementNotPresent(
+				"//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a"));
 	}
 }

@@ -15,6 +15,17 @@
 package com.liferay.portalweb.portal.permissions.documentlibrary.portlet.addtopage;
 
 import com.liferay.portalweb.portal.BaseTestSuite;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrary.adddocument.AddMemberRoleTest;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrary.adddocument.AddMemberTest;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrary.adddocument.AssignUserRolesTest;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrary.adddocument.DefineMemberRoleTest;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrary.adddocument.LoginUsersTest;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrary.adddocument.LogoutTest;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrary.adddocument.Member_LoginTest;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrary.adddocument.RemoveRolePowerUserTest;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrary.adddocument.SA_LoginTest;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrary.adddocument.TearDownRolesTest;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrary.adddocument.TearDownUserTest;
 import com.liferay.portalweb.portal.util.TearDownPageTest;
 
 import junit.framework.Test;

@@ -26,6 +26,11 @@ public class Member_AssertCannotAddDocumentTypeTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
@@ -40,12 +45,14 @@ public class Member_AssertCannotAddDocumentTypeTest extends BaseTestCase {
 		assertEquals(RuntimeVariables.replace("Document Types"),
 			selenium.getText(
 				"//div[@class='lfr-component lfr-menu-list']/ul/li[1]/a"));
-		selenium.click("//div[@class='lfr-component lfr-menu-list']/ul/li[1]/a");
+		selenium.clickAt("//div[@class='lfr-component lfr-menu-list']/ul/li[1]/a",
+			RuntimeVariables.replace("Document Types"));
 		selenium.waitForVisible("//iframe");
 		selenium.selectFrame("//iframe");
 		selenium.waitForVisible("//input[@value='Search']");
 		assertTrue(selenium.isElementNotPresent(
 				"//span[@class='lfr-toolbar-button add-button ']/a"));
+		assertTrue(selenium.isElementNotPresent("link=Add"));
 		selenium.selectFrame("relative=top");
 	}
 }

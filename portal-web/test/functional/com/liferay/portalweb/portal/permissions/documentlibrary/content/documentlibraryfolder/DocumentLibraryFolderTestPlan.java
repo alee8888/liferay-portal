@@ -15,13 +15,13 @@
 package com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibraryfolder;
 
 import com.liferay.portalweb.portal.BaseTestSuite;
-import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrarydocument.adddiscussion.AddDocumentDiscussionTests;
-import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrarydocument.delete.DeleteDocumentTests;
-import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrarydocument.deletediscussion.DeleteDocumentDiscussionTests;
-import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrarydocument.permissions.DocumentPermissionsTests;
-import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrarydocument.update.UpdateDocumentTests;
-import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrarydocument.updatediscussion.UpdateDocumentDiscussionTests;
-import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibrarydocument.view.ViewDocumentTests;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibraryfolder.adddocument.AddFolderDocumentTests;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibraryfolder.addshortcut.AddFolderShortcutTests;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibraryfolder.addsubfolder.AddSubfolderTests;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibraryfolder.delete.DeleteFolderTests;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibraryfolder.permissions.FolderPermissionsTests;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibraryfolder.update.UpdateFolderTests;
+import com.liferay.portalweb.portal.permissions.documentlibrary.content.documentlibraryfolder.view.ViewFolderTests;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -34,13 +34,13 @@ public class DocumentLibraryFolderTestPlan extends BaseTestSuite {
 	public static Test suite() {
 		TestSuite testSuite = new TestSuite();
 
-		testSuite.addTest(AddDocumentDiscussionTests.suite());
-		testSuite.addTest(DeleteDocumentTests.suite());
-		testSuite.addTest(DeleteDocumentDiscussionTests.suite());
-		testSuite.addTest(DocumentPermissionsTests.suite());
-		testSuite.addTest(UpdateDocumentTests.suite());
-		testSuite.addTest(UpdateDocumentDiscussionTests.suite());
-		testSuite.addTest(ViewDocumentTests.suite());
+		testSuite.addTest(AddFolderDocumentTests.suite());
+		testSuite.addTest(AddFolderShortcutTests.suite());
+		testSuite.addTest(AddSubfolderTests.suite());
+		testSuite.addTest(DeleteFolderTests.suite());
+		testSuite.addTest(FolderPermissionsTests.suite());
+		testSuite.addTest(UpdateFolderTests.suite());
+		testSuite.addTest(ViewFolderTests.suite());
 
 		return testSuite;
 	}

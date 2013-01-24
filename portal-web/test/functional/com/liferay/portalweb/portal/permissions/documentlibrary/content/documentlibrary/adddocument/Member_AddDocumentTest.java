@@ -25,10 +25,15 @@ public class Member_AddDocumentTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
-		selenium.waitForPageToLoad("30000");
+		selenium.waitForVisible("link=Documents and Media");
 		selenium.clickAt("link=Documents and Media",
 			RuntimeVariables.replace("Documents and Media"));
 		selenium.waitForPageToLoad("30000");
@@ -41,22 +46,19 @@ public class Member_AddDocumentTest extends BaseTestCase {
 				"//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a"));
 		selenium.clickAt("//div[@class='lfr-component lfr-menu-list']/ul/li[2]/a",
 			RuntimeVariables.replace("Basic Document"));
-		selenium.waitForPageToLoad("30000");
-		assertTrue(selenium.isVisible("//input[@id='_20_file']"));
-		selenium.type("//input[@id='_20_file']",
-			RuntimeVariables.replace(
-				"L:\\portal\\build\\portal-web\\test\\com\\liferay\\portalweb\\portal\\permissions\\documentlibrary\\content\\dependencies\\TestDocument.txt"));
+		selenium.waitForVisible("//input[@id='_20_file']");
+		selenium.uploadCommonFile("//input[@id='_20_file']",
+			RuntimeVariables.replace("Document_1.txt"));
 		selenium.clickAt("//input[@value='Publish']",
 			RuntimeVariables.replace("Publish"));
-		selenium.waitForPageToLoad("30000");
 		selenium.waitForVisible("//div[@class='portlet-msg-success']");
 		assertEquals(RuntimeVariables.replace(
 				"Your request completed successfully."),
 			selenium.getText("//div[@class='portlet-msg-success']"));
 		selenium.waitForVisible(
-			"//a[contains(@class,'document-link')]/span[@class='entry-title']");
-		assertEquals(RuntimeVariables.replace("TestDocument.txt"),
+			"//a[contains(@class,'entry-link')]/span[@class='entry-title']");
+		assertEquals(RuntimeVariables.replace("Document_1.txt"),
 			selenium.getText(
-				"//a[contains(@class,'document-link')]/span[@class='entry-title']"));
+				"//a[contains(@class,'entry-link')]/span[@class='entry-title']"));
 	}
 }

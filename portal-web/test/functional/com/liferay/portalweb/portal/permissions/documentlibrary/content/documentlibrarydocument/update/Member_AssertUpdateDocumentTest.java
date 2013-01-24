@@ -25,6 +25,11 @@ public class Member_AssertUpdateDocumentTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
@@ -45,13 +50,13 @@ public class Member_AssertUpdateDocumentTest extends BaseTestCase {
 		assertEquals(RuntimeVariables.replace("Checkout"),
 			selenium.getText(
 				"//div[@class='lfr-component lfr-menu-list']/ul/li[4]/a"));
-		assertEquals(RuntimeVariables.replace("TestDocument.txt"),
+		assertEquals(RuntimeVariables.replace("Document_1.txt"),
 			selenium.getText(
-				"//a[contains(@class,'document-link')]/span[@class='entry-title']"));
-		selenium.clickAt("//a[contains(@class,'document-link')]/span[@class='entry-title']",
-			RuntimeVariables.replace("TestDocument.txt"));
+				"//a[contains(@class,'entry-link')]/span[@class='entry-title']"));
+		selenium.clickAt("//a[contains(@class,'entry-link')]/span[@class='entry-title']",
+			RuntimeVariables.replace("Document_1.txt"));
 		selenium.waitForPageToLoad("30000");
-		assertEquals(RuntimeVariables.replace("TestDocument.txt"),
+		assertEquals(RuntimeVariables.replace("Document_1.txt"),
 			selenium.getText("//h2[@class='document-title']"));
 		assertTrue(selenium.isTextPresent("Edit"));
 		assertEquals(RuntimeVariables.replace("Download"),

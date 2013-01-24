@@ -25,7 +25,6 @@ public class Member_AssertCannotViewTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
-		selenium.waitForVisible("link=Document Library Permissions Page");
 		selenium.clickAt("link=Document Library Permissions Page",
 			RuntimeVariables.replace("Document Library Permissions Page"));
 		selenium.waitForPageToLoad("30000");

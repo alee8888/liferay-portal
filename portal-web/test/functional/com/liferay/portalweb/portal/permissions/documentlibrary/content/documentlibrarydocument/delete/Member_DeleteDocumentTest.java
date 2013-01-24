@@ -25,6 +25,11 @@ public class Member_DeleteDocumentTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
@@ -36,26 +41,25 @@ public class Member_DeleteDocumentTest extends BaseTestCase {
 		selenium.clickAt("//input[@id='_20_allRowIdsCheckbox']",
 			RuntimeVariables.replace("All Rows"));
 		assertTrue(selenium.isChecked("//input[@id='_20_allRowIdsCheckbox']"));
-		assertTrue(selenium.isVisible("//span[@title='Actions']/ul/li/strong/a"));
+		selenium.waitForVisible("//span[@title='Actions']/ul/li/strong/a");
 		assertEquals(RuntimeVariables.replace("Actions"),
 			selenium.getText("//span[@title='Actions']/ul/li/strong/a"));
 		selenium.clickAt("//span[@title='Actions']/ul/li/strong/a",
 			RuntimeVariables.replace("Actions"));
 		selenium.waitForVisible(
 			"//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a");
-		assertEquals(RuntimeVariables.replace("Delete"),
+		assertEquals(RuntimeVariables.replace("Move to the Recycle Bin"),
 			selenium.getText(
 				"//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a"));
 		selenium.clickAt("//div[@class='lfr-component lfr-menu-list']/ul/li[5]/a",
-			RuntimeVariables.replace("Delete"));
+			RuntimeVariables.replace("Move to the Recycle Bin"));
 		selenium.waitForPageToLoad("30000");
-		assertTrue(selenium.getConfirmation()
-						   .matches("^Are you sure you want to delete the selected entries[\\s\\S]$"));
 		assertEquals(RuntimeVariables.replace(
-				"Your request completed successfully."),
-			selenium.getText("//div[@class='portlet-msg-success']"));
+				"The selected item was moved to the Recycle Bin. Undo"),
+			selenium.getText(
+				"//div[@class='portlet-msg-success taglib-trash-undo']"));
 		assertEquals(RuntimeVariables.replace(
 				"There are no documents or media files in this folder."),
-			selenium.getText("//div[@class='portlet-msg-info']"));
+			selenium.getText("//div[@class='document-container']"));
 	}
 }

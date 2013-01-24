@@ -25,10 +25,15 @@ public class AddPermissionAddDocumentTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
-		selenium.waitForPageToLoad("30000");
+		selenium.waitForVisible("link=Roles");
 		selenium.clickAt("link=Roles", RuntimeVariables.replace("Roles"));
 		selenium.waitForPageToLoad("30000");
 		selenium.type("//input[@id='_128_keywords']",
@@ -54,5 +59,7 @@ public class AddPermissionAddDocumentTest extends BaseTestCase {
 		assertEquals(RuntimeVariables.replace(
 				"The role permissions were updated."),
 			selenium.getText("//div[@class='portlet-msg-success']"));
+		selenium.clickAt("link=Roles", RuntimeVariables.replace("Roles"));
+		selenium.waitForPageToLoad("30000");
 	}
 }

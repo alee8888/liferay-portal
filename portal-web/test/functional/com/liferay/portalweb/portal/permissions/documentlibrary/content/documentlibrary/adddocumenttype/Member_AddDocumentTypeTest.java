@@ -25,6 +25,11 @@ public class Member_AddDocumentTypeTest extends BaseTestCase {
 		selenium.selectWindow("null");
 		selenium.selectFrame("relative=top");
 		selenium.open("/web/guest/home/");
+		selenium.clickAt("//div[@id='dockbar']",
+			RuntimeVariables.replace("Dockbar"));
+		assertEquals(RuntimeVariables.replace("Go to"),
+			selenium.getText("//li[@id='_145_mySites']/a/span"));
+		selenium.mouseOver("//li[@id='_145_mySites']/a/span");
 		selenium.waitForElementPresent("link=Control Panel");
 		selenium.clickAt("link=Control Panel",
 			RuntimeVariables.replace("Control Panel"));
@@ -51,7 +56,7 @@ public class Member_AddDocumentTypeTest extends BaseTestCase {
 		selenium.type("//input[@id='_20_name']",
 			RuntimeVariables.replace("Document Type Name"));
 		selenium.waitForVisible(
-			"xPath=(//div[@class='aui-diagram-builder-field-label'])[5]");
+			"xPath=(//div[@class='aui-diagram-builder-field-label'])[11]");
 		selenium.dragAndDropToObject("xPath=(//div[@class='aui-diagram-builder-field-label'])[11]",
 			"xPath=(//div[@class='aui-diagram-builder-field-label'])[11]");
 		selenium.waitForVisible(
