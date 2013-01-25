@@ -22,6 +22,7 @@ import com.liferay.portal.ContactBirthdayException;
 import com.liferay.portal.ContactFirstNameException;
 import com.liferay.portal.ContactFullNameException;
 import com.liferay.portal.ContactLastNameException;
+import com.liferay.portal.DuplicateOpenIdException;
 import com.liferay.portal.DuplicateUserEmailAddressException;
 import com.liferay.portal.DuplicateUserScreenNameException;
 import com.liferay.portal.EmailAddressException;
@@ -83,8 +84,6 @@ import com.liferay.portlet.announcements.model.AnnouncementsDelivery;
 import com.liferay.portlet.announcements.model.AnnouncementsEntryConstants;
 import com.liferay.portlet.announcements.model.impl.AnnouncementsDeliveryImpl;
 import com.liferay.portlet.announcements.service.AnnouncementsDeliveryLocalServiceUtil;
-import com.liferay.portlet.asset.service.AssetCategoryLocalServiceUtil;
-import com.liferay.portlet.asset.service.AssetTagLocalServiceUtil;
 import com.liferay.portlet.sites.util.SitesUtil;
 import com.liferay.portlet.usersadmin.util.UsersAdminUtil;
 
@@ -244,6 +243,7 @@ public class EditUserAction extends PortletAction {
 					 e instanceof ContactFirstNameException ||
 					 e instanceof ContactFullNameException ||
 					 e instanceof ContactLastNameException ||
+					 e instanceof DuplicateOpenIdException ||
 					 e instanceof DuplicateUserEmailAddressException ||
 					 e instanceof DuplicateUserScreenNameException ||
 					 e instanceof EmailAddressException ||
@@ -271,7 +271,7 @@ public class EditUserAction extends PortletAction {
 						e.getClass().getName() + nslte.getType());
 				}
 				else {
-					SessionErrors.add(actionRequest, e.getClass().getName(), e);
+					SessionErrors.add(actionRequest, e.getClass(), e);
 				}
 
 				if (e instanceof RequiredUserException) {
@@ -552,7 +552,7 @@ public class EditUserAction extends PortletAction {
 			user, actionRequest, "reminderQueryQuestion");
 
 		if (reminderQueryQuestion.equals(UsersAdminUtil.CUSTOM_QUESTION)) {
-			reminderQueryQuestion = BeanParamUtil.getString(
+			reminderQueryQuestion = BeanParamUtil.getStringSilent(
 				user, actionRequest, "reminderQueryCustomQuestion");
 		}
 
@@ -645,21 +645,6 @@ public class EditUserAction extends PortletAction {
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			User.class.getName(), actionRequest);
-
-		if (actionRequest.getParameter("assetCategoryNames") == null ) {
-			long[] assetCategoryIds =
-				AssetCategoryLocalServiceUtil.getCategoryIds(
-					User.class.getName(), user.getUserId());
-
-			serviceContext.setAssetCategoryIds(assetCategoryIds);
-		}
-
-		if (actionRequest.getParameter("assetTagNames") == null ) {
-			String[] assetTagNames = AssetTagLocalServiceUtil.getTagNames(
-				User.class.getName(), user.getUserId());
-
-			serviceContext.setAssetTagNames(assetTagNames);
-		}
 
 		user = UserServiceUtil.updateUser(
 			user.getUserId(), oldPassword, newPassword1, newPassword2,

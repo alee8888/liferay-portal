@@ -14,7 +14,7 @@
 
 package com.liferay.portal.freemarker;
 
-import com.liferay.portal.kernel.template.TemplateException;
+import com.liferay.portal.kernel.template.TemplateResource;
 import com.liferay.portal.kernel.templateparser.TemplateContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.SetUtil;
@@ -29,8 +29,6 @@ import com.liferay.portal.util.WebKeys;
 
 import freemarker.ext.beans.BeansWrapper;
 
-import freemarker.template.utility.ObjectConstructor;
-
 import java.util.Map;
 import java.util.Set;
 
@@ -43,32 +41,6 @@ import javax.servlet.http.HttpServletRequest;
 public class FreeMarkerTemplateContextHelper extends TemplateContextHelper {
 
 	@Override
-	public Map<String, Object> getHelperUtilities() {
-		Map<String, Object> helperUtilities = super.getHelperUtilities();
-
-		// Enum util
-
-		helperUtilities.put(
-			"enumUtil", BeansWrapper.getDefaultInstance().getEnumModels());
-
-		// Object util
-
-		helperUtilities.put("objectUtil", new ObjectConstructor());
-
-		// Portlet preferences
-
-		helperUtilities.put(
-			"freeMarkerPortletPreferences", new TemplatePortletPreferences());
-
-		// Static class util
-
-		helperUtilities.put(
-			"staticUtil", BeansWrapper.getDefaultInstance().getStaticModels());
-
-		return helperUtilities;
-	}
-
-	@Override
 	public Set<String> getRestrictedVariables() {
 		return SetUtil.fromArray(
 			PropsValues.JOURNAL_TEMPLATE_FREEMARKER_RESTRICTED_VARIABLES);
@@ -76,8 +48,7 @@ public class FreeMarkerTemplateContextHelper extends TemplateContextHelper {
 
 	@Override
 	public void prepare(
-			TemplateContext templateContext, HttpServletRequest request)
-		throws TemplateException {
+		TemplateContext templateContext, HttpServletRequest request) {
 
 		super.prepare(templateContext, request);
 
@@ -110,7 +81,7 @@ public class FreeMarkerTemplateContextHelper extends TemplateContextHelper {
 			templateContext.put(
 				"init",
 				StringPool.SLASH + themeDisplay.getPathContext() +
-					FreeMarkerTemplateLoader.SERVLET_SEPARATOR +
+					TemplateResource.SERVLET_SEPARATOR +
 						"/html/themes/_unstyled/templates/init.ftl");
 		}
 
@@ -129,6 +100,30 @@ public class FreeMarkerTemplateContextHelper extends TemplateContextHelper {
 				}
 			}
 		}
+	}
+
+	@Override
+	protected void populateExtraHelperUtilities(
+		Map<String, Object> helperUtilities) {
+
+		// Enum util
+
+		helperUtilities.put(
+			"enumUtil", BeansWrapper.getDefaultInstance().getEnumModels());
+
+		// Object util
+
+		helperUtilities.put("objectUtil", new LiferayObjectConstructor());
+
+		// Portlet preferences
+
+		helperUtilities.put(
+			"freeMarkerPortletPreferences", new TemplatePortletPreferences());
+
+		// Static class util
+
+		helperUtilities.put(
+			"staticUtil", BeansWrapper.getDefaultInstance().getStaticModels());
 	}
 
 }

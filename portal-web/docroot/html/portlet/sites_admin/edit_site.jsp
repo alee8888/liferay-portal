@@ -84,12 +84,30 @@ if (group != null) {
 	miscellaneousSections = PropsValues.SITES_FORM_UPDATE_MISCELLANEOUS;
 }
 
+String[] analyticsTypes = PrefsPropsUtil.getStringArray(company.getCompanyId(), PropsKeys.ADMIN_ANALYTICS_TYPES, StringPool.NEW_LINE);
+
+if ((analyticsTypes.length == 0) && ArrayUtil.contains(advancedSections, "analytics")) {
+	advancedSections = ArrayUtil.remove(advancedSections, "analytics");
+}
+
+int contentSharingWithChildrenEnabledEnabled = PrefsPropsUtil.getInteger(company.getCompanyId(), PropsKeys.SITES_CONTENT_SHARING_WITH_CHILDREN_ENABLED);
+
+if ((contentSharingWithChildrenEnabledEnabled == 0) && ArrayUtil.contains(advancedSections, "content-sharing")) {
+	advancedSections = ArrayUtil.remove(advancedSections, "content-sharing");
+}
+
+int trashEnabled = PrefsPropsUtil.getInteger(company.getCompanyId(), PropsKeys.TRASH_ENABLED);
+
+if ((trashEnabled == 0) && ArrayUtil.contains(advancedSections, "recycle-bin")) {
+	advancedSections = ArrayUtil.remove(advancedSections, "recycle-bin");
+}
+
 String[][] categorySections = {mainSections, seoSections, advancedSections, miscellaneousSections};
 %>
 
 <c:if test="<%= portletName.equals(PortletKeys.SITES_ADMIN) %>">
 	<liferay-util:include page="/html/portlet/sites_admin/toolbar.jsp">
-		<liferay-util:param name="toolbarItem" value='<%= (group == null) ? "add" : "view-all" %>' />
+		<liferay-util:param name="toolbarItem" value='<%= (group == null) ? "add" : "browse" %>' />
 	</liferay-util:include>
 </c:if>
 
@@ -244,5 +262,5 @@ else {
 %>
 
 <%!
-private static String[] _CATEGORY_NAMES = {"basic-information", "search-engine-optimization", "advanced", "miscellaneous"};
+private static final String[] _CATEGORY_NAMES = {"basic-information", "search-engine-optimization", "advanced", "miscellaneous"};
 %>

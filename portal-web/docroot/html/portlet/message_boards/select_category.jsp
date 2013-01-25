@@ -51,11 +51,11 @@ if (category != null) {
 
 	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, null);
 
-	int total = MBCategoryServiceUtil.getCategoriesCount(scopeGroupId, categoryId);
+	int total = MBCategoryServiceUtil.getCategoriesCount(scopeGroupId, categoryId, WorkflowConstants.STATUS_APPROVED);
 
 	searchContainer.setTotal(total);
 
-	List results = MBCategoryServiceUtil.getCategories(scopeGroupId, categoryId, searchContainer.getStart(), searchContainer.getEnd());
+	List results = MBCategoryServiceUtil.getCategories(scopeGroupId, categoryId, WorkflowConstants.STATUS_APPROVED, searchContainer.getStart(), searchContainer.getEnd());
 
 	searchContainer.setResults(results);
 
@@ -115,7 +115,7 @@ if (category != null) {
 	<aui:button-row>
 
 		<%
-		String taglibSelectOnClick = "opener." + renderResponse.getNamespace() + "selectCategory('" + categoryId + "','" + ((category != null) ? category.getName() : LanguageUtil.get(pageContext, "message-boards-home")) + "');window.close();";
+		String taglibSelectOnClick = "opener." + renderResponse.getNamespace() + "selectCategory('" + categoryId + "','" + ((category != null) ? category.getName() : LanguageUtil.get(pageContext, "message-boards-home")) + "'); window.close();";
 		%>
 
 		<aui:button onClick="<%= taglibSelectOnClick %>" value="choose-this-category" />

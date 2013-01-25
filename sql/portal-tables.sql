@@ -216,7 +216,7 @@ create table BlogsEntry (
 	modifiedDate DATE null,
 	title VARCHAR(150) null,
 	urlTitle VARCHAR(150) null,
-	description VARCHAR(75) null,
+	description STRING null,
 	content TEXT null,
 	displayDate DATE null,
 	allowPingbacks BOOLEAN,
@@ -258,7 +258,11 @@ create table BookmarksEntry (
 	url STRING null,
 	description STRING null,
 	visits INTEGER,
-	priority INTEGER
+	priority INTEGER,
+	status INTEGER,
+	statusByUserId LONG,
+	statusByUserName VARCHAR(75) null,
+	statusDate DATE null
 );
 
 create table BookmarksFolder (
@@ -273,7 +277,11 @@ create table BookmarksFolder (
 	resourceBlockId LONG,
 	parentFolderId LONG,
 	name VARCHAR(75) null,
-	description STRING null
+	description STRING null,
+	status INTEGER,
+	statusByUserId LONG,
+	statusByUserName VARCHAR(75) null,
+	statusDate DATE null
 );
 
 create table BrowserTracker (
@@ -478,6 +486,7 @@ create table DDMStructure (
 	userName VARCHAR(75) null,
 	createDate DATE null,
 	modifiedDate DATE null,
+	parentStructureId LONG,
 	classNameId LONG,
 	structureKey VARCHAR(75) null,
 	name STRING null,
@@ -511,7 +520,11 @@ create table DDMTemplate (
 	type_ VARCHAR(75) null,
 	mode_ VARCHAR(75) null,
 	language VARCHAR(75) null,
-	script TEXT null
+	script TEXT null,
+	cacheable BOOLEAN,
+	smallImage BOOLEAN,
+	smallImageId LONG,
+	smallImageURL VARCHAR(75) null
 );
 
 create table DLContent (
@@ -536,6 +549,8 @@ create table DLFileEntry (
 	versionUserName VARCHAR(75) null,
 	createDate DATE null,
 	modifiedDate DATE null,
+	classNameId LONG,
+	classPK LONG,
 	repositoryId LONG,
 	folderId LONG,
 	name VARCHAR(255) null,
@@ -551,7 +566,8 @@ create table DLFileEntry (
 	smallImageId LONG,
 	largeImageId LONG,
 	custom1ImageId LONG,
-	custom2ImageId LONG
+	custom2ImageId LONG,
+	manualCheckInRequired BOOLEAN
 );
 
 create table DLFileEntryMetadata (
@@ -639,6 +655,7 @@ create table DLFileVersion (
 	fileEntryTypeId LONG,
 	version VARCHAR(75) null,
 	size_ LONG,
+	checksum VARCHAR(75) null,
 	status INTEGER,
 	statusByUserId LONG,
 	statusByUserName VARCHAR(75) null,
@@ -661,6 +678,7 @@ create table DLFolder (
 	description STRING null,
 	lastPostDate DATE null,
 	defaultFileEntryTypeId LONG,
+	hidden BOOLEAN,
 	overrideFileEntryTypes BOOLEAN,
 	status INTEGER,
 	statusByUserId LONG,
@@ -711,6 +729,7 @@ create table ExpandoColumn (
 create table ExpandoRow (
 	rowId_ LONG not null primary key,
 	companyId LONG,
+	modifiedDate DATE null,
 	tableId LONG,
 	classPK LONG
 );
@@ -771,7 +790,6 @@ create table Groups_UserGroups (
 create table Image (
 	imageId LONG not null primary key,
 	modifiedDate DATE null,
-	text_ TEXT null,
 	type_ VARCHAR(75) null,
 	height INTEGER,
 	width INTEGER,
@@ -864,7 +882,7 @@ create table JournalFeed (
 	targetLayoutFriendlyUrl VARCHAR(255) null,
 	targetPortletId VARCHAR(75) null,
 	contentField VARCHAR(75) null,
-	feedType VARCHAR(75) null,
+	feedFormat VARCHAR(75) null,
 	feedVersion DOUBLE
 );
 
@@ -936,7 +954,7 @@ create table Layout (
 	robots STRING null,
 	type_ VARCHAR(75) null,
 	typeSettings TEXT null,
-	hidden_ BOOLEAN,
+	hidden BOOLEAN,
 	friendlyURL VARCHAR(255) null,
 	iconImage BOOLEAN,
 	iconImageId LONG,
@@ -1110,7 +1128,11 @@ create table MBCategory (
 	displayStyle VARCHAR(75) null,
 	threadCount INTEGER,
 	messageCount INTEGER,
-	lastPostDate DATE null
+	lastPostDate DATE null,
+	status INTEGER,
+	statusByUserId LONG,
+	statusByUserName VARCHAR(75) null,
+	statusDate DATE null
 );
 
 create table MBDiscussion (
@@ -1167,7 +1189,6 @@ create table MBMessage (
 	subject VARCHAR(75) null,
 	body TEXT null,
 	format VARCHAR(75) null,
-	attachments BOOLEAN,
 	anonymous BOOLEAN,
 	priority DOUBLE,
 	allowPingbacks BOOLEAN,
@@ -1349,6 +1370,7 @@ create table PasswordPolicy (
 	minNumbers INTEGER,
 	minSymbols INTEGER,
 	minUpperCase INTEGER,
+	regex VARCHAR(75) null,
 	history BOOLEAN,
 	historyCount INTEGER,
 	expireable BOOLEAN,
@@ -1536,7 +1558,15 @@ create table RepositoryEntry (
 	repositoryEntryId LONG not null primary key,
 	groupId LONG,
 	repositoryId LONG,
-	mappedId VARCHAR(75) null
+	mappedId VARCHAR(75) null,
+	manualCheckInRequired BOOLEAN
+);
+
+create table ResourceAction (
+	resourceActionId LONG not null primary key,
+	name VARCHAR(255) null,
+	actionId VARCHAR(75) null,
+	bitwiseValue LONG
 );
 
 create table ResourceBlock (
@@ -1555,22 +1585,6 @@ create table ResourceBlockPermission (
 	actionIds LONG
 );
 
-create table ResourceTypePermission (
-	resourceTypePermissionId LONG not null primary key,
-	companyId LONG,
-	groupId LONG,
-	name VARCHAR(75) null,
-	roleId LONG,
-	actionIds LONG
-);
-
-create table ResourceAction (
-	resourceActionId LONG not null primary key,
-	name VARCHAR(255) null,
-	actionId VARCHAR(75) null,
-	bitwiseValue LONG
-);
-
 create table ResourcePermission (
 	resourcePermissionId LONG not null primary key,
 	companyId LONG,
@@ -1579,6 +1593,15 @@ create table ResourcePermission (
 	primKey VARCHAR(255) null,
 	roleId LONG,
 	ownerId LONG,
+	actionIds LONG
+);
+
+create table ResourceTypePermission (
+	resourceTypePermissionId LONG not null primary key,
+	companyId LONG,
+	groupId LONG,
+	name VARCHAR(75) null,
+	roleId LONG,
 	actionIds LONG
 );
 
@@ -2025,6 +2048,7 @@ create table User_ (
 	screenName VARCHAR(75) null,
 	emailAddress VARCHAR(75) null,
 	facebookId LONG,
+	ldapServerId LONG,
 	openId VARCHAR(1024) null,
 	portraitId LONG,
 	languageId VARCHAR(75) null,
@@ -2187,7 +2211,11 @@ create table WikiNode (
 	modifiedDate DATE null,
 	name VARCHAR(75) null,
 	description STRING null,
-	lastPostDate DATE null
+	lastPostDate DATE null,
+	status INTEGER,
+	statusByUserId LONG,
+	statusByUserName VARCHAR(75) null,
+	statusDate DATE null
 );
 
 create table WikiPage (

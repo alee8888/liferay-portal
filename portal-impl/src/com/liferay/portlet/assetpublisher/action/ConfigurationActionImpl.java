@@ -15,8 +15,10 @@
 package com.liferay.portlet.assetpublisher.action;
 
 import com.liferay.portal.kernel.portlet.DefaultConfigurationAction;
+import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -24,9 +26,10 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutTypePortletConstants;
-import com.liferay.portal.service.LayoutServiceUtil;
+import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
@@ -63,7 +66,13 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 			PortletPreferencesFactoryUtil.getPortletSetup(
 				actionRequest, portletResource);
 
-		if (cmd.equals(Constants.UPDATE)) {
+		if (cmd.equals(Constants.TRANSLATE)) {
+			super.processAction(portletConfig, actionRequest, actionResponse);
+		}
+		else if (cmd.equals(Constants.UPDATE)) {
+			validateEmailAssetEntryAdded(actionRequest);
+			validateEmailFrom(actionRequest);
+
 			updateDisplaySettings(actionRequest);
 
 			String selectionStyle = getParameter(
@@ -79,7 +88,10 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 		}
 		else {
 			try {
-				if (cmd.equals("add-selection")) {
+				if (cmd.equals("add-scope")) {
+					addScope(actionRequest, preferences);
+				}
+				else if (cmd.equals("add-selection")) {
 					AssetPublisherUtil.addSelection(actionRequest, preferences);
 				}
 				else if (cmd.equals("move-selection-down")) {
@@ -91,6 +103,9 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 				else if (cmd.equals("remove-selection")) {
 					removeSelection(actionRequest, preferences);
 				}
+				else if (cmd.equals("remove-scope")) {
+					removeScope(actionRequest, preferences);
+				}
 				else if (cmd.equals("select-scope")) {
 					setScopes(actionRequest, preferences);
 				}
@@ -101,15 +116,18 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 				if (SessionErrors.isEmpty(actionRequest)) {
 					preferences.store();
 
+					LiferayPortletConfig liferayPortletConfig =
+						(LiferayPortletConfig)portletConfig;
+
 					SessionMessages.add(
 						actionRequest,
-						portletConfig.getPortletName() +
+						liferayPortletConfig.getPortletId() +
 							SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
 						portletResource);
 
 					SessionMessages.add(
 						actionRequest,
-						portletConfig.getPortletName() +
+						liferayPortletConfig.getPortletId() +
 							SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
 				}
 
@@ -122,13 +140,34 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 			}
 			catch (Exception e) {
 				if (e instanceof AssetTagException) {
-					SessionErrors.add(actionRequest, e.getClass().getName(), e);
+					SessionErrors.add(actionRequest, e.getClass(), e);
 				}
 				else {
 					throw e;
 				}
 			}
 		}
+	}
+
+	protected void addScope(
+			ActionRequest actionRequest, PortletPreferences preferences)
+		throws Exception {
+
+		String[] scopeIds = preferences.getValues(
+			"scopeIds",
+			new String[] {
+				AssetPublisherUtil.SCOPE_ID_GROUP_PREFIX +
+					GroupConstants.DEFAULT
+			});
+
+		String scopeId = ParamUtil.getString(actionRequest, "scopeId");
+
+		if (!ArrayUtil.contains(scopeIds, scopeId)) {
+			scopeIds = ArrayUtil.append(scopeIds, scopeId);
+		}
+
+		preferences.setValue("defaultScope", Boolean.FALSE.toString());
+		preferences.setValues("scopeIds", scopeIds);
 	}
 
 	protected String[] getClassTypeIds(
@@ -244,6 +283,24 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 		preferences.setValues("assetEntryXml", manualEntries);
 	}
 
+	protected void removeScope(
+			ActionRequest actionRequest, PortletPreferences preferences)
+		throws Exception {
+
+		String[] scopeIds = preferences.getValues(
+			"scopeIds",
+			new String[] {
+				AssetPublisherUtil.SCOPE_ID_GROUP_PREFIX +
+					GroupConstants.DEFAULT
+			});
+
+		String scopeId = ParamUtil.getString(actionRequest, "scopeId");
+
+		scopeIds = ArrayUtil.remove(scopeIds, scopeId);
+
+		preferences.setValues("scopeIds", scopeIds);
+	}
+
 	protected void removeSelection(
 			ActionRequest actionRequest, PortletPreferences preferences)
 		throws Exception {
@@ -296,7 +353,13 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 		if (selectionStyle.equals("manual") ||
 			selectionStyle.equals("view-count")) {
 
-			preferences.setValue("showQueryLogic", String.valueOf(false));
+			preferences.setValue("enableRss", String.valueOf(false));
+			preferences.setValue("showQueryLogic", Boolean.FALSE.toString());
+
+			preferences.reset("rssDelta");
+			preferences.reset("rssDisplayStyle");
+			preferences.reset("rssFormat");
+			preferences.reset("rssName");
 		}
 
 		if (!selectionStyle.equals("view-count") &&
@@ -341,7 +404,7 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 			}
 		}
 
-		layout = LayoutServiceUtil.updateLayout(
+		layout = LayoutLocalServiceUtil.updateLayout(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
 			layout.getTypeSettings());
 	}
@@ -353,13 +416,10 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 			getParameter(actionRequest, "classNameIds"));
 		String[] classTypeIds = getClassTypeIds(actionRequest, classNameIds);
 		String[] extensions = actionRequest.getParameterValues("extensions");
-		String[] scopeIds = StringUtil.split(
-			getParameter(actionRequest, "scopeIds"));
 
 		setPreference(actionRequest, "classNameIds", classNameIds);
 		setPreference(actionRequest, "classTypeIds", classTypeIds);
 		setPreference(actionRequest, "extensions", extensions);
-		setPreference(actionRequest, "scopeIds", scopeIds);
 	}
 
 	protected void updateQueryLogic(
@@ -388,14 +448,16 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 			String[] values = null;
 
 			if (name.equals("assetTags")) {
-				values = StringUtil.split(ParamUtil.getString(
-					actionRequest, "queryTagNames" + queryRulesIndex));
+				values = StringUtil.split(
+					ParamUtil.getString(
+						actionRequest, "queryTagNames" + queryRulesIndex));
 
 				AssetTagLocalServiceUtil.checkTags(userId, groupId, values);
 			}
 			else {
-				values = StringUtil.split(ParamUtil.getString(
-					actionRequest, "queryCategoryIds" + queryRulesIndex));
+				values = StringUtil.split(
+					ParamUtil.getString(
+						actionRequest, "queryCategoryIds" + queryRulesIndex));
 			}
 
 			setPreference(
@@ -424,6 +486,39 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 			i++;
 
 			values = preferences.getValues("queryValues" + i, new String[0]);
+		}
+	}
+
+	protected void validateEmailAssetEntryAdded(ActionRequest actionRequest)
+		throws Exception {
+
+		String emailAssetEntryAddedSubject = getLocalizedParameter(
+			actionRequest, "emailAssetEntryAddedSubject");
+		String emailAssetEntryAddedBody = getLocalizedParameter(
+			actionRequest, "emailAssetEntryAddedBody");
+
+		if (Validator.isNull(emailAssetEntryAddedSubject)) {
+			SessionErrors.add(actionRequest, "emailAssetEntryAddedSubject");
+		}
+		else if (Validator.isNull(emailAssetEntryAddedBody)) {
+			SessionErrors.add(actionRequest, "emailAssetEntryAddedBody");
+		}
+	}
+
+	protected void validateEmailFrom(ActionRequest actionRequest)
+		throws Exception {
+
+		String emailFromName = getParameter(actionRequest, "emailFromName");
+		String emailFromAddress = getParameter(
+			actionRequest, "emailFromAddress");
+
+		if (Validator.isNull(emailFromName)) {
+			SessionErrors.add(actionRequest, "emailFromName");
+		}
+		else if (!Validator.isEmailAddress(emailFromAddress) &&
+			!Validator.isVariableTerm(emailFromAddress)) {
+
+			SessionErrors.add(actionRequest, "emailFromAddress");
 		}
 	}
 

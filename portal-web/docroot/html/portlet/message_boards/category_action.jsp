@@ -36,6 +36,18 @@ Set<Long> categorySubscriptionClassPKs = (Set<Long>)row.getParameter("categorySu
 			image="edit"
 			url="<%= editURL %>"
 		/>
+
+		<portlet:renderURL var="moveURL">
+			<portlet:param name="struts_action" value="/message_boards/move_category" />
+			<portlet:param name="redirect" value="<%= currentURL %>" />
+			<portlet:param name="mbCategoryId" value="<%= String.valueOf(category.getCategoryId()) %>" />
+		</portlet:renderURL>
+
+		<liferay-ui:icon
+			image="submit"
+			message="move"
+			url="<%= moveURL %>"
+		/>
 	</c:if>
 
 	<c:if test="<%= MBCategoryPermission.contains(permissionChecker, category, ActionKeys.PERMISSIONS) %>">
@@ -54,23 +66,24 @@ Set<Long> categorySubscriptionClassPKs = (Set<Long>)row.getParameter("categorySu
 
 	<c:if test="<%= portletName.equals(PortletKeys.MESSAGE_BOARDS) %>">
 
-		<%
-		rssURL.setParameter("p_l_id", String.valueOf(plid));
+		<c:if test="<%= enableRSS %>">
 
-		if (category.getCategoryId() > 0) {
-			rssURL.setParameter("mbCategoryId", String.valueOf(category.getCategoryId()));
-		}
-		else {
-			rssURL.setParameter("groupId", String.valueOf(scopeGroupId));
-		}
-		%>
+			<%
+			if (category.getCategoryId() > 0) {
+				rssURL.setParameter("mbCategoryId", String.valueOf(category.getCategoryId()));
+			}
+			else {
+				rssURL.setParameter("groupId", String.valueOf(scopeGroupId));
+			}
+			%>
 
-		<liferay-ui:icon
-			image="rss"
-			method="get"
-			target="_blank"
-			url="<%= rssURL.toString() %>"
-		/>
+			<liferay-ui:rss
+				delta="<%= rssDelta %>"
+				displayStyle="<%= rssDisplayStyle %>"
+				feedType="<%= rssFeedType %>"
+				resourceURL="<%= rssURL %>"
+			/>
+		</c:if>
 
 		<c:if test="<%= MBCategoryPermission.contains(permissionChecker, category, ActionKeys.SUBSCRIBE) %>">
 			<c:choose>
@@ -107,12 +120,13 @@ Set<Long> categorySubscriptionClassPKs = (Set<Long>)row.getParameter("categorySu
 	<c:if test="<%= MBCategoryPermission.contains(permissionChecker, category, ActionKeys.DELETE) %>">
 		<portlet:actionURL var="deleteURL">
 			<portlet:param name="struts_action" value="/message_boards/edit_category" />
-			<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.DELETE %>" />
+			<portlet:param name="<%= Constants.CMD %>" value="<%= TrashUtil.isTrashEnabled(scopeGroupId) ? Constants.MOVE_TO_TRASH : Constants.DELETE %>" />
 			<portlet:param name="redirect" value="<%= currentURL %>" />
 			<portlet:param name="mbCategoryId" value="<%= String.valueOf(category.getCategoryId()) %>" />
 		</portlet:actionURL>
 
 		<liferay-ui:icon-delete
+			trash="<%= TrashUtil.isTrashEnabled(scopeGroupId) %>"
 			url="<%= deleteURL %>"
 		/>
 	</c:if>

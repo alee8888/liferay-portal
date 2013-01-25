@@ -106,6 +106,10 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 	 * @return the normal model instance
 	 */
 	public static JournalFolder toModel(JournalFolderSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		JournalFolder model = new JournalFolderImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -130,6 +134,10 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 	 * @return the normal model instances
 	 */
 	public static List<JournalFolder> toModels(JournalFolderSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<JournalFolder> models = new ArrayList<JournalFolder>(soapModels.length);
 
 		for (JournalFolderSoap soapModel : soapModels) {
@@ -154,7 +162,7 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_folderId);
+		return _folderId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -443,17 +451,6 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 	}
 
 	@Override
-	public JournalFolder toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (JournalFolder)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			JournalFolder.class.getName(), getPrimaryKey());
@@ -464,6 +461,16 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public JournalFolder toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (JournalFolder)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -504,8 +511,7 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 			return value;
 		}
 
-		value = getName().toLowerCase()
-					.compareTo(journalFolder.getName().toLowerCase());
+		value = getName().compareToIgnoreCase(journalFolder.getName());
 
 		if (value != 0) {
 			return value;
@@ -723,7 +729,7 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 	}
 
 	private static ClassLoader _classLoader = JournalFolder.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			JournalFolder.class
 		};
 	private String _uuid;
@@ -747,5 +753,5 @@ public class JournalFolderModelImpl extends BaseModelImpl<JournalFolder>
 	private String _originalName;
 	private String _description;
 	private long _columnBitmask;
-	private JournalFolder _escapedModelProxy;
+	private JournalFolder _escapedModel;
 }

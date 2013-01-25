@@ -14,8 +14,12 @@
 
 package com.liferay.portlet.ratings.service.impl;
 
+import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
@@ -24,8 +28,6 @@ import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.blogs.model.BlogsStatsUser;
-import com.liferay.portlet.messageboards.model.MBDiscussion;
-import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.ratings.EntryScoreException;
 import com.liferay.portlet.ratings.model.RatingsEntry;
 import com.liferay.portlet.ratings.model.RatingsStats;
@@ -77,7 +79,7 @@ public class RatingsEntryLocalServiceImpl
 		stats.setTotalScore(totalScore);
 		stats.setAverageScore(averageScore);
 
-		ratingsStatsPersistence.update(stats, false);
+		ratingsStatsPersistence.update(stats);
 	}
 
 	public RatingsEntry fetchEntry(long userId, String className, long classPK)
@@ -157,7 +159,7 @@ public class RatingsEntryLocalServiceImpl
 			entry.setModifiedDate(serviceContext.getModifiedDate(now));
 			entry.setScore(score);
 
-			ratingsEntryPersistence.update(entry, false);
+			ratingsEntryPersistence.update(entry);
 
 			// Stats
 
@@ -168,7 +170,7 @@ public class RatingsEntryLocalServiceImpl
 			stats.setAverageScore(
 				stats.getTotalScore() / stats.getTotalEntries());
 
-			ratingsStatsPersistence.update(stats, false);
+			ratingsStatsPersistence.update(stats);
 		}
 		else {
 			newEntry = true;
@@ -188,7 +190,7 @@ public class RatingsEntryLocalServiceImpl
 			entry.setClassPK(classPK);
 			entry.setScore(score);
 
-			ratingsEntryPersistence.update(entry, false);
+			ratingsEntryPersistence.update(entry);
 
 			// Stats
 
@@ -200,7 +202,7 @@ public class RatingsEntryLocalServiceImpl
 			stats.setAverageScore(
 				stats.getTotalScore() / stats.getTotalEntries());
 
-			ratingsStatsPersistence.update(stats, false);
+			ratingsStatsPersistence.update(stats);
 		}
 
 		// Blogs entry
@@ -232,7 +234,7 @@ public class RatingsEntryLocalServiceImpl
 			blogsStatsUser.setRatingsTotalScore(ratingsTotalScore);
 			blogsStatsUser.setRatingsAverageScore(ratingsAverageScore);
 
-			blogsStatsUserPersistence.update(blogsStatsUser, false);
+			blogsStatsUserPersistence.update(blogsStatsUser);
 		}
 
 		// Social
@@ -252,15 +254,13 @@ public class RatingsEntryLocalServiceImpl
 	protected void validate(String className, double score)
 		throws PortalException {
 
-		double maxScore = PropsValues.RATINGS_DEFAULT_NUMBER_OF_STARS;
-		double minScore = 0;
+		Filter filter = new Filter(className);
 
-		if (className.equals(MBDiscussion.class.getName()) ||
-			className.equals(MBMessage.class.getName())) {
-
-			maxScore = 1;
-			minScore = -1;
-		}
+		double maxScore = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.RATINGS_MAX_SCORE, filter),
+			PropsValues.RATINGS_DEFAULT_NUMBER_OF_STARS);
+		double minScore = GetterUtil.getInteger(
+			PropsUtil.get(PropsKeys.RATINGS_MIN_SCORE, filter));
 
 		if ((score < minScore) || (score > maxScore)) {
 			throw new EntryScoreException();

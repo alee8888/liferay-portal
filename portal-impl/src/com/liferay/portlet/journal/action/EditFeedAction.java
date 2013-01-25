@@ -16,15 +16,15 @@ package com.liferay.portlet.journal.action;
 
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.struts.PortletAction;
+import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
+import com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalServiceUtil;
 import com.liferay.portlet.journal.DuplicateFeedIdException;
 import com.liferay.portlet.journal.FeedContentFieldException;
 import com.liferay.portlet.journal.FeedIdException;
@@ -166,27 +166,23 @@ public class EditFeedAction extends PortletAction {
 		String contentField = ParamUtil.getString(
 			actionRequest, "contentField");
 
-		String feedType = RSSUtil.TYPE_DEFAULT;
-		double feedVersion = RSSUtil.VERSION_DEFAULT;
+		long ddmStructureId = ParamUtil.getLong(
+			actionRequest, "ddmStructureId");
 
-		String feedTypeAndVersion = ParamUtil.getString(
-			actionRequest, "feedTypeAndVersion");
+		if (ddmStructureId > 0) {
+			DDMStructure ddmStructure =
+				DDMStructureLocalServiceUtil.fetchDDMStructure(ddmStructureId);
 
-		if (Validator.isNotNull(feedTypeAndVersion)) {
-			String[] parts = feedTypeAndVersion.split(StringPool.COLON);
-
-			try {
-				feedType = parts[0];
-				feedVersion = GetterUtil.getDouble(parts[1]);
-			}
-			catch (Exception e) {
+			if (ddmStructure != null) {
+				structureId = ddmStructure.getStructureKey();
 			}
 		}
-		else {
-			feedType = ParamUtil.getString(actionRequest, "feedType", feedType);
-			feedVersion = ParamUtil.getDouble(
-				actionRequest, "feedVersion", feedVersion);
-		}
+
+		String feedType = ParamUtil.getString(
+			actionRequest, "feedType", RSSUtil.FEED_TYPE_DEFAULT);
+
+		String feedFormat = RSSUtil.getFeedTypeFormat(feedType);
+		double feedVersion = RSSUtil.getFeedTypeVersion(feedType);
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			JournalFeed.class.getName(), actionRequest);
@@ -199,7 +195,7 @@ public class EditFeedAction extends PortletAction {
 				groupId, feedId, autoFeedId, name, description, type,
 				structureId, templateId, rendererTemplateId, delta, orderByCol,
 				orderByType, targetLayoutFriendlyUrl, targetPortletId,
-				contentField, feedType, feedVersion, serviceContext);
+				contentField, feedFormat, feedVersion, serviceContext);
 		}
 		else {
 
@@ -209,7 +205,7 @@ public class EditFeedAction extends PortletAction {
 				groupId, feedId, name, description, type, structureId,
 				templateId, rendererTemplateId, delta, orderByCol, orderByType,
 				targetLayoutFriendlyUrl, targetPortletId, contentField,
-				feedType, feedVersion, serviceContext);
+				feedFormat, feedVersion, serviceContext);
 		}
 	}
 

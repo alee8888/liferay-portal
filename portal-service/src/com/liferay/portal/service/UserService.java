@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.security.ac.AccessControlled;
 
 /**
  * The interface for the user remote service.
@@ -34,6 +35,7 @@ import com.liferay.portal.kernel.transaction.Transactional;
  * @see com.liferay.portal.service.impl.UserServiceImpl
  * @generated
  */
+@AccessControlled
 @JSONWebService
 @Transactional(isolation = Isolation.PORTAL, rollbackFor =  {
 	PortalException.class, SystemException.class})
@@ -171,9 +173,9 @@ public interface UserService extends BaseService {
 	* @param sendEmail whether to send the user an email notification about
 	their new account
 	* @param serviceContext the user's service context (optionally
-	<code>null</code>). Can set the universally unique identifier
-	(with the <code>uuid</code> attribute), asset category IDs, asset
-	tag names, and expando bridge attributes for the user.
+	<code>null</code>). Can set the UUID (with the <code>uuid</code>
+	attribute), asset category IDs, asset tag names, and expando
+	bridge attributes for the user.
 	* @return the new user
 	* @throws PortalException if the user's information was invalid, if the
 	creator did not have permission to add users, or if the email
@@ -239,9 +241,9 @@ public interface UserService extends BaseService {
 	* @param sendEmail whether to send the user an email notification about
 	their new account
 	* @param serviceContext the user's service context (optionally
-	<code>null</code>). Can set the universally unique identifier
-	(with the <code>uuid</code> attribute), asset category IDs, asset
-	tag names, and expando bridge attributes for the user.
+	<code>null</code>). Can set the UUID (with the <code>uuid</code>
+	attribute), asset category IDs, asset tag names, and expando
+	bridge attributes for the user.
 	* @return the new user
 	* @throws PortalException if the user's information was invalid, if the
 	creator did not have permission to add users, if the email
@@ -322,9 +324,9 @@ public interface UserService extends BaseService {
 	* @param sendEmail whether to send the user an email notification about
 	their new account
 	* @param serviceContext the user's service context (optionally
-	<code>null</code>). Can set the universally unique identifier
-	(with the <code>uuid</code> attribute), asset category IDs, asset
-	tag names, and expando bridge attributes for the user.
+	<code>null</code>). Can set the UUID (with the <code>uuid</code>
+	attribute), asset category IDs, asset tag names, and expando
+	bridge attributes for the user.
 	* @return the new user
 	* @throws PortalException if the user's information was invalid, if the
 	creator did not have permission to add users, or if the email
@@ -390,9 +392,9 @@ public interface UserService extends BaseService {
 	* @param sendEmail whether to send the user an email notification about
 	their new account
 	* @param serviceContext the user's service context (optionally
-	<code>null</code>). Can set the universally unique identifier
-	(with the <code>uuid</code> attribute), asset category IDs, asset
-	tag names, and expando bridge attributes for the user.
+	<code>null</code>). Can set the UUID (with the <code>uuid</code>
+	attribute), asset category IDs, asset tag names, and expando
+	bridge attributes for the user.
 	* @return the new user
 	* @throws PortalException if the user's information was invalid, if the
 	creator did not have permission to add users, if the email
@@ -458,6 +460,17 @@ public interface UserService extends BaseService {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.User> getCompanyUsers(
+		long companyId, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getCompanyUsersCount(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
 	/**
 	* Returns the primary keys of all the users belonging to the group.
 	*
@@ -473,6 +486,21 @@ public interface UserService extends BaseService {
 			com.liferay.portal.kernel.exception.SystemException;
 
 	/**
+	* Returns all the users belonging to the group.
+	*
+	* @param groupId the primary key of the group
+	* @return the users belonging to the group
+	* @throws PortalException if the current user did not have permission to
+	view group assignments
+	* @throws SystemException if a system exception occurred
+	*/
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.User> getGroupUsers(
+		long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	/**
 	* Returns the primary keys of all the users belonging to the organization.
 	*
 	* @param organizationId the primary key of the organization
@@ -483,6 +511,21 @@ public interface UserService extends BaseService {
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public long[] getOrganizationUserIds(long organizationId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	/**
+	* Returns all the users belonging to the organization.
+	*
+	* @param organizationId the primary key of the organization
+	* @return users belonging to the organization
+	* @throws PortalException if the current user did not have permission to
+	view organization assignments
+	* @throws SystemException if a system exception occurred
+	*/
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.User> getOrganizationUsers(
+		long organizationId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
@@ -538,12 +581,18 @@ public interface UserService extends BaseService {
 	* @param screenName the user's screen name
 	* @return the user with the screen name
 	* @throws PortalException if a user with the screen name could not be found
-	or if the current user did not have permission to veiw the user
+	or if the current user did not have permission to view the user
 	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public com.liferay.portal.model.User getUserByScreenName(long companyId,
 		java.lang.String screenName)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public java.util.List<com.liferay.portal.model.User> getUserGroupUsers(
+		long userGroupId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
@@ -585,6 +634,8 @@ public interface UserService extends BaseService {
 	* @param userId the primary key of the user
 	* @return <code>true</code> if the user is a member of the group;
 	<code>false</code> otherwise
+	* @throws PortalException if the current user did not have permission to
+	view the user or group members
 	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -599,6 +650,8 @@ public interface UserService extends BaseService {
 	* @param userId the primary key of the user
 	* @return <code>true</code> if the user is a member of the role;
 	<code>false</code> otherwise
+	* @throws PortalException if the current user did not have permission to
+	view the user or role members
 	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -652,6 +705,19 @@ public interface UserService extends BaseService {
 	* @throws SystemException if a system exception occurred
 	*/
 	public void setUserGroupUsers(long userGroupId, long[] userIds)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	/**
+	* Removes the users from the teams of a group.
+	*
+	* @param groupId the primary key of the group
+	* @param userIds the primary keys of the users
+	* @throws PortalException if the current user did not have permission to
+	modify user group assignments
+	* @throws SystemException if a system exception occurred
+	*/
+	public void unsetGroupTeamsUsers(long groupId, long[] userIds)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
@@ -948,9 +1014,10 @@ public interface UserService extends BaseService {
 	* @return the user
 	* @throws PortalException if a user with the primary key could not be
 	found, if the current user was updating her own status to
-	anything but {@link WorkflowConstants.STATUS_APPROVED}, or if the
-	current user did not have permission to update the user's
-	workflow status.
+	anything but {@link
+	com.liferay.portal.kernel.workflow.WorkflowConstants#STATUS_APPROVED},
+	or if the current user did not have permission to update the
+	user's workflow status.
 	* @throws SystemException if a system exception occurred
 	*/
 	public com.liferay.portal.model.User updateStatus(long userId, int status)
@@ -1010,9 +1077,9 @@ public interface UserService extends BaseService {
 	* @param websites the user's websites
 	* @param announcementsDelivers the announcements deliveries
 	* @param serviceContext the user's service context (optionally
-	<code>null</code>). Can set the universally unique identifier
-	(with the <code>uuid</code> attribute), asset category IDs, asset
-	tag names, and expando bridge attributes for the user.
+	<code>null</code>). Can set the UUID (with the <code>uuid</code>
+	attribute), asset category IDs, asset tag names, and expando
+	bridge attributes for the user.
 	* @return the user
 	* @throws PortalException if a user with the primary key could not be
 	found, if the new information was invalid, or if the current user
@@ -1096,9 +1163,9 @@ public interface UserService extends BaseService {
 	* @param userGroupRoles the user user's group roles
 	* @param userGroupIds the primary keys of the user's user groups
 	* @param serviceContext the user's service context (optionally
-	<code>null</code>). Can set the universally unique identifier
-	(with the <code>uuid</code> attribute), asset category IDs, asset
-	tag names, and expando bridge attributes for the user.
+	<code>null</code>). Can set the UUID (with the <code>uuid</code>
+	attribute), asset category IDs, asset tag names, and expando
+	bridge attributes for the user.
 	* @return the user
 	* @throws PortalException if a user with the primary key could not be
 	found, if the new information was invalid, or if the current user

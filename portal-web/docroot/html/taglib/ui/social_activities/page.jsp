@@ -20,20 +20,18 @@
 <%@ page import="com.liferay.portlet.social.model.SocialActivityFeedEntry" %>
 <%@ page import="com.liferay.portlet.social.service.SocialActivityInterpreterLocalServiceUtil" %>
 <%@ page import="com.liferay.portlet.social.service.SocialActivityLocalServiceUtil" %>
-<%@ page import="com.liferay.util.RSSUtil" %>
-
-<%@ page import="com.sun.syndication.feed.synd.SyndContent" %>
-<%@ page import="com.sun.syndication.feed.synd.SyndEntry" %>
-<%@ page import="com.sun.syndication.feed.synd.SyndFeed" %>
 
 <%
+List<SocialActivity> activities = (List<SocialActivity>)request.getAttribute("liferay-ui:social-activities:activities");
 String className = (String)request.getAttribute("liferay-ui:social-activities:className");
 long classPK = GetterUtil.getLong((String)request.getAttribute("liferay-ui:social-activities:classPK"));
-List<SocialActivity> activities = (List<SocialActivity>)request.getAttribute("liferay-ui:social-activities:activities");
-boolean feedEnabled = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:social-activities:feedEnabled"));
-String feedTitle = (String)request.getAttribute("liferay-ui:social-activities:feedTitle");
+int feedDelta = GetterUtil.getInteger((String)request.getAttribute("liferay-ui:social-activities:feedDelta"));
+String feedDisplayStyle = (String)request.getAttribute("liferay-ui:social-activities:feedDisplayStyle");
+boolean feedEnabled = !PortalUtil.isRSSFeedsEnabled() ? false : GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:social-activities:feedEnabled"));
 String feedLink = (String)request.getAttribute("liferay-ui:social-activities:feedLink");
 String feedLinkMessage = (String)request.getAttribute("liferay-ui:social-activities:feedLinkMessage");
+String feedTitle = (String)request.getAttribute("liferay-ui:social-activities:feedTitle");
+String feedType = (String)request.getAttribute("liferay-ui:social-activities:feedType");
 
 if (activities == null) {
 	activities = SocialActivityLocalServiceUtil.getActivities(0, className, classPK, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
@@ -124,12 +122,12 @@ Format timeFormatDate = FastDateFormatFactoryUtil.getTime(locale, timeZone);
 <c:if test="<%= feedEnabled && !activities.isEmpty() %>">
 	<div class="separator"><!-- --></div>
 
-	<liferay-ui:icon
-		image="rss"
-		label="<%= true %>"
+	<liferay-ui:rss
+		delta="<%= feedDelta %>"
+		displayStyle="<%= feedDisplayStyle %>"
+		feedType="<%= feedType %>"
 		message="<%= feedLinkMessage %>"
-		method="get"
-		target="_blank"
+		name="<%= feedTitle %>"
 		url="<%= feedLink %>"
 	/>
 </c:if>

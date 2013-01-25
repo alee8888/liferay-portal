@@ -33,8 +33,9 @@ import com.liferay.portal.kernel.javadoc.JavadocManagerUtil;
 import com.liferay.portal.kernel.log.Jdk14LogFactoryImpl;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.scheduler.SchedulerEngineUtil;
+import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
+import com.liferay.portal.kernel.template.TemplateResourceLoaderUtil;
 import com.liferay.portal.kernel.util.CentralizedThreadLocal;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -182,7 +183,7 @@ public class GlobalShutdownAction extends SimpleAction {
 		// Scheduler engine
 
 		try {
-			SchedulerEngineUtil.shutdown();
+			SchedulerEngineHelperUtil.shutdown();
 		}
 		catch (Exception e) {
 		}
@@ -200,6 +201,14 @@ public class GlobalShutdownAction extends SimpleAction {
 
 		try {
 			TemplateManagerUtil.destroy();
+		}
+		catch (Exception e) {
+		}
+
+		// Template resource loader
+
+		try {
+			TemplateResourceLoaderUtil.destroy();
 		}
 		catch (Exception e) {
 		}

@@ -33,6 +33,7 @@ import com.liferay.portal.model.PortletApp;
 import com.liferay.portal.model.PortletURLListener;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.PortletLocalServiceUtil;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
 
@@ -237,9 +238,26 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 	public LiferayPortletURL createLiferayPortletURL(
 		long plid, String portletName, String lifecycle) {
 
+		return createLiferayPortletURL(plid, portletName, lifecycle, true);
+	}
+
+	public LiferayPortletURL createLiferayPortletURL(
+		long plid, String portletName, String lifecycle,
+		boolean includeLinkToLayoutUuid) {
+
 		try {
 			Layout layout = (Layout)_portletRequestImpl.getAttribute(
 				WebKeys.LAYOUT);
+
+			if (layout == null) {
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)_portletRequestImpl.getAttribute(
+						WebKeys.THEME_DISPLAY);
+
+				if (themeDisplay != null) {
+					layout = themeDisplay.getLayout();
+				}
+			}
 
 			if (_portletSetup == null) {
 				_portletSetup =
@@ -250,11 +268,14 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 			String linkToLayoutUuid = GetterUtil.getString(
 				_portletSetup.getValue("portletSetupLinkToLayoutUuid", null));
 
-			if (Validator.isNotNull(linkToLayoutUuid)) {
+			if (Validator.isNotNull(linkToLayoutUuid) &&
+				includeLinkToLayoutUuid) {
+
 				try {
 					Layout linkedLayout =
 						LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
-							linkToLayoutUuid, layout.getGroupId());
+							linkToLayoutUuid, layout.getGroupId(),
+							layout.isPrivateLayout());
 
 					plid = linkedLayout.getPlid();
 				}
@@ -392,7 +413,7 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 	public String encodeURL(String path) {
 		if ((path == null) ||
 			(!path.startsWith("#") && !path.startsWith("/") &&
-				(path.indexOf("://") == -1))) {
+			 !path.contains("://"))) {
 
 			// Allow '#' as well to workaround a bug in Oracle ADF 10.1.3
 

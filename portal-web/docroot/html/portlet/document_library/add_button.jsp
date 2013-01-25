@@ -26,7 +26,7 @@ long repositoryId = GetterUtil.getLong((String)request.getAttribute("view.jsp-re
 List<DLFileEntryType> fileEntryTypes = Collections.emptyList();
 
 if ((folder == null) || folder.isSupportsMetadata()) {
-	fileEntryTypes = DLFileEntryTypeLocalServiceUtil.getFolderFileEntryTypes(DLUtil.getGroupIds(themeDisplay), folderId, true);
+	fileEntryTypes = DLFileEntryTypeLocalServiceUtil.getFolderFileEntryTypes(PortalUtil.getSiteAndCompanyGroupIds(themeDisplay), folderId, true);
 }
 %>
 
@@ -113,8 +113,8 @@ if ((folder == null) || folder.isSupportsMetadata()) {
 	</c:if>
 </liferay-ui:icon-menu>
 
-<aui:script use="aui-base,aui-swf">
-	if (A.SWF.isFlashVersionAtLeast(9)) {
+<aui:script use="aui-base,uploader">
+	if (!A.UA.ios && (A.Uploader.TYPE != 'none')) {
 		var uploadMultipleDocumentsIcon = A.all('.upload-multiple-documents:hidden');
 
 		uploadMultipleDocumentsIcon.show();

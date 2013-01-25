@@ -26,6 +26,7 @@ String treeLoading = PortalUtil.generateRandomKey(request, "treeLoading");
 String treeId = ParamUtil.getString(request, "treeId");
 boolean checkContentDisplayPage = ParamUtil.getBoolean(request, "checkContentDisplayPage", false);
 boolean defaultStateChecked = ParamUtil.getBoolean(request, "defaultStateChecked", false);
+boolean draggableTree = ParamUtil.getBoolean(request, "draggableTree", true);
 boolean expandFirstNode = ParamUtil.getBoolean(request, "expandFirstNode", true);
 boolean saveState = ParamUtil.getBoolean(request, "saveState", true);
 boolean selectableTree = ParamUtil.getBoolean(request, "selectableTree");
@@ -39,10 +40,13 @@ if (!selectableTree) {
 
 <aui:script use="<%= modules %>">
 	var Lang = A.Lang;
+	var AArray = A.Array;
 
 	var Util = Liferay.Util;
 
 	var LAYOUT_URL = '<%= portletURL + StringPool.AMPERSAND + portletDisplay.getNamespace() + "selPlid={selPlid}" + StringPool.AMPERSAND + portletDisplay.getNamespace() + "historyKey={historyKey}" %>';
+
+	var STR_CHILDREN = 'children';
 
 	var TreeUtil = {
 		DEFAULT_PARENT_LAYOUT_ID: <%= LayoutConstants.DEFAULT_PARENT_LAYOUT_ID %>,
@@ -52,6 +56,7 @@ if (!selectableTree) {
 		%>
 
 		OPEN_NODES: '<%= openNodes %>'.split(','),
+		PAGINATION_LIMIT: <%= PropsValues.LAYOUT_MANAGE_PAGES_INITIAL_CHILDREN %>,
 		PREFIX_GROUP_ID: '_groupId_',
 		PREFIX_LAYOUT: '_layout_',
 		PREFIX_LAYOUT_ID: '_layoutId_',
@@ -96,6 +101,10 @@ if (!selectableTree) {
 			</c:choose>
 
 			treeInstance.eachChildren(TreeUtil.restoreSelectedNode, true);
+		},
+
+		createLabel: function(data) {
+			return '<span class="' + data.cssClass + '" title="' + data.title + '">' + data.label + '</span>';
 		},
 
 		createListItemId: function(groupId, layoutId, plid) {
@@ -144,8 +153,20 @@ if (!selectableTree) {
 			var output = [];
 
 			A.each(
-				json,
+				json.layouts,
 				function(node) {
+					var childLayouts = [];
+					var total = 0;
+
+					var nodeChildren = node.children;
+
+					if (nodeChildren) {
+						childLayouts = nodeChildren.layouts;
+						total = nodeChildren.total;
+					}
+
+					var expanded = (total > 0);
+
 					var newNode = {
 						<c:if test="<%= saveState %>">
 							after: {
@@ -154,8 +175,17 @@ if (!selectableTree) {
 										var plid = TreeUtil.extractPlid(event.target);
 
 										TreeUtil.updateSessionTreeCheckedState('<%= HtmlUtil.escape(treeId) %>SelectedNode', plid, event.newVal);
+
+										TreeUtil.updateSelectedNodes(event.target, event.newVal);
 									}
 								},
+
+								childrenChange: function(event) {
+									TreeUtil.updateSelectedNodes(event.target, event.target.get('checked'));
+
+									TreeUtil.restoreNodeState(event.target);
+								},
+
 								expandedChange: function(event) {
 									var layoutId = TreeUtil.extractLayoutId(event.target);
 
@@ -166,16 +196,25 @@ if (!selectableTree) {
 
 						alwaysShowHitArea: node.hasChildren,
 
-						<c:if test='<%= !saveState && defaultStateChecked %>'>
+						<c:if test="<%= !saveState && defaultStateChecked %>">
 							checked: true,
 						</c:if>
 
-						children: TreeUtil.formatJSONResults(node.children),
 						draggable: node.updateable,
-						expanded: (node.children && (node.children.length > 0)),
+						expanded: expanded,
 						id: TreeUtil.createListItemId(node.groupId, node.layoutId, node.plid),
+						paginator: {
+							limit: TreeUtil.PAGINATION_LIMIT,
+							offsetParam: 'start',
+							start: Math.max(childLayouts.length - TreeUtil.PAGINATION_LIMIT, 0),
+							total: total
+						},
 						type: '<%= selectableTree ? "task" : "io" %>'
 					};
+
+					if (nodeChildren && expanded) {
+						newNode.children = TreeUtil.formatJSONResults(nodeChildren);
+					}
 
 					var cssClass = '';
 
@@ -214,6 +253,15 @@ if (!selectableTree) {
 							}
 						);
 					}
+					else {
+						newNode.label = TreeUtil.createLabel(
+							{
+								cssClass: cssClass,
+								label: newNode.label,
+								title: title
+							}
+						);
+					}
 
 					output.push(newNode);
 				}
@@ -227,7 +275,7 @@ if (!selectableTree) {
 
 			var plid = TreeUtil.extractPlid(node);
 
-			if (A.Array.indexOf(TreeUtil.SELECTED_NODES, plid) > -1) {
+			if (AArray.indexOf(TreeUtil.SELECTED_NODES, plid) > -1) {
 				if (node.check) {
 					var tree = node.get('ownerTree');
 
@@ -235,7 +283,7 @@ if (!selectableTree) {
 				}
 			}
 
-			A.Array.each(node.get('children'), TreeUtil.restoreNodeState);
+			AArray.each(node.get(STR_CHILDREN), TreeUtil.restoreNodeState);
 		},
 
 		restoreSelectedNode: function(node) {
@@ -255,7 +303,12 @@ if (!selectableTree) {
 			A.io.request(
 				updateURL,
 				{
-					data: data
+					data: A.mix(
+						data,
+						{
+							p_auth: Liferay.authToken
+						}
+					)
 				}
 			);
 		},
@@ -272,7 +325,100 @@ if (!selectableTree) {
 		}
 
 		<c:if test="<%= saveState %>">
-			, updateSessionTreeCheckedState: function(treeId, nodeId, state) {
+			, invokeSessionClick: function(data, callback) {
+				A.mix(
+					data,
+					{
+						useHttpSession: true
+					}
+				);
+
+				A.io.request(
+					themeDisplay.getPathMain() + '/portal/session_click',
+					{
+						after: {
+							success: function(event) {
+								var responseData = this.get('responseData');
+
+								if (callback && responseData) {
+									callback(responseData);
+								}
+							}
+						},
+						data: data
+					}
+				);
+			},
+
+			updatePagination: function(node) {
+				var paginationMap = {};
+
+				var updatePaginationMap = function(map, curNode) {
+					if (A.instanceOf(curNode, A.TreeNodeIO)) {
+						var paginationLimit = TreeUtil.PAGINATION_LIMIT;
+
+						var layoutId = TreeUtil.extractLayoutId(curNode);
+
+						var children = curNode.get(STR_CHILDREN);
+
+						map[layoutId] = Math.ceil(children.length / paginationLimit) * paginationLimit;
+					}
+				}
+
+				TreeUtil.invokeSessionClick(
+					{
+						cmd: 'get',
+						key: '<%= HtmlUtil.escape(treeId) %>:<%= groupId %>:<%= privateLayout %>:Pagination'
+					},
+					function(responseData) {
+						try {
+							paginationMap = A.JSON.parse(responseData);
+						}
+						catch (e) {
+						}
+
+						updatePaginationMap(paginationMap, node)
+
+						node.eachParent(
+							function(parent) {
+								updatePaginationMap(paginationMap, parent);
+							}
+						);
+
+						TreeUtil.invokeSessionClick(
+							{
+								'<%= HtmlUtil.escape(treeId) %>:<%= groupId %>:<%= privateLayout %>:Pagination': A.JSON.stringify(paginationMap)
+							}
+						);
+					}
+				);
+			},
+
+			updateSelectedNodes: function(node, state) {
+				var plid = TreeUtil.extractPlid(node);
+
+				var selectedNodes = TreeUtil.SELECTED_NODES;
+
+				var index = AArray.indexOf(selectedNodes, plid);
+
+				if (state) {
+					if (index == -1) {
+						selectedNodes.push(plid);
+					}
+				}
+				else if (index > -1) {
+					AArray.remove(selectedNodes, index);
+				}
+
+				AArray.each(
+					node.get(STR_CHILDREN),
+					function(item) {
+						TreeUtil.updateSelectedNodes(item, state);
+					}
+				);
+			},
+
+			updateSessionTreeCheckedState: function(treeId, nodeId, state) {
 				var data = {
 					cmd: state ? 'layoutCheck' : 'layoutUncheck',
 					plid: nodeId
@@ -322,7 +468,10 @@ if (!selectableTree) {
 
 	<c:if test="<%= !selectableTree %>">
 		RootNodeType = A.TreeNodeIO;
-		TreeViewType = A.TreeViewDD;
+
+		<c:if test="<%= draggableTree %>">
+			TreeViewType = A.TreeViewDD;
+		</c:if>
 
 		<c:if test="<%= !checkContentDisplayPage %>">
 		rootLabel = TreeUtil.createLink(
@@ -340,6 +489,8 @@ if (!selectableTree) {
 				after: {
 					checkedChange: function(event) {
 						TreeUtil.updateSessionTreeCheckedState('<%= HtmlUtil.escape(treeId) %>SelectedNode', <%= LayoutConstants.DEFAULT_PLID %>, event.newVal);
+
+						TreeUtil.updateSelectedNodes(event.target, event.newVal);
 					},
 					expandedChange: function(event) {
 						Liferay.Store('<%= HtmlUtil.escape(treeId) %>RootNode', event.newVal);
@@ -349,11 +500,15 @@ if (!selectableTree) {
 
 			alwaysShowHitArea: true,
 
-			<c:if test='<%= !saveState && defaultStateChecked %>'>
+			<c:if test="<%= !saveState && defaultStateChecked %>">
 				checked: true,
 			</c:if>
 
-			children: TreeUtil.formatJSONResults(<%= LayoutsTreeUtil.getLayoutsJSON(request, groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, StringUtil.split(openNodes, 0L)) %>),
+			<%
+			JSONObject layoutsJSON = JSONFactoryUtil.createJSONObject(LayoutsTreeUtil.getLayoutsJSON(request, groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, StringUtil.split(openNodes, 0L), true));
+			%>
+
+			children: TreeUtil.formatJSONResults(<%= layoutsJSON %>),
 			draggable: false,
 
 			<c:choose>
@@ -372,7 +527,13 @@ if (!selectableTree) {
 
 			id: rootId,
 			label: rootLabel,
-			leaf: false
+			leaf: false,
+			paginator: {
+				limit: TreeUtil.PAGINATION_LIMIT,
+				offsetParam: 'start',
+				start: Math.max(<%= layoutsJSON.getJSONArray("layouts").length() %> - TreeUtil.PAGINATION_LIMIT, 0),
+				total: <%= layoutsJSON.getInt("total") %>
+			}
 		}
 	);
 
@@ -394,26 +555,53 @@ if (!selectableTree) {
 						return {
 							groupId: groupId,
 							incomplete: <%= incomplete %>,
-							privateLayout: <%= privateLayout %>,
+							p_auth: Liferay.authToken,
 							parentLayoutId: parentLayoutId,
-							selPlid: '<%= selPlid %>'
+							privateLayout: <%= privateLayout %>,
+							selPlid: '<%= selPlid %>',
+							treeId: '<%= HtmlUtil.escape(treeId) %>'
 						};
 					},
-					method: AUI.defaults.io.method
+					method: AUI.defaults.io.method,
+					on: {
+						success: function(event, id, xhr) {
+							var instance = this;
+
+							var paginator = instance.get('paginator');
+							var response;
+
+							try {
+								response = A.JSON.parse(xhr.responseText);
+							}
+							catch (e) {
+							}
+
+							if (response) {
+								paginator.total = response.total;
+
+								instance.syncUI();
+							}
+
+							<c:if test="<%= saveState %>">
+								TreeUtil.updatePagination(instance);
+							</c:if>
+						}
+					}
 				},
 				formatter: TreeUtil.formatJSONResults,
 				url: getLayoutsURL
 			},
 			on: {
 				<c:if test="<%= saveState %>">
-				append: function(event) {
-					TreeUtil.restoreNodeState(event.tree.node);
-				},
+					append: function(event) {
+						TreeUtil.restoreNodeState(event.tree.node);
+					},
 				</c:if>
+
 				dropAppend: function(event) {
 					var tree = event.tree;
 
-					var index = tree.dragNode.get('parentNode').indexOf(tree.dragNode);
+					var index = tree.dragNode.get('parentNode').getChildrenLength() - 1;
 
 					TreeUtil.updateLayoutParent(
 						TreeUtil.extractPlid(tree.dragNode),
@@ -432,10 +620,6 @@ if (!selectableTree) {
 						index
 					);
 				}
-			},
-			paginator: {
-				limit: <%= PropsValues.LAYOUT_MANAGE_PAGES_INITIAL_CHILDREN %>,
-				offsetParam: 'start'
 			},
 			type: 'pages'
 		}
@@ -498,7 +682,7 @@ if (!selectableTree) {
 			}
 
 			if (!foundItem) {
-				var children = (node || treeview).get('children');
+				var children = (node || treeview).get(STR_CHILDREN);
 
 				var length = children.length;
 

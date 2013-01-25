@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -25,7 +26,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
-import com.liferay.portal.util.CookieKeys;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
@@ -52,6 +52,8 @@ public class I18nFilter extends BasePortalFilter {
 	}
 
 	public static void setLanguageIds(Set<String> languageIds) {
+		_languageIds.clear();
+
 		for (String languageId : languageIds) {
 			languageId = languageId.substring(1);
 
@@ -83,7 +85,7 @@ public class I18nFilter extends BasePortalFilter {
 		String requestURI = request.getRequestURI();
 
 		if (Validator.isNotNull(contextPath) &&
-			(requestURI.indexOf(contextPath) != -1)) {
+			requestURI.contains(contextPath)) {
 
 			requestURI = requestURI.substring(contextPath.length());
 		}
@@ -145,9 +147,7 @@ public class I18nFilter extends BasePortalFilter {
 			}
 		}
 
-		Locale i18nPathLocale = LocaleUtil.fromLanguageId(i18nPathLanguageId);
-
-		if (!LanguageUtil.isAvailableLocale(i18nPathLocale)) {
+		if (!LanguageUtil.isAvailableLanguageCode(i18nPathLanguageId)) {
 			return null;
 		}
 

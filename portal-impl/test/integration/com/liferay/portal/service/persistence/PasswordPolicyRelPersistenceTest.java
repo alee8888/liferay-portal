@@ -20,32 +20,58 @@ import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.model.PasswordPolicyRel;
 import com.liferay.portal.model.impl.PasswordPolicyRelModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class PasswordPolicyRelPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (PasswordPolicyRelPersistence)PortalBeanLocatorUtil.locate(PasswordPolicyRelPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -87,7 +113,7 @@ public class PasswordPolicyRelPersistenceTest {
 
 		newPasswordPolicyRel.setClassPK(ServiceTestUtil.nextLong());
 
-		_persistence.update(newPasswordPolicyRel, false);
+		_persistence.update(newPasswordPolicyRel);
 
 		PasswordPolicyRel existingPasswordPolicyRel = _persistence.findByPrimaryKey(newPasswordPolicyRel.getPrimaryKey());
 
@@ -232,13 +258,6 @@ public class PasswordPolicyRelPersistenceTest {
 			existingPasswordPolicyRelModelImpl.getOriginalClassNameId());
 		Assert.assertEquals(existingPasswordPolicyRelModelImpl.getClassPK(),
 			existingPasswordPolicyRelModelImpl.getOriginalClassPK());
-
-		Assert.assertEquals(existingPasswordPolicyRelModelImpl.getPasswordPolicyId(),
-			existingPasswordPolicyRelModelImpl.getOriginalPasswordPolicyId());
-		Assert.assertEquals(existingPasswordPolicyRelModelImpl.getClassNameId(),
-			existingPasswordPolicyRelModelImpl.getOriginalClassNameId());
-		Assert.assertEquals(existingPasswordPolicyRelModelImpl.getClassPK(),
-			existingPasswordPolicyRelModelImpl.getOriginalClassPK());
 	}
 
 	protected PasswordPolicyRel addPasswordPolicyRel()
@@ -253,10 +272,12 @@ public class PasswordPolicyRelPersistenceTest {
 
 		passwordPolicyRel.setClassPK(ServiceTestUtil.nextLong());
 
-		_persistence.update(passwordPolicyRel, false);
+		_persistence.update(passwordPolicyRel);
 
 		return passwordPolicyRel;
 	}
 
-	private PasswordPolicyRelPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(PasswordPolicyRelPersistenceTest.class);
+	private PasswordPolicyRelPersistence _persistence = (PasswordPolicyRelPersistence)PortalBeanLocatorUtil.locate(PasswordPolicyRelPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

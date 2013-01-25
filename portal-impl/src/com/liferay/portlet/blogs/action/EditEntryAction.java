@@ -14,12 +14,20 @@
 
 package com.liferay.portlet.blogs.action;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -52,6 +60,8 @@ import com.liferay.portlet.blogs.service.BlogsEntryServiceUtil;
 import java.io.InputStream;
 
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -73,6 +83,7 @@ import org.apache.struts.action.ActionMapping;
  * @author Thiago Moreira
  * @author Juan Fernández
  * @author Zsolt Berentey
+ * @author Levente Hudák
  */
 public class EditEntryAction extends PortletAction {
 
@@ -95,50 +106,60 @@ public class EditEntryAction extends PortletAction {
 				oldUrlTitle = ((String)returnValue[1]);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteEntries(actionRequest, false);
+				deleteEntries(
+					(LiferayPortletConfig)portletConfig, actionRequest, false);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
-				deleteEntries(actionRequest, true);
+				deleteEntries(
+					(LiferayPortletConfig)portletConfig, actionRequest, true);
 			}
 			else if (cmd.equals(Constants.SUBSCRIBE)) {
 				subscribe(actionRequest);
 			}
+			else if (cmd.equals(Constants.RESTORE)) {
+				restoreEntries(actionRequest);
+			}
 			else if (cmd.equals(Constants.UNSUBSCRIBE)) {
 				unsubscribe(actionRequest);
+			}
+			else if (cmd.equals(Constants.UPDATE_CONTENT)) {
+				updateContent(actionRequest, actionResponse);
+
+				return;
 			}
 
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
 			boolean updateRedirect = false;
 
-			if (redirect.contains("/blogs/" + oldUrlTitle + "/maximized")) {
-				oldUrlTitle += "/maximized";
-			}
+			if (Validator.isNotNull(oldUrlTitle)) {
+				String portletId = HttpUtil.getParameter(
+					redirect, "p_p_id", false);
 
-			if ((entry != null) && Validator.isNotNull(oldUrlTitle) &&
-				(redirect.endsWith("/blogs/" + oldUrlTitle) ||
-				 redirect.contains("/blogs/" + oldUrlTitle + "?") ||
-				 redirect.contains("/blog/" + oldUrlTitle + "?"))) {
+				String oldRedirectParam =
+					PortalUtil.getPortletNamespace(portletId) + "redirect";
 
-				int pos = redirect.indexOf("?");
+				String oldRedirect = HttpUtil.getParameter(
+					redirect, oldRedirectParam, false);
 
-				if (pos == -1) {
-					pos = redirect.length();
+				if (Validator.isNotNull(oldRedirect)) {
+					String newRedirect = HttpUtil.decodeURL(oldRedirect);
+
+					newRedirect = StringUtil.replace(
+						newRedirect, oldUrlTitle, entry.getUrlTitle());
+					newRedirect = StringUtil.replace(
+						newRedirect, oldRedirectParam, "redirect");
+
+					redirect = StringUtil.replace(
+						redirect, oldRedirect, newRedirect);
+				}
+				else if (redirect.endsWith("/blogs/" + oldUrlTitle) ||
+						 redirect.contains("/blogs/" + oldUrlTitle + "?") ||
+						 redirect.contains("/blog/" + oldUrlTitle + "?")) {
+
+					redirect = StringUtil.replace(
+						redirect, oldUrlTitle, entry.getUrlTitle());
 				}
 
-				String newRedirect = redirect.substring(
-					0, pos - oldUrlTitle.length());
-
-				newRedirect += entry.getUrlTitle();
-
-				if (oldUrlTitle.indexOf("/maximized") != -1) {
-					newRedirect += "/maximized";
-				}
-
-				if (pos < redirect.length()) {
-					newRedirect += "?" + redirect.substring(pos + 1);
-				}
-
-				redirect = newRedirect;
 				updateRedirect = true;
 			}
 
@@ -195,17 +216,25 @@ public class EditEntryAction extends PortletAction {
 					 e instanceof EntryDisplayDateException ||
 					 e instanceof EntrySmallImageNameException ||
 					 e instanceof EntrySmallImageSizeException ||
-					 e instanceof EntryTitleException) {
+					 e instanceof EntryTitleException ||
+					 e instanceof SanitizerException) {
 
 				SessionErrors.add(actionRequest, e.getClass());
 			}
 			else if (e instanceof AssetCategoryException ||
 					 e instanceof AssetTagException) {
 
-				SessionErrors.add(actionRequest, e.getClass().getName(), e);
+				SessionErrors.add(actionRequest, e.getClass(), e);
 			}
 			else {
-				throw e;
+				Throwable cause = e.getCause();
+
+				if (cause instanceof SanitizerException) {
+					SessionErrors.add(actionRequest, SanitizerException.class);
+				}
+				else {
+					throw e;
+				}
 			}
 		}
 	}
@@ -252,6 +281,7 @@ public class EditEntryAction extends PortletAction {
 	}
 
 	protected void deleteEntries(
+			LiferayPortletConfig liferayPortletConfig,
 			ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
@@ -274,6 +304,23 @@ public class EditEntryAction extends PortletAction {
 			else {
 				BlogsEntryServiceUtil.deleteEntry(deleteEntryId);
 			}
+		}
+
+		if (moveToTrash && (deleteEntryIds.length > 0)) {
+			Map<String, String[]> data = new HashMap<String, String[]>();
+
+			data.put(
+				"restoreEntryIds", ArrayUtil.toStringArray(deleteEntryIds));
+
+			SessionMessages.add(
+				actionRequest,
+				liferayPortletConfig.getPortletId() +
+					SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA, data);
+
+			SessionMessages.add(
+				actionRequest,
+				liferayPortletConfig.getPortletId() +
+					SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
 		}
 	}
 
@@ -316,6 +363,17 @@ public class EditEntryAction extends PortletAction {
 		return portletURL.toString();
 	}
 
+	protected void restoreEntries(ActionRequest actionRequest)
+		throws PortalException, SystemException {
+
+		long[] restoreEntryIds = StringUtil.split(
+			ParamUtil.getString(actionRequest, "restoreEntryIds"), 0L);
+
+		for (long restoreEntryId : restoreEntryIds) {
+			BlogsEntryServiceUtil.restoreEntryFromTrash(restoreEntryId);
+		}
+	}
+
 	protected void subscribe(ActionRequest actionRequest) throws Exception {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -328,6 +386,58 @@ public class EditEntryAction extends PortletAction {
 			WebKeys.THEME_DISPLAY);
 
 		BlogsEntryServiceUtil.unsubscribe(themeDisplay.getScopeGroupId());
+	}
+
+	protected void updateContent(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		long entryId = ParamUtil.getLong(actionRequest, "entryId");
+
+		String content = ParamUtil.getString(actionRequest, "content");
+
+		BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(entryId);
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			actionRequest);
+
+		try {
+			Calendar displayDateCal = CalendarFactoryUtil.getCalendar();
+
+			displayDateCal.setTime(entry.getDisplayDate());
+
+			int displayDateMonth = displayDateCal.get(Calendar.MONTH);
+			int displayDateDay = displayDateCal.get(Calendar.DATE);
+			int displayDateYear = displayDateCal.get(Calendar.YEAR);
+			int displayDateHour = displayDateCal.get(Calendar.HOUR);
+			int displayDateMinute = displayDateCal.get(Calendar.MINUTE);
+
+			if (displayDateCal.get(Calendar.AM_PM) == Calendar.PM) {
+				displayDateHour += 12;
+			}
+
+			BlogsEntryServiceUtil.updateEntry(
+				entryId, entry.getTitle(), entry.getDescription(), content,
+				displayDateMonth, displayDateDay, displayDateYear,
+				displayDateHour, displayDateMinute, entry.getAllowPingbacks(),
+				entry.getAllowTrackbacks(), null, entry.getSmallImage(),
+				entry.getSmallImageURL(), null, null, serviceContext);
+
+			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+			jsonObject.put("success", Boolean.TRUE);
+
+			writeJSON(actionRequest, actionResponse, jsonObject);
+		}
+		catch (Exception e) {
+			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+			jsonObject.put("success", Boolean.FALSE);
+
+			jsonObject.putException(e);
+
+			writeJSON(actionRequest, actionResponse, jsonObject);
+		}
 	}
 
 	protected Object[] updateEntry(ActionRequest actionRequest)

@@ -21,7 +21,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.NotificationThreadLocal;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
-import com.liferay.portal.service.persistence.BatchSessionUtil;
+import com.liferay.portal.staging.StagingAdvicesThreadLocal;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 
@@ -54,8 +54,6 @@ public class VerifyProcessUtil {
 
 		boolean ranVerifyProcess = false;
 
-		boolean tempIndexOnStartUp = PropsValues.INDEX_ON_STARTUP;
-
 		if (ranUpgradeProcess && PropsValues.INDEX_ON_UPGRADE) {
 			PropsUtil.set(PropsKeys.INDEX_ON_STARTUP, Boolean.TRUE.toString());
 
@@ -66,8 +64,8 @@ public class VerifyProcessUtil {
 
 		SearchEngineUtil.setIndexReadOnly(true);
 
-		BatchSessionUtil.setEnabled(true);
 		NotificationThreadLocal.setEnabled(false);
+		StagingAdvicesThreadLocal.setEnabled(false);
 		WorkflowThreadLocal.setEnabled(false);
 
 		try {
@@ -84,15 +82,10 @@ public class VerifyProcessUtil {
 			}
 		}
 		finally {
-			PropsUtil.set(
-				PropsKeys.INDEX_ON_STARTUP, String.valueOf(tempIndexOnStartUp));
-
-			PropsValues.INDEX_ON_STARTUP = tempIndexOnStartUp;
-
 			SearchEngineUtil.setIndexReadOnly(tempIndexReadOnly);
 
-			BatchSessionUtil.setEnabled(false);
 			NotificationThreadLocal.setEnabled(true);
+			StagingAdvicesThreadLocal.setEnabled(true);
 			WorkflowThreadLocal.setEnabled(true);
 		}
 

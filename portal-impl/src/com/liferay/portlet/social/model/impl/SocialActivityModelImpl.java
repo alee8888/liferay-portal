@@ -112,7 +112,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_activityId);
+		return _activityId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -456,17 +456,6 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 	}
 
 	@Override
-	public SocialActivity toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (SocialActivity)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			SocialActivity.class.getName(), getPrimaryKey());
@@ -477,6 +466,16 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public SocialActivity toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (SocialActivity)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -719,7 +718,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 	}
 
 	private static ClassLoader _classLoader = SocialActivity.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			SocialActivity.class
 		};
 	private long _activityId;
@@ -754,5 +753,5 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 	private long _originalReceiverUserId;
 	private boolean _setOriginalReceiverUserId;
 	private long _columnBitmask;
-	private SocialActivity _escapedModelProxy;
+	private SocialActivity _escapedModel;
 }

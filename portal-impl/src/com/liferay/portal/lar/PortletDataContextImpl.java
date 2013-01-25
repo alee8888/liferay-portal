@@ -16,6 +16,7 @@ package com.liferay.portal.lar;
 
 import com.liferay.portal.NoSuchRoleException;
 import com.liferay.portal.NoSuchTeamException;
+import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.PortletDataContext;
@@ -34,12 +35,15 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.xml.Attribute;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.zip.ZipReader;
 import com.liferay.portal.kernel.zip.ZipWriter;
+import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.AuditedModel;
 import com.liferay.portal.model.ClassedModel;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.Lock;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.ResourcedModel;
@@ -80,16 +84,13 @@ import com.liferay.portlet.journal.model.impl.JournalArticleImpl;
 import com.liferay.portlet.journal.model.impl.JournalFeedImpl;
 import com.liferay.portlet.journal.model.impl.JournalStructureImpl;
 import com.liferay.portlet.journal.model.impl.JournalTemplateImpl;
-import com.liferay.portlet.messageboards.NoSuchDiscussionException;
 import com.liferay.portlet.messageboards.model.MBDiscussion;
 import com.liferay.portlet.messageboards.model.MBMessage;
-import com.liferay.portlet.messageboards.model.MBMessageConstants;
 import com.liferay.portlet.messageboards.model.MBThread;
 import com.liferay.portlet.messageboards.model.impl.MBBanImpl;
 import com.liferay.portlet.messageboards.model.impl.MBCategoryImpl;
 import com.liferay.portlet.messageboards.model.impl.MBMessageImpl;
 import com.liferay.portlet.messageboards.model.impl.MBThreadFlagImpl;
-import com.liferay.portlet.messageboards.service.MBDiscussionLocalServiceUtil;
 import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
 import com.liferay.portlet.messageboards.service.MBThreadLocalServiceUtil;
 import com.liferay.portlet.messageboards.service.persistence.MBDiscussionUtil;
@@ -110,12 +111,15 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import jodd.bean.BeanUtil;
 
 /**
  * <p>
@@ -285,6 +289,20 @@ public class PortletDataContextImpl implements PortletDataContext {
 
 		element.addAttribute("path", path);
 
+		if (classedModel instanceof AttachedModel) {
+			AttachedModel attachedModel = (AttachedModel)classedModel;
+
+			element.addAttribute("class-name", attachedModel.getClassName());
+		}
+		else if (BeanUtil.hasProperty(classedModel, "className")) {
+			String className = BeanPropertiesUtil.getStringSilent(
+				classedModel, "className");
+
+			if (className != null) {
+				element.addAttribute("class-name", className);
+			}
+		}
+
 		if (classedModel instanceof AuditedModel) {
 			AuditedModel auditedModel = (AuditedModel)classedModel;
 
@@ -344,7 +362,13 @@ public class PortletDataContextImpl implements PortletDataContext {
 		List<MBMessage> messages = MBMessageLocalServiceUtil.getThreadMessages(
 			discussion.getThreadId(), WorkflowConstants.STATUS_APPROVED);
 
-		if (messages.size() == 0) {
+		if (messages.isEmpty()) {
+			return;
+		}
+
+		MBMessage firstMessage = messages.get(0);
+
+		if ((messages.size() == 1) && firstMessage.isRoot()) {
 			return;
 		}
 
@@ -478,8 +502,8 @@ public class PortletDataContextImpl implements PortletDataContext {
 
 			Set<String> availableActionIds = roleIdsToActionIds.get(roleId);
 
-			if ((availableActionIds == null) || availableActionIds.isEmpty()) {
-				continue;
+			if (availableActionIds == null) {
+				availableActionIds = Collections.emptySet();
 			}
 
 			KeyValuePair permission = new KeyValuePair(
@@ -798,6 +822,10 @@ public class PortletDataContextImpl implements PortletDataContext {
 	}
 
 	public byte[] getZipEntryAsByteArray(String path) {
+		if (!Validator.isFilePath(path, false)) {
+			return null;
+		}
+
 		if (_portletDataContextListener != null) {
 			_portletDataContextListener.onGetZipEntry(path);
 		}
@@ -806,6 +834,10 @@ public class PortletDataContextImpl implements PortletDataContext {
 	}
 
 	public InputStream getZipEntryAsInputStream(String path) {
+		if (!Validator.isFilePath(path, false)) {
+			return null;
+		}
+
 		if (_portletDataContextListener != null) {
 			_portletDataContextListener.onGetZipEntry(path);
 		}
@@ -813,11 +845,28 @@ public class PortletDataContextImpl implements PortletDataContext {
 		return getZipReader().getEntryAsInputStream(path);
 	}
 
+	public Object getZipEntryAsObject(Element element, String path) {
+		Object object = fromXML(getZipEntryAsString(path));
+
+		Attribute classNameAttribute = element.attribute("class-name");
+
+		if (classNameAttribute != null) {
+			BeanPropertiesUtil.setProperty(
+				object, "className", classNameAttribute.getText());
+		}
+
+		return object;
+	}
+
 	public Object getZipEntryAsObject(String path) {
 		return fromXML(getZipEntryAsString(path));
 	}
 
 	public String getZipEntryAsString(String path) {
+		if (!Validator.isFilePath(path, false)) {
+			return null;
+		}
+
 		if (_portletDataContextListener != null) {
 			_portletDataContextListener.onGetZipEntry(path);
 		}
@@ -830,6 +879,10 @@ public class PortletDataContextImpl implements PortletDataContext {
 	}
 
 	public List<String> getZipFolderEntries(String path) {
+		if (!Validator.isFilePath(path, false)) {
+			return null;
+		}
+
 		return getZipReader().getFolderEntries(path);
 	}
 
@@ -906,14 +959,16 @@ public class PortletDataContextImpl implements PortletDataContext {
 			return;
 		}
 
-		MBDiscussion discussion = null;
+		MBMessage firstMessage = messages.get(0);
 
-		try {
-			discussion = MBDiscussionLocalServiceUtil.getDiscussion(
-				clazz.getName(), newClassPK);
+		if ((messages.size() == 1) && firstMessage.isRoot()) {
+			return;
 		}
-		catch (NoSuchDiscussionException nsde) {
-		}
+
+		long classNameId = PortalUtil.getClassNameId(clazz);
+
+		MBDiscussion discussion = MBDiscussionUtil.fetchByC_C(
+			classNameId, newClassPK);
 
 		for (MBMessage message : messages) {
 			long userId = getUserId(message.getUserUuid());
@@ -923,17 +978,28 @@ public class PortletDataContextImpl implements PortletDataContext {
 			long threadId = MapUtil.getLong(
 				threadPKs, message.getThreadId(), message.getThreadId());
 
-			if ((message.getParentMessageId() ==
-					MBMessageConstants.DEFAULT_PARENT_MESSAGE_ID) &&
-				(discussion != null)) {
+			if (message.isRoot()) {
+				if (discussion != null) {
+					MBThread thread = MBThreadLocalServiceUtil.getThread(
+						discussion.getThreadId());
 
-				MBThread thread = MBThreadLocalServiceUtil.getThread(
-					discussion.getThreadId());
+					long rootMessageId = thread.getRootMessageId();
 
-				long rootMessageId = thread.getRootMessageId();
+					messagePKs.put(message.getMessageId(), rootMessageId);
+					threadPKs.put(message.getThreadId(), thread.getThreadId());
+				}
+				else if (clazz == Layout.class) {
+					MBMessage importedMessage =
+						MBMessageLocalServiceUtil.addDiscussionMessage(
+							userId, message.getUserName(), groupId,
+							clazz.getName(), newClassPK,
+							WorkflowConstants.ACTION_PUBLISH);
 
-				messagePKs.put(message.getMessageId(), rootMessageId);
-				threadPKs.put(message.getThreadId(), thread.getThreadId());
+					messagePKs.put(
+						message.getMessageId(), importedMessage.getMessageId());
+					threadPKs.put(
+						message.getThreadId(), importedMessage.getThreadId());
+				}
 			}
 			else {
 				ServiceContext serviceContext = new ServiceContext();
@@ -1347,6 +1413,11 @@ public class PortletDataContextImpl implements PortletDataContext {
 	}
 
 	protected String getExpandoPath(String path) {
+		if (!Validator.isFilePath(path, false)) {
+			throw new IllegalArgumentException(
+				path + " is located outside of the lar");
+		}
+
 		int pos = path.lastIndexOf(".xml");
 
 		if (pos == -1) {
@@ -1400,6 +1471,8 @@ public class PortletDataContextImpl implements PortletDataContext {
 		_xStream.alias("RatingsEntry", RatingsEntryImpl.class);
 		_xStream.alias("WikiNode", WikiNodeImpl.class);
 		_xStream.alias("WikiPage", WikiPageImpl.class);
+
+		_xStream.omitField(HashMap.class, "cache_bitmask");
 	}
 
 	protected boolean isResourceMain(ClassedModel classedModel) {

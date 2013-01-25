@@ -64,6 +64,8 @@ public class Field implements Serializable {
 
 	public static final String GROUP_ROLE_ID = "groupRoleId";
 
+	public static final String KEYWORD_SEARCH = "keywordSearch";
+
 	public static final String[] KEYWORDS = {
 		Field.ASSET_CATEGORY_TITLES, Field.ASSET_TAG_NAMES, Field.COMMENTS,
 		Field.CONTENT, Field.DESCRIPTION, Field.PROPERTIES, Field.TITLE,
@@ -87,7 +89,15 @@ public class Field implements Serializable {
 
 	public static final String PROPERTIES = "properties";
 
+	public static final String RELATED_ENTRY = "relatedEntry";
+
+	public static final String REMOVED_BY_USER_NAME = "removedByUserName";
+
+	public static final String REMOVED_DATE = "removedDate";
+
 	public static final String ROLE_ID = "roleId";
+
+	public static final String ROOT_ENTRY_CLASS_NAME = "rootEntryClassName";
 
 	public static final String ROOT_ENTRY_CLASS_PK = "rootEntryClassPK";
 
@@ -114,6 +124,8 @@ public class Field implements Serializable {
 
 	public static final String URL = "url";
 
+	public static final String USER_GROUP_ID = "userGroupId";
+
 	public static final String USER_ID = "userId";
 
 	public static final String USER_NAME = "userName";
@@ -129,11 +141,6 @@ public class Field implements Serializable {
 		this(name, new String[] {value});
 	}
 
-	public Field(String name, String[] values) {
-		_name = name;
-		_values = values;
-	}
-
 	/**
 	 * @deprecated
 	 */
@@ -141,6 +148,11 @@ public class Field implements Serializable {
 		this(name, value);
 
 		setTokenized(tokenized);
+	}
+
+	public Field(String name, String[] values) {
+		_name = name;
+		_values = values;
 	}
 
 	/**

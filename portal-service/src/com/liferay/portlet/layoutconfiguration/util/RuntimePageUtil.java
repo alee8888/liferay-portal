@@ -14,9 +14,13 @@
 
 package com.liferay.portlet.layoutconfiguration.util;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+import com.liferay.portal.kernel.template.TemplateResource;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portlet.layoutconfiguration.util.xml.RuntimeLogic;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.PageContext;
 
 /**
@@ -26,36 +30,51 @@ import javax.servlet.jsp.PageContext;
  */
 public class RuntimePageUtil {
 
+	public static StringBundler getProcessedTemplate(
+			PageContext pageContext, String portletId,
+			TemplateResource templateResource)
+		throws Exception {
+
+		return getRuntimePage().getProcessedTemplate(
+			pageContext, portletId, templateResource);
+	}
+
 	public static RuntimePage getRuntimePage() {
+		PortalRuntimePermission.checkGetBeanProperty(RuntimePageUtil.class);
+
 		return _runtimePage;
 	}
 
 	public static void processCustomizationSettings(
-			PageContext pageContext, String velocityTemplateId,
-			String velocityTemplateContent)
+			PageContext pageContext, TemplateResource templateResource)
 		throws Exception {
 
 		getRuntimePage().processCustomizationSettings(
-			pageContext, velocityTemplateId, velocityTemplateContent);
-	}
-
-	public static void processTemplate(
-			PageContext pageContext, String velocityTemplateId,
-			String velocityTemplateContent)
-		throws Exception {
-
-		getRuntimePage().processTemplate(
-			pageContext, velocityTemplateId, velocityTemplateContent);
+			pageContext, templateResource);
 	}
 
 	public static void processTemplate(
 			PageContext pageContext, String portletId,
-			String velocityTemplateId, String velocityTemplateContent)
+			TemplateResource templateResource)
 		throws Exception {
 
 		getRuntimePage().processTemplate(
-			pageContext, portletId, velocityTemplateId,
-			velocityTemplateContent);
+			pageContext, portletId, templateResource);
+	}
+
+	public static void processTemplate(
+			PageContext pageContext, TemplateResource templateResource)
+		throws Exception {
+
+		getRuntimePage().processTemplate(pageContext, templateResource);
+	}
+
+	public static String processXML(
+			HttpServletRequest request, HttpServletResponse response,
+			String content)
+		throws Exception {
+
+		return getRuntimePage().processXML(request, response, content);
 	}
 
 	public static String processXML(
@@ -67,6 +86,8 @@ public class RuntimePageUtil {
 	}
 
 	public void setRuntimePage(RuntimePage runtimePage) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_runtimePage = runtimePage;
 	}
 

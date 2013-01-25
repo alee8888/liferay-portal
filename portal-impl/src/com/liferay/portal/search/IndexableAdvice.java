@@ -21,8 +21,8 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.model.BaseModel;
+import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.spring.aop.AnnotationChainableMethodAdvice;
-import com.liferay.portal.spring.aop.ServiceBeanAopProxy;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -62,7 +62,23 @@ public class IndexableAdvice
 			return;
 		}
 
-		Indexer indexer = IndexerRegistryUtil.getIndexer(returnType.getName());
+		Object[] arguments = methodInvocation.getArguments();
+
+		ServiceContext serviceContext = null;
+
+		for (int i = arguments.length - 1; i >= 0; i--) {
+			if (arguments[i] instanceof ServiceContext) {
+				serviceContext = (ServiceContext)arguments[i];
+
+				break;
+			}
+		}
+
+		Indexer indexer = null;
+
+		if ((serviceContext == null) || serviceContext.isIndexingEnabled()) {
+			indexer = IndexerRegistryUtil.getIndexer(returnType.getName());
+		}
 
 		if (indexer != null) {
 			if (indexable.type() == IndexableType.DELETE) {
@@ -73,7 +89,8 @@ public class IndexableAdvice
 			}
 		}
 		else {
-			ServiceBeanAopProxy.removeMethodInterceptor(methodInvocation, this);
+			serviceBeanAopCacheManager.removeMethodInterceptor(
+				methodInvocation, this);
 		}
 	}
 

@@ -171,11 +171,12 @@
 		margin-right: 10px;
 	}
 
-	.separator {
-		border-right: 1px solid #999;
-		clear: both;
-		margin: 25px 25px;
-	}
+    .subscribe-action {
+        float: right;
+        margin-right: 10px;
+        margin-top: -30px;
+        text-align: right
+    }
 
 	.taglib-asset-categories-summary {
 		float: left;
@@ -246,15 +247,6 @@
 
 		.general-display-settings {
 			margin-bottom: 1em;
-
-			.display-style .aui-field-content {
-				display: inline-block;
-			}
-
-			.display-style .manage-display-styles {
-				position: relative;
-				top: -5px;
-			}
 		}
 	}
 
@@ -283,12 +275,17 @@
 		margin-bottom: 1em;
 	}
 
-	.lfr-actions.select-existing-selector {
-		margin: 0 0 1em 1em;
-	}
-
 	.asset-subtype {
 		margin-left: 2em;
+	}
+
+	.select-asset-selector {
+		margin: 1em 0;
+		overflow: auto;
+
+		.select-existing-selector {
+			margin: 0;
+		}
 	}
 }
 

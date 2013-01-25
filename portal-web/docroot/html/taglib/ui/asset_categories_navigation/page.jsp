@@ -78,6 +78,10 @@ if (hidePortletWhenEmpty) {
 
 <%
 }
+
+if (categoryId > 0) {
+	AssetUtil.addPortletBreadcrumbEntries(categoryId, request, portletURL);
+}
 %>
 
 <aui:script use="aui-tree-view">
@@ -123,7 +127,7 @@ private void _buildCategoriesNavigation(List<AssetCategory> categories, long cat
 
 		List<AssetCategory> categoriesChildren = AssetCategoryServiceUtil.getChildCategories(category.getCategoryId(), QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 
-		sb.append("<li><span>");
+		sb.append("<li class=\"aui-tree-node\"><span>");
 
 		if (categoryId == category.getCategoryId()) {
 			portletURL.setParameter("categoryId", StringPool.BLANK);

@@ -18,13 +18,12 @@ import com.liferay.portal.atom.AtomProvider;
 import com.liferay.portal.atom.AtomUtil;
 import com.liferay.portal.kernel.atom.AtomCollectionAdapter;
 import com.liferay.portal.kernel.atom.AtomCollectionAdapterRegistryUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.model.User;
-import com.liferay.portal.security.auth.CompanyThreadLocal;
-import com.liferay.portal.security.permission.PermissionChecker;
-import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
-import com.liferay.portal.security.permission.PermissionThreadLocal;
+import com.liferay.portal.security.ac.AccessControlThreadLocal;
+import com.liferay.portal.security.ac.AccessControlUtil;
+import com.liferay.portal.security.auth.AccessControlContext;
+import com.liferay.portal.security.auth.AuthVerifierResult;
+import com.liferay.portal.service.UserLocalServiceUtil;
 
 import java.util.List;
 
@@ -63,33 +62,30 @@ public class AtomServlet extends AbderaServlet {
 			HttpServletRequest request, HttpServletResponse response)
 		throws ServletException {
 
+		boolean remoteAccess = AccessControlThreadLocal.isRemoteAccess();
+
 		try {
-			UserResolver userResolver = new UserResolver(request);
+			AccessControlContext accessControlContext =
+				AccessControlUtil.getAccessControlContext();
 
-			CompanyThreadLocal.setCompanyId(userResolver.getCompanyId());
+			AuthVerifierResult authVerifierResult =
+				accessControlContext.getAuthVerifierResult();
 
-			User user = userResolver.getUser();
+			User user = UserLocalServiceUtil.getUser(
+				authVerifierResult.getUserId());
 
-			if (user != null) {
-				if (_log.isDebugEnabled()) {
-					_log.debug("User " + user.getUserId());
-				}
+			AtomUtil.saveUserInRequest(request, user);
 
-				PermissionChecker permissionChecker =
-					PermissionCheckerFactoryUtil.create(user);
-
-				PermissionThreadLocal.setPermissionChecker(permissionChecker);
-
-				AtomUtil.saveUserInRequest(request, user);
-			}
+			AccessControlThreadLocal.setRemoteAccess(true);
 
 			super.service(request, response);
 		}
 		catch (Exception e) {
 			throw new ServletException(e);
 		}
+		finally {
+			AccessControlThreadLocal.setRemoteAccess(remoteAccess);
+		}
 	}
-
-	private static Log _log = LogFactoryUtil.getLog(AtomServlet.class);
 
 }

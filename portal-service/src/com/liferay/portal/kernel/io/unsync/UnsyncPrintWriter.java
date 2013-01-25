@@ -307,6 +307,7 @@ public class UnsyncPrintWriter extends PrintWriter {
 		_hasError = false;
 		_writer = writer;
 
+		lock = _writer;
 		out = _writer;
 	}
 

@@ -212,7 +212,7 @@ public class JavadocFormatter {
 
 		String comment = _getCDATA(javaClass);
 
-		if (comment.startsWith("Copyright (c) 2000-2010 Liferay, Inc.")) {
+		if (comment.startsWith("Copyright (c)")) {
 			comment = StringPool.BLANK;
 		}
 
@@ -766,6 +766,22 @@ public class JavadocFormatter {
 
 	private String _getClassName(String fileName) {
 		int pos = fileName.indexOf("src/");
+
+		if (pos == -1) {
+			pos = fileName.indexOf("test/integration/");
+
+			if (pos != -1) {
+				pos = fileName.indexOf("integration/", pos);
+			}
+		}
+
+		if (pos == -1) {
+			pos = fileName.indexOf("test/unit/");
+
+			if (pos != -1) {
+				pos = fileName.indexOf("unit/", pos);
+			}
+		}
 
 		if (pos == -1) {
 			pos = fileName.indexOf("test/");
@@ -1350,7 +1366,7 @@ public class JavadocFormatter {
 				while (true) {
 					lines[pos] = null;
 
-					if (line.startsWith("/**")) {
+					if (line.startsWith("/**") || line.startsWith("/*")) {
 						break;
 					}
 

@@ -16,8 +16,49 @@
 
 <%@ include file="/html/portlet/journal/init.jsp" %>
 
+<liferay-ui:icon-menu align="left" cssClass="actions-button" direction="down" icon="" id="actionsButtonContainer" message="actions" showExpanded="<%= false %>" showWhenSingleIcon="<%= true %>">
+
+	<%
+	String taglibOnClick = "Liferay.fire('" + renderResponse.getNamespace() + "editEntry', {action: '" + (TrashUtil.isTrashEnabled(scopeGroupId) ? Constants.MOVE_TO_TRASH : Constants.DELETE) + "'});";
+	%>
+
+	<liferay-ui:icon-delete
+		confirmation="are-you-sure-you-want-to-delete-the-selected-entries"
+		trash="<%= TrashUtil.isTrashEnabled(scopeGroupId) %>"
+		url="<%= taglibOnClick %>"
+	/>
+
+	<%
+	taglibOnClick = "Liferay.fire('" + renderResponse.getNamespace() + "editEntry', {action: '" + Constants.EXPIRE + "'});";
+	%>
+
+	<liferay-ui:icon
+		cssClass="expire-articles-button"
+		image="time"
+		message="expire"
+		onClick="<%= taglibOnClick %>"
+		url="javascript:;"
+	/>
+
+	<%
+	taglibOnClick = "Liferay.fire('" + renderResponse.getNamespace() + "editEntry', {action: '" + Constants.MOVE + "'});";
+	%>
+
+	<liferay-ui:icon
+		cssClass="move-articles-button"
+		image="submit"
+		message="move"
+		onClick="<%= taglibOnClick %>"
+		url="javascript:;"
+	/>
+</liferay-ui:icon-menu>
+
 <span class="add-button" id="<portlet:namespace />addButtonContainer">
 	<liferay-util:include page="/html/portlet/journal/add_button.jsp" />
+</span>
+
+<span class="sort-button" id="<portlet:namespace />sortButtonContainer">
+	<liferay-util:include page="/html/portlet/journal/sort_button.jsp" />
 </span>
 
 <span class="manage-button">
@@ -25,71 +66,59 @@
 		<liferay-ui:icon-menu align="left" direction="down" icon="" message="manage" showExpanded="<%= false %>" showWhenSingleIcon="<%= true %>">
 
 			<%
-			String taglibUrl = "javascript:" + renderResponse.getNamespace() + "openStructuresView()";
+			String taglibURL = "javascript:" + renderResponse.getNamespace() + "openStructuresView()";
 			%>
 
 			<liferay-ui:icon
 				message="structures"
-				url="<%= taglibUrl %>"
+				url="<%= taglibURL %>"
 			/>
 
 			<%
-			taglibUrl = "javascript:" + renderResponse.getNamespace() + "openTemplatesView()";
+			taglibURL = "javascript:" + renderResponse.getNamespace() + "openFeedsView()";
 			%>
 
-			<liferay-ui:icon
-				message="templates"
-				url="<%= taglibUrl %>"
-			/>
-
-			<%
-			taglibUrl = "javascript:" + renderResponse.getNamespace() + "openFeedsView()";
-			%>
-
-			<liferay-ui:icon
-				message="feeds"
-				url="<%= taglibUrl %>"
-			/>
+			<c:if test="<%= PortalUtil.isRSSFeedsEnabled() %>">
+				<liferay-ui:icon
+					message="feeds"
+					url="<%= taglibURL %>"
+				/>
+			</c:if>
 		</liferay-ui:icon-menu>
 	</c:if>
 </span>
 
 <aui:script>
-	function <portlet:namespace />openFeedsView() {
-		Liferay.Util.openWindow(
-			{
-				dialog: {
-					width:820
-				},
-				id: '<portlet:namespace />openFeedsView',
-				title: '<%= UnicodeLanguageUtil.get(pageContext, "feeds") %>',
-				uri: '<liferay-portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="struts_action" value="/journal/view_feeds" /></liferay-portlet:renderURL>'
-			}
-		);
-	}
+	<c:if test="<%= PortalUtil.isRSSFeedsEnabled() %>">
+		function <portlet:namespace />openFeedsView() {
+			Liferay.Util.openWindow(
+				{
+					dialog: {
+						width: 820
+					},
+					id: '<portlet:namespace />openFeedsView',
+					title: '<%= UnicodeLanguageUtil.get(pageContext, "feeds") %>',
+					uri: '<liferay-portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="struts_action" value="/journal/view_feeds" /></liferay-portlet:renderURL>'
+				}
+			);
+		}
+	</c:if>
 
 	function <portlet:namespace />openStructuresView() {
-		Liferay.Util.openWindow(
+		Liferay.Util.openDDMPortlet(
 			{
+				ddmResource: '<%= ddmResource %>',
+				ddmResourceActionId: '<%= ActionKeys.ADD_TEMPLATE %>',
 				dialog: {
-					width:820
+					width: 820
 				},
-				id: '<portlet:namespace />openStructuresView',
-				title: '<%= UnicodeLanguageUtil.get(pageContext, "structures") %>',
-				uri: '<liferay-portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="struts_action" value="/journal/view_structures" /></liferay-portlet:renderURL>'
-			}
-		);
-	}
-
-	function <portlet:namespace />openTemplatesView() {
-		Liferay.Util.openWindow(
-			{
-				dialog: {
-					width:820
-				},
-				id: '<portlet:namespace />openTemplatesView',
-				title: '<%= UnicodeLanguageUtil.get(pageContext, "templates") %>',
-				uri: '<liferay-portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="struts_action" value="/journal/view_templates" /></liferay-portlet:renderURL>'
+				showGlobalScope: 'false',
+				showManageTemplates: 'true',
+				storageType: '<%= PropsValues.JOURNAL_ARTICLE_STORAGE_TYPE %>',
+				structureName: 'structure',
+				structureType: 'com.liferay.portlet.journal.model.JournalArticle',
+				templateType: '<%= DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY %>',
+				title: '<%= UnicodeLanguageUtil.get(pageContext, "structures") %>'
 			}
 		);
 	}

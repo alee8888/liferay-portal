@@ -36,6 +36,19 @@ public class SearchContainerResultsTag<R> extends TagSupport {
 	@Override
 	public int doEndTag() throws JspException {
 		try {
+			SearchContainerTag<R> searchContainerTag =
+				(SearchContainerTag<R>)findAncestorWithClass(
+					this, SearchContainerTag.class);
+
+			SearchContainer<R> searchContainer =
+				searchContainerTag.getSearchContainer();
+
+			int total = searchContainer.getTotal();
+
+			if (_total == 0) {
+				_total = total;
+			}
+
 			if (_results == null) {
 				_results = (List<R>)pageContext.getAttribute(_resultsVar);
 				_total = (Integer)pageContext.getAttribute(_totalVar);
@@ -47,15 +60,11 @@ public class SearchContainerResultsTag<R> extends TagSupport {
 				}
 			}
 
-			SearchContainerTag<R> searchContainerTag =
-				(SearchContainerTag<R>)findAncestorWithClass(
-					this, SearchContainerTag.class);
-
-			SearchContainer<R> searchContainer =
-				searchContainerTag.getSearchContainer();
-
 			searchContainer.setResults(_results);
-			searchContainer.setTotal(_total);
+
+			if (total == 0) {
+				searchContainer.setTotal(_total);
+			}
 
 			searchContainerTag.setHasResults(true);
 

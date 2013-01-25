@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.AuditedModel;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.model.PortletPreferencesIds;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.RoleConstants;
@@ -417,7 +418,11 @@ public class ServiceContext implements Cloneable, Serializable {
 	 * @return the language ID
 	 */
 	public String getLanguageId() {
-		return _languageId;
+		if (_languageId != null) {
+			return _languageId;
+		}
+
+		return LocaleUtil.toLanguageId(LocaleUtil.getMostRelevantLocale());
 	}
 
 	/**
@@ -519,12 +524,11 @@ public class ServiceContext implements Cloneable, Serializable {
 	 * @see    com.liferay.portal.model.PortletPreferencesIds
 	 */
 	public String getPortletId() {
-		if (_portletPreferencesIds != null) {
-			return _portletPreferencesIds.getPortletId();
-		}
-		else {
+		if (_portletPreferencesIds == null) {
 			return null;
 		}
+
+		return _portletPreferencesIds.getPortletId();
 	}
 
 	/**
@@ -565,6 +569,16 @@ public class ServiceContext implements Cloneable, Serializable {
 
 	public HttpServletRequest getRequest() {
 		return _request;
+	}
+
+	public String getRootPortletId() {
+		String portletId = getPortletId();
+
+		if (portletId == null) {
+			return null;
+		}
+
+		return PortletConstants.getRootPortletId(portletId);
 	}
 
 	/**
@@ -613,11 +627,9 @@ public class ServiceContext implements Cloneable, Serializable {
 	}
 
 	/**
-	 * Returns the UUID (universally unique identifier) of this service
-	 * context's current entity.
+	 * Returns the UUID of this service context's current entity.
 	 *
-	 * @return the UUID (universally unique identifier) of this service
-	 *         context's current entity
+	 * @return the UUID of this service context's current entity
 	 */
 	public String getUuid() {
 		String uuid = _uuid;
@@ -676,7 +688,9 @@ public class ServiceContext implements Cloneable, Serializable {
 	 *         command; <code>false</code> otherwise
 	 */
 	public boolean isCommandAdd() {
-		if (Validator.equals(_command, Constants.ADD)) {
+		if (Validator.equals(_command, Constants.ADD) ||
+			Validator.equals(_command, Constants.ADD_MULTIPLE)) {
+
 			return true;
 		}
 		else {
@@ -1154,11 +1168,9 @@ public class ServiceContext implements Cloneable, Serializable {
 	}
 
 	/**
-	 * Sets the UUID (universally unique identifier) of this service context's
-	 * current entity.
+	 * Sets the UUID of this service context's current entity.
 	 *
-	 * @param uuid the UUID (universally unique identifier) of the current
-	 *        entity
+	 * @param uuid the UUID of the current entity
 	 */
 	public void setUuid(String uuid) {
 		_uuid = uuid;
@@ -1169,7 +1181,7 @@ public class ServiceContext implements Cloneable, Serializable {
 	 * as parameter to a method that processes a workflow action.
 	 *
 	 * @param workflowAction workflow action to take (default is {@link
-	 *        com.liferay.portal.kernel.workflow.WorkflowConstants.ACTION_PUBLISH})
+	 *        com.liferay.portal.kernel.workflow.WorkflowConstants#ACTION_PUBLISH})
 	 */
 	public void setWorkflowAction(int workflowAction) {
 		_workflowAction = workflowAction;

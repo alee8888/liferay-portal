@@ -102,7 +102,8 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	public static long LIVEGROUPID_COLUMN_BITMASK = 32L;
 	public static long NAME_COLUMN_BITMASK = 64L;
 	public static long PARENTGROUPID_COLUMN_BITMASK = 128L;
-	public static long TYPE_COLUMN_BITMASK = 256L;
+	public static long SITE_COLUMN_BITMASK = 256L;
+	public static long TYPE_COLUMN_BITMASK = 512L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -111,6 +112,10 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	 * @return the normal model instance
 	 */
 	public static Group toModel(GroupSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		Group model = new GroupImpl();
 
 		model.setGroupId(soapModel.getGroupId());
@@ -138,6 +143,10 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	 * @return the normal model instances
 	 */
 	public static List<Group> toModels(GroupSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<Group> models = new ArrayList<Group>(soapModels.length);
 
 		for (GroupSoap soapModel : soapModels) {
@@ -194,7 +203,7 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_groupId);
+		return _groupId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -575,7 +584,19 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	}
 
 	public void setSite(boolean site) {
+		_columnBitmask |= SITE_COLUMN_BITMASK;
+
+		if (!_setOriginalSite) {
+			_setOriginalSite = true;
+
+			_originalSite = _site;
+		}
+
 		_site = site;
+	}
+
+	public boolean getOriginalSite() {
+		return _originalSite;
 	}
 
 	@JSON
@@ -608,17 +629,6 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	}
 
 	@Override
-	public Group toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Group)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			Group.class.getName(), getPrimaryKey());
@@ -629,6 +639,16 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public Group toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Group)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -658,7 +678,7 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	public int compareTo(Group group) {
 		int value = 0;
 
-		value = getName().toLowerCase().compareTo(group.getName().toLowerCase());
+		value = getName().compareToIgnoreCase(group.getName());
 
 		if (value != 0) {
 			return value;
@@ -728,6 +748,10 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 		groupModelImpl._setOriginalType = false;
 
 		groupModelImpl._originalFriendlyURL = groupModelImpl._friendlyURL;
+
+		groupModelImpl._originalSite = groupModelImpl._site;
+
+		groupModelImpl._setOriginalSite = false;
 
 		groupModelImpl._originalActive = groupModelImpl._active;
 
@@ -902,9 +926,7 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	}
 
 	private static ClassLoader _classLoader = Group.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
-			Group.class
-		};
+	private static Class<?>[] _escapedModelInterfaces = new Class[] { Group.class };
 	private long _groupId;
 	private long _companyId;
 	private long _originalCompanyId;
@@ -933,9 +955,11 @@ public class GroupModelImpl extends BaseModelImpl<Group> implements GroupModel {
 	private String _friendlyURL;
 	private String _originalFriendlyURL;
 	private boolean _site;
+	private boolean _originalSite;
+	private boolean _setOriginalSite;
 	private boolean _active;
 	private boolean _originalActive;
 	private boolean _setOriginalActive;
 	private long _columnBitmask;
-	private Group _escapedModelProxy;
+	private Group _escapedModel;
 }

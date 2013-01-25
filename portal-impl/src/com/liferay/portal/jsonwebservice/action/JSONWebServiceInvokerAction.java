@@ -15,9 +15,12 @@
 package com.liferay.portal.jsonwebservice.action;
 
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONSerializable;
+import com.liferay.portal.kernel.json.JSONSerializer;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceAction;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionMapping;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManagerUtil;
+import com.liferay.portal.kernel.util.CamelCaseUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 
@@ -40,6 +43,7 @@ import jodd.util.KeyValue;
 
 /**
  * @author Igor Spasic
+ * @author Eduardo Lundgren
  */
 public class JSONWebServiceInvokerAction implements JSONWebServiceAction {
 
@@ -109,11 +113,116 @@ public class JSONWebServiceInvokerAction implements JSONWebServiceAction {
 			list.set(i, result);
 		}
 
+		Object result = null;
+
 		if (batchMode == false) {
-			return list.get(0);
+			result = list.get(0);
+		}
+		else {
+			result = list;
 		}
 
-		return list;
+		return new InvokerResult(result);
+	}
+
+	public class InvokerResult implements JSONSerializable {
+
+		public String toJSONString() {
+			if (_result == null) {
+				return JSONFactoryUtil.getNullJSON();
+			}
+
+			JSONSerializer jsonSerializer =
+				JSONFactoryUtil.createJSONSerializer();
+
+			jsonSerializer.exclude("*.class");
+
+			for (Statement statement : _statements) {
+				String name = statement.getName();
+
+				if (name == null) {
+					continue;
+				}
+
+				String includeName = name.substring(1);
+
+				_checkJSONSerializerIncludeName(includeName);
+
+				jsonSerializer.include(includeName);
+			}
+
+			return jsonSerializer.serialize(_result);
+		}
+
+		public Object getResult() {
+			return _result;
+		}
+
+		private InvokerResult(Object result) {
+			_result = result;
+		}
+
+		private Object _result;
+
+	}
+
+	private Object _addVariableStatement(
+			Statement statement, Statement variableStatement, Object result)
+		throws Exception {
+
+		result = _populateFlags(statement, result);
+
+		String name = variableStatement.getName();
+
+		Object variableResult = _executeStatement(variableStatement);
+
+		Map<String, Object> map = _convertObjectToMap(result);
+
+		map.put(name.substring(1), variableResult);
+
+		return map;
+	}
+
+	private Object _addVariableStatementList(
+			Statement statement, Statement variableStatement, Object result,
+			List<Object> results)
+		throws Exception {
+
+		List<Object> list = _convertObjectToList(result);
+
+		for (Object object : list) {
+			if (object instanceof List) {
+				Object value = _addVariableStatementList(
+					statement, variableStatement, object, results);
+
+				results.add(value);
+			}
+			else {
+				Object value = _addVariableStatement(
+					statement, variableStatement, object);
+
+				results.add(value);
+			}
+		}
+
+		return results;
+	}
+
+	private void _checkJSONSerializerIncludeName(String includeName) {
+		if (includeName.contains(StringPool.STAR)) {
+			throw new IllegalArgumentException(
+				includeName + " has special characters");
+		}
+	}
+
+	private List<Object> _convertObjectToList(Object object) {
+		if (!(object instanceof List)) {
+			String json = JSONFactoryUtil.looseSerialize(object);
+
+			object = JSONFactoryUtil.looseDeserialize(json, ArrayList.class);
+		}
+
+		return (List<Object>)object;
 	}
 
 	private Map<String, Object> _convertObjectToMap(Object object) {
@@ -134,23 +243,21 @@ public class JSONWebServiceInvokerAction implements JSONWebServiceAction {
 
 		Object result = jsonWebServiceAction.invoke();
 
-		_populateFlags(statement.getName(), result);
-
 		result = _filterResult(statement, result);
 
 		List<Statement> variableStatements = statement.getVariableStatements();
 
 		if (variableStatements != null) {
 			for (Statement variableStatement : variableStatements) {
-				String name = variableStatement.getName();
-
-				Object variableResult = _executeStatement(variableStatement);
-
-				Map<String, Object> map = _convertObjectToMap(result);
-
-				map.put(name.substring(1), variableResult);
-
-				result = map;
+				if (result instanceof List) {
+					result = _addVariableStatementList(
+						statement, variableStatement, result,
+						new ArrayList<Object>());
+				}
+				else {
+					result = _addVariableStatement(
+						statement, variableStatement, result);
+				}
 			}
 		}
 
@@ -158,6 +265,32 @@ public class JSONWebServiceInvokerAction implements JSONWebServiceAction {
 	}
 
 	private Object _filterResult(Statement statement, Object result) {
+		if (result instanceof List) {
+			result = _filterResultList(
+				statement, result, new ArrayList<Object>());
+		}
+		else {
+			result = _filterResultObject(statement, result);
+		}
+
+		return result;
+	}
+
+	private Object _filterResultList(
+		Statement statement, Object result, List<Object> results) {
+
+		List<Object> list = _convertObjectToList(result);
+
+		for (Object object : list) {
+			Object value = _filterResultObject(statement, object);
+
+			results.add(value);
+		}
+
+		return results;
+	}
+
+	private Object _filterResultObject(Statement statement, Object result) {
 		if (result == null) {
 			return result;
 		}
@@ -183,7 +316,7 @@ public class JSONWebServiceInvokerAction implements JSONWebServiceAction {
 	}
 
 	private Statement _parseStatement(
-		String assignment, Map<String, Object> parameterMap) {
+		String assignment, Map<String, Object> statementBody) {
 
 		Statement statement = new Statement();
 
@@ -203,7 +336,13 @@ public class JSONWebServiceInvokerAction implements JSONWebServiceAction {
 				String whitelistString = name.substring(
 					y + 1, name.length() - 1);
 
-				statement.setWhitelist(StringUtil.split(whitelistString));
+				String[] whiteList = StringUtil.split(whitelistString);
+
+				for (int i = 0; i < whiteList.length; i++) {
+					whiteList[i] = whiteList[i].trim();
+				}
+
+				statement.setWhitelist(whiteList);
 
 				name = name.substring(0, y);
 			}
@@ -213,19 +352,14 @@ public class JSONWebServiceInvokerAction implements JSONWebServiceAction {
 			statement.setMethod(assignment.substring(x + 1).trim());
 		}
 
+		HashMap<String, Object> parameterMap =
+			new HashMap<String, Object>(statementBody.size());
+
 		statement.setParameterMap(parameterMap);
 
-		Set<String> keySet = parameterMap.keySet();
-
-		Iterator<String> iterator = keySet.iterator();
-
-		while (iterator.hasNext()) {
-			String key = iterator.next();
-
+		for (String key : statementBody.keySet()) {
 			if (key.startsWith(StringPool.AT)) {
-				String value = (String)parameterMap.get(key);
-
-				iterator.remove();
+				String value = (String)statementBody.get(key);
 
 				List<Flag> flags = statement.getFlags();
 
@@ -243,10 +377,8 @@ public class JSONWebServiceInvokerAction implements JSONWebServiceAction {
 				flags.add(flag);
 			}
 			else if (key.startsWith(StringPool.DOLLAR)) {
-				Map<String, Object> map = (Map<String, Object>)parameterMap.get(
-					key);
-
-				iterator.remove();
+				Map<String, Object> map =
+					(Map<String, Object>)statementBody.get(key);
 
 				List<Statement> variableStatements =
 					statement.getVariableStatements();
@@ -261,12 +393,50 @@ public class JSONWebServiceInvokerAction implements JSONWebServiceAction {
 
 				variableStatements.add(variableStatement);
 			}
+			else {
+				Object value = statementBody.get(key);
+
+				parameterMap.put(CamelCaseUtil.normalizeCamelCase(key), value);
+			}
 		}
 
 		return statement;
 	}
 
-	private void _populateFlags(String name, Object object) {
+	private Object _populateFlags(Statement statement, Object result) {
+		if (result instanceof List) {
+			result = _populateFlagsList(
+				statement.getName(), result, new ArrayList<Object>());
+		}
+		else {
+			_populateFlagsObject(statement.getName(), result);
+		}
+
+		return result;
+	}
+
+	private List<Object> _populateFlagsList(
+		String name, Object result, List<Object> results) {
+
+		List<Object> list = _convertObjectToList(result);
+
+		for (Object object : list) {
+			if (object instanceof List) {
+				Object value = _populateFlagsList(name, object, results);
+
+				results.add(value);
+			}
+			else {
+				_populateFlagsObject(name, object);
+
+				results.add(object);
+			}
+		}
+
+		return results;
+	}
+
+	private void _populateFlagsObject(String name, Object object) {
 		if (name == null) {
 			return;
 		}
@@ -293,8 +463,6 @@ public class JSONWebServiceInvokerAction implements JSONWebServiceAction {
 					object, value.substring(name.length()));
 
 				parameterMap.put(flag.getKey(), propertyValue);
-
-				flag.setValue(null);
 			}
 		}
 	}

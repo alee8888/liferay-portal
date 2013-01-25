@@ -62,9 +62,10 @@ portletURL.setParameter("tabs3", tabs3);
 
 <aui:form action="<%= editAssignmentsURL %>" method="post" name="fm">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
-	<aui:input name="tabs1" type="hidden" value="<%=tabs1 %>" />
+	<aui:input name="tabs1" type="hidden" value="<%= tabs1 %>" />
 	<aui:input name="tabs2" type="hidden" value="<%= tabs2 %>" />
 	<aui:input name="tabs3" type="hidden" value="<%= tabs3 %>" />
+	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="assignmentsRedirect" type="hidden" />
 	<aui:input name="passwordPolicyId" type="hidden" value="<%= String.valueOf(passwordPolicy.getPasswordPolicyId()) %>" />
 
@@ -90,7 +91,7 @@ portletURL.setParameter("tabs3", tabs3);
 				<%
 				UserSearchTerms searchTerms = (UserSearchTerms)searchContainer.getSearchTerms();
 
-				LinkedHashMap userParams = new LinkedHashMap();
+				LinkedHashMap<String, Object> userParams = new LinkedHashMap<String, Object>();
 
 				if (tabs3.equals("current")) {
 					userParams.put("usersPasswordPolicies", new Long(passwordPolicy.getPasswordPolicyId()));
@@ -155,7 +156,7 @@ portletURL.setParameter("tabs3", tabs3);
 
 				long parentOrganizationId = OrganizationConstants.ANY_PARENT_ORGANIZATION_ID;
 
-				LinkedHashMap organizationParams = new LinkedHashMap();
+				LinkedHashMap<String, Object> organizationParams = new LinkedHashMap<String, Object>();
 
 				if (tabs3.equals("current")) {
 					organizationParams.put("organizationsPasswordPolicies", new Long(passwordPolicy.getPasswordPolicyId()));

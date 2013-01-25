@@ -15,6 +15,7 @@
 package com.liferay.portlet.portletconfiguration.action;
 
 import com.liferay.portal.NoSuchLayoutException;
+import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.Constants;
@@ -85,18 +86,21 @@ public class EditScopeAction extends EditConfigurationAction {
 		}
 
 		if (SessionErrors.isEmpty(actionRequest)) {
+			LiferayPortletConfig liferayPortletConfig =
+				(LiferayPortletConfig)portletConfig;
+
 			String portletResource = ParamUtil.getString(
 				actionRequest, "portletResource");
 
 			SessionMessages.add(
 				actionRequest,
-				portletConfig.getPortletName() +
+				liferayPortletConfig.getPortletId() +
 					SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
 				portletResource);
 
 			SessionMessages.add(
 				actionRequest,
-				portletConfig.getPortletName() +
+				liferayPortletConfig.getPortletId() +
 					SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
 
 			String redirect = PortalUtil.escapeRedirect(
@@ -128,8 +132,9 @@ public class EditScopeAction extends EditConfigurationAction {
 
 		renderResponse.setTitle(getTitle(portlet, renderRequest));
 
-		return mapping.findForward(getForward(
-			renderRequest, "portlet.portlet_configuration.edit_scope"));
+		return mapping.findForward(
+			getForward(
+				renderRequest, "portlet.portlet_configuration.edit_scope"));
 	}
 
 	protected Tuple getNewScope(ActionRequest actionRequest) throws Exception {
@@ -156,7 +161,8 @@ public class EditScopeAction extends EditConfigurationAction {
 
 			Layout scopeLayout =
 				LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
-					scopeLayoutUuid, layout.getGroupId());
+					scopeLayoutUuid, layout.getGroupId(),
+					layout.isPrivateLayout());
 
 			if (!scopeLayout.hasScopeGroup()) {
 				String name = String.valueOf(scopeLayout.getPlid());
@@ -164,8 +170,9 @@ public class EditScopeAction extends EditConfigurationAction {
 				GroupLocalServiceUtil.addGroup(
 					themeDisplay.getUserId(),
 					GroupConstants.DEFAULT_PARENT_GROUP_ID,
-					Layout.class.getName(), scopeLayout.getPlid(), name, null,
-					0, null, false, true, null);
+					Layout.class.getName(), scopeLayout.getPlid(),
+					GroupConstants.DEFAULT_LIVE_GROUP_ID, name, null, 0, null,
+					false, true, null);
 			}
 
 			scopeGroupId = scopeLayout.getGroupId();
@@ -211,7 +218,8 @@ public class EditScopeAction extends EditConfigurationAction {
 			try {
 				Layout scopeLayout =
 					LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
-						scopeLayoutUuid, layout.getGroupId());
+						scopeLayoutUuid, layout.getGroupId(),
+						layout.isPrivateLayout());
 
 				scopeName = scopeLayout.getName(themeDisplay.getLocale());
 			}

@@ -669,6 +669,12 @@ public class MDRRuleWrapper implements MDRRule, ModelWrapper<MDRRule> {
 		_mdrRule.setExpandoBridgeAttributes(serviceContext);
 	}
 
+	public void prepareLocalizedFieldsForImport(
+		java.util.Locale defaultImportLocale)
+		throws com.liferay.portal.LocaleException {
+		_mdrRule.prepareLocalizedFieldsForImport(defaultImportLocale);
+	}
+
 	@Override
 	public java.lang.Object clone() {
 		return new MDRRuleWrapper((MDRRule)_mdrRule.clone());
@@ -690,6 +696,10 @@ public class MDRRuleWrapper implements MDRRule, ModelWrapper<MDRRule> {
 
 	public com.liferay.portlet.mobiledevicerules.model.MDRRule toEscapedModel() {
 		return new MDRRuleWrapper(_mdrRule.toEscapedModel());
+	}
+
+	public com.liferay.portlet.mobiledevicerules.model.MDRRule toUnescapedModel() {
+		return new MDRRuleWrapper(_mdrRule.toUnescapedModel());
 	}
 
 	@Override

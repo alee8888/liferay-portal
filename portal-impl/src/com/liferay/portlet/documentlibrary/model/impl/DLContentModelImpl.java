@@ -104,7 +104,7 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_contentId);
+		return _contentId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -328,17 +328,6 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 	}
 
 	@Override
-	public DLContent toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (DLContent)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			DLContent.class.getName(), getPrimaryKey());
@@ -349,6 +338,16 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public DLContent toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (DLContent)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -531,7 +530,7 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 	}
 
 	private static ClassLoader _classLoader = DLContent.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			DLContent.class
 		};
 	private long _contentId;
@@ -549,5 +548,5 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 	private DLContentDataBlobModel _dataBlobModel;
 	private long _size;
 	private long _columnBitmask;
-	private DLContent _escapedModelProxy;
+	private DLContent _escapedModel;
 }

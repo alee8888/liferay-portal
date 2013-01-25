@@ -62,7 +62,7 @@ MembershipRequest membershipRequest = (MembershipRequest)request.getAttribute(We
 			<liferay-ui:message key="you-cannot-delete-this-site-because-you-are-currently-accessing-this-site" />
 		</c:if>
 
-		<c:if test="<%=rge.getType() == RequiredGroupException.PARENT_GROUP%>">
+		<c:if test="<%= rge.getType() == RequiredGroupException.PARENT_GROUP %>">
 			<liferay-ui:message key="you-cannot-delete-sites-that-have-subsites" />
 		</c:if>
 
@@ -76,7 +76,7 @@ MembershipRequest membershipRequest = (MembershipRequest)request.getAttribute(We
 	<aui:fieldset>
 		<c:if test="<%= Validator.isNotNull(group.getDescription()) %>">
 			<aui:field-wrapper label="description">
-				<%= group.getDescription() %>
+				<%= HtmlUtil.escape(group.getDescription()) %>
 			</aui:field-wrapper>
 		</c:if>
 
@@ -85,7 +85,7 @@ MembershipRequest membershipRequest = (MembershipRequest)request.getAttribute(We
 		</aui:field-wrapper>
 
 		<aui:field-wrapper label="user-comments">
-			<%= membershipRequest.getComments() %>
+			<%= HtmlUtil.escape(membershipRequest.getComments()) %>
 		</aui:field-wrapper>
 
 		<aui:select label="status" name="statusId">

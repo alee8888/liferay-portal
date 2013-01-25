@@ -56,7 +56,7 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(5);
 
@@ -99,7 +99,7 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement("select * from DLFileEntry");
 
@@ -128,7 +128,10 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 							companyId, repositoryId, name, newName);
 					}
 					catch (NoSuchFileException nsfe) {
-						_log.error(nsfe);
+						if (_log.isWarnEnabled()) {
+							_log.warn(
+								"Unable to update file for " + name, nsfe);
+						}
 					}
 				}
 			}
@@ -199,7 +202,7 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(5);
 

@@ -24,7 +24,7 @@ for (int i = 0; i < results.size(); i++) {
 
 	// Title
 
-	StringBundler sb = new StringBundler(10);
+	StringBundler sb = new StringBundler(13);
 
 	sb.append("<img alt=\"\" align=\"left\" border=\"0\" src=\"");
 
@@ -47,7 +47,7 @@ for (int i = 0; i < results.size(); i++) {
 
 	row.addText(TextFormatter.formatKB(fileEntry.getSize(), locale) + "k", rowHREF);
 
-	if (PropsValues.DL_FILE_ENTRY_READ_COUNT_ENABLED) {
+	if (PropsValues.DL_FILE_ENTRY_BUFFERED_INCREMENT_ENABLED) {
 		row.addText(String.valueOf(fileEntry.getReadCount()), rowHREF);
 	}
 
@@ -62,12 +62,13 @@ for (int i = 0; i < results.size(); i++) {
 	sb.append("Liferay.Util.getOpener().");
 	sb.append(renderResponse.getNamespace());
 	sb.append("selectDocumentLibrary('");
-	sb.append(themeDisplay.getPathContext());
 	sb.append(DLUtil.getPreviewURL(fileEntry, fileEntry.getFileVersion(), themeDisplay, StringPool.BLANK, false, false));
 	sb.append("', '");
 	sb.append(fileEntry.getUuid());
 	sb.append("', '");
-	sb.append(fileEntry.getTitle());
+	sb.append(fileEntry.getGroupId());
+	sb.append("', '");
+	sb.append(HtmlUtil.escapeJS(fileEntry.getTitle()));
 	sb.append("', '");
 	sb.append(fileEntry.getVersion());
 	sb.append("'); Liferay.Util.getWindow().close();");

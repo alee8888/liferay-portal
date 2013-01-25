@@ -22,17 +22,17 @@ import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.Query;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
-import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.search.lucene.LuceneHelperUtil;
 import com.liferay.portal.test.AssertUtils;
 import com.liferay.portal.test.EnvironmentExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.test.Sync;
+import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
+import com.liferay.portlet.bookmarks.util.BookmarksTestUtil;
 
 import java.util.List;
 
@@ -43,49 +43,45 @@ import org.junit.runner.RunWith;
 /**
  * @author Brian Wing Shun Chan
  */
-@ExecutionTestListeners(listeners = {EnvironmentExecutionTestListener.class})
+@ExecutionTestListeners(
+	listeners = {
+		EnvironmentExecutionTestListener.class,
+		SynchronousDestinationExecutionTestListener.class
+	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-public class BookmarksFolderServiceTest extends BaseBookmarksServiceTestCase {
+@Sync
+@Transactional
+public class BookmarksFolderServiceTest {
 
 	@Test
 	public void testAddFolder() throws Exception {
-		addFolder();
+		BookmarksTestUtil.addFolder();
 	}
 
 	@Test
 	public void testAddSubfolder() throws Exception {
-		BookmarksFolder folder = addFolder();
+		BookmarksFolder folder = BookmarksTestUtil.addFolder();
 
-		addFolder(folder.getFolderId());
+		BookmarksTestUtil.addFolder(folder.getFolderId());
 	}
 
 	@Test
 	public void testDeleteFolder() throws Exception {
-		BookmarksFolder folder = addFolder();
+		BookmarksFolder folder = BookmarksTestUtil.addFolder();
 
 		BookmarksFolderServiceUtil.deleteFolder(folder.getFolderId());
 	}
 
 	@Test
 	public void testGetFolder() throws Exception {
-		BookmarksFolder folder = addFolder();
+		BookmarksFolder folder = BookmarksTestUtil.addFolder();
 
 		BookmarksFolderServiceUtil.getFolder(folder.getFolderId());
 	}
 
 	@Test
 	public void testSearch() throws Exception {
-		FileUtil.deltree(
-			PropsValues.LUCENE_DIR + TestPropsValues.getCompanyId());
-
-		FileUtil.mkdirs(
-			PropsValues.LUCENE_DIR + TestPropsValues.getCompanyId());
-
-		LuceneHelperUtil.startup(TestPropsValues.getCompanyId());
-
-		BookmarksEntry entry = addEntry();
-
-		Thread.sleep(1000 * TestPropsValues.JUNIT_DELAY_FACTOR);
+		BookmarksEntry entry = BookmarksTestUtil.addEntry();
 
 		long companyId = entry.getCompanyId();
 		long groupId = entry.getFolder().getGroupId();
@@ -119,7 +115,7 @@ public class BookmarksFolderServiceTest extends BaseBookmarksServiceTestCase {
 				companyId, GetterUtil.getLong(doc.get(Field.COMPANY_ID)));
 
 			Assert.assertEquals(
-					groupId, GetterUtil.getLong(doc.get(Field.GROUP_ID)));
+				groupId, GetterUtil.getLong(doc.get(Field.GROUP_ID)));
 
 			AssertUtils.assertEqualsIgnoreCase(
 				entry.getName(), doc.get(Field.TITLE));
@@ -136,23 +132,19 @@ public class BookmarksFolderServiceTest extends BaseBookmarksServiceTestCase {
 
 		BookmarksFolderLocalServiceUtil.deleteFolder(folderId);
 
-		Thread.sleep(1000 * TestPropsValues.JUNIT_DELAY_FACTOR);
-
 		hits = indexer.search(searchContext);
 
 		Query query = hits.getQuery();
 
 		Assert.assertEquals(query.toString(), 0, hits.getLength());
 
-		addEntry();
-		addEntry();
-		addEntry();
-		addEntry();
-
-		Thread.sleep(1000 * TestPropsValues.JUNIT_DELAY_FACTOR);
+		BookmarksTestUtil.addEntry();
+		BookmarksTestUtil.addEntry();
+		BookmarksTestUtil.addEntry();
+		BookmarksTestUtil.addEntry();
 
 		searchContext.setEnd(3);
-		searchContext.setFolderIds(null);
+		searchContext.setFolderIds((long[])null);
 		searchContext.setStart(1);
 
 		hits = indexer.search(searchContext);

@@ -58,6 +58,10 @@ if (!company.isSiteLogo()) {
 	mainSections = ArrayUtil.remove(mainSections, "logo");
 }
 
+if (group.isGuest()) {
+	mainSections = ArrayUtil.remove(mainSections, "advanced");
+}
+
 String[][] categorySections = {mainSections};
 
 boolean hasExportImportLayoutsPermission = GroupPermissionUtil.contains(permissionChecker, liveGroupId, ActionKeys.EXPORT_IMPORT_LAYOUTS);
@@ -71,7 +75,7 @@ boolean hasExportImportLayoutsPermission = GroupPermissionUtil.contains(permissi
 
 		<aui:button-row cssClass="edit-toolbar" id='<%= liferayPortletResponse.getNamespace() + "layoutSetToolbar" %>'>
 			<c:if test="<%= hasExportImportLayoutsPermission %>">
-				<c:if test="<%= SessionErrors.contains(liferayPortletRequest, LayoutImportException.class.getName()) || SessionErrors.contains(liferayPortletRequest, LARFileException.class.getName()) || SessionErrors.contains(liferayPortletRequest, LARTypeException.class.getName()) %>">
+				<c:if test="<%= SessionErrors.contains(liferayPortletRequest, LayoutImportException.class.getName()) || SessionErrors.contains(liferayPortletRequest, LARFileException.class.getName()) || SessionErrors.contains(liferayPortletRequest, LARFileSizeException.class.getName()) || SessionErrors.contains(liferayPortletRequest, LARTypeException.class.getName()) %>">
 					<liferay-util:html-top>
 						<div class="aui-helper-hidden" id="<portlet:namespace />importPage">
 							<liferay-util:include page="/html/portlet/layouts_admin/export_import.jsp">
@@ -242,8 +246,6 @@ boolean hasExportImportLayoutsPermission = GroupPermissionUtil.contains(permissi
 							uri: '<%= importPagesURL.toString() %>'
 						}
 					);
-
-
 				},
 				icon: 'arrowthick-1-t',
 				label: '<%= UnicodeLanguageUtil.get(pageContext, "import") %>'
@@ -369,5 +371,5 @@ boolean hasExportImportLayoutsPermission = GroupPermissionUtil.contains(permissi
 </aui:script>
 
 <%!
-private static String[] _CATEGORY_NAMES = {""};
+private static final String[] _CATEGORY_NAMES = {""};
 %>

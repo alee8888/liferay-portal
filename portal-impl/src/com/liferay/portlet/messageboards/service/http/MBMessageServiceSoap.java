@@ -48,9 +48,8 @@ import java.rmi.RemoteException;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -87,6 +86,11 @@ public class MBMessageServiceSoap {
 		}
 	}
 
+	/**
+	* @deprecated {@link #addMessage(long, String, String, String,
+	java.util.List, boolean, double, boolean,
+	com.liferay.portal.service.ServiceContext)}
+	*/
 	public static com.liferay.portlet.messageboards.model.MBMessageSoap addMessage(
 		long groupId, long categoryId, long threadId, long parentMessageId,
 		java.lang.String subject, java.lang.String body,
@@ -131,6 +135,44 @@ public class MBMessageServiceSoap {
 		}
 	}
 
+	public static com.liferay.portlet.messageboards.model.MBMessageSoap addMessage(
+		long categoryId, java.lang.String subject, java.lang.String body,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws RemoteException {
+		try {
+			com.liferay.portlet.messageboards.model.MBMessage returnValue = MBMessageServiceUtil.addMessage(categoryId,
+					subject, body, serviceContext);
+
+			return com.liferay.portlet.messageboards.model.MBMessageSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.messageboards.model.MBMessageSoap addMessage(
+		long parentMessageId, java.lang.String subject, java.lang.String body,
+		java.lang.String format,
+		java.util.List<com.liferay.portal.kernel.util.ObjectValuePair<java.lang.String, java.io.InputStream>> inputStreamOVPs,
+		boolean anonymous, double priority, boolean allowPingbacks,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws RemoteException {
+		try {
+			com.liferay.portlet.messageboards.model.MBMessage returnValue = MBMessageServiceUtil.addMessage(parentMessageId,
+					subject, body, format, inputStreamOVPs, anonymous,
+					priority, allowPingbacks, serviceContext);
+
+			return com.liferay.portlet.messageboards.model.MBMessageSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	public static void deleteDiscussionMessage(long groupId,
 		java.lang.String className, long classPK,
 		java.lang.String permissionClassName, long permissionClassPK,
@@ -150,6 +192,18 @@ public class MBMessageServiceSoap {
 	public static void deleteMessage(long messageId) throws RemoteException {
 		try {
 			MBMessageServiceUtil.deleteMessage(messageId);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static void deleteMessageAttachments(long messageId)
+		throws RemoteException {
+		try {
+			MBMessageServiceUtil.deleteMessageAttachments(messageId);
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -258,6 +312,19 @@ public class MBMessageServiceSoap {
 					categoryId, threadId, status);
 
 			return returnValue;
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static void restoreMessageAttachmentFromTrash(long messageId,
+		java.lang.String fileName) throws RemoteException {
+		try {
+			MBMessageServiceUtil.restoreMessageAttachmentFromTrash(messageId,
+				fileName);
 		}
 		catch (Exception e) {
 			_log.error(e, e);

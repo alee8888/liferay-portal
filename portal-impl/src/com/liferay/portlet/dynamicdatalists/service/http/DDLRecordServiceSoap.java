@@ -16,6 +16,7 @@ package com.liferay.portlet.dynamicdatalists.service.http;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 
 import com.liferay.portlet.dynamicdatalists.service.DDLRecordServiceUtil;
 
@@ -48,9 +49,8 @@ import java.rmi.RemoteException;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -65,6 +65,23 @@ import java.rmi.RemoteException;
  * @generated
  */
 public class DDLRecordServiceSoap {
+	public static com.liferay.portlet.dynamicdatalists.model.DDLRecordSoap deleteRecordLocale(
+		long recordId, String locale,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws RemoteException {
+		try {
+			com.liferay.portlet.dynamicdatalists.model.DDLRecord returnValue = DDLRecordServiceUtil.deleteRecordLocale(recordId,
+					LocaleUtil.fromLanguageId(locale), serviceContext);
+
+			return com.liferay.portlet.dynamicdatalists.model.DDLRecordSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	public static com.liferay.portlet.dynamicdatalists.model.DDLRecordSoap getRecord(
 		long recordId) throws RemoteException {
 		try {

@@ -57,21 +57,15 @@ if (portletDisplay.isAccess() && portletDisplay.isActive() && (portletTitle == n
 	portletTitle = HtmlUtil.extractText(renderResponseImpl.getTitle());
 }
 
-ResourceBundle resourceBundle = portletConfig.getResourceBundle(locale);
-
 if (portletTitle == null) {
-	portletTitle = ResourceBundleUtil.getString(resourceBundle, JavaConstants.JAVAX_PORTLET_TITLE);
+	portletTitle = PortalUtil.getPortletTitle(portlet, application, locale);
 }
 
 portletDisplay.setTitle(portletTitle);
 
 // Portlet description
 
-String portletDescription = ResourceBundleUtil.getString(resourceBundle, JavaConstants.JAVAX_PORTLET_DESCRIPTION);
-
-if (Validator.isNull(portletDescription)) {
-	portletDescription = PortalUtil.getPortletDescription(portlet.getPortletId(), locale);
-}
+String portletDescription = PortalUtil.getPortletDescription(portlet, application, locale);
 
 portletDisplay.setDescription(portletDescription);
 
@@ -143,7 +137,18 @@ boolean wsrp = ParamUtil.getBoolean(request, "wsrp");
 			<c:otherwise>
 
 				<%
-				boolean showPortletActions = (group.isLayoutPrototype() || tilesPortletDecorateBoolean) && (portletDisplay.isShowPortletCssIcon() || portletDisplay.isShowConfigurationIcon() || portletDisplay.isShowEditIcon() || portletDisplay.isShowCloseIcon());
+				boolean showPortletActions =
+					(group.isLayoutPrototype() || tilesPortletDecorateBoolean) &&
+					(portletDisplay.isShowCloseIcon() ||
+					 portletDisplay.isShowConfigurationIcon() ||
+					 portletDisplay.isShowEditDefaultsIcon() ||
+					 portletDisplay.isShowEditGuestIcon() ||
+					 portletDisplay.isShowEditIcon() ||
+					 portletDisplay.isShowExportImportIcon() ||
+					 portletDisplay.isShowHelpIcon() ||
+					 portletDisplay.isShowPortletCssIcon() ||
+					 portletDisplay.isShowPrintIcon() ||
+					 portletDisplay.isShowRefreshIcon());
 				%>
 
 				<div class="portlet-borderless-container" <%= containerStyles %>>

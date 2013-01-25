@@ -77,6 +77,8 @@ public class PollsVoteModelImpl extends BaseModelImpl<PollsVote>
 		};
 	public static final String TABLE_SQL_CREATE = "create table PollsVote (voteId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,questionId LONG,choiceId LONG,voteDate DATE null)";
 	public static final String TABLE_SQL_DROP = "drop table PollsVote";
+	public static final String ORDER_BY_JPQL = " ORDER BY pollsVote.voteId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY PollsVote.voteId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -92,6 +94,7 @@ public class PollsVoteModelImpl extends BaseModelImpl<PollsVote>
 	public static long CHOICEID_COLUMN_BITMASK = 1L;
 	public static long QUESTIONID_COLUMN_BITMASK = 2L;
 	public static long USERID_COLUMN_BITMASK = 4L;
+	public static long VOTEID_COLUMN_BITMASK = 8L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -100,6 +103,10 @@ public class PollsVoteModelImpl extends BaseModelImpl<PollsVote>
 	 * @return the normal model instance
 	 */
 	public static PollsVote toModel(PollsVoteSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		PollsVote model = new PollsVoteImpl();
 
 		model.setVoteId(soapModel.getVoteId());
@@ -122,6 +129,10 @@ public class PollsVoteModelImpl extends BaseModelImpl<PollsVote>
 	 * @return the normal model instances
 	 */
 	public static List<PollsVote> toModels(PollsVoteSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<PollsVote> models = new ArrayList<PollsVote>(soapModels.length);
 
 		for (PollsVoteSoap soapModel : soapModels) {
@@ -146,7 +157,7 @@ public class PollsVoteModelImpl extends BaseModelImpl<PollsVote>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_voteId);
+		return _voteId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -370,17 +381,6 @@ public class PollsVoteModelImpl extends BaseModelImpl<PollsVote>
 	}
 
 	@Override
-	public PollsVote toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (PollsVote)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			PollsVote.class.getName(), getPrimaryKey());
@@ -391,6 +391,16 @@ public class PollsVoteModelImpl extends BaseModelImpl<PollsVote>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public PollsVote toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (PollsVote)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -604,7 +614,7 @@ public class PollsVoteModelImpl extends BaseModelImpl<PollsVote>
 	}
 
 	private static ClassLoader _classLoader = PollsVote.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			PollsVote.class
 		};
 	private long _voteId;
@@ -624,5 +634,5 @@ public class PollsVoteModelImpl extends BaseModelImpl<PollsVote>
 	private boolean _setOriginalChoiceId;
 	private Date _voteDate;
 	private long _columnBitmask;
-	private PollsVote _escapedModelProxy;
+	private PollsVote _escapedModel;
 }

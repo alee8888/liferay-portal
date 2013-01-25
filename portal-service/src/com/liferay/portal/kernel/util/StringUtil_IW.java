@@ -101,6 +101,10 @@ public class StringUtil_IW {
 		return StringUtil.extractLast(s, delimiter);
 	}
 
+	public java.lang.String extractLeadingDigits(java.lang.String s) {
+		return StringUtil.extractLeadingDigits(s);
+	}
+
 	/**
 	 * @deprecated
 	 */
@@ -136,6 +140,14 @@ public class StringUtil_IW {
 
 	public java.lang.String lowerCase(java.lang.String s) {
 		return StringUtil.lowerCase(s);
+	}
+
+	public void lowerCase(java.lang.String... array) {
+		StringUtil.lowerCase(array);
+	}
+
+	public java.lang.String lowerCaseFirstLetter(java.lang.String s) {
+		return StringUtil.lowerCaseFirstLetter(s);
 	}
 
 	public boolean matches(java.lang.String s, java.lang.String pattern) {

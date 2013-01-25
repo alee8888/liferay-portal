@@ -87,6 +87,7 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 			true);
 	public static long ACTIVE_COLUMN_BITMASK = 1L;
 	public static long RECOMMENDED_COLUMN_BITMASK = 2L;
+	public static long NAME_COLUMN_BITMASK = 4L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -95,6 +96,10 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	 * @return the normal model instance
 	 */
 	public static SCLicense toModel(SCLicenseSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		SCLicense model = new SCLicenseImpl();
 
 		model.setLicenseId(soapModel.getLicenseId());
@@ -114,6 +119,10 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	 * @return the normal model instances
 	 */
 	public static List<SCLicense> toModels(SCLicenseSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<SCLicense> models = new ArrayList<SCLicense>(soapModels.length);
 
 		for (SCLicenseSoap soapModel : soapModels) {
@@ -150,7 +159,7 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_licenseId);
+		return _licenseId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -325,17 +334,6 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	}
 
 	@Override
-	public SCLicense toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (SCLicense)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
 			SCLicense.class.getName(), getPrimaryKey());
@@ -346,6 +344,16 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public SCLicense toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (SCLicense)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -511,7 +519,7 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	}
 
 	private static ClassLoader _classLoader = SCLicense.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			SCLicense.class
 		};
 	private long _licenseId;
@@ -525,5 +533,5 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	private boolean _originalRecommended;
 	private boolean _setOriginalRecommended;
 	private long _columnBitmask;
-	private SCLicense _escapedModelProxy;
+	private SCLicense _escapedModel;
 }

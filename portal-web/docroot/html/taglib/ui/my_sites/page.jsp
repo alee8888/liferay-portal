@@ -40,105 +40,8 @@ List<Group> mySites = user.getMySites(true, max);
 		for (Group mySite : mySites) {
 			String escapedSiteName = HtmlUtil.escape(mySite.getName());
 
-			Organization organization = null;
-
-			String publicAddPageHREF = null;
-			String privateAddPageHREF = null;
-
-			if (mySite.isRegularSite() && GroupPermissionUtil.contains(permissionChecker, mySite.getGroupId(), ActionKeys.ADD_LAYOUT)) {
-				PortletURL addPageURL = new PortletURLImpl(request, PortletKeys.SITE_REDIRECTOR, plid, PortletRequest.ACTION_PHASE);
-
-				addPageURL.setWindowState(WindowState.NORMAL);
-				addPageURL.setPortletMode(PortletMode.VIEW);
-
-				addPageURL.setParameter("struts_action", "/my_sites/edit_layouts");
-				addPageURL.setParameter("redirect", currentURL);
-				addPageURL.setParameter("groupId", String.valueOf(mySite.getGroupId()));
-				addPageURL.setParameter("privateLayout", Boolean.FALSE.toString());
-
-				publicAddPageHREF = addPageURL.toString();
-
-				addPageURL.setParameter("privateLayout", Boolean.TRUE.toString());
-
-				privateAddPageHREF = addPageURL.toString();
-			}
-			else if (mySite.isUser()) {
-				PortletURL publicAddPageURL = new PortletURLImpl(request, PortletKeys.MY_ACCOUNT, plid, PortletRequest.RENDER_PHASE);
-
-				publicAddPageURL.setWindowState(WindowState.MAXIMIZED);
-				publicAddPageURL.setPortletMode(PortletMode.VIEW);
-
-				publicAddPageURL.setParameter("struts_action", "/my_account/edit_layouts");
-				publicAddPageURL.setParameter("tabs1", "public-pages");
-				publicAddPageURL.setParameter("redirect", currentURL);
-				publicAddPageURL.setParameter("groupId", String.valueOf(mySite.getGroupId()));
-
-				publicAddPageHREF = publicAddPageURL.toString();
-
-				long privateAddPagePlid = mySite.getDefaultPrivatePlid();
-
-				PortletURL privateAddPageURL = new PortletURLImpl(request, PortletKeys.MY_ACCOUNT, plid, PortletRequest.RENDER_PHASE);
-
-				privateAddPageURL.setWindowState(WindowState.MAXIMIZED);
-				privateAddPageURL.setPortletMode(PortletMode.VIEW);
-
-				privateAddPageURL.setParameter("struts_action", "/my_account/edit_layouts");
-				privateAddPageURL.setParameter("tabs1", "private-pages");
-				privateAddPageURL.setParameter("redirect", currentURL);
-				privateAddPageURL.setParameter("groupId", String.valueOf(mySite.getGroupId()));
-
-				privateAddPageHREF = privateAddPageURL.toString();
-			}
-
-			boolean showPublicSite = true;
-
-			boolean hasPowerUserRole = RoleLocalServiceUtil.hasUserRole(user.getUserId(), user.getCompanyId(), RoleConstants.POWER_USER, true);
-
-			Layout defaultPublicLayout = null;
-
-			if (mySite.getDefaultPublicPlid() > 0) {
-				defaultPublicLayout = LayoutLocalServiceUtil.getLayout(mySite.getDefaultPublicPlid());
-			}
-
-			if (mySite.getPublicLayoutsPageCount() == 0) {
-				if (mySite.isRegularSite()) {
-					showPublicSite = PropsValues.MY_SITES_SHOW_PUBLIC_SITES_WITH_NO_LAYOUTS;
-				}
-				else if (mySite.isUser()) {
-					showPublicSite = PropsValues.MY_SITES_SHOW_USER_PUBLIC_SITES_WITH_NO_LAYOUTS;
-
-					if (PropsValues.LAYOUT_USER_PUBLIC_LAYOUTS_POWER_USER_REQUIRED && !hasPowerUserRole) {
-						showPublicSite = false;
-					}
-				}
-			}
-			else if ((defaultPublicLayout != null ) && !LayoutPermissionUtil.contains(permissionChecker, defaultPublicLayout, true, ActionKeys.VIEW)) {
-				showPublicSite = false;
-			}
-
-			boolean showPrivateSite = true;
-
-			Layout defaultPrivateLayout = null;
-
-			if (mySite.getDefaultPrivatePlid() > 0) {
-				defaultPrivateLayout = LayoutLocalServiceUtil.getLayout(mySite.getDefaultPrivatePlid());
-			}
-
-			if (mySite.getPrivateLayoutsPageCount() == 0) {
-				if (mySite.isRegularSite()) {
-					showPrivateSite = PropsValues.MY_SITES_SHOW_PRIVATE_SITES_WITH_NO_LAYOUTS;
-				}
-				else if (mySite.isUser()) {
-					showPrivateSite = PropsValues.MY_SITES_SHOW_USER_PRIVATE_SITES_WITH_NO_LAYOUTS;
-
-					if (PropsValues.LAYOUT_USER_PRIVATE_LAYOUTS_POWER_USER_REQUIRED && !hasPowerUserRole) {
-						showPrivateSite = false;
-					}
-				}
-			}
-			else if ((defaultPrivateLayout != null ) && !LayoutPermissionUtil.contains(permissionChecker, defaultPrivateLayout, true, ActionKeys.VIEW)) {
-				showPrivateSite = false;
-			}
+			boolean showPublicSite = mySite.isShowSite(permissionChecker, false);
+			boolean showPrivateSite = mySite.isShowSite(permissionChecker, true);
 		%>
 
 			<c:if test="<%= showPublicSite || showPrivateSite %>">
@@ -215,12 +118,14 @@ List<Group> mySites = user.getMySites(true, max);
 
 									stagingGroupId = stagingGroup.getGroupId();
 
-									if ((mySite.getPublicLayoutsPageCount() == 0) && (stagingGroup.getPublicLayoutsPageCount() > 0) && GroupPermissionUtil.contains(permissionChecker, mySite.getGroupId(), ActionKeys.VIEW_STAGING)) {
-										showPublicSiteStaging = true;
-									}
+									if (GroupPermissionUtil.contains(permissionChecker, mySite.getGroupId(), ActionKeys.VIEW_STAGING)) {
+										if ((mySite.getPublicLayoutsPageCount() == 0) && (stagingGroup.getPublicLayoutsPageCount() > 0)) {
+											showPublicSiteStaging = true;
+										}
 
-									if ((mySite.getPrivateLayoutsPageCount() == 0) && (stagingGroup.getPrivateLayoutsPageCount() > 0) && GroupPermissionUtil.contains(permissionChecker, mySite.getGroupId(), ActionKeys.VIEW_STAGING)) {
-										showPrivateSiteStaging = true;
+										if ((mySite.getPrivateLayoutsPageCount() == 0) && (stagingGroup.getPrivateLayoutsPageCount() > 0)) {
+											showPrivateSiteStaging = true;
+										}
 									}
 								}
 								%>
@@ -340,6 +245,54 @@ List<Group> mySites = user.getMySites(true, max);
 					<c:when test='<%= PropsValues.MY_SITES_DISPLAY_STYLE.equals("classic") %>'>
 
 						<%
+						String publicAddPageHREF = null;
+						String privateAddPageHREF = null;
+
+						if (mySite.isSite() && GroupPermissionUtil.contains(permissionChecker, mySite.getGroupId(), ActionKeys.ADD_LAYOUT)) {
+							PortletURL addPageURL = new PortletURLImpl(request, PortletKeys.SITE_REDIRECTOR, plid, PortletRequest.ACTION_PHASE);
+
+							addPageURL.setWindowState(WindowState.NORMAL);
+							addPageURL.setPortletMode(PortletMode.VIEW);
+
+							addPageURL.setParameter("struts_action", "/my_sites/edit_layouts");
+							addPageURL.setParameter("redirect", currentURL);
+							addPageURL.setParameter("groupId", String.valueOf(mySite.getGroupId()));
+							addPageURL.setParameter("privateLayout", Boolean.FALSE.toString());
+
+							publicAddPageHREF = addPageURL.toString();
+
+							addPageURL.setParameter("privateLayout", Boolean.TRUE.toString());
+
+							privateAddPageHREF = addPageURL.toString();
+						}
+						else if (mySite.isUser()) {
+							PortletURL publicAddPageURL = new PortletURLImpl(request, PortletKeys.MY_ACCOUNT, plid, PortletRequest.RENDER_PHASE);
+
+							publicAddPageURL.setWindowState(WindowState.MAXIMIZED);
+							publicAddPageURL.setPortletMode(PortletMode.VIEW);
+
+							publicAddPageURL.setParameter("struts_action", "/my_account/edit_layouts");
+							publicAddPageURL.setParameter("tabs1", "public-pages");
+							publicAddPageURL.setParameter("redirect", currentURL);
+							publicAddPageURL.setParameter("groupId", String.valueOf(mySite.getGroupId()));
+
+							publicAddPageHREF = publicAddPageURL.toString();
+
+							long privateAddPagePlid = mySite.getDefaultPrivatePlid();
+
+							PortletURL privateAddPageURL = new PortletURLImpl(request, PortletKeys.MY_ACCOUNT, plid, PortletRequest.RENDER_PHASE);
+
+							privateAddPageURL.setWindowState(WindowState.MAXIMIZED);
+							privateAddPageURL.setPortletMode(PortletMode.VIEW);
+
+							privateAddPageURL.setParameter("struts_action", "/my_account/edit_layouts");
+							privateAddPageURL.setParameter("tabs1", "private-pages");
+							privateAddPageURL.setParameter("redirect", currentURL);
+							privateAddPageURL.setParameter("groupId", String.valueOf(mySite.getGroupId()));
+
+							privateAddPageHREF = privateAddPageURL.toString();
+						}
+
 						boolean selectedSite = false;
 
 						if (layout != null) {

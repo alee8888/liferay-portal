@@ -17,8 +17,6 @@
 <%@ include file="/html/portlet/users_admin/init.jsp" %>
 
 <%
-themeDisplay.setIncludeServiceJs(true);
-
 String redirect = ParamUtil.getString(request, "redirect");
 String backURL = ParamUtil.getString(request, "backURL", redirect);
 
@@ -92,10 +90,10 @@ else if (selUser != null) {
 	}
 }
 
-List<UserGroupRole> userGroupRoles = UsersAdminUtil.getUserGroupRoles(renderRequest);
-
-List<UserGroupRole> communityRoles = new ArrayList<UserGroupRole>();
 List<UserGroupRole> organizationRoles = new ArrayList<UserGroupRole>();
+List<UserGroupRole> siteRoles = new ArrayList<UserGroupRole>();
+
+List<UserGroupRole> userGroupRoles = UsersAdminUtil.getUserGroupRoles(renderRequest);
 
 if (userGroupRoles.isEmpty() && (selUser != null)) {
 	userGroupRoles = UserGroupRoleLocalServiceUtil.getUserGroupRoles(selUser.getUserId());
@@ -112,7 +110,7 @@ for (UserGroupRole userGroupRole : userGroupRoles) {
 		organizationRoles.add(userGroupRole);
 	}
 	else if (roleType == RoleConstants.TYPE_SITE) {
-		communityRoles.add(userGroupRole);
+		siteRoles.add(userGroupRole);
 	}
 }
 
@@ -192,8 +190,8 @@ String taglibOnSubmit = "event.preventDefault(); " + renderResponse.getNamespace
 	request.setAttribute("user.groups", groups);
 	request.setAttribute("user.organizations", organizations);
 	request.setAttribute("user.roles", roles);
-	request.setAttribute("user.communityRoles", communityRoles);
 	request.setAttribute("user.organizationRoles", organizationRoles);
+	request.setAttribute("user.siteRoles", siteRoles);
 	request.setAttribute("user.userGroups", userGroups);
 	request.setAttribute("user.allGroups", allGroups);
 
@@ -294,5 +292,5 @@ else {
 %>
 
 <%!
-private static String[] _CATEGORY_NAMES = {"user-information", "identification", "miscellaneous"};
+private static final String[] _CATEGORY_NAMES = {"user-information", "identification", "miscellaneous"};
 %>

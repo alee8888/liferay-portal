@@ -62,7 +62,7 @@ public class PollsQuestionLocalServiceImpl
 			expirationDate = PortalUtil.getDate(
 				expirationDateMonth, expirationDateDay, expirationDateYear,
 				expirationDateHour, expirationDateMinute, user.getTimeZone(),
-				new QuestionExpirationDateException());
+				QuestionExpirationDateException.class);
 		}
 
 		Date now = new Date();
@@ -84,7 +84,7 @@ public class PollsQuestionLocalServiceImpl
 		question.setDescriptionMap(descriptionMap);
 		question.setExpirationDate(expirationDate);
 
-		pollsQuestionPersistence.update(question, false);
+		pollsQuestionPersistence.update(question);
 
 		// Resources
 
@@ -242,7 +242,7 @@ public class PollsQuestionLocalServiceImpl
 			expirationDate = PortalUtil.getDate(
 				expirationDateMonth, expirationDateDay, expirationDateYear,
 				expirationDateHour, expirationDateMinute, user.getTimeZone(),
-				new QuestionExpirationDateException());
+				QuestionExpirationDateException.class);
 		}
 
 		validate(titleMap, descriptionMap, choices);
@@ -255,7 +255,7 @@ public class PollsQuestionLocalServiceImpl
 		question.setDescriptionMap(descriptionMap);
 		question.setExpirationDate(expirationDate);
 
-		pollsQuestionPersistence.update(question, false);
+		pollsQuestionPersistence.update(question);
 
 		// Choices
 

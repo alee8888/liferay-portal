@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.dynamicdatamapping.model.impl;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
@@ -85,10 +86,16 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 			{ "type_", Types.VARCHAR },
 			{ "mode_", Types.VARCHAR },
 			{ "language", Types.VARCHAR },
-			{ "script", Types.CLOB }
+			{ "script", Types.CLOB },
+			{ "cacheable", Types.BOOLEAN },
+			{ "smallImage", Types.BOOLEAN },
+			{ "smallImageId", Types.BIGINT },
+			{ "smallImageURL", Types.VARCHAR }
 		};
-	public static final String TABLE_SQL_CREATE = "create table DDMTemplate (uuid_ VARCHAR(75) null,templateId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,templateKey VARCHAR(75) null,name STRING null,description STRING null,type_ VARCHAR(75) null,mode_ VARCHAR(75) null,language VARCHAR(75) null,script TEXT null)";
+	public static final String TABLE_SQL_CREATE = "create table DDMTemplate (uuid_ VARCHAR(75) null,templateId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,templateKey VARCHAR(75) null,name STRING null,description STRING null,type_ VARCHAR(75) null,mode_ VARCHAR(75) null,language VARCHAR(75) null,script TEXT null,cacheable BOOLEAN,smallImage BOOLEAN,smallImageId LONG,smallImageURL VARCHAR(75) null)";
 	public static final String TABLE_SQL_DROP = "drop table DDMTemplate";
+	public static final String ORDER_BY_JPQL = " ORDER BY ddmTemplate.templateId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY DDMTemplate.templateId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -110,6 +117,7 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 	public static long TEMPLATEKEY_COLUMN_BITMASK = 64L;
 	public static long TYPE_COLUMN_BITMASK = 128L;
 	public static long UUID_COLUMN_BITMASK = 256L;
+	public static long TEMPLATEID_COLUMN_BITMASK = 512L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -118,6 +126,10 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 	 * @return the normal model instance
 	 */
 	public static DDMTemplate toModel(DDMTemplateSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		DDMTemplate model = new DDMTemplateImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -137,6 +149,10 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 		model.setMode(soapModel.getMode());
 		model.setLanguage(soapModel.getLanguage());
 		model.setScript(soapModel.getScript());
+		model.setCacheable(soapModel.getCacheable());
+		model.setSmallImage(soapModel.getSmallImage());
+		model.setSmallImageId(soapModel.getSmallImageId());
+		model.setSmallImageURL(soapModel.getSmallImageURL());
 
 		return model;
 	}
@@ -148,6 +164,10 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 	 * @return the normal model instances
 	 */
 	public static List<DDMTemplate> toModels(DDMTemplateSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<DDMTemplate> models = new ArrayList<DDMTemplate>(soapModels.length);
 
 		for (DDMTemplateSoap soapModel : soapModels) {
@@ -172,7 +192,7 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_templateId);
+		return _templateId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -208,6 +228,10 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 		attributes.put("mode", getMode());
 		attributes.put("language", getLanguage());
 		attributes.put("script", getScript());
+		attributes.put("cacheable", getCacheable());
+		attributes.put("smallImage", getSmallImage());
+		attributes.put("smallImageId", getSmallImageId());
+		attributes.put("smallImageURL", getSmallImageURL());
 
 		return attributes;
 	}
@@ -314,6 +338,30 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 
 		if (script != null) {
 			setScript(script);
+		}
+
+		Boolean cacheable = (Boolean)attributes.get("cacheable");
+
+		if (cacheable != null) {
+			setCacheable(cacheable);
+		}
+
+		Boolean smallImage = (Boolean)attributes.get("smallImage");
+
+		if (smallImage != null) {
+			setSmallImage(smallImage);
+		}
+
+		Long smallImageId = (Long)attributes.get("smallImageId");
+
+		if (smallImageId != null) {
+			setSmallImageId(smallImageId);
+		}
+
+		String smallImageURL = (String)attributes.get("smallImageURL");
+
+		if (smallImageURL != null) {
+			setSmallImageURL(smallImageURL);
 		}
 	}
 
@@ -783,19 +831,57 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 		_script = script;
 	}
 
-	public long getColumnBitmask() {
-		return _columnBitmask;
+	@JSON
+	public boolean getCacheable() {
+		return _cacheable;
 	}
 
-	@Override
-	public DDMTemplate toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (DDMTemplate)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
+	public boolean isCacheable() {
+		return _cacheable;
+	}
 
-		return _escapedModelProxy;
+	public void setCacheable(boolean cacheable) {
+		_cacheable = cacheable;
+	}
+
+	@JSON
+	public boolean getSmallImage() {
+		return _smallImage;
+	}
+
+	public boolean isSmallImage() {
+		return _smallImage;
+	}
+
+	public void setSmallImage(boolean smallImage) {
+		_smallImage = smallImage;
+	}
+
+	@JSON
+	public long getSmallImageId() {
+		return _smallImageId;
+	}
+
+	public void setSmallImageId(long smallImageId) {
+		_smallImageId = smallImageId;
+	}
+
+	@JSON
+	public String getSmallImageURL() {
+		if (_smallImageURL == null) {
+			return StringPool.BLANK;
+		}
+		else {
+			return _smallImageURL;
+		}
+	}
+
+	public void setSmallImageURL(String smallImageURL) {
+		_smallImageURL = smallImageURL;
+	}
+
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -809,6 +895,25 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+		setName(getName(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setDescription(getDescription(defaultImportLocale),
+			defaultImportLocale, defaultImportLocale);
+	}
+
+	@Override
+	public DDMTemplate toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (DDMTemplate)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -832,6 +937,10 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 		ddmTemplateImpl.setMode(getMode());
 		ddmTemplateImpl.setLanguage(getLanguage());
 		ddmTemplateImpl.setScript(getScript());
+		ddmTemplateImpl.setCacheable(getCacheable());
+		ddmTemplateImpl.setSmallImage(getSmallImage());
+		ddmTemplateImpl.setSmallImageId(getSmallImageId());
+		ddmTemplateImpl.setSmallImageURL(getSmallImageURL());
 
 		ddmTemplateImpl.resetOriginalValues();
 
@@ -1021,12 +1130,26 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 			ddmTemplateCacheModel.script = null;
 		}
 
+		ddmTemplateCacheModel.cacheable = getCacheable();
+
+		ddmTemplateCacheModel.smallImage = getSmallImage();
+
+		ddmTemplateCacheModel.smallImageId = getSmallImageId();
+
+		ddmTemplateCacheModel.smallImageURL = getSmallImageURL();
+
+		String smallImageURL = ddmTemplateCacheModel.smallImageURL;
+
+		if ((smallImageURL != null) && (smallImageURL.length() == 0)) {
+			ddmTemplateCacheModel.smallImageURL = null;
+		}
+
 		return ddmTemplateCacheModel;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(35);
+		StringBundler sb = new StringBundler(43);
 
 		sb.append("{uuid=");
 		sb.append(getUuid());
@@ -1062,13 +1185,21 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 		sb.append(getLanguage());
 		sb.append(", script=");
 		sb.append(getScript());
+		sb.append(", cacheable=");
+		sb.append(getCacheable());
+		sb.append(", smallImage=");
+		sb.append(getSmallImage());
+		sb.append(", smallImageId=");
+		sb.append(getSmallImageId());
+		sb.append(", smallImageURL=");
+		sb.append(getSmallImageURL());
 		sb.append("}");
 
 		return sb.toString();
 	}
 
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(55);
+		StringBundler sb = new StringBundler(67);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portlet.dynamicdatamapping.model.DDMTemplate");
@@ -1142,6 +1273,22 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 			"<column><column-name>script</column-name><column-value><![CDATA[");
 		sb.append(getScript());
 		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>cacheable</column-name><column-value><![CDATA[");
+		sb.append(getCacheable());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>smallImage</column-name><column-value><![CDATA[");
+		sb.append(getSmallImage());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>smallImageId</column-name><column-value><![CDATA[");
+		sb.append(getSmallImageId());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>smallImageURL</column-name><column-value><![CDATA[");
+		sb.append(getSmallImageURL());
+		sb.append("]]></column-value></column>");
 
 		sb.append("</model>");
 
@@ -1149,7 +1296,7 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 	}
 
 	private static ClassLoader _classLoader = DDMTemplate.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			DDMTemplate.class
 		};
 	private String _uuid;
@@ -1185,6 +1332,10 @@ public class DDMTemplateModelImpl extends BaseModelImpl<DDMTemplate>
 	private String _language;
 	private String _originalLanguage;
 	private String _script;
+	private boolean _cacheable;
+	private boolean _smallImage;
+	private long _smallImageId;
+	private String _smallImageURL;
 	private long _columnBitmask;
-	private DDMTemplate _escapedModelProxy;
+	private DDMTemplate _escapedModel;
 }

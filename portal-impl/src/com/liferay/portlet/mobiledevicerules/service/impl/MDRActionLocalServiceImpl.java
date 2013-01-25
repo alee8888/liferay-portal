@@ -65,7 +65,13 @@ public class MDRActionLocalServiceImpl extends MDRActionLocalServiceBaseImpl {
 		action.setType(type);
 		action.setTypeSettings(typeSettings);
 
-		return updateMDRAction(action, false);
+		action = updateMDRAction(action);
+
+		ruleGroupInstance.setModifiedDate(now);
+
+		mdrRuleGroupInstancePersistence.update(ruleGroupInstance);
+
+		return action;
 	}
 
 	public MDRAction addAction(
@@ -90,6 +96,16 @@ public class MDRActionLocalServiceImpl extends MDRActionLocalServiceBaseImpl {
 
 	public void deleteAction(MDRAction action) throws SystemException {
 		mdrActionPersistence.remove(action);
+
+		MDRRuleGroupInstance ruleGroupInstance =
+			mdrRuleGroupInstancePersistence.fetchByPrimaryKey(
+				action.getRuleGroupInstanceId());
+
+		if (ruleGroupInstance != null) {
+			ruleGroupInstance.setModifiedDate(new Date());
+
+			mdrRuleGroupInstancePersistence.update(ruleGroupInstance);
+		}
 	}
 
 	public void deleteActions(long ruleGroupInstanceId) throws SystemException {
@@ -147,7 +163,15 @@ public class MDRActionLocalServiceImpl extends MDRActionLocalServiceBaseImpl {
 		action.setType(type);
 		action.setTypeSettings(typeSettings);
 
-		mdrActionPersistence.update(action, false);
+		mdrActionPersistence.update(action);
+
+		MDRRuleGroupInstance ruleGroupInstance =
+			mdrRuleGroupInstancePersistence.findByPrimaryKey(
+				action.getRuleGroupInstanceId());
+
+		ruleGroupInstance.setModifiedDate(serviceContext.getModifiedDate(null));
+
+		mdrRuleGroupInstancePersistence.update(ruleGroupInstance);
 
 		return action;
 	}

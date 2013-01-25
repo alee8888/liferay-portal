@@ -17,8 +17,6 @@
 <%@ include file="/html/portlet/users_admin/init.jsp" %>
 
 <%
-themeDisplay.setIncludeServiceJs(true);
-
 String redirect = ParamUtil.getString(request, "redirect");
 String backURL = ParamUtil.getString(request, "backURL", redirect);
 
@@ -132,5 +130,5 @@ else {
 %>
 
 <%!
-private static String[] _CATEGORY_NAMES = {"organization-information", "identification", "miscellaneous"};
+private static final String[] _CATEGORY_NAMES = {"organization-information", "identification", "miscellaneous"};
 %>

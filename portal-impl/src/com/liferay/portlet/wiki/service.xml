@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.1.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_1_0.dtd">
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_2_0.dtd">
 
 <service-builder package-path="com.liferay.portlet.wiki">
 	<namespace>Wiki</namespace>
@@ -7,7 +7,7 @@
 
 		<!-- PK fields -->
 
-		<column name="nodeId" type="long" primary="true" />
+		<column name="nodeId" type="long" primary="true" container-model="true" />
 
 		<!-- Group instance -->
 
@@ -26,6 +26,10 @@
 		<column name="name" type="String" />
 		<column name="description" type="String" />
 		<column name="lastPostDate" type="Date" />
+		<column name="status" type="int" />
+		<column name="statusByUserId" type="long" />
+		<column name="statusByUserName" type="String" />
+		<column name="statusDate" type="Date" />
 
 		<!-- Order -->
 
@@ -45,11 +49,23 @@
 			<finder-column name="groupId" />
 			<finder-column name="name" />
 		</finder>
+		<finder name="G_S" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="C_S" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="status" />
+		</finder>
 
 		<!-- References -->
 
 		<reference package-path="com.liferay.portal" entity="Group" />
 		<reference package-path="com.liferay.portal" entity="Subscription" />
+		<reference package-path="com.liferay.portal" entity="WorkflowInstanceLink" />
+		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
+		<reference package-path="com.liferay.portlet.social" entity="SocialActivityCounter" />
+		<reference package-path="com.liferay.portlet.trash" entity="TrashEntry" />
 	</entity>
 	<entity name="WikiPage" uuid="true" local-service="true" remote-service="true">
 
@@ -59,7 +75,7 @@
 
 		<!-- Resource -->
 
-		<column name="resourcePrimKey" type="long" />
+		<column name="resourcePrimKey" type="long" filter-primary="true" />
 
 		<!-- Group instance -->
 
@@ -135,8 +151,23 @@
 			<finder-column name="nodeId" />
 			<finder-column name="version" />
 		</finder>
+		<finder name="R_N_H" return-type="Collection">
+			<finder-column name="resourcePrimKey" />
+			<finder-column name="nodeId" />
+			<finder-column name="head" />
+		</finder>
 		<finder name="R_N_S" return-type="Collection">
 			<finder-column name="resourcePrimKey" />
+			<finder-column name="nodeId" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="G_N_H" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="nodeId" />
+			<finder-column name="head" />
+		</finder>
+		<finder name="G_N_S" return-type="Collection">
+			<finder-column name="groupId" />
 			<finder-column name="nodeId" />
 			<finder-column name="status" />
 		</finder>
@@ -170,7 +201,32 @@
 			<finder-column name="head" />
 			<finder-column name="status" />
 		</finder>
+		<finder name="G_U_N_S" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="userId" />
+			<finder-column name="nodeId" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="G_N_T_H" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="nodeId" />
+			<finder-column name="title" case-sensitive="false" />
+			<finder-column name="head" />
+		</finder>
+		<finder name="G_N_H_S" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="nodeId" />
+			<finder-column name="head" />
+			<finder-column name="status" />
+		</finder>
 		<finder name="N_H_P_S" return-type="Collection">
+			<finder-column name="nodeId" />
+			<finder-column name="head" />
+			<finder-column name="parentTitle" case-sensitive="false" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="G_N_H_P_S" return-type="Collection">
+			<finder-column name="groupId" />
 			<finder-column name="nodeId" />
 			<finder-column name="head" />
 			<finder-column name="parentTitle" case-sensitive="false" />
@@ -191,6 +247,7 @@
 		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
 		<reference package-path="com.liferay.portlet.messageboards" entity="MBMessage" />
 		<reference package-path="com.liferay.portlet.social" entity="SocialActivity" />
+		<reference package-path="com.liferay.portlet.trash" entity="TrashEntry" />
 
 		<!-- Transactions -->
 

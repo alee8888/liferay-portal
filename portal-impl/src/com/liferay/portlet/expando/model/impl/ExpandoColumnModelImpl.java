@@ -93,6 +93,10 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	 * @return the normal model instance
 	 */
 	public static ExpandoColumn toModel(ExpandoColumnSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		ExpandoColumn model = new ExpandoColumnImpl();
 
 		model.setColumnId(soapModel.getColumnId());
@@ -113,6 +117,10 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	 * @return the normal model instances
 	 */
 	public static List<ExpandoColumn> toModels(ExpandoColumnSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<ExpandoColumn> models = new ArrayList<ExpandoColumn>(soapModels.length);
 
 		for (ExpandoColumnSoap soapModel : soapModels) {
@@ -137,7 +145,7 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_columnId);
+		return _columnId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -318,13 +326,12 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 
 	@Override
 	public ExpandoColumn toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (ExpandoColumn)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
+		if (_escapedModel == null) {
+			_escapedModel = (ExpandoColumn)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
 		}
 
-		return _escapedModelProxy;
+		return _escapedModel;
 	}
 
 	@Override
@@ -503,7 +510,7 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	}
 
 	private static ClassLoader _classLoader = ExpandoColumn.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			ExpandoColumn.class
 		};
 	private long _columnId;
@@ -517,5 +524,5 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	private String _defaultData;
 	private String _typeSettings;
 	private long _columnBitmask;
-	private ExpandoColumn _escapedModelProxy;
+	private ExpandoColumn _escapedModel;
 }

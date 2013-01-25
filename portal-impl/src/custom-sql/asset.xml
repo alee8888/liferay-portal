@@ -18,7 +18,8 @@
 						AssetEntry
 					WHERE
 						(AssetEntry.groupId = ?) AND
-						(AssetEntry.classNameId = ?)
+						(AssetEntry.classNameId = ?) AND
+						(AssetEntry.visible = [$TRUE$])
 				)) AND
 				(AssetCategory.name LIKE ? OR ? IS NULL)
 		]]>
@@ -57,6 +58,17 @@
 				AssetEntries_AssetCategories ON
 					(AssetEntries_AssetCategories.categoryId = AssetCategory.categoryId) AND
 					(AssetEntries_AssetCategories.entryId = ?)
+		]]>
+	</sql>
+	<sql id="com.liferay.portlet.asset.service.persistence.AssetCategoryFinder.findByG_L">
+		<![CDATA[
+			SELECT
+				categoryId
+			FROM
+				AssetCategory
+			WHERE
+				(groupId = ?) AND
+				(leftCategoryId BETWEEN ? AND ?)
 		]]>
 	</sql>
 	<sql id="com.liferay.portlet.asset.service.persistence.AssetCategoryFinder.findByG_N">
@@ -143,25 +155,16 @@
 	</sql>
 	<sql id="com.liferay.portlet.asset.service.persistence.AssetEntryFinder.findByAndCategoryIds">
 		<![CDATA[
-			SELECT
-				DISTINCT AssetEntries_AssetCategories.entryId
-			FROM
-				AssetEntries_AssetCategories
-			WHERE
-				categoryId = ?
-		]]>
-	</sql>
-	<sql id="com.liferay.portlet.asset.service.persistence.AssetEntryFinder.findByAndCategoryIdsTree">
-		<![CDATA[
-			SELECT
-				DISTINCT AssetEntries_AssetCategories.entryId
-			FROM
-				AssetEntries_AssetCategories
-			INNER JOIN
-				AssetCategory ON
-					(AssetCategory.categoryId = AssetEntries_AssetCategories.categoryId)
-			WHERE
-				(AssetCategory.groupId = ?) AND (AssetCategory.leftCategoryId BETWEEN ? AND ?)
+			EXISTS
+				(
+					SELECT
+						1
+					FROM
+						AssetEntries_AssetCategories
+					WHERE
+						(AssetEntries_AssetCategories.entryId = AssetEntry.entryId) AND
+						(AssetEntries_AssetCategories.categoryId IN ([$CATEGORY_ID$]))
+				)
 		]]>
 	</sql>
 	<sql id="com.liferay.portlet.asset.service.persistence.AssetEntryFinder.findByAndTagIds">
@@ -171,7 +174,7 @@
 			FROM
 				AssetEntries_AssetTags
 			WHERE
-				([$TAG_ID])
+				([$TAG_ID$])
 		]]>
 	</sql>
 	<sql id="com.liferay.portlet.asset.service.persistence.AssetLinkFinder.findByE1_V">
@@ -219,7 +222,8 @@
 					FROM
 						AssetEntry
 					WHERE
-						(AssetEntry.groupId = ?)
+						(AssetEntry.groupId = ?) AND
+						(AssetEntry.visible = [$TRUE$])
 				)) AND
 				(AssetTag.name LIKE ?)
 		]]>
@@ -241,7 +245,8 @@
 						AssetEntry
 					WHERE
 						(AssetEntry.groupId = ?) AND
-						(AssetEntry.classNameId = ?)
+						(AssetEntry.classNameId = ?) AND
+						(AssetEntry.visible = [$TRUE$])
 				)) AND
 				(AssetTag.name LIKE ? OR ? IS NULL)
 		]]>
@@ -273,7 +278,7 @@
 	<sql id="com.liferay.portlet.asset.service.persistence.AssetTagFinder.findByG_N">
 		<![CDATA[
 			SELECT
-				{AssetTag.*}
+				DISTINCT {AssetTag.*}
 			FROM
 				AssetTag
 			WHERE
@@ -311,7 +316,8 @@
 						AssetEntry
 					WHERE
 						(AssetEntry.groupId = ?) AND
-						(AssetEntry.classNameId = ?)
+						(AssetEntry.classNameId = ?) AND
+						(AssetEntry.visible = [$TRUE$])
 				)) AND
 				(AssetTag.name LIKE ? OR ? IS NULL)
 			ORDER BY
@@ -321,12 +327,12 @@
 	<sql id="com.liferay.portlet.asset.service.persistence.AssetTagFinder.findByG_N_P">
 		<![CDATA[
 			SELECT
-				{AssetTag.*}
+				DISTINCT {AssetTag.*}
 			FROM
 				AssetTag
 			[$JOIN$]
 			WHERE
-				(AssetTag.groupId = ?) AND
+				[$GROUP_ID$]
 				(AssetTag.name LIKE ? OR ? IS NULL)
 			ORDER BY
 				AssetTag.name ASC
@@ -356,7 +362,7 @@
 				(SocialActivityCounter.startPeriod + ? <= ?)
 			GROUP BY
 				AssetTag.tagId, AssetTag.name
-   		]]>
+		]]>
 	</sql>
 	<sql id="com.liferay.portlet.asset.service.persistence.AssetTagPropertyFinder.countByG_K">
 		<![CDATA[

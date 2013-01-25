@@ -21,11 +21,11 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.security.pacl.PACLClassLoaderUtil;
 import com.liferay.portal.upgrade.UpgradeProcessUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.verify.VerifyException;
@@ -40,13 +40,48 @@ import java.sql.Connection;
  */
 public class StartupHelper {
 
-	public static void updateIndexes(
-		DB db, Connection con, boolean dropIndexes) {
+	public boolean isUpgraded() {
+		return _upgraded;
+	}
+
+	public boolean isVerified() {
+		return _verified;
+	}
+
+	public void setDropIndexes(boolean dropIndexes) {
+		_dropIndexes = dropIndexes;
+	}
+
+	public void updateIndexes() {
+		updateIndexes(_dropIndexes);
+	}
+
+	public void updateIndexes(boolean dropIndexes) {
+		DB db = DBFactoryUtil.getDB();
+
+		Connection connection = null;
 
 		try {
-			Thread currentThread = Thread.currentThread();
+			connection = DataAccess.getConnection();
 
-			ClassLoader classLoader = currentThread.getContextClassLoader();
+			updateIndexes(db, connection, dropIndexes);
+		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(e, e);
+			}
+		}
+		finally {
+			DataAccess.cleanUp(connection);
+		}
+	}
+
+	public void updateIndexes(
+		DB db, Connection connection, boolean dropIndexes) {
+
+		try {
+			ClassLoader classLoader =
+				PACLClassLoaderUtil.getContextClassLoader();
 
 			String tablesSQL = StringUtil.read(
 				classLoader,
@@ -61,40 +96,13 @@ public class StartupHelper {
 				"com/liferay/portal/tools/sql/dependencies/indexes.properties");
 
 			db.updateIndexes(
-				con, tablesSQL, indexesSQL, indexesProperties, dropIndexes);
+				connection, tablesSQL, indexesSQL, indexesProperties,
+				dropIndexes);
 		}
 		catch (Exception e) {
-			_log.error(e, e);
-		}
-	}
-
-	public boolean isUpgraded() {
-		return _upgraded;
-	}
-
-	public boolean isVerified() {
-		return _verified;
-	}
-
-	public void setDropIndexes(boolean dropIndexes) {
-		_dropIndexes = dropIndexes;
-	}
-
-	public void updateIndexes() {
-		DB db = DBFactoryUtil.getDB();
-
-		Connection con = null;
-
-		try {
-			con = DataAccess.getConnection();
-
-			updateIndexes(db, con, _dropIndexes);
-		}
-		catch (Exception e) {
-			_log.error(e, e);
-		}
-		finally {
-			DataAccess.cleanUp(con);
+			if (_log.isWarnEnabled()) {
+				_log.warn(e, e);
+			}
 		}
 	}
 
@@ -130,7 +138,7 @@ public class StartupHelper {
 
 		_upgraded = UpgradeProcessUtil.upgradeProcess(
 			buildNumber, upgradeProcessClassNames,
-			PortalClassLoaderUtil.getClassLoader());
+			PACLClassLoaderUtil.getPortalClassLoader());
 	}
 
 	public void verifyProcess(boolean verified) throws VerifyException {

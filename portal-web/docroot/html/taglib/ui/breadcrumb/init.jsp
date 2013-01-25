@@ -30,7 +30,7 @@ PortletURL portletURL = (PortletURL)request.getAttribute("liferay-ui:breadcrumb:
 
 String displayStyle = GetterUtil.getString((String)request.getAttribute("liferay-ui:breadcrumb:displayStyle"), "horizontal");
 
-if (!ArrayUtil.contains(PropsValues.BREADCRUMB_DISPLAY_STYLE_OPTIONS, displayStyle)){
+if (!ArrayUtil.contains(PropsValues.BREADCRUMB_DISPLAY_STYLE_OPTIONS, displayStyle)) {
 	displayStyle = "horizontal";
 }
 
@@ -104,12 +104,23 @@ private void _buildLayoutBreadcrumb(Layout selLayout, String selLayoutParam, boo
 
 	breadcrumbSB.append("</a></span></li>");
 
-	Layout layoutParent = null;
-
 	if (selLayout.getParentLayoutId() != LayoutConstants.DEFAULT_PARENT_LAYOUT_ID) {
-		layoutParent = LayoutLocalServiceUtil.getLayout(selLayout.getGroupId(), selLayout.isPrivateLayout(), selLayout.getParentLayoutId());
+		Layout parentLayout = null;
 
-		_buildLayoutBreadcrumb(layoutParent, selLayoutParam, false, portletURL, themeDisplay, sb);
+		if (selLayout instanceof VirtualLayout) {
+			VirtualLayout virtualLayout = (VirtualLayout)selLayout;
+
+			Layout sourceLayout = virtualLayout.getSourceLayout();
+
+			parentLayout = LayoutLocalServiceUtil.getLayout(sourceLayout.getGroupId(), sourceLayout.isPrivateLayout(), sourceLayout.getParentLayoutId());
+
+			parentLayout = new VirtualLayout(parentLayout, selLayout.getGroup());
+		}
+		else {
+			parentLayout = LayoutLocalServiceUtil.getLayout(selLayout.getGroupId(), selLayout.isPrivateLayout(), selLayout.getParentLayoutId());
+		}
+
+		_buildLayoutBreadcrumb(parentLayout, selLayoutParam, false, portletURL, themeDisplay, sb);
 
 		sb.append(breadcrumbSB.toString());
 	}
@@ -125,15 +136,11 @@ private void _buildParentGroupsBreadcrumb(LayoutSet layoutSet, PortletURL portle
 		return;
 	}
 
-	if (group.isOrganization()) {
-		Organization organization = OrganizationLocalServiceUtil.getOrganization(group.getOrganizationId());
+	if (group.isSite()) {
+		Group parentSite = group.getParentGroup();
 
-		Organization parentOrganization = organization.getParentOrganization();
-
-		if (parentOrganization != null) {
-			Group parentGroup = parentOrganization.getGroup();
-
-			LayoutSet parentLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(parentGroup.getGroupId(), layoutSet.isPrivateLayout());
+		if (parentSite != null) {
+			LayoutSet parentLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(parentSite.getGroupId(), layoutSet.isPrivateLayout());
 
 			_buildParentGroupsBreadcrumb(parentLayoutSet, portletURL, themeDisplay, sb);
 		}

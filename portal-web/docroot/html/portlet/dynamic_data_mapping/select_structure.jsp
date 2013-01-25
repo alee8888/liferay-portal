@@ -16,6 +16,11 @@
 
 <%@ include file="/html/portlet/dynamic_data_mapping/init.jsp" %>
 
+<%
+long groupId = ParamUtil.getLong(request, "groupId", scopeGroupId);
+long classPK = ParamUtil.getLong(request, "classPK");
+%>
+
 <c:if test="<%= showToolbar %>">
 	<liferay-util:include page="/html/portlet/dynamic_data_mapping/structure_toolbar.jsp">
 		<liferay-util:param name="toolbarItem" value="view-all" />
@@ -55,17 +60,21 @@
 		>
 
 			<%
-			StringBundler sb = new StringBundler(7);
+			String rowHREF = null;
 
-			sb.append("javascript:Liferay.Util.getOpener().");
-			sb.append(saveCallback);
-			sb.append("('");
-			sb.append(structure.getStructureId());
-			sb.append("', '");
-			sb.append(HtmlUtil.escapeJS(structure.getName(locale)));
-			sb.append("', Liferay.Util.getWindow());");
+			if (structure.getStructureId() != classPK) {
+				StringBundler sb = new StringBundler(7);
 
-			String rowHREF = sb.toString();
+				sb.append("javascript:Liferay.Util.getOpener().");
+				sb.append(saveCallback);
+				sb.append("('");
+				sb.append(structure.getStructureId());
+				sb.append("', '");
+				sb.append(HtmlUtil.escapeJS(structure.getName(locale)));
+				sb.append("', Liferay.Util.getWindow());");
+
+				rowHREF = sb.toString();
+			}
 			%>
 
 			<liferay-ui:search-container-column-text
@@ -77,7 +86,7 @@
 			<liferay-ui:search-container-column-text
 				href="<%= rowHREF %>"
 				name="name"
-				value="<%= structure.getName(locale) %>"
+				value="<%= HtmlUtil.escape(structure.getName(locale)) %>"
 			/>
 
 		</liferay-ui:search-container-row>

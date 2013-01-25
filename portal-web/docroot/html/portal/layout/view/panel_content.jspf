@@ -45,17 +45,31 @@ if (!denyAccess && (themeDisplay.isStatePopUp() || (layoutTypePortlet.hasStateMa
 		velocityTemplateId = theme.getThemeId() + LayoutTemplateConstants.STANDARD_SEPARATOR + "max";
 
 		content = LayoutTemplateLocalServiceUtil.getContent("max", true, theme.getThemeId());
-
-		Set<String> runtimePortletIds = RuntimeTag.getRuntimePortletIDs(request);
-
-		if (runtimePortletIds == null) {
-			runtimePortletIds = new HashSet<String>();
-		}
-
-		runtimePortletIds.add(ppid);
 	}
 
-	RuntimePageUtil.processTemplate(pageContext, ppid, velocityTemplateId, content);
+	StringBundler sb = null;
+
+	if (Validator.isNotNull(velocityTemplateId) && Validator.isNotNull(content)) {
+		sb = RuntimePageUtil.getProcessedTemplate(pageContext, ppid, new StringTemplateResource(velocityTemplateId, content));
+	}
+	%>
+
+	<c:if test="<%= controlPanelCategory.equals(StringPool.BLANK) || controlPanelCategory.equals(StringPool.CONTENT) %>">
+		<div class="site-breadcrumbs" id="breadcrumbs">
+			<h1>
+				<span>
+					<liferay-ui:message key="breadcrumb" />
+				</span>
+			</h1>
+
+			<liferay-ui:breadcrumb />
+		</div>
+	</c:if>
+
+	<%
+	if (sb != null) {
+		sb.writeTo(pageContext.getOut());
+	}
 }
 else {
 	String description = StringPool.BLANK;

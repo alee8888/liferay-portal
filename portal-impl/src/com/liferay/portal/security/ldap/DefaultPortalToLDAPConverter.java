@@ -14,6 +14,7 @@
 
 package com.liferay.portal.security.ldap;
 
+import com.liferay.portal.PwdEncryptorException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -26,6 +27,7 @@ import com.liferay.portal.model.Contact;
 import com.liferay.portal.model.Image;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserGroup;
+import com.liferay.portal.security.pwd.PwdEncryptor;
 import com.liferay.portal.service.ImageLocalServiceUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -206,7 +208,7 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 			user.getScreenName(), attributes);
 		addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.PASSWORD),
-			user.getPasswordUnencrypted(), attributes);
+			getEncryptedPasswordForLDAP(user), attributes);
 		addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.EMAIL_ADDRESS),
 			user.getEmailAddress(), attributes);
@@ -228,6 +230,9 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 		addAttributeMapping(
 			userMappings.getProperty(UserConverterKeys.PORTRAIT),
 			getUserPortrait(user), attributes);
+		addAttributeMapping(
+			userMappings.getProperty(UserConverterKeys.STATUS),
+			String.valueOf(user.getStatus()), attributes);
 
 		return attributes;
 	}
@@ -238,6 +243,13 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 		throws Exception {
 
 		Modifications modifications = Modifications.getInstance();
+
+		String groupMappingAttributeName = userMappings.getProperty(
+			UserConverterKeys.GROUP);
+
+		if (Validator.isNull(groupMappingAttributeName)) {
+			return modifications;
+		}
 
 		Properties groupMappings = LDAPSettingsUtil.getGroupMappings(
 			ldapServerId, user.getCompanyId());
@@ -255,8 +267,7 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 			}
 
 			modifications.addItem(
-				DirContext.ADD_ATTRIBUTE,
-				userMappings.getProperty(UserConverterKeys.GROUP), groupDN);
+				DirContext.ADD_ATTRIBUTE, groupMappingAttributeName, groupDN);
 		}
 
 		return modifications;
@@ -273,7 +284,7 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 		if (user.isPasswordModified() &&
 			Validator.isNotNull(user.getPasswordUnencrypted())) {
 
-			String newPassword = user.getPasswordUnencrypted();
+			String newPassword = getEncryptedPasswordForLDAP(user);
 
 			String passwordKey = userMappings.getProperty(
 				UserConverterKeys.PASSWORD);
@@ -391,6 +402,34 @@ public class DefaultPortalToLDAPConverter implements PortalToLDAPConverter {
 
 			modifications.addItem(attributeName, attributeValue);
 		}
+	}
+
+	protected String getEncryptedPasswordForLDAP(User user)
+		throws SystemException {
+
+		String password = user.getPasswordUnencrypted();
+
+		String algorithm = PrefsPropsUtil.getString(
+			user.getCompanyId(),
+			PropsKeys.LDAP_AUTH_PASSWORD_ENCRYPTION_ALGORITHM);
+
+		if (Validator.isNotNull(algorithm)) {
+			try {
+				StringBundler sb = new StringBundler(4);
+
+				sb.append(StringPool.OPEN_CURLY_BRACE);
+				sb.append(algorithm);
+				sb.append(StringPool.CLOSE_CURLY_BRACE);
+				sb.append(PwdEncryptor.encrypt(algorithm, password, null));
+
+				password = sb.toString();
+			}
+			catch (PwdEncryptorException pee) {
+				throw new SystemException(pee);
+			}
+		}
+
+		return password;
 	}
 
 	protected Modifications getModifications(

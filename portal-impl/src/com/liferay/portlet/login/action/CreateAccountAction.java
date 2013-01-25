@@ -21,6 +21,7 @@ import com.liferay.portal.CompanyMaxUsersException;
 import com.liferay.portal.ContactFirstNameException;
 import com.liferay.portal.ContactFullNameException;
 import com.liferay.portal.ContactLastNameException;
+import com.liferay.portal.DuplicateOpenIdException;
 import com.liferay.portal.DuplicateUserEmailAddressException;
 import com.liferay.portal.DuplicateUserScreenNameException;
 import com.liferay.portal.EmailAddressException;
@@ -139,8 +140,7 @@ public class CreateAccountAction extends PortletAction {
 					if (user.getStatus() !=
 							WorkflowConstants.STATUS_INCOMPLETE) {
 
-						SessionErrors.add(
-							actionRequest, e.getClass().getName(), e);
+						SessionErrors.add(actionRequest, e.getClass(), e);
 					}
 					else {
 						setForward(
@@ -148,7 +148,7 @@ public class CreateAccountAction extends PortletAction {
 					}
 				}
 				catch (NoSuchUserException nsue) {
-					SessionErrors.add(actionRequest, e.getClass().getName(), e);
+					SessionErrors.add(actionRequest, e.getClass(), e);
 				}
 			}
 			else if (e instanceof AddressCityException ||
@@ -160,6 +160,7 @@ public class CreateAccountAction extends PortletAction {
 					 e instanceof ContactFirstNameException ||
 					 e instanceof ContactFullNameException ||
 					 e instanceof ContactLastNameException ||
+					 e instanceof DuplicateOpenIdException ||
 					 e instanceof EmailAddressException ||
 					 e instanceof GroupFriendlyURLException ||
 					 e instanceof NoSuchCountryException ||
@@ -180,7 +181,7 @@ public class CreateAccountAction extends PortletAction {
 					 e instanceof UserSmsException ||
 					 e instanceof WebsiteURLException) {
 
-				SessionErrors.add(actionRequest, e.getClass().getName(), e);
+				SessionErrors.add(actionRequest, e.getClass(), e);
 			}
 			else {
 				throw e;
@@ -306,14 +307,14 @@ public class CreateAccountAction extends PortletAction {
 
 			if (user.getStatus() == WorkflowConstants.STATUS_APPROVED) {
 				SessionMessages.add(
-					request, "user_added", user.getEmailAddress());
+					request, "userAdded", user.getEmailAddress());
 				SessionMessages.add(
-					request, "user_added_password",
+					request, "userAddedPassword",
 					user.getPasswordUnencrypted());
 			}
 			else {
 				SessionMessages.add(
-					request, "user_pending", user.getEmailAddress());
+					request, "userPending", user.getEmailAddress());
 			}
 		}
 
@@ -357,6 +358,10 @@ public class CreateAccountAction extends PortletAction {
 
 		User anonymousUser = UserLocalServiceUtil.getUserByEmailAddress(
 			themeDisplay.getCompanyId(), emailAddress);
+
+		if (anonymousUser.getStatus() != WorkflowConstants.STATUS_INCOMPLETE) {
+			throw new PrincipalException();
+		}
 
 		UserLocalServiceUtil.deleteUser(anonymousUser.getUserId());
 
@@ -438,13 +443,12 @@ public class CreateAccountAction extends PortletAction {
 		// Session messages
 
 		if (user.getStatus() == WorkflowConstants.STATUS_APPROVED) {
-			SessionMessages.add(request, "user_added", user.getEmailAddress());
+			SessionMessages.add(request, "userAdded", user.getEmailAddress());
 			SessionMessages.add(
-				request, "user_added_password", user.getPasswordUnencrypted());
+				request, "userAddedPassword", user.getPasswordUnencrypted());
 		}
 		else {
-			SessionMessages.add(
-				request, "user_pending", user.getEmailAddress());
+			SessionMessages.add(request, "userPending", user.getEmailAddress());
 		}
 
 		// Send redirect

@@ -61,6 +61,7 @@ public class ViewAction extends PortletAction {
 			String title = ParamUtil.getString(
 				renderRequest, "title",
 				preferences.getValue("title", WikiPageConstants.FRONT_PAGE));
+			double version = ParamUtil.getDouble(renderRequest, "version");
 
 			WikiNode node = WikiNodeServiceUtil.getNode(nodeId);
 
@@ -68,18 +69,18 @@ public class ViewAction extends PortletAction {
 				throw new NoSuchNodeException();
 			}
 
-			WikiPage wikiPage = null;
+			WikiPage page = null;
 
 			try {
-				wikiPage = WikiPageServiceUtil.getPage(nodeId, title);
+				page = WikiPageServiceUtil.getPage(nodeId, title, version);
 			}
 			catch (NoSuchPageException nspe) {
-				wikiPage = WikiPageServiceUtil.getPage(
+				page = WikiPageServiceUtil.getPage(
 					nodeId, WikiPageConstants.FRONT_PAGE);
 			}
 
 			renderRequest.setAttribute(WebKeys.WIKI_NODE, node);
-			renderRequest.setAttribute(WebKeys.WIKI_PAGE, wikiPage);
+			renderRequest.setAttribute(WebKeys.WIKI_PAGE, page);
 
 			return mapping.findForward("portlet.wiki_display.view");
 		}
@@ -90,7 +91,7 @@ public class ViewAction extends PortletAction {
 			return mapping.findForward("/portal/portlet_not_setup");
 		}
 		catch (PrincipalException pe) {
-			SessionErrors.add(renderRequest, pe.getClass().getName());
+			SessionErrors.add(renderRequest, pe.getClass());
 
 			return mapping.findForward("portlet.wiki_display.error");
 		}

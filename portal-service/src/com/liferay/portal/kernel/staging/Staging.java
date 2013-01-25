@@ -40,8 +40,8 @@ import javax.servlet.http.HttpServletRequest;
 public interface Staging {
 
 	public String buildRemoteURL(
-		String remoteAddress, int remotePort, boolean secureConnection,
-		long remoteGroupId, boolean privateLayout);
+		String remoteAddress, int remotePort, String remotePathContext,
+		boolean secureConnection, long remoteGroupId, boolean privateLayout);
 
 	public void copyFromLive(PortletRequest PortletRequest) throws Exception;
 
@@ -57,9 +57,9 @@ public interface Staging {
 	public void copyRemoteLayouts(
 			long sourceGroupId, boolean privateLayout,
 			Map<Long, Boolean> layoutIdMap, Map<String, String[]> parameterMap,
-			String remoteAddress, int remotePort, boolean secureConnection,
-			long remoteGroupId, boolean remotePrivateLayout, Date startDate,
-			Date endDate)
+			String remoteAddress, int remotePort, String remotePathContext,
+			boolean secureConnection, long remoteGroupId,
+			boolean remotePrivateLayout, Date startDate, Date endDate)
 		throws Exception;
 
 	public void deleteLastImportSettings(Group liveGroup, boolean privateLayout)
@@ -73,12 +73,27 @@ public interface Staging {
 			User user, long layoutSetBranchId, long plid)
 		throws SystemException;
 
+	/**
+	 * @deprecated {@link #disableStaging(Group, ServiceContext)}
+	 */
 	public void disableStaging(
 			Group scopeGroup, Group liveGroup, ServiceContext serviceContext)
 		throws Exception;
 
+	public void disableStaging(Group liveGroup, ServiceContext serviceContext)
+		throws Exception;
+
+	/**
+	 * @deprecated {@link #disableStaging(PortletRequest, Group,
+	 *             ServiceContext)}
+	 */
 	public void disableStaging(
 			PortletRequest portletRequest, Group scopeGroup, Group liveGroup,
+			ServiceContext serviceContext)
+		throws Exception;
+
+	public void disableStaging(
+			PortletRequest portletRequest, Group liveGroup,
 			ServiceContext serviceContext)
 		throws Exception;
 
@@ -91,8 +106,9 @@ public interface Staging {
 	public void enableRemoteStaging(
 			long userId, Group scopeGroup, Group liveGroup,
 			boolean branchingPublic, boolean branchingPrivate,
-			String remoteAddress, long remoteGroupId, int remotePort,
-			boolean secureConnection, ServiceContext serviceContext)
+			String remoteAddress, int remotePort, String remotePathContext,
+			boolean secureConnection, long remoteGroupId,
+			ServiceContext serviceContext)
 		throws Exception;
 
 	public Group getLiveGroup(long groupId)

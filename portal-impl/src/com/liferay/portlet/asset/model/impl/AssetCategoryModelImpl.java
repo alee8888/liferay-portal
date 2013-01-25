@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.asset.model.impl;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
@@ -115,6 +116,10 @@ public class AssetCategoryModelImpl extends BaseModelImpl<AssetCategory>
 	 * @return the normal model instance
 	 */
 	public static AssetCategory toModel(AssetCategorySoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		AssetCategory model = new AssetCategoryImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -143,6 +148,10 @@ public class AssetCategoryModelImpl extends BaseModelImpl<AssetCategory>
 	 * @return the normal model instances
 	 */
 	public static List<AssetCategory> toModels(AssetCategorySoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<AssetCategory> models = new ArrayList<AssetCategory>(soapModels.length);
 
 		for (AssetCategorySoap soapModel : soapModels) {
@@ -179,7 +188,7 @@ public class AssetCategoryModelImpl extends BaseModelImpl<AssetCategory>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_categoryId);
+		return _categoryId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -695,17 +704,6 @@ public class AssetCategoryModelImpl extends BaseModelImpl<AssetCategory>
 	}
 
 	@Override
-	public AssetCategory toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (AssetCategory)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			AssetCategory.class.getName(), getPrimaryKey());
@@ -716,6 +714,25 @@ public class AssetCategoryModelImpl extends BaseModelImpl<AssetCategory>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+		setTitle(getTitle(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setDescription(getDescription(defaultImportLocale),
+			defaultImportLocale, defaultImportLocale);
+	}
+
+	@Override
+	public AssetCategory toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (AssetCategory)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -1006,7 +1023,7 @@ public class AssetCategoryModelImpl extends BaseModelImpl<AssetCategory>
 	}
 
 	private static ClassLoader _classLoader = AssetCategory.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			AssetCategory.class
 		};
 	private String _uuid;
@@ -1038,5 +1055,5 @@ public class AssetCategoryModelImpl extends BaseModelImpl<AssetCategory>
 	private long _originalVocabularyId;
 	private boolean _setOriginalVocabularyId;
 	private long _columnBitmask;
-	private AssetCategory _escapedModelProxy;
+	private AssetCategory _escapedModel;
 }

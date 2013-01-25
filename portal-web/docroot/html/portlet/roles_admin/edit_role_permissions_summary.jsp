@@ -189,7 +189,7 @@ for (int i = 0; i < results.size(); i++) {
 	int scope;
 
 	if (role.getType() == RoleConstants.TYPE_REGULAR) {
-		LinkedHashMap groupParams = new LinkedHashMap();
+		LinkedHashMap<String, Object> groupParams = new LinkedHashMap<String, Object>();
 
 		List rolePermissions = new ArrayList();
 
@@ -200,7 +200,7 @@ for (int i = 0; i < results.size(); i++) {
 
 		groupParams.put("rolePermissions", rolePermissions);
 
-		groups = GroupLocalServiceUtil.search(company.getCompanyId(), new long[] {PortalUtil.getClassNameId(Company.class), PortalUtil.getClassNameId(Group.class), PortalUtil.getClassNameId(Organization.class), PortalUtil.getClassNameId(UserPersonalSite.class)}, null, null, groupParams, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+		groups = GroupLocalServiceUtil.search(company.getCompanyId(), new long[] {PortalUtil.getClassNameId(Company.class), PortalUtil.getClassNameId(Group.class), PortalUtil.getClassNameId(Organization.class), PortalUtil.getClassNameId(UserPersonalSite.class)}, null, null, groupParams, true, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		if (groups.isEmpty()) {
 			scope = ResourceConstants.SCOPE_COMPANY;
@@ -259,7 +259,7 @@ for (int i = 0; i < results.size(); i++) {
 
 			sb.append(group.getDescriptiveName(locale));
 
-			if (j < groups.size() - 1) {
+			if (j < (groups.size() - 1)) {
 				sb.append(StringPool.COMMA);
 				sb.append(StringPool.SPACE);
 			}

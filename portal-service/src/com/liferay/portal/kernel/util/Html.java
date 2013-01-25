@@ -36,9 +36,15 @@ public interface Html {
 
 	public String escapeURL(String url);
 
+	public String escapeXPath(String xPath);
+
+	public String escapeXPathAttribute(String xPathAttribute);
+
 	public String extractText(String html);
 
 	public String fromInputSafe(String text);
+
+	public String render(String html);
 
 	public String replaceMsWordCharacters(String text);
 

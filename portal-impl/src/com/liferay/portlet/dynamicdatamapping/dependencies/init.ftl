@@ -6,9 +6,19 @@
 
 <#-- CSS class -->
 
-<#assign cssClass = fieldStructure.fieldCssClass!"">
+<#assign cssClass = escapeAttribute(fieldStructure.fieldCssClass!"")>
+
+<#-- Repeatable -->
+
+<#assign repeatable = false>
+
+<#if fieldStructure.repeatable?? && (fieldStructure.repeatable == "true")>
+	<#assign repeatable = true>
+</#if>
 
 <#-- Field name -->
+
+<#assign fieldNamespace = "_INSTANCE_" + fieldStructure.fieldNamespace>
 
 <#assign fieldName = fieldStructure.name>
 
@@ -21,9 +31,19 @@
 	<#assign fieldName = parentName>
 </#if>
 
-<#assign namespacedFieldName = "${namespace}${fieldName}">
+<#assign namespace = namespace!"">
+
+<#assign namespacedFieldName = "${namespace}${fieldName}${fieldNamespace}">
 
 <#assign namespacedParentName = "${namespace}${parentName}">
+
+<#-- Data -->
+
+<#assign data = {
+	"fieldName": fieldStructure.name,
+	"fieldNamespace": fieldNamespace,
+	"repeatable": repeatable?string
+}>
 
 <#-- Predefined value -->
 
@@ -41,8 +61,10 @@
 <#if fields?? && fields.get(fieldName)??>
 	<#assign field = fields.get(fieldName)>
 
-	<#assign fieldValue = field.getRenderedValue(themeDisplay)>
-	<#assign fieldRawValue = field.getValue()>
+	<#assign valueIndex = getterUtil.getInteger(fieldStructure.valueIndex)>
+
+	<#assign fieldValue = field.getRenderedValue(requestedLocale, valueIndex)>
+	<#assign fieldRawValue = field.getValue(requestedLocale, valueIndex)>
 </#if>
 
 <#-- Label -->
@@ -63,10 +85,36 @@
 
 <#-- Util -->
 
-<#assign jsonFactoryUtil = utilLocator.findUtil("com.liferay.portal.kernel.json.JSONFactory")>
+<#function escape value="">
+	<#if value?is_string>
+		<#return htmlUtil.escape(value)>
+	<#else>
+		<#return value>
+	</#if>
+</#function>
 
-<#function getFileJSONObject fieldValue>
-	<#return jsonFactoryUtil.createJSONObject(fieldValue)>>
+<#function escapeAttribute value="">
+	<#if value?is_string>
+		<#return htmlUtil.escapeAttribute(value)>
+	<#else>
+		<#return value>
+	</#if>
+</#function>
+
+<#function escapeCSS value="">
+	<#if value?is_string>
+		<#return htmlUtil.escapeCSS(value)>
+	<#else>
+		<#return value>
+	</#if>
+</#function>
+
+<#function escapeJS value="">
+	<#if value?is_string>
+		<#return htmlUtil.escapeJS(value)>
+	<#else>
+		<#return value>
+	</#if>
 </#function>
 
 <#assign dlAppServiceUtil = serviceLocator.findService("com.liferay.portlet.documentlibrary.service.DLAppService")>
@@ -74,9 +122,21 @@
 <#function getFileEntry fileJSONObject>
 	<#assign fileEntryUUID = fileJSONObject.getString("uuid")>
 
-	<#return dlAppServiceUtil.getFileEntryByUuidAndGroupId(fileEntryUUID, scopeGroupId)!"">
+	<#if (fileJSONObject.getLong("groupId") > 0)>
+		<#assign fileEntryGroupId = fileJSONObject.getLong("groupId")>
+	<#else>
+		<#assign fileEntryGroupId = scopeGroupId>
+	</#if>
+
+	<#return dlAppServiceUtil.getFileEntryByUuidAndGroupId(fileEntryUUID, fileEntryGroupId)!"">
 </#function>
 
 <#function getFileEntryURL fileEntry>
 	<#return themeDisplay.getPathContext() + "/documents/" + fileEntry.getRepositoryId()?c + "/" + fileEntry.getFolderId()?c + "/" +  httpUtil.encodeURL(htmlUtil.unescape(fileEntry.getTitle()), true) + "/" + fileEntry.getUuid()>
+</#function>
+
+<#assign jsonFactoryUtil = utilLocator.findUtil("com.liferay.portal.kernel.json.JSONFactory")>
+
+<#function getFileJSONObject fieldValue>
+	<#return jsonFactoryUtil.createJSONObject(fieldValue)>>
 </#function>

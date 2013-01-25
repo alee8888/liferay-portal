@@ -36,7 +36,7 @@ else {
 Group group = (Group)request.getAttribute(WebKeys.GROUP);
 %>
 
-<liferay-ui:success key="membership_reply_sent" message="your-reply-will-be-sent-to-the-user-by-email" />
+<liferay-ui:success key="membershipReplySent" message="your-reply-will-be-sent-to-the-user-by-email" />
 
 <liferay-ui:header
 	backURL="<%= redirect %>"
@@ -113,7 +113,7 @@ for (int i = 0; i < results.size(); i++) {
 
 	// Comments
 
-	row.addText(membershipRequest.getComments());
+	row.addText(HtmlUtil.escape(membershipRequest.getComments()));
 
 	if (!tabs1.equals("pending")) {
 
@@ -136,7 +136,7 @@ for (int i = 0; i < results.size(); i++) {
 
 		// Reply comments
 
-		row.addText(membershipRequest.getReplyComments());
+		row.addText(HtmlUtil.escape(membershipRequest.getReplyComments()));
 	}
 
 	// Actions

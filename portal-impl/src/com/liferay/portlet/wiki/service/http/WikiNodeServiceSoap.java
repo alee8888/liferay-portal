@@ -48,9 +48,8 @@ import java.rmi.RemoteException;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -114,6 +113,32 @@ public class WikiNodeServiceSoap {
 					name);
 
 			return com.liferay.portlet.wiki.model.WikiNodeSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.wiki.model.WikiNodeSoap moveNodeToTrash(
+		long nodeId) throws RemoteException {
+		try {
+			com.liferay.portlet.wiki.model.WikiNode returnValue = WikiNodeServiceUtil.moveNodeToTrash(nodeId);
+
+			return com.liferay.portlet.wiki.model.WikiNodeSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static void restoreNodeFromTrash(long nodeId)
+		throws RemoteException {
+		try {
+			WikiNodeServiceUtil.restoreNodeFromTrash(nodeId);
 		}
 		catch (Exception e) {
 			_log.error(e, e);

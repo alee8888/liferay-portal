@@ -14,19 +14,31 @@
 
 package com.liferay.portlet.trash.service.impl;
 
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.model.Group;
 import com.liferay.portal.model.User;
+import com.liferay.portal.service.persistence.GroupActionableDynamicQuery;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.trash.model.TrashEntry;
 import com.liferay.portlet.trash.model.TrashVersion;
 import com.liferay.portlet.trash.service.base.TrashEntryLocalServiceBaseImpl;
+import com.liferay.portlet.trash.util.TrashUtil;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -46,16 +58,17 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 * @param  className the class name of the entity
 	 * @param  classPK the primary key of the entity
 	 * @param  status the status of the entity prior to being moved to trash
-	 * @param  versions the primary keys and statuses of any of the entry's
+	 * @param  statusOVPs the primary keys and statuses of any of the entry's
 	 *         versions (e.g., {@link
-	 *         com.liferay.portlet.documentlibrary.model.DLFileVerison})
+	 *         com.liferay.portlet.documentlibrary.model.DLFileVersion})
 	 * @param  typeSettingsProperties the type settings properties
 	 * @return the trashEntry
+	 * @throws PortalException if a user with the primary key could not be found
 	 * @throws SystemException if a system exception occurred
 	 */
 	public TrashEntry addTrashEntry(
 			long userId, long groupId, String className, long classPK,
-			int status, List<ObjectValuePair<Long, Integer>> versions,
+			int status, List<ObjectValuePair<Long, Integer>> statusOVPs,
 			UnicodeProperties typeSettingsProperties)
 		throws PortalException, SystemException {
 
@@ -80,13 +93,10 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 
 		trashEntry.setStatus(status);
 
-		trashEntryPersistence.update(trashEntry, false);
+		trashEntryPersistence.update(trashEntry);
 
-		if (versions != null) {
-			for (ObjectValuePair<Long, Integer> version : versions) {
-				long versionClassPK = version.getKey();
-				int versionStatus = version.getValue();
-
+		if (statusOVPs != null) {
+			for (ObjectValuePair<Long, Integer> statusOVP : statusOVPs) {
 				long versionId = counterLocalService.increment();
 
 				TrashVersion trashVersion = trashVersionPersistence.create(
@@ -94,14 +104,43 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 
 				trashVersion.setEntryId(entryId);
 				trashVersion.setClassNameId(classNameId);
-				trashVersion.setClassPK(versionClassPK);
-				trashVersion.setStatus(versionStatus);
+				trashVersion.setClassPK(statusOVP.getKey());
+				trashVersion.setStatus(statusOVP.getValue());
 
-				trashVersionPersistence.update(trashVersion, false);
+				trashVersionPersistence.update(trashVersion);
 			}
 		}
 
 		return trashEntry;
+	}
+
+	public void checkEntries() throws PortalException, SystemException {
+		ActionableDynamicQuery actionableDynamicQuery =
+			new GroupActionableDynamicQuery() {
+
+			@Override
+			protected void performAction(Object object)
+				throws PortalException, SystemException {
+
+				Group group = (Group)object;
+
+				Date date = getMaxAge(group);
+
+				List<TrashEntry> entries = trashEntryPersistence.findByG_LtCD(
+					group.getGroupId(), date);
+
+				for (TrashEntry entry : entries) {
+					TrashHandler trashHandler =
+						TrashHandlerRegistryUtil.getTrashHandler(
+							entry.getClassName());
+
+					trashHandler.deleteTrashEntry(entry.getClassPK(), false);
+				}
+			}
+
+		};
+
+		actionableDynamicQuery.performActions();
 	}
 
 	/**
@@ -279,7 +318,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 * @throws SystemException if a system exception occurred
 	 */
 	public List<TrashVersion> getVersions(long entryId) throws SystemException {
-		return trashEntryPersistence.getTrashVersions(entryId);
+		return trashVersionPersistence.findByEntryId(entryId);
 	}
 
 	/**
@@ -296,6 +335,50 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 		long classNameId = PortalUtil.getClassNameId(className);
 
 		return trashVersionPersistence.findByC_C(classNameId, classPK);
+	}
+
+	public Hits search(
+			long companyId, long groupId, long userId, String keywords,
+			int start, int end, Sort sort)
+		throws SystemException {
+
+		try {
+			SearchContext searchContext = new SearchContext();
+
+			searchContext.setCompanyId(companyId);
+			searchContext.setEnd(end);
+			searchContext.setKeywords(keywords);
+			searchContext.setGroupIds(new long[] {groupId});
+
+			if (sort != null) {
+				searchContext.setSorts(new Sort[] {sort});
+			}
+
+			searchContext.setStart(start);
+			searchContext.setUserId(userId);
+
+			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+				TrashEntry.class);
+
+			return indexer.search(searchContext);
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
+	}
+
+	protected Date getMaxAge(Group group)
+		throws PortalException, SystemException {
+
+		Calendar calendar = Calendar.getInstance();
+
+		calendar.setTime(new Date());
+
+		int maxAge = TrashUtil.getMaxAge(group);
+
+		calendar.add(Calendar.DATE, -maxAge);
+
+		return calendar.getTime();
 	}
 
 }

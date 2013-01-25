@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.service.ServiceContext;
@@ -75,6 +76,8 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 			{ "versionUserName", Types.VARCHAR },
 			{ "createDate", Types.TIMESTAMP },
 			{ "modifiedDate", Types.TIMESTAMP },
+			{ "classNameId", Types.BIGINT },
+			{ "classPK", Types.BIGINT },
 			{ "repositoryId", Types.BIGINT },
 			{ "folderId", Types.BIGINT },
 			{ "name", Types.VARCHAR },
@@ -90,9 +93,10 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 			{ "smallImageId", Types.BIGINT },
 			{ "largeImageId", Types.BIGINT },
 			{ "custom1ImageId", Types.BIGINT },
-			{ "custom2ImageId", Types.BIGINT }
+			{ "custom2ImageId", Types.BIGINT },
+			{ "manualCheckInRequired", Types.BOOLEAN }
 		};
-	public static final String TABLE_SQL_CREATE = "create table DLFileEntry (uuid_ VARCHAR(75) null,fileEntryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,versionUserId LONG,versionUserName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,repositoryId LONG,folderId LONG,name VARCHAR(255) null,extension VARCHAR(75) null,mimeType VARCHAR(75) null,title VARCHAR(255) null,description STRING null,extraSettings TEXT null,fileEntryTypeId LONG,version VARCHAR(75) null,size_ LONG,readCount INTEGER,smallImageId LONG,largeImageId LONG,custom1ImageId LONG,custom2ImageId LONG)";
+	public static final String TABLE_SQL_CREATE = "create table DLFileEntry (uuid_ VARCHAR(75) null,fileEntryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,versionUserId LONG,versionUserName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,repositoryId LONG,folderId LONG,name VARCHAR(255) null,extension VARCHAR(75) null,mimeType VARCHAR(75) null,title VARCHAR(255) null,description STRING null,extraSettings TEXT null,fileEntryTypeId LONG,version VARCHAR(75) null,size_ LONG,readCount INTEGER,smallImageId LONG,largeImageId LONG,custom1ImageId LONG,custom2ImageId LONG,manualCheckInRequired BOOLEAN)";
 	public static final String TABLE_SQL_DROP = "drop table DLFileEntry";
 	public static final String ORDER_BY_JPQL = " ORDER BY dlFileEntry.folderId ASC, dlFileEntry.name ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY DLFileEntry.folderId ASC, DLFileEntry.name ASC";
@@ -125,6 +129,10 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 	 * @return the normal model instance
 	 */
 	public static DLFileEntry toModel(DLFileEntrySoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		DLFileEntry model = new DLFileEntryImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -137,6 +145,8 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 		model.setVersionUserName(soapModel.getVersionUserName());
 		model.setCreateDate(soapModel.getCreateDate());
 		model.setModifiedDate(soapModel.getModifiedDate());
+		model.setClassNameId(soapModel.getClassNameId());
+		model.setClassPK(soapModel.getClassPK());
 		model.setRepositoryId(soapModel.getRepositoryId());
 		model.setFolderId(soapModel.getFolderId());
 		model.setName(soapModel.getName());
@@ -153,6 +163,7 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 		model.setLargeImageId(soapModel.getLargeImageId());
 		model.setCustom1ImageId(soapModel.getCustom1ImageId());
 		model.setCustom2ImageId(soapModel.getCustom2ImageId());
+		model.setManualCheckInRequired(soapModel.getManualCheckInRequired());
 
 		return model;
 	}
@@ -164,6 +175,10 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 	 * @return the normal model instances
 	 */
 	public static List<DLFileEntry> toModels(DLFileEntrySoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<DLFileEntry> models = new ArrayList<DLFileEntry>(soapModels.length);
 
 		for (DLFileEntrySoap soapModel : soapModels) {
@@ -188,7 +203,7 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_fileEntryId);
+		return _fileEntryId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -217,6 +232,8 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 		attributes.put("versionUserName", getVersionUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
+		attributes.put("classNameId", getClassNameId());
+		attributes.put("classPK", getClassPK());
 		attributes.put("repositoryId", getRepositoryId());
 		attributes.put("folderId", getFolderId());
 		attributes.put("name", getName());
@@ -233,6 +250,7 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 		attributes.put("largeImageId", getLargeImageId());
 		attributes.put("custom1ImageId", getCustom1ImageId());
 		attributes.put("custom2ImageId", getCustom2ImageId());
+		attributes.put("manualCheckInRequired", getManualCheckInRequired());
 
 		return attributes;
 	}
@@ -297,6 +315,18 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 
 		if (modifiedDate != null) {
 			setModifiedDate(modifiedDate);
+		}
+
+		Long classNameId = (Long)attributes.get("classNameId");
+
+		if (classNameId != null) {
+			setClassNameId(classNameId);
+		}
+
+		Long classPK = (Long)attributes.get("classPK");
+
+		if (classPK != null) {
+			setClassPK(classPK);
 		}
 
 		Long repositoryId = (Long)attributes.get("repositoryId");
@@ -393,6 +423,13 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 
 		if (custom2ImageId != null) {
 			setCustom2ImageId(custom2ImageId);
+		}
+
+		Boolean manualCheckInRequired = (Boolean)attributes.get(
+				"manualCheckInRequired");
+
+		if (manualCheckInRequired != null) {
+			setManualCheckInRequired(manualCheckInRequired);
 		}
 	}
 
@@ -560,6 +597,42 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 
 	public void setModifiedDate(Date modifiedDate) {
 		_modifiedDate = modifiedDate;
+	}
+
+	public String getClassName() {
+		if (getClassNameId() <= 0) {
+			return StringPool.BLANK;
+		}
+
+		return PortalUtil.getClassName(getClassNameId());
+	}
+
+	public void setClassName(String className) {
+		long classNameId = 0;
+
+		if (Validator.isNotNull(className)) {
+			classNameId = PortalUtil.getClassNameId(className);
+		}
+
+		setClassNameId(classNameId);
+	}
+
+	@JSON
+	public long getClassNameId() {
+		return _classNameId;
+	}
+
+	public void setClassNameId(long classNameId) {
+		_classNameId = classNameId;
+	}
+
+	@JSON
+	public long getClassPK() {
+		return _classPK;
+	}
+
+	public void setClassPK(long classPK) {
+		_classPK = classPK;
 	}
 
 	@JSON
@@ -795,19 +868,21 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 		_custom2ImageId = custom2ImageId;
 	}
 
-	public long getColumnBitmask() {
-		return _columnBitmask;
+	@JSON
+	public boolean getManualCheckInRequired() {
+		return _manualCheckInRequired;
 	}
 
-	@Override
-	public DLFileEntry toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (DLFileEntry)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
+	public boolean isManualCheckInRequired() {
+		return _manualCheckInRequired;
+	}
 
-		return _escapedModelProxy;
+	public void setManualCheckInRequired(boolean manualCheckInRequired) {
+		_manualCheckInRequired = manualCheckInRequired;
+	}
+
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -824,6 +899,16 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 	}
 
 	@Override
+	public DLFileEntry toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (DLFileEntry)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		DLFileEntryImpl dlFileEntryImpl = new DLFileEntryImpl();
 
@@ -837,6 +922,8 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 		dlFileEntryImpl.setVersionUserName(getVersionUserName());
 		dlFileEntryImpl.setCreateDate(getCreateDate());
 		dlFileEntryImpl.setModifiedDate(getModifiedDate());
+		dlFileEntryImpl.setClassNameId(getClassNameId());
+		dlFileEntryImpl.setClassPK(getClassPK());
 		dlFileEntryImpl.setRepositoryId(getRepositoryId());
 		dlFileEntryImpl.setFolderId(getFolderId());
 		dlFileEntryImpl.setName(getName());
@@ -853,6 +940,7 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 		dlFileEntryImpl.setLargeImageId(getLargeImageId());
 		dlFileEntryImpl.setCustom1ImageId(getCustom1ImageId());
 		dlFileEntryImpl.setCustom2ImageId(getCustom2ImageId());
+		dlFileEntryImpl.setManualCheckInRequired(getManualCheckInRequired());
 
 		dlFileEntryImpl.resetOriginalValues();
 
@@ -1006,6 +1094,10 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 			dlFileEntryCacheModel.modifiedDate = Long.MIN_VALUE;
 		}
 
+		dlFileEntryCacheModel.classNameId = getClassNameId();
+
+		dlFileEntryCacheModel.classPK = getClassPK();
+
 		dlFileEntryCacheModel.repositoryId = getRepositoryId();
 
 		dlFileEntryCacheModel.folderId = getFolderId();
@@ -1080,12 +1172,14 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 
 		dlFileEntryCacheModel.custom2ImageId = getCustom2ImageId();
 
+		dlFileEntryCacheModel.manualCheckInRequired = getManualCheckInRequired();
+
 		return dlFileEntryCacheModel;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(53);
+		StringBundler sb = new StringBundler(59);
 
 		sb.append("{uuid=");
 		sb.append(getUuid());
@@ -1107,6 +1201,10 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 		sb.append(getCreateDate());
 		sb.append(", modifiedDate=");
 		sb.append(getModifiedDate());
+		sb.append(", classNameId=");
+		sb.append(getClassNameId());
+		sb.append(", classPK=");
+		sb.append(getClassPK());
 		sb.append(", repositoryId=");
 		sb.append(getRepositoryId());
 		sb.append(", folderId=");
@@ -1139,13 +1237,15 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 		sb.append(getCustom1ImageId());
 		sb.append(", custom2ImageId=");
 		sb.append(getCustom2ImageId());
+		sb.append(", manualCheckInRequired=");
+		sb.append(getManualCheckInRequired());
 		sb.append("}");
 
 		return sb.toString();
 	}
 
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(82);
+		StringBundler sb = new StringBundler(91);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portlet.documentlibrary.model.DLFileEntry");
@@ -1190,6 +1290,14 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 		sb.append(
 			"<column><column-name>modifiedDate</column-name><column-value><![CDATA[");
 		sb.append(getModifiedDate());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>classNameId</column-name><column-value><![CDATA[");
+		sb.append(getClassNameId());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>classPK</column-name><column-value><![CDATA[");
+		sb.append(getClassPK());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>repositoryId</column-name><column-value><![CDATA[");
@@ -1255,6 +1363,10 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 			"<column><column-name>custom2ImageId</column-name><column-value><![CDATA[");
 		sb.append(getCustom2ImageId());
 		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>manualCheckInRequired</column-name><column-value><![CDATA[");
+		sb.append(getManualCheckInRequired());
+		sb.append("]]></column-value></column>");
 
 		sb.append("</model>");
 
@@ -1262,7 +1374,7 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 	}
 
 	private static ClassLoader _classLoader = DLFileEntry.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			DLFileEntry.class
 		};
 	private String _uuid;
@@ -1284,6 +1396,8 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 	private String _versionUserName;
 	private Date _createDate;
 	private Date _modifiedDate;
+	private long _classNameId;
+	private long _classPK;
 	private long _repositoryId;
 	private long _folderId;
 	private long _originalFolderId;
@@ -1307,6 +1421,7 @@ public class DLFileEntryModelImpl extends BaseModelImpl<DLFileEntry>
 	private long _largeImageId;
 	private long _custom1ImageId;
 	private long _custom2ImageId;
+	private boolean _manualCheckInRequired;
 	private long _columnBitmask;
-	private DLFileEntry _escapedModelProxy;
+	private DLFileEntry _escapedModel;
 }

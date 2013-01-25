@@ -27,11 +27,9 @@ public abstract class ChainableMethodAdvice implements MethodInterceptor {
 		throws Throwable {
 	}
 
-	public boolean afterThrowing(
+	public void afterThrowing(
 			MethodInvocation methodInvocation, Throwable throwable)
 		throws Throwable {
-
-		return true;
 	}
 
 	public Object before(MethodInvocation methodInvocation) throws Throwable {
@@ -41,9 +39,7 @@ public abstract class ChainableMethodAdvice implements MethodInterceptor {
 	public void duringFinally(MethodInvocation methodInvocation) {
 	}
 
-	public final Object invoke(MethodInvocation methodInvocation)
-		throws Throwable {
-
+	public Object invoke(MethodInvocation methodInvocation) throws Throwable {
 		Object returnValue = before(methodInvocation);
 
 		if (returnValue != null) {
@@ -61,9 +57,9 @@ public abstract class ChainableMethodAdvice implements MethodInterceptor {
 			afterReturning(methodInvocation, returnValue);
 		}
 		catch (Throwable throwable) {
-			if (afterThrowing(methodInvocation, throwable)) {
-				throw throwable;
-			}
+			afterThrowing(methodInvocation, throwable);
+
+			throw throwable;
 		}
 		finally {
 			duringFinally(methodInvocation);
@@ -78,7 +74,18 @@ public abstract class ChainableMethodAdvice implements MethodInterceptor {
 		this.nextMethodInterceptor = nextMethodInterceptor;
 	}
 
+	protected void setServiceBeanAopCacheManager(
+		ServiceBeanAopCacheManager serviceBeanAopCacheManager) {
+
+		if (this.serviceBeanAopCacheManager != null) {
+			return;
+		}
+
+		this.serviceBeanAopCacheManager = serviceBeanAopCacheManager;
+	}
+
 	protected MethodInterceptor nextMethodInterceptor;
 	protected Object nullResult = new Object();
+	protected ServiceBeanAopCacheManager serviceBeanAopCacheManager;
 
 }

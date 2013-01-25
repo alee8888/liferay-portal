@@ -61,6 +61,7 @@ public class UserWrapper implements User, ModelWrapper<User> {
 		attributes.put("screenName", getScreenName());
 		attributes.put("emailAddress", getEmailAddress());
 		attributes.put("facebookId", getFacebookId());
+		attributes.put("ldapServerId", getLdapServerId());
 		attributes.put("openId", getOpenId());
 		attributes.put("portraitId", getPortraitId());
 		attributes.put("languageId", getLanguageId());
@@ -195,6 +196,12 @@ public class UserWrapper implements User, ModelWrapper<User> {
 
 		if (facebookId != null) {
 			setFacebookId(facebookId);
+		}
+
+		Long ldapServerId = (Long)attributes.get("ldapServerId");
+
+		if (ldapServerId != null) {
+			setLdapServerId(ldapServerId);
 		}
 
 		String openId = (String)attributes.get("openId");
@@ -717,6 +724,24 @@ public class UserWrapper implements User, ModelWrapper<User> {
 	}
 
 	/**
+	* Returns the ldap server ID of this user.
+	*
+	* @return the ldap server ID of this user
+	*/
+	public long getLdapServerId() {
+		return _user.getLdapServerId();
+	}
+
+	/**
+	* Sets the ldap server ID of this user.
+	*
+	* @param ldapServerId the ldap server ID of this user
+	*/
+	public void setLdapServerId(long ldapServerId) {
+		_user.setLdapServerId(ldapServerId);
+	}
+
+	/**
 	* Returns the open ID of this user.
 	*
 	* @return the open ID of this user
@@ -1180,6 +1205,10 @@ public class UserWrapper implements User, ModelWrapper<User> {
 		return new UserWrapper(_user.toEscapedModel());
 	}
 
+	public com.liferay.portal.model.User toUnescapedModel() {
+		return new UserWrapper(_user.toUnescapedModel());
+	}
+
 	@Override
 	public java.lang.String toString() {
 		return _user.toString();
@@ -1232,11 +1261,26 @@ public class UserWrapper implements User, ModelWrapper<User> {
 		return _user.getDisplayURL(portalURL, mainPath);
 	}
 
+	public java.lang.String getDisplayURL(java.lang.String portalURL,
+		java.lang.String mainPath, boolean privateLayout)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _user.getDisplayURL(portalURL, mainPath, privateLayout);
+	}
+
 	public java.lang.String getDisplayURL(
 		com.liferay.portal.theme.ThemeDisplay themeDisplay)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _user.getDisplayURL(themeDisplay);
+	}
+
+	public java.lang.String getDisplayURL(
+		com.liferay.portal.theme.ThemeDisplay themeDisplay,
+		boolean privateLayout)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _user.getDisplayURL(themeDisplay, privateLayout);
 	}
 
 	public java.util.List<com.liferay.portal.model.EmailAddress> getEmailAddresses()
@@ -1333,10 +1377,10 @@ public class UserWrapper implements User, ModelWrapper<User> {
 		return _user.getOrganizationIds();
 	}
 
-	public long[] getOrganizationIds(boolean includeNonUser)
+	public long[] getOrganizationIds(boolean includeAdministrative)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		return _user.getOrganizationIds(includeNonUser);
+		return _user.getOrganizationIds(includeAdministrative);
 	}
 
 	public java.util.List<com.liferay.portal.model.Organization> getOrganizations()
@@ -1346,10 +1390,10 @@ public class UserWrapper implements User, ModelWrapper<User> {
 	}
 
 	public java.util.List<com.liferay.portal.model.Organization> getOrganizations(
-		boolean includeIndirectlyAssociated)
+		boolean includeAdministrative)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		return _user.getOrganizations(includeIndirectlyAssociated);
+		return _user.getOrganizations(includeAdministrative);
 	}
 
 	public boolean getPasswordModified() {

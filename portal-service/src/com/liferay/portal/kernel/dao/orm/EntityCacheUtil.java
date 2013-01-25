@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.dao.orm;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+
 import java.io.Serializable;
 
 /**
@@ -34,10 +36,12 @@ public class EntityCacheUtil {
 	}
 
 	public static EntityCache getEntityCache() {
+		PortalRuntimePermission.checkGetBeanProperty(EntityCacheUtil.class);
+
 		return _entityCache;
 	}
 
-	public static Object getResult(
+	public static Serializable getResult(
 		boolean entityCacheEnabled, Class<?> clazz, Serializable primaryKey) {
 
 		return getEntityCache().getResult(
@@ -48,7 +52,7 @@ public class EntityCacheUtil {
 		getEntityCache().invalidate();
 	}
 
-	public static Object loadResult(
+	public static Serializable loadResult(
 		boolean entityCacheEnabled, Class<?> clazz, Serializable primaryKey,
 		SessionFactory sessionFactory) {
 
@@ -58,7 +62,7 @@ public class EntityCacheUtil {
 
 	public static void putResult(
 		boolean entityCacheEnabled, Class<?> clazz, Serializable primaryKey,
-		Object result) {
+		Serializable result) {
 
 		getEntityCache().putResult(
 			entityCacheEnabled, clazz, primaryKey, result);
@@ -75,6 +79,8 @@ public class EntityCacheUtil {
 	}
 
 	public void setEntityCache(EntityCache entityCache) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_entityCache = entityCache;
 	}
 

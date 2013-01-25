@@ -104,7 +104,7 @@ public class AssetVocabularyLocalServiceImpl
 		vocabulary.setDescriptionMap(descriptionMap);
 		vocabulary.setSettings(settings);
 
-		assetVocabularyPersistence.update(vocabulary, false);
+		assetVocabularyPersistence.update(vocabulary);
 
 		// Resources
 
@@ -122,6 +122,24 @@ public class AssetVocabularyLocalServiceImpl
 		}
 
 		return vocabulary;
+	}
+
+	public AssetVocabulary addVocabulary(
+			long userId, String title, ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		Map<Locale, String> titleMap = new HashMap<Locale, String>();
+
+		Locale locale = LocaleUtil.getDefault();
+
+		titleMap.put(locale, title);
+
+		Map<Locale, String> descriptionMap = new HashMap<Locale, String>();
+
+		descriptionMap.put(locale, StringPool.BLANK);
+
+		return addVocabulary(
+			userId, title, titleMap, descriptionMap, null, serviceContext);
 	}
 
 	public void addVocabularyResources(
@@ -203,6 +221,8 @@ public class AssetVocabularyLocalServiceImpl
 		throws PortalException, SystemException {
 
 		List<AssetVocabulary> vocabularies = new ArrayList<AssetVocabulary>();
+
+		groupIds = ArrayUtil.unique(groupIds);
 
 		for (long groupId : groupIds) {
 			List<AssetVocabulary> groupVocabularies = getGroupVocabularies(
@@ -351,7 +371,7 @@ public class AssetVocabularyLocalServiceImpl
 		vocabulary.setDescriptionMap(descriptionMap);
 		vocabulary.setSettings(settings);
 
-		assetVocabularyPersistence.update(vocabulary, false);
+		assetVocabularyPersistence.update(vocabulary);
 
 		return vocabulary;
 	}

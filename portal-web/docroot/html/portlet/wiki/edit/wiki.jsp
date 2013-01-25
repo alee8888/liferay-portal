@@ -21,65 +21,65 @@ WikiPage wikiPage = (WikiPage)request.getAttribute("edit_page.jsp-wikiPage");
 String format = BeanParamUtil.getString(wikiPage, request, "format", WikiPageConstants.DEFAULT_FORMAT);
 
 String content = BeanParamUtil.getString(wikiPage, request, "content");
+
+String toggleId = renderResponse.getNamespace() + "toggle_id_wiki_editor_help";
+
+String toggleValue = SessionClicks.get(request, toggleId, null);
+
+boolean showSyntaxHelp = ((toggleValue != null) && toggleValue.equals("block"));
 %>
 
 <div align="right">
 	<liferay-ui:toggle
 		defaultShowContent="<%= false %>"
 		hideMessage='<%= LanguageUtil.get(pageContext, "hide-syntax-help") + " &raquo;" %>'
-		id="toggle_id_wiki_edit_wiki_syntax_help"
+		id="<%= toggleId %>"
 		showMessage='<%= "&laquo; " + LanguageUtil.get(pageContext, "show-syntax-help") %>'
 	/>
 </div>
 
-<table class="lfr-table" width="100%">
-<tr>
-	<td class="lfr-top" width="70%">
+<div>
+	<aui:layout>
+		<aui:column columnWidth="<%= showSyntaxHelp ? 70 : 100 %>" id="wikiEditorContainer">
 
-		<%
-		long resourcePrimKey = 0;
+		<%@ include file="/html/portlet/wiki/edit/editor_config.jspf" %>
 
-		String attachmentURLPrefix = StringPool.BLANK;
+		<c:choose>
+			<c:when test='<%= format.equals("creole") %>'>
+				<liferay-ui:input-editor
+					configParams="<%= configParams %>"
+					editorImpl="<%= EDITOR_WYSIWYG_IMPL_KEY %>"
+					fileBrowserParams="<%= fileBrowserParams %>"
+					toolbarSet="creole"
+					width="100%"
+				/>
+			</c:when>
+			<c:otherwise>
+				<liferay-ui:input-editor
+					configParams="<%= configParams %>"
+					editorImpl="<%= EDITOR_SIMPLE_IMPL_KEY %>"
+					fileBrowserParams="<%= fileBrowserParams %>"
+					name="content"
+					resizable="<%= false %>"
+					width="100%"
+				/>
+			</c:otherwise>
+		</c:choose>
 
-		if (wikiPage != null) {
-			resourcePrimKey = wikiPage.getResourcePrimKey();
+			<aui:input name="content" type="hidden" />
+		</aui:column>
 
-			attachmentURLPrefix = themeDisplay.getPortalURL() + themeDisplay.getPathMain() + "/wiki/get_page_attachment?p_l_id=" + themeDisplay.getPlid() + "&nodeId=" + wikiPage.getNodeId() + "&title=" + HttpUtil.encodeURL(wikiPage.getTitle()) + "&fileName=";
-		}
+		<aui:column columnWidth="30" cssClass="syntax-help" id="toggle_id_wiki_editor_help" style='<%= showSyntaxHelp ? StringPool.BLANK : "display: none" %>'>
+			<h3>
+				<liferay-ui:message key="syntax-help" />
+			</h3>
 
-		Map<String,String> configParams = new HashMap();
+			<liferay-util:include page="<%= WikiUtil.getHelpPage(format) %>" />
 
-		configParams.put("attachmentURLPrefix", attachmentURLPrefix);
-		configParams.put("wikiPageResourcePrimKey", String.valueOf(resourcePrimKey));
-
-		Map<String,String> fileBrowserParams = new HashMap();
-
-		fileBrowserParams.put("attachmentURLPrefix", attachmentURLPrefix);
-		fileBrowserParams.put("Type", "Attachment");
-		fileBrowserParams.put("wikiPageResourcePrimKey", String.valueOf(resourcePrimKey));
-		%>
-
-		<liferay-ui:input-editor
-			configParams="<%= configParams %>"
-			editorImpl="<%= EDITOR_WYSIWYG_IMPL_KEY %>"
-			fileBrowserParams="<%= fileBrowserParams %>"
-			toolbarSet="creole"
-			width="100%"
-		/>
-
-		<aui:input name="content" type="hidden" />
-	</td>
-	<td class="syntax-help" id="toggle_id_wiki_edit_wiki_syntax_help" style="display: <liferay-ui:toggle-value defaultValue="none" id="toggle_id_wiki_edit_wiki_syntax_help" />" valign="top">
-		<h3>
-			<liferay-ui:message key="syntax-help" />
-		</h3>
-
-		<liferay-util:include page="<%= WikiUtil.getHelpPage(format) %>" />
-
-		<aui:a href="<%= WikiUtil.getHelpURL(format) %>" target="_blank"><liferay-ui:message key="learn-more" /> &raquo;</aui:a>
-	</td>
-</tr>
-</table>
+			<aui:a href="<%= WikiUtil.getHelpURL(format) %>" target="_blank"><liferay-ui:message key="learn-more" /> &raquo;</aui:a>
+		</aui:column>
+	</aui:layout>
+</div>
 
 <aui:script>
 	function <portlet:namespace />initEditor() {
@@ -87,6 +87,55 @@ String content = BeanParamUtil.getString(wikiPage, request, "content");
 	}
 </aui:script>
 
+<aui:script use="aui-base">
+	var CSS_EDITOR_WIDTH = 'aui-w70';
+
+	var CSS_EDITOR_WIDTH_EXPANDED = 'aui-w100';
+
+	Liferay.on(
+		'toggle:stateChange',
+		function(event) {
+			var id = event.id;
+
+			if (id === '<%= toggleId %>') {
+				var state = event.state;
+
+				var classSrc = CSS_EDITOR_WIDTH;
+				var classDest = CSS_EDITOR_WIDTH_EXPANDED;
+
+				var visible = (state === 1);
+
+				if (visible) {
+					classSrc = CSS_EDITOR_WIDTH_EXPANDED;
+					classDest = CSS_EDITOR_WIDTH;
+				}
+
+				var editorContainer = A.one('#<portlet:namespace />wikiEditorContainer');
+
+				editorContainer.replaceClass(classSrc, classDest);
+
+				if (visible && A.UA.webkit) {
+					var editorFrame = editorContainer.one('iframe');
+
+					if (editorFrame) {
+						editorFrame.hide();
+
+						A.later(0, editorFrame, 'show');
+					}
+				}
+
+				var editorInstance = window['<portlet:namespace />editor'];
+
+				if (editorInstance) {
+					editorInstance.focus();
+				}
+			}
+		}
+	);
+</aui:script>
+
 <%!
+public static final String EDITOR_SIMPLE_IMPL_KEY = "editor.wysiwyg.portal-web.docroot.html.portlet.wiki.edit.mediawiki.jsp";
+
 public static final String EDITOR_WYSIWYG_IMPL_KEY = "editor.wysiwyg.portal-web.docroot.html.portlet.wiki.edit.creole.jsp";
 %>

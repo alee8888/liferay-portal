@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.mobiledevicerules.model.impl;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
@@ -87,6 +88,8 @@ public class MDRActionModelImpl extends BaseModelImpl<MDRAction>
 		};
 	public static final String TABLE_SQL_CREATE = "create table MDRAction (uuid_ VARCHAR(75) null,actionId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,ruleGroupInstanceId LONG,name STRING null,description STRING null,type_ VARCHAR(255) null,typeSettings TEXT null)";
 	public static final String TABLE_SQL_DROP = "drop table MDRAction";
+	public static final String ORDER_BY_JPQL = " ORDER BY mdrAction.actionId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY MDRAction.actionId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -103,6 +106,7 @@ public class MDRActionModelImpl extends BaseModelImpl<MDRAction>
 	public static long GROUPID_COLUMN_BITMASK = 2L;
 	public static long RULEGROUPINSTANCEID_COLUMN_BITMASK = 4L;
 	public static long UUID_COLUMN_BITMASK = 8L;
+	public static long ACTIONID_COLUMN_BITMASK = 16L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -111,6 +115,10 @@ public class MDRActionModelImpl extends BaseModelImpl<MDRAction>
 	 * @return the normal model instance
 	 */
 	public static MDRAction toModel(MDRActionSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		MDRAction model = new MDRActionImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -139,6 +147,10 @@ public class MDRActionModelImpl extends BaseModelImpl<MDRAction>
 	 * @return the normal model instances
 	 */
 	public static List<MDRAction> toModels(MDRActionSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<MDRAction> models = new ArrayList<MDRAction>(soapModels.length);
 
 		for (MDRActionSoap soapModel : soapModels) {
@@ -163,7 +175,7 @@ public class MDRActionModelImpl extends BaseModelImpl<MDRAction>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_actionId);
+		return _actionId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -680,17 +692,6 @@ public class MDRActionModelImpl extends BaseModelImpl<MDRAction>
 	}
 
 	@Override
-	public MDRAction toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (MDRAction)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			MDRAction.class.getName(), getPrimaryKey());
@@ -701,6 +702,25 @@ public class MDRActionModelImpl extends BaseModelImpl<MDRAction>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+		setName(getName(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setDescription(getDescription(defaultImportLocale),
+			defaultImportLocale, defaultImportLocale);
+	}
+
+	@Override
+	public MDRAction toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (MDRAction)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -993,7 +1013,7 @@ public class MDRActionModelImpl extends BaseModelImpl<MDRAction>
 	}
 
 	private static ClassLoader _classLoader = MDRAction.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			MDRAction.class
 		};
 	private String _uuid;
@@ -1022,5 +1042,5 @@ public class MDRActionModelImpl extends BaseModelImpl<MDRAction>
 	private String _type;
 	private String _typeSettings;
 	private long _columnBitmask;
-	private MDRAction _escapedModelProxy;
+	private MDRAction _escapedModel;
 }

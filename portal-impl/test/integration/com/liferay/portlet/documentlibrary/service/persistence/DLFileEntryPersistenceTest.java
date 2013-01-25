@@ -19,36 +19,62 @@ import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.impl.DLFileEntryModelImpl;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class DLFileEntryPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (DLFileEntryPersistence)PortalBeanLocatorUtil.locate(DLFileEntryPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -102,6 +128,10 @@ public class DLFileEntryPersistenceTest {
 
 		newDLFileEntry.setModifiedDate(ServiceTestUtil.nextDate());
 
+		newDLFileEntry.setClassNameId(ServiceTestUtil.nextLong());
+
+		newDLFileEntry.setClassPK(ServiceTestUtil.nextLong());
+
 		newDLFileEntry.setRepositoryId(ServiceTestUtil.nextLong());
 
 		newDLFileEntry.setFolderId(ServiceTestUtil.nextLong());
@@ -134,7 +164,9 @@ public class DLFileEntryPersistenceTest {
 
 		newDLFileEntry.setCustom2ImageId(ServiceTestUtil.nextLong());
 
-		_persistence.update(newDLFileEntry, false);
+		newDLFileEntry.setManualCheckInRequired(ServiceTestUtil.randomBoolean());
+
+		_persistence.update(newDLFileEntry);
 
 		DLFileEntry existingDLFileEntry = _persistence.findByPrimaryKey(newDLFileEntry.getPrimaryKey());
 
@@ -160,6 +192,10 @@ public class DLFileEntryPersistenceTest {
 		Assert.assertEquals(Time.getShortTimestamp(
 				existingDLFileEntry.getModifiedDate()),
 			Time.getShortTimestamp(newDLFileEntry.getModifiedDate()));
+		Assert.assertEquals(existingDLFileEntry.getClassNameId(),
+			newDLFileEntry.getClassNameId());
+		Assert.assertEquals(existingDLFileEntry.getClassPK(),
+			newDLFileEntry.getClassPK());
 		Assert.assertEquals(existingDLFileEntry.getRepositoryId(),
 			newDLFileEntry.getRepositoryId());
 		Assert.assertEquals(existingDLFileEntry.getFolderId(),
@@ -192,6 +228,8 @@ public class DLFileEntryPersistenceTest {
 			newDLFileEntry.getCustom1ImageId());
 		Assert.assertEquals(existingDLFileEntry.getCustom2ImageId(),
 			newDLFileEntry.getCustom2ImageId());
+		Assert.assertEquals(existingDLFileEntry.getManualCheckInRequired(),
+			newDLFileEntry.getManualCheckInRequired());
 	}
 
 	@Test
@@ -364,6 +402,10 @@ public class DLFileEntryPersistenceTest {
 
 		dlFileEntry.setModifiedDate(ServiceTestUtil.nextDate());
 
+		dlFileEntry.setClassNameId(ServiceTestUtil.nextLong());
+
+		dlFileEntry.setClassPK(ServiceTestUtil.nextLong());
+
 		dlFileEntry.setRepositoryId(ServiceTestUtil.nextLong());
 
 		dlFileEntry.setFolderId(ServiceTestUtil.nextLong());
@@ -396,10 +438,14 @@ public class DLFileEntryPersistenceTest {
 
 		dlFileEntry.setCustom2ImageId(ServiceTestUtil.nextLong());
 
-		_persistence.update(dlFileEntry, false);
+		dlFileEntry.setManualCheckInRequired(ServiceTestUtil.randomBoolean());
+
+		_persistence.update(dlFileEntry);
 
 		return dlFileEntry;
 	}
 
-	private DLFileEntryPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(DLFileEntryPersistenceTest.class);
+	private DLFileEntryPersistence _persistence = (DLFileEntryPersistence)PortalBeanLocatorUtil.locate(DLFileEntryPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

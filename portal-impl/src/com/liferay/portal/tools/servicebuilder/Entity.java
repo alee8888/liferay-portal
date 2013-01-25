@@ -65,14 +65,23 @@ public class Entity {
 	public static boolean hasColumn(
 		String name, List<EntityColumn> columnList) {
 
-		int pos = columnList.indexOf(new EntityColumn(name));
+		return hasColumn(name, null, columnList);
+	}
 
-		if (pos != -1) {
-			return true;
+	public static boolean hasColumn(
+		String name, String type, List<EntityColumn> columnList) {
+
+		int index = columnList.indexOf(new EntityColumn(name));
+
+		if (index != -1) {
+			EntityColumn col = columnList.get(index);
+
+			if ((type == null) || type.equals(col.getType())) {
+				return true;
+			}
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public Entity(String name) {
@@ -143,6 +152,16 @@ public class Entity {
 			for (EntityColumn col : _blobList) {
 				if (!col.isLazy()) {
 					_cacheEnabled = false;
+
+					break;
+				}
+			}
+		}
+
+		if ((_columnList != null) && !_columnList.isEmpty()) {
+			for (EntityColumn col : _columnList) {
+				if (col.isContainerModel() || col.isParentContainerModel()) {
+					_containerModel = true;
 
 					break;
 				}
@@ -364,7 +383,7 @@ public class Entity {
 		while (itr.hasNext()) {
 			EntityFinder finder = itr.next();
 
-			if (finder.isCollection()) {
+			if (finder.isCollection() && !finder.isUnique()) {
 				itr.remove();
 			}
 		}
@@ -392,6 +411,10 @@ public class Entity {
 
 	public boolean hasColumn(String name) {
 		return hasColumn(name, _columnList);
+	}
+
+	public boolean hasColumn(String name, String type) {
+		return hasColumn(name, type, _columnList);
 	}
 
 	public boolean hasColumns() {
@@ -521,19 +544,22 @@ public class Entity {
 	}
 
 	public boolean isAuditedModel() {
-		if (hasColumn("companyId") && hasColumn("createDate") &&
-			hasColumn("modifiedDate") && hasColumn("userId") &&
+		if (hasColumn("companyId") && hasColumn("createDate", "Date") &&
+			hasColumn("modifiedDate", "Date") && hasColumn("userId") &&
 			hasColumn("userName")) {
 
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isCacheEnabled() {
 		return _cacheEnabled;
+	}
+
+	public boolean isContainerModel() {
+		return _containerModel;
 	}
 
 	public boolean isDefaultDataSource() {
@@ -663,6 +689,14 @@ public class Entity {
 		}
 	}
 
+	public boolean isStagedModel() {
+		if (isGroupedModel() && hasUuid()) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public boolean isWorkflowEnabled() {
 		if (hasColumn("status") && hasColumn("statusByUserId") &&
 			hasColumn("statusByUserName") && hasColumn("statusDate")) {
@@ -700,6 +734,7 @@ public class Entity {
 	private boolean _cacheEnabled;
 	private List<EntityColumn> _collectionList;
 	private List<EntityColumn> _columnList;
+	private boolean _containerModel;
 	private String _dataSource;
 	private String _finderClass;
 	private List<EntityColumn> _finderColumnsList;

@@ -14,6 +14,7 @@
 
 package com.liferay.portal.model.impl;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -105,6 +106,10 @@ public class RoleModelImpl extends BaseModelImpl<Role> implements RoleModel {
 	 * @return the normal model instance
 	 */
 	public static Role toModel(RoleSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		Role model = new RoleImpl();
 
 		model.setRoleId(soapModel.getRoleId());
@@ -127,6 +132,10 @@ public class RoleModelImpl extends BaseModelImpl<Role> implements RoleModel {
 	 * @return the normal model instances
 	 */
 	public static List<Role> toModels(RoleSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<Role> models = new ArrayList<Role>(soapModels.length);
 
 		for (RoleSoap soapModel : soapModels) {
@@ -167,7 +176,7 @@ public class RoleModelImpl extends BaseModelImpl<Role> implements RoleModel {
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_roleId);
+		return _roleId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -594,17 +603,6 @@ public class RoleModelImpl extends BaseModelImpl<Role> implements RoleModel {
 	}
 
 	@Override
-	public Role toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Role)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			Role.class.getName(), getPrimaryKey());
@@ -615,6 +613,25 @@ public class RoleModelImpl extends BaseModelImpl<Role> implements RoleModel {
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+		setTitle(getTitle(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setDescription(getDescription(defaultImportLocale),
+			defaultImportLocale, defaultImportLocale);
+	}
+
+	@Override
+	public Role toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Role)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -831,9 +848,7 @@ public class RoleModelImpl extends BaseModelImpl<Role> implements RoleModel {
 	}
 
 	private static ClassLoader _classLoader = Role.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
-			Role.class
-		};
+	private static Class<?>[] _escapedModelInterfaces = new Class[] { Role.class };
 	private long _roleId;
 	private long _companyId;
 	private long _originalCompanyId;
@@ -856,5 +871,5 @@ public class RoleModelImpl extends BaseModelImpl<Role> implements RoleModel {
 	private String _subtype;
 	private String _originalSubtype;
 	private long _columnBitmask;
-	private Role _escapedModelProxy;
+	private Role _escapedModel;
 }

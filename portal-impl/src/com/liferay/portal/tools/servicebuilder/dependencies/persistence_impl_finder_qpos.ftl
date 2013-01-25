@@ -1,6 +1,6 @@
 <#list finderColsList as finderCol>
 	<#if !finderCol.isPrimitiveType()>
-		if (${finderCol.name} != null) {
+		if (bind${finderCol.methodName}) {
 	</#if>
 
 	qPos.add(
@@ -10,6 +10,10 @@
 	</#if>
 
 	${finderCol.name}${serviceBuilder.getPrimitiveObjValue("${finderCol.type}")}
+
+	<#if finderCol.type == "String" && !finderCol.isCaseSensitive()>
+		.toLowerCase()
+	</#if>
 
 	<#if finderCol.type == "Date">
 		)

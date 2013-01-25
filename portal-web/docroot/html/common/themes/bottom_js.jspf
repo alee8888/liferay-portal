@@ -21,10 +21,6 @@
 <aui:script position="inline">
 	Liferay.Util.addInputFocus();
 
-	<c:if test="<%= (runtimePortletIds != null) && !runtimePortletIds.isEmpty() && !layoutTypePortlet.hasStateMax() %>">
-		Liferay.Portlet.runtimePortletIds = ['<%= ListUtil.toString(portlets, Portlet.PORTLET_ID_ACCESSOR, "','") %>'];
-	</c:if>
-
 	<%
 	String controlPanelCategory = ParamUtil.getString(request, "controlPanelCategory");
 	%>
@@ -120,7 +116,7 @@ if (layout != null) {
 			function() {
 				new Liferay.Navigation(
 					{
-						hasPermission: <%= GroupPermissionUtil.contains(permissionChecker, scopeGroupId, ActionKeys.MANAGE_LAYOUTS) %>,
+						hasAddLayoutPermission: <%= GroupPermissionUtil.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_LAYOUT) %>,
 						layoutIds: [
 
 							<%

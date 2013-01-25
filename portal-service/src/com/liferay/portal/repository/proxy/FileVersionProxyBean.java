@@ -203,6 +203,14 @@ public class FileVersionProxyBean
 		return _fileVersion.isExpired();
 	}
 
+	public boolean isInTrash() {
+		return _fileVersion.isInTrash();
+	}
+
+	public boolean isInTrashContainer() {
+		return _fileVersion.isInTrashContainer();
+	}
+
 	public boolean isPending() {
 		return _fileVersion.isPending();
 	}
@@ -241,6 +249,12 @@ public class FileVersionProxyBean
 
 	public FileVersion toEscapedModel() {
 		FileVersion fileVersion = _fileVersion.toEscapedModel();
+
+		return newFileVersionProxyBean(fileVersion);
+	}
+
+	public FileVersion toUnescapedModel() {
+		FileVersion fileVersion = _fileVersion.toUnescapedModel();
 
 		return newFileVersionProxyBean(fileVersion);
 	}

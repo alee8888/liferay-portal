@@ -100,6 +100,10 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 	 * @return the normal model instance
 	 */
 	public static ExpandoValue toModel(ExpandoValueSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		ExpandoValue model = new ExpandoValueImpl();
 
 		model.setValueId(soapModel.getValueId());
@@ -121,6 +125,10 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 	 * @return the normal model instances
 	 */
 	public static List<ExpandoValue> toModels(ExpandoValueSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<ExpandoValue> models = new ArrayList<ExpandoValue>(soapModels.length);
 
 		for (ExpandoValueSoap soapModel : soapModels) {
@@ -145,7 +153,7 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_valueId);
+		return _valueId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -398,13 +406,12 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 
 	@Override
 	public ExpandoValue toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (ExpandoValue)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
+		if (_escapedModel == null) {
+			_escapedModel = (ExpandoValue)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
 		}
 
-		return _escapedModelProxy;
+		return _escapedModel;
 	}
 
 	@Override
@@ -632,7 +639,7 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 	}
 
 	private static ClassLoader _classLoader = ExpandoValue.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			ExpandoValue.class
 		};
 	private long _valueId;
@@ -655,5 +662,5 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 	private String _data;
 	private String _originalData;
 	private long _columnBitmask;
-	private ExpandoValue _escapedModelProxy;
+	private ExpandoValue _escapedModel;
 }

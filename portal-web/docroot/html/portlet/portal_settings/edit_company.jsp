@@ -17,8 +17,6 @@
 <%@ include file="/html/portlet/portal_settings/init.jsp" %>
 
 <%
-themeDisplay.setIncludeServiceJs(true);
-
 String[] configurationSections = PropsValues.COMPANY_SETTINGS_FORM_CONFIGURATION;
 String[] identificationSections = PropsValues.COMPANY_SETTINGS_FORM_IDENTIFICATION;
 String[] miscellaneousSections = PropsValues.COMPANY_SETTINGS_FORM_MISCELLANEOUS;
@@ -45,7 +43,7 @@ request.setAttribute("websites.classPK", company.getAccountId());
 </portlet:actionURL>
 
 <aui:form action="<%= editCompanyURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveCompany();" %>'>
-	<aui:input name="<%= Constants.CMD %>" type="hidden" />
+	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
 	<aui:input name="redirect" type="hidden" />
 
 	<liferay-util:buffer var="htmlTop">
@@ -77,13 +75,14 @@ request.setAttribute("websites.classPK", company.getAccountId());
 
 		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = redirect;
 
-		<portlet:namespace />saveLdap();
 		<portlet:namespace />saveEmails();
+		<portlet:namespace />saveLdap();
+		<portlet:namespace />saveLocales();
 
 		submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/portal_settings/edit_company" /></portlet:actionURL>");
 	}
 </aui:script>
 
 <%!
-private static String[] _CATEGORY_NAMES = {"configuration", "identification", "miscellaneous"};
+private static final String[] _CATEGORY_NAMES = {"configuration", "identification", "miscellaneous"};
 %>

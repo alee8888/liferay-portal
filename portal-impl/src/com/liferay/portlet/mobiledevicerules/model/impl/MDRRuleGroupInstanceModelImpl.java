@@ -81,6 +81,8 @@ public class MDRRuleGroupInstanceModelImpl extends BaseModelImpl<MDRRuleGroupIns
 		};
 	public static final String TABLE_SQL_CREATE = "create table MDRRuleGroupInstance (uuid_ VARCHAR(75) null,ruleGroupInstanceId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,ruleGroupId LONG,priority INTEGER)";
 	public static final String TABLE_SQL_DROP = "drop table MDRRuleGroupInstance";
+	public static final String ORDER_BY_JPQL = " ORDER BY mdrRuleGroupInstance.ruleGroupInstanceId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY MDRRuleGroupInstance.ruleGroupInstanceId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -99,6 +101,7 @@ public class MDRRuleGroupInstanceModelImpl extends BaseModelImpl<MDRRuleGroupIns
 	public static long GROUPID_COLUMN_BITMASK = 8L;
 	public static long RULEGROUPID_COLUMN_BITMASK = 16L;
 	public static long UUID_COLUMN_BITMASK = 32L;
+	public static long RULEGROUPINSTANCEID_COLUMN_BITMASK = 64L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -108,6 +111,10 @@ public class MDRRuleGroupInstanceModelImpl extends BaseModelImpl<MDRRuleGroupIns
 	 */
 	public static MDRRuleGroupInstance toModel(
 		MDRRuleGroupInstanceSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		MDRRuleGroupInstance model = new MDRRuleGroupInstanceImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -134,6 +141,10 @@ public class MDRRuleGroupInstanceModelImpl extends BaseModelImpl<MDRRuleGroupIns
 	 */
 	public static List<MDRRuleGroupInstance> toModels(
 		MDRRuleGroupInstanceSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<MDRRuleGroupInstance> models = new ArrayList<MDRRuleGroupInstance>(soapModels.length);
 
 		for (MDRRuleGroupInstanceSoap soapModel : soapModels) {
@@ -158,7 +169,7 @@ public class MDRRuleGroupInstanceModelImpl extends BaseModelImpl<MDRRuleGroupIns
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_ruleGroupInstanceId);
+		return _ruleGroupInstanceId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -485,17 +496,6 @@ public class MDRRuleGroupInstanceModelImpl extends BaseModelImpl<MDRRuleGroupIns
 	}
 
 	@Override
-	public MDRRuleGroupInstance toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (MDRRuleGroupInstance)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			MDRRuleGroupInstance.class.getName(), getPrimaryKey());
@@ -506,6 +506,16 @@ public class MDRRuleGroupInstanceModelImpl extends BaseModelImpl<MDRRuleGroupIns
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public MDRRuleGroupInstance toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (MDRRuleGroupInstance)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -756,7 +766,7 @@ public class MDRRuleGroupInstanceModelImpl extends BaseModelImpl<MDRRuleGroupIns
 	}
 
 	private static ClassLoader _classLoader = MDRRuleGroupInstance.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			MDRRuleGroupInstance.class
 		};
 	private String _uuid;
@@ -784,5 +794,5 @@ public class MDRRuleGroupInstanceModelImpl extends BaseModelImpl<MDRRuleGroupIns
 	private boolean _setOriginalRuleGroupId;
 	private int _priority;
 	private long _columnBitmask;
-	private MDRRuleGroupInstance _escapedModelProxy;
+	private MDRRuleGroupInstance _escapedModel;
 }

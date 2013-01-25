@@ -14,7 +14,9 @@
 
 package com.liferay.portlet.documentlibrary.action;
 
+import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.security.auth.PrincipalException;
@@ -28,6 +30,9 @@ import com.liferay.portlet.documentlibrary.NoSuchFileShortcutException;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletConfig;
@@ -40,6 +45,7 @@ import org.apache.struts.action.ActionMapping;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Levente Hudák
  */
 public class EditFileShortcutAction extends PortletAction {
 
@@ -56,10 +62,18 @@ public class EditFileShortcutAction extends PortletAction {
 				updateFileShortcut(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteFileShortcut(actionRequest, false);
+				deleteFileShortcut(
+					(LiferayPortletConfig)portletConfig, actionRequest, false);
+			}
+			else if (cmd.equals(Constants.MOVE)) {
+				moveFileShortcut(actionRequest, false);
+			}
+			else if (cmd.equals(Constants.MOVE_FROM_TRASH)) {
+				moveFileShortcut(actionRequest, true);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
-				deleteFileShortcut(actionRequest, true);
+				deleteFileShortcut(
+					(LiferayPortletConfig)portletConfig, actionRequest, true);
 			}
 
 			sendRedirect(actionRequest, actionResponse);
@@ -105,11 +119,13 @@ public class EditFileShortcutAction extends PortletAction {
 			}
 		}
 
-		return mapping.findForward(getForward(
-			renderRequest, "portlet.document_library.edit_file_shortcut"));
+		return mapping.findForward(
+			getForward(
+				renderRequest, "portlet.document_library.edit_file_shortcut"));
 	}
 
 	protected void deleteFileShortcut(
+			LiferayPortletConfig liferayPortletConfig,
 			ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
@@ -118,9 +134,51 @@ public class EditFileShortcutAction extends PortletAction {
 
 		if (moveToTrash) {
 			DLAppServiceUtil.moveFileShortcutToTrash(fileShortcutId);
+
+			Map<String, String[]> data = new HashMap<String, String[]>();
+
+			data.put(
+				"restoreddFileShortcutIds",
+				new String[] {String.valueOf(fileShortcutId)});
+
+			SessionMessages.add(
+				actionRequest,
+				liferayPortletConfig.getPortletId() +
+					SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA, data);
+
+			SessionMessages.add(
+				actionRequest,
+				liferayPortletConfig.getPortletId() +
+					SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
 		}
 		else {
 			DLAppServiceUtil.deleteFileShortcut(fileShortcutId);
+		}
+	}
+
+	protected void moveFileShortcut(
+			ActionRequest actionRequest, boolean moveFromTrash)
+		throws Exception {
+
+		long fileShortcutId = ParamUtil.getLong(
+			actionRequest, "fileShortcutId");
+
+		long newFolderId = ParamUtil.getLong(actionRequest, "newFolderId");
+
+		DLFileShortcut fileShortcut = DLAppServiceUtil.getFileShortcut(
+			fileShortcutId);
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			DLFileShortcut.class.getName(), actionRequest);
+
+		if (moveFromTrash) {
+			DLAppServiceUtil.moveFileShortcutFromTrash(
+				fileShortcutId, newFolderId, serviceContext);
+		}
+		else {
+			DLAppServiceUtil.updateFileShortcut(
+				fileShortcutId, newFolderId, fileShortcut.getToFileEntryId(),
+				serviceContext);
 		}
 	}
 

@@ -23,8 +23,6 @@ import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.MethodHandler;
-import com.liferay.portal.kernel.util.MethodKey;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.AuditedModel;
 import com.liferay.portal.model.BaseModel;
@@ -38,20 +36,16 @@ import java.util.List;
  */
 public abstract class BaseAlloyIndexer extends BaseIndexer {
 
-	public BaseAlloyIndexer(String portletId, String className) {
-		this.portletId = portletId;
-		classNames = new String[] {className};
-
-		getModelMethodKey = new MethodKey(
-			"XxxLocalServiceUtil", "getXxx", long.class);
-		getModelsCountMethodKey = new MethodKey(
-			"XxxLocalServiceUtil", "getXxxsCount");
-		getModelsMethodKey = new MethodKey(
-			"XxxLocalServiceUtil", "getXxxs", int.class, int.class);
+	public AlloyServiceInvoker getAlloyServiceInvoker() {
+		return alloyServiceInvoker;
 	}
 
 	public String[] getClassNames() {
 		return classNames;
+	}
+
+	public String getPortletId() {
+		return portletId;
 	}
 
 	@Override
@@ -96,12 +90,11 @@ public abstract class BaseAlloyIndexer extends BaseIndexer {
 
 	@Override
 	protected void doReindex(String className, long classPK) throws Exception {
-		MethodHandler methodHandler = new MethodHandler(
-			getModelMethodKey, classPK);
+		Object model = alloyServiceInvoker.fetchModel(classPK);
 
-		Object model = methodHandler.invoke(false);
-
-		doReindex(model);
+		if (model != null) {
+			doReindex(model);
+		}
 	}
 
 	@Override
@@ -117,10 +110,7 @@ public abstract class BaseAlloyIndexer extends BaseIndexer {
 	}
 
 	protected void reindexModels(long companyId) throws Exception {
-		MethodHandler methodHandler = new MethodHandler(
-			getModelsCountMethodKey);
-
-		int count = (Integer)methodHandler.invoke(false);
+		int count = alloyServiceInvoker.getModelsCount();
 
 		int pages = count / Indexer.DEFAULT_INTERVAL;
 
@@ -135,10 +125,7 @@ public abstract class BaseAlloyIndexer extends BaseIndexer {
 	protected void reindexModels(long companyId, int start, int end)
 		throws Exception {
 
-		MethodHandler methodHandler = new MethodHandler(
-			getModelsMethodKey, start, end);
-
-		List<Object> models = (List<Object>)methodHandler.invoke(false);
+		List<Object> models = alloyServiceInvoker.getModels(start, end);
 
 		if (models.isEmpty()) {
 			return;
@@ -156,10 +143,26 @@ public abstract class BaseAlloyIndexer extends BaseIndexer {
 			getSearchEngineId(), companyId, documents);
 	}
 
+	protected void setAlloyServiceInvoker(
+		AlloyServiceInvoker alloyServiceInvoker) {
+
+		this.alloyServiceInvoker = alloyServiceInvoker;
+	}
+
+	protected void setClassName(String className) {
+		if (this.classNames == null) {
+			classNames = new String[] {className};
+		}
+	}
+
+	protected void setPortletId(String portletId) {
+		if (this.portletId == null) {
+			this.portletId = portletId;
+		}
+	}
+
+	protected AlloyServiceInvoker alloyServiceInvoker;
 	protected String[] classNames;
-	protected MethodKey getModelMethodKey;
-	protected MethodKey getModelsCountMethodKey;
-	protected MethodKey getModelsMethodKey;
 	protected String portletId;
 
 }

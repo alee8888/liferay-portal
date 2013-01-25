@@ -95,7 +95,7 @@ public class ServiceComponentModelImpl extends BaseModelImpl<ServiceComponent>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_serviceComponentId);
+		return _serviceComponentId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -233,17 +233,6 @@ public class ServiceComponentModelImpl extends BaseModelImpl<ServiceComponent>
 	}
 
 	@Override
-	public ServiceComponent toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (ServiceComponent)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
 			ServiceComponent.class.getName(), getPrimaryKey());
@@ -254,6 +243,16 @@ public class ServiceComponentModelImpl extends BaseModelImpl<ServiceComponent>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public ServiceComponent toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (ServiceComponent)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -427,7 +426,7 @@ public class ServiceComponentModelImpl extends BaseModelImpl<ServiceComponent>
 	}
 
 	private static ClassLoader _classLoader = ServiceComponent.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			ServiceComponent.class
 		};
 	private long _serviceComponentId;
@@ -439,5 +438,5 @@ public class ServiceComponentModelImpl extends BaseModelImpl<ServiceComponent>
 	private long _buildDate;
 	private String _data;
 	private long _columnBitmask;
-	private ServiceComponent _escapedModelProxy;
+	private ServiceComponent _escapedModel;
 }

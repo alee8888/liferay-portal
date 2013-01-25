@@ -53,6 +53,8 @@ public class GetterUtil {
 
 	public static final Number DEFAULT_NUMBER = 0;
 
+	public static final Number[] DEFAULT_NUMBER_VALUES = new Number[0];
+
 	public static final Number DEFAULT_OBJECT = null;
 
 	public static final short DEFAULT_SHORT = 0;
@@ -60,6 +62,8 @@ public class GetterUtil {
 	public static final short[] DEFAULT_SHORT_VALUES = new short[0];
 
 	public static final String DEFAULT_STRING = StringPool.BLANK;
+
+	public static final String[] DEFAULT_STRING_VALUES = new String[0];
 
 	public static boolean get(Object value, boolean defaultValue) {
 		if (value == null) {
@@ -761,6 +765,49 @@ public class GetterUtil {
 		return get(value, defaultValue);
 	}
 
+	public static Number[] getNumberValues(Object value) {
+		return getNumberValues(value, DEFAULT_NUMBER_VALUES);
+	}
+
+	public static Number[] getNumberValues(
+		Object value, Number[] defaultValue) {
+
+		Class<?> clazz = value.getClass();
+
+		if (clazz.isArray()) {
+			Class<?> componentType = clazz.getComponentType();
+
+			if (componentType.isAssignableFrom(String.class)) {
+				return getNumberValues((String[])value, defaultValue);
+			}
+			else if (componentType.isAssignableFrom(Number.class)) {
+				return (Number[])value;
+			}
+		}
+
+		return defaultValue;
+	}
+
+	public static Number[] getNumberValues(String[] values) {
+		return getNumberValues(values, DEFAULT_NUMBER_VALUES);
+	}
+
+	public static Number[] getNumberValues(
+		String[] values, Number[] defaultValue) {
+
+		if (values == null) {
+			return defaultValue;
+		}
+
+		Number[] numberValues = new Number[values.length];
+
+		for (int i = 0; i < values.length; i++) {
+			numberValues[i] = getNumber(values[i]);
+		}
+
+		return numberValues;
+	}
+
 	public static Object getObject(Object value) {
 		return getObject(value, DEFAULT_OBJECT);
 	}
@@ -844,6 +891,46 @@ public class GetterUtil {
 
 	public static String getString(String value, String defaultValue) {
 		return get(value, defaultValue);
+	}
+
+	public static String[] getStringValues(Object value) {
+		return getStringValues(value, DEFAULT_STRING_VALUES);
+	}
+
+	public static String[] getStringValues(
+		Object value, String[] defaultValue) {
+
+		Class<?> clazz = value.getClass();
+
+		if (clazz.isArray()) {
+			Class<?> componentType = clazz.getComponentType();
+
+			if (componentType.isAssignableFrom(String.class)) {
+				return getStringValues((String[])value, defaultValue);
+			}
+		}
+
+		return defaultValue;
+	}
+
+	public static String[] getStringValues(
+		Object[] values, String[] defaultValue) {
+
+		if (values == null) {
+			return defaultValue;
+		}
+
+		String[] stringValues = new String[values.length];
+
+		for (int i = 0; i < values.length; i++) {
+			stringValues[i] = String.valueOf(values[i]);
+		}
+
+		return stringValues;
+	}
+
+	public static String[] getStringValues(String[] values) {
+		return getStringValues(values, DEFAULT_STRING_VALUES);
 	}
 
 	private static int _parseInt(String value, int defaultValue) {

@@ -29,6 +29,9 @@ public interface Indexer {
 
 	public static final int DEFAULT_INTERVAL = 10000;
 
+	public void addRelatedEntryFields(Document document, Object obj)
+		throws Exception;
+
 	public void delete(long companyId, String uid) throws SearchException;
 
 	public void delete(Object obj) throws SearchException;
@@ -58,8 +61,8 @@ public interface Indexer {
 		throws SearchException;
 
 	public boolean hasPermission(
-			PermissionChecker permissionChecker, long entryClassPK,
-			String actionId)
+			PermissionChecker permissionChecker, String entryClassName,
+			long entryClassPK, String actionId)
 		throws Exception;
 
 	public boolean isFilterSearch();

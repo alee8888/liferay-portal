@@ -20,7 +20,10 @@ import com.liferay.portal.model.CacheModel;
 
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import java.util.Date;
 
@@ -32,10 +35,10 @@ import java.util.Date;
  * @generated
  */
 public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
-	Serializable {
+	Externalizable {
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(53);
+		StringBundler sb = new StringBundler(59);
 
 		sb.append("{uuid=");
 		sb.append(uuid);
@@ -57,6 +60,10 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 		sb.append(createDate);
 		sb.append(", modifiedDate=");
 		sb.append(modifiedDate);
+		sb.append(", classNameId=");
+		sb.append(classNameId);
+		sb.append(", classPK=");
+		sb.append(classPK);
 		sb.append(", repositoryId=");
 		sb.append(repositoryId);
 		sb.append(", folderId=");
@@ -89,6 +96,8 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 		sb.append(custom1ImageId);
 		sb.append(", custom2ImageId=");
 		sb.append(custom2ImageId);
+		sb.append(", manualCheckInRequired=");
+		sb.append(manualCheckInRequired);
 		sb.append("}");
 
 		return sb.toString();
@@ -139,6 +148,8 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 			dlFileEntryImpl.setModifiedDate(new Date(modifiedDate));
 		}
 
+		dlFileEntryImpl.setClassNameId(classNameId);
+		dlFileEntryImpl.setClassPK(classPK);
 		dlFileEntryImpl.setRepositoryId(repositoryId);
 		dlFileEntryImpl.setFolderId(folderId);
 
@@ -199,10 +210,140 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 		dlFileEntryImpl.setLargeImageId(largeImageId);
 		dlFileEntryImpl.setCustom1ImageId(custom1ImageId);
 		dlFileEntryImpl.setCustom2ImageId(custom2ImageId);
+		dlFileEntryImpl.setManualCheckInRequired(manualCheckInRequired);
 
 		dlFileEntryImpl.resetOriginalValues();
 
 		return dlFileEntryImpl;
+	}
+
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		uuid = objectInput.readUTF();
+		fileEntryId = objectInput.readLong();
+		groupId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		userId = objectInput.readLong();
+		userName = objectInput.readUTF();
+		versionUserId = objectInput.readLong();
+		versionUserName = objectInput.readUTF();
+		createDate = objectInput.readLong();
+		modifiedDate = objectInput.readLong();
+		classNameId = objectInput.readLong();
+		classPK = objectInput.readLong();
+		repositoryId = objectInput.readLong();
+		folderId = objectInput.readLong();
+		name = objectInput.readUTF();
+		extension = objectInput.readUTF();
+		mimeType = objectInput.readUTF();
+		title = objectInput.readUTF();
+		description = objectInput.readUTF();
+		extraSettings = objectInput.readUTF();
+		fileEntryTypeId = objectInput.readLong();
+		version = objectInput.readUTF();
+		size = objectInput.readLong();
+		readCount = objectInput.readInt();
+		smallImageId = objectInput.readLong();
+		largeImageId = objectInput.readLong();
+		custom1ImageId = objectInput.readLong();
+		custom2ImageId = objectInput.readLong();
+		manualCheckInRequired = objectInput.readBoolean();
+	}
+
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		if (uuid == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(uuid);
+		}
+
+		objectOutput.writeLong(fileEntryId);
+		objectOutput.writeLong(groupId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(userId);
+
+		if (userName == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(userName);
+		}
+
+		objectOutput.writeLong(versionUserId);
+
+		if (versionUserName == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(versionUserName);
+		}
+
+		objectOutput.writeLong(createDate);
+		objectOutput.writeLong(modifiedDate);
+		objectOutput.writeLong(classNameId);
+		objectOutput.writeLong(classPK);
+		objectOutput.writeLong(repositoryId);
+		objectOutput.writeLong(folderId);
+
+		if (name == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(name);
+		}
+
+		if (extension == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(extension);
+		}
+
+		if (mimeType == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(mimeType);
+		}
+
+		if (title == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(title);
+		}
+
+		if (description == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(description);
+		}
+
+		if (extraSettings == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(extraSettings);
+		}
+
+		objectOutput.writeLong(fileEntryTypeId);
+
+		if (version == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(version);
+		}
+
+		objectOutput.writeLong(size);
+		objectOutput.writeInt(readCount);
+		objectOutput.writeLong(smallImageId);
+		objectOutput.writeLong(largeImageId);
+		objectOutput.writeLong(custom1ImageId);
+		objectOutput.writeLong(custom2ImageId);
+		objectOutput.writeBoolean(manualCheckInRequired);
 	}
 
 	public String uuid;
@@ -215,6 +356,8 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 	public String versionUserName;
 	public long createDate;
 	public long modifiedDate;
+	public long classNameId;
+	public long classPK;
 	public long repositoryId;
 	public long folderId;
 	public String name;
@@ -231,4 +374,5 @@ public class DLFileEntryCacheModel implements CacheModel<DLFileEntry>,
 	public long largeImageId;
 	public long custom1ImageId;
 	public long custom2ImageId;
+	public boolean manualCheckInRequired;
 }

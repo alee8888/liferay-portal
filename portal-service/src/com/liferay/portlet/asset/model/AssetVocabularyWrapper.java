@@ -645,6 +645,12 @@ public class AssetVocabularyWrapper implements AssetVocabulary,
 		_assetVocabulary.setExpandoBridgeAttributes(serviceContext);
 	}
 
+	public void prepareLocalizedFieldsForImport(
+		java.util.Locale defaultImportLocale)
+		throws com.liferay.portal.LocaleException {
+		_assetVocabulary.prepareLocalizedFieldsForImport(defaultImportLocale);
+	}
+
 	@Override
 	public java.lang.Object clone() {
 		return new AssetVocabularyWrapper((AssetVocabulary)_assetVocabulary.clone());
@@ -668,6 +674,10 @@ public class AssetVocabularyWrapper implements AssetVocabulary,
 		return new AssetVocabularyWrapper(_assetVocabulary.toEscapedModel());
 	}
 
+	public com.liferay.portlet.asset.model.AssetVocabulary toUnescapedModel() {
+		return new AssetVocabularyWrapper(_assetVocabulary.toUnescapedModel());
+	}
+
 	@Override
 	public java.lang.String toString() {
 		return _assetVocabulary.toString();
@@ -680,6 +690,11 @@ public class AssetVocabularyWrapper implements AssetVocabulary,
 	public void persist()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_assetVocabulary.persist();
+	}
+
+	public java.util.List<com.liferay.portlet.asset.model.AssetCategory> getCategories()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _assetVocabulary.getCategories();
 	}
 
 	public com.liferay.portal.kernel.util.UnicodeProperties getSettingsProperties() {

@@ -17,8 +17,10 @@
 <%@ include file="/html/portlet/init.jsp" %>
 
 <%@ page import="com.liferay.portal.LARFileException" %><%@
+page import="com.liferay.portal.LARFileSizeException" %><%@
 page import="com.liferay.portal.LARTypeException" %><%@
 page import="com.liferay.portal.LayoutImportException" %><%@
+page import="com.liferay.portal.LocaleException" %><%@
 page import="com.liferay.portal.NoSuchLayoutException" %><%@
 page import="com.liferay.portal.NoSuchPortletItemException" %><%@
 page import="com.liferay.portal.NoSuchResourceException" %><%@
@@ -35,6 +37,7 @@ page import="com.liferay.portal.kernel.portlet.PortletModeFactory" %><%@
 page import="com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil" %><%@
 page import="com.liferay.portal.service.permission.RolePermissionUtil" %><%@
 page import="com.liferay.portal.service.permission.TeamPermissionUtil" %><%@
+page import="com.liferay.portal.util.ResourcePermissionUtil" %><%@
 page import="com.liferay.portlet.PortletQNameUtil" %><%@
 page import="com.liferay.portlet.portletconfiguration.util.PublicRenderParameterConfiguration" %><%@
 page import="com.liferay.portlet.rolesadmin.util.RolesAdminUtil" %>

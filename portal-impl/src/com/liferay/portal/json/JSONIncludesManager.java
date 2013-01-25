@@ -15,6 +15,7 @@
 package com.liferay.portal.json;
 
 import com.liferay.portal.kernel.json.JSON;
+import com.liferay.portal.kernel.util.StringPool;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -96,9 +97,6 @@ public class JSONIncludesManager {
 		if (methodName.startsWith("get")) {
 			propertyName = methodName.substring(3);
 		}
-		else if (methodName.startsWith("has")) {
-			propertyName = methodName.substring(3);
-		}
 		else if (methodName.startsWith("is")) {
 			propertyName = methodName.substring(2);
 		}
@@ -137,6 +135,10 @@ public class JSONIncludesManager {
 				(jsonAnnotation.include() == include)) {
 
 				String name = field.getName();
+
+				if (name.startsWith(StringPool.UNDERLINE)) {
+					name = name.substring(1);
+				}
 
 				if (!list.contains(name)) {
 					list.add(name);

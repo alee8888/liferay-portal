@@ -15,7 +15,8 @@
 package com.liferay.portlet.expando.model.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.lar.ImportExportThreadLocal;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.ExportImportThreadLocal;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Indexer;
@@ -38,8 +39,10 @@ import com.liferay.portlet.expando.service.ExpandoValueServiceUtil;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -73,7 +76,7 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 		boolean secure =
 			PropsValues.PERMISSIONS_CUSTOM_ATTRIBUTE_WRITE_CHECK_BY_DEFAULT;
 
-		if (ImportExportThreadLocal.isImportInProcess()) {
+		if (ExportImportThreadLocal.isImportInProcess()) {
 			secure = false;
 		}
 
@@ -90,7 +93,7 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 		boolean secure =
 			PropsValues.PERMISSIONS_CUSTOM_ATTRIBUTE_WRITE_CHECK_BY_DEFAULT;
 
-		if (ImportExportThreadLocal.isImportInProcess()) {
+		if (ExportImportThreadLocal.isImportInProcess()) {
 			secure = false;
 		}
 
@@ -109,7 +112,7 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 		boolean secure =
 			PropsValues.PERMISSIONS_CUSTOM_ATTRIBUTE_WRITE_CHECK_BY_DEFAULT;
 
-		if (ImportExportThreadLocal.isImportInProcess()) {
+		if (ExportImportThreadLocal.isImportInProcess()) {
 			secure = false;
 		}
 
@@ -121,13 +124,7 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 		throws PortalException {
 
 		try {
-			ExpandoTable table = ExpandoTableLocalServiceUtil.fetchDefaultTable(
-				_companyId, _className);
-
-			if (table == null) {
-				table = ExpandoTableLocalServiceUtil.addDefaultTable(
-					_companyId, _className);
-			}
+			ExpandoTable table = getTable();
 
 			if (secure) {
 				ExpandoColumnServiceUtil.addColumn(
@@ -148,11 +145,49 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 		}
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof ExpandoBridgeImpl)) {
+			return false;
+		}
+
+		ExpandoBridgeImpl expandoBridgeImpl = (ExpandoBridgeImpl)obj;
+
+		try {
+			ExpandoTable table1 = getTable();
+
+			long tableId1 = table1.getTableId();
+
+			ExpandoTable table2 = expandoBridgeImpl.getTable();
+
+			long tableId2 = table2.getTableId();
+
+			if (tableId1 != tableId2) {
+				return false;
+			}
+		}
+		catch (Exception e) {
+			return false;
+		}
+
+		for (ExpandoColumn column : getAttributeColumns()) {
+			Serializable attribute1 = getAttribute(column.getName());
+			Serializable attribute2 = expandoBridgeImpl.getAttribute(
+				column.getName());
+
+			if (!equals(column.getType(), attribute1, attribute2)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	public Serializable getAttribute(String name) {
 		boolean secure =
 			PropsValues.PERMISSIONS_CUSTOM_ATTRIBUTE_READ_CHECK_BY_DEFAULT;
 
-		if (ImportExportThreadLocal.isExportInProcess()) {
+		if (ExportImportThreadLocal.isExportInProcess()) {
 			secure = false;
 		}
 
@@ -199,21 +234,9 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 	}
 
 	public Enumeration<String> getAttributeNames() {
-		List<ExpandoColumn> columns = new ArrayList<ExpandoColumn>();
-
-		try {
-			columns = ExpandoColumnLocalServiceUtil.getDefaultTableColumns(
-				_companyId, _className);
-		}
-		catch (Exception e) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
-			}
-		}
-
 		List<String> columnNames = new ArrayList<String>();
 
-		for (ExpandoColumn column : columns) {
+		for (ExpandoColumn column : getAttributeColumns()) {
 			columnNames.add(column.getName());
 		}
 
@@ -241,7 +264,7 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 		boolean secure =
 			PropsValues.PERMISSIONS_CUSTOM_ATTRIBUTE_READ_CHECK_BY_DEFAULT;
 
-		if (ImportExportThreadLocal.isExportInProcess()) {
+		if (ExportImportThreadLocal.isExportInProcess()) {
 			secure = false;
 		}
 
@@ -252,19 +275,7 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 		Map<String, Serializable> attributes =
 			new HashMap<String, Serializable>();
 
-		List<ExpandoColumn> columns = new ArrayList<ExpandoColumn>();
-
-		try {
-			columns = ExpandoColumnLocalServiceUtil.getDefaultTableColumns(
-				_companyId, _className);
-		}
-		catch (Exception e) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(e, e);
-			}
-		}
-
-		for (ExpandoColumn column : columns) {
+		for (ExpandoColumn column : getAttributeColumns()) {
 			attributes.put(
 				column.getName(), getAttribute(column.getName(), secure));
 		}
@@ -276,7 +287,7 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 		boolean secure =
 			PropsValues.PERMISSIONS_CUSTOM_ATTRIBUTE_READ_CHECK_BY_DEFAULT;
 
-		if (ImportExportThreadLocal.isExportInProcess()) {
+		if (ExportImportThreadLocal.isExportInProcess()) {
 			secure = false;
 		}
 
@@ -384,7 +395,7 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 		boolean secure =
 			PropsValues.PERMISSIONS_CUSTOM_ATTRIBUTE_WRITE_CHECK_BY_DEFAULT;
 
-		if (ImportExportThreadLocal.isImportInProcess()) {
+		if (ExportImportThreadLocal.isImportInProcess()) {
 			secure = false;
 		}
 
@@ -437,7 +448,7 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 		boolean secure =
 			PropsValues.PERMISSIONS_CUSTOM_ATTRIBUTE_WRITE_CHECK_BY_DEFAULT;
 
-		if (ImportExportThreadLocal.isImportInProcess()) {
+		if (ExportImportThreadLocal.isImportInProcess()) {
 			secure = false;
 		}
 
@@ -470,7 +481,7 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 		boolean secure =
 			PropsValues.PERMISSIONS_CUSTOM_ATTRIBUTE_WRITE_CHECK_BY_DEFAULT;
 
-		if (ImportExportThreadLocal.isImportInProcess()) {
+		if (ExportImportThreadLocal.isImportInProcess()) {
 			secure = false;
 		}
 
@@ -512,7 +523,7 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 		boolean secure =
 			PropsValues.PERMISSIONS_CUSTOM_ATTRIBUTE_WRITE_CHECK_BY_DEFAULT;
 
-		if (ImportExportThreadLocal.isImportInProcess()) {
+		if (ExportImportThreadLocal.isImportInProcess()) {
 			secure = false;
 		}
 
@@ -541,6 +552,95 @@ public class ExpandoBridgeImpl implements ExpandoBridge {
 
 	public void setIndexEnabled(boolean indexEnabled) {
 		_indexEnabled = indexEnabled;
+	}
+
+	protected boolean equals(
+		int type, Serializable serializable1, Serializable serializable2) {
+
+		if (type == ExpandoColumnConstants.BOOLEAN_ARRAY) {
+			Boolean[] array1 = (Boolean[])serializable1;
+			Boolean[] array2 = (Boolean[])serializable2;
+
+			return Arrays.equals(array1, array2);
+		}
+		else if (type == ExpandoColumnConstants.DATE_ARRAY) {
+			Date[] array1 = (Date[])serializable1;
+			Date[] array2 = (Date[])serializable2;
+
+			return Arrays.equals(array1, array2);
+		}
+		else if (type == ExpandoColumnConstants.DOUBLE_ARRAY) {
+			double[] array1 = (double[])serializable1;
+			double[] array2 = (double[])serializable2;
+
+			return Arrays.equals(array1, array2);
+		}
+		else if (type == ExpandoColumnConstants.FLOAT_ARRAY) {
+			float[] array1 = (float[])serializable1;
+			float[] array2 = (float[])serializable2;
+
+			return Arrays.equals(array1, array2);
+		}
+		else if (type == ExpandoColumnConstants.INTEGER_ARRAY) {
+			int[] array1 = (int[])serializable1;
+			int[] array2 = (int[])serializable2;
+
+			return Arrays.equals(array1, array2);
+		}
+		else if (type == ExpandoColumnConstants.LONG_ARRAY) {
+			long[] array1 = (long[])serializable1;
+			long[] array2 = (long[])serializable2;
+
+			return Arrays.equals(array1, array2);
+		}
+		else if (type == ExpandoColumnConstants.NUMBER_ARRAY) {
+			Number[] array1 = (Number[])serializable1;
+			Number[] array2 = (Number[])serializable2;
+
+			return Arrays.equals(array1, array2);
+		}
+		else if (type == ExpandoColumnConstants.SHORT_ARRAY) {
+			short[] array1 = (short[])serializable1;
+			short[] array2 = (short[])serializable2;
+
+			return Arrays.equals(array1, array2);
+		}
+		else if (type == ExpandoColumnConstants.STRING_ARRAY) {
+			String[] array1 = (String[])serializable1;
+			String[] array2 = (String[])serializable2;
+
+			return Arrays.equals(array1, array2);
+		}
+
+		return serializable1.equals(serializable2);
+	}
+
+	protected List<ExpandoColumn> getAttributeColumns() {
+		List<ExpandoColumn> columns = new ArrayList<ExpandoColumn>();
+
+		try {
+			columns = ExpandoColumnLocalServiceUtil.getDefaultTableColumns(
+				_companyId, _className);
+		}
+		catch (Exception e) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(e, e);
+			}
+		}
+
+		return columns;
+	}
+
+	protected ExpandoTable getTable() throws PortalException, SystemException {
+		ExpandoTable table = ExpandoTableLocalServiceUtil.fetchDefaultTable(
+			_companyId, _className);
+
+		if (table == null) {
+			table = ExpandoTableLocalServiceUtil.addDefaultTable(
+				_companyId, _className);
+		}
+
+		return table;
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(ExpandoBridgeImpl.class);

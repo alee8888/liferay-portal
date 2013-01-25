@@ -15,11 +15,11 @@
 --%>
 
 <aui:button-row>
-	<aui:button onClick='<%= renderResponse.getNamespace() + "addSearchProvider();" %>' value='<%= LanguageUtil.format(pageContext, "add-x-as-a-search-provider", company.getName(), false) %>' />
+	<aui:button onClick='<%= renderResponse.getNamespace() + "addSearchProvider();" %>' value='<%= LanguageUtil.format(pageContext, "add-x-as-a-search-provider", HtmlUtil.escape(company.getName()), false) %>' />
 </aui:button-row>
 
 <%
-LinkedHashMap groupParams = new LinkedHashMap();
+LinkedHashMap<String, Object> groupParams = new LinkedHashMap<String, Object>();
 
 groupParams.put("active", Boolean.FALSE);
 
@@ -41,7 +41,7 @@ while (itr.hasNext()) {
 	}
 	else {
 		try {
-			ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
+			ClassLoader classLoader = PACLClassLoaderUtil.getPortalClassLoader();
 
 			Class<?> openSearchClazz = classLoader.loadClass(portlet.getOpenSearchClass());
 
@@ -121,6 +121,16 @@ for (int i = 0; i < portlets.size(); i++) {
 	}
 
 	String portletTitle = PortalUtil.getPortletTitle(portlet, application, locale);
+
+	boolean filterSearch = false;
+
+	if (openSearch instanceof HitsOpenSearchImpl) {
+		HitsOpenSearchImpl hitsOpenSearchImpl = (HitsOpenSearchImpl)openSearch;
+
+		Indexer hitsOpenSearchImplIndexer = hitsOpenSearchImpl.getIndexer();
+
+		filterSearch = hitsOpenSearchImplIndexer.isFilterSearch();
+	}
 
 	List resultRows = new ArrayList();
 
@@ -300,10 +310,33 @@ for (int i = 0; i < portlets.size(); i++) {
 
 		<%
 		totalResults = totalResults + openSearchSearchContainer.getTotal();
+
+		StringBundler sb = new StringBundler(7);
+
+		sb.append(portletTitle);
+
+		// When the total is <= to the delta, we know the result is accurate
+		// since we've filtered the entire result set. Otherwise, we simply
+		// indicate that there are possibly many more. (à la Google)
+
+		if (filterSearch && (openSearchSearchContainer.getTotal() > openSearchSearchContainer.getDelta())) {
+			sb.append(StringPool.SPACE);
+			sb.append(StringPool.OPEN_PARENTHESIS);
+			sb.append(openSearchSearchContainer.getDelta());
+			sb.append(StringPool.SPACE);
+			sb.append(LanguageUtil.get(pageContext, "of-many"));
+			sb.append(StringPool.CLOSE_PARENTHESIS);
+		}
+		else {
+			sb.append(StringPool.SPACE);
+			sb.append(StringPool.OPEN_PARENTHESIS);
+			sb.append(openSearchSearchContainer.getTotal());
+			sb.append(StringPool.CLOSE_PARENTHESIS);
+		}
 		%>
 
 		<div class="section-title">
-			<%= portletTitle %> (<%= openSearchSearchContainer.getTotal() %>)
+			<%= sb.toString() %>
 		</div>
 
 		<liferay-ui:search-iterator paginate="<%= false %>" searchContainer="<%= openSearchSearchContainer %>" />
@@ -318,6 +351,7 @@ for (int i = 0; i < portlets.size(); i++) {
 				<div class="more-results">
 					<portlet:renderURL var="moreResultsURL">
 						<portlet:param name="struts_action" value="/search/search" />
+						<portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 						<portlet:param name="primarySearch" value="<%= portlet.getOpenSearchClass() %>" />
 						<portlet:param name="keywords" value="<%= HtmlUtil.escape(keywords) %>" />
 						<portlet:param name="format" value="<%= format %>" />

@@ -52,12 +52,24 @@ public class InputEditorTag extends IncludeTag {
 		_initMethod = initMethod;
 	}
 
+	public void setInlineEdit(boolean inlineEdit) {
+		_inlineEdit = inlineEdit;
+	}
+
+	public void setInlineEditSaveURL(String inlineEditSaveURL) {
+		_inlineEditSaveURL = inlineEditSaveURL;
+	}
+
 	public void setName(String name) {
 		_name = name;
 	}
 
 	public void setOnChangeMethod(String onChangeMethod) {
 		_onChangeMethod = onChangeMethod;
+	}
+
+	public void setResizable(boolean resizable) {
+		_resizable = resizable;
 	}
 
 	public void setSkipEditorLoading(boolean skipEditorLoading) {
@@ -80,9 +92,12 @@ public class InputEditorTag extends IncludeTag {
 		_fileBrowserParams = null;
 		_height = null;
 		_initMethod = "initEditor";
+		_inlineEdit = false;
+		_inlineEditSaveURL = null;
 		_name = "editor";
 		_onChangeMethod = null;
 		_page = null;
+		_resizable = true;
 		_skipEditorLoading = false;
 		_toolbarSet = "liferay";
 		_width = null;
@@ -116,9 +131,15 @@ public class InputEditorTag extends IncludeTag {
 			"liferay-ui:input-editor:fileBrowserParams", _fileBrowserParams);
 		request.setAttribute("liferay-ui:input-editor:height", _height);
 		request.setAttribute("liferay-ui:input-editor:initMethod", _initMethod);
+		request.setAttribute(
+			"liferay-ui:input-editor:inlineEdit", String.valueOf(_inlineEdit));
+		request.setAttribute(
+			"liferay-ui:input-editor:inlineEditSaveURL", _inlineEditSaveURL);
 		request.setAttribute("liferay-ui:input-editor:name", _name);
 		request.setAttribute(
 			"liferay-ui:input-editor:onChangeMethod", _onChangeMethod);
+		request.setAttribute(
+			"liferay-ui:input-editor:resizable", String.valueOf(_resizable));
 		request.setAttribute(
 			"liferay-ui:input-editor:skipEditorLoading",
 			String.valueOf(_skipEditorLoading));
@@ -132,9 +153,12 @@ public class InputEditorTag extends IncludeTag {
 	private Map<String, String> _fileBrowserParams;
 	private String _height;
 	private String _initMethod = "initEditor";
+	private boolean _inlineEdit;
+	private String _inlineEditSaveURL;
 	private String _name = "editor";
 	private String _onChangeMethod;
 	private String _page;
+	private boolean _resizable = true;
 	private boolean _skipEditorLoading;
 	private String _toolbarSet = "liferay";
 	private String _width;

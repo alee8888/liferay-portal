@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Image;
@@ -131,8 +132,9 @@ public class EditProductEntryAction extends PortletAction {
 			}
 		}
 
-		return mapping.findForward(getForward(
-			renderRequest, "portlet.software_catalog.edit_product_entry"));
+		return mapping.findForward(
+			getForward(
+				renderRequest, "portlet.software_catalog.edit_product_entry"));
 	}
 
 	protected void deleteProductEntry(ActionRequest actionRequest)
@@ -159,6 +161,12 @@ public class EditProductEntryAction extends PortletAction {
 
 		for (String name :
 				getSortedParameterNames(uploadPortletRequest, imagePrefix)) {
+
+			String mimeType = uploadPortletRequest.getContentType(name);
+
+			if (!MimeTypesUtil.isWebImage(mimeType)) {
+				throw new ProductEntryScreenshotsException();
+			}
 
 			int priority = GetterUtil.getInteger(
 				name.substring(imagePrefix.length()));

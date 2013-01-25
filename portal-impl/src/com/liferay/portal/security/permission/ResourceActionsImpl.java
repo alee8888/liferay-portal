@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.UnmodifiableList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
@@ -53,7 +54,6 @@ import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.PortletResourceBundles;
 import com.liferay.portlet.expando.model.ExpandoColumn;
 import com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup;
-import com.liferay.util.UniqueList;
 
 import java.io.InputStream;
 
@@ -504,7 +504,7 @@ public class ResourceActionsImpl implements ResourceActions {
 	 */
 	public List<Role> getRoles(
 			long companyId, Group group, String modelResource)
-			throws SystemException {
+		throws SystemException {
 
 		return getRoles(companyId, group, modelResource, null);
 	}

@@ -51,6 +51,10 @@ import java.util.Set;
 public class DocumentImpl implements Document {
 
 	public static String getLocalizedName(Locale locale, String name) {
+		if (locale == null) {
+			return name;
+		}
+
 		String languageId = LocaleUtil.toLanguageId(locale);
 
 		String localizedName = name.concat(StringPool.UNDERLINE).concat(
@@ -481,12 +485,38 @@ public class DocumentImpl implements Document {
 	}
 
 	public String get(Locale locale, String name) {
+		if (locale == null) {
+			return get(name);
+		}
+
 		String localizedName = getLocalizedName(locale, name);
 
 		Field field = _fields.get(localizedName);
 
 		if (field == null) {
 			field = _fields.get(name);
+		}
+
+		if (field == null) {
+			return StringPool.BLANK;
+		}
+
+		return field.getValue();
+	}
+
+	public String get(Locale locale, String name, String defaultName) {
+		if (locale == null) {
+			return get(name, defaultName);
+		}
+
+		String localizedName = getLocalizedName(locale, name);
+
+		Field field = _fields.get(localizedName);
+
+		if (field == null) {
+			localizedName = getLocalizedName(locale, defaultName);
+
+			field = _fields.get(localizedName);
 		}
 
 		if (field == null) {
@@ -506,11 +536,25 @@ public class DocumentImpl implements Document {
 		return field.getValue();
 	}
 
+	public String get(String name, String defaultName) {
+		Field field = _fields.get(name);
+
+		if (field == null) {
+			return get(defaultName);
+		}
+
+		return field.getValue();
+	}
+
 	public Date getDate(String name) throws ParseException {
 		DateFormat dateFormat = DateFormatFactoryUtil.getSimpleDateFormat(
 			_INDEX_DATE_FORMAT_PATTERN);
 
 		return dateFormat.parse(get(name));
+	}
+
+	public Field getField(String name) {
+		return _fields.get(name);
 	}
 
 	public Map<String, Field> getFields() {

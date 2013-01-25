@@ -14,12 +14,15 @@
 
 package com.liferay.portlet.journal.service.impl;
 
+import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.search.Indexable;
+import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
@@ -53,7 +56,7 @@ public class JournalFolderLocalServiceImpl
 		parentFolderId = getParentFolderId(groupId, parentFolderId);
 		Date now = new Date();
 
-		validate(name);
+		validateFolder(0, groupId, parentFolderId, name);
 
 		long folderId = counterLocalService.increment();
 
@@ -71,7 +74,7 @@ public class JournalFolderLocalServiceImpl
 		folder.setDescription(description);
 		folder.setExpandoBridgeAttributes(serviceContext);
 
-		journalFolderPersistence.update(folder, false);
+		journalFolderPersistence.update(folder);
 
 		// Resources
 
@@ -80,7 +83,8 @@ public class JournalFolderLocalServiceImpl
 		return folder;
 	}
 
-	public void deleteFolder(JournalFolder folder)
+	@Indexable(type = IndexableType.DELETE)
+	public JournalFolder deleteFolder(JournalFolder folder)
 		throws PortalException, SystemException {
 
 		// Folders
@@ -110,15 +114,18 @@ public class JournalFolderLocalServiceImpl
 
 		expandoValueLocalService.deleteValues(
 			JournalFolder.class.getName(), folder.getFolderId());
+
+		return folder;
 	}
 
-	public void deleteFolder(long folderId)
+	@Indexable(type = IndexableType.DELETE)
+	public JournalFolder deleteFolder(long folderId)
 		throws PortalException, SystemException {
 
 		JournalFolder folder = journalFolderPersistence.findByPrimaryKey(
 			folderId);
 
-		deleteFolder(folder);
+		return deleteFolder(folder);
 	}
 
 	public void deleteFolders(long groupId)
@@ -128,8 +135,14 @@ public class JournalFolderLocalServiceImpl
 			groupId, JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 		for (JournalFolder folder : folders) {
-			deleteFolder(folder);
+			journalFolderLocalService.deleteFolder(folder);
 		}
+	}
+
+	public JournalFolder fetchFolder(long groupId, String name)
+		throws SystemException {
+
+		return journalFolderPersistence.fetchByG_N(groupId, name);
 	}
 
 	public List<JournalFolder> getCompanyFolders(
@@ -172,24 +185,29 @@ public class JournalFolderLocalServiceImpl
 			OrderByComparator obc)
 		throws SystemException {
 
+		QueryDefinition queryDefinition = new QueryDefinition(
+			WorkflowConstants.STATUS_ANY, start, end, obc);
+
 		return journalFolderFinder.findF_AByG_F(
-			groupId, folderId, start, end, obc);
+			groupId, folderId, queryDefinition);
 	}
 
 	public int getFoldersAndArticlesCount(
 			long groupId, List<Long> folderIds, int status)
 		throws SystemException {
 
+		QueryDefinition queryDefinition = new QueryDefinition(status);
+
 		if (folderIds.size() <= PropsValues.SQL_DATA_MAX_PARAMETERS) {
-			return journalArticleFinder.countByG_F_S(
-				groupId, folderIds, status);
+			return journalArticleFinder.countByG_F(
+				groupId, folderIds, queryDefinition);
 		}
 		else {
 			int start = 0;
 			int end = PropsValues.SQL_DATA_MAX_PARAMETERS;
 
-			int articlesCount = journalArticleFinder.countByG_F_S(
-				groupId, folderIds.subList(start, end), status);
+			int articlesCount = journalArticleFinder.countByG_F(
+				groupId, folderIds.subList(start, end), queryDefinition);
 
 			folderIds.subList(start, end).clear();
 
@@ -203,7 +221,9 @@ public class JournalFolderLocalServiceImpl
 	public int getFoldersAndArticlesCount(long groupId, long folderId)
 		throws SystemException {
 
-		return journalFolderFinder.countF_A_ByG_F(groupId, folderId);
+		return journalFolderFinder.countF_A_ByG_F(
+			groupId, folderId,
+			new QueryDefinition(WorkflowConstants.STATUS_ANY));
 	}
 
 	public int getFoldersCount(long groupId, long parentFolderId)
@@ -227,6 +247,7 @@ public class JournalFolderLocalServiceImpl
 		}
 	}
 
+	@Indexable(type = IndexableType.REINDEX)
 	public JournalFolder moveFolder(
 			long folderId, long parentFolderId, ServiceContext serviceContext)
 		throws PortalException, SystemException {
@@ -244,11 +265,12 @@ public class JournalFolderLocalServiceImpl
 		folder.setParentFolderId(parentFolderId);
 		folder.setExpandoBridgeAttributes(serviceContext);
 
-		journalFolderPersistence.update(folder, false);
+		journalFolderPersistence.update(folder);
 
 		return folder;
 	}
 
+	@Indexable(type = IndexableType.REINDEX)
 	public JournalFolder updateFolder(
 			long folderId, long parentFolderId, String name, String description,
 			boolean mergeWithParentFolder, ServiceContext serviceContext)
@@ -269,7 +291,7 @@ public class JournalFolderLocalServiceImpl
 
 		// Folder
 
-		validate(name);
+		validateFolder(folderId, folder.getGroupId(), parentFolderId, name);
 
 		folder.setModifiedDate(serviceContext.getModifiedDate(null));
 		folder.setParentFolderId(parentFolderId);
@@ -277,7 +299,7 @@ public class JournalFolderLocalServiceImpl
 		folder.setDescription(description);
 		folder.setExpandoBridgeAttributes(serviceContext);
 
-		journalFolderPersistence.update(folder, false);
+		journalFolderPersistence.update(folder);
 
 		return folder;
 	}
@@ -349,7 +371,7 @@ public class JournalFolderLocalServiceImpl
 		for (JournalArticle article : articles) {
 			article.setFolderId(toFolderId);
 
-			journalArticlePersistence.update(article, false);
+			journalArticlePersistence.update(article);
 
 			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
 				JournalArticle.class);
@@ -357,15 +379,7 @@ public class JournalFolderLocalServiceImpl
 			indexer.reindex(article);
 		}
 
-		deleteFolder(fromFolder);
-	}
-
-	protected void validate(String name) throws PortalException {
-		if ((Validator.isNull(name)) || (name.indexOf("\\\\") != -1) ||
-			(name.indexOf("//") != -1)) {
-
-			throw new FolderNameException();
-		}
+		journalFolderLocalService.deleteFolder(fromFolder);
 	}
 
 	protected void validateFolder(
@@ -384,6 +398,10 @@ public class JournalFolderLocalServiceImpl
 
 	protected void validateFolderName(String name) throws PortalException {
 		if (!AssetUtil.isValidWord(name)) {
+			throw new FolderNameException();
+		}
+
+		if (name.contains("\\\\") || name.contains("//")) {
 			throw new FolderNameException();
 		}
 	}

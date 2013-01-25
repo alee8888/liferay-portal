@@ -66,12 +66,28 @@ type = ParamUtil.getString(request, "type", type);
 		<%
 		String structureId = article.getStructureId();
 
-		if (Validator.isNotNull(structureId)) {
-			List templates = JournalTemplateLocalServiceUtil.getStructureTemplates(groupId, structureId);
+		DDMStructure ddmStructure = null;
 
-			if (!templates.isEmpty()) {
-				if (Validator.isNull(templateId)) {
-					templateId = article.getTemplateId();
+		long ddmStructureGroupId = groupId;
+
+		if (Validator.isNotNull(structureId)) {
+			ddmStructure = DDMStructureLocalServiceUtil.fetchStructure(groupId, structureId);
+
+			List<DDMTemplate> ddmTemplates = new ArrayList<DDMTemplate>();
+
+			if (ddmStructure != null) {
+				ddmStructureGroupId = ddmStructure.getGroupId();
+
+				ddmTemplates.addAll(DDMTemplateLocalServiceUtil.getTemplates(ddmStructureGroupId, PortalUtil.getClassNameId(DDMStructure.class), ddmStructure.getStructureId()));
+
+				if (groupId != ddmStructureGroupId) {
+					ddmTemplates.addAll(DDMTemplateLocalServiceUtil.getTemplates(groupId, PortalUtil.getClassNameId(DDMStructure.class), ddmStructure.getStructureId()));
+				}
+			}
+
+			if (!ddmTemplates.isEmpty()) {
+				if (Validator.isNull(ddmTemplateKey)) {
+					ddmTemplateKey = article.getTemplateId();
 				}
 		%>
 
@@ -79,8 +95,8 @@ type = ParamUtil.getString(request, "type", type);
 					<liferay-ui:message key="override-default-template" />
 
 					<liferay-ui:table-iterator
-						list="<%= templates %>"
-						listType="com.liferay.portlet.journal.model.JournalTemplate"
+						list="<%= ddmTemplates %>"
+						listType="com.liferay.portlet.dynamicdatamapping.model.DDMTemplate"
 						rowLength="3"
 						rowPadding="30"
 					>
@@ -88,27 +104,27 @@ type = ParamUtil.getString(request, "type", type);
 						<%
 						boolean templateChecked = false;
 
-						if (templateId.equals(tableIteratorObj.getTemplateId())) {
+						if (ddmTemplateKey.equals(tableIteratorObj.getTemplateKey())) {
 							templateChecked = true;
 						}
 
-						if ((tableIteratorPos.intValue() == 0) && Validator.isNull(templateId)) {
+						if ((tableIteratorPos.intValue() == 0) && Validator.isNull(ddmTemplateKey)) {
 							templateChecked = true;
 						}
 						%>
 
-						<liferay-portlet:renderURL portletName="<%= PortletKeys.JOURNAL %>" var="editTemplateURL">
-							<portlet:param name="struts_action" value="/journal/edit_template" />
+						<liferay-portlet:renderURL portletName="<%= PortletKeys.DYNAMIC_DATA_MAPPING %>" var="editTemplateURL">
+							<portlet:param name="struts_action" value="/dynamic_data_mapping/edit_template" />
 							<portlet:param name="redirect" value="<%= currentURL %>" />
 							<portlet:param name="groupId" value="<%= String.valueOf(tableIteratorObj.getGroupId()) %>" />
-							<portlet:param name="templateId" value="<%= tableIteratorObj.getTemplateId() %>" />
+							<portlet:param name="templateId" value="<%= String.valueOf(tableIteratorObj.getTemplateId()) %>" />
 						</liferay-portlet:renderURL>
 
 						<liferay-util:buffer var="linkContent">
 							<aui:a href="<%= editTemplateURL %>" id="tableIteratorObjName"><%= tableIteratorObj.getName() %></aui:a>
 						</liferay-util:buffer>
 
-						<aui:input checked="<%= templateChecked %>" label="<%= linkContent %>" name="overideTemplateId" onChange='<%= "if (this.checked) {document." + renderResponse.getNamespace() + "fm." + renderResponse.getNamespace() + "templateId.value = this.value;}" %>' type="radio" value="<%= tableIteratorObj.getTemplateId() %>" />
+						<aui:input checked="<%= templateChecked %>" label="<%= linkContent %>" name="overideTemplateId" onChange='<%= "if (this.checked) {document." + renderResponse.getNamespace() + "fm." + renderResponse.getNamespace() + "ddmTemplateKey.value = this.value;}" %>' type="radio" value="<%= tableIteratorObj.getTemplateKey() %>" />
 
 						<c:if test="<%= tableIteratorObj.isSmallImage() %>">
 							<br />
@@ -134,6 +150,16 @@ type = ParamUtil.getString(request, "type", type);
 	dynamicRenderRequest.setParameter("groupId", String.valueOf(groupId));
 
 	ArticleSearch searchContainer = new ArticleSearch(dynamicRenderRequest, configurationRenderURL);
+
+	List<String> headerNames = searchContainer.getHeaderNames();
+
+	headerNames.clear();
+
+	headerNames.add("id");
+	headerNames.add("title");
+	headerNames.add("modified-date");
+	headerNames.add("display-date");
+	headerNames.add("author");
 	%>
 
 	<liferay-ui:search-form
@@ -151,6 +177,7 @@ type = ParamUtil.getString(request, "type", type);
 
 	ArticleSearchTerms searchTerms = (ArticleSearchTerms)searchContainer.getSearchTerms();
 
+	searchTerms.setFolderIds(new ArrayList<Long>());
 	searchTerms.setVersion(-1);
 
 	List<JournalArticle> results = null;
@@ -199,7 +226,7 @@ type = ParamUtil.getString(request, "type", type);
 
 		// Author
 
-		row.addText(HtmlUtil.escape(PortalUtil.getUserName(curArticle.getUserId(), curArticle.getUserName())), rowHREF);
+		row.addText(PortalUtil.getUserName(curArticle), rowHREF);
 
 		// Add result row
 
@@ -215,7 +242,7 @@ type = ParamUtil.getString(request, "type", type);
 	<aui:input name="redirect" type="hidden" value='<%= configurationRenderURL + StringPool.AMPERSAND + renderResponse.getNamespace() + "cur" + cur %>' />
 	<aui:input name="preferences--groupId--" type="hidden" value="<%= groupId %>" />
 	<aui:input name="preferences--articleId--" type="hidden" value="<%= articleId %>" />
-	<aui:input name="preferences--templateId--" type="hidden" value="<%= templateId %>" />
+	<aui:input name="preferences--ddmTemplateKey--" type="hidden" value="<%= ddmTemplateKey %>" />
 
 	<aui:fieldset cssClass="aui-helper-hidden">
 		<aui:field-wrapper label="portlet-id">
@@ -272,7 +299,7 @@ type = ParamUtil.getString(request, "type", type);
 			var A = AUI();
 
 			document.<portlet:namespace />fm.<portlet:namespace />articleId.value = articleId;
-			document.<portlet:namespace />fm.<portlet:namespace />templateId.value = "";
+			document.<portlet:namespace />fm.<portlet:namespace />ddmTemplateKey.value = "";
 
 			A.one('.displaying-article-id-holder').show();
 			A.one('.displaying-help-message-holder').hide();

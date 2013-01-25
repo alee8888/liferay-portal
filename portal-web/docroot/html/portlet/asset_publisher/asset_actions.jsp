@@ -23,48 +23,30 @@ AssetRenderer assetRenderer = (AssetRenderer)request.getAttribute("view.jsp-asse
 
 boolean showEditURL = ParamUtil.getBoolean(request, "showEditURL", true);
 
-PortletURL editPortletURL = assetRenderer.getURLEdit(liferayPortletRequest, liferayPortletResponse);
+PortletURL editPortletURL = null;
 
-String editPortletURLString = StringPool.BLANK;
-
-if (showEditURL && (editPortletURL != null)) {
-	editPortletURL.setWindowState(LiferayWindowState.POP_UP);
-	editPortletURL.setPortletMode(PortletMode.VIEW);
-
-	if (Validator.isNotNull(portletResource)) {
-		editPortletURL.setParameter("referringPortletResource", portletResource);
-	}
-	else {
-		editPortletURL.setParameter("referringPortletResource", portletDisplay.getId());
-	}
-
-	PortletURL redirectURL = renderResponse.createRenderURL();
-
-	redirectURL.setWindowState(LiferayWindowState.POP_UP);
+if (showEditURL && assetRenderer.hasEditPermission(permissionChecker)) {
+	PortletURL redirectURL = liferayPortletResponse.createLiferayPortletURL(plid, portletDisplay.getId(), PortletRequest.RENDER_PHASE, false);
 
 	redirectURL.setParameter("struts_action", "/asset_publisher/add_asset_redirect");
 
-	editPortletURL.setParameter("redirect", redirectURL.toString());
-	editPortletURL.setParameter("originalRedirect", redirectURL.toString());
+	String fullContentRedirect = (String)request.getAttribute("view.jsp-fullContentRedirect");
 
-	editPortletURLString = editPortletURL.toString();
+	if (fullContentRedirect != null) {
+		redirectURL.setParameter("redirect", fullContentRedirect);
+	}
 
-	editPortletURLString = HttpUtil.addParameter(editPortletURLString, "doAsGroupId", assetRenderer.getGroupId());
-	editPortletURLString = HttpUtil.addParameter(editPortletURLString, "refererPlid", plid);
-}
+	redirectURL.setWindowState(LiferayWindowState.POP_UP);
 
-Group stageableGroup = themeDisplay.getScopeGroup();
-
-if (themeDisplay.getScopeGroup().isLayout()) {
-	stageableGroup = layout.getGroup();
+	editPortletURL = assetRenderer.getURLEdit(liferayPortletRequest, liferayPortletResponse, LiferayWindowState.POP_UP, redirectURL);
 }
 %>
 
-<c:if test="<%= assetRenderer.hasEditPermission(permissionChecker) && Validator.isNotNull(editPortletURLString) && !stageableGroup.hasStagingGroup() %>">
+<c:if test="<%= editPortletURL != null %>">
 	<div class="lfr-meta-actions asset-actions">
 
 		<%
-		String taglibEditURL = "javascript:Liferay.Util.openWindow({dialog: {width: 960}, id: '" + renderResponse.getNamespace() + "editAsset', title: '" + LanguageUtil.format(pageContext, "edit-x", HtmlUtil.escape(assetRenderer.getTitle(locale))) + "', uri:'" + HtmlUtil.escapeURL(editPortletURLString) + "'});";
+		String taglibEditURL = "javascript:Liferay.Util.openWindow({dialog: {width: 960}, id: '" + renderResponse.getNamespace() + "editAsset', title: '" + LanguageUtil.format(pageContext, "edit-x", HtmlUtil.escape(assetRenderer.getTitle(locale))) + "', uri:'" + HtmlUtil.escapeURL(editPortletURL.toString()) + "'});";
 		%>
 
 		<liferay-ui:icon

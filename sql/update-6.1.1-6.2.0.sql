@@ -1,3 +1,29 @@
+update BlogsEntry set status = 2 where status = 9;
+
+alter table BookmarksEntry add status INTEGER;
+alter table BookmarksEntry add statusByUserId LONG;
+alter table BookmarksEntry add statusByUserName VARCHAR(75) null;
+alter table BookmarksEntry add statusDate DATE null;
+
+COMMIT_TRANSACTION;
+
+update BookmarksEntry set status = 0;
+update BookmarksEntry set statusByUserId = userId;
+update BookmarksEntry set statusByUserName = userName;
+update BookmarksEntry set statusDate = modifiedDate;
+
+alter table BookmarksFolder add status INTEGER;
+alter table BookmarksFolder add statusByUserId LONG;
+alter table BookmarksFolder add statusByUserName VARCHAR(75) null;
+alter table BookmarksFolder add statusDate DATE null;
+
+COMMIT_TRANSACTION;
+
+update BookmarksFolder set status = 0;
+update BookmarksFolder set statusByUserId = userId;
+update BookmarksFolder set statusByUserName = userName;
+update BookmarksFolder set statusDate = modifiedDate;
+
 alter table Contact_ add classNameId LONG;
 alter table Contact_ add classPK LONG;
 alter table Contact_ add emailAddress VARCHAR(75) null;
@@ -29,7 +55,7 @@ update Country set name = 'andorra' where name = 'Andorra';
 update Country set name = 'angola' where name = 'Angola';
 update Country set name = 'anguilla' where name = 'Anguilla';
 update Country set name = 'antarctica' where name = 'Antarctica';
-update Country set name = 'antigua' where name = 'Antigua';
+update Country set name = 'antigua-barbuda' where name = 'Antigua';
 update Country set name = 'argentina' where name = 'Argentina';
 update Country set name = 'armenia' where name = 'Armenia';
 update Country set name = 'aruba' where name = 'Aruba';
@@ -230,6 +256,45 @@ update Country set name = 'yemen' where name = 'Yemen';
 update Country set name = 'zambia' where name = 'Zambia';
 update Country set name = 'zimbabwe' where name = 'Zimbabwe';
 
+update Country set a2 = 'WS', a3 = 'WSM', number_ = '882' where countryId = '224';
+
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (228, 'aland-islands', 'AX', 'ALA', '248', '359', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (229, 'bonaire-st-eustatius-saba', 'BQ', 'BES', '535', '599', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (230, 'bouvet-island', 'BV', 'BVT', '74', '047', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (231, 'british-indian-ocean-territory', 'IO', 'IOT', '86', '246', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (232, 'curacao', 'CW', 'CUW', '531', '599', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (233, 'french-southern-territories', 'TF', 'ATF', '260', '033', FALSE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (234, 'guernsey', 'GG', 'GGY', '831', '044', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (235, 'heard-island-mcdonald-islands', 'HM', 'HMD', '334', '061', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (236, 'isle-of-man', 'IM', 'IMN', '833', '044', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (237, 'jersey', 'JE', 'JEY', '832', '044', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (238, 'northern-mariana-islands', 'MP', 'MNP', '580', '670', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (239, 'pitcairn', 'PN', 'PCN', '612', '649', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (240, 'south-georgia-south-sandwich-islands', 'GS', 'SGS', '239', '044', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (241, 'south-sudan', 'SS', 'SSD', '728', '211', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (242, 'sint-maarten', 'SX', 'SXM', '534', '721', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (243, 'st-barthelemy', 'BL', 'BLM', '652', '590', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (244, 'st-martin', 'MF', 'MAF', '663', '590', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (245, 'tokelau', 'TK', 'TKL', '772', '690', FALSE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (246, 'timor-leste', 'TL', 'TLS', '626', '670', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (247, 'united-states-minor-outlying-islands', 'UM', 'UMI', '581', '699', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (248, 'united-states-virgin-islands', 'VI', 'VIR', '850', '340', TRUE, TRUE);
+insert into Country (countryId, name, a2, a3, number_, idd_, zipRequired, active_) values (249, 'western-sahara', 'EH', 'ESH', '732', '212', TRUE, TRUE);
+
+alter table DDMStructure add parentStructureId LONG;
+
+alter table DDMTemplate add cacheable BOOLEAN;
+alter table DDMTemplate add smallImage BOOLEAN;
+alter table DDMTemplate add smallImageId LONG;
+alter table DDMTemplate add smallImageURL STRING;
+
+update DDMTemplate set type_ = 'display' where type_ = 'list';
+update DDMTemplate set type_ = 'form' where type_ = 'detail';
+
+alter table DLFileEntry add classNameId LONG;
+alter table DLFileEntry add classPK LONG;
+alter table DLFileEntry add manualCheckInRequired BOOLEAN;
+
 alter table DLFileRank add active_ BOOLEAN;
 
 COMMIT_TRANSACTION;
@@ -242,6 +307,9 @@ COMMIT_TRANSACTION;
 
 update DLFileShortcut set active_ = TRUE;
 
+alter table DLFileVersion add checksum VARCHAR(75) null;
+
+alter table DLFolder add hidden BOOLEAN;
 alter table DLFolder add status INTEGER;
 alter table DLFolder add statusByUserId LONG;
 alter table DLFolder add statusByUserName VARCHAR(75) null;
@@ -249,12 +317,23 @@ alter table DLFolder add statusDate DATE null;
 
 COMMIT_TRANSACTION;
 
+update DLFolder set hidden = FALSE;
 update DLFolder set status = 0;
 update DLFolder set statusByUserId = userId;
 update DLFolder set statusByUserName = userName;
 update DLFolder set statusDate = modifiedDate;
 
+alter table ExpandoRow add modifiedDate DATE null;
+
+COMMIT_TRANSACTION;
+
+update ExpandoRow set modifiedDate = CURRENT_TIMESTAMP;
+
+update Group_ set site = FALSE where name = 'Control Panel';
+
 drop table Groups_Permissions;
+
+alter table Image drop column text_;
 
 alter table JournalArticle add folderId LONG;
 
@@ -272,13 +351,45 @@ create table JournalFolder (
 	description STRING null
 );
 
+drop index IX_228562AD on Lock_;
+drop index IX_DD635956 on Lock_;
+
+alter table MBCategory add status INTEGER;
+alter table MBCategory add statusByUserId LONG;
+alter table MBCategory add statusByUserName VARCHAR(75) null;
+alter table MBCategory add statusDate DATE null;
+
+COMMIT_TRANSACTION;
+
+update MBCategory set status = 0;
+update MBCategory set statusByUserId = userId;
+update MBCategory set statusByUserName = userName;
+update MBCategory set statusDate = modifiedDate;
+
+update MBMessage set status = 2 where status = 9;
+
+alter table MBMessage drop column attachments;
+
 drop table OrgGroupPermission;
 
+alter table PasswordPolicy add regex VARCHAR(75) null;
+
+drop index IX_C3A17327 on PasswordPolicyRel;
+drop index IX_ED7CF243 on PasswordPolicyRel;
+
 drop table Permission_;
+
+alter table RepositoryEntry add manualCheckInRequired BOOLEAN;
 
 drop table Resource_;
 
 drop table ResourceCode;
+
+drop index IX_88705859 on ResourcePermission;
+drop index IX_C94C7708 on ResourcePermission;
+drop index IX_8D83D0CE on ResourcePermission;
+drop index IX_4A1F4402 on ResourcePermission;
+drop index IX_8DB864A9 on ResourcePermission;
 
 drop table Roles_Permissions;
 
@@ -309,4 +420,22 @@ create table TrashVersion (
 	status INTEGER
 );
 
+alter table User_ add ldapServerId LONG;
+
+COMMIT_TRANSACTION;
+
+update User_ set ldapServerId = -1;
+
 drop table Users_Permissions;
+
+alter table WikiNode add status INTEGER;
+alter table WikiNode add statusByUserId LONG;
+alter table WikiNode add statusByUserName VARCHAR(75) null;
+alter table WikiNode add statusDate DATE null;
+
+COMMIT_TRANSACTION;
+
+update WikiNode set status = 0;
+update WikiNode set statusByUserId = userId;
+update WikiNode set statusByUserName = userName;
+update WikiNode set statusDate = modifiedDate;

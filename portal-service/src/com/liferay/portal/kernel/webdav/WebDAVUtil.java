@@ -19,13 +19,16 @@ import com.liferay.portal.NoSuchUserException;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
+import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Namespace;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
@@ -35,6 +38,7 @@ import com.liferay.portal.model.User;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.comparator.GroupFriendlyURLComparator;
+import com.liferay.portlet.documentlibrary.util.DLUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,6 +53,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * @author Brian Wing Shun Chan
  * @author Alexander Chow
+ * @author Raymond Augé
  */
 public class WebDAVUtil {
 
@@ -62,7 +67,7 @@ public class WebDAVUtil {
 	public static final String TOKEN_PREFIX = "opaquelocktoken:";
 
 	public static void addStorage(WebDAVStorage storage) {
-		_instance._addStorage(storage);
+		getInstance()._addStorage(storage);
 	}
 
 	public static Namespace createNamespace(String prefix, String uri) {
@@ -82,7 +87,7 @@ public class WebDAVUtil {
 	}
 
 	public static void deleteStorage(WebDAVStorage storage) {
-		_instance._deleteStorage(storage);
+		getInstance()._deleteStorage(storage);
 	}
 
 	public static long getDepth(HttpServletRequest request) {
@@ -185,6 +190,8 @@ public class WebDAVUtil {
 
 		// Communities
 
+		List<Group> groups = new UniqueList<Group>();
+
 		LinkedHashMap<String, Object> params =
 			new LinkedHashMap<String, Object>();
 
@@ -193,9 +200,10 @@ public class WebDAVUtil {
 		OrderByComparator orderByComparator = new GroupFriendlyURLComparator(
 			true);
 
-		List<Group> groups = GroupLocalServiceUtil.search(
-			user.getCompanyId(), null, null, params, QueryUtil.ALL_POS,
-			QueryUtil.ALL_POS, orderByComparator);
+		groups.addAll(
+			GroupLocalServiceUtil.search(
+				user.getCompanyId(), null, null, params, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, orderByComparator));
 
 		// Organizations
 
@@ -212,6 +220,12 @@ public class WebDAVUtil {
 		Collections.sort(groups, orderByComparator);
 
 		return groups;
+	}
+
+	public static WebDAVUtil getInstance() {
+		PortalRuntimePermission.checkGetBeanProperty(WebDAVUtil.class);
+
+		return _instance;
 	}
 
 	public static String getLockUuid(HttpServletRequest request)
@@ -268,11 +282,11 @@ public class WebDAVUtil {
 	}
 
 	public static WebDAVStorage getStorage(String token) {
-		return _instance._getStorage(token);
+		return getInstance()._getStorage(token);
 	}
 
 	public static Collection<String> getStorageTokens() {
-		return _instance._getStorageTokens();
+		return getInstance()._getStorageTokens();
 	}
 
 	public static long getTimeout(HttpServletRequest request) {
@@ -300,7 +314,36 @@ public class WebDAVUtil {
 	}
 
 	public static boolean isOverwrite(HttpServletRequest request) {
-		return _instance._isOverwrite(request);
+		return getInstance()._isOverwrite(request);
+	}
+
+	public static String stripManualCheckInRequiredPath(String url) {
+		return stripToken(url, DLUtil.MANUAL_CHECK_IN_REQUIRED_PATH);
+	}
+
+	public static String stripOfficeExtension(String url) {
+		String strippedUrl = stripToken(url, DLUtil.OFFICE_EXTENSION_PATH);
+
+		if (strippedUrl.length() != url.length()) {
+			strippedUrl = FileUtil.stripExtension(strippedUrl);
+		}
+
+		return strippedUrl;
+	}
+
+	public static String stripToken(String url, String token) {
+		if (Validator.isNull(url)) {
+			return StringPool.BLANK;
+		}
+
+		int index = url.indexOf(token);
+
+		if (index >= 0) {
+			url =
+				url.substring(0, index) + url.substring(index + token.length());
+		}
+
+		return url;
 	}
 
 	private WebDAVUtil() {

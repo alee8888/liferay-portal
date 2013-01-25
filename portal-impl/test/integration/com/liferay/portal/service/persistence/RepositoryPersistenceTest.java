@@ -20,34 +20,60 @@ import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.model.impl.RepositoryModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class RepositoryPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (RepositoryPersistence)PortalBeanLocatorUtil.locate(RepositoryPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -109,7 +135,7 @@ public class RepositoryPersistenceTest {
 
 		newRepository.setDlFolderId(ServiceTestUtil.nextLong());
 
-		_persistence.update(newRepository, false);
+		_persistence.update(newRepository);
 
 		Repository existingRepository = _persistence.findByPrimaryKey(newRepository.getPrimaryKey());
 
@@ -277,6 +303,15 @@ public class RepositoryPersistenceTest {
 				existingRepositoryModelImpl.getOriginalUuid()));
 		Assert.assertEquals(existingRepositoryModelImpl.getGroupId(),
 			existingRepositoryModelImpl.getOriginalGroupId());
+
+		Assert.assertEquals(existingRepositoryModelImpl.getGroupId(),
+			existingRepositoryModelImpl.getOriginalGroupId());
+		Assert.assertTrue(Validator.equals(
+				existingRepositoryModelImpl.getName(),
+				existingRepositoryModelImpl.getOriginalName()));
+		Assert.assertTrue(Validator.equals(
+				existingRepositoryModelImpl.getPortletId(),
+				existingRepositoryModelImpl.getOriginalPortletId()));
 	}
 
 	protected Repository addRepository() throws Exception {
@@ -310,10 +345,12 @@ public class RepositoryPersistenceTest {
 
 		repository.setDlFolderId(ServiceTestUtil.nextLong());
 
-		_persistence.update(repository, false);
+		_persistence.update(repository);
 
 		return repository;
 	}
 
-	private RepositoryPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(RepositoryPersistenceTest.class);
+	private RepositoryPersistence _persistence = (RepositoryPersistence)PortalBeanLocatorUtil.locate(RepositoryPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

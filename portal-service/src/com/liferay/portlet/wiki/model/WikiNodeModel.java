@@ -18,7 +18,10 @@ import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.ContainerModel;
 import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.StagedModel;
+import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -40,7 +43,8 @@ import java.util.Date;
  * @see com.liferay.portlet.wiki.model.impl.WikiNodeModelImpl
  * @generated
  */
-public interface WikiNodeModel extends BaseModel<WikiNode>, GroupedModel {
+public interface WikiNodeModel extends BaseModel<WikiNode>, ContainerModel,
+	GroupedModel, StagedModel, WorkflowedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -234,6 +238,181 @@ public interface WikiNodeModel extends BaseModel<WikiNode>, GroupedModel {
 	 */
 	public void setLastPostDate(Date lastPostDate);
 
+	/**
+	 * Returns the status of this wiki node.
+	 *
+	 * @return the status of this wiki node
+	 */
+	public int getStatus();
+
+	/**
+	 * Sets the status of this wiki node.
+	 *
+	 * @param status the status of this wiki node
+	 */
+	public void setStatus(int status);
+
+	/**
+	 * Returns the status by user ID of this wiki node.
+	 *
+	 * @return the status by user ID of this wiki node
+	 */
+	public long getStatusByUserId();
+
+	/**
+	 * Sets the status by user ID of this wiki node.
+	 *
+	 * @param statusByUserId the status by user ID of this wiki node
+	 */
+	public void setStatusByUserId(long statusByUserId);
+
+	/**
+	 * Returns the status by user uuid of this wiki node.
+	 *
+	 * @return the status by user uuid of this wiki node
+	 * @throws SystemException if a system exception occurred
+	 */
+	public String getStatusByUserUuid() throws SystemException;
+
+	/**
+	 * Sets the status by user uuid of this wiki node.
+	 *
+	 * @param statusByUserUuid the status by user uuid of this wiki node
+	 */
+	public void setStatusByUserUuid(String statusByUserUuid);
+
+	/**
+	 * Returns the status by user name of this wiki node.
+	 *
+	 * @return the status by user name of this wiki node
+	 */
+	@AutoEscape
+	public String getStatusByUserName();
+
+	/**
+	 * Sets the status by user name of this wiki node.
+	 *
+	 * @param statusByUserName the status by user name of this wiki node
+	 */
+	public void setStatusByUserName(String statusByUserName);
+
+	/**
+	 * Returns the status date of this wiki node.
+	 *
+	 * @return the status date of this wiki node
+	 */
+	public Date getStatusDate();
+
+	/**
+	 * Sets the status date of this wiki node.
+	 *
+	 * @param statusDate the status date of this wiki node
+	 */
+	public void setStatusDate(Date statusDate);
+
+	/**
+	 * @deprecated Renamed to {@link #isApproved()}
+	 */
+	public boolean getApproved();
+
+	/**
+	 * Returns <code>true</code> if this wiki node is approved.
+	 *
+	 * @return <code>true</code> if this wiki node is approved; <code>false</code> otherwise
+	 */
+	public boolean isApproved();
+
+	/**
+	 * Returns <code>true</code> if this wiki node is denied.
+	 *
+	 * @return <code>true</code> if this wiki node is denied; <code>false</code> otherwise
+	 */
+	public boolean isDenied();
+
+	/**
+	 * Returns <code>true</code> if this wiki node is a draft.
+	 *
+	 * @return <code>true</code> if this wiki node is a draft; <code>false</code> otherwise
+	 */
+	public boolean isDraft();
+
+	/**
+	 * Returns <code>true</code> if this wiki node is expired.
+	 *
+	 * @return <code>true</code> if this wiki node is expired; <code>false</code> otherwise
+	 */
+	public boolean isExpired();
+
+	/**
+	 * Returns <code>true</code> if this wiki node is inactive.
+	 *
+	 * @return <code>true</code> if this wiki node is inactive; <code>false</code> otherwise
+	 */
+	public boolean isInactive();
+
+	/**
+	 * Returns <code>true</code> if this wiki node is incomplete.
+	 *
+	 * @return <code>true</code> if this wiki node is incomplete; <code>false</code> otherwise
+	 */
+	public boolean isIncomplete();
+
+	/**
+	 * Returns <code>true</code> if this wiki node is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if this wiki node is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	public boolean isInTrash();
+
+	/**
+	 * Returns <code>true</code> if this wiki node is pending.
+	 *
+	 * @return <code>true</code> if this wiki node is pending; <code>false</code> otherwise
+	 */
+	public boolean isPending();
+
+	/**
+	 * Returns <code>true</code> if this wiki node is scheduled.
+	 *
+	 * @return <code>true</code> if this wiki node is scheduled; <code>false</code> otherwise
+	 */
+	public boolean isScheduled();
+
+	/**
+	 * Returns the container model ID of this wiki node.
+	 *
+	 * @return the container model ID of this wiki node
+	 */
+	public long getContainerModelId();
+
+	/**
+	 * Sets the container model ID of this wiki node.
+	 *
+	 * @param container model ID of this wiki node
+	 */
+	public void setContainerModelId(long containerModelId);
+
+	/**
+	 * Returns the container name of this wiki node.
+	 *
+	 * @return the container name of this wiki node
+	 */
+	public String getContainerModelName();
+
+	/**
+	 * Returns the parent container model ID of this wiki node.
+	 *
+	 * @return the parent container model ID of this wiki node
+	 */
+	public long getParentContainerModelId();
+
+	/**
+	 * Sets the parent container model ID of this wiki node.
+	 *
+	 * @param parent container model ID of this wiki node
+	 */
+	public void setParentContainerModelId(long parentContainerModelId);
+
 	public boolean isNew();
 
 	public void setNew(boolean n);
@@ -261,6 +440,8 @@ public interface WikiNodeModel extends BaseModel<WikiNode>, GroupedModel {
 	public CacheModel<WikiNode> toCacheModel();
 
 	public WikiNode toEscapedModel();
+
+	public WikiNode toUnescapedModel();
 
 	public String toString();
 

@@ -22,7 +22,11 @@ import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.JavaDetector;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.model.Image;
+import com.liferay.portal.model.impl.ImageImpl;
 import com.liferay.portal.util.FileImpl;
+import com.liferay.portal.util.PropsUtil;
 
 import com.sun.media.jai.codec.ImageCodec;
 import com.sun.media.jai.codec.ImageDecoder;
@@ -30,7 +34,6 @@ import com.sun.media.jai.codec.ImageEncoder;
 
 import java.awt.Graphics2D;
 import java.awt.Graphics;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.IndexColorModel;
@@ -40,9 +43,15 @@ import java.awt.image.WritableRaster;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.imageio.ImageIO;
 
@@ -55,6 +64,7 @@ import org.im4java.core.IMOperation;
 /**
  * @author Brian Wing Shun Chan
  * @author Alexander Chow
+ * @author Shuyang Zhou
  */
 public class ImageToolImpl implements ImageTool {
 
@@ -62,9 +72,90 @@ public class ImageToolImpl implements ImageTool {
 		return _instance;
 	}
 
-	public RenderedImage convertCMYKtoRGB(
-		byte[] bytes, String type, boolean fork) {
+	public void afterPropertiesSet() {
+		ClassLoader classLoader = getClass().getClassLoader();
 
+		try {
+			InputStream is = classLoader.getResourceAsStream(
+				PropsUtil.get(PropsKeys.IMAGE_DEFAULT_SPACER));
+
+			if (is == null) {
+				_log.error("Default spacer is not available");
+			}
+
+			_defaultSpacer = getImage(is);
+		}
+		catch (Exception e) {
+			_log.error(
+				"Unable to configure the default spacer: " + e.getMessage());
+		}
+
+		try {
+			InputStream is = classLoader.getResourceAsStream(
+				PropsUtil.get(PropsKeys.IMAGE_DEFAULT_COMPANY_LOGO));
+
+			if (is == null) {
+				_log.error("Default company logo is not available");
+			}
+
+			_defaultCompanyLogo = getImage(is);
+		}
+		catch (Exception e) {
+			_log.error(
+				"Unable to configure the default company logo: " +
+					e.getMessage());
+		}
+
+		try {
+			InputStream is = classLoader.getResourceAsStream(
+				PropsUtil.get(PropsKeys.IMAGE_DEFAULT_ORGANIZATION_LOGO));
+
+			if (is == null) {
+				_log.error("Default organization logo is not available");
+			}
+
+			_defaultOrganizationLogo = getImage(is);
+		}
+		catch (Exception e) {
+			_log.error(
+				"Unable to configure the default organization logo: " +
+					e.getMessage());
+		}
+
+		try {
+			InputStream is = classLoader.getResourceAsStream(
+				PropsUtil.get(PropsKeys.IMAGE_DEFAULT_USER_FEMALE_PORTRAIT));
+
+			if (is == null) {
+				_log.error("Default user female portrait is not available");
+			}
+
+			_defaultUserFemalePortrait = getImage(is);
+		}
+		catch (Exception e) {
+			_log.error(
+				"Unable to configure the default user female portrait: " +
+					e.getMessage());
+		}
+
+		try {
+			InputStream is = classLoader.getResourceAsStream(
+				PropsUtil.get(PropsKeys.IMAGE_DEFAULT_USER_MALE_PORTRAIT));
+
+			if (is == null) {
+				_log.error("Default user male portrait is not available");
+			}
+
+			_defaultUserMalePortrait = getImage(is);
+		}
+		catch (Exception e) {
+			_log.error(
+				"Unable to configure the default user male portrait: " +
+					e.getMessage());
+		}
+	}
+
+	public Future<RenderedImage> convertCMYKtoRGB(byte[] bytes, String type) {
 		ImageMagick imageMagick = getImageMagick();
 
 		if (!imageMagick.isEnabled()) {
@@ -82,8 +173,7 @@ public class ImageToolImpl implements ImageTool {
 			imOperation.addRawArgs("-format", "%[colorspace]");
 			imOperation.addImage(inputFile.getPath());
 
-			String[] output = imageMagick.identify(
-				imOperation.getCmdArgs(), fork);
+			String[] output = imageMagick.identify(imOperation.getCmdArgs());
 
 			if ((output.length == 1) && output[0].equalsIgnoreCase("CMYK")) {
 				if (_log.isInfoEnabled()) {
@@ -96,11 +186,10 @@ public class ImageToolImpl implements ImageTool {
 				imOperation.addImage(inputFile.getPath());
 				imOperation.addImage(outputFile.getPath());
 
-				imageMagick.convert(imOperation.getCmdArgs(), fork);
+				Future<?> future = imageMagick.convert(
+					imOperation.getCmdArgs());
 
-				bytes = _fileUtil.getBytes(outputFile);
-
-				return read(bytes, type);
+				return new RenderedImageFuture(future, outputFile, type);
 			}
 		}
 		catch (Exception e) {
@@ -215,6 +304,87 @@ public class ImageToolImpl implements ImageTool {
 		return baos.toByteArray();
 	}
 
+	public Image getDefaultCompanyLogo() {
+		return _defaultCompanyLogo;
+	}
+
+	public Image getDefaultOrganizationLogo() {
+		return _defaultOrganizationLogo;
+	}
+
+	public Image getDefaultSpacer() {
+		return _defaultSpacer;
+	}
+
+	public Image getDefaultUserFemalePortrait() {
+		return _defaultUserFemalePortrait;
+	}
+
+	public Image getDefaultUserMalePortrait() {
+		return _defaultUserMalePortrait;
+	}
+
+	public Image getImage(byte[] bytes) throws IOException {
+		if (bytes == null) {
+			return null;
+		}
+
+		ImageBag imageBag = read(bytes);
+
+		RenderedImage renderedImage = imageBag.getRenderedImage();
+
+		if (renderedImage == null) {
+			throw new IOException("Unable to decode image");
+		}
+
+		String type = imageBag.getType();
+
+		int height = renderedImage.getHeight();
+		int width = renderedImage.getWidth();
+		int size = bytes.length;
+
+		Image image = new ImageImpl();
+
+		image.setTextObj(bytes);
+		image.setType(type);
+		image.setHeight(height);
+		image.setWidth(width);
+		image.setSize(size);
+
+		return image;
+	}
+
+	public Image getImage(File file) throws IOException {
+		byte[] bytes = _fileUtil.getBytes(file);
+
+		return getImage(bytes);
+	}
+
+	public Image getImage(InputStream is) throws IOException {
+		byte[] bytes = _fileUtil.getBytes(is, -1, true);
+
+		return getImage(bytes);
+	}
+
+	public Image getImage(InputStream is, boolean cleanUpStream)
+		throws IOException {
+
+		byte[] bytes = _fileUtil.getBytes(is, -1, cleanUpStream);
+
+		return getImage(bytes);
+	}
+
+	public boolean isNullOrDefaultSpacer(byte[] bytes) {
+		if ((bytes == null) || (bytes.length == 0) ||
+			(Arrays.equals(bytes, getDefaultSpacer().getTextObj()))) {
+
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public ImageBag read(byte[] bytes) {
 		RenderedImage renderedImage = null;
 		String type = TYPE_NOT_AVAILABLE;
@@ -244,6 +414,10 @@ public class ImageToolImpl implements ImageTool {
 		return read(_fileUtil.getBytes(file));
 	}
 
+	public ImageBag read(InputStream inputStream) throws IOException {
+		return read(_fileUtil.getBytes(inputStream));
+	}
+
 	public RenderedImage scale(RenderedImage renderedImage, int width) {
 		if (width <= 0) {
 			return renderedImage;
@@ -252,7 +426,7 @@ public class ImageToolImpl implements ImageTool {
 		int imageHeight = renderedImage.getHeight();
 		int imageWidth = renderedImage.getWidth();
 
-		double factor = (double) width / imageWidth;
+		double factor = (double)width / imageWidth;
 
 		int scaledHeight = (int)(factor * imageHeight);
 		int scaledWidth = width;
@@ -270,8 +444,8 @@ public class ImageToolImpl implements ImageTool {
 
 		Graphics graphics = scaledBufferedImage.getGraphics();
 
-		Image scaledImage = bufferedImage.getScaledInstance(
-			scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+		java.awt.Image scaledImage = bufferedImage.getScaledInstance(
+			scaledWidth, scaledHeight, java.awt.Image.SCALE_SMOOTH);
 
 		graphics.drawImage(scaledImage, 0, 0, null);
 
@@ -353,8 +527,8 @@ public class ImageToolImpl implements ImageTool {
 
 		Graphics graphics = scaledBufferedImage.getGraphics();
 
-		Image scaledImage = bufferedImage.getScaledInstance(
-			scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+		java.awt.Image scaledImage = bufferedImage.getScaledInstance(
+			scaledWidth, scaledHeight, java.awt.Image.SCALE_SMOOTH);
 
 		graphics.drawImage(scaledImage, 0, 0, null);
 
@@ -455,5 +629,79 @@ public class ImageToolImpl implements ImageTool {
 
 	private static FileImpl _fileUtil = FileImpl.getInstance();
 	private static ImageMagick _imageMagick;
+
+	private Image _defaultCompanyLogo;
+	private Image _defaultOrganizationLogo;
+	private Image _defaultSpacer;
+	private Image _defaultUserFemalePortrait;
+	private Image _defaultUserMalePortrait;
+
+	private class RenderedImageFuture implements Future<RenderedImage> {
+
+		public RenderedImageFuture(
+			Future<?> future, File outputFile, String type) {
+
+			_future = future;
+			_outputFile = outputFile;
+			_type = type;
+		}
+
+		public boolean cancel(boolean mayInterruptIfRunning) {
+			if (_future.isCancelled() || _future.isDone()) {
+				return false;
+			}
+
+			_future.cancel(true);
+
+			return true;
+		}
+
+		public RenderedImage get()
+			throws ExecutionException, InterruptedException {
+
+			_future.get();
+
+			byte[] bytes = new byte[0];
+
+			try {
+				bytes = _fileUtil.getBytes(_outputFile);
+			}
+			catch (IOException e) {
+				throw new ExecutionException(e);
+			}
+
+			return read(bytes, _type);
+		}
+
+		public RenderedImage get(long timeout, TimeUnit timeUnit)
+			throws ExecutionException, InterruptedException, TimeoutException {
+
+			_future.get(timeout, timeUnit);
+
+			byte[] bytes = new byte[0];
+
+			try {
+				bytes = _fileUtil.getBytes(_outputFile);
+			}
+			catch (IOException ioe) {
+				throw new ExecutionException(ioe);
+			}
+
+			return read(bytes, _type);
+		}
+
+		public boolean isCancelled() {
+			return _future.isCancelled();
+		}
+
+		public boolean isDone() {
+			return _future.isDone();
+		}
+
+		private final Future<?> _future;
+		private final File _outputFile;
+		private final String _type;
+
+	}
 
 }

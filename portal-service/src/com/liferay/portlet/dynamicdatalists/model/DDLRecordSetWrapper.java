@@ -695,6 +695,12 @@ public class DDLRecordSetWrapper implements DDLRecordSet,
 		_ddlRecordSet.setExpandoBridgeAttributes(serviceContext);
 	}
 
+	public void prepareLocalizedFieldsForImport(
+		java.util.Locale defaultImportLocale)
+		throws com.liferay.portal.LocaleException {
+		_ddlRecordSet.prepareLocalizedFieldsForImport(defaultImportLocale);
+	}
+
 	@Override
 	public java.lang.Object clone() {
 		return new DDLRecordSetWrapper((DDLRecordSet)_ddlRecordSet.clone());
@@ -718,6 +724,10 @@ public class DDLRecordSetWrapper implements DDLRecordSet,
 		return new DDLRecordSetWrapper(_ddlRecordSet.toEscapedModel());
 	}
 
+	public com.liferay.portlet.dynamicdatalists.model.DDLRecordSet toUnescapedModel() {
+		return new DDLRecordSetWrapper(_ddlRecordSet.toUnescapedModel());
+	}
+
 	@Override
 	public java.lang.String toString() {
 		return _ddlRecordSet.toString();
@@ -739,10 +749,10 @@ public class DDLRecordSetWrapper implements DDLRecordSet,
 	}
 
 	public com.liferay.portlet.dynamicdatamapping.model.DDMStructure getDDMStructure(
-		long detailDDMTemplateId)
+		long formDDMTemplateId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		return _ddlRecordSet.getDDMStructure(detailDDMTemplateId);
+		return _ddlRecordSet.getDDMStructure(formDDMTemplateId);
 	}
 
 	public java.util.List<com.liferay.portlet.dynamicdatalists.model.DDLRecord> getRecords()

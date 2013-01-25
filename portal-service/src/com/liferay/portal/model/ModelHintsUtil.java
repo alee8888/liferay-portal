@@ -14,6 +14,7 @@
 
 package com.liferay.portal.model;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.xml.Element;
 
@@ -41,7 +42,13 @@ public class ModelHintsUtil {
 		return getModelHints().getHints(model, field);
 	}
 
+	public static int getMaxLength(String model, String field) {
+		return getModelHints().getMaxLength(model, field);
+	}
+
 	public static ModelHints getModelHints() {
+		PortalRuntimePermission.checkGetBeanProperty(ModelHintsUtil.class);
+
 		return _modelHints;
 	}
 
@@ -65,6 +72,12 @@ public class ModelHintsUtil {
 		return getModelHints().getValidators(model, field);
 	}
 
+	public static String getValue(
+		String model, String field, String name, String defaultValue) {
+
+		return getModelHints().getValue(model, field, name, defaultValue);
+	}
+
 	public static boolean isCustomValidator(String validatorName) {
 		return getModelHints().isCustomValidator(validatorName);
 	}
@@ -84,6 +97,8 @@ public class ModelHintsUtil {
 	}
 
 	public void setModelHints(ModelHints modelHints) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_modelHints = modelHints;
 	}
 

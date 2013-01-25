@@ -37,9 +37,8 @@ import java.rmi.RemoteException;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -140,6 +139,18 @@ public class PortalServiceSoap {
 		}
 	}
 
+	public static void testAutoSyncHibernateSessionStateOnTxCreation()
+		throws RemoteException {
+		try {
+			PortalServiceUtil.testAutoSyncHibernateSessionStateOnTxCreation();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	public static void testCounterIncrement_Rollback()
 		throws RemoteException {
 		try {
@@ -155,6 +166,19 @@ public class PortalServiceSoap {
 	public static void testDeleteClassName() throws RemoteException {
 		try {
 			PortalServiceUtil.testDeleteClassName();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static int testGetBuildNumber() throws RemoteException {
+		try {
+			int returnValue = PortalServiceUtil.testGetBuildNumber();
+
+			return returnValue;
 		}
 		catch (Exception e) {
 			_log.error(e, e);

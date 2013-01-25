@@ -14,8 +14,6 @@
 
 package com.liferay.portlet.asset.service.persistence;
 
-import com.liferay.portal.NoSuchModelException;
-import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.cache.CacheRegistryUtil;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
@@ -33,11 +31,10 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnmodifiableList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.ModelListener;
-import com.liferay.portal.service.persistence.BatchSessionUtil;
-import com.liferay.portal.service.persistence.UserPersistence;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
 
 import com.liferay.portlet.asset.NoSuchTagPropertyException;
@@ -75,79 +72,6 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 		".List1";
 	public static final String FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION = FINDER_CLASS_NAME_ENTITY +
 		".List2";
-	public static final FinderPath FINDER_PATH_WITH_PAGINATION_FIND_BY_COMPANYID =
-		new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
-			AssetTagPropertyImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByCompanyId",
-			new String[] {
-				Long.class.getName(),
-				
-			"java.lang.Integer", "java.lang.Integer",
-				"com.liferay.portal.kernel.util.OrderByComparator"
-			});
-	public static final FinderPath FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_COMPANYID =
-		new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
-			AssetTagPropertyImpl.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByCompanyId",
-			new String[] { Long.class.getName() },
-			AssetTagPropertyModelImpl.COMPANYID_COLUMN_BITMASK);
-	public static final FinderPath FINDER_PATH_COUNT_BY_COMPANYID = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED, Long.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByCompanyId",
-			new String[] { Long.class.getName() });
-	public static final FinderPath FINDER_PATH_WITH_PAGINATION_FIND_BY_TAGID = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
-			AssetTagPropertyImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByTagId",
-			new String[] {
-				Long.class.getName(),
-				
-			"java.lang.Integer", "java.lang.Integer",
-				"com.liferay.portal.kernel.util.OrderByComparator"
-			});
-	public static final FinderPath FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_TAGID = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
-			AssetTagPropertyImpl.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByTagId",
-			new String[] { Long.class.getName() },
-			AssetTagPropertyModelImpl.TAGID_COLUMN_BITMASK);
-	public static final FinderPath FINDER_PATH_COUNT_BY_TAGID = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED, Long.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByTagId",
-			new String[] { Long.class.getName() });
-	public static final FinderPath FINDER_PATH_WITH_PAGINATION_FIND_BY_C_K = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
-			AssetTagPropertyImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
-			"findByC_K",
-			new String[] {
-				Long.class.getName(), String.class.getName(),
-				
-			"java.lang.Integer", "java.lang.Integer",
-				"com.liferay.portal.kernel.util.OrderByComparator"
-			});
-	public static final FinderPath FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_K = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
-			AssetTagPropertyImpl.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByC_K",
-			new String[] { Long.class.getName(), String.class.getName() },
-			AssetTagPropertyModelImpl.COMPANYID_COLUMN_BITMASK |
-			AssetTagPropertyModelImpl.KEY_COLUMN_BITMASK);
-	public static final FinderPath FINDER_PATH_COUNT_BY_C_K = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED, Long.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_K",
-			new String[] { Long.class.getName(), String.class.getName() });
-	public static final FinderPath FINDER_PATH_FETCH_BY_T_K = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
-			AssetTagPropertyImpl.class, FINDER_CLASS_NAME_ENTITY, "fetchByT_K",
-			new String[] { Long.class.getName(), String.class.getName() },
-			AssetTagPropertyModelImpl.TAGID_COLUMN_BITMASK |
-			AssetTagPropertyModelImpl.KEY_COLUMN_BITMASK);
-	public static final FinderPath FINDER_PATH_COUNT_BY_T_K = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED, Long.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByT_K",
-			new String[] { Long.class.getName(), String.class.getName() });
 	public static final FinderPath FINDER_PATH_WITH_PAGINATION_FIND_ALL = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
 			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
 			AssetTagPropertyImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
@@ -159,454 +83,29 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	public static final FinderPath FINDER_PATH_COUNT_ALL = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
 			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll", new String[0]);
-
-	/**
-	 * Caches the asset tag property in the entity cache if it is enabled.
-	 *
-	 * @param assetTagProperty the asset tag property
-	 */
-	public void cacheResult(AssetTagProperty assetTagProperty) {
-		EntityCacheUtil.putResult(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyImpl.class, assetTagProperty.getPrimaryKey(),
-			assetTagProperty);
-
-		FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_T_K,
-			new Object[] {
-				Long.valueOf(assetTagProperty.getTagId()),
+	public static final FinderPath FINDER_PATH_WITH_PAGINATION_FIND_BY_COMPANYID =
+		new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
+			AssetTagPropertyImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
+			"findByCompanyId",
+			new String[] {
+				Long.class.getName(),
 				
-			assetTagProperty.getKey()
-			}, assetTagProperty);
-
-		assetTagProperty.resetOriginalValues();
-	}
-
-	/**
-	 * Caches the asset tag properties in the entity cache if it is enabled.
-	 *
-	 * @param assetTagProperties the asset tag properties
-	 */
-	public void cacheResult(List<AssetTagProperty> assetTagProperties) {
-		for (AssetTagProperty assetTagProperty : assetTagProperties) {
-			if (EntityCacheUtil.getResult(
-						AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-						AssetTagPropertyImpl.class,
-						assetTagProperty.getPrimaryKey()) == null) {
-				cacheResult(assetTagProperty);
-			}
-			else {
-				assetTagProperty.resetOriginalValues();
-			}
-		}
-	}
-
-	/**
-	 * Clears the cache for all asset tag properties.
-	 *
-	 * <p>
-	 * The {@link com.liferay.portal.kernel.dao.orm.EntityCache} and {@link com.liferay.portal.kernel.dao.orm.FinderCache} are both cleared by this method.
-	 * </p>
-	 */
-	@Override
-	public void clearCache() {
-		if (_HIBERNATE_CACHE_USE_SECOND_LEVEL_CACHE) {
-			CacheRegistryUtil.clear(AssetTagPropertyImpl.class.getName());
-		}
-
-		EntityCacheUtil.clearCache(AssetTagPropertyImpl.class.getName());
-
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_ENTITY);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-	}
-
-	/**
-	 * Clears the cache for the asset tag property.
-	 *
-	 * <p>
-	 * The {@link com.liferay.portal.kernel.dao.orm.EntityCache} and {@link com.liferay.portal.kernel.dao.orm.FinderCache} are both cleared by this method.
-	 * </p>
-	 */
-	@Override
-	public void clearCache(AssetTagProperty assetTagProperty) {
-		EntityCacheUtil.removeResult(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyImpl.class, assetTagProperty.getPrimaryKey());
-
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
-		clearUniqueFindersCache(assetTagProperty);
-	}
-
-	@Override
-	public void clearCache(List<AssetTagProperty> assetTagProperties) {
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-
-		for (AssetTagProperty assetTagProperty : assetTagProperties) {
-			EntityCacheUtil.removeResult(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-				AssetTagPropertyImpl.class, assetTagProperty.getPrimaryKey());
-
-			clearUniqueFindersCache(assetTagProperty);
-		}
-	}
-
-	protected void clearUniqueFindersCache(AssetTagProperty assetTagProperty) {
-		FinderCacheUtil.removeResult(FINDER_PATH_FETCH_BY_T_K,
-			new Object[] {
-				Long.valueOf(assetTagProperty.getTagId()),
-				
-			assetTagProperty.getKey()
+			Integer.class.getName(), Integer.class.getName(),
+				OrderByComparator.class.getName()
 			});
-	}
-
-	/**
-	 * Creates a new asset tag property with the primary key. Does not add the asset tag property to the database.
-	 *
-	 * @param tagPropertyId the primary key for the new asset tag property
-	 * @return the new asset tag property
-	 */
-	public AssetTagProperty create(long tagPropertyId) {
-		AssetTagProperty assetTagProperty = new AssetTagPropertyImpl();
-
-		assetTagProperty.setNew(true);
-		assetTagProperty.setPrimaryKey(tagPropertyId);
-
-		return assetTagProperty;
-	}
-
-	/**
-	 * Removes the asset tag property with the primary key from the database. Also notifies the appropriate model listeners.
-	 *
-	 * @param tagPropertyId the primary key of the asset tag property
-	 * @return the asset tag property that was removed
-	 * @throws com.liferay.portlet.asset.NoSuchTagPropertyException if a asset tag property with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
-	 */
-	public AssetTagProperty remove(long tagPropertyId)
-		throws NoSuchTagPropertyException, SystemException {
-		return remove(Long.valueOf(tagPropertyId));
-	}
-
-	/**
-	 * Removes the asset tag property with the primary key from the database. Also notifies the appropriate model listeners.
-	 *
-	 * @param primaryKey the primary key of the asset tag property
-	 * @return the asset tag property that was removed
-	 * @throws com.liferay.portlet.asset.NoSuchTagPropertyException if a asset tag property with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
-	 */
-	@Override
-	public AssetTagProperty remove(Serializable primaryKey)
-		throws NoSuchTagPropertyException, SystemException {
-		Session session = null;
-
-		try {
-			session = openSession();
-
-			AssetTagProperty assetTagProperty = (AssetTagProperty)session.get(AssetTagPropertyImpl.class,
-					primaryKey);
-
-			if (assetTagProperty == null) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(_NO_SUCH_ENTITY_WITH_PRIMARY_KEY + primaryKey);
-				}
-
-				throw new NoSuchTagPropertyException(_NO_SUCH_ENTITY_WITH_PRIMARY_KEY +
-					primaryKey);
-			}
-
-			return remove(assetTagProperty);
-		}
-		catch (NoSuchTagPropertyException nsee) {
-			throw nsee;
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			closeSession(session);
-		}
-	}
-
-	@Override
-	protected AssetTagProperty removeImpl(AssetTagProperty assetTagProperty)
-		throws SystemException {
-		assetTagProperty = toUnwrappedModel(assetTagProperty);
-
-		Session session = null;
-
-		try {
-			session = openSession();
-
-			BatchSessionUtil.delete(session, assetTagProperty);
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			closeSession(session);
-		}
-
-		clearCache(assetTagProperty);
-
-		return assetTagProperty;
-	}
-
-	@Override
-	public AssetTagProperty updateImpl(
-		com.liferay.portlet.asset.model.AssetTagProperty assetTagProperty,
-		boolean merge) throws SystemException {
-		assetTagProperty = toUnwrappedModel(assetTagProperty);
-
-		boolean isNew = assetTagProperty.isNew();
-
-		AssetTagPropertyModelImpl assetTagPropertyModelImpl = (AssetTagPropertyModelImpl)assetTagProperty;
-
-		Session session = null;
-
-		try {
-			session = openSession();
-
-			BatchSessionUtil.update(session, assetTagProperty, merge);
-
-			assetTagProperty.setNew(false);
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			closeSession(session);
-		}
-
-		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
-
-		if (isNew || !AssetTagPropertyModelImpl.COLUMN_BITMASK_ENABLED) {
-			FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
-		}
-		else {
-			if ((assetTagPropertyModelImpl.getColumnBitmask() &
-					FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_COMPANYID.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						Long.valueOf(assetTagPropertyModelImpl.getOriginalCompanyId())
-					};
-
-				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_COMPANYID,
-					args);
-				FinderCacheUtil.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_COMPANYID,
-					args);
-
-				args = new Object[] {
-						Long.valueOf(assetTagPropertyModelImpl.getCompanyId())
-					};
-
-				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_COMPANYID,
-					args);
-				FinderCacheUtil.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_COMPANYID,
-					args);
-			}
-
-			if ((assetTagPropertyModelImpl.getColumnBitmask() &
-					FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_TAGID.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						Long.valueOf(assetTagPropertyModelImpl.getOriginalTagId())
-					};
-
-				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_TAGID, args);
-				FinderCacheUtil.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_TAGID,
-					args);
-
-				args = new Object[] {
-						Long.valueOf(assetTagPropertyModelImpl.getTagId())
-					};
-
-				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_TAGID, args);
-				FinderCacheUtil.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_TAGID,
-					args);
-			}
-
-			if ((assetTagPropertyModelImpl.getColumnBitmask() &
-					FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_K.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						Long.valueOf(assetTagPropertyModelImpl.getOriginalCompanyId()),
-						
-						assetTagPropertyModelImpl.getOriginalKey()
-					};
-
-				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_C_K, args);
-				FinderCacheUtil.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_K,
-					args);
-
-				args = new Object[] {
-						Long.valueOf(assetTagPropertyModelImpl.getCompanyId()),
-						
-						assetTagPropertyModelImpl.getKey()
-					};
-
-				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_C_K, args);
-				FinderCacheUtil.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_K,
-					args);
-			}
-		}
-
-		EntityCacheUtil.putResult(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-			AssetTagPropertyImpl.class, assetTagProperty.getPrimaryKey(),
-			assetTagProperty);
-
-		if (isNew) {
-			FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_T_K,
-				new Object[] {
-					Long.valueOf(assetTagProperty.getTagId()),
-					
-				assetTagProperty.getKey()
-				}, assetTagProperty);
-		}
-		else {
-			if ((assetTagPropertyModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_T_K.getColumnBitmask()) != 0) {
-				Object[] args = new Object[] {
-						Long.valueOf(assetTagPropertyModelImpl.getOriginalTagId()),
-						
-						assetTagPropertyModelImpl.getOriginalKey()
-					};
-
-				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_T_K, args);
-				FinderCacheUtil.removeResult(FINDER_PATH_FETCH_BY_T_K, args);
-
-				FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_T_K,
-					new Object[] {
-						Long.valueOf(assetTagProperty.getTagId()),
-						
-					assetTagProperty.getKey()
-					}, assetTagProperty);
-			}
-		}
-
-		return assetTagProperty;
-	}
-
-	protected AssetTagProperty toUnwrappedModel(
-		AssetTagProperty assetTagProperty) {
-		if (assetTagProperty instanceof AssetTagPropertyImpl) {
-			return assetTagProperty;
-		}
-
-		AssetTagPropertyImpl assetTagPropertyImpl = new AssetTagPropertyImpl();
-
-		assetTagPropertyImpl.setNew(assetTagProperty.isNew());
-		assetTagPropertyImpl.setPrimaryKey(assetTagProperty.getPrimaryKey());
-
-		assetTagPropertyImpl.setTagPropertyId(assetTagProperty.getTagPropertyId());
-		assetTagPropertyImpl.setCompanyId(assetTagProperty.getCompanyId());
-		assetTagPropertyImpl.setUserId(assetTagProperty.getUserId());
-		assetTagPropertyImpl.setUserName(assetTagProperty.getUserName());
-		assetTagPropertyImpl.setCreateDate(assetTagProperty.getCreateDate());
-		assetTagPropertyImpl.setModifiedDate(assetTagProperty.getModifiedDate());
-		assetTagPropertyImpl.setTagId(assetTagProperty.getTagId());
-		assetTagPropertyImpl.setKey(assetTagProperty.getKey());
-		assetTagPropertyImpl.setValue(assetTagProperty.getValue());
-
-		return assetTagPropertyImpl;
-	}
-
-	/**
-	 * Returns the asset tag property with the primary key or throws a {@link com.liferay.portal.NoSuchModelException} if it could not be found.
-	 *
-	 * @param primaryKey the primary key of the asset tag property
-	 * @return the asset tag property
-	 * @throws com.liferay.portal.NoSuchModelException if a asset tag property with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
-	 */
-	@Override
-	public AssetTagProperty findByPrimaryKey(Serializable primaryKey)
-		throws NoSuchModelException, SystemException {
-		return findByPrimaryKey(((Long)primaryKey).longValue());
-	}
-
-	/**
-	 * Returns the asset tag property with the primary key or throws a {@link com.liferay.portlet.asset.NoSuchTagPropertyException} if it could not be found.
-	 *
-	 * @param tagPropertyId the primary key of the asset tag property
-	 * @return the asset tag property
-	 * @throws com.liferay.portlet.asset.NoSuchTagPropertyException if a asset tag property with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
-	 */
-	public AssetTagProperty findByPrimaryKey(long tagPropertyId)
-		throws NoSuchTagPropertyException, SystemException {
-		AssetTagProperty assetTagProperty = fetchByPrimaryKey(tagPropertyId);
-
-		if (assetTagProperty == null) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(_NO_SUCH_ENTITY_WITH_PRIMARY_KEY + tagPropertyId);
-			}
-
-			throw new NoSuchTagPropertyException(_NO_SUCH_ENTITY_WITH_PRIMARY_KEY +
-				tagPropertyId);
-		}
-
-		return assetTagProperty;
-	}
-
-	/**
-	 * Returns the asset tag property with the primary key or returns <code>null</code> if it could not be found.
-	 *
-	 * @param primaryKey the primary key of the asset tag property
-	 * @return the asset tag property, or <code>null</code> if a asset tag property with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
-	 */
-	@Override
-	public AssetTagProperty fetchByPrimaryKey(Serializable primaryKey)
-		throws SystemException {
-		return fetchByPrimaryKey(((Long)primaryKey).longValue());
-	}
-
-	/**
-	 * Returns the asset tag property with the primary key or returns <code>null</code> if it could not be found.
-	 *
-	 * @param tagPropertyId the primary key of the asset tag property
-	 * @return the asset tag property, or <code>null</code> if a asset tag property with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
-	 */
-	public AssetTagProperty fetchByPrimaryKey(long tagPropertyId)
-		throws SystemException {
-		AssetTagProperty assetTagProperty = (AssetTagProperty)EntityCacheUtil.getResult(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-				AssetTagPropertyImpl.class, tagPropertyId);
-
-		if (assetTagProperty == _nullAssetTagProperty) {
-			return null;
-		}
-
-		if (assetTagProperty == null) {
-			Session session = null;
-
-			boolean hasException = false;
-
-			try {
-				session = openSession();
-
-				assetTagProperty = (AssetTagProperty)session.get(AssetTagPropertyImpl.class,
-						Long.valueOf(tagPropertyId));
-			}
-			catch (Exception e) {
-				hasException = true;
-
-				throw processException(e);
-			}
-			finally {
-				if (assetTagProperty != null) {
-					cacheResult(assetTagProperty);
-				}
-				else if (!hasException) {
-					EntityCacheUtil.putResult(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
-						AssetTagPropertyImpl.class, tagPropertyId,
-						_nullAssetTagProperty);
-				}
-
-				closeSession(session);
-			}
-		}
-
-		return assetTagProperty;
-	}
+	public static final FinderPath FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_COMPANYID =
+		new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
+			AssetTagPropertyImpl.class,
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByCompanyId",
+			new String[] { Long.class.getName() },
+			AssetTagPropertyModelImpl.COMPANYID_COLUMN_BITMASK |
+			AssetTagPropertyModelImpl.KEY_COLUMN_BITMASK);
+	public static final FinderPath FINDER_PATH_COUNT_BY_COMPANYID = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByCompanyId",
+			new String[] { Long.class.getName() });
 
 	/**
 	 * Returns all the asset tag properties where companyId = &#63;.
@@ -625,7 +124,7 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	 * Returns a range of all the asset tag properties where companyId = &#63;.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.asset.model.impl.AssetTagPropertyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
 	 * @param companyId the company ID
@@ -643,7 +142,7 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	 * Returns an ordered range of all the asset tag properties where companyId = &#63;.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.asset.model.impl.AssetTagPropertyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
 	 * @param companyId the company ID
@@ -655,11 +154,13 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	 */
 	public List<AssetTagProperty> findByCompanyId(long companyId, int start,
 		int end, OrderByComparator orderByComparator) throws SystemException {
+		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 				(orderByComparator == null)) {
+			pagination = false;
 			finderPath = FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_COMPANYID;
 			finderArgs = new Object[] { companyId };
 		}
@@ -700,8 +201,8 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 				appendOrderByComparator(query, _ORDER_BY_ENTITY_ALIAS,
 					orderByComparator);
 			}
-
-			else {
+			else
+			 if (pagination) {
 				query.append(AssetTagPropertyModelImpl.ORDER_BY_JPQL);
 			}
 
@@ -718,22 +219,29 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 
 				qPos.add(companyId);
 
-				list = (List<AssetTagProperty>)QueryUtil.list(q, getDialect(),
-						start, end);
+				if (!pagination) {
+					list = (List<AssetTagProperty>)QueryUtil.list(q,
+							getDialect(), start, end, false);
+
+					Collections.sort(list);
+
+					list = new UnmodifiableList<AssetTagProperty>(list);
+				}
+				else {
+					list = (List<AssetTagProperty>)QueryUtil.list(q,
+							getDialect(), start, end);
+				}
+
+				cacheResult(list);
+
+				FinderCacheUtil.putResult(finderPath, finderArgs, list);
 			}
 			catch (Exception e) {
+				FinderCacheUtil.removeResult(finderPath, finderArgs);
+
 				throw processException(e);
 			}
 			finally {
-				if (list == null) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-				else {
-					cacheResult(list);
-
-					FinderCacheUtil.putResult(finderPath, finderArgs, list);
-				}
-
 				closeSession(session);
 			}
 		}
@@ -744,10 +252,6 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	/**
 	 * Returns the first asset tag property in the ordered set where companyId = &#63;.
 	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	 * </p>
-	 *
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching asset tag property
@@ -757,32 +261,47 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	public AssetTagProperty findByCompanyId_First(long companyId,
 		OrderByComparator orderByComparator)
 		throws NoSuchTagPropertyException, SystemException {
+		AssetTagProperty assetTagProperty = fetchByCompanyId_First(companyId,
+				orderByComparator);
+
+		if (assetTagProperty != null) {
+			return assetTagProperty;
+		}
+
+		StringBundler msg = new StringBundler(4);
+
+		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		msg.append("companyId=");
+		msg.append(companyId);
+
+		msg.append(StringPool.CLOSE_CURLY_BRACE);
+
+		throw new NoSuchTagPropertyException(msg.toString());
+	}
+
+	/**
+	 * Returns the first asset tag property in the ordered set where companyId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching asset tag property, or <code>null</code> if a matching asset tag property could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	public AssetTagProperty fetchByCompanyId_First(long companyId,
+		OrderByComparator orderByComparator) throws SystemException {
 		List<AssetTagProperty> list = findByCompanyId(companyId, 0, 1,
 				orderByComparator);
 
-		if (list.isEmpty()) {
-			StringBundler msg = new StringBundler(4);
-
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-			msg.append("companyId=");
-			msg.append(companyId);
-
-			msg.append(StringPool.CLOSE_CURLY_BRACE);
-
-			throw new NoSuchTagPropertyException(msg.toString());
-		}
-		else {
+		if (!list.isEmpty()) {
 			return list.get(0);
 		}
+
+		return null;
 	}
 
 	/**
 	 * Returns the last asset tag property in the ordered set where companyId = &#63;.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	 * </p>
 	 *
 	 * @param companyId the company ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
@@ -793,34 +312,49 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	public AssetTagProperty findByCompanyId_Last(long companyId,
 		OrderByComparator orderByComparator)
 		throws NoSuchTagPropertyException, SystemException {
+		AssetTagProperty assetTagProperty = fetchByCompanyId_Last(companyId,
+				orderByComparator);
+
+		if (assetTagProperty != null) {
+			return assetTagProperty;
+		}
+
+		StringBundler msg = new StringBundler(4);
+
+		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		msg.append("companyId=");
+		msg.append(companyId);
+
+		msg.append(StringPool.CLOSE_CURLY_BRACE);
+
+		throw new NoSuchTagPropertyException(msg.toString());
+	}
+
+	/**
+	 * Returns the last asset tag property in the ordered set where companyId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching asset tag property, or <code>null</code> if a matching asset tag property could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	public AssetTagProperty fetchByCompanyId_Last(long companyId,
+		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCompanyId(companyId);
 
 		List<AssetTagProperty> list = findByCompanyId(companyId, count - 1,
 				count, orderByComparator);
 
-		if (list.isEmpty()) {
-			StringBundler msg = new StringBundler(4);
-
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-			msg.append("companyId=");
-			msg.append(companyId);
-
-			msg.append(StringPool.CLOSE_CURLY_BRACE);
-
-			throw new NoSuchTagPropertyException(msg.toString());
-		}
-		else {
+		if (!list.isEmpty()) {
 			return list.get(0);
 		}
+
+		return null;
 	}
 
 	/**
 	 * Returns the asset tag properties before and after the current asset tag property in the ordered set where companyId = &#63;.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	 * </p>
 	 *
 	 * @param tagPropertyId the primary key of the current asset tag property
 	 * @param companyId the company ID
@@ -931,7 +465,6 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 				}
 			}
 		}
-
 		else {
 			query.append(AssetTagPropertyModelImpl.ORDER_BY_JPQL);
 		}
@@ -966,6 +499,94 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	}
 
 	/**
+	 * Removes all the asset tag properties where companyId = &#63; from the database.
+	 *
+	 * @param companyId the company ID
+	 * @throws SystemException if a system exception occurred
+	 */
+	public void removeByCompanyId(long companyId) throws SystemException {
+		for (AssetTagProperty assetTagProperty : findByCompanyId(companyId,
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
+			remove(assetTagProperty);
+		}
+	}
+
+	/**
+	 * Returns the number of asset tag properties where companyId = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @return the number of matching asset tag properties
+	 * @throws SystemException if a system exception occurred
+	 */
+	public int countByCompanyId(long companyId) throws SystemException {
+		FinderPath finderPath = FINDER_PATH_COUNT_BY_COMPANYID;
+
+		Object[] finderArgs = new Object[] { companyId };
+
+		Long count = (Long)FinderCacheUtil.getResult(finderPath, finderArgs,
+				this);
+
+		if (count == null) {
+			StringBundler query = new StringBundler(2);
+
+			query.append(_SQL_COUNT_ASSETTAGPROPERTY_WHERE);
+
+			query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
+
+			String sql = query.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query q = session.createQuery(sql);
+
+				QueryPos qPos = QueryPos.getInstance(q);
+
+				qPos.add(companyId);
+
+				count = (Long)q.uniqueResult();
+
+				FinderCacheUtil.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception e) {
+				FinderCacheUtil.removeResult(finderPath, finderArgs);
+
+				throw processException(e);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	private static final String _FINDER_COLUMN_COMPANYID_COMPANYID_2 = "assetTagProperty.companyId = ?";
+	public static final FinderPath FINDER_PATH_WITH_PAGINATION_FIND_BY_TAGID = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
+			AssetTagPropertyImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
+			"findByTagId",
+			new String[] {
+				Long.class.getName(),
+				
+			Integer.class.getName(), Integer.class.getName(),
+				OrderByComparator.class.getName()
+			});
+	public static final FinderPath FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_TAGID = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
+			AssetTagPropertyImpl.class,
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByTagId",
+			new String[] { Long.class.getName() },
+			AssetTagPropertyModelImpl.TAGID_COLUMN_BITMASK |
+			AssetTagPropertyModelImpl.KEY_COLUMN_BITMASK);
+	public static final FinderPath FINDER_PATH_COUNT_BY_TAGID = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByTagId",
+			new String[] { Long.class.getName() });
+
+	/**
 	 * Returns all the asset tag properties where tagId = &#63;.
 	 *
 	 * @param tagId the tag ID
@@ -981,7 +602,7 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	 * Returns a range of all the asset tag properties where tagId = &#63;.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.asset.model.impl.AssetTagPropertyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
 	 * @param tagId the tag ID
@@ -999,7 +620,7 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	 * Returns an ordered range of all the asset tag properties where tagId = &#63;.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.asset.model.impl.AssetTagPropertyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
 	 * @param tagId the tag ID
@@ -1011,11 +632,13 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	 */
 	public List<AssetTagProperty> findByTagId(long tagId, int start, int end,
 		OrderByComparator orderByComparator) throws SystemException {
+		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 				(orderByComparator == null)) {
+			pagination = false;
 			finderPath = FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_TAGID;
 			finderArgs = new Object[] { tagId };
 		}
@@ -1056,8 +679,8 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 				appendOrderByComparator(query, _ORDER_BY_ENTITY_ALIAS,
 					orderByComparator);
 			}
-
-			else {
+			else
+			 if (pagination) {
 				query.append(AssetTagPropertyModelImpl.ORDER_BY_JPQL);
 			}
 
@@ -1074,22 +697,29 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 
 				qPos.add(tagId);
 
-				list = (List<AssetTagProperty>)QueryUtil.list(q, getDialect(),
-						start, end);
+				if (!pagination) {
+					list = (List<AssetTagProperty>)QueryUtil.list(q,
+							getDialect(), start, end, false);
+
+					Collections.sort(list);
+
+					list = new UnmodifiableList<AssetTagProperty>(list);
+				}
+				else {
+					list = (List<AssetTagProperty>)QueryUtil.list(q,
+							getDialect(), start, end);
+				}
+
+				cacheResult(list);
+
+				FinderCacheUtil.putResult(finderPath, finderArgs, list);
 			}
 			catch (Exception e) {
+				FinderCacheUtil.removeResult(finderPath, finderArgs);
+
 				throw processException(e);
 			}
 			finally {
-				if (list == null) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-				else {
-					cacheResult(list);
-
-					FinderCacheUtil.putResult(finderPath, finderArgs, list);
-				}
-
 				closeSession(session);
 			}
 		}
@@ -1100,10 +730,6 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	/**
 	 * Returns the first asset tag property in the ordered set where tagId = &#63;.
 	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	 * </p>
-	 *
 	 * @param tagId the tag ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching asset tag property
@@ -1113,31 +739,46 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	public AssetTagProperty findByTagId_First(long tagId,
 		OrderByComparator orderByComparator)
 		throws NoSuchTagPropertyException, SystemException {
+		AssetTagProperty assetTagProperty = fetchByTagId_First(tagId,
+				orderByComparator);
+
+		if (assetTagProperty != null) {
+			return assetTagProperty;
+		}
+
+		StringBundler msg = new StringBundler(4);
+
+		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		msg.append("tagId=");
+		msg.append(tagId);
+
+		msg.append(StringPool.CLOSE_CURLY_BRACE);
+
+		throw new NoSuchTagPropertyException(msg.toString());
+	}
+
+	/**
+	 * Returns the first asset tag property in the ordered set where tagId = &#63;.
+	 *
+	 * @param tagId the tag ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching asset tag property, or <code>null</code> if a matching asset tag property could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	public AssetTagProperty fetchByTagId_First(long tagId,
+		OrderByComparator orderByComparator) throws SystemException {
 		List<AssetTagProperty> list = findByTagId(tagId, 0, 1, orderByComparator);
 
-		if (list.isEmpty()) {
-			StringBundler msg = new StringBundler(4);
-
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-			msg.append("tagId=");
-			msg.append(tagId);
-
-			msg.append(StringPool.CLOSE_CURLY_BRACE);
-
-			throw new NoSuchTagPropertyException(msg.toString());
-		}
-		else {
+		if (!list.isEmpty()) {
 			return list.get(0);
 		}
+
+		return null;
 	}
 
 	/**
 	 * Returns the last asset tag property in the ordered set where tagId = &#63;.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	 * </p>
 	 *
 	 * @param tagId the tag ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
@@ -1148,34 +789,49 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	public AssetTagProperty findByTagId_Last(long tagId,
 		OrderByComparator orderByComparator)
 		throws NoSuchTagPropertyException, SystemException {
+		AssetTagProperty assetTagProperty = fetchByTagId_Last(tagId,
+				orderByComparator);
+
+		if (assetTagProperty != null) {
+			return assetTagProperty;
+		}
+
+		StringBundler msg = new StringBundler(4);
+
+		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		msg.append("tagId=");
+		msg.append(tagId);
+
+		msg.append(StringPool.CLOSE_CURLY_BRACE);
+
+		throw new NoSuchTagPropertyException(msg.toString());
+	}
+
+	/**
+	 * Returns the last asset tag property in the ordered set where tagId = &#63;.
+	 *
+	 * @param tagId the tag ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching asset tag property, or <code>null</code> if a matching asset tag property could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	public AssetTagProperty fetchByTagId_Last(long tagId,
+		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByTagId(tagId);
 
 		List<AssetTagProperty> list = findByTagId(tagId, count - 1, count,
 				orderByComparator);
 
-		if (list.isEmpty()) {
-			StringBundler msg = new StringBundler(4);
-
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-			msg.append("tagId=");
-			msg.append(tagId);
-
-			msg.append(StringPool.CLOSE_CURLY_BRACE);
-
-			throw new NoSuchTagPropertyException(msg.toString());
-		}
-		else {
+		if (!list.isEmpty()) {
 			return list.get(0);
 		}
+
+		return null;
 	}
 
 	/**
 	 * Returns the asset tag properties before and after the current asset tag property in the ordered set where tagId = &#63;.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	 * </p>
 	 *
 	 * @param tagPropertyId the primary key of the current asset tag property
 	 * @param tagId the tag ID
@@ -1286,7 +942,6 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 				}
 			}
 		}
-
 		else {
 			query.append(AssetTagPropertyModelImpl.ORDER_BY_JPQL);
 		}
@@ -1321,6 +976,94 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	}
 
 	/**
+	 * Removes all the asset tag properties where tagId = &#63; from the database.
+	 *
+	 * @param tagId the tag ID
+	 * @throws SystemException if a system exception occurred
+	 */
+	public void removeByTagId(long tagId) throws SystemException {
+		for (AssetTagProperty assetTagProperty : findByTagId(tagId,
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
+			remove(assetTagProperty);
+		}
+	}
+
+	/**
+	 * Returns the number of asset tag properties where tagId = &#63;.
+	 *
+	 * @param tagId the tag ID
+	 * @return the number of matching asset tag properties
+	 * @throws SystemException if a system exception occurred
+	 */
+	public int countByTagId(long tagId) throws SystemException {
+		FinderPath finderPath = FINDER_PATH_COUNT_BY_TAGID;
+
+		Object[] finderArgs = new Object[] { tagId };
+
+		Long count = (Long)FinderCacheUtil.getResult(finderPath, finderArgs,
+				this);
+
+		if (count == null) {
+			StringBundler query = new StringBundler(2);
+
+			query.append(_SQL_COUNT_ASSETTAGPROPERTY_WHERE);
+
+			query.append(_FINDER_COLUMN_TAGID_TAGID_2);
+
+			String sql = query.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query q = session.createQuery(sql);
+
+				QueryPos qPos = QueryPos.getInstance(q);
+
+				qPos.add(tagId);
+
+				count = (Long)q.uniqueResult();
+
+				FinderCacheUtil.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception e) {
+				FinderCacheUtil.removeResult(finderPath, finderArgs);
+
+				throw processException(e);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	private static final String _FINDER_COLUMN_TAGID_TAGID_2 = "assetTagProperty.tagId = ?";
+	public static final FinderPath FINDER_PATH_WITH_PAGINATION_FIND_BY_C_K = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
+			AssetTagPropertyImpl.class, FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
+			"findByC_K",
+			new String[] {
+				Long.class.getName(), String.class.getName(),
+				
+			Integer.class.getName(), Integer.class.getName(),
+				OrderByComparator.class.getName()
+			});
+	public static final FinderPath FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_K = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
+			AssetTagPropertyImpl.class,
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByC_K",
+			new String[] { Long.class.getName(), String.class.getName() },
+			AssetTagPropertyModelImpl.COMPANYID_COLUMN_BITMASK |
+			AssetTagPropertyModelImpl.KEY_COLUMN_BITMASK);
+	public static final FinderPath FINDER_PATH_COUNT_BY_C_K = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_K",
+			new String[] { Long.class.getName(), String.class.getName() });
+
+	/**
 	 * Returns all the asset tag properties where companyId = &#63; and key = &#63;.
 	 *
 	 * @param companyId the company ID
@@ -1338,7 +1081,7 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	 * Returns a range of all the asset tag properties where companyId = &#63; and key = &#63;.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.asset.model.impl.AssetTagPropertyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
 	 * @param companyId the company ID
@@ -1357,7 +1100,7 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	 * Returns an ordered range of all the asset tag properties where companyId = &#63; and key = &#63;.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.asset.model.impl.AssetTagPropertyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
 	 * @param companyId the company ID
@@ -1371,11 +1114,13 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	public List<AssetTagProperty> findByC_K(long companyId, String key,
 		int start, int end, OrderByComparator orderByComparator)
 		throws SystemException {
+		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 				(orderByComparator == null)) {
+			pagination = false;
 			finderPath = FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_K;
 			finderArgs = new Object[] { companyId, key };
 		}
@@ -1417,24 +1162,26 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 
 			query.append(_FINDER_COLUMN_C_K_COMPANYID_2);
 
+			boolean bindKey = false;
+
 			if (key == null) {
 				query.append(_FINDER_COLUMN_C_K_KEY_1);
 			}
+			else if (key.equals(StringPool.BLANK)) {
+				query.append(_FINDER_COLUMN_C_K_KEY_3);
+			}
 			else {
-				if (key.equals(StringPool.BLANK)) {
-					query.append(_FINDER_COLUMN_C_K_KEY_3);
-				}
-				else {
-					query.append(_FINDER_COLUMN_C_K_KEY_2);
-				}
+				bindKey = true;
+
+				query.append(_FINDER_COLUMN_C_K_KEY_2);
 			}
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(query, _ORDER_BY_ENTITY_ALIAS,
 					orderByComparator);
 			}
-
-			else {
+			else
+			 if (pagination) {
 				query.append(AssetTagPropertyModelImpl.ORDER_BY_JPQL);
 			}
 
@@ -1451,26 +1198,33 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 
 				qPos.add(companyId);
 
-				if (key != null) {
+				if (bindKey) {
 					qPos.add(key);
 				}
 
-				list = (List<AssetTagProperty>)QueryUtil.list(q, getDialect(),
-						start, end);
+				if (!pagination) {
+					list = (List<AssetTagProperty>)QueryUtil.list(q,
+							getDialect(), start, end, false);
+
+					Collections.sort(list);
+
+					list = new UnmodifiableList<AssetTagProperty>(list);
+				}
+				else {
+					list = (List<AssetTagProperty>)QueryUtil.list(q,
+							getDialect(), start, end);
+				}
+
+				cacheResult(list);
+
+				FinderCacheUtil.putResult(finderPath, finderArgs, list);
 			}
 			catch (Exception e) {
+				FinderCacheUtil.removeResult(finderPath, finderArgs);
+
 				throw processException(e);
 			}
 			finally {
-				if (list == null) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-				else {
-					cacheResult(list);
-
-					FinderCacheUtil.putResult(finderPath, finderArgs, list);
-				}
-
 				closeSession(session);
 			}
 		}
@@ -1480,10 +1234,6 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 
 	/**
 	 * Returns the first asset tag property in the ordered set where companyId = &#63; and key = &#63;.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	 * </p>
 	 *
 	 * @param companyId the company ID
 	 * @param key the key
@@ -1495,35 +1245,51 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	public AssetTagProperty findByC_K_First(long companyId, String key,
 		OrderByComparator orderByComparator)
 		throws NoSuchTagPropertyException, SystemException {
+		AssetTagProperty assetTagProperty = fetchByC_K_First(companyId, key,
+				orderByComparator);
+
+		if (assetTagProperty != null) {
+			return assetTagProperty;
+		}
+
+		StringBundler msg = new StringBundler(6);
+
+		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		msg.append("companyId=");
+		msg.append(companyId);
+
+		msg.append(", key=");
+		msg.append(key);
+
+		msg.append(StringPool.CLOSE_CURLY_BRACE);
+
+		throw new NoSuchTagPropertyException(msg.toString());
+	}
+
+	/**
+	 * Returns the first asset tag property in the ordered set where companyId = &#63; and key = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param key the key
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching asset tag property, or <code>null</code> if a matching asset tag property could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	public AssetTagProperty fetchByC_K_First(long companyId, String key,
+		OrderByComparator orderByComparator) throws SystemException {
 		List<AssetTagProperty> list = findByC_K(companyId, key, 0, 1,
 				orderByComparator);
 
-		if (list.isEmpty()) {
-			StringBundler msg = new StringBundler(6);
-
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-			msg.append("companyId=");
-			msg.append(companyId);
-
-			msg.append(", key=");
-			msg.append(key);
-
-			msg.append(StringPool.CLOSE_CURLY_BRACE);
-
-			throw new NoSuchTagPropertyException(msg.toString());
-		}
-		else {
+		if (!list.isEmpty()) {
 			return list.get(0);
 		}
+
+		return null;
 	}
 
 	/**
 	 * Returns the last asset tag property in the ordered set where companyId = &#63; and key = &#63;.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	 * </p>
 	 *
 	 * @param companyId the company ID
 	 * @param key the key
@@ -1535,37 +1301,53 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	public AssetTagProperty findByC_K_Last(long companyId, String key,
 		OrderByComparator orderByComparator)
 		throws NoSuchTagPropertyException, SystemException {
+		AssetTagProperty assetTagProperty = fetchByC_K_Last(companyId, key,
+				orderByComparator);
+
+		if (assetTagProperty != null) {
+			return assetTagProperty;
+		}
+
+		StringBundler msg = new StringBundler(6);
+
+		msg.append(_NO_SUCH_ENTITY_WITH_KEY);
+
+		msg.append("companyId=");
+		msg.append(companyId);
+
+		msg.append(", key=");
+		msg.append(key);
+
+		msg.append(StringPool.CLOSE_CURLY_BRACE);
+
+		throw new NoSuchTagPropertyException(msg.toString());
+	}
+
+	/**
+	 * Returns the last asset tag property in the ordered set where companyId = &#63; and key = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param key the key
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching asset tag property, or <code>null</code> if a matching asset tag property could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	public AssetTagProperty fetchByC_K_Last(long companyId, String key,
+		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByC_K(companyId, key);
 
 		List<AssetTagProperty> list = findByC_K(companyId, key, count - 1,
 				count, orderByComparator);
 
-		if (list.isEmpty()) {
-			StringBundler msg = new StringBundler(6);
-
-			msg.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-			msg.append("companyId=");
-			msg.append(companyId);
-
-			msg.append(", key=");
-			msg.append(key);
-
-			msg.append(StringPool.CLOSE_CURLY_BRACE);
-
-			throw new NoSuchTagPropertyException(msg.toString());
-		}
-		else {
+		if (!list.isEmpty()) {
 			return list.get(0);
 		}
+
+		return null;
 	}
 
 	/**
 	 * Returns the asset tag properties before and after the current asset tag property in the ordered set where companyId = &#63; and key = &#63;.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	 * </p>
 	 *
 	 * @param tagPropertyId the primary key of the current asset tag property
 	 * @param companyId the company ID
@@ -1622,16 +1404,18 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 
 		query.append(_FINDER_COLUMN_C_K_COMPANYID_2);
 
+		boolean bindKey = false;
+
 		if (key == null) {
 			query.append(_FINDER_COLUMN_C_K_KEY_1);
 		}
+		else if (key.equals(StringPool.BLANK)) {
+			query.append(_FINDER_COLUMN_C_K_KEY_3);
+		}
 		else {
-			if (key.equals(StringPool.BLANK)) {
-				query.append(_FINDER_COLUMN_C_K_KEY_3);
-			}
-			else {
-				query.append(_FINDER_COLUMN_C_K_KEY_2);
-			}
+			bindKey = true;
+
+			query.append(_FINDER_COLUMN_C_K_KEY_2);
 		}
 
 		if (orderByComparator != null) {
@@ -1689,7 +1473,6 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 				}
 			}
 		}
-
 		else {
 			query.append(AssetTagPropertyModelImpl.ORDER_BY_JPQL);
 		}
@@ -1705,7 +1488,7 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 
 		qPos.add(companyId);
 
-		if (key != null) {
+		if (bindKey) {
 			qPos.add(key);
 		}
 
@@ -1726,6 +1509,107 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 			return null;
 		}
 	}
+
+	/**
+	 * Removes all the asset tag properties where companyId = &#63; and key = &#63; from the database.
+	 *
+	 * @param companyId the company ID
+	 * @param key the key
+	 * @throws SystemException if a system exception occurred
+	 */
+	public void removeByC_K(long companyId, String key)
+		throws SystemException {
+		for (AssetTagProperty assetTagProperty : findByC_K(companyId, key,
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null)) {
+			remove(assetTagProperty);
+		}
+	}
+
+	/**
+	 * Returns the number of asset tag properties where companyId = &#63; and key = &#63;.
+	 *
+	 * @param companyId the company ID
+	 * @param key the key
+	 * @return the number of matching asset tag properties
+	 * @throws SystemException if a system exception occurred
+	 */
+	public int countByC_K(long companyId, String key) throws SystemException {
+		FinderPath finderPath = FINDER_PATH_COUNT_BY_C_K;
+
+		Object[] finderArgs = new Object[] { companyId, key };
+
+		Long count = (Long)FinderCacheUtil.getResult(finderPath, finderArgs,
+				this);
+
+		if (count == null) {
+			StringBundler query = new StringBundler(3);
+
+			query.append(_SQL_COUNT_ASSETTAGPROPERTY_WHERE);
+
+			query.append(_FINDER_COLUMN_C_K_COMPANYID_2);
+
+			boolean bindKey = false;
+
+			if (key == null) {
+				query.append(_FINDER_COLUMN_C_K_KEY_1);
+			}
+			else if (key.equals(StringPool.BLANK)) {
+				query.append(_FINDER_COLUMN_C_K_KEY_3);
+			}
+			else {
+				bindKey = true;
+
+				query.append(_FINDER_COLUMN_C_K_KEY_2);
+			}
+
+			String sql = query.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query q = session.createQuery(sql);
+
+				QueryPos qPos = QueryPos.getInstance(q);
+
+				qPos.add(companyId);
+
+				if (bindKey) {
+					qPos.add(key);
+				}
+
+				count = (Long)q.uniqueResult();
+
+				FinderCacheUtil.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception e) {
+				FinderCacheUtil.removeResult(finderPath, finderArgs);
+
+				throw processException(e);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return count.intValue();
+	}
+
+	private static final String _FINDER_COLUMN_C_K_COMPANYID_2 = "assetTagProperty.companyId = ? AND ";
+	private static final String _FINDER_COLUMN_C_K_KEY_1 = "assetTagProperty.key IS NULL";
+	private static final String _FINDER_COLUMN_C_K_KEY_2 = "assetTagProperty.key = ?";
+	private static final String _FINDER_COLUMN_C_K_KEY_3 = "(assetTagProperty.key IS NULL OR assetTagProperty.key = '')";
+	public static final FinderPath FINDER_PATH_FETCH_BY_T_K = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED,
+			AssetTagPropertyImpl.class, FINDER_CLASS_NAME_ENTITY, "fetchByT_K",
+			new String[] { Long.class.getName(), String.class.getName() },
+			AssetTagPropertyModelImpl.TAGID_COLUMN_BITMASK |
+			AssetTagPropertyModelImpl.KEY_COLUMN_BITMASK);
+	public static final FinderPath FINDER_PATH_COUNT_BY_T_K = new FinderPath(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByT_K",
+			new String[] { Long.class.getName(), String.class.getName() });
 
 	/**
 	 * Returns the asset tag property where tagId = &#63; and key = &#63; or throws a {@link com.liferay.portlet.asset.NoSuchTagPropertyException} if it could not be found.
@@ -1812,19 +1696,19 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 
 			query.append(_FINDER_COLUMN_T_K_TAGID_2);
 
+			boolean bindKey = false;
+
 			if (key == null) {
 				query.append(_FINDER_COLUMN_T_K_KEY_1);
 			}
-			else {
-				if (key.equals(StringPool.BLANK)) {
-					query.append(_FINDER_COLUMN_T_K_KEY_3);
-				}
-				else {
-					query.append(_FINDER_COLUMN_T_K_KEY_2);
-				}
+			else if (key.equals(StringPool.BLANK)) {
+				query.append(_FINDER_COLUMN_T_K_KEY_3);
 			}
+			else {
+				bindKey = true;
 
-			query.append(AssetTagPropertyModelImpl.ORDER_BY_JPQL);
+				query.append(_FINDER_COLUMN_T_K_KEY_2);
+			}
 
 			String sql = query.toString();
 
@@ -1839,22 +1723,20 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 
 				qPos.add(tagId);
 
-				if (key != null) {
+				if (bindKey) {
 					qPos.add(key);
 				}
 
 				List<AssetTagProperty> list = q.list();
-
-				result = list;
-
-				AssetTagProperty assetTagProperty = null;
 
 				if (list.isEmpty()) {
 					FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_T_K,
 						finderArgs, list);
 				}
 				else {
-					assetTagProperty = list.get(0);
+					AssetTagProperty assetTagProperty = list.get(0);
+
+					result = assetTagProperty;
 
 					cacheResult(assetTagProperty);
 
@@ -1865,29 +1747,583 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 							finderArgs, assetTagProperty);
 					}
 				}
-
-				return assetTagProperty;
 			}
 			catch (Exception e) {
+				FinderCacheUtil.removeResult(FINDER_PATH_FETCH_BY_T_K,
+					finderArgs);
+
 				throw processException(e);
 			}
 			finally {
-				if (result == null) {
-					FinderCacheUtil.removeResult(FINDER_PATH_FETCH_BY_T_K,
-						finderArgs);
-				}
-
 				closeSession(session);
 			}
 		}
+
+		if (result instanceof List<?>) {
+			return null;
+		}
 		else {
-			if (result instanceof List<?>) {
-				return null;
+			return (AssetTagProperty)result;
+		}
+	}
+
+	/**
+	 * Removes the asset tag property where tagId = &#63; and key = &#63; from the database.
+	 *
+	 * @param tagId the tag ID
+	 * @param key the key
+	 * @return the asset tag property that was removed
+	 * @throws SystemException if a system exception occurred
+	 */
+	public AssetTagProperty removeByT_K(long tagId, String key)
+		throws NoSuchTagPropertyException, SystemException {
+		AssetTagProperty assetTagProperty = findByT_K(tagId, key);
+
+		return remove(assetTagProperty);
+	}
+
+	/**
+	 * Returns the number of asset tag properties where tagId = &#63; and key = &#63;.
+	 *
+	 * @param tagId the tag ID
+	 * @param key the key
+	 * @return the number of matching asset tag properties
+	 * @throws SystemException if a system exception occurred
+	 */
+	public int countByT_K(long tagId, String key) throws SystemException {
+		FinderPath finderPath = FINDER_PATH_COUNT_BY_T_K;
+
+		Object[] finderArgs = new Object[] { tagId, key };
+
+		Long count = (Long)FinderCacheUtil.getResult(finderPath, finderArgs,
+				this);
+
+		if (count == null) {
+			StringBundler query = new StringBundler(3);
+
+			query.append(_SQL_COUNT_ASSETTAGPROPERTY_WHERE);
+
+			query.append(_FINDER_COLUMN_T_K_TAGID_2);
+
+			boolean bindKey = false;
+
+			if (key == null) {
+				query.append(_FINDER_COLUMN_T_K_KEY_1);
+			}
+			else if (key.equals(StringPool.BLANK)) {
+				query.append(_FINDER_COLUMN_T_K_KEY_3);
 			}
 			else {
-				return (AssetTagProperty)result;
+				bindKey = true;
+
+				query.append(_FINDER_COLUMN_T_K_KEY_2);
+			}
+
+			String sql = query.toString();
+
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				Query q = session.createQuery(sql);
+
+				QueryPos qPos = QueryPos.getInstance(q);
+
+				qPos.add(tagId);
+
+				if (bindKey) {
+					qPos.add(key);
+				}
+
+				count = (Long)q.uniqueResult();
+
+				FinderCacheUtil.putResult(finderPath, finderArgs, count);
+			}
+			catch (Exception e) {
+				FinderCacheUtil.removeResult(finderPath, finderArgs);
+
+				throw processException(e);
+			}
+			finally {
+				closeSession(session);
 			}
 		}
+
+		return count.intValue();
+	}
+
+	private static final String _FINDER_COLUMN_T_K_TAGID_2 = "assetTagProperty.tagId = ? AND ";
+	private static final String _FINDER_COLUMN_T_K_KEY_1 = "assetTagProperty.key IS NULL";
+	private static final String _FINDER_COLUMN_T_K_KEY_2 = "assetTagProperty.key = ?";
+	private static final String _FINDER_COLUMN_T_K_KEY_3 = "(assetTagProperty.key IS NULL OR assetTagProperty.key = '')";
+
+	/**
+	 * Caches the asset tag property in the entity cache if it is enabled.
+	 *
+	 * @param assetTagProperty the asset tag property
+	 */
+	public void cacheResult(AssetTagProperty assetTagProperty) {
+		EntityCacheUtil.putResult(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyImpl.class, assetTagProperty.getPrimaryKey(),
+			assetTagProperty);
+
+		FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_T_K,
+			new Object[] { assetTagProperty.getTagId(), assetTagProperty.getKey() },
+			assetTagProperty);
+
+		assetTagProperty.resetOriginalValues();
+	}
+
+	/**
+	 * Caches the asset tag properties in the entity cache if it is enabled.
+	 *
+	 * @param assetTagProperties the asset tag properties
+	 */
+	public void cacheResult(List<AssetTagProperty> assetTagProperties) {
+		for (AssetTagProperty assetTagProperty : assetTagProperties) {
+			if (EntityCacheUtil.getResult(
+						AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+						AssetTagPropertyImpl.class,
+						assetTagProperty.getPrimaryKey()) == null) {
+				cacheResult(assetTagProperty);
+			}
+			else {
+				assetTagProperty.resetOriginalValues();
+			}
+		}
+	}
+
+	/**
+	 * Clears the cache for all asset tag properties.
+	 *
+	 * <p>
+	 * The {@link com.liferay.portal.kernel.dao.orm.EntityCache} and {@link com.liferay.portal.kernel.dao.orm.FinderCache} are both cleared by this method.
+	 * </p>
+	 */
+	@Override
+	public void clearCache() {
+		if (_HIBERNATE_CACHE_USE_SECOND_LEVEL_CACHE) {
+			CacheRegistryUtil.clear(AssetTagPropertyImpl.class.getName());
+		}
+
+		EntityCacheUtil.clearCache(AssetTagPropertyImpl.class.getName());
+
+		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_ENTITY);
+		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
+		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+	}
+
+	/**
+	 * Clears the cache for the asset tag property.
+	 *
+	 * <p>
+	 * The {@link com.liferay.portal.kernel.dao.orm.EntityCache} and {@link com.liferay.portal.kernel.dao.orm.FinderCache} are both cleared by this method.
+	 * </p>
+	 */
+	@Override
+	public void clearCache(AssetTagProperty assetTagProperty) {
+		EntityCacheUtil.removeResult(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyImpl.class, assetTagProperty.getPrimaryKey());
+
+		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
+		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		clearUniqueFindersCache(assetTagProperty);
+	}
+
+	@Override
+	public void clearCache(List<AssetTagProperty> assetTagProperties) {
+		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
+		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		for (AssetTagProperty assetTagProperty : assetTagProperties) {
+			EntityCacheUtil.removeResult(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+				AssetTagPropertyImpl.class, assetTagProperty.getPrimaryKey());
+
+			clearUniqueFindersCache(assetTagProperty);
+		}
+	}
+
+	protected void cacheUniqueFindersCache(AssetTagProperty assetTagProperty) {
+		if (assetTagProperty.isNew()) {
+			Object[] args = new Object[] {
+					assetTagProperty.getTagId(), assetTagProperty.getKey()
+				};
+
+			FinderCacheUtil.putResult(FINDER_PATH_COUNT_BY_T_K, args,
+				Long.valueOf(1));
+			FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_T_K, args,
+				assetTagProperty);
+		}
+		else {
+			AssetTagPropertyModelImpl assetTagPropertyModelImpl = (AssetTagPropertyModelImpl)assetTagProperty;
+
+			if ((assetTagPropertyModelImpl.getColumnBitmask() &
+					FINDER_PATH_FETCH_BY_T_K.getColumnBitmask()) != 0) {
+				Object[] args = new Object[] {
+						assetTagProperty.getTagId(), assetTagProperty.getKey()
+					};
+
+				FinderCacheUtil.putResult(FINDER_PATH_COUNT_BY_T_K, args,
+					Long.valueOf(1));
+				FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_T_K, args,
+					assetTagProperty);
+			}
+		}
+	}
+
+	protected void clearUniqueFindersCache(AssetTagProperty assetTagProperty) {
+		AssetTagPropertyModelImpl assetTagPropertyModelImpl = (AssetTagPropertyModelImpl)assetTagProperty;
+
+		Object[] args = new Object[] {
+				assetTagProperty.getTagId(), assetTagProperty.getKey()
+			};
+
+		FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_T_K, args);
+		FinderCacheUtil.removeResult(FINDER_PATH_FETCH_BY_T_K, args);
+
+		if ((assetTagPropertyModelImpl.getColumnBitmask() &
+				FINDER_PATH_FETCH_BY_T_K.getColumnBitmask()) != 0) {
+			args = new Object[] {
+					assetTagPropertyModelImpl.getOriginalTagId(),
+					assetTagPropertyModelImpl.getOriginalKey()
+				};
+
+			FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_T_K, args);
+			FinderCacheUtil.removeResult(FINDER_PATH_FETCH_BY_T_K, args);
+		}
+	}
+
+	/**
+	 * Creates a new asset tag property with the primary key. Does not add the asset tag property to the database.
+	 *
+	 * @param tagPropertyId the primary key for the new asset tag property
+	 * @return the new asset tag property
+	 */
+	public AssetTagProperty create(long tagPropertyId) {
+		AssetTagProperty assetTagProperty = new AssetTagPropertyImpl();
+
+		assetTagProperty.setNew(true);
+		assetTagProperty.setPrimaryKey(tagPropertyId);
+
+		return assetTagProperty;
+	}
+
+	/**
+	 * Removes the asset tag property with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * @param tagPropertyId the primary key of the asset tag property
+	 * @return the asset tag property that was removed
+	 * @throws com.liferay.portlet.asset.NoSuchTagPropertyException if a asset tag property with the primary key could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	public AssetTagProperty remove(long tagPropertyId)
+		throws NoSuchTagPropertyException, SystemException {
+		return remove((Serializable)tagPropertyId);
+	}
+
+	/**
+	 * Removes the asset tag property with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * @param primaryKey the primary key of the asset tag property
+	 * @return the asset tag property that was removed
+	 * @throws com.liferay.portlet.asset.NoSuchTagPropertyException if a asset tag property with the primary key could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public AssetTagProperty remove(Serializable primaryKey)
+		throws NoSuchTagPropertyException, SystemException {
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			AssetTagProperty assetTagProperty = (AssetTagProperty)session.get(AssetTagPropertyImpl.class,
+					primaryKey);
+
+			if (assetTagProperty == null) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(_NO_SUCH_ENTITY_WITH_PRIMARY_KEY + primaryKey);
+				}
+
+				throw new NoSuchTagPropertyException(_NO_SUCH_ENTITY_WITH_PRIMARY_KEY +
+					primaryKey);
+			}
+
+			return remove(assetTagProperty);
+		}
+		catch (NoSuchTagPropertyException nsee) {
+			throw nsee;
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	@Override
+	protected AssetTagProperty removeImpl(AssetTagProperty assetTagProperty)
+		throws SystemException {
+		assetTagProperty = toUnwrappedModel(assetTagProperty);
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			if (!session.contains(assetTagProperty)) {
+				assetTagProperty = (AssetTagProperty)session.get(AssetTagPropertyImpl.class,
+						assetTagProperty.getPrimaryKeyObj());
+			}
+
+			if (assetTagProperty != null) {
+				session.delete(assetTagProperty);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		if (assetTagProperty != null) {
+			clearCache(assetTagProperty);
+		}
+
+		return assetTagProperty;
+	}
+
+	@Override
+	public AssetTagProperty updateImpl(
+		com.liferay.portlet.asset.model.AssetTagProperty assetTagProperty)
+		throws SystemException {
+		assetTagProperty = toUnwrappedModel(assetTagProperty);
+
+		boolean isNew = assetTagProperty.isNew();
+
+		AssetTagPropertyModelImpl assetTagPropertyModelImpl = (AssetTagPropertyModelImpl)assetTagProperty;
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			if (assetTagProperty.isNew()) {
+				session.save(assetTagProperty);
+
+				assetTagProperty.setNew(false);
+			}
+			else {
+				session.merge(assetTagProperty);
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+
+		FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
+
+		if (isNew || !AssetTagPropertyModelImpl.COLUMN_BITMASK_ENABLED) {
+			FinderCacheUtil.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+		}
+
+		else {
+			if ((assetTagPropertyModelImpl.getColumnBitmask() &
+					FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_COMPANYID.getColumnBitmask()) != 0) {
+				Object[] args = new Object[] {
+						assetTagPropertyModelImpl.getOriginalCompanyId()
+					};
+
+				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_COMPANYID,
+					args);
+				FinderCacheUtil.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_COMPANYID,
+					args);
+
+				args = new Object[] { assetTagPropertyModelImpl.getCompanyId() };
+
+				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_COMPANYID,
+					args);
+				FinderCacheUtil.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_COMPANYID,
+					args);
+			}
+
+			if ((assetTagPropertyModelImpl.getColumnBitmask() &
+					FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_TAGID.getColumnBitmask()) != 0) {
+				Object[] args = new Object[] {
+						assetTagPropertyModelImpl.getOriginalTagId()
+					};
+
+				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_TAGID, args);
+				FinderCacheUtil.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_TAGID,
+					args);
+
+				args = new Object[] { assetTagPropertyModelImpl.getTagId() };
+
+				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_TAGID, args);
+				FinderCacheUtil.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_TAGID,
+					args);
+			}
+
+			if ((assetTagPropertyModelImpl.getColumnBitmask() &
+					FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_K.getColumnBitmask()) != 0) {
+				Object[] args = new Object[] {
+						assetTagPropertyModelImpl.getOriginalCompanyId(),
+						assetTagPropertyModelImpl.getOriginalKey()
+					};
+
+				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_C_K, args);
+				FinderCacheUtil.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_K,
+					args);
+
+				args = new Object[] {
+						assetTagPropertyModelImpl.getCompanyId(),
+						assetTagPropertyModelImpl.getKey()
+					};
+
+				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_C_K, args);
+				FinderCacheUtil.removeResult(FINDER_PATH_WITHOUT_PAGINATION_FIND_BY_C_K,
+					args);
+			}
+		}
+
+		EntityCacheUtil.putResult(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+			AssetTagPropertyImpl.class, assetTagProperty.getPrimaryKey(),
+			assetTagProperty);
+
+		clearUniqueFindersCache(assetTagProperty);
+		cacheUniqueFindersCache(assetTagProperty);
+
+		return assetTagProperty;
+	}
+
+	protected AssetTagProperty toUnwrappedModel(
+		AssetTagProperty assetTagProperty) {
+		if (assetTagProperty instanceof AssetTagPropertyImpl) {
+			return assetTagProperty;
+		}
+
+		AssetTagPropertyImpl assetTagPropertyImpl = new AssetTagPropertyImpl();
+
+		assetTagPropertyImpl.setNew(assetTagProperty.isNew());
+		assetTagPropertyImpl.setPrimaryKey(assetTagProperty.getPrimaryKey());
+
+		assetTagPropertyImpl.setTagPropertyId(assetTagProperty.getTagPropertyId());
+		assetTagPropertyImpl.setCompanyId(assetTagProperty.getCompanyId());
+		assetTagPropertyImpl.setUserId(assetTagProperty.getUserId());
+		assetTagPropertyImpl.setUserName(assetTagProperty.getUserName());
+		assetTagPropertyImpl.setCreateDate(assetTagProperty.getCreateDate());
+		assetTagPropertyImpl.setModifiedDate(assetTagProperty.getModifiedDate());
+		assetTagPropertyImpl.setTagId(assetTagProperty.getTagId());
+		assetTagPropertyImpl.setKey(assetTagProperty.getKey());
+		assetTagPropertyImpl.setValue(assetTagProperty.getValue());
+
+		return assetTagPropertyImpl;
+	}
+
+	/**
+	 * Returns the asset tag property with the primary key or throws a {@link com.liferay.portal.NoSuchModelException} if it could not be found.
+	 *
+	 * @param primaryKey the primary key of the asset tag property
+	 * @return the asset tag property
+	 * @throws com.liferay.portlet.asset.NoSuchTagPropertyException if a asset tag property with the primary key could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public AssetTagProperty findByPrimaryKey(Serializable primaryKey)
+		throws NoSuchTagPropertyException, SystemException {
+		AssetTagProperty assetTagProperty = fetchByPrimaryKey(primaryKey);
+
+		if (assetTagProperty == null) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(_NO_SUCH_ENTITY_WITH_PRIMARY_KEY + primaryKey);
+			}
+
+			throw new NoSuchTagPropertyException(_NO_SUCH_ENTITY_WITH_PRIMARY_KEY +
+				primaryKey);
+		}
+
+		return assetTagProperty;
+	}
+
+	/**
+	 * Returns the asset tag property with the primary key or throws a {@link com.liferay.portlet.asset.NoSuchTagPropertyException} if it could not be found.
+	 *
+	 * @param tagPropertyId the primary key of the asset tag property
+	 * @return the asset tag property
+	 * @throws com.liferay.portlet.asset.NoSuchTagPropertyException if a asset tag property with the primary key could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	public AssetTagProperty findByPrimaryKey(long tagPropertyId)
+		throws NoSuchTagPropertyException, SystemException {
+		return findByPrimaryKey((Serializable)tagPropertyId);
+	}
+
+	/**
+	 * Returns the asset tag property with the primary key or returns <code>null</code> if it could not be found.
+	 *
+	 * @param primaryKey the primary key of the asset tag property
+	 * @return the asset tag property, or <code>null</code> if a asset tag property with the primary key could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public AssetTagProperty fetchByPrimaryKey(Serializable primaryKey)
+		throws SystemException {
+		AssetTagProperty assetTagProperty = (AssetTagProperty)EntityCacheUtil.getResult(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+				AssetTagPropertyImpl.class, primaryKey);
+
+		if (assetTagProperty == _nullAssetTagProperty) {
+			return null;
+		}
+
+		if (assetTagProperty == null) {
+			Session session = null;
+
+			try {
+				session = openSession();
+
+				assetTagProperty = (AssetTagProperty)session.get(AssetTagPropertyImpl.class,
+						primaryKey);
+
+				if (assetTagProperty != null) {
+					cacheResult(assetTagProperty);
+				}
+				else {
+					EntityCacheUtil.putResult(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+						AssetTagPropertyImpl.class, primaryKey,
+						_nullAssetTagProperty);
+				}
+			}
+			catch (Exception e) {
+				EntityCacheUtil.removeResult(AssetTagPropertyModelImpl.ENTITY_CACHE_ENABLED,
+					AssetTagPropertyImpl.class, primaryKey);
+
+				throw processException(e);
+			}
+			finally {
+				closeSession(session);
+			}
+		}
+
+		return assetTagProperty;
+	}
+
+	/**
+	 * Returns the asset tag property with the primary key or returns <code>null</code> if it could not be found.
+	 *
+	 * @param tagPropertyId the primary key of the asset tag property
+	 * @return the asset tag property, or <code>null</code> if a asset tag property with the primary key could not be found
+	 * @throws SystemException if a system exception occurred
+	 */
+	public AssetTagProperty fetchByPrimaryKey(long tagPropertyId)
+		throws SystemException {
+		return fetchByPrimaryKey((Serializable)tagPropertyId);
 	}
 
 	/**
@@ -1904,7 +2340,7 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	 * Returns a range of all the asset tag properties.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.asset.model.impl.AssetTagPropertyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
 	 * @param start the lower bound of the range of asset tag properties
@@ -1921,7 +2357,7 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	 * Returns an ordered range of all the asset tag properties.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.asset.model.impl.AssetTagPropertyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	 * </p>
 	 *
 	 * @param start the lower bound of the range of asset tag properties
@@ -1932,11 +2368,13 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	 */
 	public List<AssetTagProperty> findAll(int start, int end,
 		OrderByComparator orderByComparator) throws SystemException {
+		boolean pagination = true;
 		FinderPath finderPath = null;
-		Object[] finderArgs = new Object[] { start, end, orderByComparator };
+		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 				(orderByComparator == null)) {
+			pagination = false;
 			finderPath = FINDER_PATH_WITHOUT_PAGINATION_FIND_ALL;
 			finderArgs = FINDER_ARGS_EMPTY;
 		}
@@ -1964,7 +2402,11 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 				sql = query.toString();
 			}
 			else {
-				sql = _SQL_SELECT_ASSETTAGPROPERTY.concat(AssetTagPropertyModelImpl.ORDER_BY_JPQL);
+				sql = _SQL_SELECT_ASSETTAGPROPERTY;
+
+				if (pagination) {
+					sql = sql.concat(AssetTagPropertyModelImpl.ORDER_BY_JPQL);
+				}
 			}
 
 			Session session = null;
@@ -1974,88 +2416,34 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 
 				Query q = session.createQuery(sql);
 
-				if (orderByComparator == null) {
+				if (!pagination) {
 					list = (List<AssetTagProperty>)QueryUtil.list(q,
 							getDialect(), start, end, false);
 
 					Collections.sort(list);
+
+					list = new UnmodifiableList<AssetTagProperty>(list);
 				}
 				else {
 					list = (List<AssetTagProperty>)QueryUtil.list(q,
 							getDialect(), start, end);
 				}
+
+				cacheResult(list);
+
+				FinderCacheUtil.putResult(finderPath, finderArgs, list);
 			}
 			catch (Exception e) {
+				FinderCacheUtil.removeResult(finderPath, finderArgs);
+
 				throw processException(e);
 			}
 			finally {
-				if (list == null) {
-					FinderCacheUtil.removeResult(finderPath, finderArgs);
-				}
-				else {
-					cacheResult(list);
-
-					FinderCacheUtil.putResult(finderPath, finderArgs, list);
-				}
-
 				closeSession(session);
 			}
 		}
 
 		return list;
-	}
-
-	/**
-	 * Removes all the asset tag properties where companyId = &#63; from the database.
-	 *
-	 * @param companyId the company ID
-	 * @throws SystemException if a system exception occurred
-	 */
-	public void removeByCompanyId(long companyId) throws SystemException {
-		for (AssetTagProperty assetTagProperty : findByCompanyId(companyId)) {
-			remove(assetTagProperty);
-		}
-	}
-
-	/**
-	 * Removes all the asset tag properties where tagId = &#63; from the database.
-	 *
-	 * @param tagId the tag ID
-	 * @throws SystemException if a system exception occurred
-	 */
-	public void removeByTagId(long tagId) throws SystemException {
-		for (AssetTagProperty assetTagProperty : findByTagId(tagId)) {
-			remove(assetTagProperty);
-		}
-	}
-
-	/**
-	 * Removes all the asset tag properties where companyId = &#63; and key = &#63; from the database.
-	 *
-	 * @param companyId the company ID
-	 * @param key the key
-	 * @throws SystemException if a system exception occurred
-	 */
-	public void removeByC_K(long companyId, String key)
-		throws SystemException {
-		for (AssetTagProperty assetTagProperty : findByC_K(companyId, key)) {
-			remove(assetTagProperty);
-		}
-	}
-
-	/**
-	 * Removes the asset tag property where tagId = &#63; and key = &#63; from the database.
-	 *
-	 * @param tagId the tag ID
-	 * @param key the key
-	 * @return the asset tag property that was removed
-	 * @throws SystemException if a system exception occurred
-	 */
-	public AssetTagProperty removeByT_K(long tagId, String key)
-		throws NoSuchTagPropertyException, SystemException {
-		AssetTagProperty assetTagProperty = findByT_K(tagId, key);
-
-		return remove(assetTagProperty);
 	}
 
 	/**
@@ -2067,252 +2455,6 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 		for (AssetTagProperty assetTagProperty : findAll()) {
 			remove(assetTagProperty);
 		}
-	}
-
-	/**
-	 * Returns the number of asset tag properties where companyId = &#63;.
-	 *
-	 * @param companyId the company ID
-	 * @return the number of matching asset tag properties
-	 * @throws SystemException if a system exception occurred
-	 */
-	public int countByCompanyId(long companyId) throws SystemException {
-		Object[] finderArgs = new Object[] { companyId };
-
-		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_BY_COMPANYID,
-				finderArgs, this);
-
-		if (count == null) {
-			StringBundler query = new StringBundler(2);
-
-			query.append(_SQL_COUNT_ASSETTAGPROPERTY_WHERE);
-
-			query.append(_FINDER_COLUMN_COMPANYID_COMPANYID_2);
-
-			String sql = query.toString();
-
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				Query q = session.createQuery(sql);
-
-				QueryPos qPos = QueryPos.getInstance(q);
-
-				qPos.add(companyId);
-
-				count = (Long)q.uniqueResult();
-			}
-			catch (Exception e) {
-				throw processException(e);
-			}
-			finally {
-				if (count == null) {
-					count = Long.valueOf(0);
-				}
-
-				FinderCacheUtil.putResult(FINDER_PATH_COUNT_BY_COMPANYID,
-					finderArgs, count);
-
-				closeSession(session);
-			}
-		}
-
-		return count.intValue();
-	}
-
-	/**
-	 * Returns the number of asset tag properties where tagId = &#63;.
-	 *
-	 * @param tagId the tag ID
-	 * @return the number of matching asset tag properties
-	 * @throws SystemException if a system exception occurred
-	 */
-	public int countByTagId(long tagId) throws SystemException {
-		Object[] finderArgs = new Object[] { tagId };
-
-		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_BY_TAGID,
-				finderArgs, this);
-
-		if (count == null) {
-			StringBundler query = new StringBundler(2);
-
-			query.append(_SQL_COUNT_ASSETTAGPROPERTY_WHERE);
-
-			query.append(_FINDER_COLUMN_TAGID_TAGID_2);
-
-			String sql = query.toString();
-
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				Query q = session.createQuery(sql);
-
-				QueryPos qPos = QueryPos.getInstance(q);
-
-				qPos.add(tagId);
-
-				count = (Long)q.uniqueResult();
-			}
-			catch (Exception e) {
-				throw processException(e);
-			}
-			finally {
-				if (count == null) {
-					count = Long.valueOf(0);
-				}
-
-				FinderCacheUtil.putResult(FINDER_PATH_COUNT_BY_TAGID,
-					finderArgs, count);
-
-				closeSession(session);
-			}
-		}
-
-		return count.intValue();
-	}
-
-	/**
-	 * Returns the number of asset tag properties where companyId = &#63; and key = &#63;.
-	 *
-	 * @param companyId the company ID
-	 * @param key the key
-	 * @return the number of matching asset tag properties
-	 * @throws SystemException if a system exception occurred
-	 */
-	public int countByC_K(long companyId, String key) throws SystemException {
-		Object[] finderArgs = new Object[] { companyId, key };
-
-		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_BY_C_K,
-				finderArgs, this);
-
-		if (count == null) {
-			StringBundler query = new StringBundler(3);
-
-			query.append(_SQL_COUNT_ASSETTAGPROPERTY_WHERE);
-
-			query.append(_FINDER_COLUMN_C_K_COMPANYID_2);
-
-			if (key == null) {
-				query.append(_FINDER_COLUMN_C_K_KEY_1);
-			}
-			else {
-				if (key.equals(StringPool.BLANK)) {
-					query.append(_FINDER_COLUMN_C_K_KEY_3);
-				}
-				else {
-					query.append(_FINDER_COLUMN_C_K_KEY_2);
-				}
-			}
-
-			String sql = query.toString();
-
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				Query q = session.createQuery(sql);
-
-				QueryPos qPos = QueryPos.getInstance(q);
-
-				qPos.add(companyId);
-
-				if (key != null) {
-					qPos.add(key);
-				}
-
-				count = (Long)q.uniqueResult();
-			}
-			catch (Exception e) {
-				throw processException(e);
-			}
-			finally {
-				if (count == null) {
-					count = Long.valueOf(0);
-				}
-
-				FinderCacheUtil.putResult(FINDER_PATH_COUNT_BY_C_K, finderArgs,
-					count);
-
-				closeSession(session);
-			}
-		}
-
-		return count.intValue();
-	}
-
-	/**
-	 * Returns the number of asset tag properties where tagId = &#63; and key = &#63;.
-	 *
-	 * @param tagId the tag ID
-	 * @param key the key
-	 * @return the number of matching asset tag properties
-	 * @throws SystemException if a system exception occurred
-	 */
-	public int countByT_K(long tagId, String key) throws SystemException {
-		Object[] finderArgs = new Object[] { tagId, key };
-
-		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_COUNT_BY_T_K,
-				finderArgs, this);
-
-		if (count == null) {
-			StringBundler query = new StringBundler(3);
-
-			query.append(_SQL_COUNT_ASSETTAGPROPERTY_WHERE);
-
-			query.append(_FINDER_COLUMN_T_K_TAGID_2);
-
-			if (key == null) {
-				query.append(_FINDER_COLUMN_T_K_KEY_1);
-			}
-			else {
-				if (key.equals(StringPool.BLANK)) {
-					query.append(_FINDER_COLUMN_T_K_KEY_3);
-				}
-				else {
-					query.append(_FINDER_COLUMN_T_K_KEY_2);
-				}
-			}
-
-			String sql = query.toString();
-
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				Query q = session.createQuery(sql);
-
-				QueryPos qPos = QueryPos.getInstance(q);
-
-				qPos.add(tagId);
-
-				if (key != null) {
-					qPos.add(key);
-				}
-
-				count = (Long)q.uniqueResult();
-			}
-			catch (Exception e) {
-				throw processException(e);
-			}
-			finally {
-				if (count == null) {
-					count = Long.valueOf(0);
-				}
-
-				FinderCacheUtil.putResult(FINDER_PATH_COUNT_BY_T_K, finderArgs,
-					count);
-
-				closeSession(session);
-			}
-		}
-
-		return count.intValue();
 	}
 
 	/**
@@ -2334,18 +2476,17 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 				Query q = session.createQuery(_SQL_COUNT_ASSETTAGPROPERTY);
 
 				count = (Long)q.uniqueResult();
-			}
-			catch (Exception e) {
-				throw processException(e);
-			}
-			finally {
-				if (count == null) {
-					count = Long.valueOf(0);
-				}
 
 				FinderCacheUtil.putResult(FINDER_PATH_COUNT_ALL,
 					FINDER_ARGS_EMPTY, count);
+			}
+			catch (Exception e) {
+				FinderCacheUtil.removeResult(FINDER_PATH_COUNT_ALL,
+					FINDER_ARGS_EMPTY);
 
+				throw processException(e);
+			}
+			finally {
 				closeSession(session);
 			}
 		}
@@ -2381,41 +2522,14 @@ public class AssetTagPropertyPersistenceImpl extends BasePersistenceImpl<AssetTa
 	public void destroy() {
 		EntityCacheUtil.removeCache(AssetTagPropertyImpl.class.getName());
 		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_ENTITY);
+		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 		FinderCacheUtil.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 	}
 
-	@BeanReference(type = AssetCategoryPersistence.class)
-	protected AssetCategoryPersistence assetCategoryPersistence;
-	@BeanReference(type = AssetCategoryPropertyPersistence.class)
-	protected AssetCategoryPropertyPersistence assetCategoryPropertyPersistence;
-	@BeanReference(type = AssetEntryPersistence.class)
-	protected AssetEntryPersistence assetEntryPersistence;
-	@BeanReference(type = AssetLinkPersistence.class)
-	protected AssetLinkPersistence assetLinkPersistence;
-	@BeanReference(type = AssetTagPersistence.class)
-	protected AssetTagPersistence assetTagPersistence;
-	@BeanReference(type = AssetTagPropertyPersistence.class)
-	protected AssetTagPropertyPersistence assetTagPropertyPersistence;
-	@BeanReference(type = AssetTagStatsPersistence.class)
-	protected AssetTagStatsPersistence assetTagStatsPersistence;
-	@BeanReference(type = AssetVocabularyPersistence.class)
-	protected AssetVocabularyPersistence assetVocabularyPersistence;
-	@BeanReference(type = UserPersistence.class)
-	protected UserPersistence userPersistence;
 	private static final String _SQL_SELECT_ASSETTAGPROPERTY = "SELECT assetTagProperty FROM AssetTagProperty assetTagProperty";
 	private static final String _SQL_SELECT_ASSETTAGPROPERTY_WHERE = "SELECT assetTagProperty FROM AssetTagProperty assetTagProperty WHERE ";
 	private static final String _SQL_COUNT_ASSETTAGPROPERTY = "SELECT COUNT(assetTagProperty) FROM AssetTagProperty assetTagProperty";
 	private static final String _SQL_COUNT_ASSETTAGPROPERTY_WHERE = "SELECT COUNT(assetTagProperty) FROM AssetTagProperty assetTagProperty WHERE ";
-	private static final String _FINDER_COLUMN_COMPANYID_COMPANYID_2 = "assetTagProperty.companyId = ?";
-	private static final String _FINDER_COLUMN_TAGID_TAGID_2 = "assetTagProperty.tagId = ?";
-	private static final String _FINDER_COLUMN_C_K_COMPANYID_2 = "assetTagProperty.companyId = ? AND ";
-	private static final String _FINDER_COLUMN_C_K_KEY_1 = "assetTagProperty.key IS NULL";
-	private static final String _FINDER_COLUMN_C_K_KEY_2 = "assetTagProperty.key = ?";
-	private static final String _FINDER_COLUMN_C_K_KEY_3 = "(assetTagProperty.key IS NULL OR assetTagProperty.key = ?)";
-	private static final String _FINDER_COLUMN_T_K_TAGID_2 = "assetTagProperty.tagId = ? AND ";
-	private static final String _FINDER_COLUMN_T_K_KEY_1 = "assetTagProperty.key IS NULL";
-	private static final String _FINDER_COLUMN_T_K_KEY_2 = "assetTagProperty.key = ?";
-	private static final String _FINDER_COLUMN_T_K_KEY_3 = "(assetTagProperty.key IS NULL OR assetTagProperty.key = ?)";
 	private static final String _ORDER_BY_ENTITY_ALIAS = "assetTagProperty.";
 	private static final String _NO_SUCH_ENTITY_WITH_PRIMARY_KEY = "No AssetTagProperty exists with the primary key ";
 	private static final String _NO_SUCH_ENTITY_WITH_KEY = "No AssetTagProperty exists with the key {";

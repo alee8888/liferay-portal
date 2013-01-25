@@ -20,6 +20,7 @@ import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.GroupedModel;
 import com.liferay.portal.model.ResourcedModel;
+import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.ServiceContext;
 
@@ -43,7 +44,7 @@ import java.util.Date;
  * @generated
  */
 public interface WikiPageModel extends BaseModel<WikiPage>, GroupedModel,
-	ResourcedModel, WorkflowedModel {
+	ResourcedModel, StagedModel, WorkflowedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -454,6 +455,13 @@ public interface WikiPageModel extends BaseModel<WikiPage>, GroupedModel,
 	public boolean isApproved();
 
 	/**
+	 * Returns <code>true</code> if this wiki page is denied.
+	 *
+	 * @return <code>true</code> if this wiki page is denied; <code>false</code> otherwise
+	 */
+	public boolean isDenied();
+
+	/**
 	 * Returns <code>true</code> if this wiki page is a draft.
 	 *
 	 * @return <code>true</code> if this wiki page is a draft; <code>false</code> otherwise
@@ -468,11 +476,39 @@ public interface WikiPageModel extends BaseModel<WikiPage>, GroupedModel,
 	public boolean isExpired();
 
 	/**
+	 * Returns <code>true</code> if this wiki page is inactive.
+	 *
+	 * @return <code>true</code> if this wiki page is inactive; <code>false</code> otherwise
+	 */
+	public boolean isInactive();
+
+	/**
+	 * Returns <code>true</code> if this wiki page is incomplete.
+	 *
+	 * @return <code>true</code> if this wiki page is incomplete; <code>false</code> otherwise
+	 */
+	public boolean isIncomplete();
+
+	/**
+	 * Returns <code>true</code> if this wiki page is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if this wiki page is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	public boolean isInTrash();
+
+	/**
 	 * Returns <code>true</code> if this wiki page is pending.
 	 *
 	 * @return <code>true</code> if this wiki page is pending; <code>false</code> otherwise
 	 */
 	public boolean isPending();
+
+	/**
+	 * Returns <code>true</code> if this wiki page is scheduled.
+	 *
+	 * @return <code>true</code> if this wiki page is scheduled; <code>false</code> otherwise
+	 */
+	public boolean isScheduled();
 
 	public boolean isNew();
 
@@ -501,6 +537,8 @@ public interface WikiPageModel extends BaseModel<WikiPage>, GroupedModel,
 	public CacheModel<WikiPage> toCacheModel();
 
 	public WikiPage toEscapedModel();
+
+	public WikiPage toUnescapedModel();
 
 	public String toString();
 

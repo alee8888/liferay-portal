@@ -14,9 +14,12 @@
 
 package com.liferay.portal.scripting.javascript;
 
+import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cache.SingleVMPoolUtil;
 import com.liferay.portal.kernel.scripting.BaseScriptingExecutor;
 import com.liferay.portal.kernel.scripting.ScriptingException;
+import com.liferay.portal.kernel.util.AggregateClassLoader;
+import com.liferay.portal.security.pacl.PACLClassLoaderUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,20 +37,29 @@ public class JavaScriptExecutor extends BaseScriptingExecutor {
 
 	@Override
 	public void clearCache() {
-		SingleVMPoolUtil.clear(_CACHE_NAME);
+		_portalCache.removeAll();
 	}
 
 	public Map<String, Object> eval(
 			Set<String> allowedClasses, Map<String, Object> inputObjects,
-			Set<String> outputNames, String script)
+			Set<String> outputNames, String script, ClassLoader... classLoaders)
 		throws ScriptingException {
 
-		Script compiledScript = getCompiledScript(script);
+		Script compiledScript = getCompiledScript(script, classLoaders);
 
 		try {
 			Context context = Context.enter();
 
 			Scriptable scriptable = context.initStandardObjects();
+
+			if ((classLoaders != null) && (classLoaders.length > 0)) {
+				ClassLoader aggregateClassLoader =
+					AggregateClassLoader.getAggregateClassLoader(
+						PACLClassLoaderUtil.getPortalClassLoader(),
+						classLoaders);
+
+				context.setApplicationClassLoader(aggregateClassLoader);
+			}
 
 			for (Map.Entry<String, Object> entry : inputObjects.entrySet()) {
 				String key = entry.getKey();
@@ -90,14 +102,25 @@ public class JavaScriptExecutor extends BaseScriptingExecutor {
 		return _LANGUAGE;
 	}
 
-	protected Script getCompiledScript(String script) {
+	protected Script getCompiledScript(
+		String script, ClassLoader... classLoaders) {
+
 		String key = String.valueOf(script.hashCode());
 
-		Script compiledScript = (Script)SingleVMPoolUtil.get(_CACHE_NAME, key);
+		Script compiledScript = _portalCache.get(key);
 
 		if (compiledScript == null) {
 			try {
 				Context context = Context.enter();
+
+				if ((classLoaders != null) && (classLoaders.length > 0)) {
+					ClassLoader aggregateClassLoader =
+						AggregateClassLoader.getAggregateClassLoader(
+							PACLClassLoaderUtil.getPortalClassLoader(),
+							classLoaders);
+
+					context.setApplicationClassLoader(aggregateClassLoader);
+				}
 
 				compiledScript = context.compileString(
 					script, "script", 0, null);
@@ -106,7 +129,7 @@ public class JavaScriptExecutor extends BaseScriptingExecutor {
 				Context.exit();
 			}
 
-			SingleVMPoolUtil.put(_CACHE_NAME, key, compiledScript);
+			_portalCache.put(key, compiledScript);
 		}
 
 		return compiledScript;
@@ -116,5 +139,8 @@ public class JavaScriptExecutor extends BaseScriptingExecutor {
 		JavaScriptExecutor.class.getName();
 
 	private static final String _LANGUAGE = "javascript";
+
+	private PortalCache<String, Script> _portalCache =
+		SingleVMPoolUtil.getCache(_CACHE_NAME);
 
 }

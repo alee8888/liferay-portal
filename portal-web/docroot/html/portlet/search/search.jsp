@@ -34,8 +34,6 @@ else {
 
 long groupId = ParamUtil.getLong(request, "groupId");
 
-Group group = themeDisplay.getScopeGroup();
-
 String keywords = ParamUtil.getString(request, "keywords");
 
 String format = ParamUtil.getString(request, "format");
@@ -50,6 +48,7 @@ portletURL.setParameter("keywords", keywords);
 portletURL.setParameter("format", format);
 
 request.setAttribute("search.jsp-portletURL", portletURL);
+request.setAttribute("search.jsp-returnToFullPageURL", portletDisplay.getURLBack());
 %>
 
 <liferay-portlet:renderURL varImpl="searchURL">
@@ -58,15 +57,11 @@ request.setAttribute("search.jsp-portletURL", portletURL);
 
 <aui:form action="<%= searchURL %>" method="get" name="fm" onSubmit='<%= "event.preventDefault();" %>'>
 	<liferay-portlet:renderURLParams varImpl="searchURL" />
+	<aui:input name="<%= SearchContainer.DEFAULT_CUR_PARAM %>" type="hidden" value="<%= ParamUtil.getInteger(request, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_CUR) %>" />
 	<aui:input name="format" type="hidden" value="<%= format %>" />
 
 	<aui:fieldset>
 		<aui:input inlineField="<%= true %>" label="" name="keywords" size="30" value="<%= HtmlUtil.escape(keywords) %>" />
-
-		<aui:select inlineField="<%= true %>" label="" name="groupId">
-			<aui:option label="everything" selected="<%= groupId == 0 %>" value="0" />
-			<aui:option label='<%= "this-" + (group.isOrganization() ? "organization" : "site") %>' selected="<%= groupId != 0 %>" value="<%= group.getGroupId() %>" />
-		</aui:select>
 
 		<aui:button align="absmiddle" border="0" name="search" onClick='<%= renderResponse.getNamespace() + "search();" %>' src='<%= themeDisplay.getPathThemeImages() + "/common/search.png" %>' title="search" type="image" />
 
@@ -128,10 +123,10 @@ request.setAttribute("search.jsp-portletURL", portletURL);
 </aui:form>
 
 <aui:script use="aui-base">
-	var pageLinks = A.one('.portlet-search .result .page-links');
+	var searchContainer = A.one('.portlet-search .result .lfr-search-container');
 
-	if (pageLinks) {
-		pageLinks.delegate(
+	if (searchContainer) {
+		searchContainer.delegate(
 			'click',
 			function(event) {
 				document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value = 1;
@@ -140,29 +135,31 @@ request.setAttribute("search.jsp-portletURL", portletURL);
 
 				event.preventDefault();
 			},
-			'a.first'
+			'.page-links a.first'
 		);
 
-		pageLinks.delegate(
+		searchContainer.delegate(
 			'click',
 			function(event) {
-				submitForm(document.<portlet:namespace />fm);
-
-				event.preventDefault();
-			},
-			'a.previous'
-		);
-
-		pageLinks.delegate(
-			'click',
-			function(event) {
-				document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value = parseInt(document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value) + 2;
+				document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value = parseInt(document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value) - 1;
 
 				submitForm(document.<portlet:namespace />fm);
 
 				event.preventDefault();
 			},
-			'a.next'
+			'.page-links a.previous'
+		);
+
+		searchContainer.delegate(
+			'click',
+			function(event) {
+				document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value = parseInt(document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value) + 1;
+
+				submitForm(document.<portlet:namespace />fm);
+
+				event.preventDefault();
+			},
+			'.page-links a.next'
 		);
 	}
 

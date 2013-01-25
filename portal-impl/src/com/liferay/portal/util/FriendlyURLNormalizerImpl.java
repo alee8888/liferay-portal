@@ -29,7 +29,7 @@ import java.util.Arrays;
  * @author Brian Wing Shun Chan
  * @author Shuyang Zhou
  */
-public class FriendlyURLNormalizerImpl implements FriendlyURLNormalizer{
+public class FriendlyURLNormalizerImpl implements FriendlyURLNormalizer {
 
 	public String normalize(String friendlyURL) {
 		return normalize(friendlyURL, null);
@@ -77,7 +77,7 @@ public class FriendlyURLNormalizerImpl implements FriendlyURLNormalizer{
 			friendlyURL = sb.toString();
 		}
 
-		while (friendlyURL.indexOf(StringPool.DOUBLE_DASH) >= 0) {
+		while (friendlyURL.contains(StringPool.DOUBLE_DASH)) {
 			friendlyURL = StringUtil.replace(
 				friendlyURL, StringPool.DOUBLE_DASH, StringPool.DASH);
 		}

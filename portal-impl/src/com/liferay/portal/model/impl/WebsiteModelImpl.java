@@ -99,6 +99,7 @@ public class WebsiteModelImpl extends BaseModelImpl<Website>
 	public static long COMPANYID_COLUMN_BITMASK = 4L;
 	public static long PRIMARY_COLUMN_BITMASK = 8L;
 	public static long USERID_COLUMN_BITMASK = 16L;
+	public static long CREATEDATE_COLUMN_BITMASK = 32L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -107,6 +108,10 @@ public class WebsiteModelImpl extends BaseModelImpl<Website>
 	 * @return the normal model instance
 	 */
 	public static Website toModel(WebsiteSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		Website model = new WebsiteImpl();
 
 		model.setWebsiteId(soapModel.getWebsiteId());
@@ -131,6 +136,10 @@ public class WebsiteModelImpl extends BaseModelImpl<Website>
 	 * @return the normal model instances
 	 */
 	public static List<Website> toModels(WebsiteSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<Website> models = new ArrayList<Website>(soapModels.length);
 
 		for (WebsiteSoap soapModel : soapModels) {
@@ -155,7 +164,7 @@ public class WebsiteModelImpl extends BaseModelImpl<Website>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_websiteId);
+		return _websiteId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -464,17 +473,6 @@ public class WebsiteModelImpl extends BaseModelImpl<Website>
 	}
 
 	@Override
-	public Website toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Website)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			Website.class.getName(), getPrimaryKey());
@@ -485,6 +483,16 @@ public class WebsiteModelImpl extends BaseModelImpl<Website>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public Website toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Website)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -721,7 +729,7 @@ public class WebsiteModelImpl extends BaseModelImpl<Website>
 	}
 
 	private static ClassLoader _classLoader = Website.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			Website.class
 		};
 	private long _websiteId;
@@ -747,5 +755,5 @@ public class WebsiteModelImpl extends BaseModelImpl<Website>
 	private boolean _originalPrimary;
 	private boolean _setOriginalPrimary;
 	private long _columnBitmask;
-	private Website _escapedModelProxy;
+	private Website _escapedModel;
 }

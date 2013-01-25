@@ -29,7 +29,7 @@ pageContext.setAttribute("portletURL", portletURL);
 request.setAttribute("view.jsp-tabs1", tabs1);
 %>
 
-<liferay-ui:success key="membership_request_sent" message="your-request-was-sent-you-will-receive-a-reply-by-email" />
+<liferay-ui:success key="membershipRequestSent" message="your-request-was-sent-you-will-receive-a-reply-by-email" />
 
 <aui:form action="<%= portletURL.toString() %>" method="get" name="fm">
 	<liferay-portlet:renderURLParams varImpl="portletURL" />
@@ -46,7 +46,7 @@ request.setAttribute("view.jsp-tabs1", tabs1);
 		<%
 		GroupSearchTerms searchTerms = (GroupSearchTerms)searchContainer.getSearchTerms();
 
-		LinkedHashMap groupParams = new LinkedHashMap();
+		LinkedHashMap<String, Object> groupParams = new LinkedHashMap<String, Object>();
 
 		groupParams.put("site", Boolean.TRUE);
 
@@ -65,10 +65,23 @@ request.setAttribute("view.jsp-tabs1", tabs1);
 		}
 		%>
 
-		<liferay-ui:search-container-results
-			results="<%= GroupLocalServiceUtil.search(company.getCompanyId(), classNameIds, searchTerms.getName(), searchTerms.getDescription(), groupParams, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator()) %>"
-			total="<%= GroupLocalServiceUtil.searchCount(company.getCompanyId(), classNameIds, searchTerms.getName(), searchTerms.getDescription(), groupParams) %>"
-		/>
+		<liferay-ui:search-container-results>
+
+			<%
+			if (searchTerms.isAdvancedSearch()) {
+				results = GroupLocalServiceUtil.search(company.getCompanyId(), searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator(), searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
+				total = GroupLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator());
+			}
+			else {
+				results = GroupLocalServiceUtil.search(company.getCompanyId(), searchTerms.getKeywords(), groupParams, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
+				total = GroupLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getKeywords(), groupParams);
+			}
+
+			pageContext.setAttribute("results", results);
+			pageContext.setAttribute("total", total);
+			%>
+
+		</liferay-ui:search-container-results>
 
 		<liferay-ui:search-form
 			page="/html/portlet/users_admin/group_search.jsp"
@@ -86,7 +99,7 @@ request.setAttribute("view.jsp-tabs1", tabs1);
 				<liferay-ui:message key="you-cannot-delete-this-site-because-you-are-currently-accessing-this-site" />
 			</c:if>
 
-			<c:if test="<%=rge.getType() == RequiredGroupException.PARENT_GROUP%>">
+			<c:if test="<%= rge.getType() == RequiredGroupException.PARENT_GROUP %>">
 				<liferay-ui:message key="you-cannot-delete-sites-that-have-subsites" />
 			</c:if>
 
@@ -158,7 +171,7 @@ request.setAttribute("view.jsp-tabs1", tabs1);
 			</liferay-ui:search-container-column-text>
 
 			<%
-			LinkedHashMap userParams = new LinkedHashMap();
+			LinkedHashMap<String, Object> userParams = new LinkedHashMap<String, Object>();
 
 			userParams.put("inherit", true);
 			userParams.put("usersGroups", new Long(group.getGroupId()));

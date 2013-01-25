@@ -31,7 +31,7 @@ import javax.portlet.PortletResponse;
  */
 public class ScriptingProxyBean extends BaseProxyBean implements Scripting {
 
-	public void addScriptionExecutor(
+	public void addScriptingExecutor(
 		String language, ScriptingExecutor scriptingExecutor) {
 
 		throw new UnsupportedOperationException();
@@ -43,14 +43,15 @@ public class ScriptingProxyBean extends BaseProxyBean implements Scripting {
 
 	public Map<String, Object> eval(
 		Set<String> allowedClasses, Map<String, Object> inputObjects,
-		Set<String> outputNames, String language, String script) {
+		Set<String> outputNames, String language, String script,
+		ClassLoader... classLoaders) {
 
 		throw new UnsupportedOperationException();
 	}
 
 	public void exec(
 		Set<String> allowedClasses, Map<String, Object> inputObjects,
-		String language, String script) {
+		String language, String script, ClassLoader... classLoaders) {
 
 		throw new UnsupportedOperationException();
 	}

@@ -56,16 +56,33 @@ public class QueryConfig implements Serializable {
 		Locale locale = (Locale)_attributes.get(LOCALE);
 
 		if (locale == null) {
-			locale = LocaleUtil.getDefault();
+			locale = LocaleUtil.getMostRelevantLocale();
 		}
 
 		return locale;
 	}
 
+	public float getQuerySuggestionScoringThreshold() {
+		return GetterUtil.getFloat(
+			_attributes.get(
+				PropsKeys.INDEX_SEARCH_QUERY_SUGGESTION_SCORING_THRESHOLD),
+			_INDEX_SEARCH_QUERY_SUGGESTION_SCORING_THRESHOLD);
+	}
+
 	public boolean isHighlightEnabled() {
 		return GetterUtil.getBoolean(
-			_attributes.get(PropsKeys.INDEX_SEARCH_HIGHLIGHT_ENABLED),
-			_INDEX_SEARCH_HIGHLIGHT_ENABLED);
+			_attributes.get(PropsKeys.INDEX_SEARCH_HIGHLIGHT_ENABLED), false);
+	}
+
+	public boolean isHitsProcessingEnabled() {
+		return GetterUtil.getBoolean(
+			_attributes.get(HITS_PROCESSING_ENABLED), true);
+	}
+
+	public boolean isQuerySuggestionEnabled() {
+		return GetterUtil.getBoolean(
+			_attributes.get(PropsKeys.INDEX_SEARCH_QUERY_SUGGESTION_ENABLED),
+			_INDEX_SEARCH_QUERY_SUGGESTION_ENABLED);
 	}
 
 	public boolean isScoreEnabled() {
@@ -83,8 +100,13 @@ public class QueryConfig implements Serializable {
 	}
 
 	public void setHighlightEnabled(boolean highlightEnabled) {
-		_attributes.put(
-			PropsKeys.INDEX_SEARCH_HIGHLIGHT_ENABLED, highlightEnabled);
+		if (_INDEX_SEARCH_HIGHLIGHT_ENABLED) {
+			_attributes.put(
+				PropsKeys.INDEX_SEARCH_HIGHLIGHT_ENABLED, highlightEnabled);
+		}
+		else {
+			_attributes.put(PropsKeys.INDEX_SEARCH_HIGHLIGHT_ENABLED, false);
+		}
 	}
 
 	public void setHighlightFragmentSize(int highlightFragmentSize) {
@@ -97,6 +119,10 @@ public class QueryConfig implements Serializable {
 		_attributes.put(
 			PropsKeys.INDEX_SEARCH_HIGHLIGHT_SNIPPET_SIZE,
 			highlightSnippetSize);
+	}
+
+	public void setHitsProcessingEnabled(boolean hitsProcessingEnabled) {
+		_attributes.put(HITS_PROCESSING_ENABLED, hitsProcessingEnabled);
 	}
 
 	public void setLocale(Locale locale) {
@@ -119,9 +145,22 @@ public class QueryConfig implements Serializable {
 		GetterUtil.getInteger(
 			PropsUtil.get(PropsKeys.INDEX_SEARCH_HIGHLIGHT_SNIPPET_SIZE));
 
+	private static final boolean _INDEX_SEARCH_QUERY_SUGGESTION_ENABLED =
+		GetterUtil.getBoolean(
+			PropsUtil.get(PropsKeys.INDEX_SEARCH_QUERY_SUGGESTION_ENABLED));
+
 	private static final boolean _INDEX_SEARCH_SCORING_ENABLED =
 		GetterUtil.getBoolean(
 			PropsUtil.get(PropsKeys.INDEX_SEARCH_SCORING_ENABLED));
+
+	private static final String HITS_PROCESSING_ENABLED =
+		"hitsProcessingEnabled";
+
+	private static final float
+		_INDEX_SEARCH_QUERY_SUGGESTION_SCORING_THRESHOLD =
+			GetterUtil.getFloat(
+				PropsUtil.get(
+					PropsKeys.INDEX_SEARCH_QUERY_SUGGESTION_SCORING_THRESHOLD));
 
 	private Map<String, Serializable> _attributes =
 		new HashMap<String, Serializable>();

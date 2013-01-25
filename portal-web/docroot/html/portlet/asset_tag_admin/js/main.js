@@ -20,7 +20,7 @@ AUI.add(
 
 		var DRAG_NODE = 'dragNode';
 
-		var EVENT_CLICK  = 'click';
+		var EVENT_CLICK = 'click';
 
 		var EVENT_SUBMIT = 'submit';
 
@@ -141,8 +141,18 @@ AUI.add(
 
 						var namespace = instance._prefixedPortletId;
 
-						A.one('#' + namespace + 'addTagButton').on(EVENT_CLICK, instance._onShowTagPanel, instance, ACTION_ADD);
-						A.one('#' + namespace + 'tagsPermissionsButton').on(EVENT_CLICK, instance._onTagChangePermissions, instance);
+						var addTagButton = A.one('#' + namespace + 'addTagButton');
+
+						if (addTagButton) {
+							addTagButton.on(EVENT_CLICK, instance._onShowTagPanel, instance, ACTION_ADD);
+						}
+
+						var tagsPermissionsButton = A.one('#' + namespace + 'tagsPermissionsButton');
+
+						if (tagsPermissionsButton) {
+							tagsPermissionsButton.on(EVENT_CLICK, instance._onTagChangePermissions, instance);
+						}
+
 						A.one('#' + namespace + 'deleteSelectedTags').on(EVENT_CLICK, instance._deleteSelectedTags, instance);
 						A.one('#' + namespace + 'mergeSelectedTags').on(EVENT_CLICK, instance._mergeSelectedTags, instance);
 
@@ -404,7 +414,8 @@ AUI.add(
 								var checkedItemsIds = tagsNodes.attr('data-tagId');
 
 								if (checkedItemsIds.length > 0) {
-									Liferay.Service.Asset.AssetTag.deleteTags(
+									Liferay.Service(
+										'/assettag/delete-tags',
 										{
 											tagIds: checkedItemsIds
 										},
@@ -421,7 +432,8 @@ AUI.add(
 					_deleteTag: function(tagId, callback) {
 						var instance = this;
 
-						Liferay.Service.Asset.AssetTag.deleteTag(
+						Liferay.Service(
+							'/assettag/delete-tag',
 							{
 								tagId: tagId
 							},
@@ -746,7 +758,7 @@ AUI.add(
 
 							tagPanelMerge.after(
 								'visibleChange',
-								function(event){
+								function(event) {
 									if (!event.newVal) {
 										instance._previousTagData = null;
 									}
@@ -806,10 +818,11 @@ AUI.add(
 						var start = currentPage * rowsPerPage;
 						var end = start + rowsPerPage;
 
-						Liferay.Service.Asset.AssetTag.getJSONGroupTags(
+						Liferay.Service(
+							'/assettag/get-json-group-tags',
 							{
 								groupId: themeDisplay.getParentGroupId(),
-								tagName: query,
+								name: query,
 								start: start,
 								end: end
 							},
@@ -1040,36 +1053,24 @@ AUI.add(
 					},
 
 					_mergeTags: function(fromIds, toId, overrideProperties, callback) {
-						var serviceParameterTypes = [
-							'[J',
-							'long',
-							'boolean'
-						];
-
-						Liferay.Service.Asset.AssetTag.mergeTags(
+						Liferay.Service(
+							'/assettag/merge-tags',
 							{
 								fromTagIds: fromIds,
 								toTagId: toId,
-								overrideProperties: overrideProperties,
-								serviceParameterTypes: A.JSON.stringify(serviceParameterTypes)
+								overrideProperties: overrideProperties
 							},
 							callback
 						);
 					},
 
 					_mergeTag: function(fromId, toId, callback) {
-						var serviceParameterTypes = [
-							'long',
-							'long',
-							'boolean'
-						];
-
-						Liferay.Service.Asset.AssetTag.mergeTags(
+						Liferay.Service(
+							'/assettag/merge-tags',
 							{
 								fromTagId: fromId,
 								toTagId: toId,
-								overrideProperties: true,
-								serviceParameterTypes: A.JSON.stringify(serviceParameterTypes)
+								overrideProperties: true
 							},
 							callback
 						);
@@ -1490,7 +1491,7 @@ AUI.add(
 
 						output.show();
 
-						if(autoHide !== false) {
+						if (autoHide !== false) {
 							instance._hideMessageTask();
 						}
 					},
@@ -1607,7 +1608,7 @@ AUI.add(
 							if (previousTagNextSibling) {
 								previousTagNextSibling.placeBefore(previousTag);
 							}
-							else if (previousTagPrevSibling){
+							else if (previousTagPrevSibling) {
 								previousTagPrevSibling.placeAfter(previousTag);
 							}
 							else {
@@ -1660,7 +1661,7 @@ AUI.add(
 				EXTENDS: A.Base,
 				NAME: 'tagssearch',
 				prototype: {
-					initializer: function () {
+					initializer: function() {
 						this._bindUIACBase();
 						this._syncUIACBase();
 					}

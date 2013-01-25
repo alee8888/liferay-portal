@@ -408,6 +408,7 @@ AUI.add(
 			function(options) {
 				var data = {
 					doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
+					p_auth: Liferay.authToken,
 					p_l_id: themeDisplay.getPlid()
 				};
 
@@ -456,12 +457,17 @@ AUI.add(
 			);
 
 			if (layoutContainer) {
-				layoutContainer.once(
-					'mousemove',
-					function() {
-						Liferay.fire('initLayout');
-					}
-				);
+				if (!A.UA.touch) {
+					layoutContainer.once(
+						'mousemove',
+						function() {
+							Liferay.fire('initLayout');
+						}
+					);
+				}
+				else {
+					Liferay.fire('initLayout');
+				}
 			}
 		}
 

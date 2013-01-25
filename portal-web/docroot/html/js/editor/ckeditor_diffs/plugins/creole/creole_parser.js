@@ -218,7 +218,7 @@ Parse.Simple.Creole = function(options) {
         olist: { tag: 'ol', capture: 0,
             regex: /(^|\n)([ \t]*#[^*#].*(\n|$)([ \t]*[^\s*#].*(\n|$))*([ \t]*[*#]{2}.*(\n|$))*)+/ },
         li: { tag: 'li', capture: 0,
-            regex: /[ \t]*([*#]).+(\n[ \t]*[^*#\s].*)*(\n[ \t]*\1[*#].+)*/,
+            regex: /[ \t]*([*#]).+(\n[ \t]*[^*#\s].*)*(\n[ \t]*[*#]{2}.+)*/,
             replaceRegex: /(^|\n)[ \t]*[*#]/g, replaceString: '$1' },
 
         table: { tag: 'table', capture: 0,
@@ -282,6 +282,9 @@ Parse.Simple.Creole = function(options) {
                 link.href = options && options.linkFormat
                     ? formatLink(r[1].replace(/~(.)/g, '$1'), options.linkFormat)
                     : r[1].replace(/~(.)/g, '$1');
+
+                link.setAttribute('data-cke-saved-href', link.href);
+
                 this.apply(link, r[2], options);
                 
                 node.appendChild(link);

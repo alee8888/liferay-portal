@@ -48,7 +48,6 @@ tabsURL.setParameter("struts_action", "/sites_admin/edit_site_assignments");
 tabsURL.setParameter("tabs1", tabs1);
 tabsURL.setParameter("tabs2", "current");
 tabsURL.setParameter("redirect", redirect);
-tabsURL.setParameter("groupId", String.valueOf(group.getGroupId()));
 
 request.setAttribute("edit_site_assignments.jsp-tabs1", tabs1);
 request.setAttribute("edit_site_assignments.jsp-tabs2", tabs2);
@@ -135,8 +134,6 @@ request.setAttribute("edit_site_assignments.jsp-portletURL", portletURL);
 					</c:if>
 				</c:if>
 			</div>
-
-			<liferay-util:include page="/html/portlet/sites_admin/edit_site_assignments_organization.jsp" />
 
 			<liferay-util:include page="/html/portlet/sites_admin/edit_site_assignments_users.jsp" />
 
@@ -271,6 +268,6 @@ request.setAttribute("edit_site_assignments.jsp-portletURL", portletURL);
 </aui:script>
 
 <%
-PortalUtil.addPortletBreadcrumbEntry(request, HtmlUtil.escape(group.getDescriptiveName(locale)), null);
+PortalUtil.addPortletBreadcrumbEntry(request, group.getDescriptiveName(locale), null);
 PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "assign-members"), currentURL);
 %>

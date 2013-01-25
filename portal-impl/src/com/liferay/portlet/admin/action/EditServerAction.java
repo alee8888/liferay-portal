@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.concurrent.ThreadPoolExecutor;
 import com.liferay.portal.kernel.dao.shard.ShardUtil;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.executor.PortalExecutorManagerUtil;
+import com.liferay.portal.kernel.image.GhostscriptUtil;
 import com.liferay.portal.kernel.image.ImageMagickUtil;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncPrintWriter;
@@ -49,6 +50,7 @@ import com.liferay.portal.kernel.scripting.ScriptingException;
 import com.liferay.portal.kernel.scripting.ScriptingUtil;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
+import com.liferay.portal.kernel.servlet.DirectServletRegistryUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.CharPool;
@@ -57,6 +59,8 @@ import com.liferay.portal.kernel.util.InstancePool;
 import com.liferay.portal.kernel.util.MethodHandler;
 import com.liferay.portal.kernel.util.MethodKey;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.ProgressStatusConstants;
+import com.liferay.portal.kernel.util.ProgressTracker;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -66,7 +70,6 @@ import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.UnsyncPrintWriterPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.webcache.WebCachePoolUtil;
-import com.liferay.portal.kernel.xuggler.XugglerInstallStatus;
 import com.liferay.portal.kernel.xuggler.XugglerUtil;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.search.lucene.LuceneHelperUtil;
@@ -82,7 +85,6 @@ import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.upload.UploadServletRequestImpl;
 import com.liferay.portal.util.MaintenanceUtil;
 import com.liferay.portal.util.PortalInstances;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.ShutdownUtil;
@@ -110,9 +112,6 @@ import javax.portlet.PortletPreferences;
 import javax.portlet.PortletSession;
 import javax.portlet.PortletURL;
 import javax.portlet.WindowState;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Level;
 import org.apache.struts.action.ActionForm;
@@ -160,6 +159,9 @@ public class EditServerAction extends PortletAction {
 		else if (cmd.equals("cacheMulti")) {
 			cacheMulti();
 		}
+		else if (cmd.equals("cacheServlet")) {
+			cacheServlet();
+		}
 		else if (cmd.equals("cacheSingle")) {
 			cacheSingle();
 		}
@@ -184,6 +186,9 @@ public class EditServerAction extends PortletAction {
 		}
 		else if (cmd.equals("reindex")) {
 			reindex(actionRequest);
+		}
+		else if (cmd.equals("reindexDictionaries")) {
+			reindexDictionaries(actionRequest);
 		}
 		else if (cmd.equals("runScript")) {
 			runScript(portletConfig, actionRequest, actionResponse);
@@ -229,6 +234,10 @@ public class EditServerAction extends PortletAction {
 
 	protected void cacheMulti() throws Exception {
 		MultiVMPoolUtil.clear();
+	}
+
+	protected void cacheServlet() throws Exception {
+		DirectServletRegistryUtil.clearServlets();
 	}
 
 	protected void cacheSingle() throws Exception {
@@ -311,20 +320,20 @@ public class EditServerAction extends PortletAction {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		HttpServletRequest request = PortalUtil.getHttpServletRequest(
-			actionRequest);
+		ProgressTracker progressTracker = new ProgressTracker(
+			actionRequest, WebKeys.XUGGLER_INSTALL_STATUS);
 
-		HttpSession session = request.getSession();
+		progressTracker.addProgress(
+			ProgressStatusConstants.DOWNLOADING, 15, "downloading-xuggler");
+		progressTracker.addProgress(
+			ProgressStatusConstants.COPYING, 70, "copying-xuggler-files");
 
-		XugglerInstallStatus xugglerInstallStatus = new XugglerInstallStatus();
-
-		session.setAttribute(
-			WebKeys.XUGGLER_INSTALL_STATUS, xugglerInstallStatus);
+		progressTracker.initialize();
 
 		String jarName = ParamUtil.getString(actionRequest, "jarName");
 
 		try {
-			XugglerUtil.installNativeLibraries(jarName, xugglerInstallStatus);
+			XugglerUtil.installNativeLibraries(jarName, progressTracker);
 
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
@@ -340,9 +349,8 @@ public class EditServerAction extends PortletAction {
 
 			writeJSON(actionRequest, actionResponse, jsonObject);
 		}
-		finally {
-			session.removeAttribute(WebKeys.XUGGLER_INSTALL_STATUS);
-		}
+
+		progressTracker.finish();
 	}
 
 	protected void reindex(ActionRequest actionRequest) throws Exception {
@@ -386,14 +394,24 @@ public class EditServerAction extends PortletAction {
 				return;
 			}
 
+			Set<String> searchEngineIds = new HashSet<String>();
+
+			for (Indexer indexer : indexers) {
+				searchEngineIds.add(indexer.getSearchEngineId());
+			}
+
+			for (String searchEngineId : searchEngineIds) {
+				for (long companyId : companyIds) {
+					SearchEngineUtil.deletePortletDocuments(
+						searchEngineId, companyId, portletId);
+				}
+			}
+
 			for (Indexer indexer : indexers) {
 				for (long companyId : companyIds) {
 					ShardUtil.pushCompanyService(companyId);
 
 					try {
-						SearchEngineUtil.deletePortletDocuments(
-							indexer.getSearchEngineId(), companyId, portletId);
-
 						indexer.reindex(
 							new String[] {String.valueOf(companyId)});
 
@@ -402,8 +420,9 @@ public class EditServerAction extends PortletAction {
 					catch (Exception e) {
 						_log.error(e, e);
 					}
-
-					ShardUtil.popCompanyService();
+					finally {
+						ShardUtil.popCompanyService();
+					}
 				}
 			}
 		}
@@ -432,6 +451,16 @@ public class EditServerAction extends PortletAction {
 
 			submitClusterIndexLoadingSyncJob(
 				searchWriterDestinations, companyIds);
+		}
+	}
+
+	protected void reindexDictionaries(ActionRequest actionRequest)
+		throws Exception {
+
+		long[] companyIds = PortalInstances.getCompanyIds();
+
+		for (long companyId : companyIds) {
+			SearchEngineUtil.indexDictionaries(companyId);
 		}
 	}
 
@@ -465,7 +494,7 @@ public class EditServerAction extends PortletAction {
 			unsyncPrintWriter.flush();
 
 			SessionMessages.add(
-				actionRequest, "script_output",
+				actionRequest, "scriptOutput",
 				unsyncByteArrayOutputStream.toString());
 		}
 		catch (ScriptingException se) {
@@ -649,6 +678,7 @@ public class EditServerAction extends PortletAction {
 
 		preferences.store();
 
+		GhostscriptUtil.reset();
 		ImageMagickUtil.reset();
 	}
 
@@ -846,8 +876,8 @@ public class EditServerAction extends PortletAction {
 	private static Log _log = LogFactoryUtil.getLog(EditServerAction.class);
 
 	private static MethodKey _loadIndexesFromClusterMethodKey = new MethodKey(
-		LuceneClusterUtil.class.getName(), "loadIndexesFromCluster",
-		long[].class, Address.class);
+		LuceneClusterUtil.class, "loadIndexesFromCluster", long[].class,
+		Address.class);
 
 	private static class ClusterLoadingSyncJob implements Runnable {
 
@@ -885,19 +915,15 @@ public class EditServerAction extends PortletAction {
 			}
 
 			try {
-				boolean result = _countDownLatch.await(
-					PropsValues.LUCENE_CLUSTER_INDEX_LOADING_SYNC_TIMEOUT,
-					TimeUnit.MILLISECONDS);
+				if (_master) {
+					_countDownLatch.await();
+				}
+				else {
+					boolean result = _countDownLatch.await(
+						PropsValues.LUCENE_CLUSTER_INDEX_LOADING_SYNC_TIMEOUT,
+						TimeUnit.MILLISECONDS);
 
-				if (!result) {
-					if (_master) {
-						_log.error(
-							logPrefix + " timed out. Skip cluster index " +
-								"loading notification.");
-
-						return;
-					}
-					else {
+					if (!result) {
 						_log.error(
 							logPrefix + " timed out. You may need to " +
 								"re-trigger a reindex process.");

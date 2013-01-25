@@ -14,6 +14,9 @@
 
 package com.liferay.portal.kernel.util;
 
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,13 +31,36 @@ import java.util.List;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Miguel Pastor
+ * @author Raymond Augé
  */
 public class ServiceLoader {
 
 	public static <S> List<S> load(Class<S> clazz) throws Exception {
+		return load(clazz, _serviceLoaderCondition);
+	}
+
+	public static <S> List<S> load(
+			Class<S> clazz, ServiceLoaderCondition serviceLoaderCondition)
+		throws Exception {
+
 		Thread currentThread = Thread.currentThread();
 
 		ClassLoader classLoader = currentThread.getContextClassLoader();
+
+		return load(classLoader, clazz, serviceLoaderCondition);
+	}
+
+	public static <S> List<S> load(ClassLoader classLoader, Class<S> clazz)
+		throws Exception {
+
+		return load(classLoader, clazz, _serviceLoaderCondition);
+	}
+
+	public static <S> List<S> load(
+			ClassLoader classLoader, Class<S> clazz,
+			ServiceLoaderCondition serviceLoaderCondition)
+		throws Exception {
 
 		Enumeration<URL> enu = classLoader.getResources(
 			"META-INF/services/" + clazz.getName());
@@ -44,7 +70,16 @@ public class ServiceLoader {
 		while (enu.hasMoreElements()) {
 			URL url = enu.nextElement();
 
-			_load(services, classLoader, clazz, url);
+			if (!serviceLoaderCondition.isLoad(url)) {
+				continue;
+			}
+
+			try {
+				_load(services, classLoader, clazz, url);
+			}
+			catch (Exception e) {
+				_log.error("Unable to load " + clazz + "with " + classLoader);
+			}
 		}
 
 		return services;
@@ -96,5 +131,10 @@ public class ServiceLoader {
 			inputStream.close();
 		}
 	}
+
+	private static Log _log = LogFactoryUtil.getLog(ServiceLoader.class);
+
+	private static ServiceLoaderCondition _serviceLoaderCondition =
+		new DefaultServiceLoaderCondition();
 
 }

@@ -36,9 +36,7 @@ String redirect = ParamUtil.getString(request, "redirect");
 
 		List leftList = new ArrayList();
 
-		for (int i = 0; i < languageIds.length; i++) {
-			String languageId = languageIds[i];
-
+		for (String languageId : languageIds) {
 			leftList.add(new KeyValuePair(languageId, LocaleUtil.fromLanguageId(languageId).getDisplayName(locale)));
 		}
 
@@ -76,6 +74,8 @@ String redirect = ParamUtil.getString(request, "redirect");
 			<aui:option label="select-box" selected="<%= displayStyle == LanguageTag.SELECT_BOX %>" value="<%= LanguageTag.SELECT_BOX %>" />
 		</aui:select>
 	</aui:fieldset>
+
+	<aui:input name="preferences--displayCurrentLocale--" type="checkbox" value="<%= displayCurrentLocale %>" />
 
 	<aui:button-row>
 		<aui:button type="submit" />

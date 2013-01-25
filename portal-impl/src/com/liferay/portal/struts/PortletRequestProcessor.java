@@ -294,7 +294,8 @@ public class PortletRequestProcessor extends TilesRequestProcessor {
 
 				if (StrutsActionRegistryUtil.getAction(parentPath) != null) {
 					actionMapping =
-						(ActionMapping)moduleConfig.findActionConfig(path);
+						(ActionMapping)moduleConfig.findActionConfig(
+							parentPath);
 
 					if (actionMapping == null) {
 						actionMapping = new ActionMapping();
@@ -559,6 +560,7 @@ public class PortletRequestProcessor extends TilesRequestProcessor {
 
 			if (!strutsPath.equals(portlet.getStrutsPath()) &&
 				!strutsPath.equals(portlet.getParentStrutsPath())) {
+
 				if (_log.isWarnEnabled()) {
 					_log.warn(
 						"The struts path " + strutsPath + " does not belong " +

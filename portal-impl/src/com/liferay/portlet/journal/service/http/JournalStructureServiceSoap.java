@@ -52,9 +52,8 @@ import java.util.Map;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -141,11 +140,42 @@ public class JournalStructureServiceSoap {
 		}
 	}
 
+	public static com.liferay.portlet.journal.model.JournalStructureSoap getStructure(
+		long groupId, java.lang.String structureId,
+		boolean includeGlobalStructures) throws RemoteException {
+		try {
+			com.liferay.portlet.journal.model.JournalStructure returnValue = JournalStructureServiceUtil.getStructure(groupId,
+					structureId, includeGlobalStructures);
+
+			return com.liferay.portlet.journal.model.JournalStructureSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	public static com.liferay.portlet.journal.model.JournalStructureSoap[] getStructures(
 		long groupId) throws RemoteException {
 		try {
 			java.util.List<com.liferay.portlet.journal.model.JournalStructure> returnValue =
 				JournalStructureServiceUtil.getStructures(groupId);
+
+			return com.liferay.portlet.journal.model.JournalStructureSoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.journal.model.JournalStructureSoap[] getStructures(
+		long[] groupIds) throws RemoteException {
+		try {
+			java.util.List<com.liferay.portlet.journal.model.JournalStructure> returnValue =
+				JournalStructureServiceUtil.getStructures(groupIds);
 
 			return com.liferay.portlet.journal.model.JournalStructureSoap.toSoapModels(returnValue);
 		}

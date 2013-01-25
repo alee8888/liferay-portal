@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.security.ac.AccessControlled;
 import com.liferay.portal.service.BaseService;
 
 /**
@@ -35,6 +36,7 @@ import com.liferay.portal.service.BaseService;
  * @see com.liferay.portlet.trash.service.impl.TrashEntryServiceImpl
  * @generated
  */
+@AccessControlled
 @JSONWebService
 @Transactional(isolation = Isolation.PORTAL, rollbackFor =  {
 	PortalException.class, SystemException.class})
@@ -64,8 +66,8 @@ public interface TrashEntryService extends BaseService {
 	* permissions.
 	*
 	* @param groupId the primary key of the group
-	* @throws SystemException if a system exception occurred
 	* @throws PrincipalException if a principal exception occurred
+	* @throws SystemException if a system exception occurred
 	*/
 	public void deleteEntries(long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException,
@@ -76,11 +78,12 @@ public interface TrashEntryService extends BaseService {
 	*
 	* @param groupId the primary key of the group
 	* @return the matching trash entries
-	* @throws SystemException if a system exception occurred
 	* @throws PrincipalException if a principal exception occurred
+	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.lang.Object[] getEntries(long groupId)
+	public com.liferay.portlet.trash.model.TrashEntryList getEntries(
+		long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException,
 			com.liferay.portal.security.auth.PrincipalException;
 
@@ -95,11 +98,12 @@ public interface TrashEntryService extends BaseService {
 	<code>null</code>)
 	* @return the range of matching trash entries ordered by comparator
 	<code>obc</code>
-	* @throws SystemException if a system exception occurred
 	* @throws PrincipalException if a system exception occurred
+	* @throws SystemException if a system exception occurred
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public java.lang.Object[] getEntries(long groupId, int start, int end,
+	public com.liferay.portlet.trash.model.TrashEntryList getEntries(
+		long groupId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator obc)
 		throws com.liferay.portal.kernel.exception.SystemException,
 			com.liferay.portal.security.auth.PrincipalException;

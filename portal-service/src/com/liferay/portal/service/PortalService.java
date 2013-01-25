@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.security.ac.AccessControlled;
 
 /**
  * The interface for the portal remote service.
@@ -34,6 +35,7 @@ import com.liferay.portal.kernel.transaction.Transactional;
  * @see com.liferay.portal.service.impl.PortalServiceImpl
  * @generated
  */
+@AccessControlled
 @JSONWebService
 @Transactional(isolation = Isolation.PORTAL, rollbackFor =  {
 	PortalException.class, SystemException.class})
@@ -83,12 +85,17 @@ public interface PortalService extends BaseService {
 		java.lang.String transactionPortletBarText)
 		throws com.liferay.portal.kernel.exception.SystemException;
 
+	public void testAutoSyncHibernateSessionStateOnTxCreation()
+		throws com.liferay.portal.kernel.exception.SystemException;
+
 	public void testCounterIncrement_Rollback()
 		throws com.liferay.portal.kernel.exception.SystemException;
 
 	public void testDeleteClassName()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
+
+	public int testGetBuildNumber();
 
 	public void testGetUserId();
 

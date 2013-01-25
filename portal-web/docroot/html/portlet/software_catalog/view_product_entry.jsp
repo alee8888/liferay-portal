@@ -54,8 +54,9 @@ viewProductEntryURL.setParameter("productEntryId", String.valueOf(productEntryId
 
 <liferay-ui:header
 	backURL="<%= redirect %>"
+	escapeXml="<%= false %>"
 	localizeTitle="<%= false %>"
-	title='<%= productEntry.getName() + " " + ((latestProductVersion == null) ? "" : latestProductVersion.getVersion()) %>'
+	title='<%= productEntry.getName() + " " + ((latestProductVersion == null) ? "" : HtmlUtil.escape(latestProductVersion.getVersion())) %>'
 />
 
 <table class="lfr-table">
@@ -80,7 +81,7 @@ viewProductEntryURL.setParameter("productEntryId", String.valueOf(productEntryId
 			SCLicense license = productEntryLicenses.get(i);
 		%>
 
-			<aui:a href="<%= license.getUrl() %>" target="_blank"><%= license.getName() %></aui:a><c:if test="<%= i < productEntryLicenses.size() - 1 %>">, </c:if>
+			<aui:a href="<%= license.getUrl() %>" target="_blank"><%= HtmlUtil.escape(license.getName()) %></aui:a><c:if test="<%= i < productEntryLicenses.size() - 1 %>">, </c:if>
 
 		<%
 		}
@@ -156,7 +157,7 @@ viewProductEntryURL.setParameter("productEntryId", String.valueOf(productEntryId
 				<liferay-ui:message key="change-log" />:
 			</td>
 			<td>
-				<%= latestProductVersion.getChangeLog() %>
+				<%= HtmlUtil.escape(latestProductVersion.getChangeLog()) %>
 			</td>
 		</tr>
 		<tr>
@@ -332,13 +333,15 @@ PortalUtil.setPageSubtitle(productEntry.getName(), request);
 PortalUtil.setPageDescription(productEntry.getShortDescription(), request);
 PortalUtil.setPageKeywords(productEntry.getTags(), request);
 
+SCProductEntry unescapedProductEntry = productEntry.toUnescapedModel();
+
 PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("struts_action", "/software_catalog/view_product");
 portletURL.setParameter("redirect", currentURL);
 portletURL.setParameter("productEntryId", String.valueOf(productEntry.getProductEntryId()));
 
-PortalUtil.addPortletBreadcrumbEntry(request, productEntry.getName(), portletURL.toString());
+PortalUtil.addPortletBreadcrumbEntry(request, unescapedProductEntry.getName(), portletURL.toString());
 %>
 
 <%!

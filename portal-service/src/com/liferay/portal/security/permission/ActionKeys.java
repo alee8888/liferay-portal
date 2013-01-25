@@ -90,6 +90,9 @@ public class ActionKeys {
 
 	public static final String ADD_PASSWORD_POLICY = "ADD_PASSWORD_POLICY";
 
+	public static final String ADD_PORTLET_DISPLAY_TEMPLATE =
+		"ADD_PORTLET_DISPLAY_TEMPLATE";
+
 	public static final String ADD_PRODUCT_ENTRY = "ADD_PRODUCT_ENTRY";
 
 	public static final String ADD_PRODUCT_VERSION = "ADD_PRODUCT_VERSION";
@@ -205,6 +208,8 @@ public class ActionKeys {
 	public static final String MERGE = "MERGE";
 
 	public static final String MOVE_THREAD = "MOVE_THREAD";
+
+	public static final String OVERRIDE_CHECKOUT = "OVERRIDE_CHECKOUT";
 
 	public static final String PERMISSIONS = "PERMISSIONS";
 

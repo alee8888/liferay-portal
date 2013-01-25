@@ -32,12 +32,12 @@ birthday.set(Calendar.YEAR, 1970);
 boolean male = ParamUtil.getBoolean(request, "male", true);
 %>
 
-<portlet:actionURL var="createAccoutURL">
-	<portlet:param name="saveLastPath" value="0" />
+<portlet:actionURL secure="<%= PropsValues.COMPANY_SECURITY_AUTH_REQUIRES_HTTPS || request.isSecure() %>" var="createAccountURL">
 	<portlet:param name="struts_action" value="/login/create_account" />
 </portlet:actionURL>
 
-<aui:form action="<%= createAccoutURL %>" method="post" name="fm">
+<aui:form action="<%= createAccountURL %>" method="post" name="fm">
+	<aui:input name="saveLastPath" type="hidden" value="<%= false %>" />
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.ADD %>" />
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="openId" type="hidden" value="<%= openId %>" />
@@ -51,6 +51,7 @@ boolean male = ParamUtil.getBoolean(request, "male", true);
 	<liferay-ui:error exception="<%= ContactFirstNameException.class %>" message="please-enter-a-valid-first-name" />
 	<liferay-ui:error exception="<%= ContactFullNameException.class %>" message="please-enter-a-valid-first-middle-and-last-name" />
 	<liferay-ui:error exception="<%= ContactLastNameException.class %>" message="please-enter-a-valid-last-name" />
+	<liferay-ui:error exception="<%= DuplicateOpenIdException.class %>" message="a-user-with-that-open-id-already-exists" />
 	<liferay-ui:error exception="<%= DuplicateUserEmailAddressException.class %>" message="the-email-address-you-requested-is-already-taken" />
 	<liferay-ui:error exception="<%= DuplicateUserIdException.class %>" message="the-user-id-you-requested-is-already-taken" />
 	<liferay-ui:error exception="<%= DuplicateUserScreenNameException.class %>" message="the-screen-name-you-requested-is-already-taken" />
@@ -119,15 +120,7 @@ boolean male = ParamUtil.getBoolean(request, "male", true);
 
 	<aui:fieldset>
 		<aui:column>
-			<aui:input model="<%= User.class %>" name="firstName" />
-
-			<aui:input model="<%= User.class %>" name="middleName" />
-
-			<aui:input model="<%= User.class %>" name="lastName">
-				<c:if test="<%= PrefsPropsUtil.getBoolean(company.getCompanyId(), PropsKeys.USERS_LAST_NAME_REQUIRED, PropsValues.USERS_LAST_NAME_REQUIRED) %>">
-					<aui:validator name="required" />
-				</c:if>
-			</aui:input>
+			<%@ include file="/html/portlet/login/create_account_user_name.jspf" %>
 
 			<c:if test="<%= !PrefsPropsUtil.getBoolean(company.getCompanyId(), PropsKeys.USERS_SCREEN_NAME_ALWAYS_AUTOGENERATE) %>">
 				<aui:input model="<%= User.class %>" name="screenName" />

@@ -44,20 +44,20 @@
 		%>
 
 		<portlet:actionURL secure="<%= PropsValues.COMPANY_SECURITY_AUTH_REQUIRES_HTTPS || request.isSecure() %>" var="loginURL">
-			<portlet:param name="saveLastPath" value="0" />
 			<portlet:param name="struts_action" value="/login/login" />
-			<portlet:param name="doActionAfterLogin" value="<%= portletName.equals(PortletKeys.FAST_LOGIN) ? Boolean.TRUE.toString() : Boolean.FALSE.toString() %>" />
 		</portlet:actionURL>
 
-		<aui:form action="<%= loginURL %>" method="post" name="fm">
+		<aui:form action="<%= loginURL %>" autocomplete='<%= PropsValues.COMPANY_SECURITY_LOGIN_FORM_AUTOCOMPLETE ? "on" : "off" %>' method="post" name="fm">
+			<aui:input name="saveLastPath" type="hidden" value="<%= false %>" />
 			<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+			<aui:input name="doActionAfterLogin" type="hidden" value="<%= portletName.equals(PortletKeys.FAST_LOGIN) ? true : false %>" />
 
 			<c:choose>
-				<c:when test='<%= SessionMessages.contains(request, "user_added") %>'>
+				<c:when test='<%= SessionMessages.contains(request, "userAdded") %>'>
 
 					<%
-					String userEmailAddress = (String)SessionMessages.get(request, "user_added");
-					String userPassword = (String)SessionMessages.get(request, "user_added_password");
+					String userEmailAddress = (String)SessionMessages.get(request, "userAdded");
+					String userPassword = (String)SessionMessages.get(request, "userAddedPassword");
 					%>
 
 					<div class="portlet-msg-success">
@@ -79,10 +79,10 @@
 						</c:if>
 					</div>
 				</c:when>
-				<c:when test='<%= SessionMessages.contains(request, "user_pending") %>'>
+				<c:when test='<%= SessionMessages.contains(request, "userPending") %>'>
 
 					<%
-					String userEmailAddress = (String)SessionMessages.get(request, "user_pending");
+					String userEmailAddress = (String)SessionMessages.get(request, "userPending");
 					%>
 
 					<div class="portlet-msg-success">

@@ -17,6 +17,7 @@ package com.liferay.portlet.usersadmin.util;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.Hits;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.model.Address;
@@ -197,6 +198,12 @@ public class UsersAdminUtil {
 		return getUsersAdmin().getUserGroupRoles(portletRequest);
 	}
 
+	public static Tuple getUserGroups(Hits hits)
+		throws PortalException, SystemException {
+
+		return getUsersAdmin().getUserGroups(hits);
+	}
+
 	public static OrderByComparator getUserOrderByComparator(
 		String orderByCol, String orderByType) {
 
@@ -211,6 +218,8 @@ public class UsersAdminUtil {
 	}
 
 	public static UsersAdmin getUsersAdmin() {
+		PortalRuntimePermission.checkGetBeanProperty(UsersAdminUtil.class);
+
 		return _usersAdmin;
 	}
 
@@ -286,6 +295,8 @@ public class UsersAdminUtil {
 	}
 
 	public void setUsersAdmin(UsersAdmin usersAdmin) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_usersAdmin = usersAdmin;
 	}
 

@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -45,7 +46,6 @@ import com.liferay.portal.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.service.ThemeLocalServiceUtil;
 import com.liferay.portal.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.CookieKeys;
 import com.liferay.portal.util.LayoutClone;
 import com.liferay.portal.util.LayoutCloneFactory;
 import com.liferay.portal.util.PortalUtil;
@@ -72,12 +72,30 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class LayoutImpl extends LayoutBaseImpl {
 
+	public static boolean hasFriendlyURLKeyword(String friendlyURL) {
+		String keyword = _getFriendlyURLKeyword(friendlyURL);
+
+		if (Validator.isNotNull(keyword)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public static int validateFriendlyURL(String friendlyURL) {
+		return validateFriendlyURL(friendlyURL, true);
+	}
+
+	public static int validateFriendlyURL(
+		String friendlyURL, boolean checkMaxLength) {
+
 		if (friendlyURL.length() < 2) {
 			return LayoutFriendlyURLException.TOO_SHORT;
 		}
 
-		if (friendlyURL.length() > LayoutConstants.FRIENDLY_URL_MAX_LENGTH) {
+		if (checkMaxLength &&
+			(friendlyURL.length() > LayoutConstants.FRIENDLY_URL_MAX_LENGTH)) {
+
 			return LayoutFriendlyURLException.TOO_LONG;
 		}
 
@@ -89,7 +107,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 			return LayoutFriendlyURLException.ENDS_WITH_SLASH;
 		}
 
-		if (friendlyURL.indexOf(StringPool.DOUBLE_SLASH) != -1) {
+		if (friendlyURL.contains(StringPool.DOUBLE_SLASH)) {
 			return LayoutFriendlyURLException.ADJACENT_SLASHES;
 		}
 
@@ -110,20 +128,16 @@ public class LayoutImpl extends LayoutBaseImpl {
 	public static void validateFriendlyURLKeyword(String friendlyURL)
 		throws LayoutFriendlyURLException {
 
-		for (String keyword : PropsValues.LAYOUT_FRIENDLY_URL_KEYWORDS) {
-			if (StringUtil.endsWith(
-					friendlyURL, StringUtil.quote(keyword, StringPool.SLASH)) ||
-				StringUtil.endsWith(
-					friendlyURL, StringPool.SLASH + keyword)) {
+		String keyword = _getFriendlyURLKeyword(friendlyURL);
 
-				LayoutFriendlyURLException lfurle =
-					new LayoutFriendlyURLException(
-						LayoutFriendlyURLException.KEYWORD_CONFLICT);
+		if (Validator.isNotNull(keyword)) {
+			LayoutFriendlyURLException lfurle =
+				new LayoutFriendlyURLException(
+					LayoutFriendlyURLException.KEYWORD_CONFLICT);
 
-				lfurle.setKeywordConflict(keyword);
+			lfurle.setKeywordConflict(keyword);
 
-				throw lfurle;
-			}
+			throw lfurle;
 		}
 	}
 
@@ -188,17 +202,12 @@ public class LayoutImpl extends LayoutBaseImpl {
 
 		Layout layout = this;
 
-		while (true) {
-			if (!layout.isRootLayout()) {
-				layout = LayoutLocalServiceUtil.getLayout(
-					layout.getGroupId(), layout.isPrivateLayout(),
-					layout.getParentLayoutId());
+		while (!layout.isRootLayout()) {
+			layout = LayoutLocalServiceUtil.getLayout(
+				layout.getGroupId(), layout.isPrivateLayout(),
+				layout.getParentLayoutId());
 
-				layouts.add(layout);
-			}
-			else {
-				break;
-			}
+			layouts.add(layout);
 		}
 
 		return layouts;
@@ -355,6 +364,16 @@ public class LayoutImpl extends LayoutBaseImpl {
 			return value;
 		}
 
+		if (!isInheritLookAndFeel()) {
+			try {
+				Theme theme = _getTheme(device);
+
+				return theme.getSetting(key);
+			}
+			catch (Exception e) {
+			}
+		}
+
 		try {
 			LayoutSet layoutSet = getLayoutSet();
 
@@ -485,27 +504,24 @@ public class LayoutImpl extends LayoutBaseImpl {
 		if (Validator.isNotNull(defaultAssetPublisherPortletId)) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isFirstChild() {
 		if (getPriority() == 0) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isFirstParent() {
 		if (isFirstChild() && isRootLayout()) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isInheritLookAndFeel() {
@@ -514,9 +530,8 @@ public class LayoutImpl extends LayoutBaseImpl {
 
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isInheritWapLookAndFeel() {
@@ -525,9 +540,8 @@ public class LayoutImpl extends LayoutBaseImpl {
 
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isLayoutPrototypeLinkActive() {
@@ -548,9 +562,8 @@ public class LayoutImpl extends LayoutBaseImpl {
 		if (getParentLayoutId() == LayoutConstants.DEFAULT_PARENT_LAYOUT_ID) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isSelected(
@@ -567,67 +580,70 @@ public class LayoutImpl extends LayoutBaseImpl {
 		return false;
 	}
 
+	public boolean isSupportsEmbeddedPortlets() {
+		if (isTypeArticle() || isTypeEmbedded() || isTypePanel() ||
+			isTypePortlet()) {
+
+			return true;
+		}
+
+		return false;
+	}
+
 	public boolean isTypeArticle() {
 		if (getType().equals(LayoutConstants.TYPE_ARTICLE)) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isTypeControlPanel() {
 		if (getType().equals(LayoutConstants.TYPE_CONTROL_PANEL)) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isTypeEmbedded() {
 		if (getType().equals(LayoutConstants.TYPE_EMBEDDED)) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isTypeLinkToLayout() {
 		if (getType().equals(LayoutConstants.TYPE_LINK_TO_LAYOUT)) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isTypePanel() {
 		if (getType().equals(LayoutConstants.TYPE_PANEL)) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isTypePortlet() {
 		if (getType().equals(LayoutConstants.TYPE_PORTLET)) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isTypeURL() {
 		if (getType().equals(LayoutConstants.TYPE_URL)) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	@Override
@@ -661,6 +677,46 @@ public class LayoutImpl extends LayoutBaseImpl {
 		_typeSettingsProperties = typeSettingsProperties;
 
 		super.setTypeSettings(_typeSettingsProperties.toString());
+	}
+
+	private static String _getFriendlyURLKeyword(String friendlyURL) {
+		friendlyURL = friendlyURL.toLowerCase();
+
+		for (String keyword : _friendlyURLKeywords) {
+			if (friendlyURL.startsWith(keyword)) {
+				return keyword;
+			}
+
+			if (keyword.equals(friendlyURL + StringPool.SLASH)) {
+				return friendlyURL;
+			}
+		}
+
+		return null;
+	}
+
+	private static void _initFriendlyURLKeywords() {
+		_friendlyURLKeywords =
+			new String[PropsValues.LAYOUT_FRIENDLY_URL_KEYWORDS.length];
+
+		for (int i = 0; i < PropsValues.LAYOUT_FRIENDLY_URL_KEYWORDS.length;
+				i++) {
+
+			String keyword = PropsValues.LAYOUT_FRIENDLY_URL_KEYWORDS[i];
+
+			keyword = StringPool.SLASH + keyword;
+
+			if (!keyword.contains(StringPool.PERIOD)) {
+				if (keyword.endsWith(StringPool.STAR)) {
+					keyword = keyword.substring(0, keyword.length() - 1);
+				}
+				else {
+					keyword = keyword + StringPool.SLASH;
+				}
+			}
+
+			_friendlyURLKeywords[i] = keyword.toLowerCase();
+		}
 	}
 
 	private LayoutTypePortlet _getLayoutTypePortletClone(
@@ -699,6 +755,17 @@ public class LayoutImpl extends LayoutBaseImpl {
 		}
 
 		return layoutTypePortlet;
+	}
+
+	private Theme _getTheme(String device)
+		throws PortalException, SystemException {
+
+		if (device.equals("regular")) {
+			return getTheme();
+		}
+		else {
+			return getWapTheme();
+		}
 	}
 
 	private String _getURL(
@@ -789,8 +856,14 @@ public class LayoutImpl extends LayoutBaseImpl {
 
 	private static Log _log = LogFactoryUtil.getLog(LayoutImpl.class);
 
+	private static String[] _friendlyURLKeywords;
+
 	private LayoutSet _layoutSet;
 	private LayoutType _layoutType;
 	private UnicodeProperties _typeSettingsProperties;
+
+	static {
+		_initFriendlyURLKeywords();
+	}
 
 }

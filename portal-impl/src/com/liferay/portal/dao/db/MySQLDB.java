@@ -123,10 +123,7 @@ public class MySQLDB extends BaseDB {
 		sb.append("use ");
 		sb.append(databaseName);
 		sb.append(";\n\n");
-		sb.append(
-			readFile(
-				sqlDir + "/portal" + suffix + "/portal" + suffix +
-					"-mysql.sql"));
+		sb.append(getCreateTablesContent(sqlDir, suffix));
 		sb.append("\n\n");
 		sb.append(readFile(sqlDir + "/indexes/indexes-mysql.sql"));
 		sb.append("\n\n");
@@ -174,6 +171,13 @@ public class MySQLDB extends BaseDB {
 				line = StringUtil.replace(
 					"alter table @table@ modify @old-column@ @type@;",
 					REWORD_TEMPLATE, template);
+			}
+			else if (line.startsWith(ALTER_TABLE_NAME)) {
+				String[] template = buildTableNameTokens(line);
+
+				line = StringUtil.replace(
+					"rename table @old-table@ to @new-table@;",
+					RENAME_TABLE_TEMPLATE, template);
 			}
 
 			int pos = line.indexOf(";");

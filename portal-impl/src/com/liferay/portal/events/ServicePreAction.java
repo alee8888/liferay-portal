@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.events.Action;
 import com.liferay.portal.kernel.events.ActionException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.image.ImageToolUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.portal.kernel.log.Log;
@@ -32,12 +33,14 @@ import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.SessionParamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -81,7 +84,6 @@ import com.liferay.portal.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.service.permission.PortletPermissionUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.theme.ThemeDisplayFactory;
-import com.liferay.portal.util.CookieKeys;
 import com.liferay.portal.util.LayoutClone;
 import com.liferay.portal.util.LayoutCloneFactory;
 import com.liferay.portal.util.PortalUtil;
@@ -105,6 +107,7 @@ import com.liferay.portlet.sites.util.SitesUtil;
 import java.io.File;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -133,6 +136,101 @@ public class ServicePreAction extends Action {
 
 	public ServicePreAction() {
 		initImportLARFiles();
+	}
+
+	public Locale initLocale(
+			HttpServletRequest request, HttpServletResponse response, User user)
+		throws Exception {
+
+		if (user == null) {
+			try {
+				user = initUser(request);
+			}
+			catch (NoSuchUserException nsue) {
+				return null;
+			}
+		}
+
+		HttpSession session = request.getSession();
+
+		Locale locale = (Locale)session.getAttribute(Globals.LOCALE_KEY);
+
+		String doAsUserLanguageId = ParamUtil.getString(
+			request, "doAsUserLanguageId");
+
+		if (Validator.isNotNull(doAsUserLanguageId)) {
+			locale = LocaleUtil.fromLanguageId(doAsUserLanguageId);
+		}
+
+		String i18nLanguageId = (String)request.getAttribute(
+			WebKeys.I18N_LANGUAGE_ID);
+
+		if (Validator.isNotNull(i18nLanguageId)) {
+			locale = LocaleUtil.fromLanguageId(i18nLanguageId);
+		}
+		else if (locale == null) {
+			if (!user.isDefaultUser()) {
+				locale = user.getLocale();
+			}
+			else {
+
+				// User previously set their preferred language
+
+				String languageId = CookieKeys.getCookie(
+					request, CookieKeys.GUEST_LANGUAGE_ID, false);
+
+				if (Validator.isNotNull(languageId)) {
+					locale = LocaleUtil.fromLanguageId(languageId);
+				}
+
+				// Get locale from the request
+
+				if ((locale == null) && PropsValues.LOCALE_DEFAULT_REQUEST) {
+					Enumeration<Locale> locales = request.getLocales();
+
+					while (locales.hasMoreElements()) {
+						Locale requestLocale = locales.nextElement();
+
+						if (Validator.isNull(requestLocale.getCountry())) {
+
+							// Locales must contain a country code
+
+							requestLocale = LanguageUtil.getLocale(
+								requestLocale.getLanguage());
+						}
+
+						if (LanguageUtil.isAvailableLocale(requestLocale)) {
+							locale = requestLocale;
+
+							break;
+						}
+					}
+				}
+
+				// Get locale from the default user
+
+				if (locale == null) {
+					locale = user.getLocale();
+				}
+
+				if (Validator.isNull(locale.getCountry())) {
+
+					// Locales must contain a country code
+
+					locale = LanguageUtil.getLocale(locale.getLanguage());
+				}
+
+				if (!LanguageUtil.isAvailableLocale(locale)) {
+					locale = user.getLocale();
+				}
+			}
+
+			session.setAttribute(Globals.LOCALE_KEY, locale);
+
+			LanguageUtil.updateCookie(request, response, locale);
+		}
+
+		return locale;
 	}
 
 	public ThemeDisplay initThemeDisplay(
@@ -216,8 +314,15 @@ public class ServicePreAction extends Action {
 		int companyLogoHeight = 0;
 		int companyLogoWidth = 0;
 
-		Image companyLogoImage = ImageLocalServiceUtil.getCompanyLogo(
-			company.getLogoId());
+		Image companyLogoImage = null;
+
+		if (company.getLogoId() > 0) {
+			companyLogoImage = ImageLocalServiceUtil.getCompanyLogo(
+				company.getLogoId());
+		}
+		else {
+			companyLogoImage = ImageToolUtil.getDefaultCompanyLogo();
+		}
 
 		if (companyLogoImage != null) {
 			companyLogoHeight = companyLogoImage.getHeight();
@@ -233,30 +338,13 @@ public class ServicePreAction extends Action {
 		User user = null;
 
 		try {
-			user = PortalUtil.getUser(request);
+			user = initUser(request);
 		}
 		catch (NoSuchUserException nsue) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(nsue.getMessage());
-			}
-
-			long userId = PortalUtil.getUserId(request);
-
-			if (userId > 0) {
-				session.invalidate();
-			}
-
 			return null;
 		}
 
-		boolean signedIn = false;
-
-		if (user == null) {
-			user = company.getDefaultUser();
-		}
-		else if (!user.isDefaultUser()) {
-			signedIn = true;
-		}
+		boolean signedIn = !user.isDefaultUser();
 
 		if (PropsValues.BROWSER_CACHE_DISABLED ||
 			(PropsValues.BROWSER_CACHE_SIGNED_IN_DISABLED && signedIn)) {
@@ -303,61 +391,10 @@ public class ServicePreAction extends Action {
 
 		// Locale
 
-		Locale locale = (Locale)session.getAttribute(Globals.LOCALE_KEY);
-
-		if (Validator.isNotNull(doAsUserLanguageId)) {
-			locale = LocaleUtil.fromLanguageId(doAsUserLanguageId);
-		}
-
 		String i18nLanguageId = (String)request.getAttribute(
 			WebKeys.I18N_LANGUAGE_ID);
 
-		if (Validator.isNotNull(i18nLanguageId)) {
-			locale = LocaleUtil.fromLanguageId(i18nLanguageId);
-		}
-		else if (locale == null) {
-			if (signedIn) {
-				locale = user.getLocale();
-			}
-			else {
-
-				// User previously set their preferred language
-
-				String languageId = CookieKeys.getCookie(
-					request, CookieKeys.GUEST_LANGUAGE_ID, false);
-
-				if (Validator.isNotNull(languageId)) {
-					locale = LocaleUtil.fromLanguageId(languageId);
-				}
-
-				// Get locale from the request
-
-				if ((locale == null) && PropsValues.LOCALE_DEFAULT_REQUEST) {
-					locale = request.getLocale();
-				}
-
-				// Get locale from the default user
-
-				if (locale == null) {
-					locale = user.getLocale();
-				}
-
-				if (Validator.isNull(locale.getCountry())) {
-
-					// Locales must contain a country code
-
-					locale = LanguageUtil.getLocale(locale.getLanguage());
-				}
-
-				if (!LanguageUtil.isAvailableLocale(locale)) {
-					locale = user.getLocale();
-				}
-			}
-
-			session.setAttribute(Globals.LOCALE_KEY, locale);
-
-			LanguageUtil.updateCookie(request, response, locale);
-		}
+		Locale locale = initLocale(request, response, user);
 
 		// Cookie support
 
@@ -422,6 +459,8 @@ public class ServicePreAction extends Action {
 			}
 		}
 
+		String ppid = ParamUtil.getString(request, "p_p_id");
+
 		Boolean redirectToDefaultLayout = (Boolean)request.getAttribute(
 			WebKeys.REDIRECT_TO_DEFAULT_LAYOUT);
 
@@ -434,6 +473,15 @@ public class ServicePreAction extends Action {
 
 			if (!signedIn && PropsValues.AUTH_FORWARD_BY_REDIRECT) {
 				request.setAttribute(WebKeys.REQUESTED_LAYOUT, layout);
+			}
+
+			if (Validator.isNull(controlPanelCategory) &&
+				Validator.isNotNull(ppid) &&
+				(LiferayWindowState.isPopUp(request) ||
+				 LiferayWindowState.isExclusive(request))) {
+
+				controlPanelCategory =
+					_CONTROL_PANEL_CATEGORY_PORTLET_PREFIX + ppid;
 			}
 
 			boolean viewableGroup = LayoutPermissionUtil.contains(
@@ -668,6 +716,11 @@ public class ServicePreAction extends Action {
 		// Scope
 
 		long scopeGroupId = PortalUtil.getScopeGroupId(request);
+
+		if ((scopeGroupId <= 0) && (doAsGroupId > 0)) {
+			scopeGroupId = doAsGroupId;
+		}
+
 		long parentGroupId = PortalUtil.getParentGroupId(scopeGroupId);
 
 		// Theme and color scheme
@@ -766,6 +819,7 @@ public class ServicePreAction extends Action {
 		themeDisplay.setLayouts(layouts);
 		themeDisplay.setUnfilteredLayouts(unfilteredLayouts);
 		themeDisplay.setPlid(plid);
+		themeDisplay.setPpid(ppid);
 		themeDisplay.setLayoutTypePortlet(layoutTypePortlet);
 		themeDisplay.setScopeGroupId(scopeGroupId);
 		themeDisplay.setParentGroupId(parentGroupId);
@@ -783,9 +837,10 @@ public class ServicePreAction extends Action {
 		themeDisplay.setThemeJsFastLoad(themeJsFastLoad);
 		themeDisplay.setServerName(request.getServerName());
 		themeDisplay.setServerPort(request.getServerPort());
-		themeDisplay.setSecure(PortalUtil.isSecure(request));
+		themeDisplay.setSecure(request.isSecure());
 		themeDisplay.setLifecycle(lifecycle);
 		themeDisplay.setLifecycleAction(lifecycle.equals("1"));
+		themeDisplay.setLifecycleEvent(lifecycle.equals("3"));
 		themeDisplay.setLifecycleRender(lifecycle.equals("0"));
 		themeDisplay.setLifecycleResource(lifecycle.equals("2"));
 		themeDisplay.setStateExclusive(LiferayWindowState.isExclusive(request));
@@ -821,11 +876,7 @@ public class ServicePreAction extends Action {
 		long controlPanelPlid = 0;
 
 		if (signedIn) {
-			Group controlPanelGroup = GroupLocalServiceUtil.getGroup(
-				companyId, GroupConstants.CONTROL_PANEL);
-
-			controlPanelPlid = LayoutLocalServiceUtil.getDefaultPlid(
-				controlPanelGroup.getGroupId(), true);
+			controlPanelPlid = PortalUtil.getControlPanelPlid(companyId);
 
 			List<Portlet> siteContentPortlets =
 				PortalUtil.getControlPanelPortlets(
@@ -936,9 +987,6 @@ public class ServicePreAction extends Action {
 					themeDisplay.setURLAddContent(
 						"Liferay.LayoutConfiguration.toggle('".concat(
 							PortletKeys.LAYOUT_CONFIGURATION).concat("');"));
-
-					themeDisplay.setURLLayoutTemplates(
-						"Liferay.LayoutConfiguration.showTemplates();");
 				}
 
 				if (hasCustomizeLayoutPermission && customizedView) {
@@ -1217,7 +1265,7 @@ public class ServicePreAction extends Action {
 
 		themeDisplay.setURLPortal(portalURL.concat(contextPath));
 
-		String urlSignIn = mainPath.concat("/portal/login");
+		String urlSignIn = mainPath.concat(_PATH_PORTAL_LOGIN);
 
 		if (layout != null) {
 			urlSignIn = HttpUtil.addParameter(
@@ -1226,7 +1274,7 @@ public class ServicePreAction extends Action {
 
 		themeDisplay.setURLSignIn(urlSignIn);
 
-		themeDisplay.setURLSignOut(mainPath.concat("/portal/logout"));
+		themeDisplay.setURLSignOut(mainPath.concat(_PATH_PORTAL_LOGOUT));
 
 		PortletURL updateManagerURL = new PortletURLImpl(
 			request, PortletKeys.UPDATE_MANAGER, plid,
@@ -1282,6 +1330,9 @@ public class ServicePreAction extends Action {
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_SETUP,
+			new String[] {Boolean.TRUE.toString()});
+		parameterMap.put(
+			PortletDataHandlerKeys.THEME_REFERENCE,
 			new String[] {Boolean.TRUE.toString()});
 
 		LayoutLocalServiceUtil.importLayouts(
@@ -1509,23 +1560,6 @@ public class ServicePreAction extends Action {
 			HttpServletRequest request, User user, boolean signedIn)
 		throws PortalException, SystemException {
 
-		// Check the virtual host
-
-		LayoutSet layoutSet = (LayoutSet)request.getAttribute(
-			WebKeys.VIRTUAL_HOST_LAYOUT_SET);
-
-		if (layoutSet != null) {
-			List<Layout> layouts = LayoutLocalServiceUtil.getLayouts(
-				layoutSet.getGroupId(), layoutSet.isPrivateLayout(),
-				LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
-
-			if (layouts.size() > 0) {
-				Layout layout = layouts.get(0);
-
-				return new Object[] {layout, layouts};
-			}
-		}
-
 		Layout layout = null;
 		List<Layout> layouts = null;
 
@@ -1580,8 +1614,25 @@ public class ServicePreAction extends Action {
 				}
 			}
 		}
+		else {
 
-		if (layout == null) {
+			// Check the virtual host
+
+			LayoutSet layoutSet = (LayoutSet)request.getAttribute(
+				WebKeys.VIRTUAL_HOST_LAYOUT_SET);
+
+			if (layoutSet != null) {
+				layouts = LayoutLocalServiceUtil.getLayouts(
+					layoutSet.getGroupId(), layoutSet.isPrivateLayout(),
+					LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
+
+				if (layouts.size() > 0) {
+					layout = layouts.get(0);
+				}
+			}
+		}
+
+		if ((layout == null) || layout.isPrivateLayout()) {
 
 			// Check the Guest site
 
@@ -1718,12 +1769,41 @@ public class ServicePreAction extends Action {
 		}
 	}
 
+	protected User initUser(HttpServletRequest request) throws Exception {
+		try {
+			User user = PortalUtil.getUser(request);
+
+			if (user != null) {
+				return user;
+			}
+		}
+		catch (NoSuchUserException nsue) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(nsue.getMessage());
+			}
+
+			long userId = PortalUtil.getUserId(request);
+
+			if (userId > 0) {
+				HttpSession session = request.getSession();
+
+				session.invalidate();
+			}
+
+			throw nsue;
+		}
+
+		Company company = PortalUtil.getCompany(request);
+
+		return company.getDefaultUser();
+	}
+
 	protected boolean isLoginRequest(HttpServletRequest request) {
 		String requestURI = request.getRequestURI();
 
 		String mainPath = PortalUtil.getPathMain();
 
-		if (requestURI.startsWith(mainPath.concat("/portal/login"))) {
+		if (requestURI.startsWith(mainPath.concat(_PATH_PORTAL_LOGIN))) {
 			return true;
 		}
 		else {
@@ -1925,7 +2005,9 @@ public class ServicePreAction extends Action {
 
 		// Parallel render
 
-		if (PropsValues.LAYOUT_PARALLEL_RENDER_ENABLE) {
+		if (PropsValues.LAYOUT_PARALLEL_RENDER_ENABLE &&
+			ServerDetector.isTomcat()) {
+
 			boolean portletParallelRender = ParamUtil.getBoolean(
 				request, "p_p_parallel", true);
 
@@ -1938,7 +2020,7 @@ public class ServicePreAction extends Action {
 		long mainJournalArticleId = ParamUtil.getLong(request, "p_j_a_id");
 
 		if (mainJournalArticleId > 0) {
-			try{
+			try {
 				JournalArticle mainJournalArticle =
 					JournalArticleServiceUtil.getArticle(mainJournalArticleId);
 
@@ -1984,7 +2066,8 @@ public class ServicePreAction extends Action {
 		Boolean hasPrivateLayouts = null;
 
 		if (addDefaultUserPrivateLayouts) {
-			hasPrivateLayouts = LayoutLocalServiceUtil.hasLayouts(user, true);
+			hasPrivateLayouts = LayoutLocalServiceUtil.hasLayouts(
+				user, true, false);
 
 			if (!hasPrivateLayouts) {
 				addDefaultUserPrivateLayouts(user);
@@ -2009,7 +2092,7 @@ public class ServicePreAction extends Action {
 		if (deleteDefaultUserPrivateLayouts) {
 			if (hasPrivateLayouts == null) {
 				hasPrivateLayouts = LayoutLocalServiceUtil.hasLayouts(
-					user, true);
+					user, true, false);
 			}
 
 			if (hasPrivateLayouts) {
@@ -2040,7 +2123,8 @@ public class ServicePreAction extends Action {
 		Boolean hasPublicLayouts = null;
 
 		if (addDefaultUserPublicLayouts) {
-			hasPublicLayouts = LayoutLocalServiceUtil.hasLayouts(user, false);
+			hasPublicLayouts = LayoutLocalServiceUtil.hasLayouts(
+				user, false, false);
 
 			if (!hasPublicLayouts) {
 				addDefaultUserPublicLayouts(user);
@@ -2065,7 +2149,7 @@ public class ServicePreAction extends Action {
 		if (deleteDefaultUserPublicLayouts) {
 			if (hasPublicLayouts == null) {
 				hasPublicLayouts = LayoutLocalServiceUtil.hasLayouts(
-					user, false);
+					user, false, false);
 			}
 
 			if (hasPublicLayouts) {
@@ -2081,6 +2165,8 @@ public class ServicePreAction extends Action {
 		"portlet_";
 
 	private static final String _PATH_PORTAL_LAYOUT = "/portal/layout";
+	private static final String _PATH_PORTAL_LOGIN = "/portal/login";
+	private static final String _PATH_PORTAL_LOGOUT = "/portal/logout";
 
 	private static Log _log = LogFactoryUtil.getLog(ServicePreAction.class);
 

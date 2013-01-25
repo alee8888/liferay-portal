@@ -21,11 +21,15 @@ import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
 import com.liferay.portal.kernel.lar.PortletDataHandlerControl;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.TimeZoneUtil;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.calendar.model.CalEvent;
 import com.liferay.portlet.calendar.service.CalEventLocalServiceUtil;
@@ -34,6 +38,8 @@ import com.liferay.portlet.calendar.service.persistence.CalEventUtil;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import javax.portlet.PortletPreferences;
 
@@ -207,7 +213,22 @@ public class CalendarPortletDataHandlerImpl extends BasePortletDataHandler {
 		int startDateMinute = 0;
 
 		if (startDate != null) {
-			Calendar startCal = CalendarFactoryUtil.getCalendar();
+			Locale locale = null;
+			TimeZone timeZone = null;
+
+			if (event.getTimeZoneSensitive()) {
+				User user = UserLocalServiceUtil.getUser(userId);
+
+				locale = user.getLocale();
+				timeZone = user.getTimeZone();
+			}
+			else {
+				locale = LocaleUtil.getDefault();
+				timeZone = TimeZoneUtil.getDefault();
+			}
+
+			Calendar startCal = CalendarFactoryUtil.getCalendar(
+				timeZone, locale);
 
 			startCal.setTime(startDate);
 
@@ -220,22 +241,6 @@ public class CalendarPortletDataHandlerImpl extends BasePortletDataHandler {
 			if (startCal.get(Calendar.AM_PM) == Calendar.PM) {
 				startDateHour += 12;
 			}
-		}
-
-		Date endDate = event.getEndDate();
-
-		int endDateMonth = 0;
-		int endDateDay = 0;
-		int endDateYear = 0;
-
-		if (endDate != null) {
-			Calendar endCal = CalendarFactoryUtil.getCalendar();
-
-			endCal.setTime(endDate);
-
-			endDateMonth = endCal.get(Calendar.MONTH);
-			endDateDay = endCal.get(Calendar.DATE);
-			endDateYear = endCal.get(Calendar.YEAR);
 		}
 
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
@@ -253,22 +258,21 @@ public class CalendarPortletDataHandlerImpl extends BasePortletDataHandler {
 				importedEvent = CalEventLocalServiceUtil.addEvent(
 					userId, event.getTitle(), event.getDescription(),
 					event.getLocation(), startDateMonth, startDateDay,
-					startDateYear, startDateHour, startDateMinute, endDateMonth,
-					endDateDay, endDateYear, event.getDurationHour(),
-					event.getDurationMinute(), event.getAllDay(),
-					event.getTimeZoneSensitive(), event.getType(),
-					event.getRepeating(), event.getRecurrenceObj(),
-					event.getRemindBy(), event.getFirstReminder(),
-					event.getSecondReminder(), serviceContext);
+					startDateYear, startDateHour, startDateMinute,
+					event.getDurationHour(), event.getDurationMinute(),
+					event.isAllDay(), event.isTimeZoneSensitive(),
+					event.getType(), event.getRepeating(),
+					event.getRecurrenceObj(), event.getRemindBy(),
+					event.getFirstReminder(), event.getSecondReminder(),
+					serviceContext);
 			}
 			else {
 				importedEvent = CalEventLocalServiceUtil.updateEvent(
 					userId, existingEvent.getEventId(), event.getTitle(),
 					event.getDescription(), event.getLocation(), startDateMonth,
 					startDateDay, startDateYear, startDateHour, startDateMinute,
-					endDateMonth, endDateDay, endDateYear,
 					event.getDurationHour(), event.getDurationMinute(),
-					event.getAllDay(), event.getTimeZoneSensitive(),
+					event.isAllDay(), event.isTimeZoneSensitive(),
 					event.getType(), event.getRepeating(),
 					event.getRecurrenceObj(), event.getRemindBy(),
 					event.getFirstReminder(), event.getSecondReminder(),
@@ -279,10 +283,9 @@ public class CalendarPortletDataHandlerImpl extends BasePortletDataHandler {
 			importedEvent = CalEventLocalServiceUtil.addEvent(
 				userId, event.getTitle(), event.getDescription(),
 				event.getLocation(), startDateMonth, startDateDay,
-				startDateYear, startDateHour, startDateMinute, endDateMonth,
-				endDateDay, endDateYear, event.getDurationHour(),
-				event.getDurationMinute(), event.getAllDay(),
-				event.getTimeZoneSensitive(), event.getType(),
+				startDateYear, startDateHour, startDateMinute,
+				event.getDurationHour(), event.getDurationMinute(),
+				event.isAllDay(), event.isTimeZoneSensitive(), event.getType(),
 				event.getRepeating(), event.getRecurrenceObj(),
 				event.getRemindBy(), event.getFirstReminder(),
 				event.getSecondReminder(), serviceContext);

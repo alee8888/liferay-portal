@@ -181,7 +181,7 @@ AUI.add(
 
 					contentBox.delegate(
 						'mouseenter',
-						function (event) {
+						function(event) {
 							focusManager.focus(event.currentTarget.one('a'));
 						},
 						'.aui-menu-item'
@@ -189,7 +189,7 @@ AUI.add(
 
 					contentBox.delegate(
 						'mouseleave',
-						function (event) {
+						function(event) {
 							focusManager.blur(event.currentTarget.one('a'));
 						},
 						'.aui-menu-item'
@@ -555,6 +555,25 @@ AUI.add(
 					}
 				);
 
+				if (A.UA.ie === 6) {
+					var mySitesMenu = Dockbar.mySites;
+
+					if (mySitesMenu) {
+						mySitesMenu.onceAfter(
+							'visibleChange',
+							function(event) {
+								if (event.newVal) {
+									var menuBoundingBox = mySitesMenu.get('boundingBox');
+
+									if (menuBoundingBox.height() > 300) {
+										menuBoundingBox.addClass('aui-menu-scroll');
+									}
+								}
+							}
+						);
+					}
+				}
+
 				var userOptionsContainer = A.one('#' + namespace + 'userOptionsContainer');
 
 				if (userOptionsContainer) {
@@ -608,8 +627,7 @@ AUI.add(
 												doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
 												p_l_id: themeDisplay.getPlid(),
 												p_p_id: 87,
-												p_p_state: 'exclusive',
-												runtimePortletIds: Liferay.Portlet.runtimePortletIds.join()
+												p_p_state: 'exclusive'
 											},
 											uri: themeDisplay.getPathMain() + '/portal/render_portlet'
 										},
@@ -810,8 +828,9 @@ AUI.add(
 				var data = {
 					cmd: 'update_type_settings',
 					doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
+					p_auth: Liferay.authToken,
 					p_l_id: themeDisplay.getPlid(),
-					p_v_g_id: themeDisplay.getParentGroupId()
+					p_v_l_s_g_id: themeDisplay.getParentGroupId()
 				};
 
 				var checkboxName = checkbox.attr('name');

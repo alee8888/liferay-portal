@@ -16,6 +16,7 @@ package com.liferay.portal.kernel.util;
 
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,11 +45,21 @@ public class LocalizationUtil {
 		return getLocalization().getAvailableLocales(xml);
 	}
 
+	public static Locale getDefaultImportLocale(
+		String className, long classPK, Locale contentDefaultLocale,
+		Locale[] contentAvailableLocales) {
+
+		return getLocalization().getDefaultImportLocale(
+			className, classPK, contentDefaultLocale, contentAvailableLocales);
+	}
+
 	public static String getDefaultLocale(String xml) {
 		return getLocalization().getDefaultLocale(xml);
 	}
 
 	public static Localization getLocalization() {
+		PortalRuntimePermission.checkGetBeanProperty(LocalizationUtil.class);
+
 		return _localization;
 	}
 
@@ -79,6 +90,14 @@ public class LocalizationUtil {
 
 	public static Map<Locale, String> getLocalizationMap(String xml) {
 		return getLocalization().getLocalizationMap(xml);
+	}
+
+	public static Map<Locale, String> getLocalizationMap(
+		String bundleName, ClassLoader classLoader, String key,
+		boolean includeBetaLocales) {
+
+		return getLocalization().getLocalizationMap(
+			bundleName, classLoader, key, includeBetaLocales);
 	}
 
 	public static Map<Locale, String> getLocalizationMap(
@@ -258,6 +277,8 @@ public class LocalizationUtil {
 	}
 
 	public void setLocalization(Localization localization) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_localization = localization;
 	}
 

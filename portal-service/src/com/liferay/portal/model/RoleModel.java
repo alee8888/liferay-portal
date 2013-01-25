@@ -14,6 +14,7 @@
 
 package com.liferay.portal.model;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -385,6 +386,9 @@ public interface RoleModel extends AttachedModel, BaseModel<Role> {
 
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException;
+
 	public Object clone();
 
 	public int compareTo(Role role);
@@ -394,6 +398,8 @@ public interface RoleModel extends AttachedModel, BaseModel<Role> {
 	public CacheModel<Role> toCacheModel();
 
 	public Role toEscapedModel();
+
+	public Role toUnescapedModel();
 
 	public String toString();
 

@@ -68,7 +68,6 @@ public class EditFrameworkVersionAction extends PortletAction {
 				setForward(actionRequest, "portlet.software_catalog.error");
 			}
 			else if (e instanceof FrameworkVersionNameException) {
-
 				SessionErrors.add(actionRequest, e.getClass());
 			}
 			else {
@@ -99,8 +98,10 @@ public class EditFrameworkVersionAction extends PortletAction {
 			}
 		}
 
-		return mapping.findForward(getForward(
-			renderRequest, "portlet.software_catalog.edit_framework_version"));
+		return mapping.findForward(
+			getForward(
+				renderRequest,
+				"portlet.software_catalog.edit_framework_version"));
 	}
 
 	protected void deleteFrameworkVersion(ActionRequest actionRequest)

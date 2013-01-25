@@ -15,20 +15,24 @@
 package com.liferay.portlet.documentlibrary.action;
 
 import com.liferay.portal.DuplicateLockException;
+import com.liferay.portal.NoSuchRepositoryEntryException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.servlet.ServletResponseConstants;
+import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.upload.UploadException;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -68,13 +72,15 @@ import com.liferay.portlet.documentlibrary.SourceFileNameException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
 import com.liferay.portlet.documentlibrary.util.DLUtil;
+import com.liferay.portlet.dynamicdatamapping.StorageFieldRequiredException;
 
-import java.io.File;
 import java.io.InputStream;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -90,6 +96,7 @@ import javax.portlet.WindowState;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.fileupload.FileUploadBase.IOFileUploadException;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
@@ -99,6 +106,7 @@ import org.apache.struts.action.ActionMapping;
  * @author Alexander Chow
  * @author Sergio González
  * @author Manuel de la Peña
+ * @author Levente Hudák
  */
 public class EditFileEntryAction extends PortletAction {
 
@@ -137,7 +145,8 @@ public class EditFileEntryAction extends PortletAction {
 				addTempFileEntry(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteFileEntries(actionRequest, false);
+				deleteFileEntry(
+					(LiferayPortletConfig)portletConfig, actionRequest, false);
 			}
 			else if (cmd.equals(Constants.DELETE_TEMP)) {
 				deleteTempFileEntry(actionRequest, actionResponse);
@@ -152,10 +161,14 @@ public class EditFileEntryAction extends PortletAction {
 				checkOutFileEntries(actionRequest);
 			}
 			else if (cmd.equals(Constants.MOVE)) {
-				moveFileEntries(actionRequest);
+				moveFileEntries(actionRequest, false);
+			}
+			else if (cmd.equals(Constants.MOVE_FROM_TRASH)) {
+				moveFileEntries(actionRequest, true);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
-				deleteFileEntries(actionRequest, true);
+				deleteFileEntry(
+					(LiferayPortletConfig)portletConfig, actionRequest, true);
 			}
 			else if (cmd.equals(Constants.REVERT)) {
 				revertFileEntry(actionRequest);
@@ -170,7 +183,9 @@ public class EditFileEntryAction extends PortletAction {
 			}
 			else if (cmd.equals(Constants.PREVIEW)) {
 			}
-			else if (!windowState.equals(LiferayWindowState.POP_UP)) {
+			else if (!cmd.equals(Constants.MOVE_FROM_TRASH) &&
+					 !windowState.equals(LiferayWindowState.POP_UP)) {
+
 				sendRedirect(actionRequest, actionResponse);
 			}
 			else {
@@ -183,79 +198,7 @@ public class EditFileEntryAction extends PortletAction {
 			}
 		}
 		catch (Exception e) {
-			if (e instanceof DuplicateLockException ||
-				e instanceof InvalidFileVersionException ||
-				e instanceof NoSuchFileEntryException ||
-				e instanceof PrincipalException) {
-
-				if (e instanceof DuplicateLockException) {
-					DuplicateLockException dle = (DuplicateLockException)e;
-
-					SessionErrors.add(
-						actionRequest, dle.getClass().getName(), dle.getLock());
-				}
-				else {
-					SessionErrors.add(actionRequest, e.getClass());
-				}
-
-				setForward(actionRequest, "portlet.document_library.error");
-			}
-			else if (e instanceof DuplicateFileException ||
-					 e instanceof DuplicateFolderNameException ||
-					 e instanceof FileExtensionException ||
-					 e instanceof FileMimeTypeException ||
-					 e instanceof FileNameException ||
-					 e instanceof FileSizeException ||
-					 e instanceof NoSuchFolderException ||
-					 e instanceof SourceFileNameException) {
-
-				if (!cmd.equals(Constants.ADD_MULTIPLE) &&
-					!cmd.equals(Constants.ADD_TEMP)) {
-
-					SessionErrors.add(actionRequest, e.getClass());
-
-					return;
-				}
-
-				if (e instanceof DuplicateFileException) {
-					HttpServletResponse response =
-						PortalUtil.getHttpServletResponse(actionResponse);
-
-					response.setStatus(
-						ServletResponseConstants.SC_DUPLICATE_FILE_EXCEPTION);
-				}
-				else if (e instanceof FileExtensionException) {
-					HttpServletResponse response =
-						PortalUtil.getHttpServletResponse(actionResponse);
-
-					response.setStatus(
-						ServletResponseConstants.SC_FILE_EXTENSION_EXCEPTION);
-				}
-				else if (e instanceof FileNameException) {
-					HttpServletResponse response =
-						PortalUtil.getHttpServletResponse(actionResponse);
-
-					response.setStatus(
-						ServletResponseConstants.SC_FILE_NAME_EXCEPTION);
-				}
-				else if (e instanceof FileSizeException) {
-					HttpServletResponse response =
-						PortalUtil.getHttpServletResponse(actionResponse);
-
-					response.setStatus(
-						ServletResponseConstants.SC_FILE_SIZE_EXCEPTION);
-				}
-
-				SessionErrors.add(actionRequest, e.getClass());
-			}
-			else if (e instanceof AssetCategoryException ||
-					 e instanceof AssetTagException) {
-
-				SessionErrors.add(actionRequest, e.getClass().getName(), e);
-			}
-			else {
-				throw e;
-			}
+			handleUploadException(actionRequest, actionResponse, cmd, e);
 		}
 	}
 
@@ -271,6 +214,7 @@ public class EditFileEntryAction extends PortletAction {
 		catch (Exception e) {
 			if (e instanceof NoSuchFileEntryException ||
 				e instanceof NoSuchFileVersionException ||
+				e instanceof NoSuchRepositoryEntryException ||
 				e instanceof PrincipalException) {
 
 				SessionErrors.add(renderRequest, e.getClass());
@@ -361,18 +305,21 @@ public class EditFileEntryAction extends PortletAction {
 		String description = ParamUtil.getString(actionRequest, "description");
 		String changeLog = ParamUtil.getString(actionRequest, "changeLog");
 
-		File file = null;
+		String tempFileName = TempFileUtil.getTempFileName(
+			themeDisplay.getUserId(), selectedFileName, _TEMP_FOLDER_NAME);
 
 		try {
-			file = TempFileUtil.getTempFile(
-				themeDisplay.getUserId(), selectedFileName, _TEMP_FOLDER_NAME);
+			InputStream inputStream = TempFileUtil.getTempFileAsStream(
+				tempFileName);
+			long size = TempFileUtil.getTempFileSize(tempFileName);
 
 			ServiceContext serviceContext = ServiceContextFactory.getInstance(
 				DLFileEntry.class.getName(), actionRequest);
 
 			FileEntry fileEntry = DLAppServiceUtil.addFileEntry(
 				repositoryId, folderId, selectedFileName, contentType,
-				selectedFileName, description, changeLog, file, serviceContext);
+				selectedFileName, description, changeLog, inputStream, size,
+				serviceContext);
 
 			AssetPublisherUtil.addAndStoreSelection(
 				actionRequest, DLFileEntry.class.getName(),
@@ -393,7 +340,7 @@ public class EditFileEntryAction extends PortletAction {
 				new KeyValuePair(selectedFileName, errorMessage));
 		}
 		finally {
-			FileUtil.delete(file);
+			TempFileUtil.deleteTempFile(tempFileName);
 		}
 	}
 
@@ -417,6 +364,26 @@ public class EditFileEntryAction extends PortletAction {
 			DLAppServiceUtil.addTempFileEntry(
 				themeDisplay.getScopeGroupId(), folderId, sourceFileName,
 				_TEMP_FOLDER_NAME, inputStream);
+		}
+		catch (Exception e) {
+			UploadException uploadException =
+				(UploadException)actionRequest.getAttribute(
+					WebKeys.UPLOAD_EXCEPTION);
+
+			if ((uploadException != null) &&
+				(uploadException.getCause() instanceof IOFileUploadException)) {
+
+				// Cancelled a temporary upload
+
+			}
+			else if ((uploadException != null) &&
+					 uploadException.isExceededSizeLimit()) {
+
+				throw new FileSizeException(uploadException.getCause());
+			}
+			else {
+				throw e;
+			}
 		}
 		finally {
 			StreamUtil.cleanUp(inputStream);
@@ -486,37 +453,48 @@ public class EditFileEntryAction extends PortletAction {
 		}
 	}
 
-	protected void deleteFileEntries(
+	protected void deleteFileEntry(
+			LiferayPortletConfig liferayPortletConfig,
 			ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
 		long fileEntryId = ParamUtil.getLong(actionRequest, "fileEntryId");
+
+		if (fileEntryId == 0) {
+			return;
+		}
+
 		String version = ParamUtil.getString(actionRequest, "version");
 
-		if ((fileEntryId > 0) && Validator.isNotNull(version)) {
+		if (Validator.isNotNull(version)) {
 			DLAppServiceUtil.deleteFileVersion(fileEntryId, version);
-		}
-		else {
-			long[] deleteFileEntryIds = null;
 
-			if (fileEntryId > 0) {
-				deleteFileEntryIds = new long[] {fileEntryId};
-			}
-			else {
-				deleteFileEntryIds = StringUtil.split(
-					ParamUtil.getString(actionRequest, "deleteFileEntryIds"),
-					0L);
-			}
-
-			for (long deleteFileEntryId : deleteFileEntryIds) {
-				if (moveToTrash) {
-					DLAppServiceUtil.moveFileEntryToTrash(deleteFileEntryId);
-				}
-				else {
-					DLAppServiceUtil.deleteFileEntry(deleteFileEntryId);
-				}
-			}
+			return;
 		}
+
+		if (!moveToTrash) {
+			DLAppServiceUtil.deleteFileEntry(fileEntryId);
+
+			return;
+		}
+
+		DLAppServiceUtil.moveFileEntryToTrash(fileEntryId);
+
+		Map<String, String[]> data = new HashMap<String, String[]>();
+
+		data.put(
+			"restoreFileEntryIds", new String[] {String.valueOf(fileEntryId)});
+
+		SessionMessages.add(
+			actionRequest,
+			liferayPortletConfig.getPortletId() +
+				SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA,
+			data);
+
+		SessionMessages.add(
+			actionRequest,
+			liferayPortletConfig.getPortletId() +
+				SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
 	}
 
 	protected void deleteTempFileEntry(
@@ -624,26 +602,118 @@ public class EditFileEntryAction extends PortletAction {
 		return errorMessage;
 	}
 
-	protected void moveFileEntries(ActionRequest actionRequest)
+	protected void handleUploadException(
+			ActionRequest actionRequest, ActionResponse actionResponse,
+			String cmd, Exception e)
 		throws Exception {
 
+		if (e instanceof AssetCategoryException ||
+			e instanceof AssetTagException) {
+
+			SessionErrors.add(actionRequest, e.getClass(), e);
+		}
+		else if (e instanceof DuplicateFileException ||
+				 e instanceof DuplicateFolderNameException ||
+				 e instanceof FileExtensionException ||
+				 e instanceof FileMimeTypeException ||
+				 e instanceof FileNameException ||
+				 e instanceof FileSizeException ||
+				 e instanceof NoSuchFolderException ||
+				 e instanceof SourceFileNameException ||
+				 e instanceof StorageFieldRequiredException) {
+
+			if (!cmd.equals(Constants.ADD_MULTIPLE) &&
+				!cmd.equals(Constants.ADD_TEMP)) {
+
+				SessionErrors.add(actionRequest, e.getClass());
+
+				return;
+			}
+
+			if (e instanceof DuplicateFileException ||
+				e instanceof FileExtensionException ||
+				e instanceof FileNameException ||
+				e instanceof FileSizeException) {
+
+				HttpServletResponse response =
+					PortalUtil.getHttpServletResponse(actionResponse);
+
+				response.setContentType(ContentTypes.TEXT_HTML);
+				response.setStatus(HttpServletResponse.SC_OK);
+
+				int errorType = 0;
+
+				if (e instanceof DuplicateFileException) {
+					errorType =
+						ServletResponseConstants.SC_DUPLICATE_FILE_EXCEPTION;
+				}
+				else if (e instanceof FileExtensionException) {
+					errorType =
+						ServletResponseConstants.SC_FILE_EXTENSION_EXCEPTION;
+				}
+				else if (e instanceof FileNameException) {
+					errorType = ServletResponseConstants.SC_FILE_NAME_EXCEPTION;
+				}
+				else if (e instanceof FileSizeException) {
+					errorType = ServletResponseConstants.SC_FILE_SIZE_EXCEPTION;
+				}
+
+				ServletResponseUtil.write(response, String.valueOf(errorType));
+			}
+
+			SessionErrors.add(actionRequest, e.getClass());
+		}
+		else if (e instanceof DuplicateLockException ||
+				 e instanceof InvalidFileVersionException ||
+				 e instanceof NoSuchFileEntryException ||
+				 e instanceof PrincipalException) {
+
+			if (e instanceof DuplicateLockException) {
+				DuplicateLockException dle = (DuplicateLockException)e;
+
+				SessionErrors.add(actionRequest, dle.getClass(), dle.getLock());
+			}
+			else {
+				SessionErrors.add(actionRequest, e.getClass());
+			}
+
+			setForward(actionRequest, "portlet.document_library.error");
+		}
+		else {
+			throw e;
+		}
+	}
+
+	protected void moveFileEntries(
+			ActionRequest actionRequest, boolean moveFromTrash)
+		throws Exception {
+
+		long[] fileEntryIds = null;
+
 		long fileEntryId = ParamUtil.getLong(actionRequest, "fileEntryId");
+
+		if (fileEntryId > 0) {
+			fileEntryIds = new long[] {fileEntryId};
+		}
+		else {
+			fileEntryIds = StringUtil.split(
+				ParamUtil.getString(actionRequest, "fileEntryIds"), 0L);
+		}
+
 		long newFolderId = ParamUtil.getLong(actionRequest, "newFolderId");
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			DLFileEntry.class.getName(), actionRequest);
 
-		if (fileEntryId > 0) {
-			DLAppServiceUtil.moveFileEntry(
-				fileEntryId, newFolderId, serviceContext);
-		}
-		else {
-			long[] fileEntryIds = StringUtil.split(
-				ParamUtil.getString(actionRequest, "fileEntryIds"), 0L);
+		for (long moveFileEntryId : fileEntryIds) {
+			if (moveFromTrash) {
+				DLAppServiceUtil.moveFileEntryFromTrash(
+					moveFileEntryId, newFolderId, serviceContext);
+			}
 
-			for (int i = 0; i < fileEntryIds.length; i++) {
+			else {
 				DLAppServiceUtil.moveFileEntry(
-					fileEntryIds[i], newFolderId, serviceContext);
+					moveFileEntryId, newFolderId, serviceContext);
 			}
 		}
 	}

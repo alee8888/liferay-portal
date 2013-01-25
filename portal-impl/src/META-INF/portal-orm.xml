@@ -133,6 +133,7 @@
 			<transient name="modelAttributes" />
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
+			<transient name="virtualHostname" />
 		</attributes>
 	</mapped-superclass>
 	<mapped-superclass class="com.liferay.portal.model.impl.ContactModelImpl">
@@ -263,9 +264,6 @@
 			<basic name="modifiedDate">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
-			<basic name="text">
-				<column name="TEXT_" />
-			</basic>
 			<basic name="type">
 				<column name="TYPE_" />
 			</basic>
@@ -305,9 +303,7 @@
 				<column name="TYPE_" />
 			</basic>
 			<basic name="typeSettings" />
-			<basic name="hidden">
-				<column name="HIDDEN_" />
-			</basic>
+			<basic name="hidden" />
 			<basic name="friendlyURL" />
 			<basic name="iconImage" />
 			<basic name="iconImageId" />
@@ -459,6 +455,7 @@
 			<transient name="modelAttributes" />
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
+			<transient name="virtualHostname" />
 		</attributes>
 	</mapped-superclass>
 	<mapped-superclass class="com.liferay.portal.model.impl.LayoutSetBranchModelImpl">
@@ -667,6 +664,7 @@
 			<basic name="minNumbers" />
 			<basic name="minSymbols" />
 			<basic name="minUpperCase" />
+			<basic name="regex" />
 			<basic name="history" />
 			<basic name="historyCount" />
 			<basic name="expireable" />
@@ -896,6 +894,7 @@
 			<basic name="groupId" />
 			<basic name="repositoryId" />
 			<basic name="mappedId" />
+			<basic name="manualCheckInRequired" />
 			<transient name="modelAttributes" />
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
@@ -1111,6 +1110,7 @@
 			<basic name="screenName" />
 			<basic name="emailAddress" />
 			<basic name="facebookId" />
+			<basic name="ldapServerId" />
 			<basic name="openId" />
 			<basic name="portraitId" />
 			<basic name="languageId" />
@@ -1728,9 +1728,16 @@
 			<basic name="description" />
 			<basic name="visits" />
 			<basic name="priority" />
+			<basic name="status" />
+			<basic name="statusByUserId" />
+			<basic name="statusByUserName" />
+			<basic name="statusDate">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
 			<transient name="modelAttributes" />
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
+			<transient name="statusByUserUuid" />
 			<transient name="userUuid" />
 		</attributes>
 	</mapped-superclass>
@@ -1754,9 +1761,18 @@
 			<basic name="parentFolderId" />
 			<basic name="name" />
 			<basic name="description" />
+			<basic name="status" />
+			<basic name="statusByUserId" />
+			<basic name="statusByUserName" />
+			<basic name="statusDate">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<transient name="containerModelId" />
 			<transient name="modelAttributes" />
+			<transient name="parentContainerModelId" />
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
+			<transient name="statusByUserUuid" />
 			<transient name="userUuid" />
 		</attributes>
 	</mapped-superclass>
@@ -1842,6 +1858,8 @@
 			<basic name="modifiedDate">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
+			<basic name="classNameId" />
+			<basic name="classPK" />
 			<basic name="repositoryId" />
 			<basic name="folderId" />
 			<basic name="name" />
@@ -1860,6 +1878,8 @@
 			<basic name="largeImageId" />
 			<basic name="custom1ImageId" />
 			<basic name="custom2ImageId" />
+			<basic name="manualCheckInRequired" />
+			<transient name="className" />
 			<transient name="modelAttributes" />
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
@@ -1991,6 +2011,7 @@
 			<basic name="size">
 				<column name="SIZE_" />
 			</basic>
+			<basic name="checksum" />
 			<basic name="status" />
 			<basic name="statusByUserId" />
 			<basic name="statusByUserName" />
@@ -2029,6 +2050,7 @@
 				<temporal>TIMESTAMP</temporal>
 			</basic>
 			<basic name="defaultFileEntryTypeId" />
+			<basic name="hidden" />
 			<basic name="overrideFileEntryTypes" />
 			<basic name="status" />
 			<basic name="statusByUserId" />
@@ -2036,7 +2058,9 @@
 			<basic name="statusDate">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
+			<transient name="containerModelId" />
 			<transient name="modelAttributes" />
+			<transient name="parentContainerModelId" />
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
 			<transient name="statusByUserUuid" />
@@ -2216,6 +2240,7 @@
 			<basic name="modifiedDate">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
+			<basic name="parentStructureId" />
 			<basic name="classNameId" />
 			<basic name="structureKey" />
 			<basic name="name" />
@@ -2229,6 +2254,8 @@
 			<transient name="descriptionCurrentLanguageId" />
 			<transient name="descriptionMap" />
 			<transient name="document" />
+			<transient name="localizedFieldsMap" />
+			<transient name="localizedTransientFieldsMap" />
 			<transient name="modelAttributes" />
 			<transient name="nameCurrentLanguageId" />
 			<transient name="nameMap" />
@@ -2278,6 +2305,10 @@
 			</basic>
 			<basic name="language" />
 			<basic name="script" />
+			<basic name="cacheable" />
+			<basic name="smallImage" />
+			<basic name="smallImageId" />
+			<basic name="smallImageURL" />
 			<transient name="className" />
 			<transient name="descriptionCurrentLanguageId" />
 			<transient name="descriptionMap" />
@@ -2311,6 +2342,9 @@
 				<column name="ROWID_" />
 			</id>
 			<basic name="companyId" />
+			<basic name="modifiedDate">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
 			<basic name="tableId" />
 			<basic name="classPK" />
 			<transient name="modelAttributes" />
@@ -2490,7 +2524,7 @@
 			<basic name="targetLayoutFriendlyUrl" />
 			<basic name="targetPortletId" />
 			<basic name="contentField" />
-			<basic name="feedType" />
+			<basic name="feedFormat" />
 			<basic name="feedVersion" />
 			<transient name="modelAttributes" />
 			<transient name="primaryKey" />
@@ -2640,9 +2674,18 @@
 			<basic name="lastPostDate">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
+			<basic name="status" />
+			<basic name="statusByUserId" />
+			<basic name="statusByUserName" />
+			<basic name="statusDate">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<transient name="containerModelId" />
 			<transient name="modelAttributes" />
+			<transient name="parentContainerModelId" />
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
+			<transient name="statusByUserUuid" />
 			<transient name="userUuid" />
 		</attributes>
 	</mapped-superclass>
@@ -2725,7 +2768,6 @@
 			<basic name="subject" />
 			<basic name="body" />
 			<basic name="format" />
-			<basic name="attachments" />
 			<basic name="anonymous" />
 			<basic name="priority" />
 			<basic name="allowPingbacks" />
@@ -3589,9 +3631,18 @@
 			<basic name="lastPostDate">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
+			<basic name="status" />
+			<basic name="statusByUserId" />
+			<basic name="statusByUserName" />
+			<basic name="statusDate">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<transient name="containerModelId" />
 			<transient name="modelAttributes" />
+			<transient name="parentContainerModelId" />
 			<transient name="primaryKey" />
 			<transient name="primaryKeyObj" />
+			<transient name="statusByUserUuid" />
 			<transient name="userUuid" />
 		</attributes>
 	</mapped-superclass>
@@ -3676,6 +3727,7 @@
 		<table name="Company" />
 		<attributes>
 			<transient name="keyObj" />
+			<transient name="virtualHostname" />
 		</attributes>
 	</entity>
 	<entity class="com.liferay.portal.model.impl.ContactImpl" name="Contact">
@@ -3729,6 +3781,7 @@
 		<table name="LayoutSet" />
 		<attributes>
 			<transient name="settingsProperties" />
+			<transient name="virtualHostname" />
 		</attributes>
 	</entity>
 	<entity class="com.liferay.portal.model.impl.LayoutSetBranchImpl" name="LayoutSetBranch">
@@ -3844,6 +3897,7 @@
 			<transient name="portletApp" />
 			<transient name="portletClass" />
 			<transient name="portletDataHandlerClass" />
+			<transient name="portletDisplayTemplateHandlerClass" />
 			<transient name="portletFilters" />
 			<transient name="portletInfo" />
 			<transient name="portletLayoutListenerClass" />
@@ -3873,6 +3927,7 @@
 			<transient name="showPortletInactive" />
 			<transient name="socialActivityInterpreterClass" />
 			<transient name="socialRequestInterpreterClass" />
+			<transient name="stagedModelDataHandlerClasses" />
 			<transient name="static" />
 			<transient name="staticStart" />
 			<transient name="strutsPath" />
@@ -4160,7 +4215,9 @@
 	</entity>
 	<entity class="com.liferay.portlet.dynamicdatamapping.model.impl.DDMTemplateImpl" name="DDMTemplate">
 		<table name="DDMTemplate" />
-		<attributes />
+		<attributes>
+			<transient name="smallImageType" />
+		</attributes>
 	</entity>
 	<entity class="com.liferay.portlet.expando.model.impl.ExpandoColumnImpl" name="ExpandoColumn">
 		<table name="ExpandoColumn" />
@@ -4192,10 +4249,14 @@
 			<transient name="integerArray" />
 			<transient name="long" />
 			<transient name="longArray" />
+			<transient name="number" />
+			<transient name="numberArray" />
 			<transient name="short" />
 			<transient name="shortArray" />
 			<transient name="string" />
 			<transient name="stringArray" />
+			<transient name="stringArrayMap" />
+			<transient name="stringMap" />
 		</attributes>
 	</entity>
 	<entity class="com.liferay.portlet.journal.model.impl.JournalArticleImpl" name="JournalArticle">
@@ -4253,7 +4314,7 @@
 	<entity class="com.liferay.portlet.messageboards.model.impl.MBMessageImpl" name="MBMessage">
 		<table name="MBMessage" />
 		<attributes>
-			<transient name="attachmentsDir" />
+			<transient name="attachmentsFolderId" />
 		</attributes>
 	</entity>
 	<entity class="com.liferay.portlet.messageboards.model.impl.MBStatsUserImpl" name="MBStatsUser">
@@ -4399,6 +4460,7 @@
 	<entity class="com.liferay.portlet.trash.model.impl.TrashEntryImpl" name="TrashEntry">
 		<table name="TrashEntry" />
 		<attributes>
+			<transient name="rootEntry" />
 			<transient name="typeSettingsProperties" />
 		</attributes>
 	</entity>
@@ -4413,7 +4475,7 @@
 	<entity class="com.liferay.portlet.wiki.model.impl.WikiPageImpl" name="WikiPage">
 		<table name="WikiPage" />
 		<attributes>
-			<transient name="attachmentsDir" />
+			<transient name="attachmentsFolderId" />
 		</attributes>
 	</entity>
 	<entity class="com.liferay.portlet.wiki.model.impl.WikiPageResourceImpl" name="WikiPageResource">

@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.service.ServiceContext;
@@ -79,9 +80,13 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 			{ "displayStyle", Types.VARCHAR },
 			{ "threadCount", Types.INTEGER },
 			{ "messageCount", Types.INTEGER },
-			{ "lastPostDate", Types.TIMESTAMP }
+			{ "lastPostDate", Types.TIMESTAMP },
+			{ "status", Types.INTEGER },
+			{ "statusByUserId", Types.BIGINT },
+			{ "statusByUserName", Types.VARCHAR },
+			{ "statusDate", Types.TIMESTAMP }
 		};
-	public static final String TABLE_SQL_CREATE = "create table MBCategory (uuid_ VARCHAR(75) null,categoryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentCategoryId LONG,name VARCHAR(75) null,description STRING null,displayStyle VARCHAR(75) null,threadCount INTEGER,messageCount INTEGER,lastPostDate DATE null)";
+	public static final String TABLE_SQL_CREATE = "create table MBCategory (uuid_ VARCHAR(75) null,categoryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentCategoryId LONG,name VARCHAR(75) null,description STRING null,displayStyle VARCHAR(75) null,threadCount INTEGER,messageCount INTEGER,lastPostDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
 	public static final String TABLE_SQL_DROP = "drop table MBCategory";
 	public static final String ORDER_BY_JPQL = " ORDER BY mbCategory.parentCategoryId ASC, mbCategory.name ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY MBCategory.parentCategoryId ASC, MBCategory.name ASC";
@@ -100,7 +105,9 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 	public static long COMPANYID_COLUMN_BITMASK = 1L;
 	public static long GROUPID_COLUMN_BITMASK = 2L;
 	public static long PARENTCATEGORYID_COLUMN_BITMASK = 4L;
-	public static long UUID_COLUMN_BITMASK = 8L;
+	public static long STATUS_COLUMN_BITMASK = 8L;
+	public static long UUID_COLUMN_BITMASK = 16L;
+	public static long NAME_COLUMN_BITMASK = 32L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -109,6 +116,10 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 	 * @return the normal model instance
 	 */
 	public static MBCategory toModel(MBCategorySoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		MBCategory model = new MBCategoryImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -126,6 +137,10 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 		model.setThreadCount(soapModel.getThreadCount());
 		model.setMessageCount(soapModel.getMessageCount());
 		model.setLastPostDate(soapModel.getLastPostDate());
+		model.setStatus(soapModel.getStatus());
+		model.setStatusByUserId(soapModel.getStatusByUserId());
+		model.setStatusByUserName(soapModel.getStatusByUserName());
+		model.setStatusDate(soapModel.getStatusDate());
 
 		return model;
 	}
@@ -137,6 +152,10 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 	 * @return the normal model instances
 	 */
 	public static List<MBCategory> toModels(MBCategorySoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<MBCategory> models = new ArrayList<MBCategory>(soapModels.length);
 
 		for (MBCategorySoap soapModel : soapModels) {
@@ -161,7 +180,7 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_categoryId);
+		return _categoryId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -195,6 +214,10 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 		attributes.put("threadCount", getThreadCount());
 		attributes.put("messageCount", getMessageCount());
 		attributes.put("lastPostDate", getLastPostDate());
+		attributes.put("status", getStatus());
+		attributes.put("statusByUserId", getStatusByUserId());
+		attributes.put("statusByUserName", getStatusByUserName());
+		attributes.put("statusDate", getStatusDate());
 
 		return attributes;
 	}
@@ -289,6 +312,30 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 
 		if (lastPostDate != null) {
 			setLastPostDate(lastPostDate);
+		}
+
+		Integer status = (Integer)attributes.get("status");
+
+		if (status != null) {
+			setStatus(status);
+		}
+
+		Long statusByUserId = (Long)attributes.get("statusByUserId");
+
+		if (statusByUserId != null) {
+			setStatusByUserId(statusByUserId);
+		}
+
+		String statusByUserName = (String)attributes.get("statusByUserName");
+
+		if (statusByUserName != null) {
+			setStatusByUserName(statusByUserName);
+		}
+
+		Date statusDate = (Date)attributes.get("statusDate");
+
+		if (statusDate != null) {
+			setStatusDate(statusDate);
 		}
 	}
 
@@ -506,19 +553,178 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 		_lastPostDate = lastPostDate;
 	}
 
-	public long getColumnBitmask() {
-		return _columnBitmask;
+	@JSON
+	public int getStatus() {
+		return _status;
 	}
 
-	@Override
-	public MBCategory toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (MBCategory)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
+	public void setStatus(int status) {
+		_columnBitmask |= STATUS_COLUMN_BITMASK;
+
+		if (!_setOriginalStatus) {
+			_setOriginalStatus = true;
+
+			_originalStatus = _status;
 		}
 
-		return _escapedModelProxy;
+		_status = status;
+	}
+
+	public int getOriginalStatus() {
+		return _originalStatus;
+	}
+
+	@JSON
+	public long getStatusByUserId() {
+		return _statusByUserId;
+	}
+
+	public void setStatusByUserId(long statusByUserId) {
+		_statusByUserId = statusByUserId;
+	}
+
+	public String getStatusByUserUuid() throws SystemException {
+		return PortalUtil.getUserValue(getStatusByUserId(), "uuid",
+			_statusByUserUuid);
+	}
+
+	public void setStatusByUserUuid(String statusByUserUuid) {
+		_statusByUserUuid = statusByUserUuid;
+	}
+
+	@JSON
+	public String getStatusByUserName() {
+		if (_statusByUserName == null) {
+			return StringPool.BLANK;
+		}
+		else {
+			return _statusByUserName;
+		}
+	}
+
+	public void setStatusByUserName(String statusByUserName) {
+		_statusByUserName = statusByUserName;
+	}
+
+	@JSON
+	public Date getStatusDate() {
+		return _statusDate;
+	}
+
+	public void setStatusDate(Date statusDate) {
+		_statusDate = statusDate;
+	}
+
+	public long getContainerModelId() {
+		return getCategoryId();
+	}
+
+	public void setContainerModelId(long containerModelId) {
+		_categoryId = containerModelId;
+	}
+
+	public long getParentContainerModelId() {
+		return getParentCategoryId();
+	}
+
+	public void setParentContainerModelId(long parentContainerModelId) {
+		_parentCategoryId = parentContainerModelId;
+	}
+
+	public String getContainerModelName() {
+		return String.valueOf(getName());
+	}
+
+	/**
+	 * @deprecated {@link #isApproved}
+	 */
+	public boolean getApproved() {
+		return isApproved();
+	}
+
+	public boolean isApproved() {
+		if (getStatus() == WorkflowConstants.STATUS_APPROVED) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isDenied() {
+		if (getStatus() == WorkflowConstants.STATUS_DENIED) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isDraft() {
+		if (getStatus() == WorkflowConstants.STATUS_DRAFT) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isExpired() {
+		if (getStatus() == WorkflowConstants.STATUS_EXPIRED) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isInactive() {
+		if (getStatus() == WorkflowConstants.STATUS_INACTIVE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isIncomplete() {
+		if (getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isInTrash() {
+		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isPending() {
+		if (getStatus() == WorkflowConstants.STATUS_PENDING) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isScheduled() {
+		if (getStatus() == WorkflowConstants.STATUS_SCHEDULED) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -532,6 +738,16 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public MBCategory toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (MBCategory)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -553,6 +769,10 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 		mbCategoryImpl.setThreadCount(getThreadCount());
 		mbCategoryImpl.setMessageCount(getMessageCount());
 		mbCategoryImpl.setLastPostDate(getLastPostDate());
+		mbCategoryImpl.setStatus(getStatus());
+		mbCategoryImpl.setStatusByUserId(getStatusByUserId());
+		mbCategoryImpl.setStatusByUserName(getStatusByUserName());
+		mbCategoryImpl.setStatusDate(getStatusDate());
 
 		mbCategoryImpl.resetOriginalValues();
 
@@ -576,8 +796,7 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 			return value;
 		}
 
-		value = getName().toLowerCase()
-					.compareTo(mbCategory.getName().toLowerCase());
+		value = getName().compareToIgnoreCase(mbCategory.getName());
 
 		if (value != 0) {
 			return value;
@@ -633,6 +852,10 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 		mbCategoryModelImpl._originalParentCategoryId = mbCategoryModelImpl._parentCategoryId;
 
 		mbCategoryModelImpl._setOriginalParentCategoryId = false;
+
+		mbCategoryModelImpl._originalStatus = mbCategoryModelImpl._status;
+
+		mbCategoryModelImpl._setOriginalStatus = false;
 
 		mbCategoryModelImpl._columnBitmask = 0;
 	}
@@ -722,12 +945,33 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 			mbCategoryCacheModel.lastPostDate = Long.MIN_VALUE;
 		}
 
+		mbCategoryCacheModel.status = getStatus();
+
+		mbCategoryCacheModel.statusByUserId = getStatusByUserId();
+
+		mbCategoryCacheModel.statusByUserName = getStatusByUserName();
+
+		String statusByUserName = mbCategoryCacheModel.statusByUserName;
+
+		if ((statusByUserName != null) && (statusByUserName.length() == 0)) {
+			mbCategoryCacheModel.statusByUserName = null;
+		}
+
+		Date statusDate = getStatusDate();
+
+		if (statusDate != null) {
+			mbCategoryCacheModel.statusDate = statusDate.getTime();
+		}
+		else {
+			mbCategoryCacheModel.statusDate = Long.MIN_VALUE;
+		}
+
 		return mbCategoryCacheModel;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(31);
+		StringBundler sb = new StringBundler(39);
 
 		sb.append("{uuid=");
 		sb.append(getUuid());
@@ -759,13 +1003,21 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 		sb.append(getMessageCount());
 		sb.append(", lastPostDate=");
 		sb.append(getLastPostDate());
+		sb.append(", status=");
+		sb.append(getStatus());
+		sb.append(", statusByUserId=");
+		sb.append(getStatusByUserId());
+		sb.append(", statusByUserName=");
+		sb.append(getStatusByUserName());
+		sb.append(", statusDate=");
+		sb.append(getStatusDate());
 		sb.append("}");
 
 		return sb.toString();
 	}
 
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(49);
+		StringBundler sb = new StringBundler(61);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portlet.messageboards.model.MBCategory");
@@ -831,6 +1083,22 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 			"<column><column-name>lastPostDate</column-name><column-value><![CDATA[");
 		sb.append(getLastPostDate());
 		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>status</column-name><column-value><![CDATA[");
+		sb.append(getStatus());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>statusByUserId</column-name><column-value><![CDATA[");
+		sb.append(getStatusByUserId());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>statusByUserName</column-name><column-value><![CDATA[");
+		sb.append(getStatusByUserName());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>statusDate</column-name><column-value><![CDATA[");
+		sb.append(getStatusDate());
+		sb.append("]]></column-value></column>");
 
 		sb.append("</model>");
 
@@ -838,7 +1106,7 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 	}
 
 	private static ClassLoader _classLoader = MBCategory.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			MBCategory.class
 		};
 	private String _uuid;
@@ -864,6 +1132,13 @@ public class MBCategoryModelImpl extends BaseModelImpl<MBCategory>
 	private int _threadCount;
 	private int _messageCount;
 	private Date _lastPostDate;
+	private int _status;
+	private int _originalStatus;
+	private boolean _setOriginalStatus;
+	private long _statusByUserId;
+	private String _statusByUserUuid;
+	private String _statusByUserName;
+	private Date _statusDate;
 	private long _columnBitmask;
-	private MBCategory _escapedModelProxy;
+	private MBCategory _escapedModel;
 }

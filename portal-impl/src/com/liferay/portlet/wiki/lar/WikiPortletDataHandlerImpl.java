@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.PortletDataException;
 import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
 import com.liferay.portal.kernel.lar.PortletDataHandlerControl;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -28,11 +29,9 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
-import com.liferay.portal.model.CompanyConstants;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
 import com.liferay.portlet.journal.lar.JournalPortletDataHandlerImpl;
 import com.liferay.portlet.wiki.NoSuchNodeException;
 import com.liferay.portlet.wiki.NoSuchPageException;
@@ -83,6 +82,10 @@ public class WikiPortletDataHandlerImpl extends BasePortletDataHandler {
 		Element dlFileEntriesElement = pagesElement.addElement(
 			"dl-file-entries");
 		Element dlFileRanksElement = pagesElement.addElement("dl-file-ranks");
+		Element dlRepositoriesElement = pagesElement.addElement(
+			"dl-repositories");
+		Element dlRepositoryEntriesElement = pagesElement.addElement(
+			"dl-repository-entries");
 
 		List<WikiPage> pages = WikiPageUtil.findByN_S(
 			node.getNodeId(), WorkflowConstants.STATUS_APPROVED,
@@ -93,7 +96,8 @@ public class WikiPortletDataHandlerImpl extends BasePortletDataHandler {
 			exportPage(
 				portletDataContext, nodesElement, pagesElement,
 				dlFileEntryTypesElement, dlFoldersElement, dlFileEntriesElement,
-				dlFileRanksElement, page, true);
+				dlFileRanksElement, dlRepositoriesElement,
+				dlRepositoryEntriesElement, page, true);
 		}
 	}
 
@@ -242,9 +246,8 @@ public class WikiPortletDataHandlerImpl extends BasePortletDataHandler {
 						binPath);
 
 					WikiPageLocalServiceUtil.addPageAttachment(
-						importedPage.getCompanyId(),
-						importedPage.getAttachmentsDir(),
-						importedPage.getModifiedDate(), name, inputStream);
+						userId, importedPage.getNodeId(),
+						importedPage.getTitle(), name, inputStream);
 				}
 				finally {
 					StreamUtil.cleanUp(inputStream);
@@ -328,7 +331,9 @@ public class WikiPortletDataHandlerImpl extends BasePortletDataHandler {
 			PortletDataContext portletDataContext, Element nodesElement,
 			Element pagesElement, Element dlFileEntryTypesElement,
 			Element dlFoldersElement, Element dlFileEntriesElement,
-			Element dlFileRanksElement, WikiPage page, boolean checkDateRange)
+			Element dlFileRanksElement, Element dlRepositoriesElement,
+			Element dlRepositoryEntriesElement, WikiPage page,
+			boolean checkDateRange)
 		throws Exception {
 
 		if (!portletDataContext.isWithinDateRange(page.getModifiedDate())) {
@@ -354,6 +359,7 @@ public class WikiPortletDataHandlerImpl extends BasePortletDataHandler {
 				JournalPortletDataHandlerImpl.exportReferencedContent(
 					portletDataContext, dlFileEntryTypesElement,
 					dlFoldersElement, dlFileEntriesElement, dlFileRanksElement,
+					dlRepositoriesElement, dlRepositoryEntriesElement,
 					pageElement, page.getContent());
 
 			page.setContent(content);
@@ -366,33 +372,25 @@ public class WikiPortletDataHandlerImpl extends BasePortletDataHandler {
 					_NAMESPACE, "attachments") &&
 				page.isHead()) {
 
-				String[] attachmentsFiles = page.getAttachmentsFiles();
+				int i = 0;
 
-				for (int i = 0; i < attachmentsFiles.length; i++) {
-					String attachment = attachmentsFiles[i];
-
+				for (FileEntry fileEntry : page.getAttachmentsFileEntries()) {
 					Element attachmentElement = pageElement.addElement(
 						"attachment");
 
-					int pos = attachment.lastIndexOf(StringPool.SLASH);
-
-					String name = attachment.substring(pos + 1);
-
-					attachmentElement.addAttribute("name", name);
+					attachmentElement.addAttribute(
+						"name", fileEntry.getTitle());
 
 					String binPath = getPageAttachementBinPath(
-						portletDataContext, page, i);
+						portletDataContext, page, i++);
 
 					attachmentElement.addAttribute("bin-path", binPath);
 
-					byte[] bytes = DLStoreUtil.getFileAsBytes(
-						portletDataContext.getCompanyId(),
-						CompanyConstants.SYSTEM, attachment);
-
-					portletDataContext.addZipEntry(binPath, bytes);
+					portletDataContext.addZipEntry(
+						binPath, fileEntry.getContentStream());
 				}
 
-				page.setAttachmentsDir(page.getAttachmentsDir());
+				page.setAttachmentsFolderId(page.getAttachmentsFolderId());
 			}
 
 			portletDataContext.addClassedModel(

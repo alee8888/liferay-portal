@@ -24,9 +24,10 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.User;
+import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
 import com.liferay.portal.security.auth.PrincipalException;
+import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
-import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.struts.ActionConstants;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.theme.ThemeDisplay;
@@ -34,8 +35,11 @@ import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
+import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
+import com.liferay.portlet.documentlibrary.service.DLFileEntryLocalServiceUtil;
+import com.liferay.portlet.documentlibrary.service.permission.DLFileEntryPermission;
 import com.liferay.portlet.documentlibrary.util.DLUtil;
 import com.liferay.portlet.documentlibrary.util.DocumentConversionUtil;
 
@@ -43,6 +47,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -79,6 +85,7 @@ public class GetFileAction extends PortletAction {
 			long fileEntryId = ParamUtil.getLong(actionRequest, "fileEntryId");
 
 			long folderId = ParamUtil.getLong(actionRequest, "folderId");
+			String name = ParamUtil.getString(actionRequest, "name");
 			String title = ParamUtil.getString(actionRequest, "title");
 			String version = ParamUtil.getString(actionRequest, "version");
 
@@ -97,8 +104,8 @@ public class GetFileAction extends PortletAction {
 				actionRequest, "groupId", themeDisplay.getScopeGroupId());
 
 			getFile(
-				fileEntryId, folderId, title, version, fileShortcutId, uuid,
-				groupId, targetExtension, themeDisplay, request, response);
+				fileEntryId, folderId, name, title, version, fileShortcutId,
+				uuid, groupId, targetExtension, request, response);
 
 			setForward(actionRequest, ActionConstants.COMMON_NULL);
 		}
@@ -125,6 +132,7 @@ public class GetFileAction extends PortletAction {
 			long fileEntryId = ParamUtil.getLong(request, "fileEntryId");
 
 			long folderId = ParamUtil.getLong(request, "folderId");
+			String name = ParamUtil.getString(request, "name");
 			String title = ParamUtil.getString(request, "title");
 			String version = ParamUtil.getString(request, "version");
 
@@ -142,8 +150,8 @@ public class GetFileAction extends PortletAction {
 				request, "groupId", themeDisplay.getScopeGroupId());
 
 			getFile(
-				fileEntryId, folderId, title, version, fileShortcutId, uuid,
-				groupId, targetExtension, themeDisplay, request, response);
+				fileEntryId, folderId, name, title, version, fileShortcutId,
+				uuid, groupId, targetExtension, request, response);
 
 			return null;
 		}
@@ -160,11 +168,17 @@ public class GetFileAction extends PortletAction {
 	}
 
 	protected void getFile(
-			long fileEntryId, long folderId, String title, String version,
-			long fileShortcutId, String uuid, long groupId,
-			String targetExtension, ThemeDisplay themeDisplay,
-			HttpServletRequest request, HttpServletResponse response)
+			long fileEntryId, long folderId, String name, String title,
+			String version, long fileShortcutId, String uuid, long groupId,
+			String targetExtension, HttpServletRequest request,
+			HttpServletResponse response)
 		throws Exception {
+
+		if (name.startsWith("DLFE-")) {
+			name = name.substring(5);
+		}
+
+		name = FileUtil.stripExtension(name);
 
 		FileEntry fileEntry = null;
 
@@ -183,6 +197,38 @@ public class GetFileAction extends PortletAction {
 				fileEntry = DLAppServiceUtil.getFileEntry(
 					groupId, folderId, title);
 			}
+			else if (Validator.isNotNull(name)) {
+				DLFileEntry dlFileEntry =
+					DLFileEntryLocalServiceUtil.fetchFileEntryByName(
+						groupId, folderId, name);
+
+				if (dlFileEntry == null) {
+
+					// LPS-30374
+
+					List<DLFileEntry> dlFileEntries =
+						DLFileEntryLocalServiceUtil.getFileEntries(
+							folderId, name);
+
+					if (!dlFileEntries.isEmpty()) {
+						dlFileEntry = dlFileEntries.get(0);
+					}
+				}
+
+				if (dlFileEntry != null) {
+					ThemeDisplay themeDisplay =
+						(ThemeDisplay)request.getAttribute(
+							WebKeys.THEME_DISPLAY);
+
+					PermissionChecker permissionChecker =
+						themeDisplay.getPermissionChecker();
+
+					DLFileEntryPermission.check(
+						permissionChecker, dlFileEntry, ActionKeys.VIEW);
+
+					fileEntry = new LiferayFileEntry(dlFileEntry);
+				}
+			}
 		}
 		else {
 			DLFileShortcut fileShortcut = DLAppServiceUtil.getFileShortcut(
@@ -194,7 +240,9 @@ public class GetFileAction extends PortletAction {
 		}
 
 		if (Validator.isNull(version)) {
-			if (Validator.isNotNull(fileEntry.getVersion())) {
+			if ((fileEntry != null) &&
+				Validator.isNotNull(fileEntry.getVersion())) {
+
 				version = fileEntry.getVersion();
 			}
 			else {
@@ -251,15 +299,7 @@ public class GetFileAction extends PortletAction {
 		PermissionChecker permissionChecker =
 			themeDisplay.getPermissionChecker();
 
-		long userId = permissionChecker.getUserId();
-
-		User user = null;
-
-		try {
-			user = UserLocalServiceUtil.getUser(userId);
-		}
-		catch (Exception e) {
-		}
+		User user = permissionChecker.getUser();
 
 		if ((user != null) && !user.isDefaultUser()) {
 			PortalUtil.sendError(

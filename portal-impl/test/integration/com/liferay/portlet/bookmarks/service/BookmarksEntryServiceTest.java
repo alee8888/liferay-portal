@@ -14,10 +14,13 @@
 
 package com.liferay.portlet.bookmarks.service;
 
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.test.EnvironmentExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.TransactionalCallbackAwareExecutionTestListener;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
+import com.liferay.portlet.bookmarks.util.BookmarksTestUtil;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,25 +28,30 @@ import org.junit.runner.RunWith;
 /**
  * @author Brian Wing Shun Chan
  */
-@ExecutionTestListeners(listeners = {EnvironmentExecutionTestListener.class})
+@ExecutionTestListeners(
+	listeners = {
+		EnvironmentExecutionTestListener.class,
+		TransactionalCallbackAwareExecutionTestListener.class
+	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-public class BookmarksEntryServiceTest extends BaseBookmarksServiceTestCase {
+@Transactional
+public class BookmarksEntryServiceTest {
 
 	@Test
 	public void testAddEntry() throws Exception {
-		addEntry();
+		BookmarksTestUtil.addEntry();
 	}
 
 	@Test
 	public void testDeleteEntry() throws Exception {
-		BookmarksEntry entry = addEntry();
+		BookmarksEntry entry = BookmarksTestUtil.addEntry();
 
 		BookmarksEntryServiceUtil.deleteEntry(entry.getEntryId());
 	}
 
 	@Test
 	public void testGetEntry() throws Exception {
-		BookmarksEntry entry = addEntry();
+		BookmarksEntry entry = BookmarksTestUtil.addEntry();
 
 		BookmarksEntryServiceUtil.getEntry(entry.getEntryId());
 	}

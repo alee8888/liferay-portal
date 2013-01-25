@@ -19,22 +19,32 @@ import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.model.EmailAddress;
 import com.liferay.portal.model.impl.EmailAddressImpl;
 import com.liferay.portal.model.impl.EmailAddressModelImpl;
+import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * @author Wesley Gong
+ * @see    ServiceBeanMethodInvocationFactoryImplTest
  */
-public class OrderByComparatorFactoryImplTest extends BaseTestCase {
+@RunWith(LiferayIntegrationJUnitTestRunner.class)
+public class OrderByComparatorFactoryImplTest {
 
+	@Test
 	public void testCollectionsSortMultipleColumnsAscending() throws Exception {
 		EmailAddress emailAddress1 = newEmailAddress(
-			newDate(0, 1, 2012), "abc@liferay.com");
+			1, newDate(0, 1, 2012), "abc@liferay.com");
 		EmailAddress emailAddress2 = newEmailAddress(
-			newDate(0, 2, 2012), "abc@liferay.com");
+			2, newDate(0, 2, 2012), "abc@liferay.com");
 
 		List<EmailAddress> expectedList = new ArrayList<EmailAddress>();
 
@@ -52,16 +62,17 @@ public class OrderByComparatorFactoryImplTest extends BaseTestCase {
 
 		Collections.sort(actualList, obc);
 
-		assertEquals(expectedList, actualList);
+		Assert.assertEquals(expectedList.toString(), actualList.toString());
 	}
 
+	@Test
 	public void testCollectionsSortMultipleColumnsDescending()
 		throws Exception {
 
 		EmailAddress emailAddress1 = newEmailAddress(
-			newDate(0, 1, 2012), "abc@liferay.com");
+			1, newDate(0, 1, 2012), "abc@liferay.com");
 		EmailAddress emailAddress2 = newEmailAddress(
-			newDate(0, 2, 2012), "abc@liferay.com");
+			2, newDate(0, 2, 2012), "abc@liferay.com");
 
 		List<EmailAddress> expectedList = new ArrayList<EmailAddress>();
 
@@ -79,14 +90,15 @@ public class OrderByComparatorFactoryImplTest extends BaseTestCase {
 
 		Collections.sort(actualList, obc);
 
-		assertEquals(expectedList, actualList);
+		Assert.assertEquals(expectedList.toString(), actualList.toString());
 	}
 
+	@Test
 	public void testCollectionsSortSingleColumnAscending() throws Exception {
 		EmailAddress emailAddress1 = newEmailAddress(
-			newDate(0, 1, 2012), "abc@liferay.com");
+			1, newDate(0, 1, 2012), "abc@liferay.com");
 		EmailAddress emailAddress2 = newEmailAddress(
-			newDate(0, 2, 2012), "def@liferay.com");
+			2, newDate(0, 2, 2012), "def@liferay.com");
 
 		List<EmailAddress> expectedList = new ArrayList<EmailAddress>();
 
@@ -103,14 +115,15 @@ public class OrderByComparatorFactoryImplTest extends BaseTestCase {
 
 		Collections.sort(actualList, obc);
 
-		assertEquals(expectedList, actualList);
+		Assert.assertEquals(expectedList.toString(), actualList.toString());
 	}
 
+	@Test
 	public void testCollectionsSortSingleColumnDescending() throws Exception {
 		EmailAddress emailAddress1 = newEmailAddress(
-			newDate(0, 1, 2012), "abc@liferay.com");
+			1, newDate(0, 1, 2012), "abc@liferay.com");
 		EmailAddress emailAddress2 = newEmailAddress(
-			newDate(0, 2, 2012), "def@liferay.com");
+			2, newDate(0, 2, 2012), "def@liferay.com");
 
 		List<EmailAddress> expectedList = new ArrayList<EmailAddress>();
 
@@ -127,15 +140,70 @@ public class OrderByComparatorFactoryImplTest extends BaseTestCase {
 
 		Collections.sort(actualList, obc);
 
-		assertEquals(expectedList, actualList);
+		Assert.assertEquals(expectedList.toString(), actualList.toString());
 	}
 
+	@Test
+	public void testCollectionsSortSingleColumnPrimitiveAscending()
+		throws Exception {
+
+		EmailAddress emailAddress1 = newEmailAddress(
+			1, newDate(0, 1, 2012), "abc@liferay.com");
+		EmailAddress emailAddress2 = newEmailAddress(
+			2, newDate(0, 2, 2012), "abc@liferay.com");
+
+		List<EmailAddress> expectedList = new ArrayList<EmailAddress>();
+
+		expectedList.add(emailAddress1);
+		expectedList.add(emailAddress2);
+
+		List<EmailAddress> actualList = new ArrayList<EmailAddress>();
+
+		actualList.add(emailAddress2);
+		actualList.add(emailAddress1);
+
+		OrderByComparator obc = OrderByComparatorFactoryUtil.create(
+			EmailAddressModelImpl.TABLE_NAME, "companyId", true);
+
+		Collections.sort(actualList, obc);
+
+		Assert.assertEquals(expectedList.toString(), actualList.toString());
+	}
+
+	@Test
+	public void testCollectionsSortSingleColumnPrimitiveDescending()
+		throws Exception {
+
+		EmailAddress emailAddress1 = newEmailAddress(
+			1, newDate(0, 1, 2012), "abc@liferay.com");
+		EmailAddress emailAddress2 = newEmailAddress(
+			2, newDate(0, 2, 2012), "abc@liferay.com");
+
+		List<EmailAddress> expectedList = new ArrayList<EmailAddress>();
+
+		expectedList.add(emailAddress2);
+		expectedList.add(emailAddress1);
+
+		List<EmailAddress> actualList = new ArrayList<EmailAddress>();
+
+		actualList.add(emailAddress1);
+		actualList.add(emailAddress2);
+
+		OrderByComparator obc = OrderByComparatorFactoryUtil.create(
+			EmailAddressModelImpl.TABLE_NAME, "companyId", false);
+
+		Collections.sort(actualList, obc);
+
+		Assert.assertEquals(expectedList.toString(), actualList.toString());
+	}
+
+	@Test
 	public void testGetOrderByMultipleColumns() throws Exception {
 		OrderByComparator obc = OrderByComparatorFactoryUtil.create(
 			EmailAddressModelImpl.TABLE_NAME, "address", true, "createDate",
 			false);
 
-		assertEquals(
+		Assert.assertEquals(
 			"EmailAddress.address ASC,EmailAddress.createDate DESC",
 			obc.getOrderBy());
 
@@ -143,29 +211,31 @@ public class OrderByComparatorFactoryImplTest extends BaseTestCase {
 			EmailAddressModelImpl.TABLE_NAME, "address", false, "createDate",
 			true);
 
-		assertEquals(
+		Assert.assertEquals(
 			"EmailAddress.address DESC,EmailAddress.createDate ASC",
 			obc.getOrderBy());
 	}
 
+	@Test
 	public void testGetOrderBySingleColumn() throws Exception {
 		OrderByComparator obc = OrderByComparatorFactoryUtil.create(
 			EmailAddressModelImpl.TABLE_NAME, "address", true);
 
-		assertEquals("EmailAddress.address ASC", obc.getOrderBy());
+		Assert.assertEquals("EmailAddress.address ASC", obc.getOrderBy());
 
 		obc = OrderByComparatorFactoryUtil.create(
 			EmailAddressModelImpl.TABLE_NAME, "address", false);
 
-		assertEquals("EmailAddress.address DESC", obc.getOrderBy());
+		Assert.assertEquals("EmailAddress.address DESC", obc.getOrderBy());
 	}
 
+	@Test
 	public void testInvalidColumns() throws Exception {
 		try {
 			OrderByComparatorFactoryUtil.create(
 				EmailAddressModelImpl.TABLE_NAME);
 
-			fail();
+			Assert.fail();
 		}
 		catch (IllegalArgumentException iae) {
 		}
@@ -174,7 +244,7 @@ public class OrderByComparatorFactoryImplTest extends BaseTestCase {
 			OrderByComparatorFactoryUtil.create(
 				EmailAddressModelImpl.TABLE_NAME, "address");
 
-			fail();
+			Assert.fail();
 		}
 		catch (IllegalArgumentException iae) {
 		}
@@ -184,15 +254,28 @@ public class OrderByComparatorFactoryImplTest extends BaseTestCase {
 				EmailAddressModelImpl.TABLE_NAME, "address", true,
 				"createDate");
 
-			fail();
+			Assert.fail();
 		}
 		catch (IllegalArgumentException iae) {
 		}
 	}
 
-	protected EmailAddress newEmailAddress(Date createDate, String address) {
+	protected Date newDate(int month, int day, int year) throws Exception {
+		Calendar calendar = new GregorianCalendar();
+
+		calendar.set(Calendar.MONTH, month);
+		calendar.set(Calendar.DATE, day);
+		calendar.set(Calendar.YEAR, year);
+
+		return calendar.getTime();
+	}
+
+	protected EmailAddress newEmailAddress(
+		long companyId, Date createDate, String address) {
+
 		EmailAddress emailAddress = new EmailAddressImpl();
 
+		emailAddress.setCompanyId(companyId);
 		emailAddress.setCreateDate(createDate);
 		emailAddress.setAddress(address);
 

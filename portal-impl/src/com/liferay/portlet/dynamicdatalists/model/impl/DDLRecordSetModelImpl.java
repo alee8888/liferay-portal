@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.dynamicdatalists.model.impl;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
@@ -86,6 +87,8 @@ public class DDLRecordSetModelImpl extends BaseModelImpl<DDLRecordSet>
 		};
 	public static final String TABLE_SQL_CREATE = "create table DDLRecordSet (uuid_ VARCHAR(75) null,recordSetId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,DDMStructureId LONG,recordSetKey VARCHAR(75) null,name STRING null,description STRING null,minDisplayRows INTEGER,scope INTEGER)";
 	public static final String TABLE_SQL_DROP = "drop table DDLRecordSet";
+	public static final String ORDER_BY_JPQL = " ORDER BY ddlRecordSet.recordSetId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY DDLRecordSet.recordSetId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -102,6 +105,7 @@ public class DDLRecordSetModelImpl extends BaseModelImpl<DDLRecordSet>
 	public static long GROUPID_COLUMN_BITMASK = 2L;
 	public static long RECORDSETKEY_COLUMN_BITMASK = 4L;
 	public static long UUID_COLUMN_BITMASK = 8L;
+	public static long RECORDSETID_COLUMN_BITMASK = 16L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -110,6 +114,10 @@ public class DDLRecordSetModelImpl extends BaseModelImpl<DDLRecordSet>
 	 * @return the normal model instance
 	 */
 	public static DDLRecordSet toModel(DDLRecordSetSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		DDLRecordSet model = new DDLRecordSetImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -137,6 +145,10 @@ public class DDLRecordSetModelImpl extends BaseModelImpl<DDLRecordSet>
 	 * @return the normal model instances
 	 */
 	public static List<DDLRecordSet> toModels(DDLRecordSetSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<DDLRecordSet> models = new ArrayList<DDLRecordSet>(soapModels.length);
 
 		for (DDLRecordSetSoap soapModel : soapModels) {
@@ -161,7 +173,7 @@ public class DDLRecordSetModelImpl extends BaseModelImpl<DDLRecordSet>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_recordSetId);
+		return _recordSetId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -637,17 +649,6 @@ public class DDLRecordSetModelImpl extends BaseModelImpl<DDLRecordSet>
 	}
 
 	@Override
-	public DDLRecordSet toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (DDLRecordSet)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			DDLRecordSet.class.getName(), getPrimaryKey());
@@ -658,6 +659,25 @@ public class DDLRecordSetModelImpl extends BaseModelImpl<DDLRecordSet>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+		setName(getName(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setDescription(getDescription(defaultImportLocale),
+			defaultImportLocale, defaultImportLocale);
+	}
+
+	@Override
+	public DDLRecordSet toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (DDLRecordSet)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -933,7 +953,7 @@ public class DDLRecordSetModelImpl extends BaseModelImpl<DDLRecordSet>
 	}
 
 	private static ClassLoader _classLoader = DDLRecordSet.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			DDLRecordSet.class
 		};
 	private String _uuid;
@@ -960,5 +980,5 @@ public class DDLRecordSetModelImpl extends BaseModelImpl<DDLRecordSet>
 	private int _minDisplayRows;
 	private int _scope;
 	private long _columnBitmask;
-	private DDLRecordSet _escapedModelProxy;
+	private DDLRecordSet _escapedModel;
 }

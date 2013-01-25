@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.dao.orm;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+
 /**
  * @author Brian Wing Shun Chan
  */
@@ -40,6 +42,9 @@ public class ProjectionFactoryUtil {
 	}
 
 	public static ProjectionFactory getProjectionFactory() {
+		PortalRuntimePermission.checkGetBeanProperty(
+			ProjectionFactoryUtil.class);
+
 		return _projectionFactory;
 	}
 
@@ -67,11 +72,19 @@ public class ProjectionFactoryUtil {
 		return getProjectionFactory().rowCount();
 	}
 
+	public static Projection sqlProjection(
+		String sql, String[] columnAliases, Type[] types) {
+
+		return getProjectionFactory().sqlProjection(sql, columnAliases, types);
+	}
+
 	public static Projection sum(String propertyName) {
 		return getProjectionFactory().sum(propertyName);
 	}
 
 	public void setProjectionFactory(ProjectionFactory projectionFactory) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_projectionFactory = projectionFactory;
 	}
 

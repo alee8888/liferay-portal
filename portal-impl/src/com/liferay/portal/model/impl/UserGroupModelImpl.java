@@ -95,6 +95,10 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	 * @return the normal model instance
 	 */
 	public static UserGroup toModel(UserGroupSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		UserGroup model = new UserGroupImpl();
 
 		model.setUserGroupId(soapModel.getUserGroupId());
@@ -114,6 +118,10 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	 * @return the normal model instances
 	 */
 	public static List<UserGroup> toModels(UserGroupSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<UserGroup> models = new ArrayList<UserGroup>(soapModels.length);
 
 		for (UserGroupSoap soapModel : soapModels) {
@@ -162,7 +170,7 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_userGroupId);
+		return _userGroupId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -337,17 +345,6 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	}
 
 	@Override
-	public UserGroup toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (UserGroup)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			UserGroup.class.getName(), getPrimaryKey());
@@ -358,6 +355,16 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public UserGroup toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (UserGroup)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -525,7 +532,7 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	}
 
 	private static ClassLoader _classLoader = UserGroup.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			UserGroup.class
 		};
 	private long _userGroupId;
@@ -540,5 +547,5 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	private String _description;
 	private boolean _addedByLDAPImport;
 	private long _columnBitmask;
-	private UserGroup _escapedModelProxy;
+	private UserGroup _escapedModel;
 }

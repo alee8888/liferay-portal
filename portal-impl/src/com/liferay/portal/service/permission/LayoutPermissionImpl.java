@@ -185,8 +185,7 @@ public class LayoutPermissionImpl implements LayoutPermission {
 			return false;
 		}
 
-		User user = UserLocalServiceUtil.getUserById(
-			permissionChecker.getUserId());
+		User user = permissionChecker.getUser();
 
 		if (!user.isDefaultUser() && !group.isUser()) {
 
@@ -212,6 +211,26 @@ public class LayoutPermissionImpl implements LayoutPermission {
 
 				return true;
 			}
+		}
+
+		// Control panel layouts are only viewable by authenticated users
+
+		if (group.isControlPanel()) {
+			if (!permissionChecker.isSignedIn()) {
+				return false;
+			}
+
+			if (PortalPermissionUtil.contains(
+					permissionChecker, ActionKeys.VIEW_CONTROL_PANEL)) {
+
+				return true;
+			}
+
+			if (Validator.isNotNull(controlPanelCategory)) {
+				return true;
+			}
+
+			return false;
 		}
 
 		if (GroupPermissionUtil.contains(
@@ -374,26 +393,6 @@ public class LayoutPermissionImpl implements LayoutPermission {
 					permissionChecker, group.getGroupId(),
 					ActionKeys.VIEW_STAGING)) {
 
-				return true;
-			}
-
-			return false;
-		}
-
-		// Control panel layouts are only viewable by authenticated users
-
-		if (group.isControlPanel()) {
-			if (!permissionChecker.isSignedIn()) {
-				return false;
-			}
-
-			if (PortalPermissionUtil.contains(
-					permissionChecker, ActionKeys.VIEW_CONTROL_PANEL)) {
-
-				return true;
-			}
-
-			if (Validator.isNotNull(controlPanelCategory)) {
 				return true;
 			}
 

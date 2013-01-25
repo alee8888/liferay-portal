@@ -14,11 +14,13 @@
 
 package com.liferay.portlet.journal.model;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -43,7 +45,7 @@ import java.util.Map;
  * @generated
  */
 public interface JournalTemplateModel extends BaseModel<JournalTemplate>,
-	GroupedModel {
+	GroupedModel, StagedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -540,6 +542,9 @@ public interface JournalTemplateModel extends BaseModel<JournalTemplate>,
 
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException;
+
 	public Object clone();
 
 	public int compareTo(JournalTemplate journalTemplate);
@@ -549,6 +554,8 @@ public interface JournalTemplateModel extends BaseModel<JournalTemplate>,
 	public CacheModel<JournalTemplate> toCacheModel();
 
 	public JournalTemplate toEscapedModel();
+
+	public JournalTemplate toUnescapedModel();
 
 	public String toString();
 

@@ -14,10 +14,8 @@
 
 package com.liferay.portlet.wiki.engines.mediawiki;
 
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portlet.wiki.model.WikiPage;
 import com.liferay.portlet.wiki.service.WikiPageLocalServiceUtil;
 
 import java.sql.Connection;
@@ -63,19 +61,16 @@ public class LiferayDataHandler extends DummyDataHandler {
 	}
 
 	@Override
-	public Integer lookupTopicId(String virtualWiki, String topicName) {
+	public String lookupTopicName(String virtualWiki, String topicName) {
 		long nodeId = getNodeId(virtualWiki);
 
 		try {
-			int pagesCount = WikiPageLocalServiceUtil.getPagesCount(
+			WikiPage page = WikiPageLocalServiceUtil.getPage(
 				nodeId, topicName, true);
 
-			if (pagesCount > 0) {
-				return 1;
-			}
+			return page.getTitle();
 		}
-		catch (SystemException se) {
-			_log.error(se, se);
+		catch (Exception e) {
 		}
 
 		return null;
@@ -86,8 +81,6 @@ public class LiferayDataHandler extends DummyDataHandler {
 
 		return GetterUtil.getLong(nodeId);
 	}
-
-	private static Log _log = LogFactoryUtil.getLog(LiferayDataHandler.class);
 
 	private Namespace _fileNamespace = Namespace.DEFAULT_NAMESPACES.get(
 		Namespace.FILE_ID);

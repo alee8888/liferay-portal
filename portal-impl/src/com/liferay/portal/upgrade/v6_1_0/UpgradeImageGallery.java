@@ -24,14 +24,18 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Image;
+import com.liferay.portal.security.pacl.PACLClassLoaderUtil;
 import com.liferay.portal.service.ImageLocalServiceUtil;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
+import com.liferay.portlet.documentlibrary.model.DLFileEntryTypeConstants;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
@@ -41,11 +45,14 @@ import java.io.InputStream;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,7 +62,7 @@ import java.util.Map;
 public class UpgradeImageGallery extends UpgradeProcess {
 
 	public UpgradeImageGallery() throws Exception {
-		ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
+		ClassLoader classLoader = PACLClassLoaderUtil.getPortalClassLoader();
 
 		_sourceHookClassName = FileSystemHook.class.getName();
 
@@ -70,19 +77,19 @@ public class UpgradeImageGallery extends UpgradeProcess {
 	protected void addDLFileEntry(
 			String uuid, long fileEntryId, long groupId, long companyId,
 			long userId, String userName, long versionUserId,
-			String versionUserName, Date createDate, Date modifiedDate,
-			long repositoryId, long folderId, String name, String extension,
-			String mimeType, String title, String description,
-			String extraSettings, String version, long size, int readCount,
-			long smallImageId, long largeImageId, long custom1ImageId,
-			long custom2ImageId)
+			String versionUserName, Timestamp createDate,
+			Timestamp modifiedDate, long repositoryId, long folderId,
+			String name, String extension, String mimeType, String title,
+			String description, String extraSettings, long fileEntryTypeId,
+			String version, long size, int readCount, long smallImageId,
+			long largeImageId, long custom1ImageId, long custom2ImageId)
 		throws Exception {
 
 		Connection con = null;
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(9);
 
@@ -90,11 +97,11 @@ public class UpgradeImageGallery extends UpgradeProcess {
 			sb.append("companyId, userId, userName, versionUserId, ");
 			sb.append("versionUserName, createDate, modifiedDate, ");
 			sb.append("repositoryId, folderId, name, extension, mimeType, ");
-			sb.append("title, description, extraSettings, version, size_, ");
-			sb.append("readCount, smallImageId, largeImageId, ");
-			sb.append("custom1ImageId, custom2ImageId) values (");
+			sb.append("title, description, extraSettings, fileEntryTypeId, ");
+			sb.append("version, size_, readCount, smallImageId, ");
+			sb.append("largeImageId, custom1ImageId, custom2ImageId) values (");
 			sb.append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ");
-			sb.append("?, ?, ?, ?, ?, ?, ?, ?)");
+			sb.append("?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
 			String sql = sb.toString();
 
@@ -108,8 +115,8 @@ public class UpgradeImageGallery extends UpgradeProcess {
 			ps.setString(6, userName);
 			ps.setLong(7, versionUserId);
 			ps.setString(8, versionUserName);
-			ps.setDate(9, createDate);
-			ps.setDate(10, modifiedDate);
+			ps.setTimestamp(9, createDate);
+			ps.setTimestamp(10, modifiedDate);
 			ps.setLong(11, repositoryId);
 			ps.setLong(12, folderId);
 			ps.setString(13, name);
@@ -118,13 +125,14 @@ public class UpgradeImageGallery extends UpgradeProcess {
 			ps.setString(16, title);
 			ps.setString(17, description);
 			ps.setString(18, extraSettings);
-			ps.setString(19, version);
-			ps.setLong(20, size);
-			ps.setInt(21, readCount);
-			ps.setLong(22, smallImageId);
-			ps.setLong(23, largeImageId);
-			ps.setLong(24, custom1ImageId);
-			ps.setLong(25, custom2ImageId);
+			ps.setLong(19, fileEntryTypeId);
+			ps.setString(20, version);
+			ps.setLong(21, size);
+			ps.setInt(22, readCount);
+			ps.setLong(23, smallImageId);
+			ps.setLong(24, largeImageId);
+			ps.setLong(25, custom1ImageId);
+			ps.setLong(26, custom2ImageId);
 
 			ps.executeUpdate();
 		}
@@ -135,18 +143,19 @@ public class UpgradeImageGallery extends UpgradeProcess {
 
 	protected void addDLFileVersion(
 			long fileVersionId, long groupId, long companyId, long userId,
-			String userName, Date createDate, long repositoryId, long folderId,
-			long fileEntryId, String extension, String mimeType, String title,
-			String description, String changeLog, String extraSettings,
-			long fileEntryTypeId, String version, long size, int status,
-			long statusByUserId, String statusByUserName, Date statusDate)
+			String userName, Timestamp createDate, long repositoryId,
+			long folderId, long fileEntryId, String extension, String mimeType,
+			String title, String description, String changeLog,
+			String extraSettings, long fileEntryTypeId, String version,
+			long size, int status, long statusByUserId, String statusByUserName,
+			Timestamp statusDate)
 		throws Exception {
 
 		Connection con = null;
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(9);
 
@@ -168,8 +177,8 @@ public class UpgradeImageGallery extends UpgradeProcess {
 			ps.setLong(3, companyId);
 			ps.setLong(4, userId);
 			ps.setString(5, userName);
-			ps.setDate(6, createDate);
-			ps.setDate(7, statusDate);
+			ps.setTimestamp(6, createDate);
+			ps.setTimestamp(7, statusDate);
 			ps.setLong(8, repositoryId);
 			ps.setLong(9, folderId);
 			ps.setLong(10, fileEntryId);
@@ -185,7 +194,7 @@ public class UpgradeImageGallery extends UpgradeProcess {
 			ps.setInt(20, status);
 			ps.setLong(21, statusByUserId);
 			ps.setString(22, statusByUserName);
-			ps.setDate(23, statusDate);
+			ps.setTimestamp(23, statusDate);
 
 			ps.executeUpdate();
 		}
@@ -196,16 +205,16 @@ public class UpgradeImageGallery extends UpgradeProcess {
 
 	protected void addDLFolderEntry(
 			String uuid, long folderId, long groupId, long companyId,
-			long userId, String userName, Date createDate, Date modifiedDate,
-			long repositoryId, long parentFolderId, String name,
-			String description, Date lastPostDate)
+			long userId, String userName, Timestamp createDate,
+			Timestamp modifiedDate, long repositoryId, long parentFolderId,
+			String name, String description, Timestamp lastPostDate)
 		throws Exception {
 
 		Connection con = null;
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(5);
 
@@ -225,19 +234,90 @@ public class UpgradeImageGallery extends UpgradeProcess {
 			ps.setLong(4, companyId);
 			ps.setLong(5, userId);
 			ps.setString(6, userName);
-			ps.setDate(7, createDate);
-			ps.setDate(8, modifiedDate);
+			ps.setTimestamp(7, createDate);
+			ps.setTimestamp(8, modifiedDate);
 			ps.setLong(9, repositoryId);
 			ps.setBoolean(10, false);
 			ps.setLong(11, parentFolderId);
 			ps.setString(12, name);
 			ps.setString(13, description);
-			ps.setDate(14, lastPostDate);
+			ps.setTimestamp(14, lastPostDate);
 
 			ps.executeUpdate();
 		}
 		finally {
 			DataAccess.cleanUp(con, ps);
+		}
+	}
+
+	protected void addIGImageDLFileEntryType() throws Exception {
+		if (!PropsValues.DL_FILE_ENTRY_TYPE_IG_IMAGE_AUTO_CREATE_ON_UPGRADE) {
+			return;
+		}
+
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection();
+
+			ps = con.prepareStatement("select distinct companyId from IGImage");
+
+			rs = ps.executeQuery();
+
+			while (rs.next()) {
+				long companyId = rs.getLong("companyId");
+
+				long groupId = getCompanyGroupId(companyId);
+				long userId = getDefaultUserId(companyId);
+				Timestamp now = new Timestamp(System.currentTimeMillis());
+
+				addIGImageDLFileEntryType(
+					groupId, companyId, userId, StringPool.BLANK, now, now);
+			}
+		}
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
+		}
+	}
+
+	protected void addIGImageDLFileEntryType(
+			long groupId, long companyId, long userId, String userName,
+			Timestamp createDate, Timestamp modifiedDate)
+		throws Exception {
+
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection();
+
+			StringBundler sb = new StringBundler(4);
+
+			sb.append("insert into DLFileEntryType (uuid_, groupId, ");
+			sb.append("companyId, userId, userName, createDate, ");
+			sb.append("modifiedDate, name, description, fileEntryTypeId) ");
+			sb.append("values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+			ps = con.prepareStatement(sb.toString());
+
+			ps.setString(1, PortalUUIDUtil.generate());
+			ps.setLong(2, groupId);
+			ps.setLong(3, companyId);
+			ps.setLong(4, userId);
+			ps.setString(5, userName);
+			ps.setTimestamp(6, createDate);
+			ps.setTimestamp(7, modifiedDate);
+			ps.setString(8, DLFileEntryTypeConstants.NAME_IG_IMAGE);
+			ps.setString(9, DLFileEntryTypeConstants.NAME_IG_IMAGE);
+			ps.setLong(10, increment());
+
+			ps.executeUpdate();
+		}
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
 		}
 	}
 
@@ -250,7 +330,7 @@ public class UpgradeImageGallery extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			DatabaseMetaData databaseMetaData = con.getMetaData();
 
@@ -275,8 +355,8 @@ public class UpgradeImageGallery extends UpgradeProcess {
 			while (rs.next()) {
 				ps.setString(1, dlResourceName);
 				ps.setLong(2, rs.getLong("companyId"));
-				ps.setLong(3, rs.getLong("scope"));
-				ps.setLong(4, rs.getLong("primKey"));
+				ps.setInt(3, rs.getInt("scope"));
+				ps.setString(4, rs.getString("primKey"));
 				ps.setLong(5, rs.getLong("roleId"));
 
 				if (supportsBatchUpdates) {
@@ -292,7 +372,7 @@ public class UpgradeImageGallery extends UpgradeProcess {
 					}
 				}
 				else {
-				 	ps.executeUpdate();
+					ps.executeUpdate();
 				}
 			}
 
@@ -307,6 +387,7 @@ public class UpgradeImageGallery extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
+		addIGImageDLFileEntryType();
 		updateIGFolderEntries();
 		updateIGImageEntries();
 		updateIGFolderPermissions();
@@ -320,13 +401,119 @@ public class UpgradeImageGallery extends UpgradeProcess {
 		upgradeDocumentLibrary.updateSyncs();
 	}
 
+	protected long getBitwiseValue(
+		Map<String, Long> bitwiseValues, List<String> actionIds) {
+
+		long bitwiseValue = 0;
+
+		for (String actionId : actionIds) {
+			Long actionIdBitwiseValue = bitwiseValues.get(actionId);
+
+			if (actionIdBitwiseValue == null) {
+				continue;
+			}
+
+			bitwiseValue |= actionIdBitwiseValue;
+		}
+
+		return bitwiseValue;
+	}
+
+	protected Map<String, Long> getBitwiseValues(String name) throws Exception {
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection();
+
+			ps = con.prepareStatement(
+				"select actionId, bitwiseValue from ResourceAction " +
+					"where name = ?");
+
+			ps.setString(1, name);
+
+			rs = ps.executeQuery();
+
+			Map<String, Long> bitwiseValues = new HashMap<String, Long>();
+
+			while (rs.next()) {
+				String actionId = rs.getString("actionId");
+				long bitwiseValue = rs.getLong("bitwiseValue");
+
+				bitwiseValues.put(actionId, bitwiseValue);
+			}
+
+			return bitwiseValues;
+		}
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
+		}
+	}
+
+	protected long getCompanyGroupId(long companyId) throws Exception {
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection();
+
+			ps = con.prepareStatement(
+				"select groupId from Group_ where classNameId = ? and " +
+					"classPK = ?");
+
+			ps.setLong(1, PortalUtil.getClassNameId(Company.class.getName()));
+			ps.setLong(2, companyId);
+
+			rs = ps.executeQuery();
+
+			if (rs.next()) {
+				return rs.getLong("groupId");
+			}
+
+			return 0;
+		}
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
+		}
+	}
+
+	protected long getDefaultUserId(long companyId) throws Exception {
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection();
+
+			ps = con.prepareStatement(
+				"select userId from User_ where companyId = ? and " +
+					"defaultUser = ?");
+
+			ps.setLong(1, companyId);
+			ps.setBoolean(2, true);
+
+			rs = ps.executeQuery();
+
+			if (rs.next()) {
+				return rs.getLong("userId");
+			}
+
+			return 0;
+		}
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
+		}
+	}
+
 	protected Object[] getImage(long imageId) throws Exception {
 		Connection con = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"select type_, size_ from Image where imageId = " + imageId);
@@ -335,7 +522,7 @@ public class UpgradeImageGallery extends UpgradeProcess {
 
 			if (rs.next()) {
 				String type = rs.getString("type_");
-				long size = rs.getLong("size_");
+				long size = rs.getInt("size_");
 
 				return new Object[] {type, size};
 			}
@@ -345,6 +532,22 @@ public class UpgradeImageGallery extends UpgradeProcess {
 		finally {
 			DataAccess.cleanUp(con, ps, rs);
 		}
+	}
+
+	protected List<String> getResourceActionIds(
+		Map<String, Long> bitwiseValues, long actionIdsLong) {
+
+		List<String> actionIds = new ArrayList<String>();
+
+		for (String actionId : bitwiseValues.keySet()) {
+			long bitwiseValue = bitwiseValues.get(actionId);
+
+			if ((actionIdsLong & bitwiseValue) == bitwiseValue) {
+				actionIds.add(actionId);
+			}
+		}
+
+		return actionIds;
 	}
 
 	protected void migrateFile(
@@ -432,7 +635,7 @@ public class UpgradeImageGallery extends UpgradeProcess {
 			try {
 				InputStream is = _sourceHook.getImageAsStream(thumbnailImage);
 
-				con = DataAccess.getConnection();
+				con = DataAccess.getUpgradeOptimizedConnection();
 
 				ps = con.prepareStatement(
 					"select max(fileVersionId) from DLFileVersion where " +
@@ -479,7 +682,7 @@ public class UpgradeImageGallery extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(8);
 
@@ -518,7 +721,7 @@ public class UpgradeImageGallery extends UpgradeProcess {
 
 		if (!_sourceHookClassName.equals(DLHook.class.getName())) {
 			try {
-				con = DataAccess.getConnection();
+				con = DataAccess.getUpgradeOptimizedConnection();
 
 				ps = con.prepareStatement("select imageId from Image");
 
@@ -546,7 +749,7 @@ public class UpgradeImageGallery extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"select * from IGFolder order by folderId asc");
@@ -562,8 +765,8 @@ public class UpgradeImageGallery extends UpgradeProcess {
 				long companyId = rs.getLong("companyId");
 				long userId = rs.getLong("userId");
 				String userName = rs.getString("userName");
-				Date createDate = rs.getDate("createDate");
-				Date modifiedDate = rs.getDate("modifiedDate");
+				Timestamp createDate = rs.getTimestamp("createDate");
+				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
 				long parentFolderId = rs.getLong("parentFolderId");
 				String name = rs.getString("name");
 				String description = rs.getString("description");
@@ -594,9 +797,8 @@ public class UpgradeImageGallery extends UpgradeProcess {
 		deleteConflictingIGPermissions(
 			_IG_FOLDER_CLASS_NAME, DLFolder.class.getName());
 
-		runSQL("update ResourcePermission set name = '" +
-			DLFolder.class.getName() +
-				"' where name = '" + _IG_FOLDER_CLASS_NAME + "'");
+		updateIGtoDLPermissions(
+			_IG_FOLDER_CLASS_NAME, DLFolder.class.getName());
 	}
 
 	protected void updateIGImageEntries() throws Exception {
@@ -605,9 +807,59 @@ public class UpgradeImageGallery extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
-			ps = con.prepareStatement("select * from IGImage");
+			ps = con.prepareStatement(
+				"select fileEntryTypeId, companyId from DLFileEntryType " +
+					"where name = ?");
+
+			ps.setString(1, DLFileEntryTypeConstants.NAME_IG_IMAGE);
+
+			rs = ps.executeQuery();
+
+			boolean hasIGImageFileEntryType = false;
+
+			while (rs.next()) {
+				long fileEntryTypeId = rs.getLong("fileEntryTypeId");
+				long companyId = rs.getLong("companyId");
+
+				updateIGImageEntries(companyId, fileEntryTypeId);
+
+				hasIGImageFileEntryType = true;
+			}
+
+			if (!hasIGImageFileEntryType) {
+				updateIGImageEntries(0, 0);
+			}
+
+			runSQL("drop table IGImage");
+		}
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
+		}
+	}
+
+	protected void updateIGImageEntries(long companyId, long fileEntryTypeId)
+		throws Exception {
+
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection();
+
+			String sql = "select * from IGImage";
+
+			if (companyId != 0) {
+				sql = "select * from IGImage where companyId = ?";
+			}
+
+			ps = con.prepareStatement(sql);
+
+			if (companyId != 0) {
+				ps.setLong(1, companyId);
+			}
 
 			rs = ps.executeQuery();
 
@@ -615,11 +867,11 @@ public class UpgradeImageGallery extends UpgradeProcess {
 				String uuid = rs.getString("uuid_");
 				long imageId = rs.getLong("imageId");
 				long groupId = rs.getLong("groupId");
-				long companyId = rs.getLong("companyId");
+				companyId = rs.getLong("companyId");
 				long userId = rs.getLong("userId");
 				String userName = rs.getString("userName");
-				Date createDate = rs.getDate("createDate");
-				Date modifiedDate = rs.getDate("modifiedDate");
+				Timestamp createDate = rs.getTimestamp("createDate");
+				Timestamp modifiedDate = rs.getTimestamp("modifiedDate");
 				long folderId = rs.getLong("folderId");
 				String title = rs.getString("name");
 				String description = rs.getString("description");
@@ -649,8 +901,9 @@ public class UpgradeImageGallery extends UpgradeProcess {
 						uuid, imageId, groupId, companyId, userId, userName,
 						userId, userName, createDate, modifiedDate, groupId,
 						folderId, name, extension, mimeType, title, description,
-						StringPool.BLANK, "1.0", size, 0, smallImageId,
-						largeImageId, custom1ImageId, custom2ImageId);
+						StringPool.BLANK, fileEntryTypeId, "1.0", size, 0,
+						smallImageId, largeImageId, custom1ImageId,
+						custom2ImageId);
 				}
 				catch (Exception e) {
 					title = title.concat(StringPool.SPACE).concat(
@@ -660,18 +913,18 @@ public class UpgradeImageGallery extends UpgradeProcess {
 						uuid, imageId, groupId, companyId, userId, userName,
 						userId, userName, createDate, modifiedDate, groupId,
 						folderId, name, extension, mimeType, title, description,
-						StringPool.BLANK, "1.0", size, 0, smallImageId,
-						largeImageId, custom1ImageId, custom2ImageId);
+						StringPool.BLANK, fileEntryTypeId, "1.0", size, 0,
+						smallImageId, largeImageId, custom1ImageId,
+						custom2ImageId);
 				}
 
 				addDLFileVersion(
 					increment(), groupId, companyId, userId, userName,
 					createDate, groupId, folderId, imageId, extension, mimeType,
-					title, description, StringPool.BLANK, StringPool.BLANK, 0,
-					"1.0", size, 0, userId, userName, modifiedDate);
+					title, description, StringPool.BLANK, StringPool.BLANK,
+					fileEntryTypeId, "1.0", size, 0, userId, userName,
+					modifiedDate);
 			}
-
-			runSQL("drop table IGImage");
 		}
 		finally {
 			DataAccess.cleanUp(con, ps, rs);
@@ -688,7 +941,7 @@ public class UpgradeImageGallery extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"select folderId from DLFolder where groupId = " + groupId +
@@ -722,10 +975,59 @@ public class UpgradeImageGallery extends UpgradeProcess {
 		deleteConflictingIGPermissions(
 			_IG_IMAGE_CLASS_NAME, DLFileEntry.class.getName());
 
-		runSQL(
-			"update ResourcePermission set name = '" +
-				DLFileEntry.class.getName() + "' where name = '" +
-					_IG_IMAGE_CLASS_NAME + "'");
+		updateIGtoDLPermissions(
+			_IG_IMAGE_CLASS_NAME, DLFileEntry.class.getName());
+	}
+
+	protected void updateIGtoDLPermissions(
+			String igResourceName, String dlResourceName)
+		throws Exception {
+
+		Map<String, Long> igBitwiseValues = getBitwiseValues(igResourceName);
+
+		if (igBitwiseValues.isEmpty()) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Resource actions do not exist for " + igResourceName);
+			}
+
+			return;
+		}
+
+		Map<String, Long> dlBitwiseValues = getBitwiseValues(dlResourceName);
+
+		if (dlBitwiseValues.isEmpty()) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Resource actions do not exist for " + dlResourceName);
+			}
+
+			return;
+		}
+
+		// The size of igBitwiseValues is based on the number of actions defined
+		// in resource actions which was 7 and 4 for IGFolder and IGImage
+		// respectively. This means the loop will execute at most 2^7 (128)
+		// times. If we were to check before update, we would still have to
+		// perform 128 queries, so we may as well just update 128 times even if
+		// no candidates exist for a given value.
+
+		for (int i = 0; i < Math.pow(2, igBitwiseValues.size()); i++) {
+			List<String> igActionIds = getResourceActionIds(igBitwiseValues, i);
+
+			if (igResourceName.equals(_IG_FOLDER_CLASS_NAME)) {
+				Collections.replaceAll(
+					igActionIds, "ADD_IMAGE", "ADD_DOCUMENT");
+			}
+
+			long dlActionIdsLong = getBitwiseValue(
+				dlBitwiseValues, igActionIds);
+
+			runSQL(
+				"update ResourcePermission set name = '" + dlResourceName +
+					"', actionIds = " + dlActionIdsLong + " where name = '" +
+						igResourceName + "'" + " and actionIds = " + i);
+		}
 	}
 
 	private static final String _IG_FOLDER_CLASS_NAME =

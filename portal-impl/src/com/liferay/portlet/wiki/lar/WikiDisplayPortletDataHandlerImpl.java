@@ -46,6 +46,11 @@ import javax.portlet.PortletPreferences;
 public class WikiDisplayPortletDataHandlerImpl extends BasePortletDataHandler {
 
 	@Override
+	public String[] getDataPortletPreferences() {
+		return new String[] {"title", "nodeId"};
+	}
+
+	@Override
 	public PortletDataHandlerControl[] getExportControls() {
 		return new PortletDataHandlerControl[] {
 			_nodesAndPages
@@ -101,6 +106,10 @@ public class WikiDisplayPortletDataHandlerImpl extends BasePortletDataHandler {
 			PortletDataContext portletDataContext, String portletId,
 			PortletPreferences portletPreferences)
 		throws Exception {
+
+		if (portletPreferences == null) {
+			return portletPreferences;
+		}
 
 		portletPreferences.setValue("title", StringPool.BLANK);
 		portletPreferences.setValue("nodeId", StringPool.BLANK);

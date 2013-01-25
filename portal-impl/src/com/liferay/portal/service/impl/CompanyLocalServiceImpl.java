@@ -129,7 +129,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		company.setMaxUsers(maxUsers);
 		company.setActive(active);
 
-		companyPersistence.update(company, false);
+		companyPersistence.update(company);
 
 		// Virtual host
 
@@ -182,16 +182,6 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		Company company = companyPersistence.fetchByWebId(webId);
 
 		if (company == null) {
-			String name = webId;
-			String legalName = null;
-			String legalId = null;
-			String legalType = null;
-			String sicCode = null;
-			String tickerSymbol = null;
-			String industry = null;
-			String type = null;
-			String size = null;
-
 			long companyId = counterLocalService.increment();
 
 			company = companyPersistence.create(companyId);
@@ -207,7 +197,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 			company.setMx(mx);
 			company.setActive(true);
 
-			companyPersistence.update(company, false);
+			companyPersistence.update(company);
 
 			// Shard
 
@@ -215,6 +205,21 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 				Company.class.getName(), companyId, shardName);
 
 			// Account
+
+			String name = webId;
+
+			if (webId.equals(PropsValues.COMPANY_DEFAULT_WEB_ID)) {
+				name = PropsValues.COMPANY_DEFAULT_NAME;
+			}
+
+			String legalName = null;
+			String legalId = null;
+			String legalType = null;
+			String sicCode = null;
+			String tickerSymbol = null;
+			String industry = null;
+			String type = null;
+			String size = null;
 
 			updateAccount(
 				company, name, legalName, legalId, legalType, sicCode,
@@ -283,7 +288,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 			if (!defaultUser.isAgreedToTermsOfUse()) {
 				defaultUser.setAgreedToTermsOfUse(true);
 
-				userPersistence.update(defaultUser, false);
+				userPersistence.update(defaultUser);
 			}
 		}
 		catch (NoSuchUserException nsue) {
@@ -328,7 +333,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 			defaultUser.setAgreedToTermsOfUse(true);
 			defaultUser.setStatus(WorkflowConstants.STATUS_APPROVED);
 
-			userPersistence.update(defaultUser, false);
+			userPersistence.update(defaultUser);
 
 			// Contact
 
@@ -352,7 +357,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 			defaultContact.setMale(true);
 			defaultContact.setBirthday(now);
 
-			contactPersistence.update(defaultContact, false);
+			contactPersistence.update(defaultContact);
 		}
 
 		// System roles
@@ -423,7 +428,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 				throw new SystemException(ee);
 			}
 
-			companyPersistence.update(company, false);
+			companyPersistence.update(company);
 		}
 	}
 
@@ -445,7 +450,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		if (logoId > 0) {
 			company.setLogoId(0);
 
-			companyPersistence.update(company, false);
+			companyPersistence.update(company);
 
 			imageLocalService.deleteImage(logoId);
 		}
@@ -736,7 +741,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 				SearchEngineUtil.getEntryClassNames());
 
 			if (groupId > 0) {
-				searchContext.setGroupIds(new long[]{groupId});
+				searchContext.setGroupIds(new long[] {groupId});
 			}
 
 			searchContext.setKeywords(keywords);
@@ -814,7 +819,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		company.setMaxUsers(maxUsers);
 		company.setActive(active);
 
-		companyPersistence.update(company, false);
+		companyPersistence.update(company);
 
 		// Virtual host
 
@@ -872,7 +877,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 
 		company.setHomeURL(homeURL);
 
-		companyPersistence.update(company, false);
+		companyPersistence.update(company);
 
 		// Account
 
@@ -905,7 +910,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		user.setLanguageId(languageId);
 		user.setTimeZoneId(timeZoneId);
 
-		userPersistence.update(user, false);
+		userPersistence.update(user);
 	}
 
 	/**
@@ -1108,7 +1113,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 
 			company.setLogoId(logoId);
 
-			company = companyPersistence.update(company, false);
+			company = companyPersistence.update(company);
 		}
 
 		return company;
@@ -1137,7 +1142,7 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 
 			company.setAccountId(accountId);
 
-			companyPersistence.update(company, false);
+			companyPersistence.update(company);
 		}
 
 		account.setModifiedDate(now);
@@ -1151,33 +1156,34 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		account.setType(type);
 		account.setSize(size);
 
-		accountPersistence.update(account, false);
+		accountPersistence.update(account);
 	}
 
 	protected void updateVirtualHost(long companyId, String virtualHostname)
 		throws CompanyVirtualHostException, SystemException {
 
 		if (Validator.isNotNull(virtualHostname)) {
-			try {
-				VirtualHost virtualHost = virtualHostPersistence.findByHostname(
-					virtualHostname);
+			VirtualHost virtualHost = virtualHostPersistence.fetchByHostname(
+				virtualHostname);
 
+			if (virtualHost == null) {
+				virtualHostLocalService.updateVirtualHost(
+					companyId, 0, virtualHostname);
+			}
+			else {
 				if ((virtualHost.getCompanyId() != companyId) ||
 					(virtualHost.getLayoutSetId() != 0)) {
 
 					throw new CompanyVirtualHostException();
 				}
 			}
-			catch (NoSuchVirtualHostException nsvhe) {
-				virtualHostLocalService.updateVirtualHost(
-					companyId, 0, virtualHostname);
-			}
 		}
 		else {
-			try {
-				virtualHostPersistence.removeByC_L(companyId, 0);
-			}
-			catch (NoSuchVirtualHostException nsvhe) {
+			VirtualHost virtualHost = virtualHostPersistence.fetchByC_L(
+				companyId, 0);
+
+			if (virtualHost != null) {
+				virtualHostPersistence.remove(virtualHost);
 			}
 		}
 	}

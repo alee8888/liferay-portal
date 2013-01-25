@@ -69,8 +69,8 @@ double version = ParamUtil.getDouble(request, "version");
 		searchTerms.setGroupId(groupId);
 		searchTerms.setType(type);
 
-		if (Validator.isNotNull(structureId)) {
-			searchTerms.setStructureId(structureId);
+		if (ddmStructure != null) {
+			searchTerms.setStructureId(ddmStructure.getStructureKey());
 		}
 
 		searchTerms.setDisplayDateLT(new Date());
@@ -188,7 +188,7 @@ double version = ParamUtil.getDouble(request, "version");
 
 			rowTextEntry = (TextSearchEntry)rowTextEntry.clone();
 
-			rowTextEntry.setName(HtmlUtil.escape(PortalUtil.getUserName(article.getUserId(), article.getUserName())));
+			rowTextEntry.setName(PortalUtil.getUserName(article));
 
 			row.addText(rowTextEntry);
 
@@ -212,7 +212,7 @@ double version = ParamUtil.getDouble(request, "version");
 		JournalArticle article = null;
 
 		try {
-			article = JournalArticleLocalServiceUtil.getLatestArticle(groupId, articleId, WorkflowConstants.STATUS_ANY);
+			article = JournalArticleLocalServiceUtil.getArticle(groupId, articleId, version);
 
 			boolean expired = article.isExpired();
 
@@ -245,7 +245,7 @@ double version = ParamUtil.getDouble(request, "version");
 					%>
 
 					<div class="journal-content-article">
-						<%= articleDisplay.getContent() %>
+						<%= RuntimePageUtil.processXML(request, response, articleDisplay.getContent()) %>
 					</div>
 
 					<c:if test="<%= articleDisplay.isPaginate() %>">

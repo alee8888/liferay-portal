@@ -67,11 +67,11 @@ public class ServiceContextFactory {
 			serviceContext.setLayoutFullURL(
 				PortalUtil.getCanonicalURL(
 					PortalUtil.getLayoutFullURL(themeDisplay), themeDisplay,
-					themeDisplay.getLayout()));
+					themeDisplay.getLayout(), true));
 			serviceContext.setLayoutURL(
 				PortalUtil.getCanonicalURL(
 					PortalUtil.getLayoutURL(themeDisplay), themeDisplay,
-					themeDisplay.getLayout()));
+					themeDisplay.getLayout(), true));
 			serviceContext.setPathMain(PortalUtil.getPathMain());
 			serviceContext.setPlid(themeDisplay.getPlid());
 			serviceContext.setPortalURL(PortalUtil.getPortalURL(request));
@@ -269,8 +269,8 @@ public class ServiceContextFactory {
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)portletRequest.getAttribute(WebKeys.THEME_DISPLAY);
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
 		if (serviceContext != null) {
 			serviceContext = (ServiceContext)serviceContext.clone();
@@ -458,6 +458,21 @@ public class ServiceContextFactory {
 
 		ServiceContext serviceContext = getInstance(portletRequest);
 
+		// Permissions
+
+		String[] groupPermissions = PortalUtil.getGroupPermissions(
+			portletRequest, className);
+		String[] guestPermissions = PortalUtil.getGuestPermissions(
+			portletRequest, className);
+
+		if (groupPermissions != null) {
+			serviceContext.setGroupPermissions(groupPermissions);
+		}
+
+		if (guestPermissions != null) {
+			serviceContext.setGuestPermissions(guestPermissions);
+		}
+
 		// Expando
 
 		Map<String, Serializable> expandoBridgeAttributes =
@@ -476,6 +491,21 @@ public class ServiceContextFactory {
 		throws PortalException, SystemException {
 
 		ServiceContext serviceContext = getInstance(uploadPortletRequest);
+
+		// Permissions
+
+		String[] groupPermissions = PortalUtil.getGroupPermissions(
+			uploadPortletRequest, className);
+		String[] guestPermissions = PortalUtil.getGuestPermissions(
+			uploadPortletRequest, className);
+
+		if (groupPermissions != null) {
+			serviceContext.setGroupPermissions(groupPermissions);
+		}
+
+		if (guestPermissions != null) {
+			serviceContext.setGuestPermissions(guestPermissions);
+		}
 
 		// Expando
 

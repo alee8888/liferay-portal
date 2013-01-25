@@ -14,11 +14,11 @@
 
 package com.liferay.portal.model.impl;
 
-import com.liferay.portal.freemarker.FreeMarkerTemplateLoader;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
+import com.liferay.portal.kernel.template.TemplateResource;
 import com.liferay.portal.kernel.util.ContextPathUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -37,7 +37,6 @@ import com.liferay.portal.theme.ThemeGroupLimit;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.velocity.VelocityResourceListener;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -101,8 +100,8 @@ public class ThemeImpl extends PluginBaseImpl implements Theme {
 	}
 
 	public void addSetting(
-		 String key, String value, boolean configurable, String type,
-		 String[] options, String script) {
+		String key, String value, boolean configurable, String type,
+		String[] options, String script) {
 
 		ThemeSetting themeSetting = new ThemeSettingImpl(
 			configurable, options, script, type, value);
@@ -199,10 +198,10 @@ public class ThemeImpl extends PluginBaseImpl implements Theme {
 
 	public String getFreeMarkerTemplateLoader() {
 		if (_loadFromServletContext) {
-			return FreeMarkerTemplateLoader.SERVLET_SEPARATOR;
+			return TemplateResource.SERVLET_SEPARATOR;
 		}
 		else {
-			return FreeMarkerTemplateLoader.THEME_LOADER_SEPARATOR;
+			return TemplateResource.THEME_LOADER_SEPARATOR;
 		}
 	}
 
@@ -356,10 +355,10 @@ public class ThemeImpl extends PluginBaseImpl implements Theme {
 
 	public String getVelocityResourceListener() {
 		if (_loadFromServletContext) {
-			return VelocityResourceListener.SERVLET_SEPARATOR;
+			return TemplateResource.SERVLET_SEPARATOR;
 		}
 		else {
-			return VelocityResourceListener.THEME_LOADER_SEPARATOR;
+			return TemplateResource.THEME_LOADER_SEPARATOR;
 		}
 	}
 

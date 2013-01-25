@@ -299,7 +299,7 @@
 		float: right;
 	}
 
-	.syntax-help {
+	.syntax-help-content {
 		border: 1px dotted gray;
 		padding-left: 10px;
 	}
@@ -342,6 +342,11 @@
 		margin: 0 0 0.5em 0.5em;
 	}
 
+	.search-root-entry {
+		color: #999;
+		float: right;
+	}
+
 	.top-links-configuration {
 		float: left;
 	}
@@ -351,8 +356,29 @@
 		padding: 0.1em 10px 0.1em 0;
 	}
 
+	.trash-attachments {
+		float: right;
+	}
+
 	#wikiCommentsPanelContainer {
 		border-width: 0;
+	}
+}
+
+.trash-restore-popup {
+	.aui-form {
+		fieldset {
+			margin-bottom: 0;
+			padding: 0 15px;
+		}
+
+		.new-file-name .aui-field-input {
+			width: 100%;
+		}
+	}
+
+	.portlet-msg-alert {
+		margin: 10px 0;
 	}
 }
 

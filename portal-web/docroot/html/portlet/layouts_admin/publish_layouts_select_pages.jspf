@@ -73,11 +73,11 @@ for (int i = 0; i < results.size(); i++) {
 			%>
 
 			<span class="nobr <%= layoutRevision == null ? "page-not-exportable" : StringPool.BLANK %>">
-				<%= curLayout.getName(locale) %>
+				<%= HtmlUtil.escape(curLayout.getName(locale)) %>
 
 				<c:if test="<%= Validator.isNotNull(layoutBranchName) %>">
 					<span class="layout-variation-name">
-						[<liferay-ui:message key="<%= layoutBranchName %>" />]
+						[<liferay-ui:message key="<%= HtmlUtil.escape(layoutBranchName) %>" />]
 					</span>
 				</c:if>
 
@@ -91,7 +91,7 @@ for (int i = 0; i < results.size(); i++) {
 		row.addText("left", "top", layoutDetails);
 	}
 	else {
-		row.addText("left", "top", curLayout.getName(locale));
+		row.addText("left", "top", HtmlUtil.escape(curLayout.getName(locale)));
 	}
 
 	JSPSearchEntry jspSearchEntry = new JSPSearchEntry();
@@ -127,10 +127,10 @@ for (int i = 0; i < results.size(); i++) {
 <aui:button-row>
 
 	<%
-	String taglibUrl = "AUI().DialogManager.refreshByChild('#" + renderResponse.getNamespace() + "exportPagesFm');";
+	String taglibURL = "AUI().DialogManager.refreshByChild('#" + renderResponse.getNamespace() + "exportPagesFm');";
 	%>
 
-	<aui:button onClick="<%= taglibUrl %>" value='<%= results.isEmpty() ? "select-pages" : "change-selection" %>' />
+	<aui:button onClick="<%= taglibURL %>" value='<%= results.isEmpty() ? "select-pages" : "change-selection" %>' />
 </aui:button-row>
 
 <aui:input helpMessage="delete-missing-layouts-staging-help" label="delete-missing-layouts" name="<%= PortletDataHandlerKeys.DELETE_MISSING_LAYOUTS %>" type="checkbox" />

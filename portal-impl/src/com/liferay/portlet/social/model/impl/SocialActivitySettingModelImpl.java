@@ -74,6 +74,8 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 		};
 	public static final String TABLE_SQL_CREATE = "create table SocialActivitySetting (activitySettingId LONG not null primary key,groupId LONG,companyId LONG,classNameId LONG,activityType INTEGER,name VARCHAR(75) null,value VARCHAR(1024) null)";
 	public static final String TABLE_SQL_DROP = "drop table SocialActivitySetting";
+	public static final String ORDER_BY_JPQL = " ORDER BY socialActivitySetting.activitySettingId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY SocialActivitySetting.activitySettingId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -90,6 +92,7 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	public static long CLASSNAMEID_COLUMN_BITMASK = 2L;
 	public static long GROUPID_COLUMN_BITMASK = 4L;
 	public static long NAME_COLUMN_BITMASK = 8L;
+	public static long ACTIVITYSETTINGID_COLUMN_BITMASK = 16L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -99,6 +102,10 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	 */
 	public static SocialActivitySetting toModel(
 		SocialActivitySettingSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		SocialActivitySetting model = new SocialActivitySettingImpl();
 
 		model.setActivitySettingId(soapModel.getActivitySettingId());
@@ -120,6 +127,10 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	 */
 	public static List<SocialActivitySetting> toModels(
 		SocialActivitySettingSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<SocialActivitySetting> models = new ArrayList<SocialActivitySetting>(soapModels.length);
 
 		for (SocialActivitySettingSoap soapModel : soapModels) {
@@ -144,7 +155,7 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_activitySettingId);
+		return _activitySettingId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -361,17 +372,6 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	}
 
 	@Override
-	public SocialActivitySetting toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (SocialActivitySetting)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			SocialActivitySetting.class.getName(), getPrimaryKey());
@@ -382,6 +382,16 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public SocialActivitySetting toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (SocialActivitySetting)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -564,7 +574,7 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	}
 
 	private static ClassLoader _classLoader = SocialActivitySetting.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			SocialActivitySetting.class
 		};
 	private long _activitySettingId;
@@ -582,5 +592,5 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	private String _originalName;
 	private String _value;
 	private long _columnBitmask;
-	private SocialActivitySetting _escapedModelProxy;
+	private SocialActivitySetting _escapedModel;
 }

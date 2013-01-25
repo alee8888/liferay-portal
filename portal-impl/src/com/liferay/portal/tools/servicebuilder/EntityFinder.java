@@ -15,6 +15,7 @@
 package com.liferay.portal.tools.servicebuilder;
 
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.TextFormatter;
 
 import java.util.List;
@@ -35,11 +36,23 @@ public class EntityFinder {
 		_where = where;
 		_dbIndex = dbIndex;
 		_columns = columns;
+
+		if (isCollection() && isUnique() && !hasArrayableOperator()) {
+			throw new IllegalArgumentException(
+				"A finder cannot return a Collection and be unique unless " +
+					"it has an arrayable column. See the ExpandoColumn " +
+						"service.xml declaration for an example.");
+		}
+
+		if ((!isCollection() || isUnique()) && hasCustomComparator()) {
+			throw new IllegalArgumentException(
+				"A unique finder cannot have a custom comparator");
+		}
 	}
 
 	public EntityColumn getColumn(String name) {
 		for (EntityColumn column : _columns) {
-			if (column.getName().equals(name)) {
+			if (name.equals(column.getName())) {
 				return column;
 			}
 		}
@@ -98,6 +111,18 @@ public class EntityFinder {
 
 	public boolean hasColumn(String name) {
 		return Entity.hasColumn(name, _columns);
+	}
+
+	public boolean hasCustomComparator() {
+		for (EntityColumn column : _columns) {
+			String comparator = column.getComparator();
+
+			if (!comparator.equals(StringPool.EQUAL)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public boolean isCollection() {

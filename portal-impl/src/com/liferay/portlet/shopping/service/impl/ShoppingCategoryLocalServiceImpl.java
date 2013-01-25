@@ -66,7 +66,7 @@ public class ShoppingCategoryLocalServiceImpl
 		category.setName(name);
 		category.setDescription(description);
 
-		shoppingCategoryPersistence.update(category, false);
+		shoppingCategoryPersistence.update(category);
 
 		// Resources
 
@@ -298,7 +298,7 @@ public class ShoppingCategoryLocalServiceImpl
 		category.setName(name);
 		category.setDescription(description);
 
-		shoppingCategoryPersistence.update(category, false);
+		shoppingCategoryPersistence.update(category);
 
 		return category;
 	}
@@ -381,15 +381,15 @@ public class ShoppingCategoryLocalServiceImpl
 
 			item.setCategoryId(toCategoryId);
 
-			shoppingItemPersistence.update(item, false);
+			shoppingItemPersistence.update(item);
 		}
 
 		deleteCategory(fromCategory);
 	}
 
 	protected void validate(String name) throws PortalException {
-		if ((Validator.isNull(name)) || (name.indexOf("\\\\") != -1) ||
-			(name.indexOf("//") != -1)) {
+		if (Validator.isNull(name) || name.contains("\\\\") ||
+			name.contains("//")) {
 
 			throw new CategoryNameException();
 		}

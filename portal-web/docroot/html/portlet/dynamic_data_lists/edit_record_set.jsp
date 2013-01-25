@@ -36,7 +36,7 @@ if (recordSet != null) {
 
 String ddmStructureName = StringPool.BLANK;
 
-if (Validator.isNotNull(ddmStructureId)) {
+if (ddmStructureId > 0) {
 	try {
 		DDMStructure ddmStructure = DDMStructureLocalServiceUtil.getStructure(ddmStructureId);
 
@@ -106,7 +106,7 @@ if (Validator.isNotNull(ddmStructureId)) {
 		</aui:field-wrapper>
 
 		<c:if test="<%= WorkflowEngineManagerUtil.isDeployed() && (WorkflowHandlerRegistryUtil.getWorkflowHandler(DDLRecord.class.getName()) != null) %>">
-			<aui:select label="workflow" name='workflowDefinition'>
+			<aui:select label="workflow" name="workflowDefinition">
 
 				<%
 				WorkflowDefinitionLink workflowDefinitionLink = null;
@@ -157,8 +157,9 @@ if (Validator.isNotNull(ddmStructureId)) {
 				classPK: ddmStructureId,
 				ddmResource: '<%= ddmResource %>',
 				dialog: {
-					width:820
+					width: 820
 				},
+				groupId: <%= groupId %>,
 				saveCallback: '<portlet:namespace />selectDDMStructure',
 				storageType: '<%= PropsValues.DYNAMIC_DATA_LISTS_STORAGE_TYPE %>',
 				structureName: 'data-definition',

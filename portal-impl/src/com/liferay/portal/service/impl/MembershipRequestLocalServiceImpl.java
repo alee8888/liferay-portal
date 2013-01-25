@@ -19,20 +19,27 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.MembershipRequest;
 import com.liferay.portal.model.MembershipRequestConstants;
+import com.liferay.portal.model.Resource;
+import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.RoleConstants;
+import com.liferay.portal.model.Team;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserGroupRole;
+import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.security.permission.ResourceActionsUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.MembershipRequestLocalServiceBaseImpl;
 import com.liferay.portal.util.PrefsPropsUtil;
+import com.liferay.portal.util.ResourcePermissionUtil;
 import com.liferay.portal.util.SubscriptionSender;
-import com.liferay.util.UniqueList;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -65,7 +72,7 @@ public class MembershipRequestLocalServiceImpl
 		membershipRequest.setStatusId(
 			MembershipRequestConstants.STATUS_PENDING);
 
-		membershipRequestPersistence.update(membershipRequest, false);
+		membershipRequestPersistence.update(membershipRequest);
 
 		notifyGroupAdministrators(membershipRequest, serviceContext);
 
@@ -162,7 +169,7 @@ public class MembershipRequestLocalServiceImpl
 
 		membershipRequest.setStatusId(statusId);
 
-		membershipRequestPersistence.update(membershipRequest, false);
+		membershipRequestPersistence.update(membershipRequest);
 
 		if ((statusId == MembershipRequestConstants.STATUS_APPROVED) &&
 			addUserToGroup) {
@@ -187,57 +194,84 @@ public class MembershipRequestLocalServiceImpl
 		List<Long> userIds = new UniqueList<Long>();
 
 		Group group = groupLocalService.getGroup(groupId);
+		String modelResource = Group.class.getName();
 
-		Role siteAdministratorRole = roleLocalService.getRole(
-			group.getCompanyId(), RoleConstants.SITE_ADMINISTRATOR);
+		List<Role> roles = ResourceActionsUtil.getRoles(
+			group.getCompanyId(), group, modelResource, null);
 
-		List<UserGroupRole> siteAdministratorUserGroupRoles =
-			userGroupRoleLocalService.getUserGroupRolesByGroupAndRole(
-				groupId, siteAdministratorRole.getRoleId());
+		List<Team> teams = teamLocalService.getGroupTeams(groupId);
 
-		for (UserGroupRole userGroupRole : siteAdministratorUserGroupRoles) {
-			userIds.add(userGroupRole.getUserId());
+		if (teams != null) {
+			for (Team team : teams) {
+				Role role = roleLocalService.getTeamRole(
+					team.getCompanyId(), team.getTeamId());
+
+				roles.add(role);
+			}
 		}
 
-		Role siteOwnerRole = rolePersistence.findByC_N(
-			group.getCompanyId(), RoleConstants.SITE_OWNER);
+		Resource resource = resourceLocalService.getResource(
+			group.getCompanyId(), modelResource,
+			ResourceConstants.SCOPE_INDIVIDUAL, String.valueOf(groupId));
 
-		List<UserGroupRole> siteOwnerUserGroupRoles =
-			userGroupRoleLocalService.getUserGroupRolesByGroupAndRole(
-				groupId, siteOwnerRole.getRoleId());
+		List<String> actions = ResourceActionsUtil.getResourceActions(
+			Group.class.getName());
 
-		for (UserGroupRole userGroupRole : siteOwnerUserGroupRoles) {
-			userIds.add(userGroupRole.getUserId());
-		}
+		for (Role role : roles) {
+			String roleName = role.getName();
 
-		if (!group.isOrganization()) {
-			return userIds;
-		}
+			if (roleName.equals(RoleConstants.OWNER)) {
+				continue;
+			}
 
-		Role organizationAdministratorRole = roleLocalService.getRole(
-			group.getCompanyId(), RoleConstants.ORGANIZATION_ADMINISTRATOR);
+			if ((roleName.equals(RoleConstants.ORGANIZATION_ADMINISTRATOR) ||
+				 roleName.equals(RoleConstants.ORGANIZATION_OWNER)) &&
+				!group.isOrganization()) {
 
-		List<UserGroupRole> organizationAdminstratorUserGroupRoles =
-			userGroupRoleLocalService.getUserGroupRolesByGroupAndRole(
-				groupId, organizationAdministratorRole.getRoleId());
+				continue;
+			}
 
-		for (UserGroupRole orgAdministratorUserGroupRole :
-				organizationAdminstratorUserGroupRoles) {
+			if (roleName.equals(RoleConstants.SITE_ADMINISTRATOR) ||
+				roleName.equals(RoleConstants.SITE_OWNER) ||
+				roleName.equals(RoleConstants.ORGANIZATION_ADMINISTRATOR) ||
+				roleName.equals(RoleConstants.ORGANIZATION_OWNER)) {
 
-			userIds.add(orgAdministratorUserGroupRole.getUserId());
-		}
+				Role curRole = roleLocalService.getRole(
+					group.getCompanyId(), roleName);
 
-		Role orgOwnerRole = roleLocalService.getRole(
-			group.getCompanyId(), RoleConstants.ORGANIZATION_OWNER);
+				List<UserGroupRole> userGroupRoles =
+					userGroupRoleLocalService.getUserGroupRolesByGroupAndRole(
+						groupId, curRole.getRoleId());
 
-		List<UserGroupRole> organizationOwnerUserGroupRoles =
-			userGroupRoleLocalService.getUserGroupRolesByGroupAndRole(
-				groupId, orgOwnerRole.getRoleId());
+				for (UserGroupRole userGroupRole : userGroupRoles) {
+					userIds.add(userGroupRole.getUserId());
+				}
+			}
 
-		for (UserGroupRole organizationOwnerUserGroupRole :
-				organizationOwnerUserGroupRoles) {
+			List<String> currentIndividualActions = new ArrayList<String>();
+			List<String> currentGroupActions = new ArrayList<String>();
+			List<String> currentGroupTemplateActions = new ArrayList<String>();
+			List<String> currentCompanyActions = new ArrayList<String>();
 
-			userIds.add(organizationOwnerUserGroupRole.getUserId());
+			ResourcePermissionUtil.populateResourcePermissionActionIds(
+				groupId, role, resource, actions, currentIndividualActions,
+				currentGroupActions, currentGroupTemplateActions,
+				currentCompanyActions);
+
+			if (currentIndividualActions.contains(ActionKeys.ASSIGN_MEMBERS) ||
+				currentGroupActions.contains(ActionKeys.ASSIGN_MEMBERS) ||
+				currentGroupTemplateActions.contains(
+					ActionKeys.ASSIGN_MEMBERS) ||
+				currentCompanyActions.contains(ActionKeys.ASSIGN_MEMBERS)) {
+
+				List<UserGroupRole> currentUserGroupRoles =
+					userGroupRoleLocalService.getUserGroupRolesByGroupAndRole(
+						groupId, role.getRoleId());
+
+				for (UserGroupRole userGroupRole : currentUserGroupRoles) {
+					userIds.add(userGroupRole.getUserId());
+				}
+			}
 		}
 
 		return userIds;

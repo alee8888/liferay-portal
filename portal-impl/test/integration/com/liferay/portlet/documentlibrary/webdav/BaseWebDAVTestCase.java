@@ -21,7 +21,9 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
+import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portal.webdav.WebDAVServlet;
 import com.liferay.portal.webdav.methods.Method;
 
@@ -37,36 +39,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
  * @author Alexander Chow
  */
 public class BaseWebDAVTestCase {
-
-	public static void assertBytes(byte[] expected, byte[] actual) {
-		if ((expected == null) && (actual == null)) {
-			return;
-		}
-
-		if ((expected != null) && expected.equals(actual)) {
-			return;
-		}
-
-		if (expected.length == actual.length) {
-			boolean same = true;
-
-			for (int i = 0; i < expected.length; i++) {
-				if (expected[i] != actual[i]) {
-					same = false;
-
-					break;
-				}
-			}
-
-			if (same) {
-				return;
-			}
-		}
-
-		Assert.fail(
-			"Content does not match.  Expected " + expected + ", Actual " +
-				actual);
-	}
 
 	public static void assertCode(int statusCode, Tuple tuple) {
 		int returnedStatusCode = -1;
@@ -84,6 +56,32 @@ public class BaseWebDAVTestCase {
 
 	public Tuple service(
 		String method, String path, Map<String, String> headers, byte[] data) {
+
+		WebDAVStorage webDAVStorage = new DLWebDAVStorageImpl();
+
+		webDAVStorage.setToken("document_library");
+
+		WebDAVUtil.addStorage(webDAVStorage);
+
+		WebDAVServlet webDAVServlet = new WebDAVServlet();
+
+		String requestURI =
+			_CONTEXT_PATH + _SERVLET_PATH + _PATH_INFO_PREFACE + path;
+
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest(method, requestURI);
+
+		mockHttpServletRequest.setContextPath(_CONTEXT_PATH);
+		mockHttpServletRequest.setServletPath(_SERVLET_PATH);
+		mockHttpServletRequest.setPathInfo(_PATH_INFO_PREFACE + path);
+
+		try {
+			mockHttpServletRequest.setRemoteUser(
+				String.valueOf(TestPropsValues.getUserId()));
+		}
+		catch (Exception e) {
+			Assert.fail("User ID cannot be initialized");
+		}
 
 		if (headers == null) {
 			headers = new HashMap<String, String>();
@@ -121,28 +119,16 @@ public class BaseWebDAVTestCase {
 			}
 		}
 
-		String requestURI =
-			_CONTEXT_PATH + _SERVLET_PATH + _PATH_INFO_PREFACE + path;
-
-		MockHttpServletRequest request = new MockHttpServletRequest(
-			method, requestURI);
-
-		MockHttpServletResponse response = new MockHttpServletResponse();
-
-		request.setContextPath(_CONTEXT_PATH);
-		request.setServletPath(_SERVLET_PATH);
-		request.setPathInfo(_PATH_INFO_PREFACE + path);
-
 		if (data != null) {
-			request.setContent(data);
+			mockHttpServletRequest.setContent(data);
 
 			String contentType = headers.remove(HttpHeaders.CONTENT_TYPE);
 
 			if (contentType != null) {
-				request.setContentType(contentType);
+				mockHttpServletRequest.setContentType(contentType);
 			}
 			else {
-				request.setContentType(ContentTypes.TEXT_PLAIN);
+				mockHttpServletRequest.setContentType(ContentTypes.TEXT_PLAIN);
 			}
 		}
 
@@ -150,27 +136,25 @@ public class BaseWebDAVTestCase {
 			String key = entry.getKey();
 			String value = entry.getValue();
 
-			request.addHeader(key, value);
+			mockHttpServletRequest.addHeader(key, value);
 		}
 
 		try {
-			DLWebDAVStorageImpl storage = new DLWebDAVStorageImpl();
+			MockHttpServletResponse mockHttpServletResponse =
+				new MockHttpServletResponse();
 
-			storage.setToken("document_library");
+			webDAVServlet.service(
+				mockHttpServletRequest, mockHttpServletResponse);
 
-			WebDAVUtil.addStorage(storage);
-
-			WebDAVServlet servlet = new WebDAVServlet();
-
-			servlet.service(request, response);
-
-			int statusCode = response.getStatus();
-			byte[] responseBody = response.getContentAsByteArray();
+			int statusCode = mockHttpServletResponse.getStatus();
+			byte[] responseBody =
+				mockHttpServletResponse.getContentAsByteArray();
 
 			Map<String, String> responseHeaders = new HashMap<String, String>();
 
-			for (String name : response.getHeaderNames()) {
-				responseHeaders.put(name, (String)response.getHeader(name));
+			for (String name : mockHttpServletResponse.getHeaderNames()) {
+				responseHeaders.put(
+					name, (String)mockHttpServletResponse.getHeader(name));
 			}
 
 			return new Tuple(statusCode, responseBody, responseHeaders);
@@ -210,7 +194,7 @@ public class BaseWebDAVTestCase {
 	}
 
 	public Tuple serviceCopyOrMove(
-			String method, String path, String destination, String lock) {
+		String method, String path, String destination, String lock) {
 
 		Map<String, String> headers = null;
 

@@ -25,6 +25,7 @@ import com.liferay.portlet.dynamicdatamapping.storage.Fields;
 
 import java.io.Serializable;
 
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -42,7 +43,7 @@ public class DDLRecordServiceImpl extends DDLRecordServiceBaseImpl {
 			getPermissionChecker(), recordSetId, ActionKeys.ADD_RECORD);
 
 		return ddlRecordLocalService.addRecord(
-			getUserId(), groupId, recordSetId, displayIndex, fields,
+			getGuestOrUserId(), groupId, recordSetId, displayIndex, fields,
 			serviceContext);
 	}
 
@@ -55,8 +56,21 @@ public class DDLRecordServiceImpl extends DDLRecordServiceBaseImpl {
 			getPermissionChecker(), recordSetId, ActionKeys.ADD_RECORD);
 
 		return ddlRecordLocalService.addRecord(
-			getUserId(), groupId, recordSetId, displayIndex, fieldsMap,
+			getGuestOrUserId(), groupId, recordSetId, displayIndex, fieldsMap,
 			serviceContext);
+	}
+
+	public DDLRecord deleteRecordLocale(
+			long recordId, Locale locale, ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		DDLRecord record = ddlRecordLocalService.getDDLRecord(recordId);
+
+		DDLRecordSetPermission.check(
+			getPermissionChecker(), record.getRecordSetId(), ActionKeys.UPDATE);
+
+		return ddlRecordLocalService.deleteRecordLocale(
+			recordId, locale, serviceContext);
 	}
 
 	public DDLRecord getRecord(long recordId)

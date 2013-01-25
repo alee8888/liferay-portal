@@ -14,12 +14,25 @@
 
 package com.liferay.portal.velocity;
 
-import com.liferay.portal.deploy.sandbox.SandboxHandler;
+import com.liferay.portal.kernel.cache.PortalCache;
+import com.liferay.portal.kernel.cache.SingleVMPoolUtil;
+import com.liferay.portal.kernel.template.TemplateManager;
+import com.liferay.portal.kernel.template.TemplateResource;
+import com.liferay.portal.kernel.template.TemplateResourceLoaderUtil;
 import com.liferay.portal.kernel.util.ReflectionUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.template.TemplateResourceThreadLocal;
+import com.liferay.portal.util.PropsValues;
+
+import java.io.IOException;
+import java.io.Reader;
 
 import java.lang.reflect.Field;
 
 import org.apache.commons.collections.ExtendedProperties;
+import org.apache.velocity.Template;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.ResourceNotFoundException;
 import org.apache.velocity.runtime.RuntimeInstance;
 import org.apache.velocity.runtime.RuntimeServices;
 import org.apache.velocity.runtime.resource.Resource;
@@ -31,6 +44,15 @@ import org.apache.velocity.runtime.resource.ResourceManagerImpl;
  * @author Shuyang Zhou
  */
 public class LiferayResourceManager extends ResourceManagerImpl {
+
+	public LiferayResourceManager() {
+		String cacheName = TemplateResource.class.getName();
+
+		cacheName = cacheName.concat(StringPool.POUND).concat(
+			TemplateManager.VELOCITY);
+
+		_portalCache = SingleVMPoolUtil.getCache(cacheName);
+	}
 
 	@Override
 	public String getLoaderNameForResource(String source) {
@@ -52,15 +74,47 @@ public class LiferayResourceManager extends ResourceManagerImpl {
 
 	@Override
 	public Resource getResource(
-			String resourceName, int resourceType, String encoding)
-		throws Exception {
+			final String resourceName, final int resourceType,
+			final String encoding)
+		throws Exception, ParseErrorException, ResourceNotFoundException {
 
-		if (resourceName.contains(SandboxHandler.SANDBOX_MARKER)) {
-			return loadResource(resourceName, resourceType, encoding);
-		}
-		else {
+		if (resourceType != ResourceManager.RESOURCE_TEMPLATE) {
 			return super.getResource(resourceName, resourceType, encoding);
 		}
+
+		TemplateResource templateResource = null;
+
+		if (resourceName.startsWith(
+				TemplateResource.TEMPLATE_RESOURCE_UUID_PREFIX)) {
+
+			templateResource = TemplateResourceThreadLocal.getTemplateResource(
+				TemplateManager.VELOCITY);
+		}
+		else {
+			templateResource = TemplateResourceLoaderUtil.getTemplateResource(
+				TemplateManager.VELOCITY, resourceName);
+		}
+
+		if (templateResource == null) {
+			throw new ResourceNotFoundException(
+				"Unable to find Velocity template with ID " + resourceName);
+		}
+
+		Object object = _portalCache.get(templateResource);
+
+		if ((object != null) && (object instanceof Template)) {
+			return (Template)object;
+		}
+
+		Template template = _createTemplate(templateResource);
+
+		if (PropsValues.VELOCITY_ENGINE_RESOURCE_MODIFICATION_CHECK_INTERVAL !=
+				0) {
+
+			_portalCache.put(templateResource, template);
+		}
+
+		return template;
 	}
 
 	@Override
@@ -77,6 +131,55 @@ public class LiferayResourceManager extends ResourceManagerImpl {
 			runtimeServices, new FastExtendedProperties(extendedProperties));
 
 		super.initialize(runtimeServices);
+	}
+
+	private Template _createTemplate(TemplateResource templateResource)
+		throws IOException {
+
+		Template template = new LiferayTemplate(templateResource.getReader());
+
+		template.setEncoding(TemplateResource.DEFAUT_ENCODING);
+		template.setName(templateResource.getTemplateId());
+		template.setResourceLoader(new LiferayResourceLoader());
+		template.setRuntimeServices(rsvc);
+
+		template.process();
+
+		return template;
+	}
+
+	private PortalCache<TemplateResource, Object> _portalCache;
+
+	private class LiferayTemplate extends Template {
+
+		public LiferayTemplate(Reader reader) {
+			_reader = reader;
+		}
+
+		@Override
+		public boolean process() throws IOException, ParseErrorException {
+			data = null;
+
+			try {
+				data = rsvc.parse(_reader, name);
+
+				initDocument();
+
+				return true;
+			}
+			catch (Exception e) {
+				throw new ParseErrorException(
+					"Unable to parse Velocity template");
+			}
+			finally {
+				if (_reader != null) {
+					_reader.close();
+				}
+			}
+		}
+
+		private Reader _reader;
+
 	}
 
 }

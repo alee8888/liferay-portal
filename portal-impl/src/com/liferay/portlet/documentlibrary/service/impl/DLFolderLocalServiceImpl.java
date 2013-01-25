@@ -19,10 +19,15 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.search.Indexable;
+import com.liferay.portal.kernel.search.IndexableType;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.ResourceConstants;
@@ -40,6 +45,7 @@ import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.base.DLFolderLocalServiceBaseImpl;
 import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
 
 import java.io.Serializable;
 
@@ -58,7 +64,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	public DLFolder addFolder(
 			long userId, long groupId, long repositoryId, boolean mountPoint,
 			long parentFolderId, String name, String description,
-			ServiceContext serviceContext)
+			boolean hidden, ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
 		// Folder
@@ -84,10 +90,11 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		dlFolder.setParentFolderId(parentFolderId);
 		dlFolder.setName(name);
 		dlFolder.setDescription(description);
+		dlFolder.setHidden(hidden);
 		dlFolder.setOverrideFileEntryTypes(false);
 		dlFolder.setExpandoBridgeAttributes(serviceContext);
 
-		dlFolderPersistence.update(dlFolder, false);
+		dlFolderPersistence.update(dlFolder);
 
 		// Resources
 
@@ -117,15 +124,31 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 			parentDLFolder.setLastPostDate(now);
 
-			dlFolderPersistence.update(parentDLFolder, false);
+			dlFolderPersistence.update(parentDLFolder);
 		}
 
 		// App helper
 
 		dlAppHelperLocalService.addFolder(
-			new LiferayFolder(dlFolder), serviceContext);
+			userId, new LiferayFolder(dlFolder), serviceContext);
 
 		return dlFolder;
+	}
+
+	/**
+	 * @deprecated As of 6.2, replaced by more general {@link #addFolder(long,
+	 *             long, long, boolean, long, String, String, boolean,
+	 *             ServiceContext)}
+	 */
+	public DLFolder addFolder(
+			long userId, long groupId, long repositoryId, boolean mountPoint,
+			long parentFolderId, String name, String description,
+			ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		return addFolder(
+			userId, groupId, repositoryId, mountPoint, parentFolderId, name,
+			description, false, serviceContext);
 	}
 
 	public void deleteAll(long groupId)
@@ -137,10 +160,13 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 			groupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 		for (DLFolder dlFolder : dlFolders) {
-			deleteFolder(dlFolder);
+			dlFolderLocalService.deleteFolder(dlFolder);
 		}
 
 		dlFileEntryLocalService.deleteFileEntries(
+			groupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		dlFileShortcutLocalService.deleteFileShortcuts(
 			groupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 		try {
@@ -154,12 +180,107 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		}
 	}
 
-	public void deleteFolder(long folderId)
+	@Indexable(type = IndexableType.DELETE)
+	public DLFolder deleteFolder(DLFolder dlFolder)
+		throws PortalException, SystemException {
+
+		return deleteFolder(dlFolder, true);
+	}
+
+	@Indexable(type = IndexableType.DELETE)
+	public DLFolder deleteFolder(
+			DLFolder dlFolder, boolean includeTrashedEntries)
+		throws PortalException, SystemException {
+
+		// Folders
+
+		List<DLFolder> dlFolders = dlFolderPersistence.findByG_P(
+			dlFolder.getGroupId(), dlFolder.getFolderId());
+
+		for (DLFolder curDLFolder : dlFolders) {
+			if (includeTrashedEntries || !curDLFolder.isInTrash()) {
+				dlFolderLocalService.deleteFolder(
+					curDLFolder, includeTrashedEntries);
+			}
+		}
+
+		// Resources
+
+		resourceLocalService.deleteResource(
+			dlFolder.getCompanyId(), DLFolder.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL, dlFolder.getFolderId());
+
+		// WebDAVProps
+
+		webDAVPropsLocalService.deleteWebDAVProps(
+			DLFolder.class.getName(), dlFolder.getFolderId());
+
+		// File entries
+
+		dlFileEntryLocalService.deleteFileEntries(
+			dlFolder.getGroupId(), dlFolder.getFolderId(),
+			includeTrashedEntries);
+
+		// File entry types
+
+		dlFileEntryTypeLocalService.unsetFolderFileEntryTypes(
+			dlFolder.getFolderId());
+
+		// File shortcuts
+
+		dlFileShortcutLocalService.deleteFileShortcuts(
+			dlFolder.getGroupId(), dlFolder.getFolderId(),
+			includeTrashedEntries);
+
+		// Expando
+
+		expandoValueLocalService.deleteValues(
+			DLFolder.class.getName(), dlFolder.getFolderId());
+
+		// App helper
+
+		dlAppHelperLocalService.deleteFolder(new LiferayFolder(dlFolder));
+
+		// Folder
+
+		dlFolderPersistence.remove(dlFolder);
+
+		// Directory
+
+		try {
+			DLStoreUtil.deleteDirectory(
+				dlFolder.getCompanyId(), dlFolder.getFolderId(),
+				StringPool.BLANK);
+		}
+		catch (NoSuchDirectoryException nsde) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(nsde.getMessage());
+			}
+		}
+
+		return dlFolder;
+	}
+
+	@Indexable(type = IndexableType.DELETE)
+	public DLFolder deleteFolder(long folderId)
+		throws PortalException, SystemException {
+
+		return deleteFolder(folderId, true);
+	}
+
+	@Indexable(type = IndexableType.DELETE)
+	public DLFolder deleteFolder(long folderId, boolean includeTrashedEntries)
 		throws PortalException, SystemException {
 
 		DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
 
-		deleteFolder(dlFolder);
+		return deleteFolder(dlFolder, includeTrashedEntries);
+	}
+
+	public DLFolder fetchFolder(long groupId, long parentFolderId, String name)
+		throws SystemException {
+
+		return dlFolderPersistence.fetchByG_P_N(groupId, parentFolderId, name);
 	}
 
 	public List<DLFolder> getCompanyFolders(long companyId, int start, int end)
@@ -173,8 +294,8 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated {@link #getFileEntriesAndFileShortcuts(long, long,
-	 *             QueryDefinition)}
+	 * @deprecated Replaced by {@link #getFileEntriesAndFileShortcuts(long,
+	 *             long, QueryDefinition)}
 	 */
 	public List<Object> getFileEntriesAndFileShortcuts(
 			long groupId, long folderId, int status, int start, int end)
@@ -196,8 +317,8 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated {@link #getFileEntriesAndFileShortcutsCount(long, long,
-	 *             QueryDefinition)}
+	 * @deprecated Replaced by {@link #getFileEntriesAndFileShortcutsCount(long,
+	 *             long, QueryDefinition)}
 	 */
 	public int getFileEntriesAndFileShortcutsCount(
 			long groupId, long folderId, int status)
@@ -260,8 +381,8 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 			return dlFolderPersistence.findByG_P(groupId, parentFolderId);
 		}
 		else {
-			return dlFolderPersistence.findByG_M_P(
-				groupId, false, parentFolderId);
+			return dlFolderPersistence.findByG_M_P_H(
+				groupId, false, parentFolderId, false);
 		}
 	}
 
@@ -275,8 +396,8 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 				groupId, parentFolderId, start, end, obc);
 		}
 		else {
-			return dlFolderPersistence.findByG_M_P(
-				groupId, false, parentFolderId, start, end, obc);
+			return dlFolderPersistence.findByG_M_P_H(
+				groupId, false, parentFolderId, false, start, end, obc);
 		}
 	}
 
@@ -289,8 +410,9 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated {@link #getFoldersAndFileEntriesAndFileShortcuts(long, long,
-	 *             boolean, QueryDefinition)}
+	 * @deprecated Replaced by {@link
+	 *             #getFoldersAndFileEntriesAndFileShortcuts(long, long,
+	 *             String[], boolean, QueryDefinition)}
 	 */
 	public List<Object> getFoldersAndFileEntriesAndFileShortcuts(
 			long groupId, long folderId, int status,
@@ -306,8 +428,9 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated {@link #getFoldersAndFileEntriesAndFileShortcuts(long, long,
-	 *             boolean, QueryDefinition)}
+	 * @deprecated Replaced by {@link
+	 *             #getFoldersAndFileEntriesAndFileShortcutsCount(long, long,
+	 *             String[], boolean, QueryDefinition)}
 	 */
 	public List<Object> getFoldersAndFileEntriesAndFileShortcuts(
 			long groupId, long folderId, int status, String[] mimeTypes,
@@ -332,8 +455,9 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated {@link #getFoldersAndFileEntriesAndFileShortcutsCount(long,
-	 *             long, String[], boolean, QueryDefinition)
+	 * @deprecated Replaced by {@link
+	 *             #getFoldersAndFileEntriesAndFileShortcutsCount(long, long,
+	 *             String[], boolean, QueryDefinition)}
 	 */
 	public int getFoldersAndFileEntriesAndFileShortcutsCount(
 			long groupId, long folderId, int status,
@@ -347,8 +471,9 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated {@link #getFoldersAndFileEntriesAndFileShortcutsCount(long,
-	 *             long, String[], boolean, QueryDefinition)
+	 * @deprecated Replaced by {@link
+	 *             #getFoldersAndFileEntriesAndFileShortcutsCount(long, long,
+	 *             String[], boolean, QueryDefinition)}
 	 */
 	public int getFoldersAndFileEntriesAndFileShortcutsCount(
 			long groupId, long folderId, int status, String[] mimeTypes,
@@ -384,8 +509,8 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 			return dlFolderPersistence.countByG_P(groupId, parentFolderId);
 		}
 		else {
-			return dlFolderPersistence.countByG_M_P(
-				groupId, false, parentFolderId);
+			return dlFolderPersistence.countByG_M_P_H(
+				groupId, false, parentFolderId, false);
 		}
 	}
 
@@ -400,14 +525,19 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 			OrderByComparator obc)
 		throws SystemException {
 
-		return dlFolderPersistence.findByG_M_P(
-			groupId, true, parentFolderId, start, end, obc);
+		return dlFolderPersistence.findByG_M_P_H(
+			groupId, true, parentFolderId, false, start, end, obc);
 	}
 
 	public int getMountFoldersCount(long groupId, long parentFolderId)
 		throws SystemException {
 
-		return dlFolderPersistence.countByG_M_P(groupId, true, parentFolderId);
+		return dlFolderPersistence.countByG_M_P_H(
+			groupId, true, parentFolderId, false);
+	}
+
+	public List<DLFolder> getNoAssetFolders() throws SystemException {
+		return dlFolderFinder.findF_ByNoAssets();
 	}
 
 	public void getSubfolderIds(
@@ -425,6 +555,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		}
 	}
 
+	@Indexable(type = IndexableType.REINDEX)
 	public DLFolder moveFolder(
 			long folderId, long parentFolderId, ServiceContext serviceContext)
 		throws PortalException, SystemException {
@@ -441,13 +572,14 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		dlFolder.setParentFolderId(parentFolderId);
 		dlFolder.setExpandoBridgeAttributes(serviceContext);
 
-		dlFolderPersistence.update(dlFolder, false);
+		dlFolderPersistence.update(dlFolder);
 
 		dlAppHelperLocalService.moveFolder(new LiferayFolder(dlFolder));
 
 		return dlFolder;
 	}
 
+	@Indexable(type = IndexableType.REINDEX)
 	public DLFolder updateFolder(
 			long folderId, long parentFolderId, String name, String description,
 			long defaultFileEntryTypeId, List<Long> fileEntryTypeIds,
@@ -460,8 +592,8 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 		if (folderId > DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 			dlFolder = dlFolderLocalService.updateFolderAndFileEntryTypes(
-				folderId, parentFolderId, name, description,
-				defaultFileEntryTypeId, fileEntryTypeIds,
+				serviceContext.getUserId(), folderId, parentFolderId, name,
+				description, defaultFileEntryTypeId, fileEntryTypeIds,
 				overrideFileEntryTypes, serviceContext);
 
 			dlFileEntryTypeLocalService.cascadeFileEntryTypes(
@@ -470,7 +602,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 		// Workflow definitions
 
-		List<ObjectValuePair<Long, String>> workflowDefinitions =
+		List<ObjectValuePair<Long, String>> workflowDefinitionOVPs =
 			new ArrayList<ObjectValuePair<Long, String>>();
 
 		if (fileEntryTypeIds.isEmpty()) {
@@ -478,7 +610,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 				DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_ALL);
 		}
 		else {
-			workflowDefinitions.add(
+			workflowDefinitionOVPs.add(
 				new ObjectValuePair<Long, String>(
 					DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_ALL,
 					StringPool.BLANK));
@@ -488,7 +620,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 			String workflowDefinition = ParamUtil.getString(
 				serviceContext, "workflowDefinition" + fileEntryTypeId);
 
-			workflowDefinitions.add(
+			workflowDefinitionOVPs.add(
 				new ObjectValuePair<Long, String>(
 					fileEntryTypeId, workflowDefinition));
 		}
@@ -496,7 +628,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		workflowDefinitionLinkLocalService.updateWorkflowDefinitionLinks(
 			serviceContext.getUserId(), serviceContext.getCompanyId(),
 			serviceContext.getScopeGroupId(), DLFolder.class.getName(),
-			folderId, workflowDefinitions);
+			folderId, workflowDefinitionOVPs);
 
 		return dlFolder;
 	}
@@ -513,9 +645,10 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 	}
 
 	public DLFolder updateFolderAndFileEntryTypes(
-			long folderId, long parentFolderId, String name, String description,
-			long defaultFileEntryTypeId, List<Long> fileEntryTypeIds,
-			boolean overrideFileEntryTypes, ServiceContext serviceContext)
+			long userId, long folderId, long parentFolderId, String name,
+			String description, long defaultFileEntryTypeId,
+			List<Long> fileEntryTypeIds, boolean overrideFileEntryTypes,
+			ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
 		// Folder
@@ -538,7 +671,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		dlFolder.setOverrideFileEntryTypes(overrideFileEntryTypes);
 		dlFolder.setDefaultFileEntryTypeId(defaultFileEntryTypeId);
 
-		dlFolderPersistence.update(dlFolder, false);
+		dlFolderPersistence.update(dlFolder);
 
 		// File entry types
 
@@ -551,11 +684,14 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		// App helper
 
 		dlAppHelperLocalService.updateFolder(
-			new LiferayFolder(dlFolder), serviceContext);
+			userId, new LiferayFolder(dlFolder), serviceContext);
 
 		return dlFolder;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public void updateLastPostDate(long folderId, Date lastPostDate)
 		throws PortalException, SystemException {
 
@@ -563,7 +699,7 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 		dlFolder.setLastPostDate(lastPostDate);
 
-		dlFolderPersistence.update(dlFolder, false);
+		dlFolderPersistence.update(dlFolder);
 	}
 
 	public DLFolder updateStatus(
@@ -578,12 +714,20 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 
 		DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
 
+		int oldStatus = dlFolder.getStatus();
+
+		if (dlFolder.isInTrash() &&
+			(status == WorkflowConstants.STATUS_APPROVED)) {
+
+			dlFolder.setName(TrashUtil.getOriginalTitle(dlFolder.getName()));
+		}
+
 		dlFolder.setStatus(status);
 		dlFolder.setStatusByUserId(user.getUserId());
 		dlFolder.setStatusByUserName(user.getFullName());
 		dlFolder.setStatusDate(new Date());
 
-		dlFolderPersistence.update(dlFolder, false);
+		dlFolderPersistence.update(dlFolder);
 
 		// Folders, file entries, and file shortcuts
 
@@ -594,8 +738,34 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 			getFoldersAndFileEntriesAndFileShortcuts(
 				dlFolder.getGroupId(), folderId, null, false, queryDefinition);
 
-		dlAppHelperLocalService.updateStatuses(
+		dlAppHelperLocalService.updateDependentStatus(
 			user, foldersAndFileEntriesAndFileShortcuts, status);
+
+		// Trash
+
+		if (status == WorkflowConstants.STATUS_IN_TRASH) {
+			UnicodeProperties typeSettingsProperties = new UnicodeProperties();
+
+			typeSettingsProperties.put("title", dlFolder.getName());
+
+			trashEntryLocalService.addTrashEntry(
+				userId, dlFolder.getGroupId(), DLFolderConstants.getClassName(),
+				dlFolder.getFolderId(), WorkflowConstants.STATUS_APPROVED, null,
+				typeSettingsProperties);
+		}
+
+		// Indexer
+
+		if (((status == WorkflowConstants.STATUS_APPROVED) ||
+			(status == WorkflowConstants.STATUS_IN_TRASH) ||
+			(oldStatus == WorkflowConstants.STATUS_IN_TRASH)) &&
+			((serviceContext == null) || serviceContext.isIndexingEnabled())) {
+
+			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+				DLFolderConstants.getClassName());
+
+			indexer.reindex(dlFolder);
+		}
 
 		return dlFolder;
 	}
@@ -640,66 +810,6 @@ public class DLFolderLocalServiceImpl extends DLFolderLocalServiceBaseImpl {
 		DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
 
 		addFolderResources(dlFolder, groupPermissions, guestPermissions);
-	}
-
-	protected void deleteFolder(DLFolder dlFolder)
-		throws PortalException, SystemException {
-
-		// Folders
-
-		List<DLFolder> dlFolders = dlFolderPersistence.findByG_P(
-			dlFolder.getGroupId(), dlFolder.getFolderId());
-
-		for (DLFolder curDLFolder : dlFolders) {
-			deleteFolder(curDLFolder);
-		}
-
-		// Resources
-
-		resourceLocalService.deleteResource(
-			dlFolder.getCompanyId(), DLFolder.class.getName(),
-			ResourceConstants.SCOPE_INDIVIDUAL, dlFolder.getFolderId());
-
-		// WebDAVProps
-
-		webDAVPropsLocalService.deleteWebDAVProps(
-			DLFolder.class.getName(), dlFolder.getFolderId());
-
-		// File entries
-
-		dlFileEntryLocalService.deleteFileEntries(
-			dlFolder.getGroupId(), dlFolder.getFolderId());
-
-		// File entry types
-
-		dlFileEntryTypeLocalService.unsetFolderFileEntryTypes(
-			dlFolder.getFolderId());
-
-		// Expando
-
-		expandoValueLocalService.deleteValues(
-			DLFolder.class.getName(), dlFolder.getFolderId());
-
-		// App helper
-
-		dlAppHelperLocalService.deleteFolder(new LiferayFolder(dlFolder));
-
-		// Folder
-
-		dlFolderPersistence.remove(dlFolder);
-
-		// Directory
-
-		try {
-			DLStoreUtil.deleteDirectory(
-				dlFolder.getCompanyId(), dlFolder.getFolderId(),
-				StringPool.BLANK);
-		}
-		catch (NoSuchDirectoryException nsde) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(nsde.getMessage());
-			}
-		}
 	}
 
 	protected long getParentFolderId(DLFolder dlFolder, long parentFolderId)

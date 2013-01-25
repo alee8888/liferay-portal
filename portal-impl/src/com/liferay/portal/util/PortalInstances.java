@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.dao.shard.ShardUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -33,8 +34,6 @@ import com.liferay.portal.model.PortletCategory;
 import com.liferay.portal.model.VirtualHost;
 import com.liferay.portal.search.lucene.LuceneHelperUtil;
 import com.liferay.portal.security.auth.CompanyThreadLocal;
-import com.liferay.portal.security.ldap.LDAPSettingsUtil;
-import com.liferay.portal.security.ldap.PortalLDAPImporterUtil;
 import com.liferay.portal.service.CompanyLocalServiceUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutSetLocalServiceUtil;
@@ -288,6 +287,13 @@ public class PortalInstances {
 	private long[] _getCompanyIdsBySQL() throws SQLException {
 		List<Long> companyIds = new ArrayList<Long>();
 
+		String currentShardName = ShardUtil.setTargetSource(
+			PropsValues.SHARD_DEFAULT_NAME);
+
+		if (Validator.isNotNull(currentShardName)) {
+			ShardUtil.pushCompanyService(PropsValues.SHARD_DEFAULT_NAME);
+		}
+
 		Connection con = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
@@ -296,6 +302,8 @@ public class PortalInstances {
 			con = DataAccess.getConnection();
 
 			ps = con.prepareStatement(_GET_COMPANY_IDS);
+
+			ps.setString(1, currentShardName);
 
 			rs = ps.executeQuery();
 
@@ -306,6 +314,12 @@ public class PortalInstances {
 			}
 		}
 		finally {
+			if (Validator.isNotNull(currentShardName)) {
+				ShardUtil.popCompanyService();
+
+				ShardUtil.setTargetSource(currentShardName);
+			}
+
 			DataAccess.cleanUp(con, ps, rs);
 		}
 
@@ -388,8 +402,8 @@ public class PortalInstances {
 		}
 
 		try {
-			String xml = HttpUtil.URLtoString(servletContext.getResource(
-				"/WEB-INF/liferay-display.xml"));
+			String xml = HttpUtil.URLtoString(
+				servletContext.getResource("/WEB-INF/liferay-display.xml"));
 
 			PortletCategory portletCategory = (PortletCategory)WebAppPool.get(
 				companyId, WebKeys.PORTLET_CATEGORY);
@@ -439,17 +453,6 @@ public class PortalInstances {
 			catch (Exception e) {
 				_log.error(e, e);
 			}
-		}
-
-		// LDAP Import
-
-		try {
-			if (LDAPSettingsUtil.isImportOnStartup(companyId)) {
-				PortalLDAPImporterUtil.importFromLDAP(companyId);
-			}
-		}
-		catch (Exception e) {
-			_log.error(e, e);
 		}
 
 		// Process application startup events
@@ -525,7 +528,8 @@ public class PortalInstances {
 	}
 
 	private static final String _GET_COMPANY_IDS =
-		"select companyId from Company";
+		"select companyId from Company, Shard where Company.companyId = " +
+			"Shard.classPK and Shard.name = ?";
 
 	private static Log _log = LogFactoryUtil.getLog(PortalInstances.class);
 

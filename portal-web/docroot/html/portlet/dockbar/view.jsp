@@ -74,8 +74,6 @@ boolean hasLayoutUpdatePermission = LayoutPermissionUtil.contains(permissionChec
 												<ul>
 
 													<%
-													Set<String> runtimePortletIds = RuntimeTag.getRuntimePortletIDs(request);
-
 													int j = 0;
 
 													for (int i = 0; i < portlets.size(); i++) {
@@ -85,19 +83,7 @@ boolean hasLayoutUpdatePermission = LayoutPermissionUtil.contains(permissionChec
 
 														boolean portletUsed = layoutTypePortlet.hasPortletId(portlet.getPortletId());
 
-														if (runtimePortletIds != null) {
-															for (String runtimePortletId : runtimePortletIds) {
-																String portletId = portlet.getPortletId();
-
-																if (runtimePortletId.equals(portletId) ||
-																	runtimePortletId.startsWith(portletId.concat(PortletConstants.INSTANCE_SEPARATOR))) {
-
-																	portletUsed = true;
-																}
-															}
-														}
-
-														boolean portletLocked = (!portletInstanceable && portletUsed);
+														boolean portletLocked = !portletInstanceable && portletUsed;
 
 														if (!PortletPermissionUtil.contains(permissionChecker, layout, portlet.getPortletId(), ActionKeys.ADD_TO_PAGE)) {
 															continue;
@@ -147,7 +133,7 @@ boolean hasLayoutUpdatePermission = LayoutPermissionUtil.contains(permissionChec
 						<ul>
 							<c:if test="<%= themeDisplay.isShowPageSettingsIcon() %>">
 								<li class="first manage-page use-dialog full-dialog">
-									<aui:a href="<%= themeDisplay.getURLPageSettings().toString() %>" label="page" title="manage-page" />
+									<aui:a href='<%= themeDisplay.getURLPageSettings().toString() + "#details" %>' label="page" title="manage-page" />
 								</li>
 							</c:if>
 
@@ -223,6 +209,16 @@ boolean hasLayoutUpdatePermission = LayoutPermissionUtil.contains(permissionChec
 
 				if (refererLayout != null) {
 					Group refererGroup = refererLayout.getGroup();
+
+					if (refererGroup.isUserGroup()) {
+						Group scopeGroup = themeDisplay.getScopeGroup();
+
+						if (scopeGroup.isUser()) {
+							refererGroup = scopeGroup;
+
+							refererLayout = new VirtualLayout(refererLayout, refererGroup);
+						}
+					}
 
 					refererGroupDescriptiveName = refererGroup.getDescriptiveName(locale);
 
@@ -300,11 +296,11 @@ boolean hasLayoutUpdatePermission = LayoutPermissionUtil.contains(permissionChec
 				%>
 
 				<aui:a cssClass='<%= "user-portrait" + useDialog %>' data-controlPanelCategory="<%= controlPanelCategory %>" href="<%= themeDisplay.getURLMyAccount().toString() %>" title="manage-my-account">
-					<img alt="<%= HtmlUtil.escape(user.getFullName()) %>" src="<%= HtmlUtil.escape(user.getPortraitURL(themeDisplay)) %>" />
-				</aui:a>
+					<img alt="<liferay-ui:message key="manage-my-account" />" src="<%= HtmlUtil.escape(user.getPortraitURL(themeDisplay)) %>" />
 
-				<aui:a cssClass='<%= "user-fullname" + useDialog %>' data-controlPanelCategory="<%= controlPanelCategory %>" href="<%= themeDisplay.getURLMyAccount().toString() %>" title="manage-my-account">
-					<%= HtmlUtil.escape(user.getFullName()) %>
+					<span class="user-full-name">
+						<%= HtmlUtil.escape(user.getFullName()) %>
+					</span>
 				</aui:a>
 
 				<c:if test="<%= themeDisplay.isShowSignOutIcon() %>">
@@ -384,11 +380,11 @@ boolean hasLayoutUpdatePermission = LayoutPermissionUtil.contains(permissionChec
 				%>
 
 					<li>
-						<label>
-							<a href="javascript:;">
+						<a href="javascript:;">
+							<label>
 								<input name="template" type="radio" value="<%= layoutPrototype.getLayoutPrototypeId() %>" /> <%= HtmlUtil.escape(layoutPrototype.getName(user.getLanguageId())) %>
-							</a>
-						</label>
+							</label>
+						</a>
 					</li>
 
 				<%
@@ -406,18 +402,17 @@ boolean hasLayoutUpdatePermission = LayoutPermissionUtil.contains(permissionChec
 
 		<liferay-ui:message key="this-page-has-been-changed-since-the-last-update-from-the-site-template" />
 
-		<c:if test="<%= GroupPermissionUtil.contains(permissionChecker, layout.getGroupId(), ActionKeys.UPDATE) %>">
-			<liferay-portlet:actionURL portletName="<%= PortletKeys.LAYOUTS_ADMIN %>" var="resetPrototypeURL">
-				<portlet:param name="struts_action" value="/layouts_admin/edit_layouts" />
-				<portlet:param name="<%= Constants.CMD %>" value="reset_prototype" />
-				<portlet:param name="redirect" value="<%= PortalUtil.getLayoutURL(themeDisplay) %>" />
-				<portlet:param name="groupId" value="<%= String.valueOf(themeDisplay.getParentGroupId()) %>" />
-			</liferay-portlet:actionURL>
+		<liferay-portlet:actionURL portletName="<%= PortletKeys.LAYOUTS_ADMIN %>" var="resetPrototypeURL">
+			<portlet:param name="struts_action" value="/layouts_admin/edit_layouts" />
+		</liferay-portlet:actionURL>
 
-			<aui:form action="<%= resetPrototypeURL %>" cssClass="reset-prototype" name="resetFm">
-				<aui:button name="submit" type="submit" value="reset" />
-			</aui:form>
-		</c:if>
+		<aui:form action="<%= resetPrototypeURL %>" cssClass="reset-prototype" name="resetFm">
+			<input name="<%= Constants.CMD %>" type="hidden" value="reset_prototype" />
+			<input name="redirect" type="hidden" value="<%= PortalUtil.getLayoutURL(themeDisplay) %>" />
+			<input name="groupId" type="hidden" value="<%= String.valueOf(themeDisplay.getParentGroupId()) %>" />
+
+			<aui:button name="submit" type="submit" value="reset" />
+		</aui:form>
 	</div>
 </c:if>
 
@@ -473,7 +468,7 @@ boolean hasLayoutUpdatePermission = LayoutPermissionUtil.contains(permissionChec
 			}
 			%>
 
-			<liferay-ui:icon cssClass='<%= layoutTypePortlet.isCustomizedView() ? StringPool.BLANK : "false" %>' id="toggleCustomizedView" image='<%= taglibImage %>' label="<%= true %>" message="<%= taglibMessage %>" url="javascript:;" />
+			<liferay-ui:icon cssClass='<%= layoutTypePortlet.isCustomizedView() ? StringPool.BLANK : "false" %>' id="toggleCustomizedView" image="<%= taglibImage %>" label="<%= true %>" message="<%= taglibMessage %>" url="javascript:;" />
 
 			<liferay-portlet:actionURL portletName="<%= PortletKeys.LAYOUTS_ADMIN %>" var="resetCustomizationViewURL">
 				<portlet:param name="struts_action" value="/layouts_admin/edit_layouts" />
@@ -482,36 +477,45 @@ boolean hasLayoutUpdatePermission = LayoutPermissionUtil.contains(permissionChec
 			</liferay-portlet:actionURL>
 
 			<%
-			String taglibURL = "javascript:if(confirm('" + UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-reset-your-customizations-to-default") + "')){submitForm(document.hrefFm, '" + HttpUtil.encodeURL(resetCustomizationViewURL) + "');}";
+			String taglibURL = "javascript:if (confirm('" + UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-reset-your-customizations-to-default") + "')){submitForm(document.hrefFm, '" + HttpUtil.encodeURL(resetCustomizationViewURL) + "');}";
 			%>
 
 			<liferay-ui:icon image="../portlet/refresh" label="<%= true %>" message="reset-my-customizations" url="<%= taglibURL %>" />
 		</span>
 	</div>
 
+	<aui:script>
+		Liferay.provide(
+			window,
+			'<portlet:namespace />toggleCustomizedView',
+			function(event) {
+				var A = AUI();
+
+				A.io.request(
+					themeDisplay.getPathMain() + '/portal/update_layout',
+					{
+						data: {
+							cmd: 'toggle_customized_view',
+							customized_view: '<%= String.valueOf(!layoutTypePortlet.isCustomizedView()) %>',
+							p_auth: '<%= AuthTokenUtil.getToken(request) %>'
+						},
+						on: {
+							success: function(event, id, obj) {
+								window.location.href = themeDisplay.getLayoutURL();
+							}
+						}
+					}
+				);
+			},
+			['aui-io-request']
+		);
+	</aui:script>
+
 	<aui:script use="aui-base">
 		var toggleCustomizedView = A.one('#<portlet:namespace />toggleCustomizedView');
 
 		if (toggleCustomizedView) {
-			toggleCustomizedView.on(
-				'click',
-				function(event) {
-					A.io.request(
-						themeDisplay.getPathMain() + '/portal/update_layout',
-						{
-							data: {
-								cmd: 'toggle_customized_view',
-								customized_view: '<%= String.valueOf(!layoutTypePortlet.isCustomizedView()) %>'
-							},
-							on: {
-								success: function(event, id, obj) {
-									window.location.href = themeDisplay.getLayoutURL();
-								}
-							}
-						}
-					);
-				}
-			);
+			toggleCustomizedView.on('click', <portlet:namespace />toggleCustomizedView);
 		}
 	</aui:script>
 </c:if>

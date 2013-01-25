@@ -26,6 +26,7 @@ import com.liferay.portal.service.LayoutRevisionLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextThreadLocal;
 import com.liferay.portal.service.persistence.LayoutRevisionUtil;
+import com.liferay.portal.staging.StagingAdvicesThreadLocal;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -37,9 +38,13 @@ import org.aopalliance.intercept.MethodInvocation;
  * @author Raymond Augé
  */
 public class PortletPreferencesLocalServiceStagingAdvice
-	extends LayoutLocalServiceImpl implements MethodInterceptor {
+	implements MethodInterceptor {
 
 	public Object invoke(MethodInvocation methodInvocation) throws Throwable {
+		if (!StagingAdvicesThreadLocal.isEnabled()) {
+			return methodInvocation.proceed();
+		}
+
 		try {
 			Object[] arguments = methodInvocation.getArguments();
 

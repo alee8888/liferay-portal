@@ -70,6 +70,8 @@ public class ResourceBlockModelImpl extends BaseModelImpl<ResourceBlock>
 		};
 	public static final String TABLE_SQL_CREATE = "create table ResourceBlock (resourceBlockId LONG not null primary key,companyId LONG,groupId LONG,name VARCHAR(75) null,permissionsHash VARCHAR(75) null,referenceCount LONG)";
 	public static final String TABLE_SQL_DROP = "drop table ResourceBlock";
+	public static final String ORDER_BY_JPQL = " ORDER BY resourceBlock.resourceBlockId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY ResourceBlock.resourceBlockId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -86,6 +88,7 @@ public class ResourceBlockModelImpl extends BaseModelImpl<ResourceBlock>
 	public static long GROUPID_COLUMN_BITMASK = 2L;
 	public static long NAME_COLUMN_BITMASK = 4L;
 	public static long PERMISSIONSHASH_COLUMN_BITMASK = 8L;
+	public static long RESOURCEBLOCKID_COLUMN_BITMASK = 16L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -94,6 +97,10 @@ public class ResourceBlockModelImpl extends BaseModelImpl<ResourceBlock>
 	 * @return the normal model instance
 	 */
 	public static ResourceBlock toModel(ResourceBlockSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		ResourceBlock model = new ResourceBlockImpl();
 
 		model.setResourceBlockId(soapModel.getResourceBlockId());
@@ -113,6 +120,10 @@ public class ResourceBlockModelImpl extends BaseModelImpl<ResourceBlock>
 	 * @return the normal model instances
 	 */
 	public static List<ResourceBlock> toModels(ResourceBlockSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<ResourceBlock> models = new ArrayList<ResourceBlock>(soapModels.length);
 
 		for (ResourceBlockSoap soapModel : soapModels) {
@@ -137,7 +148,7 @@ public class ResourceBlockModelImpl extends BaseModelImpl<ResourceBlock>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_resourceBlockId);
+		return _resourceBlockId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -318,17 +329,6 @@ public class ResourceBlockModelImpl extends BaseModelImpl<ResourceBlock>
 	}
 
 	@Override
-	public ResourceBlock toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (ResourceBlock)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			ResourceBlock.class.getName(), getPrimaryKey());
@@ -339,6 +339,16 @@ public class ResourceBlockModelImpl extends BaseModelImpl<ResourceBlock>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public ResourceBlock toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (ResourceBlock)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -510,7 +520,7 @@ public class ResourceBlockModelImpl extends BaseModelImpl<ResourceBlock>
 	}
 
 	private static ClassLoader _classLoader = ResourceBlock.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			ResourceBlock.class
 		};
 	private long _resourceBlockId;
@@ -526,5 +536,5 @@ public class ResourceBlockModelImpl extends BaseModelImpl<ResourceBlock>
 	private String _originalPermissionsHash;
 	private long _referenceCount;
 	private long _columnBitmask;
-	private ResourceBlock _escapedModelProxy;
+	private ResourceBlock _escapedModel;
 }

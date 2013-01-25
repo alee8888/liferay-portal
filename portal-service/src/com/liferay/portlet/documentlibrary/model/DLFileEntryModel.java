@@ -16,9 +16,11 @@ package com.liferay.portlet.documentlibrary.model;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -40,7 +42,8 @@ import java.util.Date;
  * @see com.liferay.portlet.documentlibrary.model.impl.DLFileEntryModelImpl
  * @generated
  */
-public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
+public interface DLFileEntryModel extends AttachedModel, BaseModel<DLFileEntry>,
+	GroupedModel, StagedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -233,6 +236,43 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 * @param modifiedDate the modified date of this document library file entry
 	 */
 	public void setModifiedDate(Date modifiedDate);
+
+	/**
+	 * Returns the fully qualified class name of this document library file entry.
+	 *
+	 * @return the fully qualified class name of this document library file entry
+	 */
+	public String getClassName();
+
+	public void setClassName(String className);
+
+	/**
+	 * Returns the class name ID of this document library file entry.
+	 *
+	 * @return the class name ID of this document library file entry
+	 */
+	public long getClassNameId();
+
+	/**
+	 * Sets the class name ID of this document library file entry.
+	 *
+	 * @param classNameId the class name ID of this document library file entry
+	 */
+	public void setClassNameId(long classNameId);
+
+	/**
+	 * Returns the class p k of this document library file entry.
+	 *
+	 * @return the class p k of this document library file entry
+	 */
+	public long getClassPK();
+
+	/**
+	 * Sets the class p k of this document library file entry.
+	 *
+	 * @param classPK the class p k of this document library file entry
+	 */
+	public void setClassPK(long classPK);
 
 	/**
 	 * Returns the repository ID of this document library file entry.
@@ -465,6 +505,27 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 */
 	public void setCustom2ImageId(long custom2ImageId);
 
+	/**
+	 * Returns the manual check in required of this document library file entry.
+	 *
+	 * @return the manual check in required of this document library file entry
+	 */
+	public boolean getManualCheckInRequired();
+
+	/**
+	 * Returns <code>true</code> if this document library file entry is manual check in required.
+	 *
+	 * @return <code>true</code> if this document library file entry is manual check in required; <code>false</code> otherwise
+	 */
+	public boolean isManualCheckInRequired();
+
+	/**
+	 * Sets whether this document library file entry is manual check in required.
+	 *
+	 * @param manualCheckInRequired the manual check in required of this document library file entry
+	 */
+	public void setManualCheckInRequired(boolean manualCheckInRequired);
+
 	public boolean isNew();
 
 	public void setNew(boolean n);
@@ -492,6 +553,8 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	public CacheModel<DLFileEntry> toCacheModel();
 
 	public DLFileEntry toEscapedModel();
+
+	public DLFileEntry toUnescapedModel();
 
 	public String toString();
 

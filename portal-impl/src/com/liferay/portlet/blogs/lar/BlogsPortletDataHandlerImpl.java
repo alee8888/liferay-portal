@@ -35,6 +35,7 @@ import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
+import com.liferay.portlet.blogs.service.BlogsStatsUserLocalServiceUtil;
 import com.liferay.portlet.blogs.service.persistence.BlogsEntryUtil;
 import com.liferay.portlet.journal.lar.JournalPortletDataHandlerImpl;
 
@@ -103,6 +104,9 @@ public class BlogsPortletDataHandlerImpl extends BasePortletDataHandler {
 
 			BlogsEntryLocalServiceUtil.deleteEntries(
 				portletDataContext.getScopeGroupId());
+
+			BlogsStatsUserLocalServiceUtil.deleteStatsUserByGroupId(
+				portletDataContext.getScopeGroupId());
 		}
 
 		return null;
@@ -132,6 +136,10 @@ public class BlogsPortletDataHandlerImpl extends BasePortletDataHandler {
 		Element dlFileEntriesElement = entriesElement.addElement(
 			"dl-file-entries");
 		Element dlFileRanksElement = entriesElement.addElement("dl-file-ranks");
+		Element dlRepositoriesElement = entriesElement.addElement(
+			"dl-repositories");
+		Element dlRepositoryEntriesElement = entriesElement.addElement(
+			"dl-repository-entries");
 
 		List<BlogsEntry> entries = BlogsEntryUtil.findByGroupId(
 			portletDataContext.getScopeGroupId());
@@ -140,7 +148,7 @@ public class BlogsPortletDataHandlerImpl extends BasePortletDataHandler {
 			exportEntry(
 				portletDataContext, entriesElement, dlFileEntryTypesElement,
 				dlFoldersElement, dlFileEntriesElement, dlFileRanksElement,
-				entry);
+				dlRepositoriesElement, dlRepositoryEntriesElement, entry);
 		}
 
 		return document.formattedString();
@@ -194,6 +202,7 @@ public class BlogsPortletDataHandlerImpl extends BasePortletDataHandler {
 			PortletDataContext portletDataContext, Element entriesElement,
 			Element dlFileEntryTypesElement, Element dlFoldersElement,
 			Element dlFileEntriesElement, Element dlFileRanksElement,
+			Element dlRepositoriesElement, Element dlRepositoryEntriesElement,
 			BlogsEntry entry)
 		throws Exception {
 
@@ -201,9 +210,7 @@ public class BlogsPortletDataHandlerImpl extends BasePortletDataHandler {
 			return;
 		}
 
-		if ((entry.getStatus() != WorkflowConstants.STATUS_APPROVED) &&
-			(entry.getStatus() != WorkflowConstants.STATUS_IN_TRASH)) {
-
+		if (!entry.isApproved() && !entry.isInTrash()) {
 			return;
 		}
 
@@ -227,8 +234,8 @@ public class BlogsPortletDataHandlerImpl extends BasePortletDataHandler {
 
 		String content = JournalPortletDataHandlerImpl.exportReferencedContent(
 			portletDataContext, dlFileEntryTypesElement, dlFoldersElement,
-			dlFileEntriesElement, dlFileRanksElement, entryElement,
-			entry.getContent());
+			dlFileEntriesElement, dlFileRanksElement, dlRepositoriesElement,
+			dlRepositoryEntriesElement, entryElement, entry.getContent());
 
 		entry.setContent(content);
 
@@ -357,6 +364,8 @@ public class BlogsPortletDataHandlerImpl extends BasePortletDataHandler {
 			BlogsEntry importedEntry = null;
 
 			if (portletDataContext.isDataStrategyMirror()) {
+				serviceContext.setAttribute("urlTitle", entry.getUrlTitle());
+
 				BlogsEntry existingEntry = BlogsEntryUtil.fetchByUUID_G(
 					entry.getUuid(), portletDataContext.getScopeGroupId());
 

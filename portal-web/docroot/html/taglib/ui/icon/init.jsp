@@ -16,6 +16,8 @@
 
 <%@ include file="/html/taglib/init.jsp" %>
 
+<%@ page import="java.net.URL" %>
+
 <%
 String id = (String)request.getAttribute("liferay-ui:icon:id");
 
@@ -96,6 +98,7 @@ String lang = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon
 boolean localizeMessage = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:icon:localizeMessage"));
 boolean toolTip = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:icon:toolTip"));
 String cssClass = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:cssClass"));
+String linkCssClass = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:linkCssClass"));
 Map<String, Object> data = (Map<String, Object>)request.getAttribute("liferay-ui:icon:data");
 String onClick = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:onClick"));
 
@@ -144,5 +147,5 @@ else {
 %>
 
 <%!
-private static String _AUI_PATH = "../aui/";
+private static final String _AUI_PATH = "../aui/";
 %>

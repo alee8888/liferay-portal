@@ -15,33 +15,35 @@ AUI.add(
 
 		var CSS_TAGS_LIST = 'lfr-tags-selector-list';
 
-		var MAP_INVALID_CHARACTERS = {
-			'&': 1,
-			'\'': 1,
-			'@': 1,
-			'\\': 1,
-			']': 1,
-			'}': 1,
-			':': 1,
-			',': 1,
-			'=': 1,
-			'>': 1,
-			'/': 1,
-			'<': 1,
-			'\n': 1,
-			'[': 1,
-			'{': 1,
-			'%': 1,
-			'|': 1,
-			'+': 1,
-			'#': 1,
-			'?': 1,
-			'"': 1,
-			'\r': 1,
-			';': 1,
-			'*': 1,
-			'~': 1
-		};
+		var MAP_INVALID_CHARACTERS = AArray.hash(
+			[
+				'&',
+				'\'',
+				'@',
+				'\\',
+				']',
+				'}',
+				':',
+				',',
+				'=',
+				'>',
+				'/',
+				'<',
+				'\n',
+				'[',
+				'{',
+				'%',
+				'|',
+				'+',
+				'#',
+				'?',
+				'"',
+				'\r',
+				';',
+				'*',
+				'~'
+			]
+		);
 
 		var TPL_CHECKED = ' checked="checked" ';
 
@@ -114,6 +116,10 @@ AUI.add(
 
 							return instance._getTagsDataSource();
 						}
+					},
+					groupIds: {
+						setter: '_setGroupIds',
+						validator: Lang.isString
 					},
 					guid: {
 						value: ''
@@ -263,19 +269,10 @@ AUI.add(
 					_getEntries: function(callback) {
 						var instance = this;
 
-						var portalModelResource = instance.get('portalModelResource');
-
-						var groupIds = [];
-
-						if (!portalModelResource && (themeDisplay.getParentGroupId() != themeDisplay.getCompanyGroupId())) {
-							groupIds.push(themeDisplay.getParentGroupId());
-						}
-
-						groupIds.push(themeDisplay.getCompanyGroupId());
-
-						Liferay.Service.Asset.AssetTag.getGroupsTags(
+						Liferay.Service(
+							'/assettag/get-groups-tags',
 							{
-								groupIds: groupIds
+								groupIds: instance.get('groupIds')
 							},
 							callback
 						);
@@ -284,7 +281,7 @@ AUI.add(
 					_getTagsDataSource: function() {
 						var instance = this;
 
-						var AssetTagSearch = Liferay.Service.Asset.AssetTag.search;
+						var AssetTagSearch = Liferay.Service.bind('/assettag/search');
 
 						AssetTagSearch._serviceQueryCache = {};
 
@@ -294,7 +291,8 @@ AUI.add(
 							{
 								on: {
 									request: function(event) {
-										var term = event.request;
+										var term = decodeURIComponent(event.request);
+
 										var key = term;
 
 										if (term == '*') {
@@ -305,10 +303,10 @@ AUI.add(
 
 										if (!serviceQueryObj) {
 											serviceQueryObj = {
-												groupId: themeDisplay.getParentGroupId(),
+												groupIds: instance.get('groupIds'),
 												name: '%' + term + '%',
-												properties: STR_BLANK,
-												begin: 0,
+												tagProperties: STR_BLANK,
+												start: 0,
 												end: 20
 											};
 
@@ -376,7 +374,7 @@ AUI.add(
 					_onAddEntryClick: function(event) {
 						var instance = this;
 
-						var text = instance.inputNode.val();
+						var text = Liferay.Util.escapeHTML(instance.inputNode.val());
 
 						if (text) {
 							if (text.indexOf(',') > -1) {
@@ -501,6 +499,10 @@ AUI.add(
 						popup.liveSearch.refreshIndex();
 					},
 
+					_setGroupIds: function(value) {
+						return value.split(',');
+					},
+
 					_showPopup: function(event) {
 						var instance = this;
 
@@ -618,7 +620,7 @@ AUI.add(
 
 									suggestionsIO.start();
 								},
-								until: function () {
+								until: function() {
 									return length <= start;
 								}
 							}

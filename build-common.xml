@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="common" xmlns:antelope="antlib:ise.antelope.tasks">
+<project name="build-common" xmlns:antelope="antlib:ise.antelope.tasks">
 	<property name="project.dir" value=".." />
 
 	<property name="test.properties" value="com/liferay/portal/tools/dependencies/portal-tools.properties" />
@@ -43,6 +43,7 @@
 		<fileset dir="${project.dir}/lib/development" includes="*.jar" />
 		<fileset dir="${project.dir}/lib/global" includes="*.jar" />
 		<fileset dir="${project.dir}/lib/portal" includes="*.jar" />
+		<fileset dir="${project.dir}/osgi/lib/common/core" includes="*.jar" />
 	</path>
 
 	<path id="project.classpath">
@@ -67,28 +68,136 @@
 	<taskdef classpathref="lib.classpath" resource="net/sf/antcontrib/antlib.xml" />
 	<taskdef classpathref="lib.classpath" resource="axis-tasks.properties" />
 	<taskdef classpathref="lib.classpath" resource="ise/antelope/tasks/antlib.xml" uri="antlib:ise.antelope.tasks" />
+	<taskdef classpathref="lib.classpath" resource="aQute/bnd/ant/taskdef.properties" />
 	<taskdef classpathref="lib.classpath" resource="com/orangevolt/tools/ant/taskdefs.properties" />
 	<taskdef classpathref="lib.classpath" resource="tasks.properties" />
 
 	<taskdef classname="com.tonicsystems.jarjar.JarJarTask" classpath="${project.dir}/lib/development/jarjar.jar" name="jarjar" />
+	<taskdef classname="com.oopsconsultancy.xmltask.ant.XmlTask" classpath="${project.dir}/lib/development/xmltask.jar" name="xmltask" />
 
 	<property name="doc.dir" value="${project.dir}/api" />
 
-	<propertycopy name="app.server.version" from="app.server.${app.server.type}.version" silent="true" />
-	<propertycopy name="app.server.dir" from="app.server.${app.server.type}.dir" />
-	<propertycopy name="app.server.bin.dir" from="app.server.${app.server.type}.bin.dir" />
-	<propertycopy name="app.server.classes.global.dir" from="app.server.${app.server.type}.classes.global.dir" />
-	<propertycopy name="app.server.classes.portal.dir" from="app.server.${app.server.type}.classes.portal.dir" />
-	<propertycopy name="app.server.deploy.dir" from="app.server.${app.server.type}.deploy.dir" />
-	<propertycopy name="app.server.instance.dir" from="app.server.${app.server.type}.instance.dir" silent="true" />
-	<propertycopy name="app.server.lib.endorsed.dir" from="app.server.${app.server.type}.lib.endorsed.dir" silent="true" />
-	<propertycopy name="app.server.lib.global.dir" from="app.server.${app.server.type}.lib.global.dir" />
-	<propertycopy name="app.server.lib.portal.dir" from="app.server.${app.server.type}.lib.portal.dir" />
-	<propertycopy name="app.server.lib.support.dir" from="app.server.${app.server.type}.lib.support.dir" silent="true" />
-	<propertycopy name="app.server.portal.dir" from="app.server.${app.server.type}.portal.dir" />
-	<propertycopy name="app.server.log.dir" from="app.server.${app.server.type}.log.dir" />
-	<propertycopy name="app.server.temp.dir" from="app.server.${app.server.type}.temp.dir" />
-	<propertycopy name="app.server.work.dir" from="app.server.${app.server.type}.work.dir" />
+	<propertycopy from="app.server.${app.server.type}.version" name="app.server.version" silent="true" />
+	<propertycopy from="app.server.${app.server.type}.dir" name="app.server.dir" />
+	<propertycopy from="app.server.${app.server.type}.bin.dir" name="app.server.bin.dir" />
+	<propertycopy from="app.server.${app.server.type}.classes.global.dir" name="app.server.classes.global.dir" />
+	<propertycopy from="app.server.${app.server.type}.classes.portal.dir" name="app.server.classes.portal.dir" />
+	<propertycopy from="app.server.${app.server.type}.deploy.dir" name="app.server.deploy.dir" />
+	<propertycopy from="app.server.${app.server.type}.instance.dir" name="app.server.instance.dir" silent="true" />
+	<propertycopy from="app.server.${app.server.type}.lib.endorsed.dir" name="app.server.lib.endorsed.dir" silent="true" />
+	<propertycopy from="app.server.${app.server.type}.lib.global.dir" name="app.server.lib.global.dir" />
+	<propertycopy from="app.server.${app.server.type}.lib.portal.dir" name="app.server.lib.portal.dir" />
+	<propertycopy from="app.server.${app.server.type}.lib.support.dir" name="app.server.lib.support.dir" silent="true" />
+	<propertycopy from="app.server.${app.server.type}.portal.dir" name="app.server.portal.dir" />
+	<propertycopy from="app.server.${app.server.type}.log.dir" name="app.server.log.dir" />
+	<propertycopy from="app.server.${app.server.type}.temp.dir" name="app.server.temp.dir" />
+	<propertycopy from="app.server.${app.server.type}.work.dir" name="app.server.work.dir" />
+
+	<propertyselector
+		casesensitive="false"
+		delimiter="," match="app\.(.+)\.dir"
+		property="app.server.dir.property.list"
+		select="\1"
+	/>
+
+	<for list="${app.server.dir.property.list}" param="app.server.dir.property">
+		<sequential>
+
+			<!-- Original -->
+
+			<propertycopy
+				from="app.@{app.server.dir.property}.dir"
+				name="temp.app.server.dir.location"
+			/>
+
+			<!-- Absolute -->
+
+			<property
+				location="${temp.app.server.dir.location}"
+				name="temp.app.server.dir.location.absolute"
+			/>
+
+			<!-- Unix -->
+
+			<pathconvert property="temp.app.server.dir.location.unix" targetos="unix">
+				<path location="${temp.app.server.dir.location.absolute}" />
+			</pathconvert>
+
+			<propertycopy
+				from="temp.app.server.dir.location.unix"
+				name="app.@{app.server.dir.property}.dir.unix"
+				override="true"
+			/>
+
+			<!-- Windows -->
+
+			<pathconvert property="temp.app.server.dir.location.windows" targetos="windows">
+				<path location="${temp.app.server.dir.location.absolute}" />
+			</pathconvert>
+
+			<propertycopy
+				from="temp.app.server.dir.location.windows"
+				name="app.@{app.server.dir.property}.dir.windows"
+				override="true"
+			/>
+
+			<!-- Override -->
+
+			<propertycopy
+				from="temp.app.server.dir.location.unix"
+				name="app.@{app.server.dir.property}.dir"
+				override="true"
+			/>
+
+			<!-- Reset -->
+
+			<var name="temp.app.server.dir.location" unset="true" />
+			<var name="temp.app.server.dir.location.absolute" unset="true" />
+			<var name="temp.app.server.dir.location.unix" unset="true" />
+			<var name="temp.app.server.dir.location.windows" unset="true" />
+		</sequential>
+	</for>
+
+	<propertyselector
+		casesensitive="false"
+		delimiter="," match="app\.(.+)\.version"
+		property="app.server.version.property.list"
+		select="\1"
+	/>
+
+	<for list="${app.server.version.property.list}" param="app.server.version.property">
+		<sequential>
+
+			<!-- Version -->
+
+			<propertycopy
+				from="app.@{app.server.version.property}.version"
+				name="temp.app.server.version"
+			/>
+
+			<antelope:stringutil string="${temp.app.server.version}" property="temp.app.server.major.version.endindex">
+				<antelope:indexof string="." />
+			</antelope:stringutil>
+
+			<antelope:stringutil string="${temp.app.server.version}" property="temp.app.server.major.version">
+				<antelope:substring beginindex="0" endindex="${temp.app.server.major.version.endindex}" />
+			</antelope:stringutil>
+
+			<!-- Major version -->
+
+			<propertycopy
+				from="temp.app.server.major.version"
+				name="app.@{app.server.version.property}.major.version"
+			/>
+
+			<!-- Reset -->
+
+			<var name="temp.app.server.major.version" unset="true" />
+			<var name="temp.app.server.version" unset="true" />
+		</sequential>
+	</for>
+
+	<basename file="${basedir}" property="basedir.name" />
 
 	<antelope:stringutil string="${basedir}" property="basedir.unix">
 		<antelope:replace regex="\\" replacement="/" />
@@ -296,13 +405,54 @@ Please set the environment variable ANT_OPTS to the recommended value of
 		</then>
 	</if>
 
+	<macrodef name="manifest-helper">
+		<attribute name="analyze" default="false" />
+
+		<sequential>
+			<trycatch>
+				<try>
+					<taskdef
+						classname="com.liferay.util.ant.ManifestHelperTask"
+						classpathref="project.classpath"
+						name="liferay-manifest-helper"
+					/>
+				</try>
+				<catch>
+					<ant antfile="${project.dir}/portal-service/build.xml" target="compile" inheritAll="false" />
+					<ant antfile="${project.dir}/util-java/build.xml" target="compile" inheritAll="false" />
+
+					<taskdef
+						classname="com.liferay.util.ant.ManifestHelperTask"
+						classpathref="project.classpath"
+						name="liferay-manifest-helper"
+					/>
+				</catch>
+			</trycatch>
+
+			<liferay-manifest-helper
+				analyze="@{analyze}"
+				classpathref="project.classpath"
+			/>
+		</sequential>
+	</macrodef>
+
 	<target name="compile">
 	</target>
 
 	<target name="compile-test">
-		<antcall target="compile-test-functional" inheritall="false" />
-		<antcall target="compile-test-integration" inheritall="false" />
-		<antcall target="compile-test-unit" inheritall="false" />
+		<if>
+			<or>
+				<available file="test/integration" type="dir" />
+				<available file="test/unit" type="dir" />
+			</or>
+			<then>
+				<antcall target="compile-test-integration" inheritall="false" />
+				<antcall target="compile-test-unit" inheritall="false" />
+			</then>
+			<else>
+				<antcall target="compile-test-functional" inheritall="false" />
+			</else>
+		</if>
 	</target>
 
 	<target name="compile-test-cmd">
@@ -313,8 +463,8 @@ Please set the environment variable ANT_OPTS to the recommended value of
 				<mkdir dir="test-results/${test.type}" />
 
 				<copy todir="test-classes/${test.type}">
-					<fileset dir="test" includes="*.properties" />
-					<fileset dir="test/${test.type}" includes="**/*.properties,**/dependencies/**" />
+					<fileset dir="test" includes="*.properties,META-INF/*.xml" />
+					<fileset dir="test/${test.type}" includes="**/*.properties,**/dependencies/**,META-INF/*.xml" />
 				</copy>
 
 				<javac
@@ -334,7 +484,11 @@ Please set the environment variable ANT_OPTS to the recommended value of
 
 	<target name="compile-test-functional">
 		<ant target="compile-test-cmd">
-			<property name="test.type" value="" />
+			<property name="test.type" value="functional" />
+		</ant>
+
+		<ant target="compile-test-cmd">
+			<property name="test.type" value="functional-generated" />
 		</ant>
 	</target>
 
@@ -351,7 +505,7 @@ Please set the environment variable ANT_OPTS to the recommended value of
 	</target>
 
 	<target name="format-javadoc">
-		<echo message="Run &quot;ant compile-test&quot; in portal-impl before using format-javadoc to generate @Override tags." />
+		<echo message="Run &quot;ant compile compile-test&quot; before using format-javadoc to generate @Override tags." />
 
 		<java
 			classname="com.liferay.portal.tools.JavadocFormatter"
@@ -488,6 +642,7 @@ Please set the environment variable ANT_OPTS to the recommended value of
 	<target name="test">
 		<delete dir="test-classes" />
 		<delete dir="test-results" />
+		<delete dir="woven-classes" />
 
 		<antcall target="compile" />
 		<antcall target="instrument-test-coverage" />
@@ -509,6 +664,9 @@ Please set the environment variable ANT_OPTS to the recommended value of
 			</not>
 			<then>
 				<junit dir="${project.dir}" fork="on" forkmode="once" haltonfailure="${junit.halt.on.failure}" printsummary="on">
+					<sysproperty key="junit.aspectj.dump" file="woven-classes" />
+					<sysproperty key="junit.code.coverage" value="${junit.code.coverage}" />
+					<sysproperty key="junit.debug" value="${junit.debug}" />
 					<sysproperty key="net.sourceforge.cobertura.datafile" file="test-coverage/cobertura.ser" />
 					<jvmarg line="${junit.debug.jpda}" />
 					<jvmarg value="-Xmx1024m" />
@@ -526,6 +684,9 @@ Please set the environment variable ANT_OPTS to the recommended value of
 			</then>
 			<else>
 				<junit dir="${project.dir}" fork="on" forkmode="once" haltonfailure="${junit.halt.on.failure}" printsummary="on">
+					<sysproperty key="junit.aspectj.dump" file="woven-classes" />
+					<sysproperty key="junit.code.coverage" value="${junit.code.coverage}" />
+					<sysproperty key="junit.debug" value="${junit.debug}" />
 					<sysproperty key="net.sourceforge.cobertura.datafile" file="test-coverage/cobertura.ser" />
 					<jvmarg line="${junit.debug.jpda}" />
 					<jvmarg value="-Xmx1024m" />
@@ -548,6 +709,15 @@ Please set the environment variable ANT_OPTS to the recommended value of
 
 	<target name="test-class" depends="compile,instrument-test-coverage,compile-test">
 		<if>
+			<available file="test/functional" type="dir" />
+			<then>
+				<resourcecount property="test.functional.count">
+					<fileset dir="test-classes/functional" includes="**/${class}.class" />
+				</resourcecount>
+			</then>
+		</if>
+
+		<if>
 			<available file="test/integration" type="dir" />
 			<then>
 				<resourcecount property="test.integration.count">
@@ -566,10 +736,16 @@ Please set the environment variable ANT_OPTS to the recommended value of
 		</if>
 
 		<if>
-			<equals arg1="${test.integration.count}" arg2="1" />
+			<equals arg1="${test.functional.count}" arg2="1" />
 			<then>
-				<var name="test.type" value="integration" />
+				<var name="test.type" value="functional" />
 			</then>
+			<elseif>
+				<equals arg1="${test.integration.count}" arg2="1" />
+				<then>
+					<var name="test.type" value="integration" />
+				</then>
+			</elseif>
 			<elseif>
 				<equals arg1="${test.unit.count}" arg2="1" />
 				<then>
@@ -577,7 +753,7 @@ Please set the environment variable ANT_OPTS to the recommended value of
 				</then>
 			</elseif>
 			<else>
-				<var name="test.type" value="" />
+				<fail>The property "test.type" is invalid.</fail>
 			</else>
 		</if>
 
@@ -593,11 +769,15 @@ Please set the environment variable ANT_OPTS to the recommended value of
 			<available file="test/${test.type}" type="dir" />
 			<then>
 				<junit dir="${project.dir}" fork="on" forkmode="once" haltonfailure="${junit.halt.on.failure}" outputtoformatters="false" printsummary="on" showoutput="true">
+					<sysproperty key="junit.aspectj.dump" file="woven-classes" />
+					<sysproperty key="junit.code.coverage" value="${junit.code.coverage}" />
+					<sysproperty key="junit.debug" value="${junit.debug}" />
 					<sysproperty key="net.sourceforge.cobertura.datafile" file="test-coverage/cobertura.ser" />
 					<jvmarg line="${junit.debug.jpda}" />
-					<jvmarg value="-Xmx1024m" />
-					<jvmarg value="-XX:MaxPermSize=256m" />
+					<jvmarg value="-Xmx${junit.java.mx}" />
+					<jvmarg value="-XX:MaxPermSize=${junit.java.maxpermsize}" />
 					<jvmarg value="-Dexternal-properties=${test.properties}" />
+					<jvmarg value="-Dfile.encoding=UTF-8" />
 					<jvmarg value="-Djava.net.preferIPv4Stack=true" />
 					<jvmarg value="-Duser.timezone=GMT" />
 					<classpath location="test-coverage" />
@@ -611,6 +791,7 @@ Please set the environment variable ANT_OPTS to the recommended value of
 							<exclude name="**/DLAppServiceSoapTest.class" />
 							<exclude name="**/UserServiceHttpTest.class" />
 							<exclude name="**/UserServiceSoapTest.class" />
+							<exclude name="${test.excludes}" />
 						</fileset>
 					</batchtest>
 				</junit>
@@ -619,13 +800,39 @@ Please set the environment variable ANT_OPTS to the recommended value of
 	</target>
 
 	<target name="test-integration" depends="compile,instrument-test-coverage,compile-test-integration">
-		<property name="class" value="*Test" />
+		<var name="class" value="*Test" />
+
+		<ant target="test-cmd">
+			<property name="test.excludes" value="**/*PersistenceTest.class" />
+			<property name="test.type" value="integration" />
+		</ant>
+
+		<var name="class" value="*PersistenceTest" />
 
 		<ant target="test-cmd">
 			<property name="test.type" value="integration" />
 		</ant>
 
 		<antcall target="report-test-coverage" />
+	</target>
+
+	<target name="test-method" depends="compile,instrument-test-coverage,compile-test">
+		<junit dir="${project.dir}" fork="on" forkmode="once" haltonfailure="${junit.halt.on.failure}" outputtoformatters="false" printsummary="on" showoutput="true">
+			<sysproperty key="junit.aspectj.dump" file="woven-classes" />
+			<sysproperty key="junit.code.coverage" value="${junit.code.coverage}" />
+			<sysproperty key="junit.debug" value="${junit.debug}" />
+			<sysproperty key="net.sourceforge.cobertura.datafile" file="test-coverage/cobertura.ser" />
+			<jvmarg line="${junit.debug.jpda}" />
+			<jvmarg value="-Xmx${junit.java.mx}" />
+			<jvmarg value="-XX:MaxPermSize=${junit.java.maxpermsize}" />
+			<jvmarg value="-Dexternal-properties=${test.properties}" />
+			<jvmarg value="-Dfile.encoding=UTF-8" />
+			<jvmarg value="-Djava.net.preferIPv4Stack=true" />
+			<jvmarg value="-Duser.timezone=GMT" />
+			<classpath location="test-coverage" />
+			<classpath refid="test.classpath" />
+			<test name="${class}" methods="${methods}"/>
+		</junit>
 	</target>
 
 	<target name="test-unit" depends="compile,instrument-test-coverage,compile-test-unit">

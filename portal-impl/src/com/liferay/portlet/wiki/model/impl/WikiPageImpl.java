@@ -14,20 +14,24 @@
 
 package com.liferay.portlet.wiki.model.impl;
 
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.model.CompanyConstants;
-import com.liferay.portlet.documentlibrary.NoSuchDirectoryException;
-import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portlet.wiki.model.WikiNode;
 import com.liferay.portlet.wiki.model.WikiPage;
 import com.liferay.portlet.wiki.service.WikiNodeLocalServiceUtil;
 import com.liferay.portlet.wiki.service.WikiPageLocalServiceUtil;
+import com.liferay.portlet.wiki.service.WikiPageServiceUtil;
+import com.liferay.portlet.wiki.util.WikiPageAttachmentsUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -39,58 +43,85 @@ public class WikiPageImpl extends WikiPageBaseImpl {
 	public WikiPageImpl() {
 	}
 
-	public String getAttachmentsDir() {
-		if (_attachmentDirs == null) {
-			_attachmentDirs = "wiki/" + getResourcePrimKey();
-		}
-
-		return _attachmentDirs;
-	}
-
-	public String[] getAttachmentsFiles()
+	public List<FileEntry> getAttachmentsFileEntries()
 		throws PortalException, SystemException {
 
-		String[] fileNames = new String[0];
+		return getAttachmentsFileEntries(QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+	}
 
-		try {
-			fileNames = DLStoreUtil.getFileNames(
-				getCompanyId(), CompanyConstants.SYSTEM, getAttachmentsDir());
-		}
-		catch (NoSuchDirectoryException nsde) {
+	public List<FileEntry> getAttachmentsFileEntries(int start, int end)
+		throws PortalException, SystemException {
+
+		return PortletFileRepositoryUtil.getPortletFileEntries(
+			getGroupId(), getAttachmentsFolderId(),
+			WorkflowConstants.STATUS_APPROVED, start, end, null);
+	}
+
+	public int getAttachmentsFileEntriesCount()
+		throws PortalException, SystemException {
+
+		return PortletFileRepositoryUtil.getPortletFileEntriesCount(
+			getGroupId(), getAttachmentsFolderId(),
+			WorkflowConstants.STATUS_APPROVED);
+	}
+
+	public long getAttachmentsFolderId()
+		throws PortalException, SystemException {
+
+		if (_attachmentsFolderId > 0) {
+			return _attachmentsFolderId;
 		}
 
-		return fileNames;
+		_attachmentsFolderId = WikiPageAttachmentsUtil.getFolderId(
+			getGroupId(), getUserId(), getNodeId(), getResourcePrimKey());
+
+		return _attachmentsFolderId;
 	}
 
 	public List<WikiPage> getChildPages() {
-		List<WikiPage> pages = null;
-
 		try {
-			pages = WikiPageLocalServiceUtil.getChildren(
+			return WikiPageLocalServiceUtil.getChildren(
 				getNodeId(), true, getTitle());
 		}
 		catch (Exception e) {
-			pages = new ArrayList<WikiPage>();
+			_log.error(e, e);
 
-			_log.error(e);
+			return Collections.emptyList();
 		}
+	}
 
-		return pages;
+	public List<FileEntry> getDeletedAttachmentsFileEntries()
+		throws PortalException, SystemException {
+
+		return getDeletedAttachmentsFileEntries(
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+	}
+
+	public List<FileEntry> getDeletedAttachmentsFileEntries(int start, int end)
+		throws PortalException, SystemException {
+
+		return PortletFileRepositoryUtil.getPortletFileEntries(
+			getGroupId(), getAttachmentsFolderId(),
+			WorkflowConstants.STATUS_IN_TRASH, start, end, null);
+	}
+
+	public int getDeletedAttachmentsFileEntriesCount()
+		throws PortalException, SystemException {
+
+		return PortletFileRepositoryUtil.getPortletFileEntriesCount(
+			getGroupId(), getAttachmentsFolderId(),
+			WorkflowConstants.STATUS_IN_TRASH);
 	}
 
 	public WikiNode getNode() {
-		WikiNode node = null;
-
 		try {
-			node = WikiNodeLocalServiceUtil.getNode(getNodeId());
+			return WikiNodeLocalServiceUtil.getNode(getNodeId());
 		}
 		catch (Exception e) {
-			node = new WikiNodeImpl();
+			_log.error(e, e);
 
-			_log.error(e);
+			return new WikiNodeImpl();
 		}
-
-		return node;
 	}
 
 	public WikiPage getParentPage() {
@@ -98,17 +129,15 @@ public class WikiPageImpl extends WikiPageBaseImpl {
 			return null;
 		}
 
-		WikiPage page = null;
-
 		try {
-			page = WikiPageLocalServiceUtil.getPage(
+			return WikiPageLocalServiceUtil.getPage(
 				getNodeId(), getParentTitle());
 		}
 		catch (Exception e) {
-			_log.error(e);
-		}
+			_log.error(e, e);
 
-		return page;
+			return null;
+		}
 	}
 
 	public List<WikiPage> getParentPages() {
@@ -129,17 +158,66 @@ public class WikiPageImpl extends WikiPageBaseImpl {
 			return null;
 		}
 
-		WikiPage page = null;
-
 		try {
-			page = WikiPageLocalServiceUtil.getPage(
+			return WikiPageLocalServiceUtil.getPage(
 				getNodeId(), getRedirectTitle());
 		}
 		catch (Exception e) {
-			_log.error(e);
+			_log.error(e, e);
+
+			return null;
+		}
+	}
+
+	public List<WikiPage> getViewableChildPages() {
+		try {
+			return WikiPageServiceUtil.getChildren(
+				getGroupId(), getNodeId(), true, getTitle());
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			return Collections.emptyList();
+		}
+	}
+
+	public WikiPage getViewableParentPage() {
+		if (Validator.isNull(getParentTitle())) {
+			return null;
 		}
 
-		return page;
+		try {
+			return WikiPageServiceUtil.getPage(
+				getGroupId(), getNodeId(), getParentTitle());
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			return null;
+		}
+	}
+
+	public List<WikiPage> getViewableParentPages() {
+		List<WikiPage> pages = new ArrayList<WikiPage>();
+
+		WikiPage page = getViewableParentPage();
+
+		if (page != null) {
+			pages.addAll(page.getViewableParentPages());
+			pages.add(page);
+		}
+
+		return pages;
+	}
+
+	public boolean isInTrashContainer() {
+		WikiNode node = getNode();
+
+		if (node != null) {
+			return node.isInTrash();
+		}
+
+		return false;
 	}
 
 	@Override
@@ -147,12 +225,12 @@ public class WikiPageImpl extends WikiPageBaseImpl {
 		return isHead();
 	}
 
-	public void setAttachmentsDir(String attachmentsDir) {
-		_attachmentDirs = attachmentsDir;
+	public void setAttachmentsFolderId(long attachmentsFolderId) {
+		_attachmentsFolderId = attachmentsFolderId;
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(WikiPageImpl.class);
 
-	private String _attachmentDirs;
+	private long _attachmentsFolderId;
 
 }

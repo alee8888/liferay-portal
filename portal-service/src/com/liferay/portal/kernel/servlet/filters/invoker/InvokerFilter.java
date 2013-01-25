@@ -16,15 +16,17 @@ package com.liferay.portal.kernel.servlet.filters.invoker;
 
 import com.liferay.portal.kernel.cache.key.CacheKeyGenerator;
 import com.liferay.portal.kernel.cache.key.CacheKeyGeneratorUtil;
-import com.liferay.portal.kernel.concurrent.ConcurrentLRUCache;
+import com.liferay.portal.kernel.concurrent.ConcurrentLFUCache;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.servlet.NonSerializableObjectRequestWrapper;
 import com.liferay.portal.kernel.util.BasePortalLifecycle;
 import com.liferay.portal.kernel.util.ContextPathUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -59,6 +61,8 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 
 		String uri = getURI(request);
 
+		request = handleNonSerializableRequest(request);
+
 		request.setAttribute(WebKeys.INVOKER_FILTER_URI, uri);
 
 		try {
@@ -72,7 +76,7 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 
 			invokerFilterChain.setContextClassLoader(contextClassLoader);
 
-			invokerFilterChain.doFilter(servletRequest, servletResponse);
+			invokerFilterChain.doFilter(request, servletResponse);
 		}
 		finally {
 			request.removeAttribute(WebKeys.INVOKER_FILTER_URI);
@@ -131,7 +135,7 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 			PropsUtil.get(PropsKeys.INVOKER_FILTER_CHAIN_SIZE));
 
 		if (_invokerFilterChainSize > 0) {
-			_filterChains = new ConcurrentLRUCache<String, InvokerFilterChain>(
+			_filterChains = new ConcurrentLFUCache<String, InvokerFilterChain>(
 				_invokerFilterChainSize);
 		}
 
@@ -227,11 +231,23 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 		return uri;
 	}
 
+	protected HttpServletRequest handleNonSerializableRequest(
+		HttpServletRequest request) {
+
+		if (ServerDetector.isWebLogic()) {
+			if (!NonSerializableObjectRequestWrapper.isWrapped(request)) {
+				request = new NonSerializableObjectRequestWrapper(request);
+			}
+		}
+
+		return request;
+	}
+
 	private static Log _log = LogFactoryUtil.getLog(InvokerFilter.class);
 
 	private String _contextPath;
 	private Dispatcher _dispatcher;
-	private ConcurrentLRUCache<String, InvokerFilterChain> _filterChains;
+	private ConcurrentLFUCache<String, InvokerFilterChain> _filterChains;
 	private FilterConfig _filterConfig;
 	private int _invokerFilterChainSize;
 	private InvokerFilterHelper _invokerFilterHelper;

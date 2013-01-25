@@ -114,6 +114,10 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 	 * @return the normal model instance
 	 */
 	public static MBThread toModel(MBThreadSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		MBThread model = new MBThreadImpl();
 
 		model.setThreadId(soapModel.getThreadId());
@@ -143,6 +147,10 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 	 * @return the normal model instances
 	 */
 	public static List<MBThread> toModels(MBThreadSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<MBThread> models = new ArrayList<MBThread>(soapModels.length);
 
 		for (MBThreadSoap soapModel : soapModels) {
@@ -167,7 +175,7 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_threadId);
+		return _threadId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -571,9 +579,17 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		}
 	}
 
+	public boolean isDenied() {
+		if (getStatus() == WorkflowConstants.STATUS_DENIED) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public boolean isDraft() {
-		if ((getStatus() == WorkflowConstants.STATUS_DRAFT) ||
-				(getStatus() == WorkflowConstants.STATUS_DRAFT_FROM_APPROVED)) {
+		if (getStatus() == WorkflowConstants.STATUS_DRAFT) {
 			return true;
 		}
 		else {
@@ -590,6 +606,33 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		}
 	}
 
+	public boolean isInactive() {
+		if (getStatus() == WorkflowConstants.STATUS_INACTIVE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isIncomplete() {
+		if (getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isInTrash() {
+		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public boolean isPending() {
 		if (getStatus() == WorkflowConstants.STATUS_PENDING) {
 			return true;
@@ -599,19 +642,17 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		}
 	}
 
-	public long getColumnBitmask() {
-		return _columnBitmask;
+	public boolean isScheduled() {
+		if (getStatus() == WorkflowConstants.STATUS_SCHEDULED) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
-	@Override
-	public MBThread toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (MBThread)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -625,6 +666,16 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public MBThread toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (MBThread)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -920,7 +971,7 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 	}
 
 	private static ClassLoader _classLoader = MBThread.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			MBThread.class
 		};
 	private long _threadId;
@@ -954,5 +1005,5 @@ public class MBThreadModelImpl extends BaseModelImpl<MBThread>
 	private String _statusByUserName;
 	private Date _statusDate;
 	private long _columnBitmask;
-	private MBThread _escapedModelProxy;
+	private MBThread _escapedModel;
 }

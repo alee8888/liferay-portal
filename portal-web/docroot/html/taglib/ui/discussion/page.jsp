@@ -22,7 +22,6 @@
 <%@ page import="com.liferay.portlet.messageboards.model.MBMessage" %>
 <%@ page import="com.liferay.portlet.messageboards.model.MBMessageDisplay" %>
 <%@ page import="com.liferay.portlet.messageboards.model.MBThread" %>
-<%@ page import="com.liferay.portlet.messageboards.model.MBThreadConstants" %>
 <%@ page import="com.liferay.portlet.messageboards.model.MBTreeWalker" %>
 <%@ page import="com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil" %>
 <%@ page import="com.liferay.portlet.messageboards.service.permission.MBDiscussionPermission" %>
@@ -117,16 +116,25 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 					%>
 
 					<c:choose>
-						<c:when test="<%= messagesCount == 1 %>">
-							<liferay-ui:message key="no-comments-yet" /> <a href="<%= taglibPostReplyURL %>"><liferay-ui:message key="be-the-first" /></a>
+						<c:when test="<%= TrashUtil.isInTrash(className, classPK) %>">
+							<div class="portlet-msg-alert">
+								<liferay-ui:message key="commenting-is-disabled-because-this-entry-is-in-the-recycle-bin" />
+							</div>
 						</c:when>
 						<c:otherwise>
-							<liferay-ui:icon
-								image="reply"
-								label="<%= true %>"
-								message="add-comment"
-								url="<%= taglibPostReplyURL %>"
-							/>
+							<c:choose>
+								<c:when test="<%= messagesCount == 1 %>">
+									<liferay-ui:message key="no-comments-yet" /> <a href="<%= taglibPostReplyURL %>"><liferay-ui:message key="be-the-first" /></a>
+								</c:when>
+								<c:otherwise>
+									<liferay-ui:icon
+										image="reply"
+										label="<%= true %>"
+										message="add-comment"
+										url="<%= taglibPostReplyURL %>"
+									/>
+								</c:otherwise>
+							</c:choose>
 						</c:otherwise>
 					</c:choose>
 
@@ -136,7 +144,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 					String subscriptionURL = "javascript:" + randomNamespace + "subscribeToComments(" + !subscribed + ");";
 					%>
 
-					<c:if test="<%= themeDisplay.isSignedIn() %>">
+					<c:if test="<%= themeDisplay.isSignedIn() && !TrashUtil.isInTrash(className, classPK) %>">
 						<c:choose>
 							<c:when test="<%= subscribed %>">
 								<liferay-ui:icon
@@ -223,12 +231,12 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 						}
 
 						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER, treeWalker);
-						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_SEL_MESSAGE, rootMessage);
-						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_CUR_MESSAGE, message);
 						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_CATEGORY, category);
-						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_THREAD, thread);
-						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_LAST_NODE, Boolean.valueOf(lastChildNode));
+						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_CUR_MESSAGE, message);
 						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_DEPTH, new Integer(0));
+						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_LAST_NODE, Boolean.valueOf(lastChildNode));
+						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_SEL_MESSAGE, rootMessage);
+						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_THREAD, thread);
 					%>
 
 						<liferay-util:include page="/html/taglib/ui/discussion/view_message_thread.jsp" />
@@ -328,7 +336,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 								</div>
 
 								<div class="lfr-discussion-controls">
-									<c:if test="<%= ratingsEnabled %>">
+									<c:if test="<%= ratingsEnabled && !TrashUtil.isInTrash(message.getClassName(), message.getClassPK()) %>">
 
 										<%
 										RatingsEntry ratingsEntry = getRatingsEntry(ratingsEntries, message.getMessageId());
@@ -344,7 +352,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 										/>
 									</c:if>
 
-									<c:if test="<%= !hideControls %>">
+									<c:if test="<%= !hideControls && !TrashUtil.isInTrash(message.getClassName(), message.getClassPK()) %>">
 										<ul class="lfr-discussion-actions">
 											<c:if test="<%= MBDiscussionPermission.contains(permissionChecker, company.getCompanyId(), scopeGroupId, permissionClassName, permissionClassPK, userId, ActionKeys.ADD_DISCUSSION) %>">
 												<li class="lfr-discussion-reply-to">
@@ -455,7 +463,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 											<aui:button name='<%= randomNamespace + "editReplyButton" + i %>' onClick='<%= randomNamespace + "updateMessage(" + i + ");" %>' value="<%= publishButtonLabel %>" />
 
 											<%
-											String taglibCancel = "document.getElementById('" + randomNamespace + "editForm" + i + "').style.display = 'none'; document.getElementById('" + namespace + randomNamespace + "editReplyBody" + i + "').value = '" + message.getBody() + "'; void('');";
+											String taglibCancel = "document.getElementById('" + randomNamespace + "editForm" + i + "').style.display = 'none'; document.getElementById('" + namespace + randomNamespace + "editReplyBody" + i + "').value = '" + HtmlUtil.escapeJS(message.getBody()) + "'; void('');";
 											%>
 
 											<aui:button onClick="<%= taglibCancel %>" type="cancel" />
@@ -510,7 +518,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 	loginURL.setWindowState(LiferayWindowState.POP_UP);
 	loginURL.setPortletMode(PortletMode.VIEW);
 
-	loginURL.setParameter("saveLastPath", "0");
+	loginURL.setParameter("saveLastPath", Boolean.FALSE.toString());
 	loginURL.setParameter("struts_action", "/login/login");
 	%>
 

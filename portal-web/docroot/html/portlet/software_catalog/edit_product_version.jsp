@@ -66,10 +66,10 @@ editProductEntryURL.setParameter("productEntryId", String.valueOf(productEntryId
 />
 
 <liferay-ui:error exception="<%= DuplicateProductVersionDirectDownloadURLException.class %>" message="please-enter-a-unique-direct-download-url" />
-<liferay-ui:error exception="<%= ProductVersionNameException.class %>" message="please-enter-a-valid-version-name" />
 <liferay-ui:error exception="<%= ProductVersionChangeLogException.class %>" message="please-enter-a-valid-change-log" />
 <liferay-ui:error exception="<%= ProductVersionDownloadURLException.class %>" message="please-enter-a-download-page-url-or-a-direct-download-url" />
 <liferay-ui:error exception="<%= ProductVersionFrameworkVersionException.class %>" message="please-select-at-least-one-framework-version" />
+<liferay-ui:error exception="<%= ProductVersionNameException.class %>" message="please-enter-a-valid-version-name" />
 <liferay-ui:error exception="<%= UnavailableProductVersionDirectDownloadURLException.class %>" message="please-enter-a-valid-direct-download-url" />
 
 <fieldset>
@@ -103,7 +103,7 @@ editProductEntryURL.setParameter("productEntryId", String.valueOf(productEntryId
 				for (SCFrameworkVersion frameworkVersion : SCFrameworkVersionServiceUtil.getFrameworkVersions(scopeGroupId, true)) {
 				%>
 
-					<option <%= (frameworkVersionIds.contains(frameworkVersion.getFrameworkVersionId())) ? "selected" : "" %> value="<%= frameworkVersion.getFrameworkVersionId() %>"><%= frameworkVersion.getName() %></option>
+					<option <%= (frameworkVersionIds.contains(frameworkVersion.getFrameworkVersionId())) ? "selected" : "" %> value="<%= frameworkVersion.getFrameworkVersionId() %>"><%= HtmlUtil.escape(frameworkVersion.getName()) %></option>
 
 				<%
 				}

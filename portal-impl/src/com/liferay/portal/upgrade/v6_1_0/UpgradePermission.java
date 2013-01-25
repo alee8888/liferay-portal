@@ -66,11 +66,10 @@ public class UpgradePermission extends UpgradeProcess {
 
 		ResourceBlockPermissionsContainer resourceBlockPermissionsContainer =
 			getResourceBlockPermissionsContainer(
-					companyId, groupId, name, primKey);
+				companyId, groupId, name, primKey);
 
 		String permissionsHash =
-			ResourceBlockLocalServiceUtil.getPermissionsHash(
-				resourceBlockPermissionsContainer);
+			resourceBlockPermissionsContainer.getPermissionsHash();
 
 		ResourceBlock resourceBlock =
 			ResourceBlockLocalServiceUtil.updateResourceBlockId(
@@ -89,7 +88,7 @@ public class UpgradePermission extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"select " + pkColumnName + ", companyId from " + tableName);

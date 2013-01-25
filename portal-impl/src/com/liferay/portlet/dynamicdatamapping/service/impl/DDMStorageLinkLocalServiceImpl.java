@@ -43,7 +43,7 @@ public class DDMStorageLinkLocalServiceImpl
 		storageLink.setClassPK(classPK);
 		storageLink.setStructureId(structureId);
 
-		ddmStorageLinkPersistence.update(storageLink, false);
+		ddmStorageLinkPersistence.update(storageLink);
 
 		return storageLink;
 	}
@@ -101,6 +101,12 @@ public class DDMStorageLinkLocalServiceImpl
 		return ddmStorageLinkPersistence.findByStructureId(structureId);
 	}
 
+	public int getStructureStorageLinksCount(long structureId)
+		throws SystemException {
+
+		return ddmStorageLinkPersistence.countByStructureId(structureId);
+	}
+
 	public DDMStorageLink updateStorageLink(
 			long storageLinkId, long classNameId, long classPK)
 		throws PortalException, SystemException {
@@ -111,7 +117,7 @@ public class DDMStorageLinkLocalServiceImpl
 		storageLink.setClassNameId(classNameId);
 		storageLink.setClassPK(classPK);
 
-		ddmStorageLinkPersistence.update(storageLink, false);
+		ddmStorageLinkPersistence.update(storageLink);
 
 		return storageLink;
 	}

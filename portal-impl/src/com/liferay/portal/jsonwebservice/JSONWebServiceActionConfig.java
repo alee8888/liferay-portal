@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.MethodParameter;
 import com.liferay.portal.kernel.util.MethodParametersResolverUtil;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.lang.reflect.Method;
 
@@ -30,10 +31,10 @@ public class JSONWebServiceActionConfig
 	JSONWebServiceActionMapping {
 
 	public JSONWebServiceActionConfig(
-		String servletContextPath, Class<?> actionClass, Method actionMethod,
+		String contextPath, Class<?> actionClass, Method actionMethod,
 		String path, String method) {
 
-		_servletContextPath = servletContextPath;
+		_contextPath = contextPath;
 		_actionClass = actionClass;
 		_actionMethod = actionMethod;
 		_path = path;
@@ -42,7 +43,7 @@ public class JSONWebServiceActionConfig
 		_methodParameters =
 			MethodParametersResolverUtil.resolveMethodParameters(actionMethod);
 
-		_fullPath = _servletContextPath + _path;
+		_fullPath = _contextPath + _path;
 
 		StringBundler sb = new StringBundler(_methodParameters.length * 2 + 4);
 
@@ -64,12 +65,38 @@ public class JSONWebServiceActionConfig
 		return _signature.compareTo(jsonWebServiceActionConfig._signature);
 	}
 
+	@Override
+	public boolean equals(Object object) {
+		if (this == object) {
+			return true;
+		}
+
+		if (!(object instanceof JSONWebServiceActionConfig)) {
+			return false;
+		}
+
+		JSONWebServiceActionConfig jsonWebServiceActionConfig =
+			(JSONWebServiceActionConfig)object;
+
+		if (Validator.equals(
+				_signature, jsonWebServiceActionConfig._signature)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
 	public Class<?> getActionClass() {
 		return _actionClass;
 	}
 
 	public Method getActionMethod() {
 		return _actionMethod;
+	}
+
+	public String getContextPath() {
+		return _contextPath;
 	}
 
 	public String getFullPath() {
@@ -88,12 +115,13 @@ public class JSONWebServiceActionConfig
 		return _path;
 	}
 
-	public String getServletContextPath() {
-		return _servletContextPath;
-	}
-
 	public String getSignature() {
 		return _signature;
+	}
+
+	@Override
+	public int hashCode() {
+		return _signature.hashCode();
 	}
 
 	@Override
@@ -104,6 +132,8 @@ public class JSONWebServiceActionConfig
 		sb.append(_actionClass);
 		sb.append(", actionMethod=");
 		sb.append(_actionMethod);
+		sb.append(", contextPath=");
+		sb.append(_contextPath);
 		sb.append(", fullPath=");
 		sb.append(_fullPath);
 		sb.append(", method=");
@@ -112,8 +142,6 @@ public class JSONWebServiceActionConfig
 		sb.append(_methodParameters);
 		sb.append(", path=");
 		sb.append(_path);
-		sb.append(", servletContextPath=");
-		sb.append(_servletContextPath);
 		sb.append(", signature=");
 		sb.append(_signature);
 		sb.append("}");
@@ -123,11 +151,11 @@ public class JSONWebServiceActionConfig
 
 	private Class<?> _actionClass;
 	private Method _actionMethod;
+	private String _contextPath;
 	private String _fullPath;
 	private String _method;
 	private MethodParameter[] _methodParameters;
 	private String _path;
-	private String _servletContextPath;
 	private String _signature;
 
 }

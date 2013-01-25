@@ -19,16 +19,14 @@
 <%
 DDLRecordSet recordSet = (DDLRecordSet)request.getAttribute(WebKeys.DYNAMIC_DATA_LISTS_RECORD_SET);
 
-long detailDDMTemplateId = ParamUtil.getLong(request, "detailDDMTemplateId");
+long formDDMTemplateId = ParamUtil.getLong(request, "formDDMTemplateId");
 
-boolean editable = ParamUtil.getBoolean(request, "editable", true);
+boolean editable = false;
+boolean showAddRecordButton = false;
 
-if (portletName.equals(PortletKeys.DYNAMIC_DATA_LISTS)) {
-	editable = true;
-}
-
-if (!DDLRecordSetPermission.contains(permissionChecker, recordSet.getRecordSetId(), ActionKeys.UPDATE)) {
-	editable = false;
+if (DDLUtil.isEditable(request, portletDisplay.getId(), themeDisplay.getScopeGroupId())) {
+	editable = DDLRecordSetPermission.contains(permissionChecker, recordSet.getRecordSetId(), ActionKeys.UPDATE);
+	showAddRecordButton = DDLRecordSetPermission.contains(permissionChecker, recordSet.getRecordSetId(), ActionKeys.ADD_RECORD);
 }
 
 PortletURL portletURL = renderResponse.createRenderURL();
@@ -40,7 +38,7 @@ portletURL.setParameter("recordSetId", String.valueOf(recordSet.getRecordSetId()
 <aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
 
 	<%
-	DDMStructure ddmStructure = recordSet.getDDMStructure(detailDDMTemplateId);
+	DDMStructure ddmStructure = recordSet.getDDMStructure(formDDMTemplateId);
 
 	String languageId = LanguageUtil.getLanguageId(request);
 
@@ -60,12 +58,6 @@ portletURL.setParameter("recordSetId", String.valueOf(recordSet.getRecordSetId()
 		headerNames.add("author");
 		headerNames.add(StringPool.BLANK);
 	}
-
-	boolean showAddRecordButton = false;
-
-	if (editable) {
-		showAddRecordButton = DDLRecordSetPermission.contains(permissionChecker, recordSet, ActionKeys.ADD_RECORD);
-	}
 	%>
 
 	<liferay-ui:search-container
@@ -75,7 +67,7 @@ portletURL.setParameter("recordSetId", String.valueOf(recordSet.getRecordSetId()
 		<liferay-ui:search-form
 			page="/html/portlet/dynamic_data_lists/record_search.jsp"
 			searchContainer="<%= searchContainer %>"
-			showAddButton="<%= showAddRecordButton%>"
+			showAddButton="<%= showAddRecordButton %>"
 		/>
 
 		<liferay-ui:search-container-results>
@@ -100,46 +92,31 @@ portletURL.setParameter("recordSetId", String.valueOf(recordSet.getRecordSetId()
 
 			ResultRow row = new ResultRow(record, record.getRecordId(), i);
 
-			row.setParameter("detailDDMTemplateId", String.valueOf(detailDDMTemplateId));
 			row.setParameter("editable", String.valueOf(editable));
+			row.setParameter("formDDMTemplateId", String.valueOf(formDDMTemplateId));
 
 			PortletURL rowURL = renderResponse.createRenderURL();
 
 			rowURL.setParameter("struts_action", "/dynamic_data_lists/view_record");
 			rowURL.setParameter("redirect", currentURL);
 			rowURL.setParameter("recordId", String.valueOf(record.getRecordId()));
-			rowURL.setParameter("detailDDMTemplateId", String.valueOf(detailDDMTemplateId));
 			rowURL.setParameter("editable", String.valueOf(editable));
+			rowURL.setParameter("formDDMTemplateId", String.valueOf(formDDMTemplateId));
 
 			// Columns
 
 			for (Map<String, String> fields : fieldsMap.values()) {
-				String dataType = fields.get(FieldConstants.DATA_TYPE);
-				String name = fields.get(FieldConstants.NAME);
+			%>
 
-				String value = null;
+				<%@ include file="/html/portlet/dynamic_data_lists/record_row_value.jspf" %>
 
-				if (fieldsModel.contains(name)) {
-					com.liferay.portlet.dynamicdatamapping.storage.Field field = fieldsModel.get(name);
-
-					value = field.getRenderedValue(themeDisplay);
-				}
-				else {
-					value = StringPool.BLANK;
-				}
-
-				if (editable) {
-					row.addText(value, rowURL);
-				}
-				else {
-					row.addText(value);
-				}
+			<%
 			}
 
 			if (editable) {
 				row.addText(LanguageUtil.get(pageContext, WorkflowConstants.toLabel(recordVersion.getStatus())), rowURL);
 				row.addText(dateFormatDateTime.format(record.getModifiedDate()), rowURL);
-				row.addText(HtmlUtil.escape(PortalUtil.getUserName(recordVersion.getUserId(), recordVersion.getUserName())), rowURL);
+				row.addText(HtmlUtil.escape(PortalUtil.getUserName(recordVersion)), rowURL);
 
 				// Action
 
@@ -155,3 +132,7 @@ portletURL.setParameter("recordSetId", String.valueOf(recordSet.getRecordSetId()
 		<liferay-ui:search-iterator />
 	</liferay-ui:search-container>
 </aui:form>
+
+<aui:script>
+	AUI().use('liferay-portlet-dynamic-data-lists');
+</aui:script>

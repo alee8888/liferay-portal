@@ -20,7 +20,7 @@
 for (int displayActivityCounterNameIndex : displayActivityCounterNameIndexes) {
 	String displayActivityCounterName = PrefsParamUtil.getString(preferences, request, "displayActivityCounterName" + displayActivityCounterNameIndex);
 
-	if (Validator.isNull(displayActivityCounterName)){
+	if (Validator.isNull(displayActivityCounterName)) {
 		continue;
 	}
 
@@ -32,7 +32,7 @@ for (int displayActivityCounterNameIndex : displayActivityCounterNameIndexes) {
 
 	List<SocialActivityCounter> activityCounters = null;
 
-	String title = LanguageUtil.format(pageContext, "social.counter." + displayActivityCounterName, new Object[] {LanguageUtil.get(pageContext, "assets")});
+	String title = LanguageUtil.get(pageContext, "site-statistics") + StringPool.SPACE;
 
 	int dataSize = 0;
 	int displayHeight = 80;
@@ -45,7 +45,7 @@ for (int displayActivityCounterNameIndex : displayActivityCounterNameIndexes) {
 			assetTags = AssetTagLocalServiceUtil.getSocialActivityCounterOffsetTags(scopeGroupId, displayActivityCounterName, -12, 0);
 		}
 
-		title = LanguageUtil.format(pageContext, "tag-cloud-based-on-x", new Object[] {title});
+		title = title + LanguageUtil.format(pageContext, "tag-cloud-for-x", new Object[] {LanguageUtil.get(pageContext, "group.statistics.title." + displayActivityCounterName)});
 
 		dataSize = assetTags.size();
 	}
@@ -70,6 +70,8 @@ for (int displayActivityCounterNameIndex : displayActivityCounterNameIndexes) {
 		}
 
 		dataSize = activityCounters.size();
+
+		title = title + LanguageUtil.get(pageContext, "group.statistics.title." + displayActivityCounterName);
 	}
 
 	if (dataSize == 0) {
@@ -79,7 +81,7 @@ for (int displayActivityCounterNameIndex : displayActivityCounterNameIndexes) {
 
 	<div class="group-statistics-container">
 		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id='<%= "groupStatisticsPanel" + displayActivityCounterNameIndex %>' persistState="<%= true %>" title="<%= title %>">
-			<div class="group-statistics-body chart-<%= chartType %>" style="height: <%= displayHeight %>px;">
+			<div class="group-statistics-body chart-<%= chartType %>" style="min-height: <%= displayHeight %>px;">
 				<c:choose>
 					<c:when test="<%= dataSize > 0 %>">
 						<c:choose>

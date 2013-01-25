@@ -16,6 +16,7 @@ package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.atom.AtomCollectionAdapter;
 import com.liferay.portal.kernel.lar.PortletDataHandler;
+import com.liferay.portal.kernel.lar.StagedModelDataHandler;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.plugin.PluginPackage;
@@ -26,6 +27,7 @@ import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
 import com.liferay.portal.kernel.portlet.PortletBag;
 import com.liferay.portal.kernel.portlet.PortletBagPool;
 import com.liferay.portal.kernel.portlet.PortletLayoutListener;
+import com.liferay.portal.kernel.portletdisplaytemplate.PortletDisplayTemplateHandler;
 import com.liferay.portal.kernel.scheduler.SchedulerEntry;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.OpenSearch;
@@ -65,6 +67,7 @@ import com.liferay.portlet.asset.model.AssetRendererFactory;
 import com.liferay.portlet.expando.model.CustomAttributesDisplay;
 import com.liferay.portlet.social.model.SocialActivityInterpreter;
 import com.liferay.portlet.social.model.SocialRequestInterpreter;
+import com.liferay.util.bridges.alloy.AlloyPortlet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -105,6 +108,7 @@ public class PortletImpl extends PortletBaseImpl {
 		setActive(true);
 		_indexerClasses = new ArrayList<String>();
 		_schedulerEntries = new ArrayList<SchedulerEntry>();
+		_stagedModelDataHandlerClasses = new ArrayList<String>();
 		_assetRendererFactoryClasses = new ArrayList<String>();
 		_atomCollectionAdapterClasses = new ArrayList<String>();
 		_customAttributesDisplayClasses = new ArrayList<String>();
@@ -144,9 +148,11 @@ public class PortletImpl extends PortletBaseImpl {
 		List<SchedulerEntry> schedulerEntries, String portletURLClass,
 		String friendlyURLMapperClass, String friendlyURLMapping,
 		String friendlyURLRoutes, String urlEncoderClass,
-		String portletDataHandlerClass, String portletLayoutListenerClass,
-		String pollerProcessorClass, String popMessageListenerClass,
-		String socialActivityInterpreterClass,
+		String portletDataHandlerClass,
+		List<String> stagedModelDataHandlerClasses,
+		String portletDisplayTemplateHandlerClass,
+		String portletLayoutListenerClass, String pollerProcessorClass,
+		String popMessageListenerClass, String socialActivityInterpreterClass,
 		String socialRequestInterpreterClass, String webDAVStorageToken,
 		String webDAVStorageClass, String xmlRpcMethodClass,
 		String controlPanelEntryCategory, double controlPanelEntryWeight,
@@ -205,6 +211,9 @@ public class PortletImpl extends PortletBaseImpl {
 		_friendlyURLRoutes = friendlyURLRoutes;
 		_urlEncoderClass = urlEncoderClass;
 		_portletDataHandlerClass = portletDataHandlerClass;
+		_stagedModelDataHandlerClasses = stagedModelDataHandlerClasses;
+		_portletDisplayTemplateHandlerClass =
+			portletDisplayTemplateHandlerClass;
 		_portletLayoutListenerClass = portletLayoutListenerClass;
 		_pollerProcessorClass = pollerProcessorClass;
 		_popMessageListenerClass = popMessageListenerClass;
@@ -345,9 +354,10 @@ public class PortletImpl extends PortletBaseImpl {
 			getOpenSearchClass(), getSchedulerEntries(), getPortletURLClass(),
 			getFriendlyURLMapperClass(), getFriendlyURLMapping(),
 			getFriendlyURLRoutes(), getURLEncoderClass(),
-			getPortletDataHandlerClass(), getPortletLayoutListenerClass(),
-			getPollerProcessorClass(), getPopMessageListenerClass(),
-			getSocialActivityInterpreterClass(),
+			getPortletDataHandlerClass(), getStagedModelDataHandlerClasses(),
+			getPortletDisplayTemplateHandlerClass(),
+			getPortletLayoutListenerClass(), getPollerProcessorClass(),
+			getPopMessageListenerClass(), getSocialActivityInterpreterClass(),
 			getSocialRequestInterpreterClass(), getWebDAVStorageToken(),
 			getWebDAVStorageClass(), getXmlRpcMethodClass(),
 			getControlPanelEntryCategory(), getControlPanelEntryWeight(),
@@ -395,7 +405,9 @@ public class PortletImpl extends PortletBaseImpl {
 	 */
 	@Override
 	public int compareTo(Portlet portlet) {
-		return getPortletId().compareTo(portlet.getPortletId());
+		String portletId = getPortletId();
+
+		return portletId.compareTo(portlet.getPortletId());
 	}
 
 	/**
@@ -408,7 +420,9 @@ public class PortletImpl extends PortletBaseImpl {
 	public boolean equals(Object obj) {
 		Portlet portlet = (Portlet)obj;
 
-		return getPortletId().equals(portlet.getPortletId());
+		String portletId = getPortletId();
+
+		return portletId.equals(portlet.getPortletId());
 	}
 
 	/**
@@ -506,7 +520,7 @@ public class PortletImpl extends PortletBaseImpl {
 	 * @return the asset type instances of the portlet
 	 */
 	public List<AssetRendererFactory> getAssetRendererFactoryInstances() {
-		if (getAssetRendererFactoryClasses().isEmpty()) {
+		if (_assetRendererFactoryClasses.isEmpty()) {
 			return null;
 		}
 
@@ -532,7 +546,7 @@ public class PortletImpl extends PortletBaseImpl {
 	 * @return the atom collection adapter instances of the portlet
 	 */
 	public List<AtomCollectionAdapter<?>> getAtomCollectionAdapterInstances() {
-		if (getAtomCollectionAdapterClasses().isEmpty()) {
+		if (_atomCollectionAdapterClasses.isEmpty()) {
 			return null;
 		}
 
@@ -690,7 +704,7 @@ public class PortletImpl extends PortletBaseImpl {
 	 * @return the custom attribute display instances of the portlet
 	 */
 	public List<CustomAttributesDisplay> getCustomAttributesDisplayInstances() {
-		if (getCustomAttributesDisplayClasses().isEmpty()) {
+		if (_customAttributesDisplayClasses.isEmpty()) {
 			return null;
 		}
 
@@ -902,10 +916,10 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
-	 * Returns the name of the classes that represent indexers associated with
+	 * Returns the names of the classes that represent indexers associated with
 	 * the portlet.
 	 *
-	 * @return the name of the classes that represent indexers associated with
+	 * @return the names of the classes that represent indexers associated with
 	 *         the portlet
 	 */
 	public List<String> getIndexerClasses() {
@@ -918,7 +932,9 @@ public class PortletImpl extends PortletBaseImpl {
 	 * @return the indexer instances of the portlet
 	 */
 	public List<Indexer> getIndexerInstances() {
-		if (getIndexerClasses().isEmpty()) {
+		if (_indexerClasses.isEmpty() &&
+			!_portletClass.equals(AlloyPortlet.class.getName())) {
+
 			return Collections.emptyList();
 		}
 
@@ -1171,6 +1187,32 @@ public class PortletImpl extends PortletBaseImpl {
 		PortletBag portletBag = PortletBagPool.get(getRootPortletId());
 
 		return portletBag.getPortletDataHandlerInstance();
+	}
+
+	/**
+	 * Returns the name of the portlet display style class of the portlet.
+	 *
+	 * @return the name of the portlet display style class of the portlet
+	 */
+	public String getPortletDisplayTemplateHandlerClass() {
+		return _portletDisplayTemplateHandlerClass;
+	}
+
+	/**
+	 * Returns the portlet display style instance of the portlet.
+	 *
+	 * @return the portlet display style instance of the portlet
+	 */
+	public PortletDisplayTemplateHandler
+		getPortletDisplayTemplateHandlerInstance() {
+
+		if (Validator.isNull(getPortletDisplayTemplateHandlerClass())) {
+			return null;
+		}
+
+		PortletBag portletBag = PortletBagPool.get(getRootPortletId());
+
+		return portletBag.getPortletDisplayTemplateHandlerInstance();
 	}
 
 	/**
@@ -1557,6 +1599,34 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
+	 * Returns the names of the classes that represent staged model data
+	 * handlers associated with the portlet.
+	 *
+	 * @return the names of the classes that represent staged model data
+	 *         handlers associated with the portlet
+	 */
+	public List<String> getStagedModelDataHandlerClasses() {
+		return _stagedModelDataHandlerClasses;
+	}
+
+	/**
+	 * Returns the staged model data handler instances of the portlet.
+	 *
+	 * @return the staged model data handler instances of the portlet
+	 */
+	public List<StagedModelDataHandler<?>>
+		getStagedModelDataHandlerInstances() {
+
+		if (_stagedModelDataHandlerClasses.isEmpty()) {
+			return null;
+		}
+
+		PortletBag portletBag = PortletBagPool.get(getRootPortletId());
+
+		return portletBag.getStagedModelDataHandlerInstances();
+	}
+
+	/**
 	 * Returns <code>true</code> if the portlet is a static portlet that is
 	 * cannot be moved.
 	 *
@@ -1667,7 +1737,7 @@ public class PortletImpl extends PortletBaseImpl {
 	 * @return the trash handler instances of the portlet
 	 */
 	public List<TrashHandler> getTrashHandlerInstances() {
-		if (getTrashHandlerClasses().isEmpty()) {
+		if (_trashHandlerClasses.isEmpty()) {
 			return null;
 		}
 
@@ -1726,6 +1796,16 @@ public class PortletImpl extends PortletBaseImpl {
 	 */
 	public boolean getUseDefaultTemplate() {
 		return _useDefaultTemplate;
+	}
+
+	/**
+	 * Returns the user ID of the portlet. This only applies when the portlet is
+	 * added by a user in a customizable layout.
+	 *
+	 * @return the user ID of the portlet
+	 */
+	public long getUserId() {
+		return PortletConstants.getUserId(getPortletId());
 	}
 
 	/**
@@ -1805,7 +1885,7 @@ public class PortletImpl extends PortletBaseImpl {
 	 * @return the workflow handler instances of the portlet
 	 */
 	public List<WorkflowHandler> getWorkflowHandlerInstances() {
-		if (getWorkflowHandlerClasses().isEmpty()) {
+		if (_workflowHandlerClasses.isEmpty()) {
 			return null;
 		}
 
@@ -2323,7 +2403,7 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
-	 * Sets the name of the classes that represent asset types associated with
+	 * Sets the names of the classes that represent asset types associated with
 	 * the portlet.
 	 *
 	 * @param assetRendererFactoryClasses the names of the classes that
@@ -2336,7 +2416,7 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
-	 * Sets the name of the classes that represent atom collection adapters
+	 * Sets the names of the classes that represent atom collection adapters
 	 * associated with the portlet.
 	 *
 	 * @param atomCollectionAdapterClasses the names of the classes that
@@ -2417,7 +2497,7 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
-	 * Sets the name of the classes that represent custom attribute displays
+	 * Sets the names of the classes that represent custom attribute displays
 	 * associated with the portlet.
 	 *
 	 * @param customAttributesDisplayClasses the names of the classes that
@@ -2624,10 +2704,10 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
-	 * Sets the name of the classes that represent indexers associated with the
+	 * Sets the names of the classes that represent indexers associated with the
 	 * portlet.
 	 *
-	 * @param indexerClasses the name of the classes that represent indexers
+	 * @param indexerClasses the names of the classes that represent indexers
 	 *        associated with the portlet
 	 */
 	public void setIndexerClasses(List<String> indexerClasses) {
@@ -2780,6 +2860,20 @@ public class PortletImpl extends PortletBaseImpl {
 	 */
 	public void setPortletDataHandlerClass(String portletDataHandlerClass) {
 		_portletDataHandlerClass = portletDataHandlerClass;
+	}
+
+	/**
+	 * Sets the name of the portlet display template handler class of the
+	 * portlet.
+	 *
+	 * @param portletDisplayTemplateHandlerClass the name of display template
+	 *        handler class of the portlet
+	 */
+	public void setPortletDisplayTemplateHandlerClass(
+		String portletDisplayTemplateHandlerClass) {
+
+		_portletDisplayTemplateHandlerClass =
+			portletDisplayTemplateHandlerClass;
 	}
 
 	/**
@@ -3111,6 +3205,25 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
+	 * Returns the names of the classes that represent staged model data handlers associated with the portlet.
+	 *
+	 * @return the names of the classes that represent staged model data handlers associated with the portlet
+	 */
+
+	/**
+	 * Sets the names of the classes that represent staged model data handlers
+	 * associated with the portlet.
+	 *
+	 * @param stagedModelDataHandlerClasses the names of the classes that
+	 *        represent staged model data handlers associated with the portlet
+	 */
+	public void setStagedModelDataHandlerClasses(
+		List<String> stagedModelDataHandlerClasses) {
+
+		_stagedModelDataHandlerClasses = stagedModelDataHandlerClasses;
+	}
+
+	/**
 	 * Set to <code>true</code> if the portlet is a static portlet that is
 	 * cannot be moved.
 	 *
@@ -3171,7 +3284,7 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
-	 * Sets the name of the classes that represent trash handlers associated to
+	 * Sets the names of the classes that represent trash handlers associated to
 	 * the portlet.
 	 *
 	 * @param trashHandlerClasses the names of the classes that represent trash
@@ -3273,7 +3386,7 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
-	 * Sets the name of the classes that represent workflow handlers associated
+	 * Sets the names of the classes that represent workflow handlers associated
 	 * to the portlet.
 	 *
 	 * @param workflowHandlerClasses the names of the classes that represent
@@ -3481,7 +3594,7 @@ public class PortletImpl extends PortletBaseImpl {
 	private boolean _include = true;
 
 	/**
-	 * The name of the classes that represent indexers associated with the
+	 * The names of the classes that represent indexers associated with the
 	 * portlet.
 	 */
 	private List<String> _indexerClasses;
@@ -3563,6 +3676,11 @@ public class PortletImpl extends PortletBaseImpl {
 	 * The name of the portlet data handler class of the portlet.
 	 */
 	private String _portletDataHandlerClass;
+
+	/**
+	 * The name of the display style handler class of the portlet.
+	 */
+	private String _portletDisplayTemplateHandlerClass;
 
 	/**
 	 * The filters of the portlet.
@@ -3739,6 +3857,12 @@ public class PortletImpl extends PortletBaseImpl {
 	 * The name of the social request interpreter class of the portlet.
 	 */
 	private String _socialRequestInterpreterClass;
+
+	/**
+	 * The names of the classes that represent staged model data handlers
+	 * associated with the portlet.
+	 */
+	private List<String> _stagedModelDataHandlerClasses;
 
 	/**
 	 * <code>True</code> if the portlet is a static portlet that is cannot be

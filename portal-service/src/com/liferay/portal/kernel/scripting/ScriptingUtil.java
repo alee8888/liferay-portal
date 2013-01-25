@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.scripting;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -28,25 +30,34 @@ import javax.portlet.PortletResponse;
  */
 public class ScriptingUtil {
 
+	public static void addScriptingExecutor(
+		String language, ScriptingExecutor scriptingExecutor) {
+
+		getScripting().addScriptingExecutor(language, scriptingExecutor);
+	}
+
 	public static void clearCache(String language) throws ScriptingException {
 		getScripting().clearCache(language);
 	}
 
 	public static Map<String, Object> eval(
 			Set<String> allowedClasses, Map<String, Object> inputObjects,
-			Set<String> outputNames, String language, String script)
+			Set<String> outputNames, String language, String script,
+			ClassLoader... classLoaders)
 		throws ScriptingException {
 
 		return getScripting().eval(
-			allowedClasses, inputObjects, outputNames, language, script);
+			allowedClasses, inputObjects, outputNames, language, script,
+			classLoaders);
 	}
 
 	public static void exec(
 			Set<String> allowedClasses, Map<String, Object> inputObjects,
-			String language, String script)
+			String language, String script, ClassLoader... classLoaders)
 		throws ScriptingException {
 
-		getScripting().exec(allowedClasses, inputObjects, language, script);
+		getScripting().exec(
+			allowedClasses, inputObjects, language, script, classLoaders);
 	}
 
 	public static Map<String, Object> getPortletObjects(
@@ -58,6 +69,8 @@ public class ScriptingUtil {
 	}
 
 	public static Scripting getScripting() {
+		PortalRuntimePermission.checkGetBeanProperty(ScriptingUtil.class);
+
 		return _scripting;
 	}
 
@@ -66,6 +79,8 @@ public class ScriptingUtil {
 	}
 
 	public void setScripting(Scripting scripting) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_scripting = scripting;
 	}
 

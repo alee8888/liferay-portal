@@ -73,6 +73,18 @@ public class AssetVocabularyServiceImpl extends AssetVocabularyServiceBaseImpl {
 			serviceContext);
 	}
 
+	public AssetVocabulary addVocabulary(
+			String title, ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		AssetPermission.check(
+			getPermissionChecker(), serviceContext.getScopeGroupId(),
+			ActionKeys.ADD_VOCABULARY);
+
+		return assetVocabularyLocalService.addVocabulary(
+			getUserId(), title, serviceContext);
+	}
+
 	public void deleteVocabularies(long[] vocabularyIds)
 		throws PortalException, SystemException {
 
@@ -122,6 +134,15 @@ public class AssetVocabularyServiceImpl extends AssetVocabularyServiceBaseImpl {
 
 		return filterVocabularies(
 			assetVocabularyLocalService.getGroupVocabularies(groupId));
+	}
+
+	public List<AssetVocabulary> getGroupVocabularies(
+			long groupId, boolean createDefaultVocabulary)
+		throws PortalException, SystemException {
+
+		return filterVocabularies(
+			assetVocabularyLocalService.getGroupVocabularies(
+				groupId, createDefaultVocabulary));
 	}
 
 	public List<AssetVocabulary> getGroupVocabularies(

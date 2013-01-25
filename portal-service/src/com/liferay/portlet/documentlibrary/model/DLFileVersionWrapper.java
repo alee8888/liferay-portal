@@ -66,6 +66,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 		attributes.put("fileEntryTypeId", getFileEntryTypeId());
 		attributes.put("version", getVersion());
 		attributes.put("size", getSize());
+		attributes.put("checksum", getChecksum());
 		attributes.put("status", getStatus());
 		attributes.put("statusByUserId", getStatusByUserId());
 		attributes.put("statusByUserName", getStatusByUserName());
@@ -193,6 +194,12 @@ public class DLFileVersionWrapper implements DLFileVersion,
 
 		if (size != null) {
 			setSize(size);
+		}
+
+		String checksum = (String)attributes.get("checksum");
+
+		if (checksum != null) {
+			setChecksum(checksum);
 		}
 
 		Integer status = (Integer)attributes.get("status");
@@ -619,6 +626,24 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	}
 
 	/**
+	* Returns the checksum of this document library file version.
+	*
+	* @return the checksum of this document library file version
+	*/
+	public java.lang.String getChecksum() {
+		return _dlFileVersion.getChecksum();
+	}
+
+	/**
+	* Sets the checksum of this document library file version.
+	*
+	* @param checksum the checksum of this document library file version
+	*/
+	public void setChecksum(java.lang.String checksum) {
+		_dlFileVersion.setChecksum(checksum);
+	}
+
+	/**
 	* Returns the status of this document library file version.
 	*
 	* @return the status of this document library file version
@@ -727,6 +752,15 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	}
 
 	/**
+	* Returns <code>true</code> if this document library file version is denied.
+	*
+	* @return <code>true</code> if this document library file version is denied; <code>false</code> otherwise
+	*/
+	public boolean isDenied() {
+		return _dlFileVersion.isDenied();
+	}
+
+	/**
 	* Returns <code>true</code> if this document library file version is a draft.
 	*
 	* @return <code>true</code> if this document library file version is a draft; <code>false</code> otherwise
@@ -745,12 +779,48 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	}
 
 	/**
+	* Returns <code>true</code> if this document library file version is inactive.
+	*
+	* @return <code>true</code> if this document library file version is inactive; <code>false</code> otherwise
+	*/
+	public boolean isInactive() {
+		return _dlFileVersion.isInactive();
+	}
+
+	/**
+	* Returns <code>true</code> if this document library file version is incomplete.
+	*
+	* @return <code>true</code> if this document library file version is incomplete; <code>false</code> otherwise
+	*/
+	public boolean isIncomplete() {
+		return _dlFileVersion.isIncomplete();
+	}
+
+	/**
+	* Returns <code>true</code> if this document library file version is in the Recycle Bin.
+	*
+	* @return <code>true</code> if this document library file version is in the Recycle Bin; <code>false</code> otherwise
+	*/
+	public boolean isInTrash() {
+		return _dlFileVersion.isInTrash();
+	}
+
+	/**
 	* Returns <code>true</code> if this document library file version is pending.
 	*
 	* @return <code>true</code> if this document library file version is pending; <code>false</code> otherwise
 	*/
 	public boolean isPending() {
 		return _dlFileVersion.isPending();
+	}
+
+	/**
+	* Returns <code>true</code> if this document library file version is scheduled.
+	*
+	* @return <code>true</code> if this document library file version is scheduled; <code>false</code> otherwise
+	*/
+	public boolean isScheduled() {
+		return _dlFileVersion.isScheduled();
 	}
 
 	public boolean isNew() {
@@ -813,6 +883,10 @@ public class DLFileVersionWrapper implements DLFileVersion,
 		return new DLFileVersionWrapper(_dlFileVersion.toEscapedModel());
 	}
 
+	public com.liferay.portlet.documentlibrary.model.DLFileVersion toUnescapedModel() {
+		return new DLFileVersionWrapper(_dlFileVersion.toUnescapedModel());
+	}
+
 	@Override
 	public java.lang.String toString() {
 		return _dlFileVersion.toString();
@@ -849,6 +923,14 @@ public class DLFileVersionWrapper implements DLFileVersion,
 
 	public java.lang.String getIcon() {
 		return _dlFileVersion.getIcon();
+	}
+
+	public com.liferay.portlet.documentlibrary.model.DLFolder getTrashContainer() {
+		return _dlFileVersion.getTrashContainer();
+	}
+
+	public boolean isInTrashContainer() {
+		return _dlFileVersion.isInTrashContainer();
 	}
 
 	public void setExtraSettingsProperties(

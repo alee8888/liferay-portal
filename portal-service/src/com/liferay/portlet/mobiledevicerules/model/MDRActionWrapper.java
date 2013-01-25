@@ -732,6 +732,12 @@ public class MDRActionWrapper implements MDRAction, ModelWrapper<MDRAction> {
 		_mdrAction.setExpandoBridgeAttributes(serviceContext);
 	}
 
+	public void prepareLocalizedFieldsForImport(
+		java.util.Locale defaultImportLocale)
+		throws com.liferay.portal.LocaleException {
+		_mdrAction.prepareLocalizedFieldsForImport(defaultImportLocale);
+	}
+
 	@Override
 	public java.lang.Object clone() {
 		return new MDRActionWrapper((MDRAction)_mdrAction.clone());
@@ -753,6 +759,10 @@ public class MDRActionWrapper implements MDRAction, ModelWrapper<MDRAction> {
 
 	public com.liferay.portlet.mobiledevicerules.model.MDRAction toEscapedModel() {
 		return new MDRActionWrapper(_mdrAction.toEscapedModel());
+	}
+
+	public com.liferay.portlet.mobiledevicerules.model.MDRAction toUnescapedModel() {
+		return new MDRActionWrapper(_mdrAction.toUnescapedModel());
 	}
 
 	@Override

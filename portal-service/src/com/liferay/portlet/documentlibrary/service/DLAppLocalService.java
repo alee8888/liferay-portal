@@ -100,7 +100,8 @@ public interface DLAppLocalService extends BaseLocalService {
 			com.liferay.portal.kernel.exception.SystemException;
 
 	/**
-	* Adds a file entry and associated metadata based on a {@link File} object.
+	* Adds a file entry and associated metadata based on a {@link java.io.File}
+	* object.
 	*
 	* <p>
 	* This method takes two file names, the <code>sourceFileName</code> and the
@@ -142,8 +143,8 @@ public interface DLAppLocalService extends BaseLocalService {
 			com.liferay.portal.kernel.exception.SystemException;
 
 	/**
-	* Adds a file entry and associated metadata based on an {@link InputStream}
-	* object.
+	* Adds a file entry and associated metadata based on an {@link
+	* java.io.InputStream} object.
 	*
 	* <p>
 	* This method takes two file names, the <code>sourceFileName</code> and the
@@ -373,7 +374,7 @@ public interface DLAppLocalService extends BaseLocalService {
 	/**
 	* Returns the file entry with the UUID and group.
 	*
-	* @param uuid the file entry's universally unique identifier
+	* @param uuid the file entry's UUID
 	* @param groupId the primary key of the file entry's group
 	* @return the file entry with the UUID and group
 	* @throws PortalException if the file entry could not be found
@@ -493,6 +494,49 @@ public interface DLAppLocalService extends BaseLocalService {
 			com.liferay.portal.kernel.exception.SystemException;
 
 	/**
+	* Moves the file entry with the primary key to the trash portlet.
+	*
+	* @param userId the primary key of the user
+	* @param fileEntryId the primary key of the file entry
+	* @throws PortalException if the file entry could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public com.liferay.portal.kernel.repository.model.FileEntry moveFileEntryToTrash(
+		long userId, long fileEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	/**
+	* Restores the file entry with the primary key from the trash portlet.
+	*
+	* @param userId the primary key of the user
+	* @param fileEntryId the primary key of the file entry
+	* @throws PortalException if the file entry could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public void restoreFileEntryFromTrash(long userId, long fileEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	public void subscribeFileEntryType(long userId, long groupId,
+		long fileEntryTypeId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	public void subscribeFolder(long userId, long groupId, long folderId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	public void unsubscribeFileEntryType(long userId, long groupId,
+		long fileEntryTypeId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	public void unsubscribeFolder(long userId, long groupId, long folderId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	/**
 	* Updates the file entry's asset replacing its asset categories, tags, and
 	* links.
 	*
@@ -559,10 +603,11 @@ public interface DLAppLocalService extends BaseLocalService {
 			com.liferay.portal.kernel.exception.SystemException;
 
 	/**
-	* Updates a file entry and associated metadata based on a {@link File}
-	* object. If the file data is <code>null</code>, then only the associated
-	* metadata (i.e., <code>title</code>, <code>description</code>, and
-	* parameters in the <code>serviceContext</code>) will be updated.
+	* Updates a file entry and associated metadata based on a {@link
+	* java.io.File} object. If the file data is <code>null</code>, then only
+	* the associated metadata (i.e., <code>title</code>,
+	* <code>description</code>, and parameters in the
+	* <code>serviceContext</code>) will be updated.
 	*
 	* <p>
 	* This method takes two file names, the <code>sourceFileName</code> and the
@@ -604,7 +649,7 @@ public interface DLAppLocalService extends BaseLocalService {
 			com.liferay.portal.kernel.exception.SystemException;
 
 	/**
-	* Updates a file entry and associated metadata based on an {@link
+	* Updates a file entry and associated metadata based on an {@link java.io.
 	* InputStream} object. If the file data is <code>null</code>, then only the
 	* associated metadata (i.e., <code>title</code>, <code>description</code>,
 	* and parameters in the <code>serviceContext</code>) will be updated.
@@ -712,17 +757,15 @@ public interface DLAppLocalService extends BaseLocalService {
 	* @param serviceContext the service context to be applied. In a Liferay
 	repository, it may include:  <ul> <li> defaultFileEntryTypeId -
 	the file entry type to default all Liferay file entries to </li>
-	<li> fileEntryTypeSearchContainerPrimaryKeys - a comma-delimited
-	list of file entry type primary keys allowed in the given folder
-	and all descendants </li> <li> mountPoint - boolean specifying
-	whether folder is a facade for mounting a third-party repository
-	</li> <li> overrideFileEntryTypes - boolean specifying whether to
-	override ancestral folder's restriction of file entry types
-	allowed </li> <li> workflowDefinitionXYZ - the workflow
-	definition name specified per file entry type. The parameter name
-	must be the string <code>workflowDefinition</code> appended by
-	the <code>fileEntryTypeId</code> (optionally <code>0</code>).
-	</li> </ul>
+	<li> dlFileEntryTypesSearchContainerPrimaryKeys - a
+	comma-delimited list of file entry type primary keys allowed in
+	the given folder and all descendants </li> <li>
+	overrideFileEntryTypes - boolean specifying whether to override
+	ancestral folder's restriction of file entry types allowed </li>
+	<li> workflowDefinitionXYZ - the workflow definition name
+	specified per file entry type. The parameter name must be the
+	string <code>workflowDefinition</code> appended by the <code>
+	fileEntryTypeId</code> (optionally <code>0</code>). </li> </ul>
 	* @return the folder
 	* @throws PortalException if the current or new parent folder could not be
 	found, or if the new parent folder's information was invalid

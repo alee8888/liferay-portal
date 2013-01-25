@@ -16,6 +16,7 @@ package com.liferay.portlet.documentlibrary.asset;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -46,8 +47,6 @@ import java.util.Map;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
 
-import javax.servlet.http.HttpServletRequest;
-
 /**
  * @author Julio Camarero
  * @author Juan Fernández
@@ -77,7 +76,7 @@ public class DLFileEntryAssetRendererFactory extends BaseAssetRendererFactory {
 			fileVersion = fileEntry.getFileVersion();
 		}
 
-		return new DLFileEntryAssetRenderer(fileEntry, fileVersion);
+		return new DLFileEntryAssetRenderer(fileEntry, fileVersion, type);
 	}
 
 	public String getClassName() {
@@ -107,16 +106,23 @@ public class DLFileEntryAssetRendererFactory extends BaseAssetRendererFactory {
 	}
 
 	@Override
+	public String getTypeName(Locale locale, boolean hasSubtypes) {
+		if (hasSubtypes) {
+			return LanguageUtil.get(locale, "basic-document");
+		}
+
+		return super.getTypeName(locale, hasSubtypes);
+	}
+
+	@Override
 	public PortletURL getURLAdd(
 			LiferayPortletRequest liferayPortletRequest,
 			LiferayPortletResponse liferayPortletResponse)
 		throws PortalException, SystemException {
 
-		HttpServletRequest request =
-			liferayPortletRequest.getHttpServletRequest();
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)liferayPortletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		if (!DLPermission.contains(
 				themeDisplay.getPermissionChecker(),
@@ -138,7 +144,7 @@ public class DLFileEntryAssetRendererFactory extends BaseAssetRendererFactory {
 		}
 
 		PortletURL portletURL = PortletURLFactoryUtil.create(
-			request, PortletKeys.DOCUMENT_LIBRARY,
+			liferayPortletRequest, PortletKeys.DOCUMENT_LIBRARY,
 			getControlPanelPlid(themeDisplay), PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter(
@@ -148,7 +154,6 @@ public class DLFileEntryAssetRendererFactory extends BaseAssetRendererFactory {
 			String.valueOf(
 				AssetPublisherUtil.getRecentFolderId(
 					liferayPortletRequest, CLASS_NAME)));
-		portletURL.setParameter("uploader", "classic");
 
 		return portletURL;
 	}

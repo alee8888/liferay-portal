@@ -30,11 +30,17 @@ if (Validator.isNotNull(src) && themeDisplay.isThemeImagesFastLoad() && !auiImag
 
 	String imageFileName = StringUtil.replace(src, "common/../", "");
 
-	String imagesPath = theme.getContextPath().concat(theme.getImagesPath());
+	if (imageFileName.contains(Http.PROTOCOL_DELIMITER)) {
+		URL imageURL = new URL(imageFileName);
+
+		imageFileName = imageURL.getPath();
+	}
+
+	String contextPath = theme.getContextPath();
+
+	String imagesPath = contextPath.concat(theme.getImagesPath());
 
 	if (imageFileName.startsWith(imagesPath)) {
-		imageFileName = imageFileName.substring(imagesPath.length());
-
 		spriteImage = theme.getSpriteImage(imageFileName);
 
 		if (spriteImage != null) {
@@ -44,7 +50,9 @@ if (Validator.isNotNull(src) && themeDisplay.isThemeImagesFastLoad() && !auiImag
 				spriteFileName = StringUtil.replace(spriteFileName, ".png", ".gif");
 			}
 
-			spriteFileURL = themeDisplay.getPathThemeImages().concat(spriteFileName);
+			String cdnBaseURL = themeDisplay.getCDNBaseURL();
+
+			spriteFileURL = cdnBaseURL.concat(spriteFileName);
 		}
 	}
 
@@ -58,14 +66,6 @@ if (Validator.isNotNull(src) && themeDisplay.isThemeImagesFastLoad() && !auiImag
 		if (portlet != null) {
 			PortletApp portletApp = portlet.getPortletApp();
 
-			imageFileName = src;
-
-			if ((portletApp.isWARFile() || !portlet.getContextPath().equals(StringPool.SLASH)) &&
-				imageFileName.startsWith(portlet.getContextPath())) {
-
-				imageFileName = imageFileName.substring(portlet.getContextPath().length());
-			}
-
 			spriteImage = portletApp.getSpriteImage(imageFileName);
 
 			if (spriteImage != null) {
@@ -75,13 +75,17 @@ if (Validator.isNotNull(src) && themeDisplay.isThemeImagesFastLoad() && !auiImag
 					spriteFileName = StringUtil.replace(spriteFileName, ".png", ".gif");
 				}
 
-				spriteFileURL = portlet.getStaticResourcePath().concat(spriteFileName);
+				String cdnBaseURL = themeDisplay.getCDNBaseURL();
+
+				spriteFileURL = cdnBaseURL.concat(spriteFileName);
 			}
 		}
 	}
 
 	if (spriteImage != null) {
-		src = themeDisplay.getPathThemeImages().concat("/spacer.png");
+		String themeImagesPath = themeDisplay.getPathThemeImages();
+
+		src = themeImagesPath.concat("/spacer.png");
 
 		StringBundler sb = new StringBundler(10);
 
@@ -150,7 +154,7 @@ boolean urlIsNotNull = Validator.isNotNull(url);
 		<li <%= cssClassHtml %>>
 			<c:choose>
 				<c:when test="<%= urlIsNotNull %>">
-					<aui:a cssClass="taglib-icon" data="<%= data %>" href="<%= url %>" id="<%= id %>" lang="<%= lang %>" target="<%= target %>">
+					<aui:a cssClass='<%= linkCssClass + " taglib-icon" %>' data="<%= data %>" href="<%= url %>" id="<%= id %>" lang="<%= lang %>" target="<%= target %>">
 						<%= linkContent %>
 					</aui:a>
 				</c:when>
@@ -164,7 +168,7 @@ boolean urlIsNotNull = Validator.isNotNull(url);
 		<li <%= cssClassHtml %>>
 			<c:choose>
 				<c:when test="<%= urlIsNotNull %>">
-					<aui:a cssClass="taglib-icon" data="<%= data %>" href="<%= url %>" id="<%= id %>" lang="<%= lang %>" onClick='<%= Validator.isNotNull(onClick) ? onClick : "" %>' target="<%= target %>">
+					<aui:a cssClass='<%= linkCssClass + " taglib-icon" %>' data="<%= data %>" href="<%= url %>" id="<%= id %>" lang="<%= lang %>" onClick='<%= Validator.isNotNull(onClick) ? onClick : "" %>' target="<%= target %>">
 						<%= linkContent %>
 					</aui:a>
 				</c:when>
@@ -178,7 +182,7 @@ boolean urlIsNotNull = Validator.isNotNull(url);
 		<span <%= cssClassHtml %> >
 			<c:choose>
 				<c:when test="<%= urlIsNotNull %>">
-					<aui:a cssClass="taglib-icon" data="<%= data %>" href="<%= url %>" id="<%= id %>" lang="<%= lang %>" onClick='<%= Validator.isNotNull(onClick) ? onClick : "" %>' target="<%= target %>">
+					<aui:a cssClass='<%= linkCssClass + " taglib-icon" %>' data="<%= data %>" href="<%= url %>" id="<%= id %>" lang="<%= lang %>" onClick='<%= Validator.isNotNull(onClick) ? onClick : "" %>' target="<%= target %>">
 						<%= linkContent %>
 					</aui:a>
 				</c:when>

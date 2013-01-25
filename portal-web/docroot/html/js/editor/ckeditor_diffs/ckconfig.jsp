@@ -14,6 +14,8 @@
  */
 --%>
 
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
 <%@ page import="com.liferay.portal.kernel.util.ContentTypes" %>
 <%@ page import="com.liferay.portal.kernel.util.HtmlUtil" %>
 <%@ page import="com.liferay.portal.kernel.util.ParamUtil" %>
@@ -21,6 +23,7 @@
 <%
 String cssPath = ParamUtil.getString(request, "cssPath");
 String cssClasses = ParamUtil.getString(request, "cssClasses");
+boolean inlineEdit = ParamUtil.getBoolean(request, "inlineEdit");
 String languageId = ParamUtil.getString(request, "languageId");
 
 response.setContentType(ContentTypes.TEXT_JAVASCRIPT);
@@ -54,11 +57,17 @@ if (!CKEDITOR.stylesSet.get('liferayStyles')) {
 	);
 }
 
+CKEDITOR.config.autoSaveTimeout = 3000;
+
 CKEDITOR.config.bodyClass = 'html-editor <%= HtmlUtil.escapeJS(cssClasses) %>';
+
+CKEDITOR.config.closeNoticeTimeout = 8000;
 
 CKEDITOR.config.contentsCss = '<%= HtmlUtil.escapeJS(cssPath) %>/main.css';
 
 CKEDITOR.config.entities = false;
+
+CKEDITOR.config.extraPlugins = 'ajaxsave,restore';
 
 CKEDITOR.config.height = 265;
 
@@ -87,18 +96,22 @@ CKEDITOR.config.toolbar_email = [
 ];
 
 CKEDITOR.config.toolbar_liferay = [
-	['Styles', 'FontSize', '-', 'TextColor', 'BGColor'],
 	['Bold', 'Italic', 'Underline', 'Strike'],
-	['Subscript', 'Superscript'],
+
+	<c:if test="<%= inlineEdit %>">
+		['AjaxSave', '-', 'Restore'],
+	</c:if>
+
+	['Undo', 'Redo', '-', 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', ],
+	['Styles', 'FontSize', '-', 'TextColor', 'BGColor'],
 	'/',
-	['Undo', 'Redo', '-', 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'SelectAll', 'RemoveFormat'],
-	['Find', 'Replace', 'SpellChecker', 'Scayt'],
 	['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
 	['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
-	'/',
-	['Source'],
-	['Link', 'Unlink', 'Anchor'],
-	['Image', 'Flash', 'Table', '-', 'Smiley', 'SpecialChar']
+	['Image', 'Link', 'Unlink', 'Anchor'],
+	['Flash', 'Table', '-', 'Smiley', 'SpecialChar'],
+	['Find', 'Replace', 'SpellChecker', 'Scayt'],
+	['SelectAll', 'RemoveFormat'],
+	['Subscript', 'Superscript']
 ];
 
 CKEDITOR.config.toolbar_liferayArticle = [
@@ -115,3 +128,25 @@ CKEDITOR.config.toolbar_liferayArticle = [
 	['Link', 'Unlink', 'Anchor'],
 	['Image', 'Flash', 'Table', '-', 'Smiley', 'SpecialChar', 'LiferayPageBreak']
 ];
+
+CKEDITOR.on(
+	'dialogDefinition',
+	function(event) {
+		var dialogDefinition = event.data.definition;
+
+		dialogDefinition.onShow = function() {
+			if (window.top != window.self) {
+				var editorElement = this.getParentEditor().container;
+
+				var documentPosition = editorElement.getDocumentPosition();
+
+				var dialogSize = this.getSize();
+
+				var x = documentPosition.x + ((editorElement.getSize('width', true) - dialogSize.width) / 2);
+				var y = documentPosition.y + ((editorElement.getSize('height', true) - dialogSize.height) / 2);
+
+				this.move(x, y, false);
+			}
+		}
+	}
+);

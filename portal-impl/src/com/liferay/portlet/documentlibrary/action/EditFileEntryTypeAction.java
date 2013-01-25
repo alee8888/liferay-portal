@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.documentlibrary.action;
 
+import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.Constants;
@@ -33,11 +34,13 @@ import com.liferay.portlet.documentlibrary.DuplicateFileEntryTypeException;
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryTypeException;
 import com.liferay.portlet.documentlibrary.NoSuchMetadataSetException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
+import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryTypeServiceUtil;
 import com.liferay.portlet.documentlibrary.util.DLUtil;
 import com.liferay.portlet.dynamicdatamapping.NoSuchStructureException;
 import com.liferay.portlet.dynamicdatamapping.RequiredStructureException;
 import com.liferay.portlet.dynamicdatamapping.StructureDuplicateElementException;
+import com.liferay.portlet.dynamicdatamapping.StructureNameException;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalServiceUtil;
 
@@ -73,11 +76,20 @@ public class EditFileEntryTypeAction extends PortletAction {
 			else if (cmd.equals(Constants.DELETE)) {
 				deleteFileEntryType(actionRequest, actionResponse);
 			}
+			else if (cmd.equals(Constants.SUBSCRIBE)) {
+				subscribeFileEntryType(actionRequest);
+			}
+			else if (cmd.equals(Constants.UNSUBSCRIBE)) {
+				unsubscribeFileEntryType(actionRequest);
+			}
 
 			if (SessionErrors.isEmpty(actionRequest)) {
+				LiferayPortletConfig liferayPortletConfig =
+					(LiferayPortletConfig)portletConfig;
+
 				SessionMessages.add(
 					actionRequest,
-					portletConfig.getPortletName() +
+					liferayPortletConfig.getPortletId() +
 						SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
 					PortletKeys.DOCUMENT_LIBRARY);
 			}
@@ -87,7 +99,8 @@ public class EditFileEntryTypeAction extends PortletAction {
 		catch (Exception e) {
 			if (e instanceof DuplicateFileEntryTypeException ||
 				e instanceof NoSuchMetadataSetException ||
-				e instanceof StructureDuplicateElementException) {
+				e instanceof StructureDuplicateElementException ||
+				e instanceof StructureNameException) {
 
 				SessionErrors.add(actionRequest, e.getClass());
 			}
@@ -181,6 +194,32 @@ public class EditFileEntryTypeAction extends PortletAction {
 		}
 
 		return StringUtil.split(GetterUtil.getString(value), 0L);
+	}
+
+	protected void subscribeFileEntryType(ActionRequest actionRequest)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		long fileEntryTypeId = ParamUtil.getLong(
+			actionRequest, "fileEntryTypeId");
+
+		DLAppServiceUtil.subscribeFileEntryType(
+			themeDisplay.getScopeGroupId(), fileEntryTypeId);
+	}
+
+	protected void unsubscribeFileEntryType(ActionRequest actionRequest)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		long fileEntryTypeId = ParamUtil.getLong(
+			actionRequest, "fileEntryTypeId");
+
+		DLAppServiceUtil.unsubscribeFileEntryType(
+			themeDisplay.getScopeGroupId(), fileEntryTypeId);
 	}
 
 	protected void updateFileEntryType(

@@ -15,13 +15,14 @@
 package com.liferay.portal.upload;
 
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
-import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStreamWrapper;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.servlet.ServletInputStreamAdapter;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ProgressTracker;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.util.PropsUtil;
-import com.liferay.util.servlet.ServletInputStreamWrapper;
 
 import java.io.IOException;
 
@@ -34,7 +35,7 @@ import javax.servlet.http.HttpSession;
  * @author Brian Wing Shun Chan
  * @author Harry Mark
  */
-public class LiferayInputStream extends ServletInputStreamWrapper {
+public class LiferayInputStream extends ServletInputStreamAdapter {
 
 	public static final int THRESHOLD_SIZE = GetterUtil.getInteger(
 		PropsUtil.get(LiferayInputStream.class.getName() + ".threshold.size"));
@@ -51,7 +52,7 @@ public class LiferayInputStream extends ServletInputStreamWrapper {
 			return this;
 		}
 		else {
-			return new UnsyncByteArrayInputStreamWrapper(
+			return new ServletInputStreamAdapter(
 				new UnsyncByteArrayInputStream(
 					_cachedBytes.unsafeGetByteArray(), 0, _cachedBytes.size()));
 		}
@@ -78,12 +79,24 @@ public class LiferayInputStream extends ServletInputStreamWrapper {
 			_cachedBytes.write(b, off, bytesRead);
 		}
 
-		Integer curPercent = (Integer)_session.getAttribute(
-			LiferayFileUpload.PERCENT);
+		ProgressTracker progressTracker =
+			(ProgressTracker)_session.getAttribute(LiferayFileUpload.PERCENT);
 
-		if ((curPercent == null) || (percent - curPercent.intValue() >= 1)) {
-			_session.setAttribute(
-				LiferayFileUpload.PERCENT, new Integer(percent));
+		Integer curPercent = null;
+
+		if (progressTracker != null) {
+			curPercent = progressTracker.getPercent();
+		}
+
+		if ((curPercent == null) || ((percent - curPercent.intValue()) >= 1)) {
+			if (progressTracker == null) {
+				progressTracker = new ProgressTracker(
+					_session, StringPool.BLANK);
+
+				progressTracker.initialize();
+			}
+
+			progressTracker.setPercent(percent);
 		}
 
 		return bytesRead;

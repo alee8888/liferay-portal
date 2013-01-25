@@ -43,7 +43,7 @@ public class UpgradeLayout extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"select plid, name, title, typeSettings from Layout");
@@ -65,9 +65,8 @@ public class UpgradeLayout extends UpgradeProcess {
 	}
 
 	protected void updateJavaScript(
-			UnicodeProperties typeSettingsProperties, String javaScript1,
-			String javaScript2, String javaScript3)
-		throws Exception {
+		UnicodeProperties typeSettingsProperties, String javaScript1,
+		String javaScript2, String javaScript3) {
 
 		StringBundler sb = new StringBundler(6);
 
@@ -201,7 +200,7 @@ public class UpgradeLayout extends UpgradeProcess {
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"update Layout set " + columName + " = ? where plid = " + plid);
@@ -222,7 +221,7 @@ public class UpgradeLayout extends UpgradeProcess {
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"update Layout set name = ? where plid = " + plid);
@@ -241,7 +240,7 @@ public class UpgradeLayout extends UpgradeProcess {
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"update Layout set title = ? where plid = " + plid);
@@ -262,7 +261,7 @@ public class UpgradeLayout extends UpgradeProcess {
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"update Layout set typeSettings = ? where plid = " + plid);

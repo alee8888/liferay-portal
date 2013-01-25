@@ -26,22 +26,26 @@ String callback = ParamUtil.getString(request, "callback");
 PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("struts_action", "/asset_browser/view");
+portletURL.setParameter("groupId", String.valueOf(groupId));
 portletURL.setParameter("refererAssetEntryId", String.valueOf(refererAssetEntryId));
 portletURL.setParameter("typeSelection", typeSelection);
 portletURL.setParameter("callback", callback);
+
+request.setAttribute("view.jsp-portletURL", portletURL);
 %>
 
-<liferay-ui:header
-	title='<%= LanguageUtil.get(pageContext, "select") + StringPool.COLON + StringPool.SPACE + ResourceActionsUtil.getModelResource(locale, typeSelection) %>'
-/>
+<liferay-util:include page="/html/portlet/asset_browser/toolbar.jsp">
+	<liferay-util:param name="groupId" value="<%= String.valueOf(groupId) %>" />
+	<liferay-util:param name="typeSelection" value="<%= typeSelection %>" />
+</liferay-util:include>
 
 <div class="asset-search">
 	<liferay-portlet:renderURL varImpl="searchURL">
 		<portlet:param name="struts_action" value="/asset_browser/view" />
-		<portlet:param name="callback" value="<%= callback%>" />
 	</liferay-portlet:renderURL>
 
 	<aui:form action="<%= searchURL %>" method="post" name="searchFm">
+		<aui:input name="callback" type="hidden" value="<%= callback %>" />
 		<aui:input name="typeSelection" type="hidden" value="<%= typeSelection %>" />
 
 		<%
@@ -90,17 +94,23 @@ portletURL.setParameter("callback", callback);
 
 			String rowHREF = null;
 
+			Group group = GroupLocalServiceUtil.getGroup(assetEntry.getGroupId());
+
 			if (assetEntry.getEntryId() != refererAssetEntryId) {
-				StringBundler sb = new StringBundler(9);
+				StringBundler sb = new StringBundler(11);
 
 				sb.append("javascript:Liferay.Util.getOpener().");
 				sb.append(callback);
 				sb.append("('");
 				sb.append(assetEntry.getEntryId());
 				sb.append("', '");
-				sb.append(ResourceActionsUtil.getModelResource(locale, assetEntry.getClassName()));
+				sb.append(assetEntry.getClassName());
+				sb.append("', '");
+				sb.append(assetRendererFactory.getTypeName(locale, true));
 				sb.append("', '");
 				sb.append(assetEntry.getTitle(locale));
+				sb.append("', '");
+				sb.append(group.getDescriptiveName(locale));
 				sb.append("');Liferay.Util.getWindow().close();");
 
 				rowHREF = sb.toString();
@@ -112,15 +122,21 @@ portletURL.setParameter("callback", callback);
 
 			// Description
 
-			row.addText(assetEntry.getSummary(locale), rowHREF);
+			row.addText(HtmlUtil.stripHtml(HtmlUtil.unescape(assetEntry.getDescription(locale))), rowHREF);
 
 			// User name
 
-			row.addText(HtmlUtil.escape(PortalUtil.getUserName(assetEntry.getUserId(), assetEntry.getUserName())), rowHREF);
+			row.addText(PortalUtil.getUserName(assetEntry), rowHREF);
 
 			// Modified date
 
-			row.addText(dateFormatDate.format(assetEntry.getModifiedDate()), rowHREF);
+			Date modifiedDate = assetEntry.getModifiedDate();
+
+			row.addText(LanguageUtil.format(pageContext, "x-ago", LanguageUtil.getTimeDescription(pageContext, System.currentTimeMillis() - modifiedDate.getTime(), true)), rowHREF);
+
+			// Scope
+
+			row.addText(group.getDescriptiveName(locale), rowHREF);
 
 			// Add result row
 

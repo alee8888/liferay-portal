@@ -17,21 +17,20 @@ package com.liferay.taglib.portletext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletContainerUtil;
+import com.liferay.portal.kernel.portlet.PortletLayoutListener;
 import com.liferay.portal.kernel.portlet.RestrictPortletServletRequest;
 import com.liferay.portal.kernel.servlet.DynamicServletRequest;
 import com.liferay.portal.kernel.servlet.PipingServletResponse;
-import com.liferay.portal.kernel.servlet.taglib.portletext.RuntimePortletIDs;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.LayoutTypePortlet;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.service.PortletLocalServiceUtil;
+import com.liferay.portal.service.PortletPreferencesLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
 
-import java.util.Set;
-
-import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
@@ -81,49 +80,46 @@ public class RuntimeTag extends TagSupport {
 		try {
 			request.setAttribute(WebKeys.RENDER_PORTLET_RESOURCE, Boolean.TRUE);
 
-			if (Validator.isNotNull(defaultPreferences)) {
-				PortletPreferencesFactoryUtil.getPortletSetup(
-					request, portletId, defaultPreferences);
-			}
-
 			ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-			Portlet portlet = PortletLocalServiceUtil.getPortletById(
-				themeDisplay.getCompanyId(), portletId);
+			if (themeDisplay.isStateMaximized()) {
+				LayoutTypePortlet layoutTypePortlet =
+					themeDisplay.getLayoutTypePortlet();
 
-			PortletContainerUtil.render(request, response, portlet);
+				if (layoutTypePortlet.hasStateMaxPortletId(portletId)) {
 
-			RuntimePortletIDs runtimePortletIDs =
-				(RuntimePortletIDs)request.getAttribute(
-					WebKeys.RUNTIME_PORTLET_IDS);
+					// A portlet in the maximized state has already been
+					// processed
 
-			if (runtimePortletIDs == null) {
-				runtimePortletIDs = new RuntimePortletIDs();
-
-				request.setAttribute(
-					WebKeys.RUNTIME_PORTLET_IDS, runtimePortletIDs);
+					return;
+				}
 			}
 
-			runtimePortletIDs.addRuntimePortletID(portletName);
+			Portlet portlet = getPortlet(
+				themeDisplay.getCompanyId(), portletId);
+
+			if (PortletPreferencesLocalServiceUtil.getPortletPreferencesCount(
+					PortletKeys.PREFS_OWNER_TYPE_LAYOUT, themeDisplay.getPlid(),
+					portletId) < 1) {
+
+				PortletPreferencesFactoryUtil.getPortletSetup(
+					request, portletId, defaultPreferences);
+
+				PortletLayoutListener portletLayoutListener =
+					portlet.getPortletLayoutListenerInstance();
+
+				if (portletLayoutListener != null) {
+					portletLayoutListener.onAddToLayout(
+						portletId, themeDisplay.getPlid());
+				}
+			}
+
+			PortletContainerUtil.render(request, response, portlet);
 		}
 		finally {
 			restrictPortletServletRequest.mergeSharedAttributes();
 		}
-	}
-
-	public static Set<String> getRuntimePortletIDs(
-		ServletRequest servletRequest) {
-
-		RuntimePortletIDs runtimePortletIDs =
-			(RuntimePortletIDs)servletRequest.getAttribute(
-				WebKeys.RUNTIME_PORTLET_IDS);
-
-		if (runtimePortletIDs == null) {
-			return null;
-		}
-
-		return runtimePortletIDs.getRuntimePortletIDs();
 	}
 
 	@Override
@@ -164,6 +160,28 @@ public class RuntimeTag extends TagSupport {
 
 	public void setQueryString(String queryString) {
 		_queryString = queryString;
+	}
+
+	/**
+	 * @see com.liferay.portal.model.impl.LayoutTypePortletImpl#getStaticPortlets(
+	 *      String)
+	 */
+	protected static Portlet getPortlet(long companyId, String portletId)
+		throws Exception {
+
+		Portlet portlet = PortletLocalServiceUtil.getPortletById(
+			companyId, portletId);
+
+		// See LayoutTypePortletImpl#getStaticPortlets for why we only clone
+		// non-instanceable portlets
+
+		if (!portlet.isInstanceable()) {
+			portlet = (Portlet)portlet.clone();
+		}
+
+		portlet.setStatic(true);
+
+		return portlet;
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(RuntimeTag.class);

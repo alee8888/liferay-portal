@@ -43,7 +43,7 @@ public class PermissionsURLTag extends TagSupport {
 
 	public static void doTag(
 			String redirect, String modelResource,
-			String modelResourceDescription, long resourceGroupId,
+			String modelResourceDescription, Object resourceGroupId,
 			String resourcePrimKey, String windowState, String var,
 			int[] roleTypes, PageContext pageContext)
 		throws Exception {
@@ -54,8 +54,23 @@ public class PermissionsURLTag extends TagSupport {
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		if (resourceGroupId <= 0) {
-			resourceGroupId = themeDisplay.getScopeGroupId();
+		if (resourceGroupId instanceof Number) {
+			Number resourceGroupIdNumber = (Number)resourceGroupId;
+
+			if (resourceGroupIdNumber.longValue() < 0) {
+				resourceGroupId = null;
+			}
+		}
+		else if (resourceGroupId instanceof String) {
+			String esourceGroupIdString = (String)resourceGroupId;
+
+			if (esourceGroupIdString.length() == 0) {
+				resourceGroupId = null;
+			}
+		}
+
+		if (resourceGroupId == null) {
+			resourceGroupId = String.valueOf(themeDisplay.getScopeGroupId());
 		}
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
@@ -146,7 +161,7 @@ public class PermissionsURLTag extends TagSupport {
 		_redirect = redirect;
 	}
 
-	public void setResourceGroupId(long resourceGroupId) {
+	public void setResourceGroupId(Object resourceGroupId) {
 		_resourceGroupId = resourceGroupId;
 	}
 
@@ -169,7 +184,7 @@ public class PermissionsURLTag extends TagSupport {
 	private String _modelResource;
 	private String _modelResourceDescription;
 	private String _redirect;
-	private long _resourceGroupId;
+	private Object _resourceGroupId;
 	private String _resourcePrimKey;
 	private int[] _roleTypes;
 	private String _var;

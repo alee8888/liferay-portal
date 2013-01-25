@@ -526,6 +526,10 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 		return new GroupWrapper(_group.toEscapedModel());
 	}
 
+	public com.liferay.portal.model.Group toUnescapedModel() {
+		return new GroupWrapper(_group.toUnescapedModel());
+	}
+
 	@Override
 	public java.lang.String toString() {
 		return _group.toString();
@@ -538,6 +542,29 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	public void persist()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_group.persist();
+	}
+
+	public java.util.List<com.liferay.portal.model.Group> getAncestors()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _group.getAncestors();
+	}
+
+	public java.util.List<com.liferay.portal.model.Group> getChildren(
+		boolean site)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _group.getChildren(site);
+	}
+
+	public java.util.List<com.liferay.portal.model.Group> getChildrenWithLayouts(
+		boolean site, int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _group.getChildrenWithLayouts(site, start, end);
+	}
+
+	public int getChildrenWithLayoutsCount(boolean site)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _group.getChildrenWithLayoutsCount(site);
 	}
 
 	public long getDefaultPrivatePlid() {
@@ -560,8 +587,18 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 		return _group.getDescriptiveName(locale);
 	}
 
+	public java.lang.String getIconURL(
+		com.liferay.portal.theme.ThemeDisplay themeDisplay) {
+		return _group.getIconURL(themeDisplay);
+	}
+
 	public com.liferay.portal.model.Group getLiveGroup() {
 		return _group.getLiveGroup();
+	}
+
+	public java.lang.String getLiveParentTypeSettingsProperty(
+		java.lang.String key) {
+		return _group.getLiveParentTypeSettingsProperty(key);
 	}
 
 	public long getOrganizationId() {
@@ -572,6 +609,10 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _group.getParentGroup();
+	}
+
+	public com.liferay.portal.kernel.util.UnicodeProperties getParentLiveGroupTypeSettingsProperties() {
+		return _group.getParentLiveGroupTypeSettingsProperties();
 	}
 
 	public java.lang.String getPathFriendlyURL(boolean privateLayout,
@@ -642,6 +683,10 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 		return _group.isGuest();
 	}
 
+	public boolean isInStagingPortlet(java.lang.String portletId) {
+		return _group.isInStagingPortlet(portletId);
+	}
+
 	public boolean isLayout() {
 		return _group.isLayout();
 	}
@@ -664,6 +709,14 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 
 	public boolean isRoot() {
 		return _group.isRoot();
+	}
+
+	public boolean isShowSite(
+		com.liferay.portal.security.permission.PermissionChecker permissionChecker,
+		boolean privateSite)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _group.isShowSite(permissionChecker, privateSite);
 	}
 
 	public boolean isStaged() {

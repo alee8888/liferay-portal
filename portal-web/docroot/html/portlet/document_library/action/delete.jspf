@@ -16,13 +16,13 @@
 
 <c:choose>
 	<c:when test="<%= (fileShortcut == null) %>">
-		<c:if test="<%= showActions && DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DELETE) %>">
+		<c:if test="<%= (!checkedOut || hasLock) && showActions && DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DELETE) %>">
 			<c:choose>
-				<c:when test="<%= fileEntry.getModel() instanceof DLFileEntry %>">
+				<c:when test="<%= (fileEntry.getModel() instanceof DLFileEntry) && TrashUtil.isTrashEnabled(scopeGroupId) %>">
 					<portlet:actionURL var="deleteURL">
 						<portlet:param name="struts_action" value="/document_library/edit_file_entry" />
 						<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.MOVE_TO_TRASH %>" />
-						<portlet:param name="redirect" value="<%= viewFolderURL.toString() %>" />
+						<portlet:param name="redirect" value="<%= currentURL %>" />
 						<portlet:param name="fileEntryId" value="<%= String.valueOf(fileEntry.getFileEntryId()) %>" />
 					</portlet:actionURL>
 
@@ -35,7 +35,7 @@
 					<portlet:actionURL var="deleteURL">
 						<portlet:param name="struts_action" value="/document_library/edit_file_entry" />
 						<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.DELETE %>" />
-						<portlet:param name="redirect" value="<%= viewFolderURL.toString() %>" />
+						<portlet:param name="redirect" value="<%= currentURL %>" />
 						<portlet:param name="fileEntryId" value="<%= String.valueOf(fileEntry.getFileEntryId()) %>" />
 					</portlet:actionURL>
 
@@ -50,13 +50,13 @@
 		<c:if test="<%= showActions && DLFileShortcutPermission.contains(permissionChecker, fileShortcut, ActionKeys.DELETE) %>">
 			<portlet:actionURL var="deleteShortcutURL">
 				<portlet:param name="struts_action" value="/document_library/edit_file_shortcut" />
-				<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.MOVE_TO_TRASH %>" />
-				<portlet:param name="redirect" value="<%= viewFolderURL.toString() %>" />
+				<portlet:param name="<%= Constants.CMD %>" value="<%= TrashUtil.isTrashEnabled(scopeGroupId) ? Constants.MOVE_TO_TRASH : Constants.DELETE %>" />
+				<portlet:param name="redirect" value="<%= currentURL %>" />
 				<portlet:param name="fileShortcutId" value="<%= String.valueOf(fileShortcut.getFileShortcutId()) %>" />
 			</portlet:actionURL>
 
 			<liferay-ui:icon-delete
-				trash="<%= true %>"
+				trash="<%= TrashUtil.isTrashEnabled(scopeGroupId) %>"
 				url="<%= deleteShortcutURL %>"
 			/>
 		</c:if>

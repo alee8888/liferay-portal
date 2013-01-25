@@ -45,6 +45,8 @@ public class PortletKeys {
 
 	public static final String BOOKMARKS = "28";
 
+	public static final String BREADCRUMB = "73";
+
 	public static final String CALENDAR = "8";
 
 	public static final String CHAT = "1_WAR_chatportlet";
@@ -106,13 +108,13 @@ public class PortletKeys {
 
 	public static final String MAIL = "1_WAR_mailportlet";
 
+	public static final String MARKETPLACE_STORE = "1_WAR_marketplaceportlet";
+
 	public static final String MEDIA_GALLERY_DISPLAY = "31";
 
 	public static final String MESSAGE_BOARDS = "19";
 
 	public static final String MESSAGE_BOARDS_ADMIN = "162";
-
-	public static final String METADATA_SET_ADMIN = "171";
 
 	public static final String MOBILE_DEVICE_GLOBAL_ADMIN = "177";
 
@@ -131,8 +133,6 @@ public class PortletKeys {
 	public static final String MY_WORKFLOW_TASKS = "153";
 
 	public static final String NESTED_PORTLETS = "118";
-
-	public static final String ORGANIZATION_ADMIN = "80";
 
 	public static final String PAGE_COMMENTS = "107";
 
@@ -155,6 +155,8 @@ public class PortletKeys {
 	public static final String PORTLET_CONFIGURATION = "86";
 
 	public static final String PORTLET_CSS = "113";
+
+	public static final String PORTLET_DISPLAY_TEMPLATES = "183";
 
 	public static final long PREFS_OWNER_ID_DEFAULT = 0;
 
@@ -190,6 +192,8 @@ public class PortletKeys {
 
 	public static final String SHOPPING = "34";
 
+	public static final String SITE_MAP = "85";
+
 	public static final String SITE_MEMBERSHIPS_ADMIN = "174";
 
 	public static final String SITE_REDIRECTOR = "49";
@@ -197,6 +201,8 @@ public class PortletKeys {
 	public static final String SITE_SETTINGS = "165";
 
 	public static final String SITES_ADMIN = "134";
+
+	public static final String SITES_DIRECTORY = "184";
 
 	public static final String SOFTWARE_CATALOG = "98";
 
@@ -215,6 +221,8 @@ public class PortletKeys {
 	public static final String TAGS_ENTRIES_NAVIGATION = "141";
 
 	public static final String TRANSLATOR = "26";
+
+	public static final String TRASH = "182";
 
 	public static final String UNIT_CONVERTER = "27";
 

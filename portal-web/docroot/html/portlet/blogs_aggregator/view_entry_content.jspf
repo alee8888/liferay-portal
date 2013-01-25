@@ -26,9 +26,7 @@
 		StringBundler sb = new StringBundler(8);
 
 		sb.append(themeDisplay.getPathMain());
-		sb.append("/blogs/find_entry?redirect=");
-		sb.append(HttpUtil.encodeURL(currentURL));
-		sb.append("&noSuchEntryRedirect=");
+		sb.append("/blogs/find_entry?noSuchEntryRedirect=");
 		sb.append(HttpUtil.encodeURL(showBlogEntryURL.toString()));
 		sb.append("&entryId=");
 		sb.append(entry.getEntryId());
@@ -38,15 +36,13 @@
 		sb.append("&showAllEntries=1");
 
 		String viewAllEntriesURL = sb.toString();
-
-		User user2 = UserLocalServiceUtil.getUserById(entry.getUserId());
 		%>
 
 		<c:if test='<%= !displayStyle.endsWith("-without-title") %>'>
 			<div class="entry-info">
 				<span class="entry-title"><a href="<%= viewEntryURL %>"><%= HtmlUtil.escape(entry.getTitle()) %></a></span>
 
-				<span class="entry-author"><liferay-ui:message key="written-by" /> <a href="<%= viewAllEntriesURL %>"><%= HtmlUtil.escape(PortalUtil.getUserName(entry.getUserId(), entry.getUserName())) %></a>,</span>
+				<span class="entry-author"><liferay-ui:message key="written-by" /> <a href="<%= viewAllEntriesURL %>"><%= HtmlUtil.escape(PortalUtil.getUserName(entry)) %></a>,</span>
 
 				<span class="entry-date"><liferay-ui:message key="on-date" /> <%= dateFormatDateTime.format(entry.getDisplayDate()) %></span>
 
@@ -72,7 +68,21 @@
 	<c:if test='<%= !displayStyle.equals("title") %>'>
 		<div class="abstract">
 			<c:if test='<%= displayStyle.endsWith("-image") %>'>
-				<a href="<%= viewAllEntriesURL %>"><img align="left" border="0" hspace="0" src="<%= user2.getPortraitURL(themeDisplay) %>" width="65" /></a>
+
+				<%
+				User user2 = UserLocalServiceUtil.fetchUserById(entry.getUserId());
+
+				String portraitUrl = null;
+
+				if (user2 != null) {
+					portraitUrl = user2.getPortraitURL(themeDisplay);
+				}
+				else {
+					portraitUrl = UserConstants.getPortraitURL(themeDisplay.getPathImage(), true, 0);
+				}
+				%>
+
+				<a href="<%= viewAllEntriesURL %>"><img align="left" border="0" hspace="0" src="<%= portraitUrl %>" width="65" /></a>
 			</c:if>
 			<c:choose>
 				<c:when test='<%= displayStyle.startsWith("abstract") %>'>

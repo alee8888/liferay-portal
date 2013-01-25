@@ -611,7 +611,7 @@ public class ResourceLocalServiceImpl extends ResourceLocalServiceBaseImpl {
 	protected void deleteResource(
 			long companyId, String name, int scope, String primKey,
 			PermissionedModel permissionedModel)
-		throws PortalException, SystemException{
+		throws PortalException, SystemException {
 
 		if (resourceBlockLocalService.isSupported(name)) {
 			if (permissionedModel == null) {
@@ -683,7 +683,7 @@ public class ResourceLocalServiceImpl extends ResourceLocalServiceBaseImpl {
 		_log.debug(
 			"Checking user permissions block " + block + " for " + userId +
 				" " + resourceId + " " + actionId + " takes " +
-				stopWatch.getTime() + " ms");
+					stopWatch.getTime() + " ms");
 	}
 
 	protected void updateResourceBlocks(
@@ -741,7 +741,7 @@ public class ResourceLocalServiceImpl extends ResourceLocalServiceBaseImpl {
 		for (ResourcePermission resourcePermission : resourcePermissions) {
 			resourcePermission.setPrimKey(newPrimKey);
 
-			resourcePermissionPersistence.update(resourcePermission, false);
+			resourcePermissionPersistence.update(resourcePermission);
 		}
 	}
 

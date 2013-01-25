@@ -15,6 +15,7 @@
 package com.liferay.portlet;
 
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 
 import javax.portlet.PortletRequest;
 
@@ -26,26 +27,31 @@ import javax.servlet.http.HttpServletRequest;
 public class PortletURLFactoryUtil {
 
 	public static LiferayPortletURL create(
-		HttpServletRequest request, String portletName, long plid,
+		HttpServletRequest request, String portletId, long plid,
 		String lifecycle) {
 
 		return getPortletURLFactory().create(
-			request, portletName, plid, lifecycle);
+			request, portletId, plid, lifecycle);
 	}
 
 	public static LiferayPortletURL create(
-		PortletRequest portletRequest, String portletName, long plid,
+		PortletRequest portletRequest, String portletId, long plid,
 		String lifecycle) {
 
 		return getPortletURLFactory().create(
-			portletRequest, portletName, plid, lifecycle);
+			portletRequest, portletId, plid, lifecycle);
 	}
 
 	public static PortletURLFactory getPortletURLFactory() {
+		PortalRuntimePermission.checkGetBeanProperty(
+			PortletURLFactoryUtil.class);
+
 		return _portletURLFactory;
 	}
 
 	public void setPortletURLFactory(PortletURLFactory portletURLFactory) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_portletURLFactory = portletURLFactory;
 	}
 

@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.asset.service.persistence;
 
+import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
+import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.SQLQuery;
@@ -33,6 +35,7 @@ import com.liferay.portlet.asset.model.AssetCategory;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.AssetVocabulary;
 import com.liferay.portlet.asset.model.impl.AssetCategoryImpl;
+import com.liferay.portlet.asset.model.impl.AssetCategoryModelImpl;
 import com.liferay.util.dao.orm.CustomSQLUtil;
 
 import java.util.Collections;
@@ -43,6 +46,7 @@ import java.util.List;
  * @author Brian Wing Shun Chan
  * @author Bruno Farache
  * @author Jorge Ferrer
+ * @author Shuyang Zhou
  */
 public class AssetCategoryFinderImpl
 	extends BasePersistenceImpl<AssetCategory> implements AssetCategoryFinder {
@@ -59,6 +63,9 @@ public class AssetCategoryFinderImpl
 	public static final String FIND_BY_ENTRY_ID =
 		AssetCategoryFinder.class.getName() + ".findByEntryId";
 
+	public static final String FIND_BY_G_L =
+		AssetCategoryFinder.class.getName() + ".findByG_L";
+
 	public static final String FIND_BY_G_N =
 		AssetCategoryFinder.class.getName() + ".findByG_N";
 
@@ -70,6 +77,12 @@ public class AssetCategoryFinderImpl
 
 	public static final String FIND_BY_G_N_P =
 		AssetCategoryFinder.class.getName() + ".findByG_N_P";
+
+	public static final FinderPath FINDER_PATH_FIND_BY_G_L = new FinderPath(
+		AssetCategoryModelImpl.ENTITY_CACHE_ENABLED,
+		AssetCategoryModelImpl.FINDER_CACHE_ENABLED, List.class,
+		AssetCategoryPersistenceImpl.FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
+		"findByG_L", new String[] {Long.class.getName()});
 
 	public int countByG_C_N(long groupId, long classNameId, String name)
 		throws SystemException {
@@ -205,6 +218,61 @@ public class AssetCategoryFinderImpl
 		}
 	}
 
+	public List<Long> findByG_L(Long parentCategoryId) throws SystemException {
+		Object[] finderArgs = new Object[] {parentCategoryId};
+
+		List<Long> list = (List<Long>)FinderCacheUtil.getResult(
+			FINDER_PATH_FIND_BY_G_L, finderArgs, this);
+
+		if (list != null) {
+			return list;
+		}
+
+		AssetCategory parentAssetCategory = AssetCategoryUtil.fetchByPrimaryKey(
+			parentCategoryId);
+
+		if (parentAssetCategory == null) {
+			return Collections.emptyList();
+		}
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			String sql = CustomSQLUtil.get(FIND_BY_G_L);
+
+			SQLQuery q = session.createSQLQuery(sql);
+
+			q.addScalar("categoryId", Type.LONG);
+
+			QueryPos qPos = QueryPos.getInstance(q);
+
+			qPos.add(parentAssetCategory.getGroupId());
+			qPos.add(parentAssetCategory.getLeftCategoryId());
+			qPos.add(parentAssetCategory.getRightCategoryId());
+
+			list = q.list();
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+		finally {
+			if (list == null) {
+				FinderCacheUtil.removeResult(
+					FINDER_PATH_FIND_BY_G_L, finderArgs);
+			}
+			else {
+				FinderCacheUtil.putResult(
+					FINDER_PATH_FIND_BY_G_L, finderArgs, list);
+			}
+
+			closeSession(session);
+		}
+
+		return list;
+	}
+
 	public AssetCategory findByG_N(long groupId, String name)
 		throws NoSuchCategoryException, SystemException {
 
@@ -254,15 +322,15 @@ public class AssetCategoryFinderImpl
 	public List<AssetCategory> findByC_C(long classNameId, long classPK)
 		throws SystemException {
 
+		AssetEntry entry = AssetEntryUtil.fetchByC_C(classNameId, classPK);
+
+		if (entry == null) {
+			return Collections.emptyList();
+		}
+
 		Session session = null;
 
 		try {
-			AssetEntry entry = AssetEntryUtil.fetchByC_C(classNameId, classPK);
-
-			if (entry == null) {
-				return Collections.emptyList();
-			}
-
 			session = openSession();
 
 			String sql = CustomSQLUtil.get(FIND_BY_C_C);

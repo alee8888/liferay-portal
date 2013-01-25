@@ -42,35 +42,25 @@ if (Validator.isNotNull(target)) {
 
 		<%
 		OrganizationSearchTerms searchTerms = (OrganizationSearchTerms)searchContainer.getSearchTerms();
+
+		long parentOrganizationId = OrganizationConstants.ANY_PARENT_ORGANIZATION_ID;
+
+		LinkedHashMap<String, Object> organizationParams = new LinkedHashMap<String, Object>();
+
+		if (filterManageableOrganizations) {
+			organizationParams.put("organizationsTree", user.getOrganizations());
+		}
 		%>
 
 		<liferay-ui:search-container-results>
-
-			<%
-			LinkedHashMap<String, Object> organizationParams = new LinkedHashMap<String, Object>();
-
-			if (filterManageableOrganizations) {
-				organizationParams.put("organizationsTree", user.getOrganizations());
-			}
-
-			if (searchTerms.isAdvancedSearch()) {
-				results = OrganizationLocalServiceUtil.search(company.getCompanyId(), OrganizationConstants.ANY_PARENT_ORGANIZATION_ID, searchTerms.getName(), searchTerms.getType(), searchTerms.getStreet(), searchTerms.getCity(), searchTerms.getZip(), searchTerms.getRegionIdObj(), searchTerms.getCountryIdObj(), organizationParams, searchTerms.isAndOperator(), searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
-			}
-			else {
-				results = OrganizationLocalServiceUtil.search(company.getCompanyId(), OrganizationConstants.ANY_PARENT_ORGANIZATION_ID, searchTerms.getKeywords(), searchTerms.getType(), searchTerms.getRegionIdObj(), searchTerms.getCountryIdObj(), organizationParams, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
-			}
-
-			if (searchTerms.isAdvancedSearch()) {
-				total = OrganizationLocalServiceUtil.searchCount(company.getCompanyId(), OrganizationConstants.ANY_PARENT_ORGANIZATION_ID, searchTerms.getName(), searchTerms.getType(), searchTerms.getStreet(), searchTerms.getCity(), searchTerms.getZip(), searchTerms.getRegionIdObj(), searchTerms.getCountryIdObj(), organizationParams, searchTerms.isAndOperator());
-			}
-			else {
-				total = OrganizationLocalServiceUtil.searchCount(company.getCompanyId(), OrganizationConstants.ANY_PARENT_ORGANIZATION_ID, searchTerms.getKeywords(), searchTerms.getType(), searchTerms.getRegionIdObj(), searchTerms.getCountryIdObj(), organizationParams);
-			}
-
-			pageContext.setAttribute("results", results);
-			pageContext.setAttribute("total", total);
-			%>
-
+			<c:choose>
+				<c:when test="<%= PropsValues.ORGANIZATIONS_INDEXER_ENABLED && PropsValues.ORGANIZATIONS_SEARCH_WITH_INDEX %>">
+					<%@ include file="/html/portlet/users_admin/organization_search_results_index.jspf" %>
+				</c:when>
+				<c:otherwise>
+					<%@ include file="/html/portlet/users_admin/organization_search_results_database.jspf" %>
+				</c:otherwise>
+			</c:choose>
 		</liferay-ui:search-container-results>
 
 		<liferay-ui:search-container-row
@@ -84,7 +74,7 @@ if (Validator.isNotNull(target)) {
 			String rowHREF = null;
 
 			if (OrganizationPermissionUtil.contains(permissionChecker, organization.getOrganizationId(), ActionKeys.ASSIGN_MEMBERS)) {
-				StringBundler sb = new StringBundler(10);
+				StringBundler sb = new StringBundler(13);
 
 				sb.append("javascript:opener.");
 				sb.append(renderResponse.getNamespace());
@@ -98,8 +88,7 @@ if (Validator.isNotNull(target)) {
 				sb.append(UnicodeLanguageUtil.get(pageContext, organization.getType()));
 				sb.append("', '");
 				sb.append(target);
-				sb.append("');");
-				sb.append("window.close();");
+				sb.append("'); window.close();");
 
 				rowHREF = sb.toString();
 			}

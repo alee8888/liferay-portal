@@ -1,6 +1,6 @@
 <#include "../init.ftl">
 
-<@aui["field-wrapper"] label=label>
+<@aui["field-wrapper"] label=escape(label)>
 	<#if (fields??) && (fieldValue != "")>
 		<#assign fileJSONObject = getFileJSONObject(fieldRawValue)>
 
@@ -8,6 +8,6 @@
 		<#assign className = fileJSONObject.getString("className")>
 		<#assign classPK = fileJSONObject.getString("classPK")>
 
-		<a href="/documents/ddm/${className}/${classPK}/${fieldName}">${fileName}</a>
+		<a href="/documents/ddm/${className}/${classPK}/${fieldName}/${valueIndex}">${fileName}</a>
 	</#if>
 </@>

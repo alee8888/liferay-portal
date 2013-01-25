@@ -25,10 +25,13 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.template.StringTemplateResource;
 import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateContextType;
 import com.liferay.portal.kernel.template.TemplateManager;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
+import com.liferay.portal.kernel.template.TemplateResource;
+import com.liferay.portal.kernel.template.URLTemplateResource;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -37,9 +40,10 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
-import com.liferay.util.ContentUtil;
 
 import java.lang.reflect.Method;
+
+import java.net.URL;
 
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
@@ -94,16 +98,21 @@ public class RendererImpl implements Renderer {
 			className = varientSuffix;
 		}
 
-		String velocityTemplateContent = null;
+		TemplateResource templateResource = null;
 
 		PortletPreferences preferences = getPortletPreferences(request);
 
 		if (preferences != null) {
-			velocityTemplateContent = preferences.getValue(
+			String velocityTemplateContent = preferences.getValue(
 				RENDERER_TEMPLATE_PREFIX + className, StringPool.BLANK);
+
+			if (Validator.isNotNull(velocityTemplateContent)) {
+				templateResource = new StringTemplateResource(
+					className, velocityTemplateContent);
+			}
 		}
 
-		if (Validator.isNull(velocityTemplateContent) &&
+		if ((templateResource == null) &&
 			Validator.isNotNull(servletContextName)) {
 
 			if (servletContextName.startsWith(StringPool.SLASH)) {
@@ -114,24 +123,32 @@ public class RendererImpl implements Renderer {
 				BeanLocator beanLocator = PortletBeanLocatorUtil.getBeanLocator(
 					servletContextName);
 
-				velocityTemplateContent = ContentUtil.get(
-					beanLocator.getClassLoader(),
+				ClassLoader classLoader = beanLocator.getClassLoader();
+
+				URL url = classLoader.getResource(
 					PropsUtil.get(RENDERER_TEMPLATE_PREFIX + className));
+
+				templateResource = new URLTemplateResource(className, url);
 			}
 			catch (Exception e) {
 			}
 		}
 
-		if (Validator.isNull(velocityTemplateContent)) {
+		if (templateResource == null) {
 			try {
-				velocityTemplateContent = PrefsPropsUtil.getContent(
+				String velocityTemplateContent = PrefsPropsUtil.getContent(
 					companyId, RENDERER_TEMPLATE_PREFIX + className);
+
+				if (Validator.isNotNull(velocityTemplateContent)) {
+					templateResource = new StringTemplateResource(
+						className, velocityTemplateContent);
+				}
 			}
 			catch (Exception e) {
 			}
 		}
 
-		if (Validator.isNull(velocityTemplateContent)) {
+		if (templateResource == null) {
 			_log.warn("No entity renderer template found for " + className);
 
 			return null;
@@ -139,7 +156,7 @@ public class RendererImpl implements Renderer {
 
 		try {
 			Template template = TemplateManagerUtil.getTemplate(
-				TemplateManager.VELOCITY, className, velocityTemplateContent,
+				TemplateManager.VELOCITY, templateResource,
 				TemplateContextType.STANDARD);
 
 			template.prepare(request);

@@ -72,7 +72,7 @@ userSearch.setEmptyResultsMessage(emptyResultsMessage);
 	<%
 	UserSearchTerms searchTerms = (UserSearchTerms)searchContainer.getSearchTerms();
 
-	LinkedHashMap userParams = new LinkedHashMap();
+	LinkedHashMap<String, Object> userParams = new LinkedHashMap<String, Object>();
 
 	if (tabs1.equals("summary") || tabs2.equals("current")) {
 		userParams.put("inherit", true);
@@ -97,9 +97,44 @@ userSearch.setEmptyResultsMessage(emptyResultsMessage);
 		/>
 
 		<liferay-ui:search-container-column-text
+			buffer="buffer"
 			name="name"
-			property="fullName"
-		/>
+		>
+
+			<%
+			buffer.append(HtmlUtil.escape(user2.getFullName()));
+
+			List<String> names = new ArrayList<String>();
+
+			boolean organizationUser = SitesUtil.isOrganizationUser(company.getCompanyId(), group, user2, names);
+
+			row.setParameter("organizationUser", organizationUser);
+
+			boolean userGroupUser = SitesUtil.isUserGroupUser(company.getCompanyId(), group, user2, names);
+
+			row.setParameter("userGroupUser", userGroupUser);
+
+			String message = StringPool.BLANK;
+
+			if (organizationUser || userGroupUser) {
+				if (names.size() == 1) {
+					message = LanguageUtil.format(pageContext, "this-user-is-a-member-of-x-because-he-belongs-to-x", new Object[] {HtmlUtil.escape(group.getDescriptiveName(locale)), names.get(0)});
+				}
+				else {
+					message = LanguageUtil.format(pageContext, "this-user-is-a-member-of-x-because-he-belongs-to-x-and-x", new Object[] {HtmlUtil.escape(group.getDescriptiveName(locale)), StringUtil.merge(names.subList(0, names.size() - 1).toArray(new String[names.size() - 1]), ", "), names.get(names.size() - 1)});
+				}
+			%>
+
+				<liferay-util:buffer var="iconHelp">
+					<liferay-ui:icon-help message="<%= message %>" />
+				</liferay-util:buffer>
+
+			<%
+				buffer.append(iconHelp);
+			}
+			%>
+
+		</liferay-ui:search-container-column-text>
 
 		<liferay-ui:search-container-column-text
 			name="screen-name"
@@ -110,7 +145,7 @@ userSearch.setEmptyResultsMessage(emptyResultsMessage);
 		<c:if test='<%= tabs1.equals("summary") || tabs2.equals("current") %>'>
 			<liferay-ui:search-container-column-text
 				buffer="buffer"
-				name="site-roles"
+				name="site-roles-and-teams"
 			>
 
 				<%
@@ -124,6 +159,22 @@ userSearch.setEmptyResultsMessage(emptyResultsMessage);
 					buffer.append(HtmlUtil.escape(role.getTitle(locale)));
 
 					if ((i + 1) < userGroupRoles.size()) {
+						buffer.append(StringPool.COMMA_AND_SPACE);
+					}
+				}
+
+				List<Team> teams = TeamLocalServiceUtil.getUserTeams(user2.getUserId(), group.getGroupId());
+
+				if (!userGroupRoles.isEmpty()) {
+					buffer.append(StringPool.COMMA_AND_SPACE);
+				}
+
+				for (int i = 0; i < teams.size(); i++) {
+					Team team = teams.get(i);
+
+					buffer.append(HtmlUtil.escape(team.getName()));
+
+					if ((i + 1) < teams.size()) {
 						buffer.append(StringPool.COMMA_AND_SPACE);
 					}
 				}
@@ -173,9 +224,11 @@ userSearch.setEmptyResultsMessage(emptyResultsMessage);
 	<c:choose>
 		<c:when test='<%= tabs1.equals("summary") && (total > 0) %>'>
 			<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" persistState="<%= true %>" title='<%= LanguageUtil.format(pageContext, (total > 1) ? "x-users" : "x-user", total) %>'>
-				<aui:input inlineField="<%= true %>" label="" name='<%= DisplayTerms.KEYWORDS + "_users" %>' size="30" value="" />
+				<span class="aui-search-bar">
+					<aui:input inlineField="<%= true %>" label="" name='<%= DisplayTerms.KEYWORDS + "_users" %>' size="30" value="" />
 
-				<aui:button type="submit" value="search" />
+					<aui:button type="submit" value="search" />
+				</span>
 
 				<br /><br />
 

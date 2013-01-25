@@ -26,7 +26,7 @@ public interface WebDAVRequest {
 
 	public long getCompanyId();
 
-	public long getGroupId() ;
+	public long getGroupId();
 
 	public HttpServletRequest getHttpServletRequest();
 
@@ -51,6 +51,8 @@ public interface WebDAVRequest {
 	public boolean isLitmus();
 
 	public boolean isMac();
+
+	public boolean isManualCheckInRequired();
 
 	public boolean isWindows();
 

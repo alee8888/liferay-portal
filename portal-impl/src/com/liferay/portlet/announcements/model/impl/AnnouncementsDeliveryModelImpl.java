@@ -74,6 +74,8 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 		};
 	public static final String TABLE_SQL_CREATE = "create table AnnouncementsDelivery (deliveryId LONG not null primary key,companyId LONG,userId LONG,type_ VARCHAR(75) null,email BOOLEAN,sms BOOLEAN,website BOOLEAN)";
 	public static final String TABLE_SQL_DROP = "drop table AnnouncementsDelivery";
+	public static final String ORDER_BY_JPQL = " ORDER BY announcementsDelivery.deliveryId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY AnnouncementsDelivery.deliveryId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -88,6 +90,7 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 			true);
 	public static long TYPE_COLUMN_BITMASK = 1L;
 	public static long USERID_COLUMN_BITMASK = 2L;
+	public static long DELIVERYID_COLUMN_BITMASK = 4L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -97,6 +100,10 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 	 */
 	public static AnnouncementsDelivery toModel(
 		AnnouncementsDeliverySoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		AnnouncementsDelivery model = new AnnouncementsDeliveryImpl();
 
 		model.setDeliveryId(soapModel.getDeliveryId());
@@ -118,6 +125,10 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 	 */
 	public static List<AnnouncementsDelivery> toModels(
 		AnnouncementsDeliverySoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<AnnouncementsDelivery> models = new ArrayList<AnnouncementsDelivery>(soapModels.length);
 
 		for (AnnouncementsDeliverySoap soapModel : soapModels) {
@@ -142,7 +153,7 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_deliveryId);
+		return _deliveryId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -332,17 +343,6 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 	}
 
 	@Override
-	public AnnouncementsDelivery toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (AnnouncementsDelivery)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			AnnouncementsDelivery.class.getName(), getPrimaryKey());
@@ -353,6 +353,16 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public AnnouncementsDelivery toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (AnnouncementsDelivery)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -522,7 +532,7 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 	}
 
 	private static ClassLoader _classLoader = AnnouncementsDelivery.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			AnnouncementsDelivery.class
 		};
 	private long _deliveryId;
@@ -537,5 +547,5 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 	private boolean _sms;
 	private boolean _website;
 	private long _columnBitmask;
-	private AnnouncementsDelivery _escapedModelProxy;
+	private AnnouncementsDelivery _escapedModel;
 }

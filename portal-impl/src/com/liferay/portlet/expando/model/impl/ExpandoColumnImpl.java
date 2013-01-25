@@ -81,6 +81,12 @@ public class ExpandoColumnImpl extends ExpandoColumnBaseImpl {
 			else if (type == ExpandoColumnConstants.LONG_ARRAY) {
 				return value.getLongArray();
 			}
+			else if (type == ExpandoColumnConstants.NUMBER) {
+				return value.getNumber();
+			}
+			else if (type == ExpandoColumnConstants.NUMBER_ARRAY) {
+				return value.getNumberArray();
+			}
 			else if (type == ExpandoColumnConstants.SHORT) {
 				return value.getShort();
 			}
@@ -89,6 +95,12 @@ public class ExpandoColumnImpl extends ExpandoColumnBaseImpl {
 			}
 			else if (type == ExpandoColumnConstants.STRING_ARRAY) {
 				return value.getStringArray();
+			}
+			else if (type == ExpandoColumnConstants.STRING_ARRAY_LOCALIZED) {
+				return (Serializable)value.getStringArrayMap();
+			}
+			else if (type == ExpandoColumnConstants.STRING_LOCALIZED) {
+				return (Serializable)value.getStringMap();
 			}
 			else {
 				return value.getString();

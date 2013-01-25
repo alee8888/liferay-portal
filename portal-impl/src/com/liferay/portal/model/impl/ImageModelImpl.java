@@ -63,13 +63,12 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	public static final Object[][] TABLE_COLUMNS = {
 			{ "imageId", Types.BIGINT },
 			{ "modifiedDate", Types.TIMESTAMP },
-			{ "text_", Types.CLOB },
 			{ "type_", Types.VARCHAR },
 			{ "height", Types.INTEGER },
 			{ "width", Types.INTEGER },
 			{ "size_", Types.INTEGER }
 		};
-	public static final String TABLE_SQL_CREATE = "create table Image (imageId LONG not null primary key,modifiedDate DATE null,text_ TEXT null,type_ VARCHAR(75) null,height INTEGER,width INTEGER,size_ INTEGER)";
+	public static final String TABLE_SQL_CREATE = "create table Image (imageId LONG not null primary key,modifiedDate DATE null,type_ VARCHAR(75) null,height INTEGER,width INTEGER,size_ INTEGER)";
 	public static final String TABLE_SQL_DROP = "drop table Image";
 	public static final String ORDER_BY_JPQL = " ORDER BY image.imageId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY Image.imageId ASC";
@@ -86,6 +85,7 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 				"value.object.column.bitmask.enabled.com.liferay.portal.model.Image"),
 			true);
 	public static long SIZE_COLUMN_BITMASK = 1L;
+	public static long IMAGEID_COLUMN_BITMASK = 2L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -94,11 +94,14 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	 * @return the normal model instance
 	 */
 	public static Image toModel(ImageSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		Image model = new ImageImpl();
 
 		model.setImageId(soapModel.getImageId());
 		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setText(soapModel.getText());
 		model.setType(soapModel.getType());
 		model.setHeight(soapModel.getHeight());
 		model.setWidth(soapModel.getWidth());
@@ -114,6 +117,10 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	 * @return the normal model instances
 	 */
 	public static List<Image> toModels(ImageSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<Image> models = new ArrayList<Image>(soapModels.length);
 
 		for (ImageSoap soapModel : soapModels) {
@@ -138,7 +145,7 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_imageId);
+		return _imageId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -159,7 +166,6 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 
 		attributes.put("imageId", getImageId());
 		attributes.put("modifiedDate", getModifiedDate());
-		attributes.put("text", getText());
 		attributes.put("type", getType());
 		attributes.put("height", getHeight());
 		attributes.put("width", getWidth());
@@ -180,12 +186,6 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 
 		if (modifiedDate != null) {
 			setModifiedDate(modifiedDate);
-		}
-
-		String text = (String)attributes.get("text");
-
-		if (text != null) {
-			setText(text);
 		}
 
 		String type = (String)attributes.get("type");
@@ -231,20 +231,6 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 
 	public void setModifiedDate(Date modifiedDate) {
 		_modifiedDate = modifiedDate;
-	}
-
-	@JSON
-	public String getText() {
-		if (_text == null) {
-			return StringPool.BLANK;
-		}
-		else {
-			return _text;
-		}
-	}
-
-	public void setText(String text) {
-		_text = text;
 	}
 
 	@JSON
@@ -305,17 +291,6 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	}
 
 	@Override
-	public Image toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Image)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
 			Image.class.getName(), getPrimaryKey());
@@ -329,12 +304,21 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	}
 
 	@Override
+	public Image toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Image)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		ImageImpl imageImpl = new ImageImpl();
 
 		imageImpl.setImageId(getImageId());
 		imageImpl.setModifiedDate(getModifiedDate());
-		imageImpl.setText(getText());
 		imageImpl.setType(getType());
 		imageImpl.setHeight(getHeight());
 		imageImpl.setWidth(getWidth());
@@ -421,14 +405,6 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 			imageCacheModel.modifiedDate = Long.MIN_VALUE;
 		}
 
-		imageCacheModel.text = getText();
-
-		String text = imageCacheModel.text;
-
-		if ((text != null) && (text.length() == 0)) {
-			imageCacheModel.text = null;
-		}
-
 		imageCacheModel.type = getType();
 
 		String type = imageCacheModel.type;
@@ -448,14 +424,12 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(15);
+		StringBundler sb = new StringBundler(13);
 
 		sb.append("{imageId=");
 		sb.append(getImageId());
 		sb.append(", modifiedDate=");
 		sb.append(getModifiedDate());
-		sb.append(", text=");
-		sb.append(getText());
 		sb.append(", type=");
 		sb.append(getType());
 		sb.append(", height=");
@@ -470,7 +444,7 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	}
 
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(25);
+		StringBundler sb = new StringBundler(22);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.Image");
@@ -483,10 +457,6 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 		sb.append(
 			"<column><column-name>modifiedDate</column-name><column-value><![CDATA[");
 		sb.append(getModifiedDate());
-		sb.append("]]></column-value></column>");
-		sb.append(
-			"<column><column-name>text</column-name><column-value><![CDATA[");
-		sb.append(getText());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>type</column-name><column-value><![CDATA[");
@@ -511,12 +481,9 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	}
 
 	private static ClassLoader _classLoader = Image.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
-			Image.class
-		};
+	private static Class<?>[] _escapedModelInterfaces = new Class[] { Image.class };
 	private long _imageId;
 	private Date _modifiedDate;
-	private String _text;
 	private String _type;
 	private int _height;
 	private int _width;
@@ -524,5 +491,5 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	private int _originalSize;
 	private boolean _setOriginalSize;
 	private long _columnBitmask;
-	private Image _escapedModelProxy;
+	private Image _escapedModel;
 }

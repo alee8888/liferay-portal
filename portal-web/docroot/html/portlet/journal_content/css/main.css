@@ -1,9 +1,6 @@
-.portlet-journal-content {
-	.icon-actions {
-		float: left;
-		margin: 1px 10px 1px 1px;
-	}
+@import "compass";
 
+.portlet-journal-content {
 	.icons-container {
 		clear: both;
 		height: auto;
@@ -66,6 +63,14 @@
 		.journal-content-article {
 			zoom: 1;
 		}
+
+		.icon-actions {
+			@include opacity(0.2);
+		}
+
+		&:hover .icon-actions {
+			@include opacity(1);
+		}
 	}
 }
 
@@ -73,6 +78,10 @@
 	.portlet-journal-content {
 		.icons-container {
 			height: 1%;
+		}
+
+		.icon-actions {
+			@include opacity(0.9);
 		}
 	}
 }

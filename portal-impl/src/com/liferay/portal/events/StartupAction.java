@@ -25,7 +25,7 @@ import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.messaging.sender.MessageSender;
 import com.liferay.portal.kernel.messaging.sender.SynchronousMessageSender;
-import com.liferay.portal.kernel.scheduler.SchedulerEngineUtil;
+import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.servlet.JspFactorySwapper;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
@@ -33,10 +33,11 @@ import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.plugin.PluginPackageIndexer;
 import com.liferay.portal.security.lang.PortalSecurityManager;
+import com.liferay.portal.security.lang.PortalSecurityManagerThreadLocal;
 import com.liferay.portal.service.LockLocalServiceUtil;
 import com.liferay.portal.tools.DBUpgrader;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portlet.messageboards.util.MBIndexer;
+import com.liferay.portlet.messageboards.util.MBMessageIndexer;
 
 /**
  * @author Brian Wing Shun Chan
@@ -70,7 +71,11 @@ public class StartupAction extends SimpleAction {
 			_log.debug("Clear locks");
 		}
 
+		boolean enabled = PortalSecurityManagerThreadLocal.isEnabled();
+
 		try {
+			PortalSecurityManagerThreadLocal.setEnabled(false);
+
 			LockLocalServiceUtil.clear();
 		}
 		catch (Exception e) {
@@ -78,6 +83,9 @@ public class StartupAction extends SimpleAction {
 				_log.warn(
 					"Unable to clear locks because Lock table does not exist");
 			}
+		}
+		finally {
+			PortalSecurityManagerThreadLocal.setEnabled(enabled);
 		}
 
 		// Shutdown hook
@@ -123,7 +131,7 @@ public class StartupAction extends SimpleAction {
 
 		// Indexers
 
-		IndexerRegistryUtil.register(new MBIndexer());
+		IndexerRegistryUtil.register(new MBMessageIndexer());
 		IndexerRegistryUtil.register(new PluginPackageIndexer());
 
 		// Upgrade
@@ -132,7 +140,16 @@ public class StartupAction extends SimpleAction {
 			_log.debug("Upgrade database");
 		}
 
-		DBUpgrader.upgrade();
+		enabled = PortalSecurityManagerThreadLocal.isEnabled();
+
+		try {
+			PortalSecurityManagerThreadLocal.setEnabled(false);
+
+			DBUpgrader.upgrade();
+		}
+		finally {
+			PortalSecurityManagerThreadLocal.setEnabled(enabled);
+		}
 
 		// Messaging
 
@@ -162,7 +179,7 @@ public class StartupAction extends SimpleAction {
 			_log.debug("Initialize scheduler engine lifecycle");
 		}
 
-		SchedulerEngineUtil.initialize();
+		SchedulerEngineHelperUtil.initialize();
 
 		// Verify
 

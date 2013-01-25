@@ -14,9 +14,11 @@
 
 package com.liferay.portlet.workflowtasks.action;
 
+import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -67,18 +69,25 @@ public class EditWorkflowTaskAction extends PortletAction {
 				updateTask(actionRequest);
 			}
 
+			String redirect = ParamUtil.getString(actionRequest, "redirect");
 			String closeRedirect = ParamUtil.getString(
 				actionRequest, "closeRedirect");
 
 			if (Validator.isNotNull(closeRedirect)) {
+				redirect = HttpUtil.setParameter(
+					redirect, "closeRedirect", closeRedirect);
+
+				LiferayPortletConfig liferayPortletConfig =
+					(LiferayPortletConfig)portletConfig;
+
 				SessionMessages.add(
 					actionRequest,
-					portletConfig.getPortletName() +
+					liferayPortletConfig.getPortletId() +
 						SessionMessages.KEY_SUFFIX_CLOSE_REDIRECT,
 					closeRedirect);
 			}
 
-			sendRedirect(actionRequest, actionResponse);
+			sendRedirect(actionRequest, actionResponse, redirect);
 		}
 		catch (Exception e) {
 			if (e instanceof WorkflowTaskDueDateException) {
@@ -118,8 +127,9 @@ public class EditWorkflowTaskAction extends PortletAction {
 			}
 		}
 
-		return mapping.findForward(getForward(
-			renderRequest, "portlet.workflow_tasks.edit_workflow_task"));
+		return mapping.findForward(
+			getForward(
+				renderRequest, "portlet.workflow_tasks.edit_workflow_task"));
 	}
 
 	protected void assignTask(ActionRequest actionRequest) throws Exception {
@@ -182,7 +192,7 @@ public class EditWorkflowTaskAction extends PortletAction {
 
 		Date dueDate = PortalUtil.getDate(
 			dueDateMonth, dueDateDay, dueDateYear, dueDateHour, dueDateMinute,
-			new WorkflowTaskDueDateException());
+			WorkflowTaskDueDateException.class);
 
 		WorkflowTaskManagerUtil.updateDueDate(
 			themeDisplay.getCompanyId(), themeDisplay.getUserId(),

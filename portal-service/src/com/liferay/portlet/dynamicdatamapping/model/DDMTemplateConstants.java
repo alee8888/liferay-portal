@@ -27,21 +27,17 @@ public class DDMTemplateConstants {
 
 	public static final String LANG_TYPE_VM = "vm";
 
+	public static final String LANG_TYPE_XSD = "xsd";
+
 	public static final String[] LANG_TYPES = PropsUtil.getArray(
 		PropsKeys.DYNAMIC_DATA_MAPPING_TEMPLATE_LANGUAGE_TYPES);
-
-	public static final String TEMPLATE_KEY_CUSTOM_ABSTRACTS =
-		"custom_abstracts";
-
-	public static final String TEMPLATE_KEY_CUSTOM_TITLE_LIST =
-		"custom_title_list";
 
 	public static final String TEMPLATE_MODE_CREATE = "create";
 
 	public static final String TEMPLATE_MODE_EDIT = "edit";
 
-	public static final String TEMPLATE_TYPE_DETAIL = "detail";
+	public static final String TEMPLATE_TYPE_DISPLAY = "display";
 
-	public static final String TEMPLATE_TYPE_LIST = "list";
+	public static final String TEMPLATE_TYPE_FORM = "form";
 
 }

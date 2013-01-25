@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ReleaseInfo;
@@ -914,15 +915,18 @@ public class PluginPackageUtil {
 			properties.getProperty("module-group-id"));
 		String moduleArtifactId = displayPrefix + "-" + pluginType;
 
-		String moduleVersion = null;
+		String moduleVersion = GetterUtil.getString(
+			properties.getProperty("module-version"));
 
-		int moduleVersionPos = pos + pluginType.length() + 2;
+		if (Validator.isNull(moduleVersion)) {
+			int moduleVersionPos = pos + pluginType.length() + 2;
 
-		if (displayName.length() > moduleVersionPos) {
-			moduleVersion = displayName.substring(moduleVersionPos);
-		}
-		else {
-			moduleVersion = ReleaseInfo.getVersion();
+			if (displayName.length() > moduleVersionPos) {
+				moduleVersion = displayName.substring(moduleVersionPos);
+			}
+			else {
+				moduleVersion = ReleaseInfo.getVersion();
+			}
 		}
 
 		String moduleId =
@@ -987,6 +991,9 @@ public class PluginPackageUtil {
 			properties.getProperty("page-url"));
 		String downloadURL = GetterUtil.getString(
 			properties.getProperty("download-url"));
+		List<String> requiredDeploymentContexts = ListUtil.fromArray(
+			StringUtil.split(
+				properties.getProperty("required-deployment-contexts")));
 
 		PluginPackage pluginPackage = new PluginPackageImpl(moduleId);
 
@@ -1005,18 +1012,21 @@ public class PluginPackageUtil {
 		pluginPackage.setPageURL(pageURL);
 		pluginPackage.setDownloadURL(downloadURL);
 		//pluginPackage.setDeploymentSettings(null);
+		pluginPackage.setRequiredDeploymentContexts(requiredDeploymentContexts);
 
 		return pluginPackage;
 	}
 
+	/**
+	 * @see {@link
+	 *      com.liferay.portal.tools.deploy.BaseDeployer#readPluginPackage(
+	 *      java.io.File)}
+	 */
 	private PluginPackage _readPluginPackageServletContext(
 			ServletContext servletContext)
 		throws DocumentException, IOException {
 
 		String servletContextName = servletContext.getServletContextName();
-
-		String xml = HttpUtil.URLtoString(
-			servletContext.getResource("/WEB-INF/liferay-plugin-package.xml"));
 
 		if (_log.isInfoEnabled()) {
 			if (servletContextName == null) {
@@ -1029,7 +1039,13 @@ public class PluginPackageUtil {
 
 		PluginPackage pluginPackage = null;
 
-		if (xml == null) {
+		String xml = HttpUtil.URLtoString(
+			servletContext.getResource("/WEB-INF/liferay-plugin-package.xml"));
+
+		if (xml != null) {
+			pluginPackage = _readPluginPackageXml(xml);
+		}
+		else {
 			String propertiesString = HttpUtil.URLtoString(
 				servletContext.getResource(
 					"/WEB-INF/liferay-plugin-package.properties"));
@@ -1062,14 +1078,6 @@ public class PluginPackageUtil {
 					servletContext);
 			}
 		}
-		else {
-			if (_log.isDebugEnabled()) {
-				_log.debug(
-					"Reading plugin package from liferay-plugin-package.xml");
-			}
-
-			pluginPackage = _readPluginPackageXml(xml);
-		}
 
 		pluginPackage.setContext(servletContextName);
 
@@ -1079,7 +1087,8 @@ public class PluginPackageUtil {
 	private PluginPackage _readPluginPackageServletManifest(
 			ServletContext servletContext)
 		throws IOException {
-			Attributes attributes = null;
+
+		Attributes attributes = null;
 
 		String servletContextName = servletContext.getServletContextName();
 
@@ -1167,11 +1176,22 @@ public class PluginPackageUtil {
 		List<String> types = _readList(
 			pluginPackageElement.element("types"), "type");
 
+		if (types.contains("layout-template")) {
+			types.remove("layout-template");
+
+			types.add(Plugin.TYPE_LAYOUT_TEMPLATE);
+		}
+
 		pluginPackage.setName(_readText(name));
 		pluginPackage.setRecommendedDeploymentContext(
 			_readText(
 				pluginPackageElement.elementText(
 					"recommended-deployment-context")));
+		pluginPackage.setRequiredDeploymentContexts(
+			_readList(
+				pluginPackageElement.element(
+					"required-deployment-contexts"),
+					"required-deployment-context"));
 		pluginPackage.setModifiedDate(
 			_readDate(pluginPackageElement.elementText("modified-date")));
 		pluginPackage.setAuthor(

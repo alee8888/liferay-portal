@@ -19,6 +19,14 @@
 <%
 String redirect = ParamUtil.getString(request, "redirect");
 
+if (Validator.isNull(redirect)) {
+	PortletURL portletURL = renderResponse.createRenderURL();
+
+	portletURL.setParameter("struts_action", "/asset_publisher/view");
+
+	redirect = portletURL.toString();
+}
+
 List results = (List)request.getAttribute("view.jsp-results");
 
 int assetEntryIndex = ((Integer)request.getAttribute("view.jsp-assetEntryIndex")).intValue();
@@ -34,6 +42,7 @@ boolean print = ((Boolean)request.getAttribute("view.jsp-print")).booleanValue()
 
 request.setAttribute(WebKeys.LAYOUT_ASSET_ENTRY, assetEntry);
 
+request.setAttribute("view.jsp-fullContentRedirect", currentURL);
 request.setAttribute("view.jsp-showIconLabel", true);
 %>
 
@@ -95,7 +104,7 @@ request.setAttribute("view.jsp-showIconLabel", true);
 
 	// Dynamically created asset entries are never persisted so incrementing the view counter breaks
 
-	if (!assetEntry.isNew()) {
+	if (!assetEntry.isNew() && assetEntry.isVisible()) {
 		AssetEntry incrementAssetEntry = AssetEntryServiceUtil.incrementViewCounter(assetEntry.getClassName(), assetEntry.getClassPK());
 
 		if (incrementAssetEntry != null) {
@@ -127,9 +136,10 @@ request.setAttribute("view.jsp-showIconLabel", true);
 	viewFullContentURLString = HttpUtil.setParameter(viewFullContentURLString, "redirect", currentURL);
 	%>
 
-	<div class="asset-content">
+	<div class="asset-content" id="<portlet:namespace /><%= assetEntry.getEntryId() %>">
 		<c:if test='<%= enableSocialBookmarks && socialBookmarksDisplayPosition.equals("top") %>'>
 			<liferay-ui:social-bookmarks
+				contentId="<%= String.valueOf(assetEntry.getEntryId()) %>"
 				displayStyle="<%= socialBookmarksDisplayStyle %>"
 				target="_blank"
 				title="<%= assetEntry.getTitle(locale) %>"

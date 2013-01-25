@@ -393,6 +393,21 @@ public interface PasswordPolicyModel extends AuditedModel,
 	public void setMinUpperCase(int minUpperCase);
 
 	/**
+	 * Returns the regex of this password policy.
+	 *
+	 * @return the regex of this password policy
+	 */
+	@AutoEscape
+	public String getRegex();
+
+	/**
+	 * Sets the regex of this password policy.
+	 *
+	 * @param regex the regex of this password policy
+	 */
+	public void setRegex(String regex);
+
+	/**
 	 * Returns the history of this password policy.
 	 *
 	 * @return the history of this password policy
@@ -615,6 +630,8 @@ public interface PasswordPolicyModel extends AuditedModel,
 	public CacheModel<PasswordPolicy> toCacheModel();
 
 	public PasswordPolicy toEscapedModel();
+
+	public PasswordPolicy toUnescapedModel();
 
 	public String toString();
 

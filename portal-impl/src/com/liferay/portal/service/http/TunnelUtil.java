@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.util.Base64;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MethodHandler;
-import com.liferay.portal.kernel.util.MethodWrapper;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -44,7 +43,6 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * @author Brian Wing Shun Chan
  */
-@SuppressWarnings("deprecation")
 public class TunnelUtil {
 
 	public static Object invoke(
@@ -78,57 +76,7 @@ public class TunnelUtil {
 			String ioeMessage = ioe.getMessage();
 
 			if ((ioeMessage != null) &&
-				(ioeMessage.indexOf("HTTP response code: 401") != -1)) {
-
-				throw new PrincipalException(ioeMessage);
-			}
-			else {
-				throw ioe;
-			}
-		}
-
-		if ((returnObj != null) && returnObj instanceof Exception) {
-			throw (Exception)returnObj;
-		}
-
-		return returnObj;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public static Object invoke(
-			HttpPrincipal httpPrincipal, MethodWrapper methodWrapper)
-		throws Exception {
-
-		HttpURLConnection urlc = _getConnection(httpPrincipal);
-
-		ObjectOutputStream oos = new ObjectOutputStream(urlc.getOutputStream());
-
-		oos.writeObject(
-			new ObjectValuePair<HttpPrincipal, MethodWrapper>(
-				httpPrincipal, methodWrapper));
-
-		oos.flush();
-		oos.close();
-
-		Object returnObj = null;
-
-		try {
-			ObjectInputStream ois = new ObjectInputStream(
-				urlc.getInputStream());
-
-			returnObj = ois.readObject();
-
-			ois.close();
-		}
-		catch (EOFException eofe) {
-		}
-		catch (IOException ioe) {
-			String ioeMessage = ioe.getMessage();
-
-			if ((ioeMessage != null) &&
-				(ioeMessage.indexOf("HTTP response code: 401") != -1)) {
+				ioeMessage.contains("HTTP response code: 401")) {
 
 				throw new PrincipalException(ioeMessage);
 			}
@@ -151,16 +99,7 @@ public class TunnelUtil {
 			return null;
 		}
 
-		URL url = null;
-
-		if (Validator.isNull(httpPrincipal.getLogin()) ||
-			Validator.isNull(httpPrincipal.getPassword())) {
-
-			url = new URL(httpPrincipal.getUrl() + "/api/liferay/do");
-		}
-		else {
-			url = new URL(httpPrincipal.getUrl() + "/api/secure/liferay/do");
-		}
+		URL url = new URL(httpPrincipal.getUrl() + "/api/liferay/do");
 
 		HttpURLConnection httpURLConnection =
 			(HttpURLConnection)url.openConnection();

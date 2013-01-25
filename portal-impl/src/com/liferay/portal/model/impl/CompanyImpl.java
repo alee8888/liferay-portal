@@ -14,6 +14,7 @@
 
 package com.liferay.portal.model.impl;
 
+import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.Base64;
@@ -125,6 +126,7 @@ public class CompanyImpl extends CompanyBaseImpl {
 		return getDefaultUser().getLocale();
 	}
 
+	@AutoEscape
 	public String getName() throws PortalException, SystemException {
 		return getAccount().getName();
 	}
@@ -178,21 +180,28 @@ public class CompanyImpl extends CompanyBaseImpl {
 		return getDefaultUser().getTimeZone();
 	}
 
+	@Override
 	public String getVirtualHostname() {
+		if (Validator.isNotNull(_virtualHostname)) {
+			return _virtualHostname;
+		}
+
 		try {
 			VirtualHost virtualHost =
 				VirtualHostLocalServiceUtil.fetchVirtualHost(getCompanyId(), 0);
 
 			if (virtualHost == null) {
-				return StringPool.BLANK;
+				_virtualHostname = StringPool.BLANK;
 			}
 			else {
-				return virtualHost.getHostname();
+				_virtualHostname = virtualHost.getHostname();
 			}
 		}
 		catch (Exception e) {
-			return StringPool.BLANK;
+			_virtualHostname = StringPool.BLANK;
 		}
+
+		return _virtualHostname;
 	}
 
 	public boolean hasCompanyMx(String emailAddress) throws SystemException {
@@ -277,7 +286,15 @@ public class CompanyImpl extends CompanyBaseImpl {
 		_keyObj = keyObj;
 	}
 
+	@Override
+	public void setVirtualHostname(String virtualHostname) {
+		_virtualHostname = virtualHostname;
+	}
+
 	@CacheField
 	private Key _keyObj;
+
+	@CacheField
+	private String _virtualHostname;
 
 }

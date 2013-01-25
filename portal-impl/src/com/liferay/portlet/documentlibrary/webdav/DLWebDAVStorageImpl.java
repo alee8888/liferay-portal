@@ -18,6 +18,7 @@ import com.liferay.portal.DuplicateLockException;
 import com.liferay.portal.InvalidLockException;
 import com.liferay.portal.NoSuchLockException;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -26,6 +27,7 @@ import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -37,12 +39,16 @@ import com.liferay.portal.kernel.webdav.Status;
 import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
-import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Lock;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.webdav.LockException;
+import com.liferay.portlet.asset.model.AssetEntry;
+import com.liferay.portlet.asset.model.AssetLink;
+import com.liferay.portlet.asset.service.AssetCategoryLocalServiceUtil;
+import com.liferay.portlet.asset.service.AssetEntryLocalServiceUtil;
+import com.liferay.portlet.asset.service.AssetLinkLocalServiceUtil;
 import com.liferay.portlet.asset.service.AssetTagLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.DuplicateFileException;
 import com.liferay.portlet.documentlibrary.DuplicateFolderNameException;
@@ -51,6 +57,8 @@ import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
+import com.liferay.portlet.documentlibrary.util.DLUtil;
+import com.liferay.portlet.expando.model.ExpandoBridge;
 
 import java.io.File;
 import java.io.InputStream;
@@ -66,6 +74,9 @@ import javax.servlet.http.HttpServletResponse;
  * @author Alexander Chow
  */
 public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
+
+	public static final String MS_OFFICE_2010_TEXT_XML_UTF8 =
+		"text/xml; charset=\"utf-8\"";
 
 	@Override
 	public int copyCollectionResource(
@@ -357,21 +368,15 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 				long groupId = webDavRequest.getGroupId();
 				long parentFolderId = getParentFolderId(companyId, pathArray);
 				String title = WebDAVUtil.getResourceName(pathArray);
+				String extension = FileUtil.getExtension(title);
 
-				String contentType = GetterUtil.get(
-					request.getHeader(HttpHeaders.CONTENT_TYPE),
-					ContentTypes.APPLICATION_OCTET_STREAM);
-
-				if (contentType.equals(ContentTypes.APPLICATION_OCTET_STREAM)) {
-					contentType = MimeTypesUtil.getContentType(
-						request.getInputStream(), title);
-				}
+				String contentType = getContentType(
+					request, null, title, extension);
 
 				String description = StringPool.BLANK;
 				String changeLog = StringPool.BLANK;
 
-				File file = FileUtil.createTempFile(
-					FileUtil.getExtension(title));
+				File file = FileUtil.createTempFile(extension);
 
 				file.createNewFile();
 
@@ -391,8 +396,16 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 			if (resource instanceof DLFileEntryResourceImpl) {
 				FileEntry fileEntry = (FileEntry)resource.getModel();
 
-				lock = DLAppServiceUtil.lockFileEntry(
-					fileEntry.getFileEntryId(), owner, timeout);
+				ServiceContext serviceContext = new ServiceContext();
+
+				serviceContext.setAttribute(
+					DLUtil.MANUAL_CHECK_IN_REQUIRED,
+					webDavRequest.isManualCheckInRequired());
+
+				DLAppServiceUtil.checkOutFileEntry(
+					fileEntry.getFileEntryId(), owner, timeout, serviceContext);
+
+				lock = fileEntry.getLock();
 			}
 			else {
 				boolean inheritable = false;
@@ -497,6 +510,8 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 
 			ServiceContext serviceContext = new ServiceContext();
 
+			serviceContext.setUserId(webDavRequest.getUserId());
+
 			int status = HttpServletResponse.SC_CREATED;
 
 			if (overwrite) {
@@ -561,13 +576,9 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 			String description = fileEntry.getDescription();
 			String changeLog = StringPool.BLANK;
 
-			String[] assetTagNames = AssetTagLocalServiceUtil.getTagNames(
-				DLFileEntryConstants.getClassName(),
-				fileEntry.getFileEntryId());
-
 			ServiceContext serviceContext = new ServiceContext();
 
-			serviceContext.setAssetTagNames(assetTagNames);
+			populateServiceContext(serviceContext, fileEntry);
 
 			int status = HttpServletResponse.SC_CREATED;
 
@@ -663,19 +674,14 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 				isAddGroupPermissions(groupId));
 			serviceContext.setAddGuestPermissions(true);
 
-			String contentType = GetterUtil.get(
-				request.getHeader(HttpHeaders.CONTENT_TYPE),
-				ContentTypes.APPLICATION_OCTET_STREAM);
-
 			String extension = FileUtil.getExtension(title);
 
 			file = FileUtil.createTempFile(extension);
 
 			FileUtil.write(file, request.getInputStream());
 
-			if (contentType.equals(ContentTypes.APPLICATION_OCTET_STREAM)) {
-				contentType = MimeTypesUtil.getContentType(file, title);
-			}
+			String contentType = getContentType(
+				request, file, title, extension);
 
 			try {
 				FileEntry fileEntry = DLAppServiceUtil.getFileEntry(
@@ -691,22 +697,13 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 
 				description = fileEntry.getDescription();
 
-				String[] assetTagNames = AssetTagLocalServiceUtil.getTagNames(
-					DLFileEntryConstants.getClassName(),
-					fileEntry.getFileEntryId());
-
-				serviceContext.setAssetTagNames(assetTagNames);
+				populateServiceContext(serviceContext, fileEntry);
 
 				DLAppServiceUtil.updateFileEntry(
 					fileEntryId, title, contentType, title, description,
 					changeLog, false, file, serviceContext);
 			}
 			catch (NoSuchFileEntryException nsfee) {
-				if (file.length() == 0) {
-					serviceContext.setWorkflowAction(
-						WorkflowConstants.ACTION_SAVE_DRAFT);
-				}
-
 				DLAppServiceUtil.addFileEntry(
 					groupId, parentFolderId, title, contentType, title,
 					description, changeLog, file, serviceContext);
@@ -778,8 +775,19 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 			if (resource instanceof DLFileEntryResourceImpl) {
 				FileEntry fileEntry = (FileEntry)resource.getModel();
 
-				DLAppServiceUtil.unlockFileEntry(
-					fileEntry.getFileEntryId(), token);
+				// Do not allow WebDAV to check in a file entry if it requires
+				// a manual check in
+
+				if (fileEntry.isManualCheckInRequired()) {
+					return false;
+				}
+
+				ServiceContext serviceContext = new ServiceContext();
+
+				serviceContext.setAttribute(DLUtil.WEBDAV_CHECK_IN_MODE, true);
+
+				DLAppServiceUtil.checkInFileEntry(
+					fileEntry.getFileEntryId(), token, serviceContext);
 
 				if (webDavRequest.isAppleDoubleRequest()) {
 					DLAppServiceUtil.deleteFileEntry(
@@ -845,6 +853,22 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 		}
 
 		return false;
+	}
+
+	protected String getContentType(
+		HttpServletRequest request, File file, String title, String extension) {
+
+		String contentType = GetterUtil.getString(
+			request.getHeader(HttpHeaders.CONTENT_TYPE),
+			ContentTypes.APPLICATION_OCTET_STREAM);
+
+		if (contentType.equals(ContentTypes.APPLICATION_OCTET_STREAM) ||
+			contentType.equals(MS_OFFICE_2010_TEXT_XML_UTF8)) {
+
+			contentType = MimeTypesUtil.getContentType(file, title);
+		}
+
+		return contentType;
 	}
 
 	protected List<Resource> getFileEntries(
@@ -954,10 +978,44 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 		}
 	}
 
+	protected void populateServiceContext(
+			ServiceContext serviceContext, FileEntry fileEntry)
+		throws SystemException {
+
+		String className = DLFileEntryConstants.getClassName();
+
+		long[] assetCategoryIds = AssetCategoryLocalServiceUtil.getCategoryIds(
+			className, fileEntry.getFileEntryId());
+
+		serviceContext.setAssetCategoryIds(assetCategoryIds);
+
+		AssetEntry assetEntry = AssetEntryLocalServiceUtil.fetchEntry(
+			className, fileEntry.getFileEntryId());
+
+		List<AssetLink> assetLinks = AssetLinkLocalServiceUtil.getLinks(
+			assetEntry.getEntryId());
+
+		long[] assetLinkEntryIds = StringUtil.split(
+			ListUtil.toString(assetLinks, AssetLink.ENTRY_ID2_ACCESSOR), 0L);
+
+		serviceContext.setAssetLinkEntryIds(assetLinkEntryIds);
+
+		String[] assetTagNames = AssetTagLocalServiceUtil.getTagNames(
+			className, fileEntry.getFileEntryId());
+
+		serviceContext.setAssetTagNames(assetTagNames);
+
+		ExpandoBridge expandoBridge = fileEntry.getExpandoBridge();
+
+		serviceContext.setExpandoBridgeAttributes(
+			expandoBridge.getAttributes());
+	}
+
 	protected Resource toResource(
 		WebDAVRequest webDavRequest, FileEntry fileEntry, boolean appendPath) {
 
 		String parentPath = getRootPath() + webDavRequest.getPath();
+
 		String name = StringPool.BLANK;
 
 		if (appendPath) {
@@ -972,6 +1030,7 @@ public class DLWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 		WebDAVRequest webDavRequest, Folder folder, boolean appendPath) {
 
 		String parentPath = getRootPath() + webDavRequest.getPath();
+
 		String name = StringPool.BLANK;
 
 		if (appendPath) {

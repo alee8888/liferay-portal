@@ -76,7 +76,7 @@
 <#assign user_email_address = user.getEmailAddress() />
 <#assign language = locale.getLanguage() />
 <#assign language_id = user.getLanguageId() />
-<#assign w3c_language_id = localeUtil.toW3cLanguageId(language_id) />
+<#assign w3c_language_id = localeUtil.toW3cLanguageId(theme_display.getLanguageId()) />
 <#assign time_zone = user.getTimeZoneId() />
 <#assign user_greeting = htmlUtil.escape(user.getGreeting()) />
 <#assign user_comments = user.getComments() />
@@ -293,7 +293,7 @@
 	<#assign the_title = page_group.getDescriptiveName() />
 </#if>
 
-<#if (tilesTitle == "")>
+<#if (tilesTitle == "") && !pageTitle??>
 	<#assign the_title = htmlUtil.escape(the_title) />
 </#if>
 

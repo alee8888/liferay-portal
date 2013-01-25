@@ -99,6 +99,7 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 	public static long COMPANYID_COLUMN_BITMASK = 4L;
 	public static long PRIMARY_COLUMN_BITMASK = 8L;
 	public static long USERID_COLUMN_BITMASK = 16L;
+	public static long CREATEDATE_COLUMN_BITMASK = 32L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -107,6 +108,10 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 	 * @return the normal model instance
 	 */
 	public static Phone toModel(PhoneSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		Phone model = new PhoneImpl();
 
 		model.setPhoneId(soapModel.getPhoneId());
@@ -132,6 +137,10 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 	 * @return the normal model instances
 	 */
 	public static List<Phone> toModels(PhoneSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<Phone> models = new ArrayList<Phone>(soapModels.length);
 
 		for (PhoneSoap soapModel : soapModels) {
@@ -156,7 +165,7 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_phoneId);
+		return _phoneId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -486,17 +495,6 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 	}
 
 	@Override
-	public Phone toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Phone)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			Phone.class.getName(), getPrimaryKey());
@@ -507,6 +505,16 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public Phone toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Phone)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -758,9 +766,7 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 	}
 
 	private static ClassLoader _classLoader = Phone.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
-			Phone.class
-		};
+	private static Class<?>[] _escapedModelInterfaces = new Class[] { Phone.class };
 	private long _phoneId;
 	private long _companyId;
 	private long _originalCompanyId;
@@ -785,5 +791,5 @@ public class PhoneModelImpl extends BaseModelImpl<Phone> implements PhoneModel {
 	private boolean _originalPrimary;
 	private boolean _setOriginalPrimary;
 	private long _columnBitmask;
-	private Phone _escapedModelProxy;
+	private Phone _escapedModel;
 }

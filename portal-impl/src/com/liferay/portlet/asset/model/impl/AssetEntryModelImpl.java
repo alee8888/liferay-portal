@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.asset.model.impl;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
@@ -98,6 +99,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		};
 	public static final String TABLE_SQL_CREATE = "create table AssetEntry (entryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,classUuid VARCHAR(75) null,classTypeId LONG,visible BOOLEAN,startDate DATE null,endDate DATE null,publishDate DATE null,expirationDate DATE null,mimeType VARCHAR(75) null,title STRING null,description STRING null,summary STRING null,url STRING null,layoutUuid VARCHAR(75) null,height INTEGER,width INTEGER,priority DOUBLE,viewCount INTEGER)";
 	public static final String TABLE_SQL_DROP = "drop table AssetEntry";
+	public static final String ORDER_BY_JPQL = " ORDER BY assetEntry.entryId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY AssetEntry.entryId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -116,8 +119,10 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 	public static long COMPANYID_COLUMN_BITMASK = 8L;
 	public static long EXPIRATIONDATE_COLUMN_BITMASK = 16L;
 	public static long GROUPID_COLUMN_BITMASK = 32L;
-	public static long PUBLISHDATE_COLUMN_BITMASK = 64L;
-	public static long VISIBLE_COLUMN_BITMASK = 128L;
+	public static long LAYOUTUUID_COLUMN_BITMASK = 64L;
+	public static long PUBLISHDATE_COLUMN_BITMASK = 128L;
+	public static long VISIBLE_COLUMN_BITMASK = 256L;
+	public static long ENTRYID_COLUMN_BITMASK = 512L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -126,6 +131,10 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 	 * @return the normal model instance
 	 */
 	public static AssetEntry toModel(AssetEntrySoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		AssetEntry model = new AssetEntryImpl();
 
 		model.setEntryId(soapModel.getEntryId());
@@ -165,6 +174,10 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 	 * @return the normal model instances
 	 */
 	public static List<AssetEntry> toModels(AssetEntrySoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<AssetEntry> models = new ArrayList<AssetEntry>(soapModels.length);
 
 		for (AssetEntrySoap soapModel : soapModels) {
@@ -210,7 +223,7 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_entryId);
+		return _entryId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -991,7 +1004,17 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 	}
 
 	public void setLayoutUuid(String layoutUuid) {
+		_columnBitmask |= LAYOUTUUID_COLUMN_BITMASK;
+
+		if (_originalLayoutUuid == null) {
+			_originalLayoutUuid = _layoutUuid;
+		}
+
 		_layoutUuid = layoutUuid;
+	}
+
+	public String getOriginalLayoutUuid() {
+		return GetterUtil.getString(_originalLayoutUuid);
 	}
 
 	@JSON
@@ -1035,17 +1058,6 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 	}
 
 	@Override
-	public AssetEntry toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (AssetEntry)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			AssetEntry.class.getName(), getPrimaryKey());
@@ -1056,6 +1068,27 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+		setTitle(getTitle(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setDescription(getDescription(defaultImportLocale),
+			defaultImportLocale, defaultImportLocale);
+		setSummary(getSummary(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+	}
+
+	@Override
+	public AssetEntry toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (AssetEntry)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -1167,6 +1200,8 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 		assetEntryModelImpl._originalPublishDate = assetEntryModelImpl._publishDate;
 
 		assetEntryModelImpl._originalExpirationDate = assetEntryModelImpl._expirationDate;
+
+		assetEntryModelImpl._originalLayoutUuid = assetEntryModelImpl._layoutUuid;
 
 		assetEntryModelImpl._columnBitmask = 0;
 	}
@@ -1499,7 +1534,7 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 	}
 
 	private static ClassLoader _classLoader = AssetEntry.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			AssetEntry.class
 		};
 	private long _entryId;
@@ -1541,10 +1576,11 @@ public class AssetEntryModelImpl extends BaseModelImpl<AssetEntry>
 	private String _summaryCurrentLanguageId;
 	private String _url;
 	private String _layoutUuid;
+	private String _originalLayoutUuid;
 	private int _height;
 	private int _width;
 	private double _priority;
 	private int _viewCount;
 	private long _columnBitmask;
-	private AssetEntry _escapedModelProxy;
+	private AssetEntry _escapedModel;
 }

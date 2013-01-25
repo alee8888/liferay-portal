@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.model.Address;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.LayoutSet;
@@ -41,7 +42,6 @@ import com.liferay.portal.service.PortalPreferencesLocalServiceUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.util.UniqueList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -136,15 +136,10 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 
 		Organization organization = this;
 
-		while (true) {
-			if (!organization.isRoot()) {
-				organization = organization.getParentOrganization();
+		while (!organization.isRoot()) {
+			organization = organization.getParentOrganization();
 
-				ancestors.add(organization);
-			}
-			else {
-				break;
-			}
+			ancestors.add(organization);
 		}
 
 		return ancestors;
@@ -350,9 +345,8 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	protected void buildTreePath(StringBundler sb, Organization organization)

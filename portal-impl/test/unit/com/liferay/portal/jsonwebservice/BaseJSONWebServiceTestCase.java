@@ -16,13 +16,18 @@ package com.liferay.portal.jsonwebservice;
 
 import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONSerializable;
 import com.liferay.portal.kernel.json.JSONSerializer;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceAction;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManagerUtil;
+import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceClassVisitorFactoryUtil;
+import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceMappingResolver;
 import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.util.MethodParametersResolverUtil;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.util.MethodParametersResolverImpl;
+import com.liferay.portal.util.PropsImpl;
 
 import java.lang.reflect.Method;
 
@@ -34,6 +39,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 
 /**
  * @author Igor Spasic
+ * @author Raymond Augé
  */
 public abstract class BaseJSONWebServiceTestCase extends PowerMockito {
 
@@ -48,14 +54,30 @@ public abstract class BaseJSONWebServiceTestCase extends PowerMockito {
 		jsonWebServiceActionsManagerUtil.setJSONWebServiceActionsManager(
 			new JSONWebServiceActionsManagerImpl());
 
+		JSONWebServiceClassVisitorFactoryUtil
+			jsonWebServiceClassVisitorFactoryUtil =
+				new JSONWebServiceClassVisitorFactoryUtil();
+
+		jsonWebServiceClassVisitorFactoryUtil.
+			setJSONWebServiceClassVisitorFactory(
+				new JSONWebServiceClassVisitorFactoryImpl());
+
 		MethodParametersResolverUtil methodParametersResolverUtil =
 			new MethodParametersResolverUtil();
 
 		methodParametersResolverUtil.setMethodParametersResolver(
 			new MethodParametersResolverImpl());
+
+		PropsUtil.setProps(new PropsImpl());
 	}
 
 	protected static void registerActionClass(Class<?> actionClass) {
+		registerActionClass(actionClass, StringPool.BLANK);
+	}
+
+	protected static void registerActionClass(
+		Class<?> actionClass, String servletContextPath) {
+
 		JSONWebServiceMappingResolver jsonWebServiceMappingResolver =
 			new JSONWebServiceMappingResolver();
 
@@ -72,7 +94,7 @@ public abstract class BaseJSONWebServiceTestCase extends PowerMockito {
 				actionMethod);
 
 			JSONWebServiceActionsManagerUtil.registerJSONWebServiceAction(
-				StringPool.BLANK, actionClass, actionMethod, path, method);
+				servletContextPath, actionClass, actionMethod, path, method);
 		}
 	}
 
@@ -106,9 +128,26 @@ public abstract class BaseJSONWebServiceTestCase extends PowerMockito {
 	}
 
 	protected String toJSON(Object object) {
+		if (object instanceof JSONSerializable) {
+			return ((JSONSerializable)object).toJSONString();
+		}
+
 		JSONSerializer jsonSerializer = JSONFactoryUtil.createJSONSerializer();
 
 		jsonSerializer.exclude("*.class");
+
+		return jsonSerializer.serialize(object);
+	}
+
+	protected String toJSON(Object object, String... includes) {
+		if (object instanceof JSONSerializable) {
+			return ((JSONSerializable)object).toJSONString();
+		}
+
+		JSONSerializer jsonSerializer = JSONFactoryUtil.createJSONSerializer();
+
+		jsonSerializer.exclude("*.class");
+		jsonSerializer.include(includes);
 
 		return jsonSerializer.serialize(object);
 	}

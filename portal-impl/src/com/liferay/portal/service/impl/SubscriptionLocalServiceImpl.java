@@ -77,7 +77,7 @@ public class SubscriptionLocalServiceImpl
 			subscription.setClassPK(classPK);
 			subscription.setFrequency(frequency);
 
-			subscriptionPersistence.update(subscription, false);
+			subscriptionPersistence.update(subscription);
 		}
 
 		if (groupId > 0) {
@@ -89,8 +89,9 @@ public class SubscriptionLocalServiceImpl
 			}
 			catch (Exception e) {
 				assetEntryLocalService.updateEntry(
-					userId, groupId, className, classPK, null, 0, null, null,
-					false, null, null, null, null, null,
+					userId, groupId, subscription.getCreateDate(),
+					subscription.getModifiedDate(), className, classPK, null, 0,
+					null, null, false, null, null, null, null,
 					String.valueOf(groupId), null, null, null, null, 0, 0, null,
 					false);
 			}
@@ -206,6 +207,16 @@ public class SubscriptionLocalServiceImpl
 	}
 
 	public List<Subscription> getSubscriptions(
+			long companyId, long userId, String className, long[] classPKs)
+		throws SystemException {
+
+		long classNameId = PortalUtil.getClassNameId(className);
+
+		return subscriptionPersistence.findByC_U_C_C(
+			companyId, userId, classNameId, classPKs);
+	}
+
+	public List<Subscription> getSubscriptions(
 			long companyId, String className, long classPK)
 		throws SystemException {
 
@@ -247,6 +258,23 @@ public class SubscriptionLocalServiceImpl
 			companyId, userId, classNameId, classPK);
 
 		if (subscription != null) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isSubscribed(
+			long companyId, long userId, String className, long[] classPKs)
+		throws SystemException {
+
+		long classNameId = PortalUtil.getClassNameId(className);
+
+		int count = subscriptionPersistence.countByC_U_C_C(
+			companyId, userId, classNameId, classPKs);
+
+		if (count > 0) {
 			return true;
 		}
 		else {

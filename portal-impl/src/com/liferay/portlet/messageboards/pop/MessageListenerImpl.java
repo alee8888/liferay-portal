@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.pop.MessageListenerException;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
+import com.liferay.portal.kernel.util.PrefsPropsUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.Company;
@@ -50,6 +52,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import javax.mail.Message;
+import javax.mail.MessagingException;
 
 import org.apache.commons.lang.time.StopWatch;
 
@@ -62,6 +65,10 @@ public class MessageListenerImpl implements MessageListener {
 
 	public boolean accept(String from, String recipient, Message message) {
 		try {
+			if (isAutoReply(message)) {
+				return false;
+			}
+
 			String messageId = getMessageId(recipient, message);
 
 			if ((messageId == null) ||
@@ -83,6 +90,14 @@ public class MessageListenerImpl implements MessageListener {
 
 			if (_log.isDebugEnabled()) {
 				_log.debug("Check to see if user " + from + " exists");
+			}
+
+			String pop3User = PrefsPropsUtil.getString(
+				PropsKeys.MAIL_SESSION_MAIL_POP3_USER,
+				PropsValues.MAIL_SESSION_MAIL_POP3_USER);
+
+			if (from.equalsIgnoreCase(pop3User)) {
+				return false;
 			}
 
 			UserLocalServiceUtil.getUserByEmailAddress(
@@ -131,16 +146,16 @@ public class MessageListenerImpl implements MessageListener {
 					categoryId);
 
 				groupId = category.getGroupId();
-		 	}
-		 	catch (NoSuchCategoryException nsce) {
-		 		groupId = categoryId;
-		 		categoryId = MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID;
-		 	}
+			}
+			catch (NoSuchCategoryException nsce) {
+				groupId = categoryId;
+				categoryId = MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID;
+			}
 
-		 	if (_log.isDebugEnabled()) {
-		 		_log.debug("Group id " + groupId);
-		 		_log.debug("Category id " + categoryId);
-		 	}
+			if (_log.isDebugEnabled()) {
+				_log.debug("Group id " + groupId);
+				_log.debug("Category id " + categoryId);
+			}
 
 			User user = UserLocalServiceUtil.getUserByEmailAddress(
 				company.getCompanyId(), from);
@@ -197,7 +212,6 @@ public class MessageListenerImpl implements MessageListener {
 			}
 			else {
 				MBMessageServiceUtil.addMessage(
-					groupId, categoryId, parentMessage.getThreadId(),
 					parentMessage.getMessageId(), subject,
 					mbMailMessage.getBody(), MBMessageConstants.DEFAULT_FORMAT,
 					inputStreamOVPs, false, 0.0, true, serviceContext);
@@ -320,6 +334,28 @@ public class MessageListenerImpl implements MessageListener {
 		}
 
 		return MBUtil.getParentMessageId(message);
+	}
+
+	protected boolean isAutoReply(Message message) throws MessagingException {
+		String[] autoReply = message.getHeader("X-Autoreply");
+
+		if ((autoReply != null) && (autoReply.length > 0)) {
+			return true;
+		}
+
+		String[] autoReplyFrom = message.getHeader("X-Autoreply-From");
+
+		if ((autoReplyFrom != null) && (autoReplyFrom.length > 0)) {
+			return true;
+		}
+
+		String[] mailAutoReply = message.getHeader("X-Mail-Autoreply");
+
+		if ((mailAutoReply != null) && (mailAutoReply.length > 0)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(MessageListenerImpl.class);

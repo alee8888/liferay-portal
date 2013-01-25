@@ -86,6 +86,7 @@ public class TicketModelImpl extends BaseModelImpl<Ticket>
 				"value.object.column.bitmask.enabled.com.liferay.portal.model.Ticket"),
 			true);
 	public static long KEY_COLUMN_BITMASK = 1L;
+	public static long TICKETID_COLUMN_BITMASK = 2L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portal.model.Ticket"));
 
@@ -101,7 +102,7 @@ public class TicketModelImpl extends BaseModelImpl<Ticket>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_ticketId);
+		return _ticketId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -307,17 +308,6 @@ public class TicketModelImpl extends BaseModelImpl<Ticket>
 	}
 
 	@Override
-	public Ticket toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Ticket)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			Ticket.class.getName(), getPrimaryKey());
@@ -328,6 +318,16 @@ public class TicketModelImpl extends BaseModelImpl<Ticket>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public Ticket toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Ticket)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -536,9 +536,7 @@ public class TicketModelImpl extends BaseModelImpl<Ticket>
 	}
 
 	private static ClassLoader _classLoader = Ticket.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
-			Ticket.class
-		};
+	private static Class<?>[] _escapedModelInterfaces = new Class[] { Ticket.class };
 	private long _ticketId;
 	private long _companyId;
 	private Date _createDate;
@@ -550,5 +548,5 @@ public class TicketModelImpl extends BaseModelImpl<Ticket>
 	private String _extraInfo;
 	private Date _expirationDate;
 	private long _columnBitmask;
-	private Ticket _escapedModelProxy;
+	private Ticket _escapedModel;
 }

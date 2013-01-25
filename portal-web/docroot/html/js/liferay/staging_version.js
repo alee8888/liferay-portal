@@ -95,7 +95,7 @@ AUI.add(
 											},
 											on: {
 												failure: function(event, id, obj) {
-													layoutRevisionDetails.setContent(Liferay.Language.get('there-was-an-unexpected-error-please-refresh-the-current-page'));
+													layoutRevisionDetails.setContent(Liferay.Language.get('there-was-an-unexpected-error.-please-refresh-the-current-page'));
 												},
 												success: function(event, id, obj) {
 													instance._destroyToolbarContent();
@@ -245,8 +245,9 @@ AUI.add(
 								doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
 								layoutRevisionId: layoutRevisionId,
 								layoutSetBranchId: layoutSetBranchId,
+								p_auth: Liferay.authToken,
 								p_l_id: themeDisplay.getPlid(),
-								p_v_g_id: themeDisplay.getParentGroupId()
+								p_v_l_s_g_id: themeDisplay.getParentGroupId()
 							},
 							on: {
 								success: function(event, id, obj) {

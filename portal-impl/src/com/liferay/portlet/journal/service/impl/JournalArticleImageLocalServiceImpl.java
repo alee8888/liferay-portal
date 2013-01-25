@@ -54,7 +54,7 @@ public class JournalArticleImageLocalServiceImpl
 			articleImage.setLanguageId(languageId);
 			articleImage.setTempImage(false);
 
-			journalArticleImagePersistence.update(articleImage, false);
+			journalArticleImagePersistence.update(articleImage);
 		}
 		else if (articleImage.getArticleImageId() == articleImageId) {
 		}
@@ -94,7 +94,8 @@ public class JournalArticleImageLocalServiceImpl
 		try {
 			JournalArticleImage articleImage =
 				journalArticleImagePersistence.findByG_A_V_E_E_L(
-				groupId, articleId, version, elInstanceId, elName, languageId);
+					groupId, articleId, version, elInstanceId, elName,
+					languageId);
 
 			deleteArticleImage(articleImage);
 		}
@@ -152,7 +153,7 @@ public class JournalArticleImageLocalServiceImpl
 			articleImage.setLanguageId(languageId);
 			articleImage.setTempImage(tempImage);
 
-			journalArticleImagePersistence.update(articleImage, false);
+			journalArticleImagePersistence.update(articleImage);
 		}
 
 		return articleImage.getArticleImageId();

@@ -110,6 +110,8 @@ public interface Language {
 
 	public Locale getLocale(String languageCode);
 
+	public Locale[] getSupportedLocales();
+
 	public String getTimeDescription(Locale locale, long milliseconds);
 
 	public String getTimeDescription(
@@ -127,6 +129,8 @@ public interface Language {
 		PageContext pageContext, Long milliseconds);
 
 	public void init();
+
+	public boolean isAvailableLanguageCode(String languageCode);
 
 	public boolean isAvailableLocale(Locale locale);
 

@@ -175,7 +175,7 @@ if (fieldParamSelection.equals("0")) {
 					document.<portlet:namespace />fm['<portlet:namespace /><%= facet.getFieldName() %>from'].value = fromDate;
 				}
 
-				var range = '[' + fromDate.replace(/-/g, '') + '000000 TO ' + toDate.replace(/-/g, '') + '000000]';
+				var range = '[' + fromDate.replace(/-/g, '') + '000000 TO ' + toDate.replace(/-/g, '') + '235959]';
 
 				document.<portlet:namespace />fm['<portlet:namespace /><%= facet.getFieldName() %>'].value = range;
 				document.<portlet:namespace />fm['<portlet:namespace /><%= facet.getFieldName() %>selection'].value = selection;
@@ -204,17 +204,26 @@ if (fieldParamSelection.equals("0")) {
 		{
 			calendar: {
 				dateFormat: '%Y-%m-%d',
-				dates: [
-					<c:if test='<%= fieldParamSelection.equals("6") && Validator.isNotNull(fieldParamFrom) %>'>
+
+				<c:if test='<%= fieldParamSelection.equals("6") && Validator.isNotNull(fieldParamFrom) %>'>
+					selectedDates: [
 
 						<%
 						String[] fieldParamFromParts = StringUtil.split(fieldParamFrom, "-");
 						%>
 
 						new Date(<%= fieldParamFromParts[0] %>,<%= GetterUtil.getInteger(fieldParamFromParts[1]) - 1 %>,<%= fieldParamFromParts[2] %>)
-					</c:if>
-				],
-				selectMultipleDates: false
+					],
+				</c:if>
+
+				selectionMode: 'single',
+
+				strings: {
+					next: '<liferay-ui:message key="next" />',
+					none: '<liferay-ui:message key="none" />',
+					previous: '<liferay-ui:message key="previous" />',
+					today: '<liferay-ui:message key="today" />'
+				}
 			},
 			trigger: '#<portlet:namespace /><%= facet.getFieldName() %>from'
 		}
@@ -224,17 +233,26 @@ if (fieldParamSelection.equals("0")) {
 		{
 			calendar: {
 				dateFormat: '%Y-%m-%d',
-				dates: [
-					<c:if test='<%= fieldParamSelection.equals("6") && Validator.isNotNull(fieldParamTo) %>'>
+
+				<c:if test='<%= fieldParamSelection.equals("6") && Validator.isNotNull(fieldParamTo) %>'>
+					selectedDates: [
 
 						<%
 						String[] fieldParamToParts = StringUtil.split(fieldParamTo, "-");
 						%>
 
 						new Date(<%= fieldParamToParts[0] %>,<%= GetterUtil.getInteger(fieldParamToParts[1]) - 1 %>,<%= fieldParamToParts[2] %>)
-					</c:if>
-				],
-				selectMultipleDates: false
+					],
+				</c:if>
+
+				selectionMode: 'single',
+
+				strings: {
+					next: '<liferay-ui:message key="next" />',
+					none: '<liferay-ui:message key="none" />',
+					previous: '<liferay-ui:message key="previous" />',
+					today: '<liferay-ui:message key="today" />'
+				}
 			},
 			trigger: '#<portlet:namespace /><%= facet.getFieldName() %>to'
 		}

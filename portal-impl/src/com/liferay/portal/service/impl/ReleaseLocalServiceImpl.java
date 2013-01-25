@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Release;
 import com.liferay.portal.model.ReleaseConstants;
@@ -73,7 +72,7 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 			release.setTestString(ReleaseConstants.TEST_STRING);
 		}
 
-		releasePersistence.update(release, false);
+		releasePersistence.update(release);
 
 		return release;
 	}
@@ -103,6 +102,29 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 
 			throw new SystemException(e);
 		}
+	}
+
+	public Release fetchRelease(String servletContextName)
+		throws SystemException {
+
+		if (Validator.isNull(servletContextName)) {
+			throw new IllegalArgumentException("Servlet context name is null");
+		}
+
+		Release release = null;
+
+		if (servletContextName.equals(
+				ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME)) {
+
+			release = releasePersistence.fetchByPrimaryKey(
+				ReleaseConstants.DEFAULT_ID);
+		}
+		else {
+			release = releasePersistence.fetchByServletContextName(
+				servletContextName);
+		}
+
+		return release;
 	}
 
 	public int getBuildNumberOrCreate()
@@ -164,9 +186,8 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 
 			testSupportsStringCaseSensitiveQuery();
 
-			Release release = getRelease(
-				ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME,
-				ReleaseInfo.getParentBuildNumber());
+			Release release = fetchRelease(
+				ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME);
 
 			return release.getBuildNumber();
 		}
@@ -174,30 +195,6 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 			throw new NoSuchReleaseException(
 				"The database needs to be populated");
 		}
-	}
-
-	public Release getRelease(String servletContextName, int buildNumber)
-		throws PortalException, SystemException {
-
-		if (Validator.isNull(servletContextName)) {
-			throw new IllegalArgumentException(
-				"Servlet context name cannot be null");
-		}
-
-		Release release = null;
-
-		if (servletContextName.equals(
-				ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME)) {
-
-			release = releasePersistence.findByPrimaryKey(
-				ReleaseConstants.DEFAULT_ID);
-		}
-		else {
-			release = releasePersistence.findByServletContextName(
-				servletContextName);
-		}
-
-		return release;
 	}
 
 	public Release updateRelease(
@@ -211,7 +208,7 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 		release.setBuildDate(buildDate);
 		release.setVerified(verified);
 
-		releasePersistence.update(release, false);
+		releasePersistence.update(release);
 
 		return release;
 	}

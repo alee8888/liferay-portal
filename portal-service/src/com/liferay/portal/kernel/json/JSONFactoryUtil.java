@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.json;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+
 import java.util.List;
 
 /**
@@ -79,6 +81,8 @@ public class JSONFactoryUtil {
 	}
 
 	public static JSONFactory getJSONFactory() {
+		PortalRuntimePermission.checkGetBeanProperty(JSONFactoryUtil.class);
+
 		return _jsonFactory;
 	}
 
@@ -135,7 +139,13 @@ public class JSONFactoryUtil {
 		return getJSONFactory().serializeException(exception);
 	}
 
+	public static String serializeThrowable(Throwable throwable) {
+		return getJSONFactory().serializeThrowable(throwable);
+	}
+
 	public void setJSONFactory(JSONFactory jsonFactory) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_jsonFactory = jsonFactory;
 	}
 

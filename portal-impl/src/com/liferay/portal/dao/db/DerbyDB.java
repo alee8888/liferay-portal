@@ -80,10 +80,7 @@ public class DerbyDB extends BaseDB {
 		sb.append("connect to ");
 		sb.append(databaseName);
 		sb.append(";\n");
-		sb.append(
-			readFile(
-				sqlDir + "/portal" + suffix + "/portal" + suffix +
-					"-derby.sql"));
+		sb.append(getCreateTablesContent(sqlDir, suffix));
 		sb.append("\n\n");
 		sb.append(readFile(sqlDir + "/indexes/indexes-derby.sql"));
 		sb.append("\n\n");
@@ -122,7 +119,14 @@ public class DerbyDB extends BaseDB {
 						"This statement is not supported by Derby: " + line);
 				}
 			}
-			else if (line.indexOf(DROP_INDEX) != -1) {
+			else if (line.startsWith(ALTER_TABLE_NAME)) {
+				String[] template = buildTableNameTokens(line);
+
+				line = StringUtil.replace(
+					"alter table @old-table@ to @new-table@;",
+					RENAME_TABLE_TEMPLATE, template);
+			}
+			else if (line.contains(DROP_INDEX)) {
 				String[] tokens = StringUtil.split(line, ' ');
 
 				line = StringUtil.replace(

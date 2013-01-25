@@ -58,7 +58,7 @@ public class TrashEntryServiceHttp {
 		throws com.liferay.portal.kernel.exception.SystemException,
 			com.liferay.portal.security.auth.PrincipalException {
 		try {
-			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"deleteEntries", _deleteEntriesParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId);
@@ -85,12 +85,12 @@ public class TrashEntryServiceHttp {
 		}
 	}
 
-	public static java.lang.Object[] getEntries(HttpPrincipal httpPrincipal,
-		long groupId)
+	public static com.liferay.portlet.trash.model.TrashEntryList getEntries(
+		HttpPrincipal httpPrincipal, long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException,
 			com.liferay.portal.security.auth.PrincipalException {
 		try {
-			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"getEntries", _getEntriesParameterTypes1);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId);
@@ -112,7 +112,7 @@ public class TrashEntryServiceHttp {
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
-			return (java.lang.Object[])returnObj;
+			return (com.liferay.portlet.trash.model.TrashEntryList)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
 			_log.error(se, se);
@@ -121,13 +121,13 @@ public class TrashEntryServiceHttp {
 		}
 	}
 
-	public static java.lang.Object[] getEntries(HttpPrincipal httpPrincipal,
-		long groupId, int start, int end,
+	public static com.liferay.portlet.trash.model.TrashEntryList getEntries(
+		HttpPrincipal httpPrincipal, long groupId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator obc)
 		throws com.liferay.portal.kernel.exception.SystemException,
 			com.liferay.portal.security.auth.PrincipalException {
 		try {
-			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(TrashEntryServiceUtil.class,
 					"getEntries", _getEntriesParameterTypes2);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
@@ -150,7 +150,7 @@ public class TrashEntryServiceHttp {
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
-			return (java.lang.Object[])returnObj;
+			return (com.liferay.portlet.trash.model.TrashEntryList)returnObj;
 		}
 		catch (com.liferay.portal.kernel.exception.SystemException se) {
 			_log.error(se, se);

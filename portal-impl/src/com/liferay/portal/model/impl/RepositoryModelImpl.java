@@ -82,6 +82,8 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 		};
 	public static final String TABLE_SQL_CREATE = "create table Repository (uuid_ VARCHAR(75) null,repositoryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,name VARCHAR(75) null,description STRING null,portletId VARCHAR(75) null,typeSettings TEXT null,dlFolderId LONG)";
 	public static final String TABLE_SQL_DROP = "drop table Repository";
+	public static final String ORDER_BY_JPQL = " ORDER BY repository.repositoryId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY Repository.repositoryId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -96,7 +98,10 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 			true);
 	public static long COMPANYID_COLUMN_BITMASK = 1L;
 	public static long GROUPID_COLUMN_BITMASK = 2L;
-	public static long UUID_COLUMN_BITMASK = 4L;
+	public static long NAME_COLUMN_BITMASK = 4L;
+	public static long PORTLETID_COLUMN_BITMASK = 8L;
+	public static long UUID_COLUMN_BITMASK = 16L;
+	public static long REPOSITORYID_COLUMN_BITMASK = 32L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -105,6 +110,10 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	 * @return the normal model instance
 	 */
 	public static Repository toModel(RepositorySoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		Repository model = new RepositoryImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -132,6 +141,10 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	 * @return the normal model instances
 	 */
 	public static List<Repository> toModels(RepositorySoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<Repository> models = new ArrayList<Repository>(soapModels.length);
 
 		for (RepositorySoap soapModel : soapModels) {
@@ -156,7 +169,7 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_repositoryId);
+		return _repositoryId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -440,7 +453,17 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	}
 
 	public void setName(String name) {
+		_columnBitmask |= NAME_COLUMN_BITMASK;
+
+		if (_originalName == null) {
+			_originalName = _name;
+		}
+
 		_name = name;
+	}
+
+	public String getOriginalName() {
+		return GetterUtil.getString(_originalName);
 	}
 
 	@JSON
@@ -468,7 +491,17 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	}
 
 	public void setPortletId(String portletId) {
+		_columnBitmask |= PORTLETID_COLUMN_BITMASK;
+
+		if (_originalPortletId == null) {
+			_originalPortletId = _portletId;
+		}
+
 		_portletId = portletId;
+	}
+
+	public String getOriginalPortletId() {
+		return GetterUtil.getString(_originalPortletId);
 	}
 
 	@JSON
@@ -499,17 +532,6 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	}
 
 	@Override
-	public Repository toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Repository)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			Repository.class.getName(), getPrimaryKey());
@@ -520,6 +542,16 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public Repository toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Repository)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -603,6 +635,10 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 		repositoryModelImpl._originalCompanyId = repositoryModelImpl._companyId;
 
 		repositoryModelImpl._setOriginalCompanyId = false;
+
+		repositoryModelImpl._originalName = repositoryModelImpl._name;
+
+		repositoryModelImpl._originalPortletId = repositoryModelImpl._portletId;
 
 		repositoryModelImpl._columnBitmask = 0;
 	}
@@ -799,7 +835,7 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	}
 
 	private static ClassLoader _classLoader = Repository.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			Repository.class
 		};
 	private String _uuid;
@@ -818,10 +854,12 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	private Date _modifiedDate;
 	private long _classNameId;
 	private String _name;
+	private String _originalName;
 	private String _description;
 	private String _portletId;
+	private String _originalPortletId;
 	private String _typeSettings;
 	private long _dlFolderId;
 	private long _columnBitmask;
-	private Repository _escapedModelProxy;
+	private Repository _escapedModel;
 }

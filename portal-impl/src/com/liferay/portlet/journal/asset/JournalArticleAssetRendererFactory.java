@@ -16,6 +16,7 @@ package com.liferay.portlet.journal.asset;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -23,22 +24,23 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortletURLFactoryUtil;
 import com.liferay.portlet.asset.model.AssetRenderer;
 import com.liferay.portlet.asset.model.BaseAssetRendererFactory;
+import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
+import com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalServiceUtil;
+import com.liferay.portlet.dynamicdatamapping.service.permission.DDMStructurePermission;
 import com.liferay.portlet.journal.NoSuchArticleException;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalArticleResource;
-import com.liferay.portlet.journal.model.JournalStructure;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalArticleResourceLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalArticleServiceUtil;
-import com.liferay.portlet.journal.service.JournalStructureLocalServiceUtil;
 import com.liferay.portlet.journal.service.permission.JournalArticlePermission;
 import com.liferay.portlet.journal.service.permission.JournalPermission;
-import com.liferay.portlet.journal.service.permission.JournalStructurePermission;
 
 import java.util.HashMap;
 import java.util.List;
@@ -47,8 +49,6 @@ import java.util.Map;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Julio Camarero
@@ -71,7 +71,7 @@ public class JournalArticleAssetRendererFactory
 		try {
 			article = JournalArticleLocalServiceUtil.getArticle(classPK);
 		}
-		catch (NoSuchArticleException nsae) {
+		catch (NoSuchArticleException nsae1) {
 			JournalArticleResource articleResource =
 				JournalArticleResourceLocalServiceUtil.getArticleResource(
 					classPK);
@@ -84,7 +84,7 @@ public class JournalArticleAssetRendererFactory
 						articleResource.getGroupId(),
 						articleResource.getArticleId());
 				}
-				catch (NoSuchArticleException nsae1) {
+				catch (NoSuchArticleException nsae2) {
 					approvedArticleAvailable = false;
 				}
 			}
@@ -122,11 +122,15 @@ public class JournalArticleAssetRendererFactory
 		Map<Long, String> classTypes = new HashMap<Long, String>();
 
 		for (long groupId : groupIds) {
-			List<JournalStructure> structures =
-				JournalStructureLocalServiceUtil.getStructures(groupId);
+			List<DDMStructure> ddmStructures =
+				DDMStructureLocalServiceUtil.getStructures(
+					groupId,
+					PortalUtil.getClassNameId(JournalArticle.class.getName()));
 
-			for (JournalStructure structure : structures) {
-				classTypes.put(structure.getId(), structure.getName(locale));
+			for (DDMStructure ddmStructure : ddmStructures) {
+				classTypes.put(
+					ddmStructure.getStructureId(),
+					ddmStructure.getName(locale));
 			}
 		}
 
@@ -138,16 +142,23 @@ public class JournalArticleAssetRendererFactory
 	}
 
 	@Override
+	public String getTypeName(Locale locale, boolean hasSubtypes) {
+		if (hasSubtypes) {
+			return LanguageUtil.get(locale, "basic-web-content");
+		}
+
+		return super.getTypeName(locale, hasSubtypes);
+	}
+
+	@Override
 	public PortletURL getURLAdd(
 			LiferayPortletRequest liferayPortletRequest,
 			LiferayPortletResponse liferayPortletResponse)
 		throws PortalException, SystemException {
 
-		HttpServletRequest request =
-			liferayPortletRequest.getHttpServletRequest();
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)liferayPortletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
 		if (!JournalPermission.contains(
 				themeDisplay.getPermissionChecker(),
@@ -161,7 +172,7 @@ public class JournalArticleAssetRendererFactory
 				WebKeys.ASSET_RENDERER_FACTORY_CLASS_TYPE_ID));
 
 		if ((classTypeId > 0) &&
-			!JournalStructurePermission.contains(
+			!DDMStructurePermission.contains(
 				themeDisplay.getPermissionChecker(), classTypeId,
 				ActionKeys.VIEW)) {
 
@@ -169,8 +180,8 @@ public class JournalArticleAssetRendererFactory
 		}
 
 		PortletURL portletURL = PortletURLFactoryUtil.create(
-			request, PortletKeys.JOURNAL, getControlPanelPlid(themeDisplay),
-			PortletRequest.RENDER_PHASE);
+			liferayPortletRequest, PortletKeys.JOURNAL,
+			getControlPanelPlid(themeDisplay), PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter("struts_action", "/journal/edit_article");
 

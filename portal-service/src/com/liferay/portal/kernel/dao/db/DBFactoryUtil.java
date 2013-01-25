@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.dao.db;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+
 /**
  * @author Brian Wing Shun Chan
  */
@@ -32,7 +34,13 @@ public class DBFactoryUtil {
 	}
 
 	public static DBFactory getDBFactory() {
+		PortalRuntimePermission.checkGetBeanProperty(DBFactoryUtil.class);
+
 		return _dbFactory;
+	}
+
+	public static void reset() {
+		setDBFactory(null);
 	}
 
 	public static void setDB(Object dialect) {
@@ -44,6 +52,8 @@ public class DBFactoryUtil {
 	}
 
 	public static void setDBFactory(DBFactory dbFactory) {
+		PortalRuntimePermission.checkSetBeanProperty(DBFactoryUtil.class);
+
 		_dbFactory = dbFactory;
 	}
 

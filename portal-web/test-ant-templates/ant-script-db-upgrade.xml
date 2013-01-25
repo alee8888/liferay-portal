@@ -8,6 +8,10 @@
 	<propertycopy name="db-upgrade.tomcat.folder.dir" from="db-upgrade.${test.ant.script.version}.tomcat.folder.dir" silent="true" />
 
 	<target name="test-${test.ant.script.command}-${test.ant.script.version}-tomcat-db2-firefox">
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
 		<ant antfile="build-dist.xml" target="build-dist-tomcat" />
 
 		<antcall target="prepare-vm-server">
@@ -28,6 +32,7 @@
 			<param name="lp.version" value="${test.ant.script.version}" />
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets.ee}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}TestSuite" />
 			<param name="tomcat.folder.dir" value="${db-upgrade.tomcat.folder.dir}" />
 		</antcall>
@@ -41,6 +46,7 @@
 		<antcall target="run-latest-upgrade-test">
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}LatestTestSuite" />
 		</antcall>
 
@@ -50,6 +56,10 @@
 	</target>
 
 	<target name="test-${test.ant.script.command}-${test.ant.script.version}-tomcat-mysql-firefox">
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
 		<ant antfile="build-dist.xml" target="build-dist-tomcat" />
 
 		<antcall target="prepare-db-mysql-common">
@@ -63,6 +73,7 @@
 			<param name="lp.version" value="${test.ant.script.version}" />
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets.ee}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}TestSuite" />
 			<param name="tomcat.folder.dir" value="${db-upgrade.tomcat.folder.dir}" />
 		</antcall>
@@ -76,11 +87,16 @@
 		<antcall target="run-latest-upgrade-test">
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}LatestTestSuite" />
 		</antcall>
 	</target>
 
 	<target name="test-${test.ant.script.command}-${test.ant.script.version}-tomcat-oracle-10-firefox">
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
 		<ant antfile="build-dist.xml" target="build-dist-tomcat" />
 
 		<antcall target="prepare-vm-server">
@@ -101,6 +117,7 @@
 			<param name="lp.version" value="${test.ant.script.version}" />
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets.ee}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}TestSuite" />
 			<param name="tomcat.folder.dir" value="${db-upgrade.tomcat.folder.dir}" />
 		</antcall>
@@ -114,6 +131,7 @@
 		<antcall target="run-latest-upgrade-test">
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}LatestTestSuite" />
 		</antcall>
 
@@ -123,6 +141,10 @@
 	</target>
 
 	<target name="test-${test.ant.script.command}-${test.ant.script.version}-tomcat-oracle-11-firefox">
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
 		<ant antfile="build-dist.xml" target="build-dist-tomcat" />
 
 		<antcall target="prepare-vm-server">
@@ -143,6 +165,7 @@
 			<param name="lp.version" value="${test.ant.script.version}" />
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets.ee}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}TestSuite" />
 			<param name="tomcat.folder.dir" value="${db-upgrade.tomcat.folder.dir}" />
 		</antcall>
@@ -156,6 +179,7 @@
 		<antcall target="run-latest-upgrade-test">
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}LatestTestSuite" />
 		</antcall>
 
@@ -165,6 +189,10 @@
 	</target>
 
 	<target name="test-${test.ant.script.command}-${test.ant.script.version}-tomcat-postgresql-8.4-firefox">
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
 		<ant antfile="build-dist.xml" target="build-dist-tomcat" />
 
 		<antcall target="prepare-vm-server">
@@ -185,6 +213,7 @@
 			<param name="lp.version" value="${test.ant.script.version}" />
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets.ee}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}TestSuite" />
 			<param name="tomcat.folder.dir" value="${db-upgrade.tomcat.folder.dir}" />
 		</antcall>
@@ -198,6 +227,7 @@
 		<antcall target="run-latest-upgrade-test">
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}LatestTestSuite" />
 		</antcall>
 
@@ -207,6 +237,10 @@
 	</target>
 
 	<target name="test-${test.ant.script.command}-${test.ant.script.version}-tomcat-postgresql-9.0-firefox">
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
 		<ant antfile="build-dist.xml" target="build-dist-tomcat" />
 
 		<antcall target="prepare-vm-server">
@@ -227,6 +261,7 @@
 			<param name="lp.version" value="${test.ant.script.version}" />
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets.ee}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}TestSuite" />
 			<param name="tomcat.folder.dir" value="${db-upgrade.tomcat.folder.dir}" />
 		</antcall>
@@ -240,6 +275,7 @@
 		<antcall target="run-latest-upgrade-test">
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}LatestTestSuite" />
 		</antcall>
 
@@ -249,6 +285,10 @@
 	</target>
 
 	<target name="test-${test.ant.script.command}-${test.ant.script.version}-tomcat-sql-server-2005-firefox">
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
 		<ant antfile="build-dist.xml" target="build-dist-tomcat" />
 
 		<antcall target="prepare-vm-server">
@@ -269,6 +309,7 @@
 			<param name="lp.version" value="${test.ant.script.version}" />
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets.ee}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}TestSuite" />
 			<param name="tomcat.folder.dir" value="${db-upgrade.tomcat.folder.dir}" />
 		</antcall>
@@ -282,6 +323,7 @@
 		<antcall target="run-latest-upgrade-test">
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}LatestTestSuite" />
 		</antcall>
 
@@ -291,6 +333,10 @@
 	</target>
 
 	<target name="test-${test.ant.script.command}-${test.ant.script.version}-tomcat-sql-server-2008-firefox">
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
 		<ant antfile="build-dist.xml" target="build-dist-tomcat" />
 
 		<antcall target="prepare-vm-server">
@@ -311,6 +357,7 @@
 			<param name="lp.version" value="${test.ant.script.version}" />
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets.ee}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}TestSuite" />
 			<param name="tomcat.folder.dir" value="${db-upgrade.tomcat.folder.dir}" />
 		</antcall>
@@ -324,6 +371,7 @@
 		<antcall target="run-latest-upgrade-test">
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}LatestTestSuite" />
 		</antcall>
 
@@ -333,6 +381,10 @@
 	</target>
 
 	<target name="test-${test.ant.script.command}-${test.ant.script.version}-tomcat-sybase-firefox">
+		<antcall target="print-scm-revision" />
+
+		<antcall target="clean-up-test-properties" />
+
 		<ant antfile="build-dist.xml" target="build-dist-tomcat" />
 
 		<antcall target="prepare-vm-server">
@@ -353,6 +405,7 @@
 			<param name="lp.version" value="${test.ant.script.version}" />
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets.ee}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}TestSuite" />
 			<param name="tomcat.folder.dir" value="${db-upgrade.tomcat.folder.dir}" />
 		</antcall>
@@ -366,6 +419,7 @@
 		<antcall target="run-latest-upgrade-test">
 			${test.ant.script.file.evaluate.logs}
 			${test.ant.script.file.plugin.portlets}
+			${test.ant.script.file.selenium.implementation}
 			<param name="test.name" value="DBUpgrade${test.ant.script.suite}${db-upgrade.build}LatestTestSuite" />
 		</antcall>
 

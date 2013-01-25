@@ -60,6 +60,7 @@ public class DLFolderWrapper implements DLFolder, ModelWrapper<DLFolder> {
 		attributes.put("description", getDescription());
 		attributes.put("lastPostDate", getLastPostDate());
 		attributes.put("defaultFileEntryTypeId", getDefaultFileEntryTypeId());
+		attributes.put("hidden", getHidden());
 		attributes.put("overrideFileEntryTypes", getOverrideFileEntryTypes());
 		attributes.put("status", getStatus());
 		attributes.put("statusByUserId", getStatusByUserId());
@@ -159,6 +160,12 @@ public class DLFolderWrapper implements DLFolder, ModelWrapper<DLFolder> {
 
 		if (defaultFileEntryTypeId != null) {
 			setDefaultFileEntryTypeId(defaultFileEntryTypeId);
+		}
+
+		Boolean hidden = (Boolean)attributes.get("hidden");
+
+		if (hidden != null) {
+			setHidden(hidden);
 		}
 
 		Boolean overrideFileEntryTypes = (Boolean)attributes.get(
@@ -511,6 +518,33 @@ public class DLFolderWrapper implements DLFolder, ModelWrapper<DLFolder> {
 	}
 
 	/**
+	* Returns the hidden of this document library folder.
+	*
+	* @return the hidden of this document library folder
+	*/
+	public boolean getHidden() {
+		return _dlFolder.getHidden();
+	}
+
+	/**
+	* Returns <code>true</code> if this document library folder is hidden.
+	*
+	* @return <code>true</code> if this document library folder is hidden; <code>false</code> otherwise
+	*/
+	public boolean isHidden() {
+		return _dlFolder.isHidden();
+	}
+
+	/**
+	* Sets whether this document library folder is hidden.
+	*
+	* @param hidden the hidden of this document library folder
+	*/
+	public void setHidden(boolean hidden) {
+		_dlFolder.setHidden(hidden);
+	}
+
+	/**
 	* Returns the override file entry types of this document library folder.
 	*
 	* @return the override file entry types of this document library folder
@@ -646,6 +680,15 @@ public class DLFolderWrapper implements DLFolder, ModelWrapper<DLFolder> {
 	}
 
 	/**
+	* Returns <code>true</code> if this document library folder is denied.
+	*
+	* @return <code>true</code> if this document library folder is denied; <code>false</code> otherwise
+	*/
+	public boolean isDenied() {
+		return _dlFolder.isDenied();
+	}
+
+	/**
 	* Returns <code>true</code> if this document library folder is a draft.
 	*
 	* @return <code>true</code> if this document library folder is a draft; <code>false</code> otherwise
@@ -664,12 +707,93 @@ public class DLFolderWrapper implements DLFolder, ModelWrapper<DLFolder> {
 	}
 
 	/**
+	* Returns <code>true</code> if this document library folder is inactive.
+	*
+	* @return <code>true</code> if this document library folder is inactive; <code>false</code> otherwise
+	*/
+	public boolean isInactive() {
+		return _dlFolder.isInactive();
+	}
+
+	/**
+	* Returns <code>true</code> if this document library folder is incomplete.
+	*
+	* @return <code>true</code> if this document library folder is incomplete; <code>false</code> otherwise
+	*/
+	public boolean isIncomplete() {
+		return _dlFolder.isIncomplete();
+	}
+
+	/**
+	* Returns <code>true</code> if this document library folder is in the Recycle Bin.
+	*
+	* @return <code>true</code> if this document library folder is in the Recycle Bin; <code>false</code> otherwise
+	*/
+	public boolean isInTrash() {
+		return _dlFolder.isInTrash();
+	}
+
+	/**
 	* Returns <code>true</code> if this document library folder is pending.
 	*
 	* @return <code>true</code> if this document library folder is pending; <code>false</code> otherwise
 	*/
 	public boolean isPending() {
 		return _dlFolder.isPending();
+	}
+
+	/**
+	* Returns <code>true</code> if this document library folder is scheduled.
+	*
+	* @return <code>true</code> if this document library folder is scheduled; <code>false</code> otherwise
+	*/
+	public boolean isScheduled() {
+		return _dlFolder.isScheduled();
+	}
+
+	/**
+	* Returns the container model ID of this document library folder.
+	*
+	* @return the container model ID of this document library folder
+	*/
+	public long getContainerModelId() {
+		return _dlFolder.getContainerModelId();
+	}
+
+	/**
+	* Sets the container model ID of this document library folder.
+	*
+	* @param container model ID of this document library folder
+	*/
+	public void setContainerModelId(long containerModelId) {
+		_dlFolder.setContainerModelId(containerModelId);
+	}
+
+	/**
+	* Returns the container name of this document library folder.
+	*
+	* @return the container name of this document library folder
+	*/
+	public java.lang.String getContainerModelName() {
+		return _dlFolder.getContainerModelName();
+	}
+
+	/**
+	* Returns the parent container model ID of this document library folder.
+	*
+	* @return the parent container model ID of this document library folder
+	*/
+	public long getParentContainerModelId() {
+		return _dlFolder.getParentContainerModelId();
+	}
+
+	/**
+	* Sets the parent container model ID of this document library folder.
+	*
+	* @param parent container model ID of this document library folder
+	*/
+	public void setParentContainerModelId(long parentContainerModelId) {
+		_dlFolder.setParentContainerModelId(parentContainerModelId);
 	}
 
 	public boolean isNew() {
@@ -732,6 +856,10 @@ public class DLFolderWrapper implements DLFolder, ModelWrapper<DLFolder> {
 		return new DLFolderWrapper(_dlFolder.toEscapedModel());
 	}
 
+	public com.liferay.portlet.documentlibrary.model.DLFolder toUnescapedModel() {
+		return new DLFolderWrapper(_dlFolder.toUnescapedModel());
+	}
+
 	@Override
 	public java.lang.String toString() {
 		return _dlFolder.toString();
@@ -744,6 +872,12 @@ public class DLFolderWrapper implements DLFolder, ModelWrapper<DLFolder> {
 	public void persist()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_dlFolder.persist();
+	}
+
+	public java.util.List<java.lang.Long> getAncestorFolderIds()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _dlFolder.getAncestorFolderIds();
 	}
 
 	public java.util.List<com.liferay.portlet.documentlibrary.model.DLFolder> getAncestors()
@@ -770,12 +904,20 @@ public class DLFolderWrapper implements DLFolder, ModelWrapper<DLFolder> {
 		return _dlFolder.getPathArray();
 	}
 
+	public com.liferay.portlet.documentlibrary.model.DLFolder getTrashContainer() {
+		return _dlFolder.getTrashContainer();
+	}
+
 	public boolean hasInheritableLock() {
 		return _dlFolder.hasInheritableLock();
 	}
 
 	public boolean hasLock() {
 		return _dlFolder.hasLock();
+	}
+
+	public boolean isInTrashContainer() {
+		return _dlFolder.isInTrashContainer();
 	}
 
 	public boolean isLocked() {

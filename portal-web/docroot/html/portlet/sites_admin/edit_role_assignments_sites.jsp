@@ -43,7 +43,7 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_role_assignments.
 	<%
 	GroupSearchTerms searchTerms = (GroupSearchTerms)searchContainer.getSearchTerms();
 
-	LinkedHashMap groupParams = new LinkedHashMap();
+	LinkedHashMap<String, Object> groupParams = new LinkedHashMap<String, Object>();
 
 	groupParams.put("site", Boolean.TRUE);
 
@@ -53,8 +53,8 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_role_assignments.
 	%>
 
 	<liferay-ui:search-container-results
-		results="<%= GroupLocalServiceUtil.search(company.getCompanyId(), searchTerms.getName(), searchTerms.getDescription(), groupParams, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator()) %>"
-		total="<%= GroupLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getName(), searchTerms.getDescription(), groupParams) %>"
+		results="<%= GroupLocalServiceUtil.search(company.getCompanyId(), searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator(), searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator()) %>"
+		total="<%= GroupLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator()) %>"
 	/>
 
 	<liferay-ui:search-form

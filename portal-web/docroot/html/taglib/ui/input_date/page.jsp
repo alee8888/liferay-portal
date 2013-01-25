@@ -24,7 +24,8 @@ if (GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:input-date:di
 }
 
 String cssClass = GetterUtil.getString((String)request.getAttribute("liferay-ui:input-date:cssClass"));
-String formName = namespace + request.getAttribute("liferay-ui:input-date:formName");
+String formName = namespace + request.getAttribute("liferay-ui:input-date:name");
+String name = GetterUtil.getString((String)request.getAttribute("liferay-ui:input-date:name"));
 String monthParam = namespace + request.getAttribute("liferay-ui:input-date:monthParam");
 int monthValue = GetterUtil.getInteger((String)request.getAttribute("liferay-ui:input-date:monthValue"));
 boolean monthNullable = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:input-date:monthNullable"));
@@ -132,7 +133,7 @@ else if (yearNullable) {
 			</c:choose>
 		</div>
 		<div class="aui-datepicker-button-wrapper">
-			<button class="aui-buttonitem aui-buttonitem-content aui-buttonitem-icon-only aui-component aui-state-default yui3-widget" id="buttonTest" type="button">
+			<button class="aui-buttonitem aui-buttonitem-content aui-buttonitem-icon-only aui-component aui-state-default yui3-widget" id="buttonTest" title="<liferay-ui:message key="display-a-datepicker" />" type="button">
 				<span class="aui-buttonitem-icon aui-icon aui-icon-calendar"></span>
 			</button>
 		</div>
@@ -144,10 +145,16 @@ else if (yearNullable) {
 <aui:script use="aui-datepicker-select">
 	var displayDateNode = A.one('#<%= randomNamespace %>displayDate');
 
-	var displayDatePickerHandle = displayDateNode.on(
-		['click', 'mousemove'],
-		function(event) {
-			new A.DatePickerSelect(
+	Liferay.component(
+		'<%= namespace + name %>datePicker',
+		function() {
+			if (handle) {
+				handle.detach();
+
+				handle = null;
+			}
+
+			return new A.DatePickerSelect(
 				{
 					after: {
 						render: function(event) {
@@ -169,16 +176,6 @@ else if (yearNullable) {
 					appendOrder: '<%= dateFormatOrder %>',
 					boundingBox: displayDateNode,
 					calendar: {
-						dates: [
-							<c:if test="<%= !monthEmpty && !dayEmpty && !yearEmpty %>">
-								new Date(
-									<%= cal.get(Calendar.YEAR) %>,
-									<%= cal.get(Calendar.MONTH) %>,
-									<%= cal.get(Calendar.DATE) %>
-								)
-							</c:if>
-						],
-
 						<c:choose>
 							<c:when test="<%= dateFormatOrder.equals(_DATE_FORMAT_ORDER_MDY) %>">
 								dateFormat: '%m/%d/%y',
@@ -191,9 +188,24 @@ else if (yearNullable) {
 							</c:otherwise>
 						</c:choose>
 
+						<c:if test="<%= !monthEmpty && !dayEmpty && !yearEmpty %>">
+							selectedDates: new Date(
+								<%= cal.get(Calendar.YEAR) %>,
+								<%= cal.get(Calendar.MONTH) %>,
+								<%= cal.get(Calendar.DATE) %>
+							),
+						</c:if>
+
 						firstDayOfWeek: <%= firstDayOfWeek %>,
-						locale: '<%= LanguageUtil.getLanguageId(request) %>'
+						locale: '<%= LanguageUtil.getLanguageId(request) %>',
+						strings: {
+							next: '<liferay-ui:message key="next" />',
+							none: '<liferay-ui:message key="none" />',
+							previous: '<liferay-ui:message key="previous" />',
+							today: '<liferay-ui:message key="today" />'
+						}
 					},
+					datePickerConfig: {},
 					dayNode: '#<%= dayParam %>',
 					disabled: <%= disabled %>,
 					monthNode: '#<%= monthParam %>',
@@ -212,8 +224,13 @@ else if (yearNullable) {
 					yearRange: [<%= yearRangeStart %>, <%= yearRangeEnd %>]
 				}
 			).render();
+		}
+	);
 
-			displayDatePickerHandle.detach();
+	var handle = displayDateNode.once(
+		['click', 'mousemove'],
+		function(event) {
+			Liferay.component('<%= namespace + name %>datePicker');
 		}
 	);
 </aui:script>

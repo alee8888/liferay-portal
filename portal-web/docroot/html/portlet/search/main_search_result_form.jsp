@@ -26,10 +26,15 @@ String className = document.get(Field.ENTRY_CLASS_NAME);
 String entryTitle = null;
 String entrySummary = null;
 String downloadURL = null;
+String returnToFullPageURL = (String)request.getAttribute("search.jsp-returnToFullPageURL");
 PortletURL viewFullContentURL = null;
 String viewURL = null;
 
 AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(className);
+
+AssetRenderer assetRenderer = null;
+
+boolean inheritRedirect = false;
 
 if (assetRendererFactory != null) {
 	long classPK = GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK));
@@ -42,13 +47,18 @@ if (assetRendererFactory != null) {
 
 	AssetEntry assetEntry = AssetEntryLocalServiceUtil.getEntry(className, classPK);
 
-	AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(classPK);
+	assetRenderer = assetRendererFactory.getAssetRenderer(classPK);
 
 	downloadURL = assetRenderer.getURLDownload(themeDisplay);
 
 	viewFullContentURL = _getViewFullContentURL(request, themeDisplay, PortletKeys.ASSET_PUBLISHER, document);
 
 	viewFullContentURL.setParameter("struts_action", "/asset_publisher/view_content");
+
+	if (Validator.isNotNull(returnToFullPageURL)) {
+		viewFullContentURL.setParameter("returnToFullPageURL", returnToFullPageURL);
+	}
+
 	viewFullContentURL.setParameter("assetEntryId", String.valueOf(assetEntry.getEntryId()));
 	viewFullContentURL.setParameter("type", assetRendererFactory.getType());
 
@@ -61,6 +71,8 @@ if (assetRendererFactory != null) {
 	}
 
 	if (viewInContext) {
+		inheritRedirect = true;
+
 		String viewFullContentURLString = viewFullContentURL.toString();
 
 		viewFullContentURLString = HttpUtil.setParameter(viewFullContentURLString, "redirect", currentURL);
@@ -70,34 +82,39 @@ if (assetRendererFactory != null) {
 	else {
 		viewURL = viewFullContentURL.toString();
 	}
-
-	entryTitle = assetRenderer.getTitle(locale);
-	entrySummary = assetRenderer.getSummary(locale);
 }
 else {
 	String portletId = document.get(Field.PORTLET_ID);
 
 	viewFullContentURL = _getViewFullContentURL(request, themeDisplay, portletId, document);
 
+	if (Validator.isNotNull(returnToFullPageURL)) {
+		viewFullContentURL.setParameter("returnToFullPageURL", returnToFullPageURL);
+	}
+
 	viewURL = viewFullContentURL.toString();
+}
 
-	Indexer indexer = IndexerRegistryUtil.getIndexer(className);
+Indexer indexer = IndexerRegistryUtil.getIndexer(className);
 
+if (indexer != null) {
 	String snippet = document.get(Field.SNIPPET);
 
 	Summary summary = indexer.getSummary(document, locale, snippet, viewFullContentURL);
 
-	if (viewInContext) {
-		viewURL = viewFullContentURL.toString();
-	}
-
 	entryTitle = summary.getTitle();
 	entrySummary = summary.getContent();
 }
+else if (assetRenderer != null) {
+	entryTitle = assetRenderer.getTitle(locale);
+	entrySummary = assetRenderer.getSearchSummary(locale);
+}
 
-entrySummary = StringUtil.shorten(entrySummary, 200);
+if ((assetRendererFactory == null) && viewInContext) {
+	viewURL = viewFullContentURL.toString();
+}
 
-viewURL = _checkViewURL(themeDisplay, viewURL, currentURL);
+viewURL = _checkViewURL(themeDisplay, viewURL, currentURL, inheritRedirect);
 
 String[] queryTerms = (String[])request.getAttribute("search.jsp-queryTerms");
 
@@ -111,8 +128,8 @@ PortletURL portletURL = (PortletURL)request.getAttribute("search.jsp-portletURL"
 
 	<span class="asset-entry-title">
 		<a href="<%= viewURL %>">
-			<c:if test="<%= assetRendererFactory != null %>">
-				<img alt="" src="<%= assetRendererFactory.getIconPath(renderRequest) %>" />
+			<c:if test="<%= assetRenderer != null %>">
+				<img alt="" src="<%= assetRenderer.getIconPath(renderRequest) %>" />
 			</c:if>
 
 			<%= StringUtil.highlight(HtmlUtil.escape(entryTitle), queryTerms) %>

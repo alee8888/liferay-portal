@@ -15,8 +15,9 @@
 package com.liferay.portlet.layoutconfiguration.util.xml;
 
 import com.liferay.portal.kernel.portlet.PortletContainerUtil;
+import com.liferay.portal.kernel.portlet.PortletLayoutListener;
+import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
 import com.liferay.portal.kernel.servlet.DynamicServletRequest;
-import com.liferay.portal.kernel.servlet.StringServletResponse;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
@@ -24,14 +25,18 @@ import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.service.PortletLocalServiceUtil;
+import com.liferay.portal.service.PortletPreferencesLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.WebKeys;
+import com.liferay.portlet.PortletPreferencesFactoryUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Douglas Wong
  */
 public class PortletLogic extends RuntimeLogic {
 
@@ -64,18 +69,17 @@ public class PortletLogic extends RuntimeLogic {
 
 		Element rootElement = document.getRootElement();
 
-		String rootPortletId = rootElement.attributeValue("name");
+		String portletId = rootElement.attributeValue("name");
 		String instanceId = rootElement.attributeValue("instance");
 		String queryString = rootElement.attributeValue("queryString");
 
-		String portletId = rootPortletId;
-
 		if (Validator.isNotNull(instanceId)) {
-			portletId += PortletConstants.INSTANCE_SEPARATOR + instanceId;
+			portletId = PortletConstants.assemblePortletId(
+				portletId, instanceId);
 		}
 
-		StringServletResponse stringServletResponse =
-			new StringServletResponse(_response);
+		BufferCacheServletResponse bufferCacheServletResponse =
+			new BufferCacheServletResponse(_response);
 
 		HttpServletRequest request = DynamicServletRequest.addQueryString(
 			_request, queryString);
@@ -83,12 +87,49 @@ public class PortletLogic extends RuntimeLogic {
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
+		Portlet portlet = getPortlet(themeDisplay, portletId);
+
+		PortletContainerUtil.render(
+			request, bufferCacheServletResponse, portlet);
+
+		return bufferCacheServletResponse.getString();
+	}
+
+	/**
+	 * @see com.liferay.portal.model.impl.LayoutTypePortletImpl#getStaticPortlets(
+	 *      String)
+	 */
+	protected Portlet getPortlet(ThemeDisplay themeDisplay, String portletId)
+		throws Exception {
+
 		Portlet portlet = PortletLocalServiceUtil.getPortletById(
 			themeDisplay.getCompanyId(), portletId);
 
-		PortletContainerUtil.render(request, stringServletResponse, portlet);
+		// See LayoutTypePortletImpl#getStaticPortlets for why we only clone
+		// non-instanceable portlets
 
-		return stringServletResponse.getString();
+		if (PortletPreferencesLocalServiceUtil.getPortletPreferencesCount(
+				PortletKeys.PREFS_OWNER_TYPE_LAYOUT, themeDisplay.getPlid(),
+				portletId) < 1) {
+
+			PortletPreferencesFactoryUtil.getPortletSetup(_request, portletId);
+
+			PortletLayoutListener portletLayoutListener =
+				portlet.getPortletLayoutListenerInstance();
+
+			if (portletLayoutListener != null) {
+				portletLayoutListener.onAddToLayout(
+					portletId, themeDisplay.getPlid());
+			}
+		}
+
+		if (!portlet.isInstanceable()) {
+			portlet = (Portlet)portlet.clone();
+		}
+
+		portlet.setStatic(true);
+
+		return portlet;
 	}
 
 	private HttpServletRequest _request;

@@ -60,14 +60,14 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_user_group_roles.
 	<%
 	UserGroupSearchTerms searchTerms = (UserGroupSearchTerms)searchContainer.getSearchTerms();
 
-	LinkedHashMap userGroupParams = new LinkedHashMap();
+	LinkedHashMap<String, Object> userGroupParams = new LinkedHashMap<String, Object>();
 
 	if (group.isSite()) {
 		userGroupParams.put("userGroupsGroups", new Long(group.getGroupId()));
 	}
 
 	if (tabs1.equals("current")) {
-		userGroupParams.put("userGroupGroupRole", new Long[]{new Long(roleId), new Long(group.getGroupId())});
+		userGroupParams.put("userGroupGroupRole", new Long[] {new Long(roleId), new Long(group.getGroupId())});
 	}
 	%>
 

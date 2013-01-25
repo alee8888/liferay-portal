@@ -45,6 +45,8 @@
 
 	var NEW_LINE = '\n';
 
+	var NEW_THREAD_URL = CKEDITOR.config.newThreadURL;
+
 	var REGEX_COLOR_RGB = /^rgb\s*\(\s*([01]?\d\d?|2[0-4]\d|25[0-5])\,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*\)$/;
 
 	var REGEX_EM = /em$/i;
@@ -64,6 +66,10 @@
 	var REGEX_PRE = /<pre>/ig;
 
 	var REGEX_PX = /px$/i;
+
+	var REGEX_SINGLE_QUOTE = /'/g;
+
+	var STR_EMPTY = '';
 
 	var STR_MAILTO = 'mailto:';
 
@@ -198,7 +204,7 @@
 
 			instance._handle(node);
 
-			var endResult = instance._endResult.join('');
+			var endResult = instance._endResult.join(STR_EMPTY);
 
 			instance._endResult = null;
 
@@ -437,12 +443,15 @@
 
 			if (data) {
 				if (!instance._allowNewLine(element)) {
-					data = data.replace(REGEX_NEWLINE, '');
+					data = data.replace(REGEX_NEWLINE, STR_EMPTY);
 				}
 				else if (instance._checkParentElement(element, TAG_LINK) &&
-					data.indexOf(STR_MAILTO) == 0) {
+					data.indexOf(STR_MAILTO) === 0) {
 
 					data = data.substring(STR_MAILTO.length);
+				}
+				else if (instance._checkParentElement(element, TAG_CITE)) {
+					data = Liferay.BBCodeUtil.escape(data);
 				}
 
 				instance._endResult.push(data);
@@ -540,8 +549,8 @@
 
 			var decodedLink = decodeURIComponent(hrefAttribute);
 
-			if (CKEDITOR.config.newThreadURL === decodedLink) {
-				hrefAttribute = decodedLink;
+			if (decodedLink.indexOf(NEW_THREAD_URL) >= 0) {
+				hrefAttribute = NEW_THREAD_URL;
 			}
 
 			var linkHandler = MAP_LINK_HANDLERS[hrefAttribute.indexOf(STR_MAILTO)] || 'url';
@@ -696,7 +705,7 @@
 			var fontFamily = style.fontFamily;
 
 			if (fontFamily) {
-				stylesTagsIn.push('[font=', fontFamily, ']');
+				stylesTagsIn.push('[font=', fontFamily.replace(REGEX_SINGLE_QUOTE, STR_EMPTY), ']');
 
 				stylesTagsOut.push('[/font]');
 			}

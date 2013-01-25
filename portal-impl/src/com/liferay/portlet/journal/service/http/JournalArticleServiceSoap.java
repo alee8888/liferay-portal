@@ -53,9 +53,8 @@ import java.util.Map;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -337,6 +336,61 @@ public class JournalArticleServiceSoap {
 		}
 	}
 
+	public static com.liferay.portlet.journal.model.JournalArticleSoap[] getArticlesByStructureId(
+		long groupId, long classNameId, java.lang.String structureId,
+		int status, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator obc)
+		throws RemoteException {
+		try {
+			java.util.List<com.liferay.portlet.journal.model.JournalArticle> returnValue =
+				JournalArticleServiceUtil.getArticlesByStructureId(groupId,
+					classNameId, structureId, status, start, end, obc);
+
+			return com.liferay.portlet.journal.model.JournalArticleSoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.journal.model.JournalArticleSoap[] getArticlesByStructureId(
+		long groupId, java.lang.String structureId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator obc)
+		throws RemoteException {
+		try {
+			java.util.List<com.liferay.portlet.journal.model.JournalArticle> returnValue =
+				JournalArticleServiceUtil.getArticlesByStructureId(groupId,
+					structureId, start, end, obc);
+
+			return com.liferay.portlet.journal.model.JournalArticleSoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.journal.model.JournalArticleSoap[] getArticlesByUserId(
+		long groupId, long userId, long classNameId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator obc)
+		throws RemoteException {
+		try {
+			java.util.List<com.liferay.portlet.journal.model.JournalArticle> returnValue =
+				JournalArticleServiceUtil.getArticlesByUserId(groupId, userId,
+					classNameId, start, end, obc);
+
+			return com.liferay.portlet.journal.model.JournalArticleSoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	public static int getArticlesCount(long groupId, long folderId)
 		throws RemoteException {
 		try {
@@ -357,6 +411,52 @@ public class JournalArticleServiceSoap {
 		try {
 			int returnValue = JournalArticleServiceUtil.getArticlesCountByArticleId(groupId,
 					articleId);
+
+			return returnValue;
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static int getArticlesCountByStructureId(long groupId,
+		long classNameId, java.lang.String structureId, int status)
+		throws RemoteException {
+		try {
+			int returnValue = JournalArticleServiceUtil.getArticlesCountByStructureId(groupId,
+					classNameId, structureId, status);
+
+			return returnValue;
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static int getArticlesCountByStructureId(long groupId,
+		java.lang.String structureId) throws RemoteException {
+		try {
+			int returnValue = JournalArticleServiceUtil.getArticlesCountByStructureId(groupId,
+					structureId);
+
+			return returnValue;
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static int getArticlesCountByUserId(long groupId, long userId,
+		long classNameId) throws RemoteException {
+		try {
+			int returnValue = JournalArticleServiceUtil.getArticlesCountByUserId(groupId,
+					userId, classNameId);
 
 			return returnValue;
 		}
@@ -443,6 +543,34 @@ public class JournalArticleServiceSoap {
 		}
 	}
 
+	public static void moveArticle(long groupId, java.lang.String articleId,
+		long newFolderId) throws RemoteException {
+		try {
+			JournalArticleServiceUtil.moveArticle(groupId, articleId,
+				newFolderId);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.journal.model.JournalArticleSoap moveArticleToTrash(
+		long groupId, java.lang.String articleId) throws RemoteException {
+		try {
+			com.liferay.portlet.journal.model.JournalArticle returnValue = JournalArticleServiceUtil.moveArticleToTrash(groupId,
+					articleId);
+
+			return com.liferay.portlet.journal.model.JournalArticleSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	public static void removeArticleLocale(long companyId,
 		java.lang.String languageId) throws RemoteException {
 		try {
@@ -471,8 +599,32 @@ public class JournalArticleServiceSoap {
 		}
 	}
 
+	public static void restoreArticleFromTrash(long resourcePrimKey)
+		throws RemoteException {
+		try {
+			JournalArticleServiceUtil.restoreArticleFromTrash(resourcePrimKey);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static void restoreArticleFromTrash(long groupId,
+		java.lang.String articleId) throws RemoteException {
+		try {
+			JournalArticleServiceUtil.restoreArticleFromTrash(groupId, articleId);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	public static com.liferay.portlet.journal.model.JournalArticleSoap[] search(
-		long companyId, long groupId, long folderId, long classNameId,
+		long companyId, long groupId, Long[] folderIds, long classNameId,
 		java.lang.String keywords, java.lang.Double version,
 		java.lang.String type, java.lang.String structureId,
 		java.lang.String templateId, java.util.Date displayDateGT,
@@ -481,10 +633,10 @@ public class JournalArticleServiceSoap {
 		throws RemoteException {
 		try {
 			java.util.List<com.liferay.portlet.journal.model.JournalArticle> returnValue =
-				JournalArticleServiceUtil.search(companyId, groupId, folderId,
-					classNameId, keywords, version, type, structureId,
-					templateId, displayDateGT, displayDateLT, status,
-					reviewDate, start, end, obc);
+				JournalArticleServiceUtil.search(companyId, groupId,
+					ListUtil.toList(folderIds), classNameId, keywords, version,
+					type, structureId, templateId, displayDateGT,
+					displayDateLT, status, reviewDate, start, end, obc);
 
 			return com.liferay.portlet.journal.model.JournalArticleSoap.toSoapModels(returnValue);
 		}
@@ -496,7 +648,7 @@ public class JournalArticleServiceSoap {
 	}
 
 	public static com.liferay.portlet.journal.model.JournalArticleSoap[] search(
-		long companyId, long groupId, long folderId, long classNameId,
+		long companyId, long groupId, Long[] folderIds, long classNameId,
 		java.lang.String articleId, java.lang.Double version,
 		java.lang.String title, java.lang.String description,
 		java.lang.String content, java.lang.String type,
@@ -507,11 +659,11 @@ public class JournalArticleServiceSoap {
 		throws RemoteException {
 		try {
 			java.util.List<com.liferay.portlet.journal.model.JournalArticle> returnValue =
-				JournalArticleServiceUtil.search(companyId, groupId, folderId,
-					classNameId, articleId, version, title, description,
-					content, type, structureId, templateId, displayDateGT,
-					displayDateLT, status, reviewDate, andOperator, start, end,
-					obc);
+				JournalArticleServiceUtil.search(companyId, groupId,
+					ListUtil.toList(folderIds), classNameId, articleId,
+					version, title, description, content, type, structureId,
+					templateId, displayDateGT, displayDateLT, status,
+					reviewDate, andOperator, start, end, obc);
 
 			return com.liferay.portlet.journal.model.JournalArticleSoap.toSoapModels(returnValue);
 		}
@@ -523,7 +675,7 @@ public class JournalArticleServiceSoap {
 	}
 
 	public static com.liferay.portlet.journal.model.JournalArticleSoap[] search(
-		long companyId, long groupId, long folderId, long classNameId,
+		long companyId, long groupId, Long[] folderIds, long classNameId,
 		java.lang.String articleId, java.lang.Double version,
 		java.lang.String title, java.lang.String description,
 		java.lang.String content, java.lang.String type,
@@ -534,11 +686,11 @@ public class JournalArticleServiceSoap {
 		throws RemoteException {
 		try {
 			java.util.List<com.liferay.portlet.journal.model.JournalArticle> returnValue =
-				JournalArticleServiceUtil.search(companyId, groupId, folderId,
-					classNameId, articleId, version, title, description,
-					content, type, structureIds, templateIds, displayDateGT,
-					displayDateLT, status, reviewDate, andOperator, start, end,
-					obc);
+				JournalArticleServiceUtil.search(companyId, groupId,
+					ListUtil.toList(folderIds), classNameId, articleId,
+					version, title, description, content, type, structureIds,
+					templateIds, displayDateGT, displayDateLT, status,
+					reviewDate, andOperator, start, end, obc);
 
 			return com.liferay.portlet.journal.model.JournalArticleSoap.toSoapModels(returnValue);
 		}
@@ -549,17 +701,41 @@ public class JournalArticleServiceSoap {
 		}
 	}
 
-	public static int searchCount(long companyId, long groupId, long folderId,
-		long classNameId, java.lang.String keywords, java.lang.Double version,
+	public static int searchCount(long companyId, long groupId,
+		Long[] folderIds, long classNameId, java.lang.String keywords,
+		java.lang.Double version, java.lang.String type,
+		java.lang.String structureId, java.lang.String templateId,
+		java.util.Date displayDateGT, java.util.Date displayDateLT, int status,
+		java.util.Date reviewDate) throws RemoteException {
+		try {
+			int returnValue = JournalArticleServiceUtil.searchCount(companyId,
+					groupId, ListUtil.toList(folderIds), classNameId, keywords,
+					version, type, structureId, templateId, displayDateGT,
+					displayDateLT, status, reviewDate);
+
+			return returnValue;
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static int searchCount(long companyId, long groupId,
+		Long[] folderIds, long classNameId, java.lang.String articleId,
+		java.lang.Double version, java.lang.String title,
+		java.lang.String description, java.lang.String content,
 		java.lang.String type, java.lang.String structureId,
 		java.lang.String templateId, java.util.Date displayDateGT,
-		java.util.Date displayDateLT, int status, java.util.Date reviewDate)
-		throws RemoteException {
+		java.util.Date displayDateLT, int status, java.util.Date reviewDate,
+		boolean andOperator) throws RemoteException {
 		try {
 			int returnValue = JournalArticleServiceUtil.searchCount(companyId,
-					groupId, folderId, classNameId, keywords, version, type,
+					groupId, ListUtil.toList(folderIds), classNameId,
+					articleId, version, title, description, content, type,
 					structureId, templateId, displayDateGT, displayDateLT,
-					status, reviewDate);
+					status, reviewDate, andOperator);
 
 			return returnValue;
 		}
@@ -570,44 +746,20 @@ public class JournalArticleServiceSoap {
 		}
 	}
 
-	public static int searchCount(long companyId, long groupId, long folderId,
-		long classNameId, java.lang.String articleId, java.lang.Double version,
-		java.lang.String title, java.lang.String description,
-		java.lang.String content, java.lang.String type,
-		java.lang.String structureId, java.lang.String templateId,
-		java.util.Date displayDateGT, java.util.Date displayDateLT, int status,
-		java.util.Date reviewDate, boolean andOperator)
-		throws RemoteException {
+	public static int searchCount(long companyId, long groupId,
+		Long[] folderIds, long classNameId, java.lang.String articleId,
+		java.lang.Double version, java.lang.String title,
+		java.lang.String description, java.lang.String content,
+		java.lang.String type, java.lang.String[] structureIds,
+		java.lang.String[] templateIds, java.util.Date displayDateGT,
+		java.util.Date displayDateLT, int status, java.util.Date reviewDate,
+		boolean andOperator) throws RemoteException {
 		try {
 			int returnValue = JournalArticleServiceUtil.searchCount(companyId,
-					groupId, folderId, classNameId, articleId, version, title,
-					description, content, type, structureId, templateId,
-					displayDateGT, displayDateLT, status, reviewDate,
-					andOperator);
-
-			return returnValue;
-		}
-		catch (Exception e) {
-			_log.error(e, e);
-
-			throw new RemoteException(e.getMessage());
-		}
-	}
-
-	public static int searchCount(long companyId, long groupId, long folderId,
-		long classNameId, java.lang.String articleId, java.lang.Double version,
-		java.lang.String title, java.lang.String description,
-		java.lang.String content, java.lang.String type,
-		java.lang.String[] structureIds, java.lang.String[] templateIds,
-		java.util.Date displayDateGT, java.util.Date displayDateLT, int status,
-		java.util.Date reviewDate, boolean andOperator)
-		throws RemoteException {
-		try {
-			int returnValue = JournalArticleServiceUtil.searchCount(companyId,
-					groupId, folderId, classNameId, articleId, version, title,
-					description, content, type, structureIds, templateIds,
-					displayDateGT, displayDateLT, status, reviewDate,
-					andOperator);
+					groupId, ListUtil.toList(folderIds), classNameId,
+					articleId, version, title, description, content, type,
+					structureIds, templateIds, displayDateGT, displayDateLT,
+					status, reviewDate, andOperator);
 
 			return returnValue;
 		}
@@ -692,6 +844,24 @@ public class JournalArticleServiceSoap {
 		try {
 			com.liferay.portlet.journal.model.JournalArticle returnValue = JournalArticleServiceUtil.updateContent(groupId,
 					articleId, version, content);
+
+			return com.liferay.portlet.journal.model.JournalArticleSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.journal.model.JournalArticleSoap updateStatus(
+		long groupId, java.lang.String articleId, double version, int status,
+		java.lang.String articleURL,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws RemoteException {
+		try {
+			com.liferay.portlet.journal.model.JournalArticle returnValue = JournalArticleServiceUtil.updateStatus(groupId,
+					articleId, version, status, articleURL, serviceContext);
 
 			return com.liferay.portlet.journal.model.JournalArticleSoap.toSoapModel(returnValue);
 		}

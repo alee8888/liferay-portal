@@ -96,6 +96,7 @@ public class SCFrameworkVersionModelImpl extends BaseModelImpl<SCFrameworkVersio
 	public static long ACTIVE_COLUMN_BITMASK = 1L;
 	public static long COMPANYID_COLUMN_BITMASK = 2L;
 	public static long GROUPID_COLUMN_BITMASK = 4L;
+	public static long NAME_COLUMN_BITMASK = 8L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -104,6 +105,10 @@ public class SCFrameworkVersionModelImpl extends BaseModelImpl<SCFrameworkVersio
 	 * @return the normal model instance
 	 */
 	public static SCFrameworkVersion toModel(SCFrameworkVersionSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		SCFrameworkVersion model = new SCFrameworkVersionImpl();
 
 		model.setFrameworkVersionId(soapModel.getFrameworkVersionId());
@@ -129,6 +134,10 @@ public class SCFrameworkVersionModelImpl extends BaseModelImpl<SCFrameworkVersio
 	 */
 	public static List<SCFrameworkVersion> toModels(
 		SCFrameworkVersionSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<SCFrameworkVersion> models = new ArrayList<SCFrameworkVersion>(soapModels.length);
 
 		for (SCFrameworkVersionSoap soapModel : soapModels) {
@@ -166,7 +175,7 @@ public class SCFrameworkVersionModelImpl extends BaseModelImpl<SCFrameworkVersio
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_frameworkVersionId);
+		return _frameworkVersionId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -438,17 +447,6 @@ public class SCFrameworkVersionModelImpl extends BaseModelImpl<SCFrameworkVersio
 	}
 
 	@Override
-	public SCFrameworkVersion toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (SCFrameworkVersion)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			SCFrameworkVersion.class.getName(), getPrimaryKey());
@@ -459,6 +457,16 @@ public class SCFrameworkVersionModelImpl extends BaseModelImpl<SCFrameworkVersio
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public SCFrameworkVersion toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (SCFrameworkVersion)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -696,7 +704,7 @@ public class SCFrameworkVersionModelImpl extends BaseModelImpl<SCFrameworkVersio
 	}
 
 	private static ClassLoader _classLoader = SCFrameworkVersion.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			SCFrameworkVersion.class
 		};
 	private long _frameworkVersionId;
@@ -718,5 +726,5 @@ public class SCFrameworkVersionModelImpl extends BaseModelImpl<SCFrameworkVersio
 	private boolean _setOriginalActive;
 	private int _priority;
 	private long _columnBitmask;
-	private SCFrameworkVersion _escapedModelProxy;
+	private SCFrameworkVersion _escapedModel;
 }

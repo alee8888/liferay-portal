@@ -102,7 +102,7 @@ public class DLAppServiceUtil {
 
 	/**
 	* Adds a file entry and associated metadata. It is created based on a
-	* {@link File} object.
+	* {@link java.io.File} object.
 	*
 	* <p>
 	* This method takes two file names, the <code>sourceFileName</code> and the
@@ -148,7 +148,7 @@ public class DLAppServiceUtil {
 
 	/**
 	* Adds a file entry and associated metadata. It is created based on a
-	* {@link InputStream} object.
+	* {@link java.io.InputStream} object.
 	*
 	* <p>
 	* This method takes two file names, the <code>sourceFileName</code> and the
@@ -281,8 +281,7 @@ public class DLAppServiceUtil {
 		long folderId, java.lang.String fileName,
 		java.lang.String tempFolderName, java.io.InputStream inputStream)
 		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException,
-			java.io.IOException {
+			com.liferay.portal.kernel.exception.SystemException {
 		return getService()
 				   .addTempFileEntry(groupId, folderId, fileName,
 			tempFolderName, inputStream);
@@ -351,6 +350,16 @@ public class DLAppServiceUtil {
 	}
 
 	/**
+	* @deprecated {@link #checkInFileEntry(long, String, ServiceContext)}
+	*/
+	public static void checkInFileEntry(long fileEntryId,
+		java.lang.String lockUuid)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().checkInFileEntry(fileEntryId, lockUuid);
+	}
+
+	/**
 	* Checks in the file entry using the lock's UUID. If a user has not checked
 	* out the specified file entry, invoking this method will result in no
 	* changes. This method is primarily used by WebDAV.
@@ -367,17 +376,19 @@ public class DLAppServiceUtil {
 	* </p>
 	*
 	* @param fileEntryId the primary key of the file entry to check in
-	* @param lockUuid the lock's universally unique identifier
+	* @param lockUuid the lock's UUID
+	* @param serviceContext the service context to be applied
 	* @throws PortalException if the file entry could not be found
 	* @throws SystemException if a system exception occurred
 	* @see #cancelCheckOut(long)
 	* @see #checkOutFileEntry(long, String, long, ServiceContext)
 	*/
 	public static void checkInFileEntry(long fileEntryId,
-		java.lang.String lockUuid)
+		java.lang.String lockUuid,
+		com.liferay.portal.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		getService().checkInFileEntry(fileEntryId, lockUuid);
+		getService().checkInFileEntry(fileEntryId, lockUuid, serviceContext);
 	}
 
 	/**
@@ -864,7 +875,7 @@ public class DLAppServiceUtil {
 	/**
 	* Returns the file entry with the UUID and group.
 	*
-	* @param uuid the file entry's universally unique identifier
+	* @param uuid the file entry's UUID
 	* @param groupId the primary key of the file entry's group
 	* @return the file entry with the UUID and group
 	* @throws PortalException if the file entry could not be found
@@ -1705,7 +1716,8 @@ public class DLAppServiceUtil {
 	* @return the temporary file entry names
 	* @throws PortalException if the folder was invalid
 	* @throws SystemException if a system exception occurred
-	* @see #addTempFileEntry(long, long, String, String, File)
+	* @see com.liferay.portlet.documentlibrary.service.impl.DLAppServiceImpl#addTempFileEntry(
+	long, long, String, String, File)
 	* @see com.liferay.portal.kernel.util.TempFileUtil
 	*/
 	public static java.lang.String[] getTempFileEntryNames(long groupId,
@@ -1716,12 +1728,19 @@ public class DLAppServiceUtil {
 				   .getTempFileEntryNames(groupId, folderId, tempFolderName);
 	}
 
+	/**
+	* @deprecated {@link #checkOutFileEntry(long, ServiceContext)}
+	*/
 	public static com.liferay.portal.model.Lock lockFileEntry(long fileEntryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().lockFileEntry(fileEntryId);
 	}
 
+	/**
+	* @deprecated {@link #checkOutFileEntry(long, String, long,
+	ServiceContext)}
+	*/
 	public static com.liferay.portal.model.Lock lockFileEntry(
 		long fileEntryId, java.lang.String owner, long expirationTime)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -1791,6 +1810,27 @@ public class DLAppServiceUtil {
 	}
 
 	/**
+	* Moves the file entry from a trashed folder to the new folder.
+	*
+	* @param fileEntryId the primary key of the file entry
+	* @param newFolderId the primary key of the new folder
+	* @param serviceContext the service context to be applied
+	* @return the file entry
+	* @throws PortalException if the file entry or the new folder could not be
+	found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.kernel.repository.model.FileEntry moveFileEntryFromTrash(
+		long fileEntryId, long newFolderId,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .moveFileEntryFromTrash(fileEntryId, newFolderId,
+			serviceContext);
+	}
+
+	/**
 	* Moves the file entry with the primary key to the trash portlet.
 	*
 	* @param fileEntryId the primary key of the file entry
@@ -1805,9 +1845,31 @@ public class DLAppServiceUtil {
 	}
 
 	/**
+	* Moves the file shortcut from a trashed folder to the new folder.
+	*
+	* @param fileShortcutId the primary key of the file shortcut
+	* @param newFolderId the primary key of the new folder
+	* @param serviceContext the service context to be applied
+	* @return the file shortcut
+	* @throws PortalException if the file entry or the new folder could not be
+	found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.documentlibrary.model.DLFileShortcut moveFileShortcutFromTrash(
+		long fileShortcutId, long newFolderId,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .moveFileShortcutFromTrash(fileShortcutId, newFolderId,
+			serviceContext);
+	}
+
+	/**
 	* Moves the file shortcut with the primary key to the trash portlet.
 	*
 	* @param fileShortcutId the primary key of the file shortcut
+	* @return the file shortcut
 	* @throws PortalException if the file shortcut could not be found
 	* @throws SystemException if a system exception occurred
 	*/
@@ -1837,6 +1899,26 @@ public class DLAppServiceUtil {
 	}
 
 	/**
+	* Moves the folder with the primary key from the trash portlet to the new
+	* parent folder with the primary key.
+	*
+	* @param folderId the primary key of the folder
+	* @param parentFolderId the primary key of the new parent folder
+	* @param serviceContext the service context to be applied
+	* @return the file entry
+	* @throws PortalException if the folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.kernel.repository.model.Folder moveFolderFromTrash(
+		long folderId, long parentFolderId,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .moveFolderFromTrash(folderId, parentFolderId, serviceContext);
+	}
+
+	/**
 	* Moves the folder with the primary key to the trash portlet.
 	*
 	* @param folderId the primary key of the folder
@@ -1854,7 +1936,7 @@ public class DLAppServiceUtil {
 	* Refreshes the lock for the file entry. This method is primarily used by
 	* WebDAV.
 	*
-	* @param lockUuid the lock's universally unique identifier
+	* @param lockUuid the lock's UUID
 	* @param companyId the primary key of the file entry's company
 	* @param expirationTime the time in milliseconds before the lock expires.
 	If the value is <code>0</code>, the default expiration time will
@@ -1875,7 +1957,7 @@ public class DLAppServiceUtil {
 	* Refreshes the lock for the folder. This method is primarily used by
 	* WebDAV.
 	*
-	* @param lockUuid the lock's universally unique identifier
+	* @param lockUuid the lock's UUID
 	* @param companyId the primary key of the file entry's company
 	* @param expirationTime the time in milliseconds before the lock expires.
 	If the value is <code>0</code>, the default expiration time will
@@ -1964,12 +2046,31 @@ public class DLAppServiceUtil {
 		return getService().search(repositoryId, searchContext, query);
 	}
 
+	public static void subscribeFileEntryType(long groupId, long fileEntryTypeId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().subscribeFileEntryType(groupId, fileEntryTypeId);
+	}
+
+	public static void subscribeFolder(long groupId, long folderId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().subscribeFolder(groupId, folderId);
+	}
+
+	/**
+	* @deprecated Use {@link #checkInFileEntry(long, boolean, String,
+	ServiceContext)}.
+	*/
 	public static void unlockFileEntry(long fileEntryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		getService().unlockFileEntry(fileEntryId);
 	}
 
+	/**
+	* @deprecated Use {@link #checkInFileEntry(long, String)}.
+	*/
 	public static void unlockFileEntry(long fileEntryId,
 		java.lang.String lockUuid)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -1982,7 +2083,7 @@ public class DLAppServiceUtil {
 	*
 	* @param repositoryId the primary key of the repository
 	* @param folderId the primary key of the folder
-	* @param lockUuid the lock's universally unique identifier
+	* @param lockUuid the lock's UUID
 	* @throws PortalException if the repository or folder could not be found
 	* @throws SystemException if a system exception occurred
 	*/
@@ -1999,7 +2100,7 @@ public class DLAppServiceUtil {
 	* @param repositoryId the primary key of the repository
 	* @param parentFolderId the primary key of the parent folder
 	* @param name the folder's name
-	* @param lockUuid the lock's universally unique identifier
+	* @param lockUuid the lock's UUID
 	* @throws PortalException if the repository or folder could not be found
 	* @throws SystemException if a system exception occurred
 	*/
@@ -2008,6 +2109,19 @@ public class DLAppServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		getService().unlockFolder(repositoryId, parentFolderId, name, lockUuid);
+	}
+
+	public static void unsubscribeFileEntryType(long groupId,
+		long fileEntryTypeId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().unsubscribeFileEntryType(groupId, fileEntryTypeId);
+	}
+
+	public static void unsubscribeFolder(long groupId, long folderId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().unsubscribeFolder(groupId, folderId);
 	}
 
 	/**
@@ -2059,10 +2173,11 @@ public class DLAppServiceUtil {
 	}
 
 	/**
-	* Updates a file entry and associated metadata based on a {@link File}
-	* object. If the file data is <code>null</code>, then only the associated
-	* metadata (i.e., <code>title</code>, <code>description</code>, and
-	* parameters in the <code>serviceContext</code>) will be updated.
+	* Updates a file entry and associated metadata based on a {@link
+	* java.io.File} object. If the file data is <code>null</code>, then only
+	* the associated metadata (i.e., <code>title</code>,
+	* <code>description</code>, and parameters in the
+	* <code>serviceContext</code>) will be updated.
 	*
 	* <p>
 	* This method takes two file names, the <code>sourceFileName</code> and the
@@ -2107,7 +2222,7 @@ public class DLAppServiceUtil {
 	}
 
 	/**
-	* Updates a file entry and associated metadata based on an {@link
+	* Updates a file entry and associated metadata based on an {@link java.io.
 	* InputStream} object. If the file data is <code>null</code>, then only the
 	* associated metadata (i.e., <code>title</code>, <code>description</code>,
 	* and parameters in the <code>serviceContext</code>) will be updated.
@@ -2218,15 +2333,15 @@ public class DLAppServiceUtil {
 	* @param serviceContext the service context to be applied. In a Liferay
 	repository, it may include:  <ul> <li> defaultFileEntryTypeId -
 	the file entry type to default all Liferay file entries to </li>
-	<li> fileEntryTypeSearchContainerPrimaryKeys - a comma-delimited
-	list of file entry type primary keys allowed in the given folder
-	and all descendants </li> <li> overrideFileEntryTypes - boolean
-	specifying whether to override ancestral folder's restriction of
-	file entry types allowed </li> <li> workflowDefinitionXYZ - the
-	workflow definition name specified per file entry type. The
-	parameter name must be the string <code>workflowDefinition</code>
-	appended by the <code>fileEntryTypeId</code> (optionally
-	<code>0</code>). </li> </ul>
+	<li> dlFileEntryTypesSearchContainerPrimaryKeys - a
+	comma-delimited list of file entry type primary keys allowed in
+	the given folder and all descendants </li> <li>
+	overrideFileEntryTypes - boolean specifying whether to override
+	ancestral folder's restriction of file entry types allowed </li>
+	<li> workflowDefinitionXYZ - the workflow definition name
+	specified per file entry type. The parameter name must be the
+	string <code>workflowDefinition</code> appended by the <code>
+	fileEntryTypeId</code> (optionally <code>0</code>). </li> </ul>
 	* @return the folder
 	* @throws PortalException if the current or new parent folder could not be
 	found or if the new parent folder's information was invalid
@@ -2247,7 +2362,7 @@ public class DLAppServiceUtil {
 	*
 	* @param repositoryId the primary key for the repository
 	* @param fileEntryId the primary key for the file entry
-	* @param lockUuid the lock's universally unique identifier
+	* @param lockUuid the lock's UUID
 	* @return <code>true</code> if the file entry is checked out;
 	<code>false</code> otherwise
 	* @throws PortalException if the file entry could not be found
@@ -2275,7 +2390,7 @@ public class DLAppServiceUtil {
 	*
 	* @param repositoryId the primary key for the repository
 	* @param folderId the primary key for the folder
-	* @param lockUuid the lock's universally unique identifier
+	* @param lockUuid the lock's UUID
 	* @return <code>true</code> if the inheritable lock exists;
 	<code>false</code> otherwise
 	* @throws PortalException if the folder could not be found

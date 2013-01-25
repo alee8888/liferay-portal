@@ -14,6 +14,7 @@
 
 package com.liferay.portal.kernel.staging;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutRevision;
@@ -36,12 +37,14 @@ public class LayoutStagingUtil {
 	}
 
 	public static LayoutSetStagingHandler getLayoutSetStagingHandler(
-			LayoutSet layoutSet) {
+		LayoutSet layoutSet) {
 
-			return getLayoutStaging().getLayoutSetStagingHandler(layoutSet);
-		}
+		return getLayoutStaging().getLayoutSetStagingHandler(layoutSet);
+	}
 
 	public static LayoutStaging getLayoutStaging() {
+		PortalRuntimePermission.checkGetBeanProperty(LayoutStagingUtil.class);
+
 		return _layoutStaging;
 	}
 
@@ -60,6 +63,8 @@ public class LayoutStagingUtil {
 	}
 
 	public void setLayoutStaging(LayoutStaging layoutStaging) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_layoutStaging = layoutStaging;
 	}
 

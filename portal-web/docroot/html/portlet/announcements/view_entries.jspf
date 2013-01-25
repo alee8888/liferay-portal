@@ -17,7 +17,7 @@
 <%
 LinkedHashMap<Long, long[]> scopes = AnnouncementsUtil.getAnnouncementScopes(user.getUserId());
 
-SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, "cur1", delta, portletURL, null, "no-entries-were-found");
+SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, "cur1", pageDelta, portletURL, null, "no-entries-were-found");
 
 List<AnnouncementsEntry> results = null;
 int total = 0;
@@ -30,17 +30,17 @@ int flagValue = AnnouncementsFlagConstants.NOT_HIDDEN;
 </div>
 
 <%
-boolean hasResults = total > 0;
+int visibleMessagesCount = total;
 %>
 
-<c:if test="<%= hasResults %>">
+<c:if test="<%= visibleMessagesCount > 0 %>">
 	<liferay-ui:search-paginator id="pageIteratorTop" searchContainer="<%= searchContainer %>" type="article" />
 </c:if>
 
 <%
 flagValue = AnnouncementsFlagConstants.HIDDEN;
 
-searchContainer = new SearchContainer(renderRequest, null, null, "cur2", delta, portletURL, null, "no-entries-were-found");
+searchContainer = new SearchContainer(renderRequest, null, null, "cur2", pageDelta, portletURL, null, "no-entries-were-found");
 %>
 
 <div class="read-entries">
@@ -48,12 +48,18 @@ searchContainer = new SearchContainer(renderRequest, null, null, "cur2", delta, 
 </div>
 
 <%
-hasResults = hasResults || (total > 0);
+int hiddenMessagesCount = total;
 %>
 
-<c:if test="<%= total > 0 %>">
+<c:if test="<%= hiddenMessagesCount > 0 %>">
 	<liferay-ui:search-paginator id="pageIteratorBottom" searchContainer="<%= searchContainer %>" type="article" />
 </c:if>
+
+<%
+if (((hiddenMessagesCount == 0) && (visibleMessagesCount == 0)) && portletName.equals(PortletKeys.ALERTS) && !AnnouncementsEntryPermission.contains(permissionChecker, layout, PortletKeys.ANNOUNCEMENTS, ActionKeys.ADD_ENTRY)) {
+	renderRequest.setAttribute(WebKeys.PORTLET_CONFIGURATOR_VISIBILITY, Boolean.TRUE);
+}
+%>
 
 <aui:script>
 	Liferay.provide(
@@ -86,7 +92,13 @@ hasResults = hasResults || (total > 0);
 		function(entry, entryId) {
 			var A = AUI();
 
-			Liferay.Service.Announcements.AnnouncementsFlag.addFlag({entryId : entryId, flag: <%= AnnouncementsFlagConstants.HIDDEN %>});
+			Liferay.Service(
+				'/announcementsflag/add-flag',
+				{
+					entryId : entryId,
+					value: <%= AnnouncementsFlagConstants.HIDDEN %>
+				}
+			);
 
 			Liferay.Portlet.refresh('#p_p_id<portlet:namespace />');
 		},
@@ -128,13 +140,3 @@ hasResults = hasResults || (total > 0);
 		['aui-base']
 	);
 </aui:script>
-
-<c:if test="<%= !hasResults && portletName.equals(PortletKeys.ALERTS) && !AnnouncementsEntryPermission.contains(permissionChecker, layout, PortletKeys.ANNOUNCEMENTS, ActionKeys.ADD_ENTRY) %>">
-	<aui:script use="aui-base">
-		var portlet = A.one('#p_p_id<portlet:namespace />');
-
-		if (portlet) {
-			portlet.hide();
-		}
-	</aui:script>
-</c:if>

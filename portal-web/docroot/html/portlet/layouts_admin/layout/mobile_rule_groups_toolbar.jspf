@@ -68,7 +68,7 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "add");
 	function <portlet:namespace />saveRuleGroupsPriorities(dialog) {
 		<portlet:namespace />processDialog(dialog);
 
-		location.href = '<%= redirect %>';
+		location.href = '<%= redirect %>' + Liferay.Util.getHistoryParam('<portlet:namespace />');
 	}
 
 	Liferay.provide(
@@ -79,15 +79,8 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "add");
 
 			<portlet:namespace />processDialog(dialog);
 
-			var serviceParameterTypes = [
-				'long',
-				'java.lang.String',
-				'long',
-				'long',
-				'com.liferay.portal.service.ServiceContext'
-			];
-
-			Liferay.Service.MDR.MDRRuleGroupInstance.addRuleGroupInstance(
+			Liferay.Service(
+				'/mdrrulegroupinstance/add-rule-group-instance',
 				{
 					groupId: <%= groupId %>,
 					className: '<%= className %>',
@@ -98,11 +91,10 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "add");
 							scopeGroupId: themeDisplay.getScopeGroupId(),
 							userId: themeDisplay.getUserId()
 						}
-					),
-					serviceParameterTypes: A.JSON.stringify(serviceParameterTypes)
+					)
 				},
 				function(response, xhr) {
-					location.href = '<%= redirect %>';
+					location.href = '<%= redirect %>' + Liferay.Util.getHistoryParam('<portlet:namespace />');
 				}
 			);
 		},

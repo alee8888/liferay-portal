@@ -64,11 +64,14 @@ WikiNode node = (WikiNode)row.getObject();
 		/>
 	</c:if>
 
-	<liferay-ui:icon
-		image="rss"
-		target="_blank"
-		url='<%= themeDisplay.getPathMain() + "/wiki/rss?p_l_id=" + plid + "&nodeId=" + node.getNodeId() + rssURLParams %>'
+	<c:if test="<%= enableRSS %>">
+		<liferay-ui:rss
+			delta="<%= rssDelta %>"
+			displayStyle="<%= rssDisplayStyle %>"
+			feedType="<%= rssFeedType %>"
+			url='<%= themeDisplay.getPathMain() + "/wiki/rss?p_l_id=" + plid + "&nodeId=" + node.getNodeId() %>'
 		/>
+	</c:if>
 
 	<c:if test="<%= WikiNodePermission.contains(permissionChecker, node, ActionKeys.SUBSCRIBE) %>">
 		<c:choose>
@@ -104,13 +107,29 @@ WikiNode node = (WikiNode)row.getObject();
 	<c:if test="<%= WikiNodePermission.contains(permissionChecker, node, ActionKeys.DELETE) %>">
 		<portlet:actionURL var="deleteURL">
 			<portlet:param name="struts_action" value="/wiki/edit_node" />
-			<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.DELETE %>" />
+			<portlet:param name="<%= Constants.CMD %>" value="<%= (TrashUtil.isTrashEnabled(scopeGroupId)) ? Constants.MOVE_TO_TRASH : Constants.DELETE %>" />
 			<portlet:param name="redirect" value="<%= currentURL %>" />
 			<portlet:param name="nodeId" value="<%= String.valueOf(node.getNodeId()) %>" />
 		</portlet:actionURL>
 
 		<liferay-ui:icon-delete
+			trash="<%= TrashUtil.isTrashEnabled(scopeGroupId) %>"
 			url="<%= deleteURL %>"
+		/>
+	</c:if>
+
+	<c:if test="<%= WikiNodePermission.contains(permissionChecker, node, ActionKeys.UPDATE) %>">
+		<portlet:renderURL var="viewDeletedAttachmentsURL">
+			<portlet:param name="struts_action" value="/wiki/view_node_deleted_attachments" />
+			<portlet:param name="redirect" value="<%= currentURL %>" />
+			<portlet:param name="nodeId" value="<%= String.valueOf(node.getNodeId()) %>" />
+			<portlet:param name="viewTrashAttachments" value="<%= Boolean.TRUE.toString() %>" />
+		</portlet:renderURL>
+
+		<liferay-ui:icon
+			image="delete_attachment"
+			message="view-removed-attachments"
+			url="<%= viewDeletedAttachmentsURL %>"
 		/>
 	</c:if>
 </liferay-ui:icon-menu>

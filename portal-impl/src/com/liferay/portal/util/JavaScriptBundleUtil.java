@@ -19,7 +19,7 @@ import com.liferay.portal.kernel.cache.SingleVMPoolUtil;
 import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.util.UniqueList;
+import com.liferay.portal.kernel.util.UniqueList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +34,7 @@ public class JavaScriptBundleUtil {
 	}
 
 	public static String[] getFileNames(String bundleId) {
-		String[] fileNames = (String[])_portalCache.get(bundleId);
+		String[] fileNames = _portalCache.get(bundleId);
 
 		if (fileNames == null) {
 			List<String> fileNamesList = new ArrayList<String>();
@@ -88,7 +88,7 @@ public class JavaScriptBundleUtil {
 	private static final String _CACHE_NAME =
 		JavaScriptBundleUtil.class.getName();
 
-	private static PortalCache _portalCache = SingleVMPoolUtil.getCache(
-		_CACHE_NAME);
+	private static PortalCache<String, String[]> _portalCache =
+		SingleVMPoolUtil.getCache(_CACHE_NAME);
 
 }

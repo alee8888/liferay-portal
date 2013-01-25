@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.servlet.SessionMessages;
+import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -43,7 +44,6 @@ import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.CookieKeys;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
@@ -88,8 +88,9 @@ public class LoginUtil {
 
 		String requestURI = request.getRequestURI();
 
-		if (requestURI.startsWith("/api/liferay") ||
-			requestURI.startsWith("/api/secure/liferay")) {
+		String contextPath = PortalUtil.getPathContext();
+
+		if (requestURI.startsWith(contextPath.concat("/api/liferay"))) {
 
 			// Tunnel requests are serialized objects and cannot manipulate the
 			// request input stream in any way. Do not use the auth pipeline to
@@ -220,11 +221,10 @@ public class LoginUtil {
 		PortletURL portletURL = PortletURLFactoryUtil.create(
 			request, PortletKeys.LOGIN, plid, PortletRequest.RENDER_PHASE);
 
-		portletURL.setWindowState(WindowState.MAXIMIZED);
-		portletURL.setPortletMode(PortletMode.VIEW);
-
-		portletURL.setParameter("saveLastPath", "0");
+		portletURL.setParameter("saveLastPath", Boolean.FALSE.toString());
 		portletURL.setParameter("struts_action", "/login/login");
+		portletURL.setPortletMode(PortletMode.VIEW);
+		portletURL.setWindowState(WindowState.MAXIMIZED);
 
 		return portletURL;
 	}
@@ -498,7 +498,7 @@ public class LoginUtil {
 			company.getCompanyId(), toAddress, fromName, fromAddress, subject,
 			body, serviceContext);
 
-		SessionMessages.add(actionRequest, "request_processed", toAddress);
+		SessionMessages.add(actionRequest, "requestProcessed", toAddress);
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(LoginUtil.class);

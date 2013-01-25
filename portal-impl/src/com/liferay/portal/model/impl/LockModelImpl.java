@@ -72,6 +72,8 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 		};
 	public static final String TABLE_SQL_CREATE = "create table Lock_ (uuid_ VARCHAR(75) null,lockId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,className VARCHAR(75) null,key_ VARCHAR(200) null,owner VARCHAR(255) null,inheritable BOOLEAN,expirationDate DATE null)";
 	public static final String TABLE_SQL_DROP = "drop table Lock_";
+	public static final String ORDER_BY_JPQL = " ORDER BY lock.lockId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY Lock_.lockId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -88,8 +90,8 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 	public static long COMPANYID_COLUMN_BITMASK = 2L;
 	public static long EXPIRATIONDATE_COLUMN_BITMASK = 4L;
 	public static long KEY_COLUMN_BITMASK = 8L;
-	public static long OWNER_COLUMN_BITMASK = 16L;
-	public static long UUID_COLUMN_BITMASK = 32L;
+	public static long UUID_COLUMN_BITMASK = 16L;
+	public static long LOCKID_COLUMN_BITMASK = 32L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portal.model.Lock"));
 
@@ -105,7 +107,7 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_lockId);
+		return _lockId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -350,17 +352,7 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 	}
 
 	public void setOwner(String owner) {
-		_columnBitmask |= OWNER_COLUMN_BITMASK;
-
-		if (_originalOwner == null) {
-			_originalOwner = _owner;
-		}
-
 		_owner = owner;
-	}
-
-	public String getOriginalOwner() {
-		return GetterUtil.getString(_originalOwner);
 	}
 
 	public boolean getInheritable() {
@@ -398,17 +390,6 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 	}
 
 	@Override
-	public Lock toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Lock)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			Lock.class.getName(), getPrimaryKey());
@@ -419,6 +400,16 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public Lock toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Lock)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -499,8 +490,6 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 		lockModelImpl._originalClassName = lockModelImpl._className;
 
 		lockModelImpl._originalKey = lockModelImpl._key;
-
-		lockModelImpl._originalOwner = lockModelImpl._owner;
 
 		lockModelImpl._originalExpirationDate = lockModelImpl._expirationDate;
 
@@ -669,9 +658,7 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 	}
 
 	private static ClassLoader _classLoader = Lock.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
-			Lock.class
-		};
+	private static Class<?>[] _escapedModelInterfaces = new Class[] { Lock.class };
 	private String _uuid;
 	private String _originalUuid;
 	private long _lockId;
@@ -687,10 +674,9 @@ public class LockModelImpl extends BaseModelImpl<Lock> implements LockModel {
 	private String _key;
 	private String _originalKey;
 	private String _owner;
-	private String _originalOwner;
 	private boolean _inheritable;
 	private Date _expirationDate;
 	private Date _originalExpirationDate;
 	private long _columnBitmask;
-	private Lock _escapedModelProxy;
+	private Lock _escapedModel;
 }

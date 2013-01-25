@@ -76,10 +76,10 @@ String endDateTypeParam = ParamUtil.getString(request, "endDateType");
 if (Validator.isNull(endDateTypeParam) && (event != null)) {
 	if (event.getRepeating() && (recurrence != null)) {
 		if (recurrence.getUntil() != null) {
-			endDateType = 2;
+			endDateType = CalEventConstants.END_DATE_TYPE_END_BY;
 		}
 		else if (recurrence.getOccurrence() > 0) {
-			endDateType = 1;
+			endDateType = CalEventConstants.END_DATE_TYPE_END_AFTER;
 		}
 	}
 }
@@ -228,13 +228,13 @@ int secondReminder = BeanParamUtil.getInteger(event, request, "secondReminder", 
 
 			<aui:fieldset cssClass='<%= recurrenceType == Recurrence.NO_RECURRENCE ? "aui-helper-hidden" : StringPool.BLANK %>' id="repeatUntilOptions">
 				<aui:field-wrapper cssClass="end-date-field" label="repeat-until" name="endDateType">
-					<aui:input checked="<%= endDateType == 0 %>" cssClass="input-container" label="no-end-date" name="endDateType" type="radio" value="0" />
+					<aui:input checked="<%= endDateType == CalEventConstants.END_DATE_TYPE_NONE %>" cssClass="input-container" label="no-end-date" name="endDateType" type="radio" value="<%= CalEventConstants.END_DATE_TYPE_NONE %>" />
 
-					<%--<aui:input checked="<%= endDateType == 1 %>" cssClass="input-container" inlineField="<%= true %>" label="end-after" name="endDateType" type="radio" value="1" />--%>
+					<%--<aui:input checked="<%= endDateType == CalEventConstants.END_DATE_TYPE_END_AFTER %>" cssClass="input-container" inlineField="<%= true %>" label="end-after" name="endDateType" type="radio" value="<%= CalEventConstants.END_DATE_TYPE_END_AFTER %>" />--%>
 
 					<%--<aui:input label="occurrence-s" maxlength="3" name="endDateOccurrence" size="3" type="text" value="<%= endDateOccurrence %>" />--%>
 
-					<aui:input checked="<%= endDateType == 2 %>" cssClass="input-container" inlineField="<%= true %>" label="end-by" name="endDateType" type="radio" value="2" />
+					<aui:input checked="<%= endDateType == CalEventConstants.END_DATE_TYPE_END_BY %>" cssClass="input-container" inlineField="<%= true %>" label="end-by" name="endDateType" type="radio" value="<%= CalEventConstants.END_DATE_TYPE_END_BY %>" />
 
 					<aui:input inlineField="<%= true %>" label="" name="endDate" value="<%= endDate %>" />
 				</aui:field-wrapper>
@@ -279,8 +279,8 @@ int secondReminder = BeanParamUtil.getInteger(event, request, "secondReminder", 
 					<aui:input checked="<%= remindBy == CalEventConstants.REMIND_BY_SMS %>" label='<%= LanguageUtil.get(pageContext, "sms") + (Validator.isNotNull(contact.getSmsSn()) ? " (" + contact.getSmsSn() + ")" : "") %>' name="remindBy" type="radio" value="<%= CalEventConstants.REMIND_BY_SMS %>" />
 					<aui:input checked="<%= remindBy == CalEventConstants.REMIND_BY_AIM %>" label='<%= LanguageUtil.get(pageContext, "aim") + (Validator.isNotNull(contact.getAimSn()) ? " (" + contact.getAimSn() + ")" : "") %>' name="remindBy" type="radio" value="<%= CalEventConstants.REMIND_BY_AIM %>" />
 					<aui:input checked="<%= remindBy == CalEventConstants.REMIND_BY_ICQ %>" label='<%= LanguageUtil.get(pageContext, "icq") + (Validator.isNotNull(contact.getIcqSn()) ? " (" + contact.getIcqSn() + ")" : "") %>' name="remindBy" type="radio" value="<%= CalEventConstants.REMIND_BY_ICQ %>" />
-					<aui:input checked="<%= remindBy == CalEventConstants.REMIND_BY_MSN %>" label='<%= LanguageUtil.get(pageContext, "msn") + (Validator.isNotNull(contact.getMsnSn()) ? " (" + contact.getMsnSn() + ")" : "") %>' name="remindBy" type="radio" value="<%= CalEventConstants.REMIND_BY_MSN %>" />
-					<aui:input checked="<%= remindBy == CalEventConstants.REMIND_BY_YM %>" label='<%= LanguageUtil.get(pageContext, "ym") + (Validator.isNotNull(contact.getYmSn()) ? " (" + contact.getYmSn() + ")" : "") %>' name="remindBy" type="radio" value="<%= CalEventConstants.REMIND_BY_YM %>" />
+					<aui:input checked="<%= remindBy == CalEventConstants.REMIND_BY_MSN %>" label='<%= LanguageUtil.get(pageContext, "windows-live-messenger") + (Validator.isNotNull(contact.getMsnSn()) ? " (" + contact.getMsnSn() + ")" : "") %>' name="remindBy" type="radio" value="<%= CalEventConstants.REMIND_BY_MSN %>" />
+					<aui:input checked="<%= remindBy == CalEventConstants.REMIND_BY_YM %>" label='<%= LanguageUtil.get(pageContext, "yim") + (Validator.isNotNull(contact.getYmSn()) ? " (" + contact.getYmSn() + ")" : "") %>' name="remindBy" type="radio" value="<%= CalEventConstants.REMIND_BY_YM %>" />
 				</aui:field-wrapper>
 			</aui:fieldset>
 		</liferay-ui:panel>
@@ -317,18 +317,33 @@ int secondReminder = BeanParamUtil.getInteger(event, request, "secondReminder", 
 
 <aui:script use="aui-base">
 	var allDayCheckbox = A.one('#<portlet:namespace />allDayCheckbox');
+
 	var durationHour = A.one('#<portlet:namespace />durationHour');
 
-	if (allDayCheckbox && durationHour) {
-		allDayCheckbox.on(
-			'change',
-			function() {
-				if (!this.get('checked') && (durationHour.val() == '24')) {
-					durationHour.val('1');
+	var timeZoneSensitiveCheckbox = A.one('#<portlet:namespace />timeZoneSensitiveCheckbox');
+
+	allDayCheckbox.on(
+		'change',
+		function() {
+			var allDayChecked = allDayCheckbox.attr('checked');
+
+			if (!allDayChecked && durationHour && (durationHour.val() === '24')) {
+				durationHour.val('1');
+			}
+
+			if (allDayChecked) {
+				timeZoneSensitiveCheckbox.attr('checked', false);
+				timeZoneSensitiveCheckbox.attr('disabled', true);
+			}
+			else {
+				timeZoneSensitiveCheckbox.attr('disabled', false);
+
+				if (timeZoneSensitiveCheckbox.previous().val() === 'true') {
+					timeZoneSensitiveCheckbox.attr('checked', true);
 				}
 			}
-		);
-	}
+		}
+	);
 
 	A.all('#<portlet:namespace />recurrenceTypeNever, #<portlet:namespace />recurrenceTypeDaily, #<portlet:namespace />recurrenceTypeWeekly, #<portlet:namespace />recurrenceTypeMonthly, #<portlet:namespace />recurrenceTypeYearly').on(
 		'change',

@@ -1,10 +1,17 @@
 ;(function(A, Liferay) {
-	var AArray = A.Array;
-	var Browser = Liferay.Browser;
+	A.use('aui-base-lang');
+
 	var Lang = A.Lang;
+
+	var AArray = A.Array;
+	var AObject = A.Object;
+	var AString = A.Lang.String;
+	var Browser = Liferay.Browser;
 
 	var isArray = Lang.isArray;
 	var arrayIndexOf = AArray.indexOf;
+
+	var EVENT_CLICK = 'click';
 
 	var htmlEscapedValues = [];
 	var htmlUnescapedValues = [];
@@ -21,20 +28,27 @@
 
 	var MAP_HTML_CHARS_UNESCAPED = {};
 
-	for (var i in MAP_HTML_CHARS_ESCAPED) {
-		if (MAP_HTML_CHARS_ESCAPED.hasOwnProperty(i)) {
-			var escapedValue = MAP_HTML_CHARS_ESCAPED[i];
+	AObject.each(
+		MAP_HTML_CHARS_ESCAPED,
+		function(item, index) {
+			MAP_HTML_CHARS_UNESCAPED[item] = index;
 
-			MAP_HTML_CHARS_UNESCAPED[escapedValue] = i;
-
-			htmlEscapedValues.push(escapedValue);
-			htmlUnescapedValues.push(i);
+			htmlEscapedValues.push(item);
+			htmlUnescapedValues.push(index);
 		}
-	}
+	);
 
 	var REGEX_DASH = /-([a-z])/gi;
 
-	var REGEX_HTML_ESCAPE = new RegExp('[' + htmlUnescapedValues.join('') + ']', 'g');
+	var STR_LEFT_ROUND_BRACKET = '(';
+
+	var STR_RIGHT_ROUND_BRACKET = ')';
+
+	var STR_LEFT_SQUARE_BRACKET = '[';
+
+	var STR_RIGHT_SQUARE_BRACKET = ']';
+
+	var REGEX_HTML_ESCAPE = new RegExp(STR_LEFT_SQUARE_BRACKET + htmlUnescapedValues.join('') + STR_RIGHT_SQUARE_BRACKET, 'g');
 
 	var REGEX_HTML_UNESCAPE = new RegExp(htmlEscapedValues.join('|'), 'gi');
 
@@ -166,7 +180,9 @@
 
 			if (params) {
 				var loc = url || location.href;
-				var anchorHash, finalUrl;
+
+				var anchorHash;
+				var finalUrl;
 
 				if (loc.indexOf('#') > -1) {
 					var locationPieces = loc.split('#');
@@ -239,6 +255,15 @@
 		disableFormButtons: function(inputs, form) {
 			inputs.set('disabled', true);
 			inputs.setStyle('opacity', 0.5);
+
+			if (A.UA.gecko) {
+				A.getWin().on(
+					'unload',
+					function(event) {
+						inputs.set('disabled', false);
+					}
+				);
+			}
 		},
 
 		enableFormButtons: function(inputs, form) {
@@ -272,8 +297,36 @@
 			);
 		},
 
-		escapeHTML: function(str) {
-			return str.replace(REGEX_HTML_ESCAPE, Util._escapeHTML);
+		escapeHTML: function(str, preventDoubleEscape, entities) {
+			var result;
+
+			var regex = REGEX_HTML_ESCAPE;
+
+			var entitiesList = [];
+
+			var entitiesValues;
+
+			if (Lang.isObject(entities)) {
+				entitiesValues = [];
+
+				AObject.each(
+					entities,
+					function(item, index) {
+						entitiesList.push(index);
+
+						entitiesValues.push(item);
+					}
+				);
+
+				regex = new RegExp(STR_LEFT_SQUARE_BRACKET + AString.escapeRegEx(entitiesList.join('')) + STR_RIGHT_SQUARE_BRACKET, 'g');
+			}
+			else {
+				entities = MAP_HTML_CHARS_ESCAPED;
+
+				entitiesValues = htmlEscapedValues;
+			}
+
+			return str.replace(regex, A.bind('_escapeHTML', Util, !!preventDoubleEscape, entities, entitiesValues));
 		},
 
 		getColumnId: function(str) {
@@ -469,11 +522,41 @@
 				oldBox.options[i] = null;
 			}
 
-			for (var i = 0; i < newBox.length; i++) {
+			for (i = 0; i < newBox.length; i++) {
 				oldBox.options[i] = new Option(newBox[i].value, i);
 			}
 
 			oldBox.options[0].selected = true;
+		},
+
+		setCursorPosition: function(el, position) {
+			var instance = this;
+
+			instance.setSelectionRange(el, position, position);
+		},
+
+		setSelectionRange: function(el, selectionStart, selectionEnd) {
+			var instance = this;
+
+			if (Lang.isFunction(el.getDOM)) {
+				el = el.getDOM();
+			}
+
+			if (el.setSelectionRange) {
+				el.focus();
+
+				el.setSelectionRange(selectionStart, selectionEnd);
+			}
+			else if (el.createTextRange) {
+				var textRange = el.createTextRange();
+
+				textRange.collapse(true);
+
+				textRange.moveEnd('character', selectionEnd);
+				textRange.moveEnd('character', selectionStart);
+
+				textRange.select();
+			}
 		},
 
 		showCapsLock: function(event, span) {
@@ -566,8 +649,29 @@
 			return value;
 		},
 
-		unescapeHTML: function(str) {
-			return str.replace(REGEX_HTML_UNESCAPE, Util._unescapeHTML);
+		unescapeHTML: function(str, entities) {
+			var regex = REGEX_HTML_UNESCAPE;
+
+			var entitiesMap = MAP_HTML_CHARS_UNESCAPED;
+
+			if (entities) {
+				var entitiesValues = [];
+
+				entitiesMap = {};
+
+				AObject.each(
+					entities,
+					function(item, index) {
+						entitiesMap[item] = index;
+
+						entitiesValues.push(item);
+					}
+				);
+
+				regex = new RegExp(entitiesValues.join('|'), 'gi');
+			}
+
+			return str.replace(regex, A.bind('_unescapeHTML', Util, entitiesMap));
 		},
 
 		_defaultSubmitFormFn: function(event) {
@@ -591,7 +695,7 @@
 				Util._submitLocked = true;
 			}
 
-			if (action != null) {
+			if (action !== null) {
 				form.attr('action', action);
 			}
 
@@ -600,8 +704,33 @@
 			form.attr('target', '');
 		},
 
-		_escapeHTML: function(match) {
-			return MAP_HTML_CHARS_ESCAPED[match];
+		_escapeHTML: function(preventDoubleEscape, entities, entitiesValues, match) {
+			var result;
+
+			if (preventDoubleEscape) {
+				var arrayArgs = AArray(arguments);
+
+				var length = arrayArgs.length;
+
+				var string = arrayArgs[length - 1];
+				var offset = arrayArgs[length - 2];
+
+				var nextSemicolonIndex = string.indexOf(';', offset);
+
+				if (nextSemicolonIndex >= 0) {
+					var entity = string.substring(offset, nextSemicolonIndex + 1);
+
+					if (AArray.indexOf(entitiesValues, entity) >= 0) {
+						result = match;
+					}
+				}
+			}
+
+			if (!result) {
+				result = entities[match];
+			}
+
+			return result;
 		},
 
 		_getEditableInstance: function(title) {
@@ -662,33 +791,64 @@
 			return editable;
 		},
 
-		_unescapeHTML: function(match) {
-			return MAP_HTML_CHARS_UNESCAPED[match];
-		}
+		_unescapeHTML: function(entities, match) {
+			return entities[match];
+		},
+
+		MAP_HTML_CHARS_ESCAPED: MAP_HTML_CHARS_ESCAPED
 	};
 
 	Liferay.provide(
 		Util,
 		'afterIframeLoaded',
 		function(event) {
-			var iframeBody = A.one(event.doc.body);
+			var nodeInstances = A.Node._instances;
 
-			iframeBody.addClass('aui-dialog-iframe-popup');
+			var docEl = event.doc;
 
-			var closeButton = iframeBody.one('.aui-button-input-cancel');
-			var hideLink = iframeBody.one('.lfr-hide-dialog');
+			var docUID = docEl._yuid;
+
+			if (docUID in nodeInstances) {
+				delete nodeInstances[docUID];
+			}
+
+			var iframeDocument = A.one(docEl);
+
+			var iframeBody = iframeDocument.one('body');
 
 			var dialog = event.dialog;
 
-			if (closeButton) {
-				closeButton.on('click', dialog.close, dialog);
-			}
+			iframeBody.addClass('aui-dialog-iframe-popup');
 
-			if (hideLink) {
-				hideLink.on(
-					'click',
-					function(){
+			var detachEventHandles = function() {
+				AArray.invoke(eventHandles, 'detach');
+
+				iframeDocument.purge(true);
+			};
+
+			var eventHandles = [
+				iframeBody.delegate('submit', detachEventHandles, 'form'),
+
+				iframeBody.delegate(
+					EVENT_CLICK,
+					function() {
 						dialog.set('visible', false, SRC_HIDE_LINK);
+
+						detachEventHandles();
+					},
+					'.lfr-hide-dialog'
+				)
+			];
+
+			var cancelButton = iframeBody.one('.aui-button-input-cancel');
+
+			if (cancelButton) {
+				cancelButton.after(
+					EVENT_CLICK,
+					function() {
+						detachEventHandles();
+
+						dialog.close();
 					}
 				);
 			}
@@ -696,14 +856,18 @@
 			var rolesSearchContainer = iframeBody.one('#rolesSearchContainerSearchContainer');
 
 			if (rolesSearchContainer) {
-				rolesSearchContainer.delegate(
-					'click',
-					function(event){
-						event.preventDefault();
+				eventHandles.push(
+					rolesSearchContainer.delegate(
+						EVENT_CLICK,
+						function(event) {
+							event.preventDefault();
 
-						submitForm(document.hrefFm, event.currentTarget.attr('href'));
-					},
-					'a'
+							detachEventHandles();
+
+							submitForm(document.hrefFm, event.currentTarget.attr('href'));
+						},
+						'a'
+					)
 				);
 			}
 		},
@@ -730,10 +894,10 @@
 			var selector;
 
 			if (isArray(name)) {
-				selector = 'input[name='+ name.join('], input[name=') + ']';
+				selector = 'input[name='+ name.join('], input[name=') + STR_RIGHT_SQUARE_BRACKET;
 			}
 			else {
-				selector = 'input[name=' + name + ']';
+				selector = 'input[name=' + name + STR_RIGHT_SQUARE_BRACKET;
 			}
 
 			form = A.one(form);
@@ -755,7 +919,7 @@
 			var totalOn = 0;
 			var inputs = A.one(form).all('input[type=checkbox]');
 
-			allBox = A.one(allBox) || A.one(form).one('input[name=' + allBox + ']');
+			allBox = A.one(allBox) || A.one(form).one('input[name=' + allBox + STR_RIGHT_SQUARE_BRACKET);
 
 			if (!isArray(name)) {
 				name = [name];
@@ -922,7 +1086,7 @@
 				}
 
 				checkBox.on(
-					'click',
+					EVENT_CLICK,
 					function() {
 						toggleBox.set('disabled', !toggleBox.get('disabled'));
 					}
@@ -956,7 +1120,7 @@
 			var interacting = false;
 
 			var clickHandle = A.getDoc().on(
-				'click',
+				EVENT_CLICK,
 				function(event) {
 					interacting = true;
 
@@ -998,37 +1162,6 @@
 			}
 		},
 		['aui-base']
-	);
-
-	/**
-	 * OPTIONS
-	 *
-	 * Required
-	 * button {string|object}: The button that opens the popup when clicked.
-	 * height {number}: The height to set the popup to.
-	 * textarea {string}: the name of the textarea to auto-resize.
-	 * url {string}: The url to open that sets the editor.
-	 * width {number}: The width to set the popup to.
-	 */
-
-	Liferay.provide(
-		Util,
-		'inlineEditor',
-		function(options, callback) {
-			var editorButton = A.one(options.button);
-
-			if (options.uri && editorButton) {
-				delete options.button;
-
-				editorButton.on(
-					'click',
-					function(event) {
-						Util.openWindow(options, callback);
-					}
-				);
-			}
-		},
-		['aui-dialog', 'aui-io']
 	);
 
 	Liferay.provide(
@@ -1087,6 +1220,7 @@
 			ddmURL.setParameter('classPK', config.classPK);
 			ddmURL.setParameter('ddmResource', config.ddmResource);
 			ddmURL.setParameter('ddmResourceActionId', config.ddmResourceActionId);
+			ddmURL.setParameter('groupId', config.groupId);
 			ddmURL.setParameter('saveCallback', config.saveCallback);
 			ddmURL.setParameter('scopeAvailableFields', config.availableFields);
 			ddmURL.setParameter('scopeStorageType', config.storageType);
@@ -1094,6 +1228,7 @@
 			ddmURL.setParameter('scopeStructureType', config.structureType);
 			ddmURL.setParameter('scopeTemplateMode', config.templateMode);
 			ddmURL.setParameter('scopeTemplateType', config.templateType);
+			ddmURL.setParameter('scopeTitle', config.title);
 
 			if ('showGlobalScope' in config) {
 				ddmURL.setParameter('showGlobalScope', config.showGlobalScope);
@@ -1141,6 +1276,31 @@
 
 	Liferay.provide(
 		Util,
+		'openDocument',
+		function(webDavUrl, onSuccess, onError) {
+			if (A.UA.ie) {
+				try {
+					var executor = new A.config.win.ActiveXObject('SharePoint.OpenDocuments');
+
+					executor.EditDocument(webDavUrl);
+
+					if (Lang.isFunction(onSuccess)) {
+						onSuccess();
+					}
+
+				}
+				catch (exception) {
+					if (Lang.isFunction(onError)) {
+						onError(exception);
+					}
+				}
+			}
+		},
+		['aui-base']
+	);
+
+	Liferay.provide(
+		Util,
 		'portletTitleEdit',
 		function(options) {
 			var obj = options.obj;
@@ -1152,7 +1312,7 @@
 					title.setData('portletTitleEditOptions', options);
 
 					title.on(
-						'click',
+						EVENT_CLICK,
 						function(event) {
 							var editable = Util._getEditableInstance(title);
 
@@ -1206,7 +1366,7 @@
 				box.all('option').item(selectedIndex).remove(true);
 			}
 			else {
-				box.all('option[value=' + value + ']').item(selectedIndex).remove(true);
+				box.all('option[value=' + value + STR_RIGHT_SQUARE_BRACKET).item(selectedIndex).remove(true);
 			}
 		},
 		['aui-base']
@@ -1275,7 +1435,7 @@
 			var el = A.one('#' + elString);
 
 			if (!el) {
-				el = A.one('textarea[name=' + elString + ']');
+				el = A.one('textarea[name=' + elString + STR_RIGHT_SQUARE_BRACKET);
 			}
 
 			if (el) {
@@ -1377,6 +1537,7 @@
 				{
 					data: {
 						doAsUserId: params.doAsUserId,
+						p_auth: Liferay.authToken,
 						p_l_id: params.plid,
 						portletId: params.portletId,
 						title: params.title
@@ -1416,7 +1577,7 @@
 		Util,
 		'setSelectedValue',
 		function(col, value) {
-			var option = A.one(col).one('option[value=' + value + ']');
+			var option = A.one(col).one('option[value=' + value + STR_RIGHT_SQUARE_BRACKET);
 
 			if (option) {
 				option.set('selected', true);
@@ -1507,7 +1668,7 @@
 				}
 
 				checkBox.on(
-					'click',
+					EVENT_CLICK,
 					function() {
 						toggleBox.toggle();
 					}
@@ -1539,7 +1700,7 @@
 				docBody.addClass(currentClass);
 
 				trigger.on(
-					'click',
+					EVENT_CLICK,
 					function(event) {
 						docBody.toggleClass(visibleClass).toggleClass(hiddenClass);
 
@@ -1703,18 +1864,25 @@
 				var dialogWindow = dialog.iframe.node.get('contentWindow').getDOM();
 
 				var openingWindow = dialogWindow.Liferay.Util.getOpener();
-				var refresh = event.refresh;
+				var redirect = event.redirect;
 
-				if (refresh && openingWindow) {
-					var data;
+				if (redirect) {
+					openingWindow.location = redirect;
+				}
+				else {
+					var refresh = event.refresh;
 
-					if (!event.portletAjaxable) {
-						data = {
-							portletAjaxable: false
-						};
+					if (refresh && openingWindow) {
+						var data;
+
+						if (!event.portletAjaxable) {
+							data = {
+								portletAjaxable: false
+							};
+						}
+
+						openingWindow.Liferay.Portlet.refresh('#p_p_id_' + refresh + '_', data);
 					}
-
-					openingWindow.Liferay.Portlet.refresh('#p_p_id_' + refresh + '_', data);
 				}
 
 				dialog.close();

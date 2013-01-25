@@ -16,6 +16,7 @@ package com.liferay.portlet.dynamicdatamapping.util;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.dynamicdatamapping.storage.Field;
@@ -49,17 +50,25 @@ public interface DDM {
 
 	public String getFileUploadPath(BaseModel<?> baseModel);
 
+	public OrderByComparator getStructureOrderByComparator(
+		String orderByCol, String orderByType);
+
+	public OrderByComparator getTemplateOrderByComparator(
+		String orderByCol, String orderByType);
+
+	public Fields mergeFields(Fields newFields, Fields existingFields);
+
 	public void sendFieldFile(
 			HttpServletRequest request, HttpServletResponse response,
-			Field field)
+			Field field, int valueIndex)
 		throws Exception;
 
-	public String uploadFieldFile(
+	public void uploadFieldFile(
 			long structureId, long storageId, BaseModel<?> baseModel,
 			String fieldName, ServiceContext serviceContext)
 		throws Exception;
 
-	public String uploadFieldFile(
+	public void uploadFieldFile(
 			long structureId, long storageId, BaseModel<?> baseModel,
 			String fieldName, String fieldNamespace,
 			ServiceContext serviceContext)

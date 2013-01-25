@@ -107,6 +107,8 @@ public class AnnouncementsEntryModelImpl extends BaseModelImpl<AnnouncementsEntr
 	public static long COMPANYID_COLUMN_BITMASK = 8L;
 	public static long USERID_COLUMN_BITMASK = 16L;
 	public static long UUID_COLUMN_BITMASK = 32L;
+	public static long PRIORITY_COLUMN_BITMASK = 64L;
+	public static long MODIFIEDDATE_COLUMN_BITMASK = 128L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -115,6 +117,10 @@ public class AnnouncementsEntryModelImpl extends BaseModelImpl<AnnouncementsEntr
 	 * @return the normal model instance
 	 */
 	public static AnnouncementsEntry toModel(AnnouncementsEntrySoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		AnnouncementsEntry model = new AnnouncementsEntryImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -146,6 +152,10 @@ public class AnnouncementsEntryModelImpl extends BaseModelImpl<AnnouncementsEntr
 	 */
 	public static List<AnnouncementsEntry> toModels(
 		AnnouncementsEntrySoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<AnnouncementsEntry> models = new ArrayList<AnnouncementsEntry>(soapModels.length);
 
 		for (AnnouncementsEntrySoap soapModel : soapModels) {
@@ -170,7 +180,7 @@ public class AnnouncementsEntryModelImpl extends BaseModelImpl<AnnouncementsEntr
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_entryId);
+		return _entryId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -605,17 +615,6 @@ public class AnnouncementsEntryModelImpl extends BaseModelImpl<AnnouncementsEntr
 	}
 
 	@Override
-	public AnnouncementsEntry toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (AnnouncementsEntry)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			AnnouncementsEntry.class.getName(), getPrimaryKey());
@@ -626,6 +625,16 @@ public class AnnouncementsEntryModelImpl extends BaseModelImpl<AnnouncementsEntr
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public AnnouncementsEntry toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (AnnouncementsEntry)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -971,7 +980,7 @@ public class AnnouncementsEntryModelImpl extends BaseModelImpl<AnnouncementsEntr
 	}
 
 	private static ClassLoader _classLoader = AnnouncementsEntry.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			AnnouncementsEntry.class
 		};
 	private String _uuid;
@@ -1004,5 +1013,5 @@ public class AnnouncementsEntryModelImpl extends BaseModelImpl<AnnouncementsEntr
 	private boolean _originalAlert;
 	private boolean _setOriginalAlert;
 	private long _columnBitmask;
-	private AnnouncementsEntry _escapedModelProxy;
+	private AnnouncementsEntry _escapedModel;
 }

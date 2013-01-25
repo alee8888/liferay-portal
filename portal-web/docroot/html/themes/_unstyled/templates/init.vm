@@ -76,7 +76,7 @@
 #set ($user_birthday = $user.getBirthday())
 #set ($user_email_address = $user.getEmailAddress())
 #set ($language_id = $user.getLanguageId())
-#set ($w3c_language_id = $localeUtil.toW3cLanguageId($language_id))
+#set ($w3c_language_id = $localeUtil.toW3cLanguageId($theme_display.getLanguageId()))
 #set ($time_zone = $user.getTimeZoneId())
 #set ($user_greeting = $htmlUtil.escape($user.getGreeting()))
 #set ($user_comments = $user.getComments())
@@ -223,7 +223,7 @@
 		#set ($css_class = $css_class + " site-template")
 	#end
 
-	#if($page_group.isCompany())
+	#if ($page_group.isCompany())
 		#set ($site_type = "company-site")
 	#elseif ($page_group.isOrganization())
 		#set ($site_type = "organization-site")
@@ -287,7 +287,7 @@
 	#set ($the_title = $page_group.getDescriptiveName())
 #end
 
-#if ($tilesTitle == "")
+#if (($tilesTitle == "") && !$pageTitle)
 	#set ($the_title = $htmlUtil.escape($the_title))
 #end
 

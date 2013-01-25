@@ -35,6 +35,8 @@ public interface Constants {
 
 	public static final String CANCEL_CHECKOUT = "cancel_checkout";
 
+	public static final String CHECK = "check";
+
 	public static final String CHECKIN = "checkin";
 
 	public static final String CHECKOUT = "checkout";
@@ -75,7 +77,11 @@ public interface Constants {
 
 	public static final String MOVE = "move";
 
+	public static final String MOVE_FROM_TRASH = "move_from_trash";
+
 	public static final String MOVE_TO_TRASH = "move_to_trash";
+
+	public static final String OVERRIDE = "override";
 
 	public static final String PREVIEW = "preview";
 
@@ -87,7 +93,11 @@ public interface Constants {
 
 	public static final String READ = "read";
 
+	public static final String REDO = "redo";
+
 	public static final String REJECT = "reject";
+
+	public static final String RENAME = "rename";
 
 	public static final String RESET = "reset";
 
@@ -111,6 +121,8 @@ public interface Constants {
 
 	public static final String TRANSLATE = "translate";
 
+	public static final String UNDO = "undo";
+
 	public static final String UNLOCK = "unlock";
 
 	public static final String UNSUBSCRIBE = "unsubscribe";
@@ -121,6 +133,8 @@ public interface Constants {
 	public static final String UPDATE = "update";
 
 	public static final String UPDATE_AND_CHECKIN = "update_and_checkin";
+
+	public static final String UPDATE_CONTENT = "update_content";
 
 	public static final String VIEW = "view";
 

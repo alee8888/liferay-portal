@@ -266,8 +266,8 @@ public class InstallPluginAction extends PortletAction {
 				BaseDeployer.DEPLOY_TO_PREFIX + deploymentContext + ".war";
 		}
 		else {
-			fileName = GetterUtil.getString(uploadPortletRequest.getFileName(
-				"file"));
+			fileName = GetterUtil.getString(
+				uploadPortletRequest.getFileName("file"));
 
 			int pos = fileName.lastIndexOf(CharPool.PERIOD);
 
@@ -544,14 +544,8 @@ public class InstallPluginAction extends PortletAction {
 		String deploymentContext = ParamUtil.getString(
 			actionRequest, "deploymentContext");
 
-		if (appServerType.startsWith(ServerDetector.JBOSS_ID) ||
-			appServerType.equals(ServerDetector.WEBLOGIC_ID)) {
-
-			deploymentContext += ".war";
-		}
-
 		File deployDir = new File(
-			DeployUtil.getAutoDeployDestDir() + "/" + deploymentContext);
+			DeployUtil.getAutoDeployDestDir(), deploymentContext);
 
 		DeployUtil.undeploy(appServerType, deployDir);
 

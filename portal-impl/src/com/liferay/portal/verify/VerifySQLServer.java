@@ -42,7 +42,7 @@ public class VerifySQLServer extends VerifyProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(12);
 
@@ -67,6 +67,11 @@ public class VerifySQLServer extends VerifyProcess {
 
 			while (rs.next()) {
 				String tableName = rs.getString("table_name");
+
+				if (!isPortalTableName(tableName)) {
+					continue;
+				}
+
 				String columnName = rs.getString("column_name");
 				String dataType = rs.getString("data_type");
 				int length = rs.getInt("length");
@@ -76,7 +81,7 @@ public class VerifySQLServer extends VerifyProcess {
 					convertVarcharColumn(
 						tableName, columnName, length, nullable);
 				}
-				else if (dataType.equals("text")) {
+				else if (dataType.equals("ntext") || dataType.equals("text")) {
 					convertTextColumn(tableName, columnName, nullable);
 				}
 			}
@@ -99,14 +104,15 @@ public class VerifySQLServer extends VerifyProcess {
 
 		if (_log.isInfoEnabled()) {
 			_log.info(
-				"Updating " + tableName + "." + columnName + " to use ntext");
+				"Updating " + tableName + "." + columnName +" to use " +
+					"nvarchar(max)");
 		}
 
 		StringBundler sb = new StringBundler(4);
 
 		sb.append("alter table ");
 		sb.append(tableName);
-		sb.append(" add temp ntext");
+		sb.append(" add temp nvarchar(max)");
 
 		if (!nullable) {
 			sb.append(" not null");
@@ -176,7 +182,7 @@ public class VerifySQLServer extends VerifyProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(15);
 
@@ -204,6 +210,11 @@ public class VerifySQLServer extends VerifyProcess {
 
 			while (rs.next()) {
 				String tableName = rs.getString("table_name");
+
+				if (!isPortalTableName(tableName)) {
+					continue;
+				}
+
 				String indexName = rs.getString("index_name");
 
 				if (_log.isInfoEnabled()) {
@@ -245,7 +256,7 @@ public class VerifySQLServer extends VerifyProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(10);
 

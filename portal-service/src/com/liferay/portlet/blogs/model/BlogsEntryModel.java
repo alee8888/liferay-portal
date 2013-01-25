@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.ServiceContext;
 
@@ -42,7 +43,7 @@ import java.util.Date;
  * @generated
  */
 public interface BlogsEntryModel extends BaseModel<BlogsEntry>, GroupedModel,
-	WorkflowedModel {
+	StagedModel, WorkflowedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -458,6 +459,13 @@ public interface BlogsEntryModel extends BaseModel<BlogsEntry>, GroupedModel,
 	public boolean isApproved();
 
 	/**
+	 * Returns <code>true</code> if this blogs entry is denied.
+	 *
+	 * @return <code>true</code> if this blogs entry is denied; <code>false</code> otherwise
+	 */
+	public boolean isDenied();
+
+	/**
 	 * Returns <code>true</code> if this blogs entry is a draft.
 	 *
 	 * @return <code>true</code> if this blogs entry is a draft; <code>false</code> otherwise
@@ -472,11 +480,39 @@ public interface BlogsEntryModel extends BaseModel<BlogsEntry>, GroupedModel,
 	public boolean isExpired();
 
 	/**
+	 * Returns <code>true</code> if this blogs entry is inactive.
+	 *
+	 * @return <code>true</code> if this blogs entry is inactive; <code>false</code> otherwise
+	 */
+	public boolean isInactive();
+
+	/**
+	 * Returns <code>true</code> if this blogs entry is incomplete.
+	 *
+	 * @return <code>true</code> if this blogs entry is incomplete; <code>false</code> otherwise
+	 */
+	public boolean isIncomplete();
+
+	/**
+	 * Returns <code>true</code> if this blogs entry is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if this blogs entry is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	public boolean isInTrash();
+
+	/**
 	 * Returns <code>true</code> if this blogs entry is pending.
 	 *
 	 * @return <code>true</code> if this blogs entry is pending; <code>false</code> otherwise
 	 */
 	public boolean isPending();
+
+	/**
+	 * Returns <code>true</code> if this blogs entry is scheduled.
+	 *
+	 * @return <code>true</code> if this blogs entry is scheduled; <code>false</code> otherwise
+	 */
+	public boolean isScheduled();
 
 	public boolean isNew();
 
@@ -505,6 +541,8 @@ public interface BlogsEntryModel extends BaseModel<BlogsEntry>, GroupedModel,
 	public CacheModel<BlogsEntry> toCacheModel();
 
 	public BlogsEntry toEscapedModel();
+
+	public BlogsEntry toUnescapedModel();
 
 	public String toString();
 

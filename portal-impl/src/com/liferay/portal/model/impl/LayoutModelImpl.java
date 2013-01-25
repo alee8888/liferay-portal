@@ -14,6 +14,7 @@
 
 package com.liferay.portal.model.impl;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -82,7 +83,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 			{ "robots", Types.VARCHAR },
 			{ "type_", Types.VARCHAR },
 			{ "typeSettings", Types.CLOB },
-			{ "hidden_", Types.BOOLEAN },
+			{ "hidden", Types.BOOLEAN },
 			{ "friendlyURL", Types.VARCHAR },
 			{ "iconImage", Types.BOOLEAN },
 			{ "iconImageId", Types.BIGINT },
@@ -96,7 +97,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 			{ "layoutPrototypeLinkEnabled", Types.BOOLEAN },
 			{ "sourcePrototypeLayoutUuid", Types.VARCHAR }
 		};
-	public static final String TABLE_SQL_CREATE = "create table Layout (uuid_ VARCHAR(75) null,plid LONG not null primary key,groupId LONG,companyId LONG,createDate DATE null,modifiedDate DATE null,privateLayout BOOLEAN,layoutId LONG,parentLayoutId LONG,name STRING null,title STRING null,description STRING null,keywords STRING null,robots STRING null,type_ VARCHAR(75) null,typeSettings TEXT null,hidden_ BOOLEAN,friendlyURL VARCHAR(255) null,iconImage BOOLEAN,iconImageId LONG,themeId VARCHAR(75) null,colorSchemeId VARCHAR(75) null,wapThemeId VARCHAR(75) null,wapColorSchemeId VARCHAR(75) null,css STRING null,priority INTEGER,layoutPrototypeUuid VARCHAR(75) null,layoutPrototypeLinkEnabled BOOLEAN,sourcePrototypeLayoutUuid VARCHAR(75) null)";
+	public static final String TABLE_SQL_CREATE = "create table Layout (uuid_ VARCHAR(75) null,plid LONG not null primary key,groupId LONG,companyId LONG,createDate DATE null,modifiedDate DATE null,privateLayout BOOLEAN,layoutId LONG,parentLayoutId LONG,name STRING null,title STRING null,description STRING null,keywords STRING null,robots STRING null,type_ VARCHAR(75) null,typeSettings TEXT null,hidden BOOLEAN,friendlyURL VARCHAR(255) null,iconImage BOOLEAN,iconImageId LONG,themeId VARCHAR(75) null,colorSchemeId VARCHAR(75) null,wapThemeId VARCHAR(75) null,wapColorSchemeId VARCHAR(75) null,css STRING null,priority INTEGER,layoutPrototypeUuid VARCHAR(75) null,layoutPrototypeLinkEnabled BOOLEAN,sourcePrototypeLayoutUuid VARCHAR(75) null)";
 	public static final String TABLE_SQL_DROP = "drop table Layout";
 	public static final String ORDER_BY_JPQL = " ORDER BY layout.parentLayoutId ASC, layout.priority ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY Layout.parentLayoutId ASC, Layout.priority ASC";
@@ -123,6 +124,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	public static long SOURCEPROTOTYPELAYOUTUUID_COLUMN_BITMASK = 256L;
 	public static long TYPE_COLUMN_BITMASK = 512L;
 	public static long UUID_COLUMN_BITMASK = 1024L;
+	public static long PRIORITY_COLUMN_BITMASK = 2048L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -131,6 +133,10 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	 * @return the normal model instance
 	 */
 	public static Layout toModel(LayoutSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		Layout model = new LayoutImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -173,6 +179,10 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	 * @return the normal model instances
 	 */
 	public static List<Layout> toModels(LayoutSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<Layout> models = new ArrayList<Layout>(soapModels.length);
 
 		for (LayoutSoap soapModel : soapModels) {
@@ -197,7 +207,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_plid);
+		return _plid;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -1277,17 +1287,6 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@Override
-	public Layout toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Layout)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			Layout.class.getName(), getPrimaryKey());
@@ -1298,6 +1297,31 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+		setName(getName(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setTitle(getTitle(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setDescription(getDescription(defaultImportLocale),
+			defaultImportLocale, defaultImportLocale);
+		setKeywords(getKeywords(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setRobots(getRobots(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+	}
+
+	@Override
+	public Layout toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Layout)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -1818,9 +1842,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	private static ClassLoader _classLoader = Layout.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
-			Layout.class
-		};
+	private static Class<?>[] _escapedModelInterfaces = new Class[] { Layout.class };
 	private String _uuid;
 	private String _originalUuid;
 	private long _plid;
@@ -1873,5 +1895,5 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	private String _sourcePrototypeLayoutUuid;
 	private String _originalSourcePrototypeLayoutUuid;
 	private long _columnBitmask;
-	private Layout _escapedModelProxy;
+	private Layout _escapedModel;
 }

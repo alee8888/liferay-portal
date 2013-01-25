@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.1.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_1_0.dtd">
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_2_0.dtd">
 
 <service-builder package-path="com.liferay.portlet.asset">
 	<namespace>Asset</namespace>
@@ -68,12 +68,13 @@
 			<finder-column name="name" />
 			<finder-column name="vocabularyId" />
 		</finder>
-		<finder name="G_P_N" return-type="Collection">
-			<finder-column name="groupId" />
+		<finder name="P_N_V" return-type="AssetCategory" unique="true">
 			<finder-column name="parentCategoryId" />
 			<finder-column name="name" />
+			<finder-column name="vocabularyId" />
 		</finder>
-		<finder name="P_N_V" return-type="AssetCategory" unique="true">
+		<finder name="G_P_N_V" return-type="Collection">
+			<finder-column name="groupId" />
 			<finder-column name="parentCategoryId" />
 			<finder-column name="name" />
 			<finder-column name="vocabularyId" />
@@ -181,6 +182,9 @@
 		<finder name="ExpirationDate" return-type="Collection">
 			<finder-column name="expirationDate" />
 		</finder>
+		<finder name="LayoutUuid" return-type="Collection">
+			<finder-column name="layoutUuid" />
+		</finder>
 		<finder name="G_CU" return-type="AssetEntry">
 			<finder-column name="groupId" />
 			<finder-column name="classUuid" />
@@ -203,7 +207,7 @@
 		<reference package-path="com.liferay.portlet.journal" entity="JournalArticleResource" />
 		<reference package-path="com.liferay.portlet.messageboards" entity="MBMessage" />
 		<reference package-path="com.liferay.portlet.social" entity="SocialActivity" />
-        <reference package-path="com.liferay.portlet.social" entity="SocialActivityCounter" />
+		<reference package-path="com.liferay.portlet.social" entity="SocialActivityCounter" />
 		<reference package-path="com.liferay.portlet.wiki" entity="WikiPage" />
 		<reference package-path="com.liferay.portlet.wiki" entity="WikiPageResource" />
 	</entity>
@@ -431,12 +435,12 @@
 		<exception>AssetCategoryName</exception>
 		<exception>AssetLink</exception>
 		<exception>AssetTag</exception>
-		<exception>DuplicateCategory</exception>
-		<exception>DuplicateTag</exception>
-		<exception>DuplicateVocabulary</exception>
 		<exception>CategoryName</exception>
 		<exception>CategoryPropertyKey</exception>
 		<exception>CategoryPropertyValue</exception>
+		<exception>DuplicateCategory</exception>
+		<exception>DuplicateTag</exception>
+		<exception>DuplicateVocabulary</exception>
 		<exception>TagPropertyKey</exception>
 		<exception>TagPropertyValue</exception>
 		<exception>VocabularyName</exception>

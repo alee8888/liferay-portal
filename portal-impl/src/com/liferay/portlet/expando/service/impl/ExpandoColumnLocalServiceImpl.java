@@ -16,6 +16,7 @@ package com.liferay.portlet.expando.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.expando.ColumnNameException;
@@ -33,6 +34,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Raymond Augé
@@ -67,7 +70,7 @@ public class ExpandoColumnLocalServiceImpl
 		column.setType(type);
 		column.setDefaultData(value.getData());
 
-		expandoColumnPersistence.update(column, false);
+		expandoColumnPersistence.update(column);
 
 		// Resources
 
@@ -109,11 +112,11 @@ public class ExpandoColumnLocalServiceImpl
 	}
 
 	public void deleteColumn(long tableId, String name) throws SystemException {
-		List<ExpandoColumn> columns = expandoColumnPersistence.findByT_N(
+		ExpandoColumn column = expandoColumnPersistence.fetchByT_N(
 			tableId, name);
 
-		if (!columns.isEmpty()) {
-			deleteColumn(columns.get(0));
+		if (column != null) {
+			expandoColumnPersistence.remove(column);
 		}
 	}
 
@@ -171,27 +174,13 @@ public class ExpandoColumnLocalServiceImpl
 			return null;
 		}
 
-		List<ExpandoColumn> columns = expandoColumnPersistence.findByT_N(
-			table.getTableId(), name);
-
-		if (!columns.isEmpty()) {
-			return columns.get(0);
-		}
-
-		return null;
+		return expandoColumnPersistence.fetchByT_N(table.getTableId(), name);
 	}
 
 	public ExpandoColumn getColumn(long tableId, String name)
 		throws SystemException {
 
-		List<ExpandoColumn> columns = expandoColumnPersistence.findByT_N(
-			tableId, name);
-
-		if (!columns.isEmpty()) {
-			return columns.get(0);
-		}
-
-		return null;
+		return expandoColumnPersistence.fetchByT_N(tableId, name);
 	}
 
 	public ExpandoColumn getColumn(
@@ -378,7 +367,7 @@ public class ExpandoColumnLocalServiceImpl
 		column.setType(type);
 		column.setDefaultData(value.getData());
 
-		expandoColumnPersistence.update(column, false);
+		expandoColumnPersistence.update(column);
 
 		return column;
 	}
@@ -391,7 +380,7 @@ public class ExpandoColumnLocalServiceImpl
 
 		column.setTypeSettings(typeSettings);
 
-		expandoColumnPersistence.update(column, false);
+		expandoColumnPersistence.update(column);
 
 		return column;
 	}
@@ -405,12 +394,10 @@ public class ExpandoColumnLocalServiceImpl
 			throw new ColumnNameException();
 		}
 
-		List<ExpandoColumn> columns = expandoColumnPersistence.findByT_N(
+		ExpandoColumn column = expandoColumnPersistence.fetchByT_N(
 			tableId, name);
 
-		if (!columns.isEmpty()) {
-			ExpandoColumn column = columns.get(0);
-
+		if (column != null) {
 			if (column.getColumnId() != columnId) {
 				throw new DuplicateColumnNameException();
 			}
@@ -433,7 +420,9 @@ public class ExpandoColumnLocalServiceImpl
 			(type != ExpandoColumnConstants.SHORT) &&
 			(type != ExpandoColumnConstants.SHORT_ARRAY) &&
 			(type != ExpandoColumnConstants.STRING) &&
-			(type != ExpandoColumnConstants.STRING_ARRAY)) {
+			(type != ExpandoColumnConstants.STRING_ARRAY) &&
+			(type != ExpandoColumnConstants.STRING_ARRAY_LOCALIZED) &&
+			(type != ExpandoColumnConstants.STRING_LOCALIZED)) {
 
 			throw new ColumnTypeException();
 		}
@@ -496,6 +485,15 @@ public class ExpandoColumnLocalServiceImpl
 			}
 			else if (type == ExpandoColumnConstants.STRING_ARRAY) {
 				value.setStringArray((String[])defaultData);
+			}
+			else if (type == ExpandoColumnConstants.STRING_ARRAY_LOCALIZED) {
+				value.setStringArrayMap(
+					(Map<Locale, String[]>)defaultData,
+					LocaleUtil.getDefault());
+			}
+			else if (type == ExpandoColumnConstants.STRING_LOCALIZED) {
+				value.setStringMap(
+					(Map<Locale, String>)defaultData, LocaleUtil.getDefault());
 			}
 		}
 

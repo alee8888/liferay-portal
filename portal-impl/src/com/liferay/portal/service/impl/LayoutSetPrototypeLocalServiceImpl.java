@@ -72,7 +72,7 @@ public class LayoutSetPrototypeLocalServiceImpl
 
 		layoutSetPrototype.setSettingsProperties(settingsProperties);
 
-		layoutSetPrototypePersistence.update(layoutSetPrototype, false);
+		layoutSetPrototypePersistence.update(layoutSetPrototype);
 
 		// Resources
 
@@ -92,6 +92,7 @@ public class LayoutSetPrototypeLocalServiceImpl
 			userId, GroupConstants.DEFAULT_PARENT_GROUP_ID,
 			LayoutSetPrototype.class.getName(),
 			layoutSetPrototype.getLayoutSetPrototypeId(),
+			GroupConstants.DEFAULT_LIVE_GROUP_ID,
 			layoutSetPrototype.getName(LocaleUtil.getDefault()), null, 0,
 			friendlyURL, false, true, serviceContext);
 
@@ -152,7 +153,8 @@ public class LayoutSetPrototypeLocalServiceImpl
 	}
 
 	/**
-	 * @deprecated {@link getLayoutSetPrototypeByUuidAndCompanyId(String, long)}
+	 * @deprecated {@link #getLayoutSetPrototypeByUuidAndCompanyId(String,
+	 *             long)}
 	 */
 	public LayoutSetPrototype getLayoutSetPrototypeByUuid(String uuid)
 		throws PortalException, SystemException {
@@ -220,7 +222,7 @@ public class LayoutSetPrototypeLocalServiceImpl
 
 		layoutSetPrototype.setSettingsProperties(settingsProperties);
 
-		layoutSetPrototypePersistence.update(layoutSetPrototype, false);
+		layoutSetPrototypePersistence.update(layoutSetPrototype);
 
 		// Group
 
@@ -229,7 +231,7 @@ public class LayoutSetPrototypeLocalServiceImpl
 
 		group.setName(layoutSetPrototype.getName(LocaleUtil.getDefault()));
 
-		groupPersistence.update(group, false);
+		groupPersistence.update(group);
 
 		return layoutSetPrototype;
 	}
@@ -247,7 +249,7 @@ public class LayoutSetPrototypeLocalServiceImpl
 		layoutSetPrototype.setModifiedDate(new Date());
 		layoutSetPrototype.setSettings(settings);
 
-		layoutSetPrototypePersistence.update(layoutSetPrototype, false);
+		layoutSetPrototypePersistence.update(layoutSetPrototype);
 
 		// Group
 
@@ -270,7 +272,7 @@ public class LayoutSetPrototypeLocalServiceImpl
 
 		group.setTypeSettings(typeSettingsProperties.toString());
 
-		groupPersistence.update(group, false);
+		groupPersistence.update(group);
 
 		return layoutSetPrototype;
 	}

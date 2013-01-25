@@ -14,6 +14,7 @@
 
 package com.liferay.portal.deploy;
 
+import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.CharPool;
@@ -22,10 +23,12 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.StreamUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PrefsPropsUtil;
+import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.util.ant.CopyTask;
 import com.liferay.util.ant.DeleteTask;
@@ -37,6 +40,8 @@ import java.io.InputStream;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.portlet.PortletPreferences;
 
 import org.apache.commons.io.FileUtils;
 
@@ -76,7 +81,18 @@ public class DeployUtil {
 
 		String serverId = GetterUtil.getString(ServerDetector.getServerId());
 
-		if (serverId.equals(ServerDetector.TOMCAT_ID)) {
+		if (serverId.equals(ServerDetector.JBOSS_ID) &&
+			ServerDetector.isJBoss5()) {
+
+			String name = "auto.deploy." + serverId + ".dest.dir";
+
+			PortletPreferences preferences = PrefsPropsUtil.getPreferences();
+
+			String value = PropsUtil.get(name, new Filter("5"));
+
+			destDir = preferences.getValue(name, value);
+		}
+		else if (serverId.equals(ServerDetector.TOMCAT_ID)) {
 			destDir = PrefsPropsUtil.getString(
 				PropsKeys.AUTO_DEPLOY_TOMCAT_DEST_DIR,
 				PropsValues.AUTO_DEPLOY_TOMCAT_DEST_DIR);
@@ -105,7 +121,12 @@ public class DeployUtil {
 	public static void redeployJetty(String context) throws Exception {
 		String contextsDirName = System.getProperty("jetty.home") + "/contexts";
 
-		File contextXml = new File(contextsDirName + "/" + context + ".xml");
+		if (_isPortalContext(context)) {
+			throw new UnsupportedOperationException(
+				"This method is meant for redeploying plugins, not the portal");
+		}
+
+		File contextXml = new File(contextsDirName, context + ".xml");
 
 		if (contextXml.exists()) {
 			FileUtils.touch(contextXml);
@@ -116,13 +137,19 @@ public class DeployUtil {
 			filterMap.put("context", context);
 
 			copyDependencyXml(
-				"jetty-context-configure.xml", contextsDirName,
-				context + ".xml", filterMap, true);
+				"jetty-context-configure.xml", contextXml.getParent(),
+				contextXml.getName(), filterMap, true);
 		}
 	}
 
 	public static void redeployTomcat(String context) throws Exception {
-		File webXml = new File(getAutoDeployDestDir(), "/WEB-INF/web.xml");
+		if (_isPortalContext(context)) {
+			throw new UnsupportedOperationException(
+				"This method is meant for redeploying plugins, not the portal");
+		}
+
+		File webXml = new File(
+			getAutoDeployDestDir(), context + "/WEB-INF/web.xml");
 
 		FileUtils.touch(webXml);
 	}
@@ -144,6 +171,20 @@ public class DeployUtil {
 			!appServerType.equals(ServerDetector.WEBLOGIC_ID)) {
 
 			return;
+		}
+
+		if (!deployDir.exists()) {
+			String deployDirPath = deployDir.getAbsolutePath();
+
+			if (StringUtil.endsWith(deployDirPath, ".war")) {
+				deployDirPath = deployDirPath.substring(
+					0, deployDirPath.length() - 4);
+			}
+			else {
+				deployDirPath = deployDirPath.concat(".war");
+			}
+
+			deployDir = new File(deployDirPath);
 		}
 
 		if (!deployDir.exists()) {
@@ -196,14 +237,26 @@ public class DeployUtil {
 		}
 	}
 
+	private static boolean _isPortalContext(String context) {
+		if (Validator.isNull(context) || context.equals(StringPool.SLASH) ||
+			context.equals(PropsValues.PORTAL_CTX)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
 	private DeployUtil() {
 	}
 
 	private String _getResourcePath(String resource) throws IOException {
-		InputStream is = getClass().getResourceAsStream(
+		Class<?> clazz = getClass();
+
+		InputStream inputStream = clazz.getResourceAsStream(
 			"dependencies/" + resource);
 
-		if (is == null) {
+		if (inputStream == null) {
 			return null;
 		}
 
@@ -220,7 +273,7 @@ public class DeployUtil {
 				parentFile.mkdirs();
 			}
 
-			StreamUtil.transfer(is, new FileOutputStream(file));
+			StreamUtil.transfer(inputStream, new FileOutputStream(file));
 		//}
 
 		return FileUtil.getAbsolutePath(file);

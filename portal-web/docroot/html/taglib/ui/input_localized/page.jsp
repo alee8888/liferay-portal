@@ -19,9 +19,11 @@
 <%
 String randomNamespace = PortalUtil.generateRandomKey(request, "taglib_ui_input_localized_page");
 
+boolean autoSize = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:input-localized:autoSize"));
 String cssClass = GetterUtil.getString((String)request.getAttribute("liferay-ui:input-localized:cssClass"));
 String defaultLanguageId = (String)request.getAttribute("liferay-ui:input-localized:defaultLanguageId");
 boolean disabled = GetterUtil.getBoolean((String) request.getAttribute("liferay-ui:input-localized:disabled"));
+int displayWidth = GetterUtil.getInteger((String) request.getAttribute("liferay-ui:input-localized:displayWidth"));
 String id = (String)request.getAttribute("liferay-ui:input-localized:id");
 Map<String, Object> dynamicAttributes = (Map<String, Object>)request.getAttribute("liferay-ui:input-localized:dynamicAttributes");
 String formName = (String)request.getAttribute("liferay-ui:input-localized:formName");
@@ -68,6 +70,12 @@ if (Validator.isNull(mainLanguageValue)) {
 		</c:when>
 		<c:when test='<%= type.equals("textarea") %>'>
 			<textarea class="language-value <%= cssClass %>" <%= disabled ? "disabled=\"disabled\"" : "" %> id="<portlet:namespace /><%= id + StringPool.UNDERLINE + mainLanguageId %>" name="<portlet:namespace /><%= name + StringPool.UNDERLINE + mainLanguageId %>" <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>><%= HtmlUtil.escape(mainLanguageValue) %></textarea>
+
+			<c:if test="<%= autoSize %>">
+				<aui:script use="aui-autosize">
+					A.one('#<portlet:namespace /><%= id + StringPool.UNDERLINE + mainLanguageId %>').plug(A.Plugin.Autosize);
+				</aui:script>
+			</c:if>
 		</c:when>
 	</c:choose>
 
@@ -82,7 +90,7 @@ if (Validator.isNull(mainLanguageValue)) {
 		</aui:script>
 	</c:if>
 
-	<c:if test="<%= Validator.isNull(languageId) %>">
+	<c:if test="<%= (locales.length > 1) && Validator.isNull(languageId) %>">
 		<span class="flag-selector nobr">
 			<img alt="<%= defaultLocale.getDisplayName() %>" class="default-language" src="<%= themeDisplay.getPathThemeImages() %>/language/<%= mainLanguageId %>.png" />
 
@@ -167,7 +175,7 @@ if (Validator.isNull(mainLanguageValue)) {
 									languageValue = LocalizationUtil.getLocalization(xml, curLanguageId, false);
 								}
 
-								if (!ignoreRequestValue){
+								if (!ignoreRequestValue) {
 									languageValue = ParamUtil.getString(request, name + StringPool.UNDERLINE + curLanguageId, languageValue);
 								}
 								%>
@@ -204,7 +212,7 @@ if (Validator.isNull(mainLanguageValue)) {
 	</c:if>
 </span>
 
-<c:if test="<%= Validator.isNull(languageId) %>">
+<c:if test="<%= (locales.length > 1) && Validator.isNull(languageId) %>">
 	<aui:script use="liferay-auto-fields,liferay-panel-floating">
 		var updateLanguageFlag = function(event) {
 			var target = event.target;
@@ -263,8 +271,10 @@ if (Validator.isNull(mainLanguageValue)) {
 						}
 					}
 				}
-			).render();
+			);
 		</c:if>
+
+		var form = A.one(document.<portlet:namespace /><%= formName %>);
 
 		var panel = new Liferay.PanelFloating(
 			{
@@ -274,7 +284,7 @@ if (Validator.isNull(mainLanguageValue)) {
 					hide: function(event) {
 						var instance = this;
 
-						instance._positionHelper.appendTo(document.<portlet:namespace /><%= formName %>);
+						instance._positionHelper.appendTo(form);
 					},
 					show: function(event) {
 						var instance = this;
@@ -287,21 +297,41 @@ if (Validator.isNull(mainLanguageValue)) {
 			}
 		);
 
-		panel._positionHelper.appendTo(document.<portlet:namespace /><%= formName %>);
-
-		A.all('#<%= randomNamespace %>languageSelector select').each(
-			function(item) {
-				if (item) {
-					item.on('change', updateLanguageFlag);
-				}
-			}
-		);
+		panel._positionHelper.appendTo(form);
 
 		var languageSelectorTrigger = A.one('#<%= randomNamespace %>languageSelectorTrigger');
 
 		if (languageSelectorTrigger) {
-			languageSelectorTrigger.setData('autoFieldsInstance', autoFields);
-			languageSelectorTrigger.setData('panelInstance', panel);
+			Liferay.component(
+				'<%= namespace + name %>languageSelector',
+				function(event) {
+					if (handle) {
+						handle.detach();
+
+						handle = null;
+					}
+
+					autoFields.render();
+
+					A.all('#<%= randomNamespace %>languageSelector select').each(
+						function(item) {
+							if (item) {
+								item.on('change', updateLanguageFlag);
+							}
+						}
+					);
+
+					languageSelectorTrigger.setData('autoFieldsInstance', autoFields);
+					languageSelectorTrigger.setData('panelInstance', panel);
+				}
+			);
+
+			var handle = languageSelectorTrigger.once(
+				'click',
+				function(event) {
+					Liferay.component('<%= namespace + name %>languageSelector');
+				}
+			);
 		}
 	</aui:script>
 </c:if>

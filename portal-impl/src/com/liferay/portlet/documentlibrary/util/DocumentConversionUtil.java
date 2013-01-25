@@ -103,8 +103,8 @@ public class DocumentConversionUtil {
 			return false;
 		}
 
-		if (extension.equals("css") || extension.equals("js") ||
-			extension.equals("htm") || extension.equals("html") ||
+		if (extension.equals("css") || extension.equals("htm") ||
+			extension.equals("html") || extension.equals("js") ||
 			extension.equals("txt") || extension.equals("xml")) {
 
 			return true;
@@ -171,6 +171,8 @@ public class DocumentConversionUtil {
 		sourceExtension = _fixExtension(sourceExtension);
 		targetExtension = _fixExtension(targetExtension);
 
+		_validate(targetExtension, id);
+
 		String fileName = getFilePath(id, targetExtension);
 
 		File file = new File(fileName);
@@ -186,10 +188,20 @@ public class DocumentConversionUtil {
 				documentFormatRegistry.getFormatByFileExtension(
 					targetExtension);
 
-			if (!inputDocumentFormat.isImportable()) {
+			if (inputDocumentFormat == null) {
+				throw new SystemException(
+					"Conversion is not supported from ." + sourceExtension);
+			}
+			else if (!inputDocumentFormat.isImportable()) {
 				throw new SystemException(
 					"Conversion is not supported from " +
 						inputDocumentFormat.getName());
+			}
+			else if (outputDocumentFormat == null) {
+				throw new SystemException(
+					"Conversion is not supported from " +
+						inputDocumentFormat.getName() + " to ." +
+							targetExtension);
 			}
 			else if (!inputDocumentFormat.isExportableTo(
 						outputDocumentFormat)) {
@@ -358,6 +370,18 @@ public class DocumentConversionUtil {
 					sourceExtension,
 					conversions.toArray(new String[conversions.size()]));
 			}
+		}
+	}
+
+	private void _validate(String targetExtension, String id)
+		throws SystemException {
+
+		if (!Validator.isFileExtension(targetExtension)) {
+			throw new SystemException("Invalid extension: " + targetExtension);
+		}
+
+		if (!Validator.isFileName(id)) {
+			throw new SystemException("Invalid file name: " + id);
 		}
 	}
 

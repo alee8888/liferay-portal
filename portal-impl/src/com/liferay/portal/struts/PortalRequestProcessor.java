@@ -252,7 +252,7 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 				request, portletId);
 
 		PortletPreferences portletPreferences =
-			PortletPreferencesLocalServiceUtil.getPreferences(
+			PortletPreferencesLocalServiceUtil.getStrictPreferences(
 				portletPreferencesIds);
 
 		PortletConfig portletConfig = PortletConfigFactoryUtil.create(
@@ -446,7 +446,7 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 		if ((path != null) &&
 			!path.equals(_PATH_C) &&
 			!path.startsWith(_PATH_COMMON) &&
-			(path.indexOf(_PATH_J_SECURITY_CHECK) == -1) &&
+			!path.contains(_PATH_J_SECURITY_CHECK) &&
 			!path.startsWith(_PATH_PORTAL)) {
 
 			return true;
@@ -569,8 +569,8 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 			themeDisplay.getCompanyId(), session.getId());
 
 		if ((userTracker != null) && !path.equals(_PATH_C) &&
-			(path.indexOf(_PATH_J_SECURITY_CHECK) == -1) &&
-			(path.indexOf(_PATH_PORTAL_PROTECTED) == -1) &&
+			!path.contains(_PATH_J_SECURITY_CHECK) &&
+			!path.contains(_PATH_PORTAL_PROTECTED) &&
 			!_trackerIgnorePaths.contains(path)) {
 
 			String fullPath = null;
@@ -764,6 +764,11 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 			if ((user != null) && user.isPasswordReset()) {
 				return _PATH_PORTAL_UPDATE_PASSWORD;
 			}
+			else if ((user != null) && !user.isPasswordReset() &&
+					 path.equals(_PATH_PORTAL_UPDATE_PASSWORD)) {
+
+				return null;
+			}
 
 			// Authenticated users must have an email address
 
@@ -918,7 +923,7 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 						themeDisplay.getPermissionChecker();
 
 					if (!PortletPermissionUtil.contains(
-							permissionChecker, layout.getPlid(), portlet,
+							permissionChecker, layout, portlet,
 							ActionKeys.VIEW)) {
 
 						throw new PrincipalException();

@@ -19,36 +19,62 @@ import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
 import com.liferay.portlet.dynamicdatamapping.NoSuchTemplateException;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
 import com.liferay.portlet.dynamicdatamapping.model.impl.DDMTemplateModelImpl;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class DDMTemplatePersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (DDMTemplatePersistence)PortalBeanLocatorUtil.locate(DDMTemplatePersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -116,7 +142,15 @@ public class DDMTemplatePersistenceTest {
 
 		newDDMTemplate.setScript(ServiceTestUtil.randomString());
 
-		_persistence.update(newDDMTemplate, false);
+		newDDMTemplate.setCacheable(ServiceTestUtil.randomBoolean());
+
+		newDDMTemplate.setSmallImage(ServiceTestUtil.randomBoolean());
+
+		newDDMTemplate.setSmallImageId(ServiceTestUtil.nextLong());
+
+		newDDMTemplate.setSmallImageURL(ServiceTestUtil.randomString());
+
+		_persistence.update(newDDMTemplate);
 
 		DDMTemplate existingDDMTemplate = _persistence.findByPrimaryKey(newDDMTemplate.getPrimaryKey());
 
@@ -156,6 +190,14 @@ public class DDMTemplatePersistenceTest {
 			newDDMTemplate.getLanguage());
 		Assert.assertEquals(existingDDMTemplate.getScript(),
 			newDDMTemplate.getScript());
+		Assert.assertEquals(existingDDMTemplate.getCacheable(),
+			newDDMTemplate.getCacheable());
+		Assert.assertEquals(existingDDMTemplate.getSmallImage(),
+			newDDMTemplate.getSmallImage());
+		Assert.assertEquals(existingDDMTemplate.getSmallImageId(),
+			newDDMTemplate.getSmallImageId());
+		Assert.assertEquals(existingDDMTemplate.getSmallImageURL(),
+			newDDMTemplate.getSmallImageURL());
 	}
 
 	@Test
@@ -332,10 +374,20 @@ public class DDMTemplatePersistenceTest {
 
 		ddmTemplate.setScript(ServiceTestUtil.randomString());
 
-		_persistence.update(ddmTemplate, false);
+		ddmTemplate.setCacheable(ServiceTestUtil.randomBoolean());
+
+		ddmTemplate.setSmallImage(ServiceTestUtil.randomBoolean());
+
+		ddmTemplate.setSmallImageId(ServiceTestUtil.nextLong());
+
+		ddmTemplate.setSmallImageURL(ServiceTestUtil.randomString());
+
+		_persistence.update(ddmTemplate);
 
 		return ddmTemplate;
 	}
 
-	private DDMTemplatePersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(DDMTemplatePersistenceTest.class);
+	private DDMTemplatePersistence _persistence = (DDMTemplatePersistence)PortalBeanLocatorUtil.locate(DDMTemplatePersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

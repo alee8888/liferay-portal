@@ -16,6 +16,7 @@ package com.liferay.portal.sharepoint;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -51,6 +52,12 @@ public class SharepointDocumentWorkspaceServlet extends HttpServlet {
 	@Override
 	protected void doPost(
 		HttpServletRequest request, HttpServletResponse response) {
+
+		if (_log.isInfoEnabled()) {
+			_log.info(
+				request.getHeader(HttpHeaders.USER_AGENT) + " " +
+					request.getMethod() + " " + request.getRequestURI());
+		}
 
 		try {
 			getDwsMetaDataResponse(request, response);
@@ -113,10 +120,14 @@ public class SharepointDocumentWorkspaceServlet extends HttpServlet {
 
 		String path = documentName;
 
-		int pos = documentName.lastIndexOf("sharepoint/");
+		if (_log.isInfoEnabled()) {
+			_log.info("Original path " + path);
+		}
 
-		if (pos != -1) {
-			path = path.substring(pos + 11);
+		path = SharepointUtil.stripService(path, true);
+
+		if (_log.isInfoEnabled()) {
+			_log.info("Modified path " + path);
 		}
 
 		Group group = GroupServiceUtil.getGroup(
@@ -275,7 +286,7 @@ public class SharepointDocumentWorkspaceServlet extends HttpServlet {
 
 			String parentFolderPath = path;
 
-			pos = parentFolderPath.lastIndexOf("/");
+			int pos = parentFolderPath.lastIndexOf("/");
 
 			if (pos != -1) {
 				parentFolderPath = parentFolderPath.substring(0, pos);

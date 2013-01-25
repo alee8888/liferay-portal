@@ -78,6 +78,21 @@ String redirect = ParamUtil.getString(request, "redirect");
 						rightTitle="available"
 					/>
 				</aui:field-wrapper>
+
+				<div class="display-template">
+
+					<%
+					PortletDisplayTemplateHandler portletDisplayTemplateHandler = PortletDisplayTemplateHandlerRegistryUtil.getPortletDisplayTemplateHandler(FileEntry.class.getName());
+					%>
+
+					<liferay-ui:ddm-template-selector
+						classNameId="<%= PortalUtil.getClassNameId(portletDisplayTemplateHandler.getClassName()) %>"
+						preferenceName="displayTemplate"
+						preferenceValue="<%= displayTemplate %>"
+						refreshURL="<%= currentURL %>"
+						showEmptyOption="<%= true %>"
+					/>
+				</div>
 			</aui:fieldset>
 		</liferay-ui:panel>
 
@@ -100,6 +115,11 @@ String redirect = ParamUtil.getString(request, "redirect");
 					<aui:button disabled="<%= rootFolderId <= 0 %>" name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
 				</aui:field-wrapper>
 			</aui:fieldset>
+		</liferay-ui:panel>
+
+		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="imageGalleryImagesRatingsPanel" persistState="<%= true %>" title="ratings">
+			<aui:input name="preferences--enableRatings--" type="checkbox" value="<%= enableRatings %>" />
+			<aui:input name="preferences--enableCommentRatings--" type="checkbox" value="<%= enableCommentRatings %>" />
 		</liferay-ui:panel>
 	</liferay-ui:panel-container>
 

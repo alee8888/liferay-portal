@@ -46,7 +46,7 @@ public class ClassNameLocalServiceImpl
 
 			className.setValue(value);
 
-			classNamePersistence.update(className, false);
+			classNamePersistence.update(className);
 		}
 
 		return className;
@@ -71,6 +71,45 @@ public class ClassNameLocalServiceImpl
 
 		for (String model : models) {
 			getClassName(model);
+		}
+	}
+
+	@Skip
+	public ClassName fetchClassName(String value) throws SystemException {
+		if (Validator.isNull(value)) {
+			return _nullClassName;
+		}
+
+		ClassName className = _classNames.get(value);
+
+		if (className == null) {
+			className = classNamePersistence.fetchByValue(value);
+
+			if (className == null) {
+				return _nullClassName;
+			}
+
+			_classNames.put(value, className);
+		}
+
+		return className;
+	}
+
+	@Skip
+	public long fetchClassNameId(Class<?> clazz) {
+		return fetchClassNameId(clazz.getName());
+	}
+
+	@Skip
+	public long fetchClassNameId(String value) {
+		try {
+			ClassName className = fetchClassName(value);
+
+			return className.getClassNameId();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(
+				"Unable to get class name from value " + value, e);
 		}
 	}
 

@@ -68,6 +68,8 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 		};
 	public static final String TABLE_SQL_CREATE = "create table RatingsStats (statsId LONG not null primary key,classNameId LONG,classPK LONG,totalEntries INTEGER,totalScore DOUBLE,averageScore DOUBLE)";
 	public static final String TABLE_SQL_DROP = "drop table RatingsStats";
+	public static final String ORDER_BY_JPQL = " ORDER BY ratingsStats.statsId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY RatingsStats.statsId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -82,6 +84,7 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 			true);
 	public static long CLASSNAMEID_COLUMN_BITMASK = 1L;
 	public static long CLASSPK_COLUMN_BITMASK = 2L;
+	public static long STATSID_COLUMN_BITMASK = 4L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.ratings.model.RatingsStats"));
 
@@ -97,7 +100,7 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_statsId);
+		return _statsId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -260,17 +263,6 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 	}
 
 	@Override
-	public RatingsStats toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (RatingsStats)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
 			RatingsStats.class.getName(), getPrimaryKey());
@@ -281,6 +273,16 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public RatingsStats toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (RatingsStats)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -436,7 +438,7 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 	}
 
 	private static ClassLoader _classLoader = RatingsStats.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			RatingsStats.class
 		};
 	private long _statsId;
@@ -450,5 +452,5 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 	private double _totalScore;
 	private double _averageScore;
 	private long _columnBitmask;
-	private RatingsStats _escapedModelProxy;
+	private RatingsStats _escapedModel;
 }

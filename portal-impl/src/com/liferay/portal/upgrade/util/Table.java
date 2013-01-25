@@ -57,25 +57,6 @@ import org.apache.commons.lang.time.StopWatch;
  */
 public class Table {
 
-	public static final int BATCH_SIZE = GetterUtil.getInteger(
-		PropsUtil.get("hibernate.jdbc.batch_size"));
-
-	public static final String[][] SAFE_CHARS = {
-		{StringPool.RETURN, StringPool.COMMA, StringPool.NEW_LINE},
-		{
-			Table.SAFE_RETURN_CHARACTER, Table.SAFE_COMMA_CHARACTER,
-			Table.SAFE_NEWLINE_CHARACTER
-		}
-	};
-
-	public static final String SAFE_COMMA_CHARACTER = "_SAFE_COMMA_CHARACTER_";
-
-	public static final String SAFE_NEWLINE_CHARACTER =
-		"_SAFE_NEWLINE_CHARACTER_";
-
-	public static final String SAFE_RETURN_CHARACTER =
-		"_SAFE_RETURN_CHARACTER_";
-
 	public Table(String tableName) {
 		_tableName = tableName;
 	}
@@ -96,7 +77,7 @@ public class Table {
 		}
 		else if (value instanceof Clob || value instanceof String) {
 			value = StringUtil.replace(
-				(String)value, SAFE_CHARS[0], SAFE_CHARS[1]);
+				(String)value, _SAFE_TABLE_CHARS[0], _SAFE_TABLE_CHARS[1]);
 
 			sb.append(value);
 		}
@@ -144,7 +125,7 @@ public class Table {
 	}
 
 	public String generateTempFile() throws Exception {
-		Connection con = DataAccess.getConnection();
+		Connection con = DataAccess.getUpgradeOptimizedConnection();
 
 		try {
 			return generateTempFile(con);
@@ -372,6 +353,9 @@ public class Table {
 				value = GetterUtil.getLong(rs.getString(name));
 			}
 		}
+		else if (t == Types.BIT) {
+			value = GetterUtil.getBoolean(rs.getBoolean(name));
+		}
 		else if (t == Types.BOOLEAN) {
 			value = GetterUtil.getBoolean(rs.getBoolean(name));
 		}
@@ -392,7 +376,7 @@ public class Table {
 
 					while ((line = unsyncBufferedReader.readLine()) != null) {
 						if (sb.length() != 0) {
-							sb.append(SAFE_NEWLINE_CHARACTER);
+							sb.append(_SAFE_TABLE_NEWLINE_CHARACTER);
 						}
 
 						sb.append(line);
@@ -417,6 +401,9 @@ public class Table {
 		}
 		else if (t == Types.INTEGER) {
 			value = GetterUtil.getInteger(rs.getInt(name));
+		}
+		else if (t == Types.NUMERIC) {
+			value = GetterUtil.getLong(rs.getLong(name));
 		}
 		else if (t == Types.SMALLINT) {
 			value = GetterUtil.getShort(rs.getShort(name));
@@ -444,7 +431,7 @@ public class Table {
 	}
 
 	public void populateTable(String tempFileName) throws Exception {
-		Connection con = DataAccess.getConnection();
+		Connection con = DataAccess.getUpgradeOptimizedConnection();
 
 		try {
 			populateTable(tempFileName, con);
@@ -503,7 +490,7 @@ public class Table {
 				if (databaseMetaData.supportsBatchUpdates()) {
 					ps.addBatch();
 
-					if (count == BATCH_SIZE) {
+					if (count == _BATCH_SIZE) {
 						populateTableRows(ps, true);
 
 						count = 0;
@@ -566,7 +553,8 @@ public class Table {
 			ps.setBoolean(paramIndex, GetterUtil.getBoolean(value));
 		}
 		else if ((t == Types.CLOB) || (t == Types.VARCHAR)) {
-			value = StringUtil.replace(value, SAFE_CHARS[1], SAFE_CHARS[0]);
+			value = StringUtil.replace(
+				value, _SAFE_TABLE_CHARS[1], _SAFE_TABLE_CHARS[0]);
 
 			ps.setString(paramIndex, value);
 		}
@@ -633,6 +621,27 @@ public class Table {
 	public void setSelectSQL(String selectSQL) throws Exception {
 		_selectSQL = selectSQL;
 	}
+
+	private static final int _BATCH_SIZE = GetterUtil.getInteger(
+		PropsUtil.get("hibernate.jdbc.batch_size"));
+
+	private static final String[][] _SAFE_TABLE_CHARS = {
+		{StringPool.COMMA, StringPool.NEW_LINE, StringPool.RETURN},
+		{
+			Table._SAFE_TABLE_COMMA_CHARACTER,
+			Table._SAFE_TABLE_NEWLINE_CHARACTER,
+			Table._SAFE_TABLE_RETURN_CHARACTER
+		}
+	};
+
+	private static final String _SAFE_TABLE_COMMA_CHARACTER =
+		"_SAFE_TABLE_COMMA_CHARACTER_";
+
+	private static final String _SAFE_TABLE_NEWLINE_CHARACTER =
+		"_SAFE_TABLE_NEWLINE_CHARACTER_";
+
+	private static final String _SAFE_TABLE_RETURN_CHARACTER =
+		"_SAFE_TABLE_RETURN_CHARACTER_";
 
 	private static Log _log = LogFactoryUtil.getLog(Table.class);
 

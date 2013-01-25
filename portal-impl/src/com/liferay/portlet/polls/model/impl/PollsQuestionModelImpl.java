@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.polls.model.impl;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
@@ -102,6 +103,7 @@ public class PollsQuestionModelImpl extends BaseModelImpl<PollsQuestion>
 	public static long COMPANYID_COLUMN_BITMASK = 1L;
 	public static long GROUPID_COLUMN_BITMASK = 2L;
 	public static long UUID_COLUMN_BITMASK = 4L;
+	public static long CREATEDATE_COLUMN_BITMASK = 8L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -110,6 +112,10 @@ public class PollsQuestionModelImpl extends BaseModelImpl<PollsQuestion>
 	 * @return the normal model instance
 	 */
 	public static PollsQuestion toModel(PollsQuestionSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		PollsQuestion model = new PollsQuestionImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -135,6 +141,10 @@ public class PollsQuestionModelImpl extends BaseModelImpl<PollsQuestion>
 	 * @return the normal model instances
 	 */
 	public static List<PollsQuestion> toModels(PollsQuestionSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<PollsQuestion> models = new ArrayList<PollsQuestion>(soapModels.length);
 
 		for (PollsQuestionSoap soapModel : soapModels) {
@@ -159,7 +169,7 @@ public class PollsQuestionModelImpl extends BaseModelImpl<PollsQuestion>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_questionId);
+		return _questionId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -590,17 +600,6 @@ public class PollsQuestionModelImpl extends BaseModelImpl<PollsQuestion>
 	}
 
 	@Override
-	public PollsQuestion toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (PollsQuestion)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			PollsQuestion.class.getName(), getPrimaryKey());
@@ -611,6 +610,25 @@ public class PollsQuestionModelImpl extends BaseModelImpl<PollsQuestion>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+		setTitle(getTitle(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setDescription(getDescription(defaultImportLocale),
+			defaultImportLocale, defaultImportLocale);
+	}
+
+	@Override
+	public PollsQuestion toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (PollsQuestion)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -875,7 +893,7 @@ public class PollsQuestionModelImpl extends BaseModelImpl<PollsQuestion>
 	}
 
 	private static ClassLoader _classLoader = PollsQuestion.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			PollsQuestion.class
 		};
 	private String _uuid;
@@ -899,5 +917,5 @@ public class PollsQuestionModelImpl extends BaseModelImpl<PollsQuestion>
 	private Date _expirationDate;
 	private Date _lastVoteDate;
 	private long _columnBitmask;
-	private PollsQuestion _escapedModelProxy;
+	private PollsQuestion _escapedModel;
 }

@@ -14,12 +14,13 @@
 
 package com.liferay.portlet.dynamicdatalists.util;
 
+import com.liferay.portal.kernel.template.StringTemplateResource;
 import com.liferay.portal.kernel.template.TemplateContextType;
 import com.liferay.portal.kernel.template.TemplateManager;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
+import com.liferay.portal.kernel.template.TemplateResource;
 import com.liferay.portal.kernel.templateparser.TemplateContext;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.util.ContentUtil;
 
 /**
  * @author Marcellus Tavares
@@ -28,22 +29,18 @@ public class FreeMarkerTemplateParser extends
 	com.liferay.portlet.journal.util.FreeMarkerTemplateParser {
 
 	@Override
-	protected String getErrorTemplateContent() {
-		return ContentUtil.get(
-			PropsValues.DYNAMIC_DATA_LISTS_ERROR_TEMPLATE_FREEMARKER);
-	}
-
-	@Override
 	protected String getErrorTemplateId() {
 		return PropsValues.DYNAMIC_DATA_LISTS_ERROR_TEMPLATE_FREEMARKER;
 	}
 
 	@Override
 	protected TemplateContext getTemplateContext() throws Exception {
+		TemplateResource templateResource = new StringTemplateResource(
+			getTemplateId(), getScript());
+
 		return TemplateManagerUtil.getTemplate(
-			TemplateManager.FREEMARKER, getTemplateId(), getScript(),
-			getErrorTemplateId(), getErrorTemplateContent(),
-			TemplateContextType.STANDARD);
+			TemplateManager.FREEMARKER, templateResource,
+			getErrorTemplateResource(), TemplateContextType.STANDARD);
 	}
 
 }

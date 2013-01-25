@@ -20,7 +20,7 @@
 String redirect = ParamUtil.getString(request, "redirect");
 String backURL = ParamUtil.getString(request, "backURL", redirect);
 
-Group group = ActionUtil.getGroup(request);
+Group group = ActionUtil.getGroup(renderRequest);
 
 long groupId = group.getGroupId();
 
@@ -127,7 +127,7 @@ pageContext.setAttribute("portletURL", portletURL);
 			<portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 		</portlet:renderURL>
 
-		<aui:button href='<%= addTeamURL %>' value="add-team" />
+		<aui:button href="<%= addTeamURL %>" value="add-team" />
 
 		<br /><br />
 	</c:if>

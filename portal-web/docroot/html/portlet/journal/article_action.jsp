@@ -17,19 +17,28 @@
 <%@ include file="/html/portlet/journal/init.jsp" %>
 
 <%
+String referringPortletResource = ParamUtil.getString(request, "referringPortletResource");
+
 ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
 
-JournalArticle article = (JournalArticle)row.getObject();
+JournalArticle article = null;
+
+if (row != null) {
+	article = (JournalArticle)row.getObject();
+}
+else {
+	article = (JournalArticle)request.getAttribute("view_entries.jsp-article");
+}
 %>
 
-<span class="overlay folder-action">
+<span class="entry-action overlay">
 	<liferay-ui:icon-menu align="auto" direction="down" extended="<%= false %>" icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>">
 		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.UPDATE) %>">
 			<portlet:renderURL var="editURL">
 				<portlet:param name="struts_action" value="/journal/edit_article" />
 				<portlet:param name="redirect" value="<%= currentURL %>" />
-				<portlet:param name="originalRedirect" value="<%= currentURL %>" />
 				<portlet:param name="backURL" value="<%= currentURL %>" />
+				<portlet:param name="referringPortletResource" value="<%= referringPortletResource %>" />
 				<portlet:param name="groupId" value="<%= String.valueOf(article.getGroupId()) %>" />
 				<portlet:param name="folderId" value="<%= String.valueOf(article.getFolderId()) %>" />
 				<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
@@ -42,6 +51,21 @@ JournalArticle article = (JournalArticle)row.getObject();
 			/>
 		</c:if>
 
+		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.UPDATE) %>">
+			<portlet:renderURL var="moveURL">
+				<portlet:param name="struts_action" value="/journal/move_article" />
+				<portlet:param name="redirect" value="<%= currentURL %>" />
+				<portlet:param name="backURL" value="<%= currentURL %>" />
+				<portlet:param name="referringPortletResource" value="<%= referringPortletResource %>" />
+				<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
+			</portlet:renderURL>
+
+			<liferay-ui:icon
+				image="submit"
+				message="move"
+				url="<%= moveURL %>"
+			/>
+		</c:if>
 		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.PERMISSIONS) %>">
 			<liferay-security:permissionsURL
 				modelResource="<%= JournalArticle.class.getName() %>"
@@ -100,7 +124,7 @@ JournalArticle article = (JournalArticle)row.getObject();
 				<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.EXPIRE %>" />
 				<portlet:param name="redirect" value="<%= currentURL %>" />
 				<portlet:param name="groupId" value="<%= String.valueOf(article.getGroupId()) %>" />
-				<portlet:param name="expireArticleIds" value="<%= article.getArticleId() %>" />
+				<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
 			</portlet:actionURL>
 
 			<liferay-ui:icon image="time" message="expire" url="<%= expireURL %>" />
@@ -109,13 +133,13 @@ JournalArticle article = (JournalArticle)row.getObject();
 		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.DELETE) %>">
 			<portlet:actionURL var="deleteURL">
 				<portlet:param name="struts_action" value="/journal/edit_article" />
-				<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.DELETE %>" />
+				<portlet:param name="<%= Constants.CMD %>" value="<%= TrashUtil.isTrashEnabled(scopeGroupId) ? Constants.MOVE_TO_TRASH : Constants.DELETE %>" />
 				<portlet:param name="redirect" value="<%= currentURL %>" />
 				<portlet:param name="groupId" value="<%= String.valueOf(article.getGroupId()) %>" />
-				<portlet:param name="deleteArticleIds" value="<%= article.getArticleId() %>" />
+				<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
 			</portlet:actionURL>
 
-			<liferay-ui:icon-delete url="<%= deleteURL %>" />
+			<liferay-ui:icon-delete trash="<%= TrashUtil.isTrashEnabled(scopeGroupId) %>" url="<%= deleteURL %>" />
 		</c:if>
 	</liferay-ui:icon-menu>
 </span>

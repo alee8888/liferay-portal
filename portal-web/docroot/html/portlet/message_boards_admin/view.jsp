@@ -34,6 +34,13 @@ portletURL.setParameter("mbCategoryId", String.valueOf(categoryId));
 request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 %>
 
+<portlet:actionURL var="undoTrashURL">
+	<portlet:param name="struts_action" value="/message_boards_admin/edit_entry" />
+	<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.RESTORE %>" />
+</portlet:actionURL>
+
+<liferay-ui:trash-undo portletURL="<%= undoTrashURL %>" />
+
 <liferay-ui:tabs
 	names="message-boards-home,recent-posts,statistics,banned-users"
 	url="<%= portletURL.toString() %>"
@@ -89,7 +96,7 @@ request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 						<portlet:param name="parentCategoryId" value="<%= String.valueOf(categoryId) %>" />
 					</portlet:renderURL>
 
-					<aui:button href='<%= editCategoryURL %>' value='<%= (category == null) ? "add-category" : "add-subcategory" %>' />
+					<aui:button href="<%= editCategoryURL %>" value='<%= (category == null) ? "add-category" : "add-subcategory" %>' />
 				</c:if>
 
 				<c:if test="<%= showAddMessageButton %>">
@@ -99,7 +106,7 @@ request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 						<portlet:param name="mbCategoryId" value="<%= String.valueOf(categoryId) %>" />
 					</portlet:renderURL>
 
-					<aui:button href='<%= editMessageURL %>' value="post-new-thread" />
+					<aui:button href="<%= editMessageURL %>" value="post-new-thread" />
 				</c:if>
 
 				<c:if test="<%= showPermissionsButton %>">
@@ -158,7 +165,7 @@ request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 		<liferay-ui:panel-container cssClass="message-boards-panels" extended="<%= false %>" id="messageBoardsPanelContainer" persistState="<%= true %>">
 
 			<%
-			int categoriesCount = MBCategoryServiceUtil.getCategoriesCount(scopeGroupId, categoryId);
+			int categoriesCount = MBCategoryServiceUtil.getCategoriesCount(scopeGroupId, categoryId, WorkflowConstants.STATUS_APPROVED);
 			%>
 
 			<c:if test="<%= categoriesCount > 0 %>">
@@ -176,7 +183,7 @@ request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 							rowChecker="<%= new RowChecker(renderResponse) %>"
 						>
 							<liferay-ui:search-container-results
-								results="<%= MBCategoryServiceUtil.getCategories(scopeGroupId, categoryId, searchContainer.getStart(), searchContainer.getEnd()) %>"
+								results="<%= MBCategoryServiceUtil.getCategories(scopeGroupId, categoryId, WorkflowConstants.STATUS_APPROVED, searchContainer.getStart(), searchContainer.getEnd()) %>"
 								total="<%= categoriesCount %>"
 							/>
 
@@ -196,7 +203,7 @@ request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 
 							<br>
 
-							<aui:button onClick='<%= renderResponse.getNamespace() + "deleteCategories();" %>' value="delete" />
+							<aui:button onClick='<%= renderResponse.getNamespace() + "deleteCategories();" %>' value='<%= TrashUtil.isTrashEnabled(scopeGroupId) ? "move-to-the-recycle-bin" : "delete" %>' />
 
 							<div class="separator"><!-- --></div>
 
@@ -310,7 +317,7 @@ request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 							<liferay-ui:search-container-column-text
 								href="<%= rowURL %>"
 								name="started-by"
-								value='<%= message.isAnonymous() ? LanguageUtil.get(pageContext, "anonymous") : HtmlUtil.escape(PortalUtil.getUserName(message.getUserId(), message.getUserName())) %>'
+								value='<%= message.isAnonymous() ? LanguageUtil.get(pageContext, "anonymous") : PortalUtil.getUserName(message) %>'
 							/>
 
 							<liferay-ui:search-container-column-text
@@ -361,7 +368,7 @@ request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 
 						<br>
 
-						<aui:button onClick='<%= renderResponse.getNamespace() + "deleteThreads();" %>' value="delete" />
+						<aui:button onClick='<%= renderResponse.getNamespace() + "deleteThreads();" %>' value='<%= TrashUtil.isTrashEnabled(scopeGroupId) ? "move-to-the-recycle-bin" : "delete" %>' />
 
 						<aui:button onClick='<%= renderResponse.getNamespace() + "lockThreads();" %>' value="lock" />
 
@@ -395,7 +402,7 @@ request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 		}
 		%>
 
-		<c:if test='<%= (groupThreadsUserId > 0) %>'>
+		<c:if test="<%= (groupThreadsUserId > 0) %>">
 			<div class="portlet-msg-info">
 				<liferay-ui:message key="filter-by-user" />: <%= HtmlUtil.escape(PortalUtil.getUserName(groupThreadsUserId, StringPool.BLANK)) %>
 			</div>
@@ -487,7 +494,7 @@ request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 					<liferay-ui:search-container-column-text
 						href="<%= rowURL %>"
 						name="started-by"
-						value='<%= message.isAnonymous() ? LanguageUtil.get(pageContext, "anonymous") : HtmlUtil.escape(PortalUtil.getUserName(message.getUserId(), message.getUserName())) %>'
+						value='<%= message.isAnonymous() ? LanguageUtil.get(pageContext, "anonymous") : PortalUtil.getUserName(message) %>'
 					/>
 
 					<liferay-ui:search-container-column-text
@@ -570,7 +577,7 @@ request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 						<liferay-ui:message key="num-of-posts" />:
 					</dt>
 					<dd>
-						<%= numberFormat.format(MBMessageServiceUtil.getGroupMessagesCount(scopeGroupId, WorkflowConstants.STATUS_APPROVED)) %>
+						<%= numberFormat.format(MBStatsUserLocalServiceUtil.getMessageCountByGroupId(scopeGroupId)) %>
 					</dd>
 					<dt>
 						<liferay-ui:message key="num-of-participants" />:
@@ -681,9 +688,9 @@ request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 			}
 
 			if (deleteCategories) {
-				if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-delete-this") %>')) {
+				if (confirm('<%= UnicodeLanguageUtil.get(pageContext, TrashUtil.isTrashEnabled(scopeGroupId) ? "are-you-sure-you-want-to-move-the-selected-entries-to-the-recycle-bin" : "are-you-sure-you-want-to-delete-the-selected-entries") %>')) {
 					document.<portlet:namespace />fm.method = "post";
-					document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
+					document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= TrashUtil.isTrashEnabled(scopeGroupId) ? Constants.MOVE_TO_TRASH : Constants.DELETE %>";
 					document.<portlet:namespace />fm.<portlet:namespace />deleteCategoryIds.value = deleteCategoryIds;
 					submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/message_boards_admin/edit_category" /></portlet:actionURL>");
 				}
@@ -696,9 +703,9 @@ request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 		window,
 		'<portlet:namespace />deleteThreads',
 		function() {
-			if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-delete-this") %>')) {
+			if (confirm('<%= UnicodeLanguageUtil.get(pageContext, TrashUtil.isTrashEnabled(scopeGroupId) ? "are-you-sure-you-want-to-move-the-selected-entries-to-the-recycle-bin" : "are-you-sure-you-want-to-delete-the-selected-entries") %>')) {
 				document.<portlet:namespace />fm1.method = "post";
-				document.<portlet:namespace />fm1.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
+				document.<portlet:namespace />fm1.<portlet:namespace /><%= Constants.CMD %>.value = "<%= TrashUtil.isTrashEnabled(scopeGroupId) ? Constants.MOVE_TO_TRASH : Constants.DELETE %>";
 				document.<portlet:namespace />fm1.<portlet:namespace />threadIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm1, "<portlet:namespace />allRowIds");
 				submitForm(document.<portlet:namespace />fm1, "<portlet:actionURL><portlet:param name="struts_action" value="/message_boards_admin/delete_thread" /></portlet:actionURL>");
 			}

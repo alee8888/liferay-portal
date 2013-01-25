@@ -14,31 +14,46 @@
 
 package com.liferay.portlet.documentlibrary.util;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.FileVersion;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portlet.documentlibrary.service.permission.DLFolderPermission;
 
 import java.io.File;
 import java.io.InputStream;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Alexander Chow
  */
 public class DLAppUtil {
 
-	public static String appendTrashNamespace(String title) {
-		StringBundler sb = new StringBundler(3);
+	public static long[] filterFolderIds(
+			PermissionChecker permissionChecker, long groupId, long[] folderIds)
+		throws PortalException, SystemException {
 
-		sb.append(title);
-		sb.append(StringPool.SLASH);
-		sb.append(System.currentTimeMillis());
+		List<Long> viewableFolderIds = new ArrayList<Long>(folderIds.length);
 
-		return sb.toString();
+		for (long folderId : folderIds) {
+			if (DLFolderPermission.contains(
+					permissionChecker, groupId, folderId, ActionKeys.VIEW)) {
+
+				viewableFolderIds.add(folderId);
+			}
+		}
+
+		return ArrayUtil.toArray(
+			viewableFolderIds.toArray(new Long[viewableFolderIds.size()]));
 	}
 
 	public static String getExtension(String title, String sourceFileName) {
@@ -89,16 +104,6 @@ public class DLAppUtil {
 			previousFileVersion.getVersion());
 
 		return (currentVersion - previousVersion) >= 1;
-	}
-
-	public static String stripTrashNamespace(String title) {
-		int index = title.indexOf(StringPool.SLASH);
-
-		if (index >= 0) {
-			title = title.substring(0, index);
-		}
-
-		return title;
 	}
 
 }

@@ -421,10 +421,10 @@ public interface Portlet extends PortletModel, PersistedModel {
 	public boolean getInclude();
 
 	/**
-	* Returns the name of the classes that represent indexers associated with
+	* Returns the names of the classes that represent indexers associated with
 	* the portlet.
 	*
-	* @return the name of the classes that represent indexers associated with
+	* @return the names of the classes that represent indexers associated with
 	the portlet
 	*/
 	public java.util.List<java.lang.String> getIndexerClasses();
@@ -605,6 +605,20 @@ public interface Portlet extends PortletModel, PersistedModel {
 	* @return the portlet data handler instance of the portlet
 	*/
 	public com.liferay.portal.kernel.lar.PortletDataHandler getPortletDataHandlerInstance();
+
+	/**
+	* Returns the name of the portlet display style class of the portlet.
+	*
+	* @return the name of the portlet display style class of the portlet
+	*/
+	public java.lang.String getPortletDisplayTemplateHandlerClass();
+
+	/**
+	* Returns the portlet display style instance of the portlet.
+	*
+	* @return the portlet display style instance of the portlet
+	*/
+	public com.liferay.portal.kernel.portletdisplaytemplate.PortletDisplayTemplateHandler getPortletDisplayTemplateHandlerInstance();
 
 	/**
 	* Returns the filters of the portlet.
@@ -897,6 +911,22 @@ public interface Portlet extends PortletModel, PersistedModel {
 	public com.liferay.portlet.social.model.SocialRequestInterpreter getSocialRequestInterpreterInstance();
 
 	/**
+	* Returns the names of the classes that represent staged model data
+	* handlers associated with the portlet.
+	*
+	* @return the names of the classes that represent staged model data
+	handlers associated with the portlet
+	*/
+	public java.util.List<java.lang.String> getStagedModelDataHandlerClasses();
+
+	/**
+	* Returns the staged model data handler instances of the portlet.
+	*
+	* @return the staged model data handler instances of the portlet
+	*/
+	public java.util.List<com.liferay.portal.kernel.lar.StagedModelDataHandler<?>> getStagedModelDataHandlerInstances();
+
+	/**
 	* Returns <code>true</code> if the portlet is a static portlet that is
 	* cannot be moved.
 	*
@@ -1011,6 +1041,14 @@ public interface Portlet extends PortletModel, PersistedModel {
 	* @return <code>true</code> if the portlet uses the default template
 	*/
 	public boolean getUseDefaultTemplate();
+
+	/**
+	* Returns the user ID of the portlet. This only applies when the portlet is
+	* added by a user in a customizable layout.
+	*
+	* @return the user ID of the portlet
+	*/
+	public long getUserId();
 
 	/**
 	* Returns the user principal strategy of the portlet.
@@ -1397,7 +1435,7 @@ public interface Portlet extends PortletModel, PersistedModel {
 	public void setAjaxable(boolean ajaxable);
 
 	/**
-	* Sets the name of the classes that represent asset types associated with
+	* Sets the names of the classes that represent asset types associated with
 	* the portlet.
 	*
 	* @param assetRendererFactoryClasses the names of the classes that
@@ -1407,7 +1445,7 @@ public interface Portlet extends PortletModel, PersistedModel {
 		java.util.List<java.lang.String> assetRendererFactoryClasses);
 
 	/**
-	* Sets the name of the classes that represent atom collection adapters
+	* Sets the names of the classes that represent atom collection adapters
 	* associated with the portlet.
 	*
 	* @param atomCollectionAdapterClasses the names of the classes that
@@ -1475,7 +1513,7 @@ public interface Portlet extends PortletModel, PersistedModel {
 	public void setCssClassWrapper(java.lang.String cssClassWrapper);
 
 	/**
-	* Sets the name of the classes that represent custom attribute displays
+	* Sets the names of the classes that represent custom attribute displays
 	* associated with the portlet.
 	*
 	* @param customAttributesDisplayClasses the names of the classes that
@@ -1647,10 +1685,10 @@ public interface Portlet extends PortletModel, PersistedModel {
 	public void setInclude(boolean include);
 
 	/**
-	* Sets the name of the classes that represent indexers associated with the
+	* Sets the names of the classes that represent indexers associated with the
 	* portlet.
 	*
-	* @param indexerClasses the name of the classes that represent indexers
+	* @param indexerClasses the names of the classes that represent indexers
 	associated with the portlet
 	*/
 	public void setIndexerClasses(
@@ -1776,6 +1814,16 @@ public interface Portlet extends PortletModel, PersistedModel {
 	*/
 	public void setPortletDataHandlerClass(
 		java.lang.String portletDataHandlerClass);
+
+	/**
+	* Sets the name of the portlet display template handler class of the
+	* portlet.
+	*
+	* @param portletDisplayTemplateHandlerClass the name of display template
+	handler class of the portlet
+	*/
+	public void setPortletDisplayTemplateHandlerClass(
+		java.lang.String portletDisplayTemplateHandlerClass);
 
 	/**
 	* Sets the filters of the portlet.
@@ -2023,6 +2071,16 @@ public interface Portlet extends PortletModel, PersistedModel {
 		java.lang.String socialRequestInterpreterClass);
 
 	/**
+	* Sets the names of the classes that represent staged model data handlers
+	* associated with the portlet.
+	*
+	* @param stagedModelDataHandlerClasses the names of the classes that
+	represent staged model data handlers associated with the portlet
+	*/
+	public void setStagedModelDataHandlerClasses(
+		java.util.List<java.lang.String> stagedModelDataHandlerClasses);
+
+	/**
 	* Set to <code>true</code> if the portlet is a static portlet that is
 	* cannot be moved.
 	*
@@ -2072,7 +2130,7 @@ public interface Portlet extends PortletModel, PersistedModel {
 	public void setTimestamp(long timestamp);
 
 	/**
-	* Sets the name of the classes that represent trash handlers associated to
+	* Sets the names of the classes that represent trash handlers associated to
 	* the portlet.
 	*
 	* @param trashHandlerClasses the names of the classes that represent trash
@@ -2150,7 +2208,7 @@ public interface Portlet extends PortletModel, PersistedModel {
 		java.util.Map<java.lang.String, java.util.Set<java.lang.String>> windowStates);
 
 	/**
-	* Sets the name of the classes that represent workflow handlers associated
+	* Sets the names of the classes that represent workflow handlers associated
 	* to the portlet.
 	*
 	* @param workflowHandlerClasses the names of the classes that represent

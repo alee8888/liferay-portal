@@ -101,6 +101,20 @@ List layoutList = layoutView.getList();
 		<aui:input name="preferences--useHtmlTitle--" type="checkbox" value="<%= useHtmlTitle %>" />
 
 		<aui:input name="preferences--showHiddenPages--" type="checkbox" value="<%= showHiddenPages %>" />
+
+		<div class="display-template">
+
+			<%
+			PortletDisplayTemplateHandler portletDisplayTemplateHandler = PortletDisplayTemplateHandlerRegistryUtil.getPortletDisplayTemplateHandler(LayoutSet.class.getName());
+			%>
+
+			<liferay-ui:ddm-template-selector
+				classNameId="<%= PortalUtil.getClassNameId(portletDisplayTemplateHandler.getClassName()) %>"
+				preferenceValue="<%= displayStyle %>"
+				refreshURL="<%= currentURL %>"
+				showEmptyOption="<%= true %>"
+			/>
+		</div>
 	</aui:fieldset>
 
 	<aui:button-row>

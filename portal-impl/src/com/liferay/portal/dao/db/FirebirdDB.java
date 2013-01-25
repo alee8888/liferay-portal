@@ -68,11 +68,21 @@ public class FirebirdDB extends BaseDB {
 		sb.append("connect '");
 		sb.append(databaseName);
 		sb.append(".gdb' user 'sysdba' password 'masterkey';\n");
-		sb.append(
-			readSQL(
-				sqlDir + "/portal" + suffix + "/portal" + suffix +
-					"-firebird.sql",
-				_FIREBIRD[0], ";\n"));
+
+		if (!sqlDir.endsWith("/WEB-INF/sql")) {
+			sb.append(
+				readSQL(
+					sqlDir + "/portal" + suffix + "/portal" + suffix +
+						"-firebird.sql",
+					_FIREBIRD[0], ";\n"));
+		}
+		else {
+			sb.append(
+				readSQL(
+					sqlDir + "/tables" + suffix + "/tables" + suffix +
+						"-firebird.sql",
+					_FIREBIRD[0], ";\n"));
+		}
 
 		return sb.toString();
 	}
@@ -113,7 +123,7 @@ public class FirebirdDB extends BaseDB {
 						"type @type@;",
 					REWORD_TEMPLATE, template);
 			}
-			else if (line.indexOf(DROP_INDEX) != -1) {
+			else if (line.contains(DROP_INDEX)) {
 				String[] tokens = StringUtil.split(line, ' ');
 
 				line = StringUtil.replace(

@@ -44,8 +44,6 @@ String content = BeanParamUtil.getString(wikiPage, request, "content");
 String format = BeanParamUtil.getString(wikiPage, request, "format", WikiPageConstants.DEFAULT_FORMAT);
 String parentTitle = BeanParamUtil.getString(wikiPage, request, "parentTitle");
 
-String[] attachments = new String[0];
-
 boolean preview = ParamUtil.getBoolean(request, "preview");
 
 boolean newPage = ParamUtil.getBoolean(request, "newPage");
@@ -56,8 +54,10 @@ if (wikiPage == null) {
 
 boolean editable = false;
 
+List<FileEntry> attachmentsFileEntries = null;
+
 if (wikiPage != null) {
-	attachments = wikiPage.getAttachmentsFiles();
+	attachmentsFileEntries = wikiPage.getAttachmentsFileEntries();
 
 	if (WikiPagePermission.contains(permissionChecker, wikiPage, ActionKeys.UPDATE)) {
 		editable = true;
@@ -148,6 +148,13 @@ if (Validator.isNull(redirect)) {
 		wikiPage = new WikiPageImpl();
 	}
 
+	try {
+		content = SanitizerUtil.sanitize(themeDisplay.getCompanyId(), scopeGroupId, themeDisplay.getUserId(), WikiPage.class.getName(), 0, "text/" + format, content);
+	}
+	catch (SanitizerException se) {
+		content = StringPool.BLANK;
+	}
+
 	wikiPage.setContent(content);
 	wikiPage.setFormat(format);
 	%>
@@ -234,7 +241,7 @@ if (Validator.isNull(redirect)) {
 
 				<c:if test="<%= Validator.isNotNull(parentTitle) %>">
 					<aui:field-wrapper label="parent">
-						<%= parentTitle %>
+						<%= HtmlUtil.escape(parentTitle) %>
 					</aui:field-wrapper>
 				</c:if>
 
@@ -284,23 +291,22 @@ if (Validator.isNull(redirect)) {
 			</c:if>
 
 			<aui:fieldset>
-				<c:if test="<%= attachments.length > 0 %>">
+				<c:if test="<%= (attachmentsFileEntries != null) && !attachmentsFileEntries.isEmpty() %>">
 					<aui:field-wrapper label="attachments">
 
 						<%
-						for (int i = 0; i < attachments.length; i++) {
-							String fileName = FileUtil.getShortFileName(attachments[i]);
-							long fileSize = DLStoreUtil.getFileSize(company.getCompanyId(), CompanyConstants.SYSTEM, attachments[i]);
+						for (int i = 0; i < attachmentsFileEntries.size(); i++) {
+							FileEntry attachmentsFileEntry = attachmentsFileEntries.get(i);
 						%>
 
 							<portlet:actionURL var="getPageAttachmentURL" windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>">
 								<portlet:param name="struts_action" value="/wiki/get_page_attachment" />
 								<portlet:param name="nodeId" value="<%= String.valueOf(node.getNodeId()) %>" />
 								<portlet:param name="title" value="<%= wikiPage.getTitle() %>" />
-								<portlet:param name="fileName" value="<%= fileName %>" />
+								<portlet:param name="fileName" value="<%= attachmentsFileEntry.getTitle() %>" />
 							</portlet:actionURL>
 
-							<aui:a href="<%= getPageAttachmentURL %>"><%= fileName %></aui:a> (<%=TextFormatter.formatStorageSize(fileSize, locale) %>)<%= (i < (attachments.length - 1)) ? ", " : "" %>
+							<aui:a href="<%= getPageAttachmentURL %>"><%= attachmentsFileEntry.getTitle() %></aui:a> (<%= TextFormatter.formatStorageSize(attachmentsFileEntry.getSize(), locale) %>)<%= (i < (attachmentsFileEntries.size() - 1)) ? ", " : "" %>
 
 						<%
 						}
@@ -412,8 +418,15 @@ if (Validator.isNull(redirect)) {
 
 					<aui:button disabled="<%= pending %>" name="publishButton" onClick='<%= renderResponse.getNamespace() + "publishPage();" %>' value="<%= publishButtonLabel %>" />
 
-					<c:if test="<%= !newPage && wikiPage.isDraft() && WikiPagePermission.contains(permissionChecker, wikiPage, ActionKeys.DELETE) %>">
-						<aui:button name="discardDraftButton" onClick='<%= renderResponse.getNamespace() + "discardDraftPage();" %>' value="discard-draft" />
+					<c:if test="<%= !newPage && WikiPagePermission.contains(permissionChecker, wikiPage, ActionKeys.DELETE) %>">
+						<c:choose>
+							<c:when test="<%= TrashUtil.isTrashEnabled(scopeGroupId) %>">
+								<aui:button name="moveToTrashButton" onClick='<%= renderResponse.getNamespace() + "moveToTrashPage();" %>' value="move-to-the-recycle-bin" />
+							</c:when>
+							<c:when test="<%= wikiPage.isDraft() %>">
+								<aui:button name="discardDraftButton" onClick='<%= renderResponse.getNamespace() + "discardDraftPage();" %>' value="discard-draft" />
+							</c:when>
+						</c:choose>
 					</c:if>
 
 					<aui:button href="<%= redirect %>" type="cancel" />
@@ -471,6 +484,19 @@ if (Validator.isNull(redirect)) {
 		content += window.<portlet:namespace />editor.getHTML();
 
 		return content;
+	}
+
+	function <portlet:namespace />moveToTrashPage() {
+		<portlet:renderURL var="nodeURL">
+			<portlet:param name="struts_action" value="/wiki/view" />
+			<portlet:param name="title" value="<%= WikiPageConstants.FRONT_PAGE %>" />
+			<portlet:param name="tag" value="<%= StringPool.BLANK %>" />
+		</portlet:renderURL>
+
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.MOVE_TO_TRASH %>";
+		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = "<%= nodeURL.toString() %>";
+
+		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />previewPage() {

@@ -43,7 +43,7 @@ public class VerifyDB2 extends VerifyProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(4);
 
@@ -58,6 +58,11 @@ public class VerifyDB2 extends VerifyProcess {
 
 			while (rs.next()) {
 				String tableName = rs.getString(1);
+
+				if (!isPortalTableName(tableName)) {
+					continue;
+				}
+
 				String columnName = rs.getString(2);
 
 				runSQL(

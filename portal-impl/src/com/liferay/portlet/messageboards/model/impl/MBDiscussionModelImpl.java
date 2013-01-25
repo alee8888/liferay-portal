@@ -66,6 +66,8 @@ public class MBDiscussionModelImpl extends BaseModelImpl<MBDiscussion>
 		};
 	public static final String TABLE_SQL_CREATE = "create table MBDiscussion (discussionId LONG not null primary key,classNameId LONG,classPK LONG,threadId LONG)";
 	public static final String TABLE_SQL_DROP = "drop table MBDiscussion";
+	public static final String ORDER_BY_JPQL = " ORDER BY mbDiscussion.discussionId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY MBDiscussion.discussionId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -81,6 +83,7 @@ public class MBDiscussionModelImpl extends BaseModelImpl<MBDiscussion>
 	public static long CLASSNAMEID_COLUMN_BITMASK = 1L;
 	public static long CLASSPK_COLUMN_BITMASK = 2L;
 	public static long THREADID_COLUMN_BITMASK = 4L;
+	public static long DISCUSSIONID_COLUMN_BITMASK = 8L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.messageboards.model.MBDiscussion"));
 
@@ -96,7 +99,7 @@ public class MBDiscussionModelImpl extends BaseModelImpl<MBDiscussion>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_discussionId);
+		return _discussionId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -241,17 +244,6 @@ public class MBDiscussionModelImpl extends BaseModelImpl<MBDiscussion>
 	}
 
 	@Override
-	public MBDiscussion toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (MBDiscussion)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
 			MBDiscussion.class.getName(), getPrimaryKey());
@@ -262,6 +254,16 @@ public class MBDiscussionModelImpl extends BaseModelImpl<MBDiscussion>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public MBDiscussion toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (MBDiscussion)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -403,7 +405,7 @@ public class MBDiscussionModelImpl extends BaseModelImpl<MBDiscussion>
 	}
 
 	private static ClassLoader _classLoader = MBDiscussion.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			MBDiscussion.class
 		};
 	private long _discussionId;
@@ -417,5 +419,5 @@ public class MBDiscussionModelImpl extends BaseModelImpl<MBDiscussion>
 	private long _originalThreadId;
 	private boolean _setOriginalThreadId;
 	private long _columnBitmask;
-	private MBDiscussion _escapedModelProxy;
+	private MBDiscussion _escapedModel;
 }

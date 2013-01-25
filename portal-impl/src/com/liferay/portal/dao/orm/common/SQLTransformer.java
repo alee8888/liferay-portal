@@ -224,6 +224,14 @@ public class SQLTransformer {
 		}
 	}
 
+	private String _replaceCrossJoin(String sql) {
+		if (_vendorSybase) {
+			return StringUtil.replace(sql, "CROSS JOIN", StringPool.COMMA);
+		}
+
+		return sql;
+	}
+
 	private String _replaceIntegerDivision(String sql) {
 		Matcher matcher = _integerDivisionPattern.matcher(sql);
 
@@ -258,7 +266,7 @@ public class SQLTransformer {
 	}
 
 	private String _replaceReplace(String newSQL) {
-		return StringUtil.replace(newSQL, "replace(", "str_replace(");
+		return newSQL.replaceAll("(?i)replace\\(", "str_replace(");
 	}
 
 	private String _replaceUnion(String sql) {
@@ -278,6 +286,7 @@ public class SQLTransformer {
 		newSQL = _replaceBoolean(newSQL);
 		newSQL = _replaceCastLong(newSQL);
 		newSQL = _replaceCastText(newSQL);
+		newSQL = _replaceCrossJoin(newSQL);
 		newSQL = _replaceIntegerDivision(newSQL);
 
 		if (_vendorDB2) {
@@ -414,7 +423,7 @@ public class SQLTransformer {
 	private static Pattern _modPattern = Pattern.compile(
 		"MOD\\((.+?),(.+?)\\)", Pattern.CASE_INSENSITIVE);
 	private static Pattern _negativeComparisonPattern = Pattern.compile(
-		"(!=)?( -([0-9]+)?)", Pattern.CASE_INSENSITIVE);
+		"(!?=)( -([0-9]+)?)", Pattern.CASE_INSENSITIVE);
 	private static Pattern _unionAllPattern = Pattern.compile(
 		"SELECT \\* FROM(.*)TEMP_TABLE(.*)", Pattern.CASE_INSENSITIVE);
 

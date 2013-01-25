@@ -15,12 +15,16 @@
 package com.liferay.portal.deploy.auto;
 
 import com.liferay.portal.kernel.deploy.auto.AutoDeployException;
+import com.liferay.portal.kernel.deploy.auto.context.AutoDeploymentContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.messaging.DestinationNames;
+import com.liferay.portal.kernel.messaging.Message;
+import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
 
@@ -28,7 +32,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -39,22 +45,27 @@ public class LiferayPackageAutoDeployer implements AutoDeployer {
 
 	public LiferayPackageAutoDeployer() {
 		try {
-			baseDir = PrefsPropsUtil.getString(
+			_baseDir = PrefsPropsUtil.getString(
 				PropsKeys.AUTO_DEPLOY_DEPLOY_DIR,
 				PropsValues.AUTO_DEPLOY_DEPLOY_DIR);
 		}
 		catch (Exception e) {
-			_log.error(e);
+			_log.error(e, e);
 		}
 	}
 
-	public void autoDeploy(File file, String context)
+	public int autoDeploy(AutoDeploymentContext autoDeploymentContext)
 		throws AutoDeployException {
 
 		ZipFile zipFile = null;
 
 		try {
+			File file = autoDeploymentContext.getFile();
+
 			zipFile = new ZipFile(file);
+
+			List<String> fileNames = new ArrayList<String>(zipFile.size());
+			String propertiesString = null;
 
 			Enumeration<? extends ZipEntry> enu = zipFile.entries();
 
@@ -65,7 +76,9 @@ public class LiferayPackageAutoDeployer implements AutoDeployer {
 
 				if (!zipEntryFileName.endsWith(".war") &&
 					!zipEntryFileName.endsWith(".xml") &&
-					!zipEntryFileName.endsWith(".zip")) {
+					!zipEntryFileName.endsWith(".zip") &&
+					!zipEntryFileName.equals(
+						"liferay-marketplace.properties")) {
 
 					continue;
 				}
@@ -76,19 +89,34 @@ public class LiferayPackageAutoDeployer implements AutoDeployer {
 							file.getName());
 				}
 
-				InputStream inputStream = null;
+				InputStream inputStream = zipFile.getInputStream(zipEntry);
 
-				try {
+				if (zipEntryFileName.equals("liferay-marketplace.properties")) {
 					inputStream = zipFile.getInputStream(zipEntry);
 
+					propertiesString = StringUtil.read(inputStream);
+				}
+				else {
+					fileNames.add(zipEntryFileName);
+
 					FileUtil.write(
-						baseDir + StringPool.SLASH + zipEntryFileName,
+						_baseDir + StringPool.SLASH + zipEntryFileName,
 						inputStream);
 				}
-				finally {
-					StreamUtil.cleanUp(inputStream);
-				}
 			}
+
+			if (propertiesString != null) {
+				Message message = new Message();
+
+				message.put("command", "deploy");
+				message.put("fileNames", fileNames);
+				message.put("properties", propertiesString);
+
+				MessageBusUtil.sendMessage(
+					DestinationNames.MARKETPLACE, message);
+			}
+
+			return AutoDeployer.CODE_DEFAULT;
 		}
 		catch (Exception e) {
 			throw new AutoDeployException(e);
@@ -104,9 +132,13 @@ public class LiferayPackageAutoDeployer implements AutoDeployer {
 		}
 	}
 
-	protected String baseDir;
+	public AutoDeployer cloneAutoDeployer() {
+		return new LiferayPackageAutoDeployer();
+	}
 
 	private static Log _log = LogFactoryUtil.getLog(
 		LiferayPackageAutoDeployer.class);
+
+	private String _baseDir;
 
 }

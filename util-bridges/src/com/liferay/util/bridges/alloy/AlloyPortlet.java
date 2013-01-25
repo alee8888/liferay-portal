@@ -16,9 +16,16 @@ package com.liferay.util.bridges.alloy;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.messaging.MessageBusUtil;
+import com.liferay.portal.kernel.messaging.MessageListener;
 import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
 import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.portlet.Router;
+import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
+import com.liferay.portal.kernel.scheduler.StorageType;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -28,7 +35,9 @@ import com.liferay.portal.model.Portlet;
 import java.io.IOException;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -50,6 +59,40 @@ import javax.portlet.ResourceResponse;
 public class AlloyPortlet extends GenericPortlet {
 
 	@Override
+	public void destroy() {
+		for (AlloyController alloyController : _alloyControllers) {
+			BaseAlloyControllerImpl baseAlloyControllerImpl =
+				(BaseAlloyControllerImpl)alloyController;
+
+			Indexer indexer = baseAlloyControllerImpl.indexer;
+
+			if (indexer != null) {
+				IndexerRegistryUtil.unregister(indexer);
+			}
+
+			MessageListener schedulerMessageListener =
+				baseAlloyControllerImpl.schedulerMessageListener;
+
+			if (schedulerMessageListener == null) {
+				continue;
+			}
+
+			try {
+				SchedulerEngineHelperUtil.unschedule(
+					baseAlloyControllerImpl.getSchedulerJobName(),
+					baseAlloyControllerImpl.getSchedulerGroupName(),
+					StorageType.MEMORY_CLUSTERED);
+
+				MessageBusUtil.removeDestination(
+					baseAlloyControllerImpl.getSchedulerDestinationName());
+			}
+			catch (Exception e) {
+				_log.error(e, e);
+			}
+		}
+	}
+
+	@Override
 	public void init(PortletConfig portletConfig) throws PortletException {
 		super.init(portletConfig);
 
@@ -63,7 +106,7 @@ public class AlloyPortlet extends GenericPortlet {
 
 		Router router = friendlyURLMapper.getRouter();
 
-		router.urlToParameters("GET", _defaultRouteParameters);
+		router.urlToParameters(HttpMethods.GET, _defaultRouteParameters);
 	}
 
 	@Override
@@ -154,8 +197,16 @@ public class AlloyPortlet extends GenericPortlet {
 		}
 	}
 
+	protected void registerAlloyController(AlloyController alloyController) {
+		if (!_alloyControllers.contains(alloyController)) {
+			_alloyControllers.add(alloyController);
+		}
+	}
+
 	private static Log _log = LogFactoryUtil.getLog(AlloyPortlet.class);
 
+	private Set<AlloyController> _alloyControllers =
+		new HashSet<AlloyController>();
 	private Map<String, String> _defaultRouteParameters =
 		new HashMap<String, String>();
 

@@ -14,10 +14,12 @@
 
 package com.liferay.portlet.journal.model.impl;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -163,6 +165,23 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 		return _smallImageType;
 	}
 
+	@Override
+	public Map<Locale, String> getTitleMap() {
+		Locale defaultLocale = LocaleThreadLocal.getDefaultLocale();
+
+		try {
+			Locale articleDefaultLocale = LocaleUtil.fromLanguageId(
+				getDefaultLocale());
+
+			LocaleThreadLocal.setDefaultLocale(articleDefaultLocale);
+
+			return super.getTitleMap();
+		}
+		finally {
+			LocaleThreadLocal.setDefaultLocale(defaultLocale);
+		}
+	}
+
 	public boolean isTemplateDriven() {
 		if (Validator.isNull(getStructureId())) {
 			return false;
@@ -170,6 +189,12 @@ public class JournalArticleImpl extends JournalArticleBaseImpl {
 		else {
 			return true;
 		}
+	}
+
+	@Override
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
 	}
 
 	public void setSmallImageType(String smallImageType) {

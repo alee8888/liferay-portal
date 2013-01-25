@@ -396,6 +396,12 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 		_layoutPrototype.setExpandoBridgeAttributes(serviceContext);
 	}
 
+	public void prepareLocalizedFieldsForImport(
+		java.util.Locale defaultImportLocale)
+		throws com.liferay.portal.LocaleException {
+		_layoutPrototype.prepareLocalizedFieldsForImport(defaultImportLocale);
+	}
+
 	@Override
 	public java.lang.Object clone() {
 		return new LayoutPrototypeWrapper((LayoutPrototype)_layoutPrototype.clone());
@@ -417,6 +423,10 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 
 	public com.liferay.portal.model.LayoutPrototype toEscapedModel() {
 		return new LayoutPrototypeWrapper(_layoutPrototype.toEscapedModel());
+	}
+
+	public com.liferay.portal.model.LayoutPrototype toUnescapedModel() {
+		return new LayoutPrototypeWrapper(_layoutPrototype.toUnescapedModel());
 	}
 
 	@Override

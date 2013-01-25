@@ -48,6 +48,11 @@ import javax.portlet.PortletPreferences;
 public class RSSPortletDataHandlerImpl extends JournalPortletDataHandlerImpl {
 
 	@Override
+	public String[] getDataPortletPreferences() {
+		return new String[] {"footerArticleValues", "headerArticleValues"};
+	}
+
+	@Override
 	public PortletDataHandlerControl[] getExportControls() {
 		return new PortletDataHandlerControl[] {
 			_selectedArticles, _embeddedAssets
@@ -105,19 +110,25 @@ public class RSSPortletDataHandlerImpl extends JournalPortletDataHandlerImpl {
 			PortletPreferences portletPreferences)
 		throws Exception {
 
-		portletPreferences.setValue("footerArticleValues", StringPool.BLANK);
-		portletPreferences.setValue("headerArticleValues", StringPool.BLANK);
-		portletPreferences.setValue("urls", StringPool.BLANK);
-		portletPreferences.setValue("titles", StringPool.BLANK);
-		portletPreferences.setValue("itemsPerChannel", StringPool.BLANK);
+		if (portletPreferences == null) {
+			return portletPreferences;
+		}
+
 		portletPreferences.setValue(
 			"expandedItemsPerChannel", StringPool.BLANK);
-		portletPreferences.setValue("showFeedTitle", StringPool.BLANK);
-		portletPreferences.setValue("showFeedPublishedDate", StringPool.BLANK);
+		portletPreferences.setValue("feedImageAlignment", StringPool.BLANK);
+		portletPreferences.setValues(
+			"footerArticleValues", new String[] {"0", ""});
+		portletPreferences.setValues(
+			"headerArticleValues", new String[] {"0", ""});
+		portletPreferences.setValue("itemsPerChannel", StringPool.BLANK);
 		portletPreferences.setValue("showFeedDescription", StringPool.BLANK);
 		portletPreferences.setValue("showFeedImage", StringPool.BLANK);
-		portletPreferences.setValue("feedImageAlignment", StringPool.BLANK);
 		portletPreferences.setValue("showFeedItemAuthor", StringPool.BLANK);
+		portletPreferences.setValue("showFeedPublishedDate", StringPool.BLANK);
+		portletPreferences.setValue("showFeedTitle", StringPool.BLANK);
+		portletPreferences.setValue("titles", StringPool.BLANK);
+		portletPreferences.setValue("urls", StringPool.BLANK);
 
 		return portletPreferences;
 	}
@@ -212,6 +223,10 @@ public class RSSPortletDataHandlerImpl extends JournalPortletDataHandlerImpl {
 		Element dlFoldersElement = rootElement.addElement("dl-folders");
 		Element dlFilesElement = rootElement.addElement("dl-file-entries");
 		Element dlFileRanksElement = rootElement.addElement("dl-file-ranks");
+		Element dlRepositoriesElement = rootElement.addElement(
+			"dl-repositories");
+		Element dlRepositoryEntriesElement = rootElement.addElement(
+			"dl-repository-entries");
 
 		for (JournalArticle article : articles) {
 			String path = JournalPortletDataHandlerImpl.getArticlePath(
@@ -231,7 +246,8 @@ public class RSSPortletDataHandlerImpl extends JournalPortletDataHandlerImpl {
 			JournalPortletDataHandlerImpl.exportArticle(
 				portletDataContext, rootElement, rootElement, rootElement,
 				dlFileEntryTypesElement, dlFoldersElement, dlFilesElement,
-				dlFileRanksElement, article, null, false);
+				dlFileRanksElement, dlRepositoriesElement,
+				dlRepositoryEntriesElement, article, false);
 		}
 
 		return document.formattedString();
@@ -270,7 +286,7 @@ public class RSSPortletDataHandlerImpl extends JournalPortletDataHandlerImpl {
 
 		Map<String, String> articleIds =
 			(Map<String, String>)portletDataContext.getNewPrimaryKeysMap(
-				JournalArticle.class);
+				JournalArticle.class + ".articleId");
 
 		Layout layout = LayoutLocalServiceUtil.getLayout(
 			portletDataContext.getPlid());
@@ -286,6 +302,9 @@ public class RSSPortletDataHandlerImpl extends JournalPortletDataHandlerImpl {
 			"footerArticleValues", new String[] {"0", ""});
 
 		String footerArticleId = footerArticleValues[1];
+
+		footerArticleId = MapUtil.getString(
+			articleIds, footerArticleId, footerArticleId);
 
 		if (Validator.isNotNull(footerArticleId)) {
 			footerArticleId = MapUtil.getString(
@@ -314,6 +333,9 @@ public class RSSPortletDataHandlerImpl extends JournalPortletDataHandlerImpl {
 			"headerArticleValues", new String[] {"0", ""});
 
 		String headerArticleId = headerArticleValues[1];
+
+		headerArticleId = MapUtil.getString(
+			articleIds, headerArticleId, headerArticleId);
 
 		if (Validator.isNotNull(headerArticleId)) {
 			headerArticleId = MapUtil.getString(

@@ -62,6 +62,11 @@ public class MBMessageServiceWrapper implements MBMessageService,
 			threadId, parentMessageId, subject, body, serviceContext);
 	}
 
+	/**
+	* @deprecated {@link #addMessage(long, String, String, String,
+	java.util.List, boolean, double, boolean,
+	com.liferay.portal.service.ServiceContext)}
+	*/
 	public com.liferay.portlet.messageboards.model.MBMessage addMessage(
 		long groupId, long categoryId, long threadId, long parentMessageId,
 		java.lang.String subject, java.lang.String body,
@@ -89,6 +94,28 @@ public class MBMessageServiceWrapper implements MBMessageService,
 			serviceContext);
 	}
 
+	public com.liferay.portlet.messageboards.model.MBMessage addMessage(
+		long categoryId, java.lang.String subject, java.lang.String body,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _mbMessageService.addMessage(categoryId, subject, body,
+			serviceContext);
+	}
+
+	public com.liferay.portlet.messageboards.model.MBMessage addMessage(
+		long parentMessageId, java.lang.String subject, java.lang.String body,
+		java.lang.String format,
+		java.util.List<com.liferay.portal.kernel.util.ObjectValuePair<java.lang.String, java.io.InputStream>> inputStreamOVPs,
+		boolean anonymous, double priority, boolean allowPingbacks,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _mbMessageService.addMessage(parentMessageId, subject, body,
+			format, inputStreamOVPs, anonymous, priority, allowPingbacks,
+			serviceContext);
+	}
+
 	public void deleteDiscussionMessage(long groupId,
 		java.lang.String className, long classPK,
 		java.lang.String permissionClassName, long permissionClassPK,
@@ -103,6 +130,12 @@ public class MBMessageServiceWrapper implements MBMessageService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_mbMessageService.deleteMessage(messageId);
+	}
+
+	public void deleteMessageAttachments(long messageId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_mbMessageService.deleteMessageAttachments(messageId);
 	}
 
 	public java.util.List<com.liferay.portlet.messageboards.model.MBMessage> getCategoryMessages(
@@ -215,6 +248,13 @@ public class MBMessageServiceWrapper implements MBMessageService,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _mbMessageService.getThreadMessagesRSS(threadId, status, max,
 			type, version, displayStyle, feedURL, entryURL, themeDisplay);
+	}
+
+	public void restoreMessageAttachmentFromTrash(long messageId,
+		java.lang.String fileName)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_mbMessageService.restoreMessageAttachmentFromTrash(messageId, fileName);
 	}
 
 	public void subscribeMessage(long messageId)

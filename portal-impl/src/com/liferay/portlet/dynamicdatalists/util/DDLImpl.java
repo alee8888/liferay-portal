@@ -34,8 +34,13 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.model.Group;
+import com.liferay.portal.model.PortletConstants;
+import com.liferay.portal.service.GroupLocalServiceUtil;
+import com.liferay.portal.service.PortletPreferencesLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.portlet.dynamicdatalists.NoSuchRecordException;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecord;
@@ -64,6 +69,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.portlet.PortletPreferences;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
@@ -339,24 +345,43 @@ public class DDLImpl implements DDL {
 			template.getScript(), template.getLanguage());
 	}
 
-	public void sendRecordFileUpload(
-			HttpServletRequest request, HttpServletResponse response,
-			DDLRecord record, String fieldName)
+	public boolean isEditable(
+			HttpServletRequest request, String portletId, long groupId)
 		throws Exception {
 
-		Field field = record.getField(fieldName);
+		boolean defaultValue = ParamUtil.getBoolean(request, "editable", true);
 
-		DDMUtil.sendFieldFile(request, response, field);
+		return isEditable(portletId, groupId, defaultValue);
+	}
+
+	public boolean isEditable(
+			PortletPreferences preferences, String portletId, long groupId)
+		throws Exception {
+
+		boolean defaultValue = GetterUtil.getBoolean(
+			preferences.getValue("editable", null), true);
+
+		return isEditable(portletId, groupId, defaultValue);
 	}
 
 	public void sendRecordFileUpload(
 			HttpServletRequest request, HttpServletResponse response,
-			long recordId, String fieldName)
+			DDLRecord record, String fieldName, int valueIndex)
+		throws Exception {
+
+		Field field = record.getField(fieldName);
+
+		DDMUtil.sendFieldFile(request, response, field, valueIndex);
+	}
+
+	public void sendRecordFileUpload(
+			HttpServletRequest request, HttpServletResponse response,
+			long recordId, String fieldName, int valueIndex)
 		throws Exception {
 
 		DDLRecord record = DDLRecordServiceUtil.getRecord(recordId);
 
-		sendRecordFileUpload(request, response, record, fieldName);
+		sendRecordFileUpload(request, response, record, fieldName, valueIndex);
 	}
 
 	public DDLRecord updateRecord(
@@ -364,10 +389,21 @@ public class DDLImpl implements DDL {
 			boolean checkPermission, ServiceContext serviceContext)
 		throws Exception {
 
+		DDLRecord record = DDLRecordLocalServiceUtil.fetchRecord(recordId);
+
+		PortletPreferences preferences =
+			PortletPreferencesLocalServiceUtil.getPreferences(
+				serviceContext.getPortletPreferencesIds());
+
+		if (!isEditable(
+				preferences, serviceContext.getPortletId(),
+				serviceContext.getScopeGroupId())) {
+
+			return record;
+		}
+
 		boolean majorVersion = ParamUtil.getBoolean(
 			serviceContext, "majorVersion");
-
-		DDLRecord record = DDLRecordLocalServiceUtil.fetchRecord(recordId);
 
 		DDLRecordSet recordSet = DDLRecordSetLocalServiceUtil.getDDLRecordSet(
 			recordSetId);
@@ -422,7 +458,7 @@ public class DDLImpl implements DDL {
 			recordId, recordSetId, mergeFields, true, serviceContext);
 	}
 
-	public String uploadRecordFieldFile(
+	public void uploadRecordFieldFile(
 			DDLRecord record, String fieldName, ServiceContext serviceContext)
 		throws Exception {
 
@@ -432,7 +468,7 @@ public class DDLImpl implements DDL {
 
 		DDLRecordVersion recordVersion = record.getLatestRecordVersion();
 
-		return DDMUtil.uploadFieldFile(
+		DDMUtil.uploadFieldFile(
 			ddmStructure.getStructureId(), recordVersion.getDDMStorageId(),
 			record, fieldName, serviceContext);
 	}
@@ -450,6 +486,25 @@ public class DDLImpl implements DDL {
 				LocaleUtil.getDefault(), "is-temporarily-unavailable",
 				"content");
 		}
+	}
+
+	protected boolean isEditable(
+			String portletId, long groupId, boolean defaultValue)
+		throws Exception {
+
+		String rootPortletId = PortletConstants.getRootPortletId(portletId);
+
+		if (rootPortletId.equals(PortletKeys.DYNAMIC_DATA_LISTS)) {
+			return true;
+		}
+
+		Group group = GroupLocalServiceUtil.fetchGroup(groupId);
+
+		if ((group == null) || group.isInStagingPortlet(portletId)) {
+			return false;
+		}
+
+		return defaultValue;
 	}
 
 	protected void uploadRecordFieldFiles(

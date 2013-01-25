@@ -21,7 +21,14 @@ AUI.add(
 
 		var TPL_CHECKED = ' checked="checked" ';
 
-		var TPL_INPUT = '<label title="{name}"><input data-categoryId="{categoryId}" type="checkbox" value="{name}" {checked} />{name} {path}</label>';
+		var TPL_INPUT =
+			'<label title="{name}">' +
+				'<span class="lfr-categories-selector-category-name" title="{name}">' +
+					'<input data-categoryId="{categoryId}" type="checkbox" value="{name}" {checked} />' +
+					'{name}' +
+				'</span>' +
+				'<span class="lfr-categories-selector-search-results-path" title="{path}">{path}</span>' +
+			'</label>';
 
 		var TPL_MESSAGE = '<div class="lfr-categories-message">{0}</div>';
 
@@ -43,6 +50,7 @@ AUI.add(
 		 * vocabularyGroupIds (string): The groupIds of the vocabularies.
 		 *
 		 * Optional
+		 * maxEntries {Number}: The maximum number of entries that will be loaded. The default value is -1, which will load all categories.
 		 * portalModelResource {boolean}: Whether the asset model is on the portal level.
 		 */
 
@@ -78,6 +86,10 @@ AUI.add(
 							return A.one(value) || A.Attribute.INVALID_VALUE;
 						},
 						value: null
+					},
+					maxEntries: {
+						validator: Lang.isNumber,
+						value: -1
 					},
 					singleSelect: {
 						validator: Lang.isBoolean,
@@ -223,6 +235,9 @@ AUI.add(
 						var instance = this;
 
 						var data = {};
+
+						data.p_auth = Liferay.authToken;
+
 						var assetId = instance._getTreeNodeAssetId(treeNode);
 						var assetType = instance._getTreeNodeAssetType(treeNode);
 
@@ -247,20 +262,17 @@ AUI.add(
 
 						var vocabularyIds = instance.get('vocabularyIds');
 
-						var serviceParameterTypesGetVocabularies = [
-							'[J'
-						];
-
-						var serviceParameterTypesGetGroupVocabularies = [
-							'[J',
-							'java.lang.String'
-						];
-
 						if (vocabularyIds.length > 0) {
-							Liferay.Service.Asset.AssetVocabulary.getVocabularies(
+							Liferay.Service(
 								{
-									vocabularyIds: vocabularyIds,
-									serviceParameterTypes: A.JSON.stringify(serviceParameterTypesGetVocabularies)
+									'$vocabularies = /assetvocabulary/get-vocabularies': {
+										vocabularyIds: vocabularyIds,
+
+										'$categoriesCount = /assetcategory/get-vocabulary-categories-count': {
+											'groupId': themeDisplay.getScopeGroupId(),
+											'@vocabularyId': '$vocabularies.vocabularyId'
+										}
+									}
 								},
 								callback
 							);
@@ -272,11 +284,17 @@ AUI.add(
 
 							groupIds.push(themeDisplay.getCompanyGroupId());
 
-							Liferay.Service.Asset.AssetVocabulary.getGroupsVocabularies(
+							Liferay.Service(
 								{
-									groupIds: groupIds,
-									className: className,
-									serviceParameterTypes: A.JSON.stringify(serviceParameterTypesGetGroupVocabularies)
+									'$vocabularies = /assetvocabulary/get-groups-vocabularies': {
+										groupIds: groupIds,
+										className: className,
+
+										'$categoriesCount = /assetcategory/get-vocabulary-categories-count': {
+											'groupId': '$vocabularies.groupId',
+											'@vocabularyId': '$vocabularies.vocabularyId'
+										}
+									}
 								},
 								callback
 							);
@@ -475,7 +493,8 @@ AUI.add(
 
 							searchResults.addClass('loading-animation');
 
-							Liferay.Service.Asset.AssetCategory.getJSONSearch(
+							Liferay.Service(
+								'/assetcategory/get-json-search',
 								{
 									groupId: vocabularyGroupIds[0],
 									name: Lang.sub(TPL_SEARCH_QUERY, [searchValue]),
@@ -558,6 +577,22 @@ AUI.add(
 							type: 'io'
 						};
 
+						var paginatorConfig = {
+							offsetParam: 'start'
+						};
+
+						var maxEntries = instance.get('maxEntries');
+
+						if (maxEntries > 0) {
+							paginatorConfig.limit = maxEntries;
+							paginatorConfig.moreResultsLabel = Liferay.Language.get('load-more-results');
+							paginatorConfig.total = item.categoriesCount;
+						}
+						else {
+							paginatorConfig.end = -1;
+							paginatorConfig.start = -1;
+						}
+
 						instance.TREEVIEWS[vocabularyId] = new A.TreeView(
 							{
 								children: [vocabularyRootNode],
@@ -583,10 +618,7 @@ AUI.add(
 									formatter: A.bind(instance._formatJSONResult, instance),
 									url: themeDisplay.getPathMain() + '/asset/get_categories'
 								},
-								paginator: {
-									limit: 50,
-									offsetParam: 'start'
-								}
+								paginator: paginatorConfig
 							}
 						).render(popup.entriesNode);
 					}

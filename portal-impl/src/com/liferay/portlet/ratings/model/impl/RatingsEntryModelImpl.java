@@ -78,6 +78,8 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 		};
 	public static final String TABLE_SQL_CREATE = "create table RatingsEntry (entryId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,score DOUBLE)";
 	public static final String TABLE_SQL_DROP = "drop table RatingsEntry";
+	public static final String ORDER_BY_JPQL = " ORDER BY ratingsEntry.entryId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY RatingsEntry.entryId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -94,6 +96,7 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	public static long CLASSPK_COLUMN_BITMASK = 2L;
 	public static long SCORE_COLUMN_BITMASK = 4L;
 	public static long USERID_COLUMN_BITMASK = 8L;
+	public static long ENTRYID_COLUMN_BITMASK = 16L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -102,6 +105,10 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	 * @return the normal model instance
 	 */
 	public static RatingsEntry toModel(RatingsEntrySoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		RatingsEntry model = new RatingsEntryImpl();
 
 		model.setEntryId(soapModel.getEntryId());
@@ -124,6 +131,10 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	 * @return the normal model instances
 	 */
 	public static List<RatingsEntry> toModels(RatingsEntrySoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<RatingsEntry> models = new ArrayList<RatingsEntry>(soapModels.length);
 
 		for (RatingsEntrySoap soapModel : soapModels) {
@@ -148,7 +159,7 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_entryId);
+		return _entryId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -402,17 +413,6 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	}
 
 	@Override
-	public RatingsEntry toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (RatingsEntry)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			RatingsEntry.class.getName(), getPrimaryKey());
@@ -423,6 +423,16 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public RatingsEntry toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (RatingsEntry)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -633,7 +643,7 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	}
 
 	private static ClassLoader _classLoader = RatingsEntry.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			RatingsEntry.class
 		};
 	private long _entryId;
@@ -655,5 +665,5 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	private double _originalScore;
 	private boolean _setOriginalScore;
 	private long _columnBitmask;
-	private RatingsEntry _escapedModelProxy;
+	private RatingsEntry _escapedModel;
 }

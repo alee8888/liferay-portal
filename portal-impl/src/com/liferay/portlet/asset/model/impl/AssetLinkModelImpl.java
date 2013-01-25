@@ -89,6 +89,7 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 	public static long ENTRYID1_COLUMN_BITMASK = 1L;
 	public static long ENTRYID2_COLUMN_BITMASK = 2L;
 	public static long TYPE_COLUMN_BITMASK = 4L;
+	public static long WEIGHT_COLUMN_BITMASK = 8L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.asset.model.AssetLink"));
 
@@ -104,7 +105,7 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_linkId);
+		return _linkId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -321,17 +322,6 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 	}
 
 	@Override
-	public AssetLink toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (AssetLink)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			AssetLink.class.getName(), getPrimaryKey());
@@ -342,6 +332,16 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public AssetLink toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (AssetLink)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -547,7 +547,7 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 	}
 
 	private static ClassLoader _classLoader = AssetLink.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			AssetLink.class
 		};
 	private long _linkId;
@@ -567,5 +567,5 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 	private boolean _setOriginalType;
 	private int _weight;
 	private long _columnBitmask;
-	private AssetLink _escapedModelProxy;
+	private AssetLink _escapedModel;
 }

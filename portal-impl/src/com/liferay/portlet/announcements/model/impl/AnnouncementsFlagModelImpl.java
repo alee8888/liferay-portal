@@ -90,6 +90,7 @@ public class AnnouncementsFlagModelImpl extends BaseModelImpl<AnnouncementsFlag>
 	public static long ENTRYID_COLUMN_BITMASK = 1L;
 	public static long USERID_COLUMN_BITMASK = 2L;
 	public static long VALUE_COLUMN_BITMASK = 4L;
+	public static long CREATEDATE_COLUMN_BITMASK = 8L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -98,6 +99,10 @@ public class AnnouncementsFlagModelImpl extends BaseModelImpl<AnnouncementsFlag>
 	 * @return the normal model instance
 	 */
 	public static AnnouncementsFlag toModel(AnnouncementsFlagSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		AnnouncementsFlag model = new AnnouncementsFlagImpl();
 
 		model.setFlagId(soapModel.getFlagId());
@@ -117,6 +122,10 @@ public class AnnouncementsFlagModelImpl extends BaseModelImpl<AnnouncementsFlag>
 	 */
 	public static List<AnnouncementsFlag> toModels(
 		AnnouncementsFlagSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<AnnouncementsFlag> models = new ArrayList<AnnouncementsFlag>(soapModels.length);
 
 		for (AnnouncementsFlagSoap soapModel : soapModels) {
@@ -141,7 +150,7 @@ public class AnnouncementsFlagModelImpl extends BaseModelImpl<AnnouncementsFlag>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_flagId);
+		return _flagId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -298,17 +307,6 @@ public class AnnouncementsFlagModelImpl extends BaseModelImpl<AnnouncementsFlag>
 	}
 
 	@Override
-	public AnnouncementsFlag toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (AnnouncementsFlag)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
 			AnnouncementsFlag.class.getName(), getPrimaryKey());
@@ -319,6 +317,16 @@ public class AnnouncementsFlagModelImpl extends BaseModelImpl<AnnouncementsFlag>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public AnnouncementsFlag toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (AnnouncementsFlag)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -489,7 +497,7 @@ public class AnnouncementsFlagModelImpl extends BaseModelImpl<AnnouncementsFlag>
 	}
 
 	private static ClassLoader _classLoader = AnnouncementsFlag.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			AnnouncementsFlag.class
 		};
 	private long _flagId;
@@ -505,5 +513,5 @@ public class AnnouncementsFlagModelImpl extends BaseModelImpl<AnnouncementsFlag>
 	private int _originalValue;
 	private boolean _setOriginalValue;
 	private long _columnBitmask;
-	private AnnouncementsFlag _escapedModelProxy;
+	private AnnouncementsFlag _escapedModel;
 }

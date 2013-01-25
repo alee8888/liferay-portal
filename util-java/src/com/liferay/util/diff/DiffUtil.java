@@ -80,6 +80,8 @@ public class DiffUtil {
 	 *         deleted from the source
 	 * @param  deletedMarkerEnd the marker to indicate the end of text deleted
 	 *         from the source
+	 * @param  margin the vertical margin to use in displaying differences
+	 *         between changed line changes
 	 * @return an array containing two lists of <code>DiffResults</code>, the
 	 *         first element contains DiffResults related to changes in source
 	 *         and the second element to changes in target
@@ -289,7 +291,7 @@ public class DiffUtil {
 			}
 
 			if (aligned) {
-				 break;
+				break;
 			}
 			else {
 				_highlightLines(
@@ -322,7 +324,7 @@ public class DiffUtil {
 		// After the for loop above, some lines might remained unchecked.
 		// They are considered as deletions or additions.
 
-		for (; i <= difference.getDeletedEnd();i++) {
+		for (; i <= difference.getDeletedEnd(); i++) {
 			_highlightLines(
 				sourceStringList, deletedMarkerStart, deletedMarkerEnd, i, i);
 
@@ -360,8 +362,8 @@ public class DiffUtil {
 			return margin;
 		}
 
-		int lastChangedLine = (lastDiff.getLineNumber() - 1) +
-			lastDiff.getChangedLines().size();
+		int lastChangedLine =
+			(lastDiff.getLineNumber() - 1) + lastDiff.getChangedLines().size();
 
 		int currentChangedLine = startPos - margin;
 
@@ -445,7 +447,7 @@ public class DiffUtil {
 		// length), consider this as not aligned yet.
 
 		if ((deletedChars > (sourceList.size() / 2)) ||
-			(addedChars > sourceList.size() / 2)) {
+			(addedChars > (sourceList.size() / 2))) {
 
 			return false;
 		}

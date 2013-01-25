@@ -86,25 +86,10 @@ SitesUtil.addPortletBreadcrumbEntries(group, pagesName, redirectURL, request, re
 
 		<%
 		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, TextFormatter.format(tabs1, TextFormatter.O)), redirectURL.toString());
-
-		if ((selLayout != null) && !group.isLayoutPrototype()) {
-			redirectURL.setParameter("selPlid", String.valueOf(selLayout.getPlid()));
-
-			PortalUtil.addPortletBreadcrumbEntry(request, selLayout.getName(locale), currentURL);
-		}
 		%>
 
 	</c:when>
 	<c:otherwise>
-
-		<%
-		if ((selLayout != null) && !group.isLayoutPrototype()) {
-			redirectURL.setParameter("selPlid", String.valueOf(selLayout.getPlid()));
-
-			PortalUtil.addPortletBreadcrumbEntry(request, selLayout.getName(locale), redirectURL.toString());
-		}
-		%>
-
 		<div class="layout-breadcrumb">
 			<liferay-ui:breadcrumb displayStyle="horizontal" showGuestGroup="<%= false %>" showLayout="<%= false %>" showParentGroups="<%= false %>" showPortletBreadcrumb="<%= true %>" />
 		</div>
@@ -148,7 +133,7 @@ SitesUtil.addPortletBreadcrumbEntries(group, pagesName, redirectURL, request, re
 
 						<c:choose>
 							<c:when test="<%= layoutSetBranches.size() > 1 %>">
-								<liferay-ui:icon-menu align="left" cssClass="layoutset-branches-menu" direction="down" extended="<%= true %>" icon='<%= themeDisplay.getPathThemeImages() + "/common/staging.png" %>' message="<%= layoutSetBranch.getName() %>">
+								<liferay-ui:icon-menu align="left" cssClass="layoutset-branches-menu" direction="down" extended="<%= true %>" icon='<%= themeDisplay.getPathThemeImages() + "/common/staging.png" %>' message="<%= HtmlUtil.escape(layoutSetBranch.getName()) %>">
 
 									<%
 									for (int i = 0; i < layoutSetBranches.size(); i++) {
@@ -169,7 +154,7 @@ SitesUtil.addPortletBreadcrumbEntries(group, pagesName, redirectURL, request, re
 										<liferay-ui:icon
 											cssClass='<%= selected ? "disabled" : StringPool.BLANK %>'
 											image='<%= selected ? "../arrows/01_right" : "copy"  %>'
-											message="<%= curLayoutSetBranch.getName() %>"
+											message="<%= HtmlUtil.escape(curLayoutSetBranch.getName()) %>"
 											url="<%= selected ? null : layoutSetBranchURL %>"
 										/>
 
@@ -184,7 +169,7 @@ SitesUtil.addPortletBreadcrumbEntries(group, pagesName, redirectURL, request, re
 									cssClass="layoutset-branch"
 									image="../common/staging"
 									label="<%= true %>"
-									message='<%= (layoutSetBranch == null || (layoutSetBranches.size() == 1)) ? "staging" : layoutSetBranch.getName() %>'
+									message='<%= (layoutSetBranch == null || (layoutSetBranches.size() == 1)) ? "staging" : HtmlUtil.escape(layoutSetBranch.getName()) %>'
 								/>
 							</c:otherwise>
 						</c:choose>
@@ -230,31 +215,37 @@ SitesUtil.addPortletBreadcrumbEntries(group, pagesName, redirectURL, request, re
 			function(event) {
 				event.preventDefault();
 
-				var hash = location.hash;
+				var link = event.currentTarget.one('a');
 
-				var prefix = '#_LFR_FN_<portlet:namespace />';
-				var historyKey = '';
+				if (link && !event.target.hasClass('aui-tree-hitarea')) {
+					var href = link.attr('href');
 
-				if (hash.indexOf(prefix) != -1) {
-					historyKey = hash.replace(prefix, '');
-				}
+					var hash = location.hash;
 
-				var requestUri = A.Lang.sub(
-					event.currentTarget.get('href'),
-					{
-						historyKey: historyKey
+					var prefix = '#_LFR_FN_<portlet:namespace />';
+					var historyKey = '';
+
+					if (hash.indexOf(prefix) != -1) {
+						historyKey = hash.replace(prefix, '');
 					}
-				);
 
-				layoutsContainer.io.set('uri', requestUri);
+					var requestUri = A.Lang.sub(
+						href,
+						{
+							historyKey: historyKey
+						}
+					);
 
-				if (layoutsContainer.ParseContent) {
-					layoutsContainer.ParseContent.get('queue').stop();
+					layoutsContainer.io.set('uri', requestUri);
+
+					if (layoutsContainer.ParseContent) {
+						layoutsContainer.ParseContent.get('queue').stop();
+					}
+
+					layoutsContainer.io.start();
 				}
-
-				layoutsContainer.io.start();
 			},
-			'.layout-tree'
+			'.aui-tree-node-content'
 		);
 	</aui:script>
 </c:if>

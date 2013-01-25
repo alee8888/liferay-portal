@@ -318,6 +318,24 @@ public class GetterUtil_IW {
 		return GetterUtil.getNumber(value, defaultValue);
 	}
 
+	public java.lang.Number[] getNumberValues(java.lang.Object value) {
+		return GetterUtil.getNumberValues(value);
+	}
+
+	public java.lang.Number[] getNumberValues(java.lang.Object value,
+		java.lang.Number[] defaultValue) {
+		return GetterUtil.getNumberValues(value, defaultValue);
+	}
+
+	public java.lang.Number[] getNumberValues(java.lang.String[] values) {
+		return GetterUtil.getNumberValues(values);
+	}
+
+	public java.lang.Number[] getNumberValues(java.lang.String[] values,
+		java.lang.Number[] defaultValue) {
+		return GetterUtil.getNumberValues(values, defaultValue);
+	}
+
 	public java.lang.Object getObject(java.lang.Object value) {
 		return GetterUtil.getObject(value);
 	}
@@ -376,6 +394,24 @@ public class GetterUtil_IW {
 	public java.lang.String getString(java.lang.String value,
 		java.lang.String defaultValue) {
 		return GetterUtil.getString(value, defaultValue);
+	}
+
+	public java.lang.String[] getStringValues(java.lang.Object value) {
+		return GetterUtil.getStringValues(value);
+	}
+
+	public java.lang.String[] getStringValues(java.lang.Object value,
+		java.lang.String[] defaultValue) {
+		return GetterUtil.getStringValues(value, defaultValue);
+	}
+
+	public java.lang.String[] getStringValues(java.lang.Object[] values,
+		java.lang.String[] defaultValue) {
+		return GetterUtil.getStringValues(values, defaultValue);
+	}
+
+	public java.lang.String[] getStringValues(java.lang.String[] values) {
+		return GetterUtil.getStringValues(values);
 	}
 
 	private GetterUtil_IW() {

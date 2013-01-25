@@ -42,7 +42,7 @@ public class VerifyMySQL extends VerifyProcess {
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"alter table " + tableName + " engine " +
@@ -70,7 +70,7 @@ public class VerifyMySQL extends VerifyProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement("show table status");
 
@@ -78,6 +78,11 @@ public class VerifyMySQL extends VerifyProcess {
 
 			while (rs.next()) {
 				String tableName = rs.getString("Name");
+
+				if (!isPortalTableName(tableName)) {
+					continue;
+				}
+
 				String engine = GetterUtil.getString(rs.getString("Engine"));
 				String comment = GetterUtil.getString(rs.getString("Comment"));
 

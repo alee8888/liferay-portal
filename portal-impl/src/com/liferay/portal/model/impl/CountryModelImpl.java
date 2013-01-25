@@ -98,6 +98,10 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	 * @return the normal model instance
 	 */
 	public static Country toModel(CountrySoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		Country model = new CountryImpl();
 
 		model.setCountryId(soapModel.getCountryId());
@@ -119,6 +123,10 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	 * @return the normal model instances
 	 */
 	public static List<Country> toModels(CountrySoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<Country> models = new ArrayList<Country>(soapModels.length);
 
 		for (CountrySoap soapModel : soapModels) {
@@ -143,7 +151,7 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_countryId);
+		return _countryId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -377,17 +385,6 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	}
 
 	@Override
-	public Country toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Country)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
 			Country.class.getName(), getPrimaryKey());
@@ -398,6 +395,16 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public Country toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Country)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -601,7 +608,7 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	}
 
 	private static ClassLoader _classLoader = Country.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			Country.class
 		};
 	private long _countryId;
@@ -618,5 +625,5 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	private boolean _originalActive;
 	private boolean _setOriginalActive;
 	private long _columnBitmask;
-	private Country _escapedModelProxy;
+	private Country _escapedModel;
 }

@@ -29,6 +29,12 @@ public class IndexerWrapper implements Indexer {
 		_indexer = indexer;
 	}
 
+	public void addRelatedEntryFields(Document document, Object obj)
+		throws Exception {
+
+		_indexer.addRelatedEntryFields(document, obj);
+	}
+
 	public void delete(long companyId, String uid) throws SearchException {
 		_indexer.delete(companyId, uid);
 	}
@@ -83,12 +89,12 @@ public class IndexerWrapper implements Indexer {
 	}
 
 	public boolean hasPermission(
-			PermissionChecker permissionChecker, long entryClassPK,
-			String actionId)
+			PermissionChecker permissionChecker, String entryClassName,
+			long entryClassPK, String actionId)
 		throws Exception {
 
 		return _indexer.hasPermission(
-			permissionChecker, entryClassPK, actionId);
+			permissionChecker, entryClassName, entryClassPK, actionId);
 	}
 
 	public boolean isFilterSearch() {

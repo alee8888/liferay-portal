@@ -76,6 +76,8 @@ public class LayoutBranchModelImpl extends BaseModelImpl<LayoutBranch>
 		};
 	public static final String TABLE_SQL_CREATE = "create table LayoutBranch (LayoutBranchId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,layoutSetBranchId LONG,plid LONG,name VARCHAR(75) null,description STRING null,master BOOLEAN)";
 	public static final String TABLE_SQL_DROP = "drop table LayoutBranch";
+	public static final String ORDER_BY_JPQL = " ORDER BY layoutBranch.LayoutBranchId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY LayoutBranch.LayoutBranchId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -92,6 +94,7 @@ public class LayoutBranchModelImpl extends BaseModelImpl<LayoutBranch>
 	public static long MASTER_COLUMN_BITMASK = 2L;
 	public static long NAME_COLUMN_BITMASK = 4L;
 	public static long PLID_COLUMN_BITMASK = 8L;
+	public static long LAYOUTBRANCHID_COLUMN_BITMASK = 16L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -100,6 +103,10 @@ public class LayoutBranchModelImpl extends BaseModelImpl<LayoutBranch>
 	 * @return the normal model instance
 	 */
 	public static LayoutBranch toModel(LayoutBranchSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		LayoutBranch model = new LayoutBranchImpl();
 
 		model.setLayoutBranchId(soapModel.getLayoutBranchId());
@@ -123,6 +130,10 @@ public class LayoutBranchModelImpl extends BaseModelImpl<LayoutBranch>
 	 * @return the normal model instances
 	 */
 	public static List<LayoutBranch> toModels(LayoutBranchSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<LayoutBranch> models = new ArrayList<LayoutBranch>(soapModels.length);
 
 		for (LayoutBranchSoap soapModel : soapModels) {
@@ -147,7 +158,7 @@ public class LayoutBranchModelImpl extends BaseModelImpl<LayoutBranch>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_LayoutBranchId);
+		return _LayoutBranchId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -411,17 +422,6 @@ public class LayoutBranchModelImpl extends BaseModelImpl<LayoutBranch>
 	}
 
 	@Override
-	public LayoutBranch toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (LayoutBranch)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			LayoutBranch.class.getName(), getPrimaryKey());
@@ -432,6 +432,16 @@ public class LayoutBranchModelImpl extends BaseModelImpl<LayoutBranch>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public LayoutBranch toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (LayoutBranch)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -647,7 +657,7 @@ public class LayoutBranchModelImpl extends BaseModelImpl<LayoutBranch>
 	}
 
 	private static ClassLoader _classLoader = LayoutBranch.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			LayoutBranch.class
 		};
 	private long _LayoutBranchId;
@@ -669,5 +679,5 @@ public class LayoutBranchModelImpl extends BaseModelImpl<LayoutBranch>
 	private boolean _originalMaster;
 	private boolean _setOriginalMaster;
 	private long _columnBitmask;
-	private LayoutBranch _escapedModelProxy;
+	private LayoutBranch _escapedModel;
 }

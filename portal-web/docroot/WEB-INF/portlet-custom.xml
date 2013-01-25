@@ -152,6 +152,10 @@
 			<value>/html/portlet/journal/configuration.jsp</value>
 		</init-param>
 		<init-param>
+			<name>ddm-resource</name>
+			<value>com.liferay.portlet.journal</value>
+		</init-param>
+		<init-param>
 			<name>template-path</name>
 			<value>/html/portlet/journal/</value>
 		</init-param>
@@ -265,6 +269,7 @@
 		<security-role-ref>
 			<role-name>user</role-name>
 		</security-role-ref>
+		<supported-public-render-parameter>tag</supported-public-render-parameter>
 	</portlet>
 	<portlet>
 		<portlet-name>20</portlet-name>
@@ -931,6 +936,10 @@
 			<value>/html/portlet/journal_articles/configuration.jsp</value>
 		</init-param>
 		<init-param>
+			<name>ddm-resource</name>
+			<value>com.liferay.portlet.journal</value>
+		</init-param>
+		<init-param>
 			<name>template-path</name>
 			<value>/html/portlet/journal_articles/</value>
 		</init-param>
@@ -1293,6 +1302,12 @@
 			<mime-type>text/html</mime-type>
 		</supports>
 		<resource-bundle>com.liferay.portlet.StrutsResourceBundle</resource-bundle>
+		<portlet-preferences>
+			<preference>
+				<name>portletSetupShowBorders</name>
+				<value>false</value>
+			</preference>
+		</portlet-preferences>
 		<security-role-ref>
 			<role-name>power-user</role-name>
 		</security-role-ref>
@@ -1304,6 +1319,10 @@
 		<portlet-name>84</portlet-name>
 		<display-name>Announcements</display-name>
 		<portlet-class>com.liferay.portlet.StrutsPortlet</portlet-class>
+		<init-param>
+			<name>config-template</name>
+			<value>/html/portlet/announcements/configuration.jsp</value>
+		</init-param>
 		<init-param>
 			<name>template-path</name>
 			<value>/html/portlet/announcements/</value>
@@ -1704,7 +1723,7 @@
 			</preference>
 			<preference>
 				<name>folderColumns</name>
-				<value>folder,num-of-folders,num-of-documents</value>
+				<value>name,num-of-folders,num-of-documents</value>
 			</preference>
 			<preference>
 				<name>showFoldersSearch</name>
@@ -1929,6 +1948,12 @@
 			<mime-type>text/html</mime-type>
 		</supports>
 		<resource-bundle>com.liferay.portlet.StrutsResourceBundle</resource-bundle>
+		<portlet-preferences>
+			<preference>
+				<name>portletSetupShowBorders</name>
+				<value>false</value>
+			</preference>
+		</portlet-preferences>
 		<security-role-ref>
 			<role-name>guest</role-name>
 		</security-role-ref>
@@ -3264,6 +3289,54 @@
 			<mime-type>text/html</mime-type>
 		</supports>
 		<resource-bundle>com.liferay.portlet.StrutsResourceBundle</resource-bundle>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>183</portlet-name>
+		<display-name>Application Display Templates</display-name>
+		<portlet-class>com.liferay.portlet.StrutsPortlet</portlet-class>
+		<init-param>
+			<name>view-action</name>
+			<value>/dynamic_data_mapping/view_template</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>com.liferay.portlet.StrutsResourceBundle</resource-bundle>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>184</portlet-name>
+		<display-name>Sites Directory</display-name>
+		<portlet-class>com.liferay.portlet.StrutsPortlet</portlet-class>
+		<init-param>
+			<name>config-template</name>
+			<value>/html/portlet/sites_directory/configuration.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlet/sites_directory/</value>
+		</init-param>
+		<init-param>
+			<name>view-action</name>
+			<value>/sites_directory/view</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>com.liferay.portlet.StrutsResourceBundle</resource-bundle>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
 		<security-role-ref>
 			<role-name>power-user</role-name>
 		</security-role-ref>

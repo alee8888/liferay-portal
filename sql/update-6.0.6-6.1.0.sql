@@ -7,16 +7,17 @@ update AssetEntry set classUuid = (select uuid_ from JournalArticleResource wher
 
 alter table BlogsEntry add description STRING null;
 alter table BlogsEntry add smallImage BOOLEAN;
-alter table BlogsEntry add smallImageId VARCHAR(75) null;
+alter table BlogsEntry add smallImageId LONG;
 alter table BlogsEntry add smallImageURL STRING null;
 
 alter table BookmarksEntry add userName VARCHAR(75) null;
 alter table BookmarksEntry add resourceBlockId LONG;
-alter table BookmarksEntry add description VARCHAR(75) null;
+alter table BookmarksEntry add description STRING null;
 
 COMMIT_TRANSACTION;
 
 update BookmarksEntry set description = comments;
+
 alter table BookmarksEntry drop column comments;
 
 alter table BookmarksFolder add userName VARCHAR(75) null;
@@ -27,6 +28,7 @@ alter table CalEvent add location STRING null;
 update ClassName_ set value = 'com.liferay.portal.model.UserPersonalSite' where value = 'com.liferay.portal.model.UserPersonalCommunity';
 
 drop index IX_975996C0 on Company;
+
 alter table Company add active_ BOOLEAN;
 
 COMMIT_TRANSACTION;
@@ -216,10 +218,12 @@ update DLFileEntry set repositoryId = groupId;
 
 drop index IX_CE705D48 on DLFileRank;
 drop index IX_40B56512 on DLFileRank;
+
 alter table DLFileRank add fileEntryId LONG;
 
 drop index IX_55C736AC on DLFileShortcut;
 drop index IX_346A0992 on DLFileShortcut;
+
 alter table DLFileShortcut add repositoryId LONG;
 alter table DLFileShortcut add toFileEntryId LONG;
 
@@ -230,6 +234,7 @@ update DLFileShortcut set repositoryId = groupId;
 drop index IX_B413F1EC on DLFileVersion;
 drop index IX_94E784D2 on DLFileVersion;
 drop index IX_2F8FED9C on DLFileVersion;
+
 alter table DLFileVersion add modifiedDate DATE null;
 alter table DLFileVersion add repositoryId LONG;
 alter table DLFileVersion add fileEntryId LONG;
@@ -293,13 +298,14 @@ alter table Layout add robots STRING null;
 alter table Layout add layoutPrototypeUuid VARCHAR(75) null;
 alter table Layout add layoutPrototypeLinkEnabled BOOLEAN null;
 alter table Layout add sourcePrototypeLayoutUuid VARCHAR(75) null;
+
 alter table Layout drop column layoutPrototypeId;
 alter table Layout drop column dlFolderId;
 
+COMMIT_TRANSACTION;
+
 update Layout set createDate = CURRENT_TIMESTAMP;
 update Layout set modifiedDate = CURRENT_TIMESTAMP;
-
-COMMIT_TRANSACTION;
 
 create table LayoutBranch (
 	LayoutBranchId LONG not null primary key,
@@ -354,6 +360,7 @@ alter table LayoutSet add createDate DATE null;
 alter table LayoutSet add modifiedDate DATE null;
 alter table LayoutSet add layoutSetPrototypeUuid VARCHAR(75) null;
 alter table LayoutSet add layoutSetPrototypeLinkEnabled BOOLEAN null;
+
 alter table LayoutSet drop column layoutSetPrototypeId;
 
 drop index IX_5ABC2905 on LayoutSet;
@@ -475,6 +482,7 @@ create table MDRRuleGroupInstance (
 );
 
 alter table Organization_ add treePath STRING null;
+
 alter table Organization_ drop column leftOrganizationId;
 alter table Organization_ drop column rightOrganizationId;
 
@@ -530,6 +538,8 @@ create table ResourceBlockPermission (
 	roleId LONG,
 	actionIds LONG
 );
+
+drop index IX_8D83D0CE on ResourcePermission;
 
 alter table ResourcePermission add ownerId LONG;
 
@@ -642,6 +652,11 @@ create table VirtualHost (
 alter table WorkflowDefinitionLink add classPK LONG;
 alter table WorkflowDefinitionLink add typePK LONG;
 
+COMMIT_TRANSACTION;
+
+update WorkflowDefinitionLink set classPK = 0;
+update WorkflowDefinitionLink set typePK = 0;
+
 drop table QUARTZ_BLOB_TRIGGERS;
 drop table QUARTZ_CALENDARS;
 drop table QUARTZ_CRON_TRIGGERS;
@@ -739,7 +754,7 @@ create table QUARTZ_SIMPLE_TRIGGERS (
 	primary key (SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP)
 );
 
-CREATE TABLE QUARTZ_SIMPROP_TRIGGERS (
+create table QUARTZ_SIMPROP_TRIGGERS (
 	SCHED_NAME VARCHAR(120) not null,
 	TRIGGER_NAME VARCHAR(200) not null,
 	TRIGGER_GROUP VARCHAR(200) not null,

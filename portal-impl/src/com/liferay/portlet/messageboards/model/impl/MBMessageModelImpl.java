@@ -85,7 +85,6 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 			{ "subject", Types.VARCHAR },
 			{ "body", Types.CLOB },
 			{ "format", Types.VARCHAR },
-			{ "attachments", Types.BOOLEAN },
 			{ "anonymous", Types.BOOLEAN },
 			{ "priority", Types.DOUBLE },
 			{ "allowPingbacks", Types.BOOLEAN },
@@ -95,7 +94,7 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 			{ "statusByUserName", Types.VARCHAR },
 			{ "statusDate", Types.TIMESTAMP }
 		};
-	public static final String TABLE_SQL_CREATE = "create table MBMessage (uuid_ VARCHAR(75) null,messageId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,categoryId LONG,threadId LONG,rootMessageId LONG,parentMessageId LONG,subject VARCHAR(75) null,body TEXT null,format VARCHAR(75) null,attachments BOOLEAN,anonymous BOOLEAN,priority DOUBLE,allowPingbacks BOOLEAN,answer BOOLEAN,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
+	public static final String TABLE_SQL_CREATE = "create table MBMessage (uuid_ VARCHAR(75) null,messageId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,categoryId LONG,threadId LONG,rootMessageId LONG,parentMessageId LONG,subject VARCHAR(75) null,body TEXT null,format VARCHAR(75) null,anonymous BOOLEAN,priority DOUBLE,allowPingbacks BOOLEAN,answer BOOLEAN,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
 	public static final String TABLE_SQL_DROP = "drop table MBMessage";
 	public static final String ORDER_BY_JPQL = " ORDER BY mbMessage.createDate ASC, mbMessage.messageId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY MBMessage.createDate ASC, MBMessage.messageId ASC";
@@ -122,6 +121,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 	public static long THREADID_COLUMN_BITMASK = 256L;
 	public static long USERID_COLUMN_BITMASK = 512L;
 	public static long UUID_COLUMN_BITMASK = 1024L;
+	public static long CREATEDATE_COLUMN_BITMASK = 2048L;
+	public static long MESSAGEID_COLUMN_BITMASK = 4096L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -130,6 +131,10 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 	 * @return the normal model instance
 	 */
 	public static MBMessage toModel(MBMessageSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		MBMessage model = new MBMessageImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -149,7 +154,6 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		model.setSubject(soapModel.getSubject());
 		model.setBody(soapModel.getBody());
 		model.setFormat(soapModel.getFormat());
-		model.setAttachments(soapModel.getAttachments());
 		model.setAnonymous(soapModel.getAnonymous());
 		model.setPriority(soapModel.getPriority());
 		model.setAllowPingbacks(soapModel.getAllowPingbacks());
@@ -169,6 +173,10 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 	 * @return the normal model instances
 	 */
 	public static List<MBMessage> toModels(MBMessageSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<MBMessage> models = new ArrayList<MBMessage>(soapModels.length);
 
 		for (MBMessageSoap soapModel : soapModels) {
@@ -193,7 +201,7 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_messageId);
+		return _messageId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -229,7 +237,6 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		attributes.put("subject", getSubject());
 		attributes.put("body", getBody());
 		attributes.put("format", getFormat());
-		attributes.put("attachments", getAttachments());
 		attributes.put("anonymous", getAnonymous());
 		attributes.put("priority", getPriority());
 		attributes.put("allowPingbacks", getAllowPingbacks());
@@ -344,12 +351,6 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 
 		if (format != null) {
 			setFormat(format);
-		}
-
-		Boolean attachments = (Boolean)attributes.get("attachments");
-
-		if (attachments != null) {
-			setAttachments(attachments);
 		}
 
 		Boolean anonymous = (Boolean)attributes.get("anonymous");
@@ -714,19 +715,6 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 	}
 
 	@JSON
-	public boolean getAttachments() {
-		return _attachments;
-	}
-
-	public boolean isAttachments() {
-		return _attachments;
-	}
-
-	public void setAttachments(boolean attachments) {
-		_attachments = attachments;
-	}
-
-	@JSON
 	public boolean getAnonymous() {
 		return _anonymous;
 	}
@@ -864,9 +852,17 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		}
 	}
 
+	public boolean isDenied() {
+		if (getStatus() == WorkflowConstants.STATUS_DENIED) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public boolean isDraft() {
-		if ((getStatus() == WorkflowConstants.STATUS_DRAFT) ||
-				(getStatus() == WorkflowConstants.STATUS_DRAFT_FROM_APPROVED)) {
+		if (getStatus() == WorkflowConstants.STATUS_DRAFT) {
 			return true;
 		}
 		else {
@@ -883,6 +879,33 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		}
 	}
 
+	public boolean isInactive() {
+		if (getStatus() == WorkflowConstants.STATUS_INACTIVE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isIncomplete() {
+		if (getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isInTrash() {
+		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public boolean isPending() {
 		if (getStatus() == WorkflowConstants.STATUS_PENDING) {
 			return true;
@@ -892,19 +915,17 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		}
 	}
 
-	public long getColumnBitmask() {
-		return _columnBitmask;
+	public boolean isScheduled() {
+		if (getStatus() == WorkflowConstants.STATUS_SCHEDULED) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
-	@Override
-	public MBMessage toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (MBMessage)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -918,6 +939,16 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public MBMessage toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (MBMessage)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -941,7 +972,6 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		mbMessageImpl.setSubject(getSubject());
 		mbMessageImpl.setBody(getBody());
 		mbMessageImpl.setFormat(getFormat());
-		mbMessageImpl.setAttachments(getAttachments());
 		mbMessageImpl.setAnonymous(getAnonymous());
 		mbMessageImpl.setPriority(getPriority());
 		mbMessageImpl.setAllowPingbacks(getAllowPingbacks());
@@ -1143,8 +1173,6 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 			mbMessageCacheModel.format = null;
 		}
 
-		mbMessageCacheModel.attachments = getAttachments();
-
 		mbMessageCacheModel.anonymous = getAnonymous();
 
 		mbMessageCacheModel.priority = getPriority();
@@ -1179,7 +1207,7 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(53);
+		StringBundler sb = new StringBundler(51);
 
 		sb.append("{uuid=");
 		sb.append(getUuid());
@@ -1215,8 +1243,6 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		sb.append(getBody());
 		sb.append(", format=");
 		sb.append(getFormat());
-		sb.append(", attachments=");
-		sb.append(getAttachments());
 		sb.append(", anonymous=");
 		sb.append(getAnonymous());
 		sb.append(", priority=");
@@ -1239,7 +1265,7 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 	}
 
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(82);
+		StringBundler sb = new StringBundler(79);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portlet.messageboards.model.MBMessage");
@@ -1314,10 +1340,6 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		sb.append(getFormat());
 		sb.append("]]></column-value></column>");
 		sb.append(
-			"<column><column-name>attachments</column-name><column-value><![CDATA[");
-		sb.append(getAttachments());
-		sb.append("]]></column-value></column>");
-		sb.append(
 			"<column><column-name>anonymous</column-name><column-value><![CDATA[");
 		sb.append(getAnonymous());
 		sb.append("]]></column-value></column>");
@@ -1356,7 +1378,7 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 	}
 
 	private static ClassLoader _classLoader = MBMessage.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			MBMessage.class
 		};
 	private String _uuid;
@@ -1394,7 +1416,6 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 	private String _subject;
 	private String _body;
 	private String _format;
-	private boolean _attachments;
 	private boolean _anonymous;
 	private double _priority;
 	private boolean _allowPingbacks;
@@ -1409,5 +1430,5 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 	private String _statusByUserName;
 	private Date _statusDate;
 	private long _columnBitmask;
-	private MBMessage _escapedModelProxy;
+	private MBMessage _escapedModel;
 }

@@ -14,12 +14,18 @@
 
 package com.liferay.portal.kernel.image;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+import com.liferay.portal.model.Image;
+
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+
+import java.util.concurrent.Future;
 
 /**
  * The Image utility class.
@@ -37,17 +43,16 @@ public class ImageToolUtil {
 	 *
 	 * @param  bytes the image to convert
 	 * @param  type the image type (e.g., "gif", "jpg", etc.)
-	 * @param  fork whether to fork the process
-	 * @return the converted image or <code>null</code> if ImageMagick was
-	 *         disabled or if the conversion was not completed. The conversion
-	 *         may not complete if (1) the image was not in the CMYK colorspace
-	 *         to begin with or (2) there was an error in the conversion
-	 *         process.
+	 * @return the asynchronous process converting the image or <code>null
+	 *         </code> if ImageMagick was disabled or if the conversion could
+	 *         not be completed. The conversion may not complete if (1) the
+	 *         image was not in the CMYK colorspace to begin with or (2) there
+	 *         was an error in the conversion process.
 	 */
-	public static RenderedImage convertCMYKtoRGB(
-		byte[] bytes, String type, boolean fork) {
+	public static Future<RenderedImage> convertCMYKtoRGB(
+		byte[] bytes, String type) {
 
-		return getImageTool().convertCMYKtoRGB(bytes, type, fork);
+		return getImageTool().convertCMYKtoRGB(bytes, type);
 	}
 
 	/**
@@ -115,8 +120,54 @@ public class ImageToolUtil {
 		return getImageTool().getBytes(renderedImage, contentType);
 	}
 
+	public static Image getDefaultCompanyLogo() {
+		return getImageTool().getDefaultCompanyLogo();
+	}
+
+	public static Image getDefaultOrganizationLogo() {
+		return getImageTool().getDefaultOrganizationLogo();
+	}
+
+	public static Image getDefaultSpacer() {
+		return getImageTool().getDefaultSpacer();
+	}
+
+	public static Image getDefaultUserFemalePortrait() {
+		return getImageTool().getDefaultUserFemalePortrait();
+	}
+
+	public static Image getDefaultUserMalePortrait() {
+		return getImageTool().getDefaultUserMalePortrait();
+	}
+
+	public static Image getImage(byte[] bytes) throws IOException {
+		return getImageTool().getImage(bytes);
+	}
+
+	public static Image getImage(File file) throws IOException {
+
+		return getImageTool().getImage(file);
+	}
+
+	public static Image getImage(InputStream is) throws IOException {
+
+		return getImageTool().getImage(is);
+	}
+
+	public static Image getImage(InputStream is, boolean cleanUpStream)
+		throws IOException {
+
+		return getImageTool().getImage(is, cleanUpStream);
+	}
+
 	public static ImageTool getImageTool() {
+		PortalRuntimePermission.checkGetBeanProperty(ImageToolUtil.class);
+
 		return _imageTool;
+	}
+
+	public static boolean isNullOrDefaultSpacer(byte[] bytes) {
+		return getImageTool().isNullOrDefaultSpacer(bytes);
 	}
 
 	/**
@@ -143,6 +194,10 @@ public class ImageToolUtil {
 	 */
 	public static ImageBag read(File file) throws IOException {
 		return getImageTool().read(file);
+	}
+
+	public static ImageBag read(InputStream inputStream) throws IOException {
+		return getImageTool().read(inputStream);
 	}
 
 	/**
@@ -190,6 +245,8 @@ public class ImageToolUtil {
 	}
 
 	public void setImageTool(ImageTool imageTool) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_imageTool = imageTool;
 	}
 

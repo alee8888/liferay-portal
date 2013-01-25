@@ -26,6 +26,7 @@ import com.liferay.portlet.dynamicdatalists.model.DDLRecordSet;
 import java.util.List;
 import java.util.Map;
 
+import javax.portlet.PortletPreferences;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
@@ -68,14 +69,22 @@ public interface DDL {
 			RenderResponse renderResponse)
 		throws Exception;
 
-	public void sendRecordFileUpload(
-			HttpServletRequest request, HttpServletResponse response,
-			DDLRecord record, String fieldName)
+	public boolean isEditable(
+			HttpServletRequest request, String portletId, long groupId)
+		throws Exception;
+
+	public boolean isEditable(
+			PortletPreferences preferences, String portletId, long groupId)
 		throws Exception;
 
 	public void sendRecordFileUpload(
 			HttpServletRequest request, HttpServletResponse response,
-			long recordId, String fieldName)
+			DDLRecord record, String fieldName, int valueIndex)
+		throws Exception;
+
+	public void sendRecordFileUpload(
+			HttpServletRequest request, HttpServletResponse response,
+			long recordId, String fieldName, int valueIndex)
 		throws Exception;
 
 	public DDLRecord updateRecord(
@@ -88,7 +97,7 @@ public interface DDL {
 			ServiceContext serviceContext)
 		throws Exception;
 
-	public String uploadRecordFieldFile(
+	public void uploadRecordFieldFile(
 			DDLRecord record, String fieldName, ServiceContext serviceContext)
 		throws Exception;
 

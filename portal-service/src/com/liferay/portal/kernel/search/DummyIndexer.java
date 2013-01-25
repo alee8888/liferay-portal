@@ -26,6 +26,9 @@ import javax.portlet.PortletURL;
  */
 public class DummyIndexer implements Indexer {
 
+	public void addRelatedEntryFields(Document document, Object obj) {
+	}
+
 	public void delete(long companyId, String uid) {
 	}
 
@@ -74,8 +77,8 @@ public class DummyIndexer implements Indexer {
 	}
 
 	public boolean hasPermission(
-		PermissionChecker permissionChecker, long entryClassPK,
-		String actionId) {
+		PermissionChecker permissionChecker, String entryClassName,
+		long entryClassPK, String actionId) {
 
 		return false;
 	}

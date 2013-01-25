@@ -29,6 +29,7 @@ page import="com.liferay.portal.kernel.scripting.ScriptingUtil" %><%@
 page import="com.liferay.portal.kernel.util.InstancePool" %><%@
 page import="com.liferay.portal.kernel.util.OSDetector" %><%@
 page import="com.liferay.portal.kernel.xuggler.XugglerUtil" %><%@
+page import="com.liferay.portal.upload.LiferayFileUpload" %><%@
 page import="com.liferay.portal.util.PortalInstances" %><%@
 page import="com.liferay.portlet.documentlibrary.model.DLFileEntry" %><%@
 page import="com.liferay.portlet.documentlibrary.model.DLFileVersion" %><%@
@@ -43,7 +44,7 @@ page import="org.apache.log4j.Logger" %>
 <%
 boolean showShardSelector = false;
 
-if (PropsValues.SHARD_SELECTOR.equals(ManualShardSelector.class.getName()) && ShardUtil.getAvailableShardNames().length > 1) {
+if (PropsValues.SHARD_SELECTOR.equals(ManualShardSelector.class.getName()) && (ShardUtil.getAvailableShardNames().length > 1)) {
 	showShardSelector = true;
 }
 %>

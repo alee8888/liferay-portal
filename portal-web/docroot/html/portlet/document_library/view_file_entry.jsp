@@ -28,9 +28,20 @@ String uploadProgressId = "dlFileEntryUploadProgress";
 FileEntry fileEntry = (FileEntry)request.getAttribute(WebKeys.DOCUMENT_LIBRARY_FILE_ENTRY);
 
 long fileEntryId = fileEntry.getFileEntryId();
+
 long folderId = fileEntry.getFolderId();
+
+if (Validator.isNull(redirect)) {
+	PortletURL portletURL = renderResponse.createRenderURL();
+
+	portletURL.setParameter("struts_action", "/document_library/view");
+	portletURL.setParameter("folderId", String.valueOf(folderId));
+
+	redirect = portletURL.toString();
+}
+
 String extension = fileEntry.getExtension();
-String title = fileEntry.getTitle();
+String title = TrashUtil.getOriginalTitle(fileEntry.getTitle());
 
 Folder folder = fileEntry.getFolder();
 FileVersion fileVersion = (FileVersion)request.getAttribute(WebKeys.DOCUMENT_LIBRARY_FILE_VERSION);
@@ -61,13 +72,13 @@ Lock lock = fileEntry.getLock();
 
 String[] conversions = new String[0];
 
-if (PrefsPropsUtil.getBoolean(PropsKeys.OPENOFFICE_SERVER_ENABLED, PropsValues.OPENOFFICE_SERVER_ENABLED)) {
+if (PropsValues.DL_FILE_ENTRY_CONVERSIONS_ENABLED && PrefsPropsUtil.getBoolean(PropsKeys.OPENOFFICE_SERVER_ENABLED, PropsValues.OPENOFFICE_SERVER_ENABLED)) {
 	conversions = (String[])DocumentConversionUtil.getConversions(extension);
 }
 
 long assetClassPK = 0;
 
-if (!fileVersion.isApproved() && !fileVersion.getVersion().equals(DLFileEntryConstants.VERSION_DEFAULT)) {
+if (!fileVersion.isApproved() && !fileVersion.getVersion().equals(DLFileEntryConstants.VERSION_DEFAULT) && !fileVersion.isInTrash()) {
 	assetClassPK = fileVersion.getFileVersionId();
 	title = fileVersion.getTitle();
 	extension = fileVersion.getExtension();
@@ -87,8 +98,6 @@ boolean hasImages = ImageProcessorUtil.hasImages(fileVersion);
 boolean hasPDFImages = PDFProcessorUtil.hasImages(fileVersion);
 boolean hasVideo = VideoProcessorUtil.hasVideo(fileVersion);
 
-User userDisplay = UserLocalServiceUtil.getUserById(fileEntry.getUserId());
-
 AssetEntry layoutAssetEntry = AssetEntryLocalServiceUtil.fetchEntry(DLFileEntryConstants.getClassName(), assetClassPK);
 
 request.setAttribute(WebKeys.LAYOUT_ASSET_ENTRY, layoutAssetEntry);
@@ -98,12 +107,12 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 
 <portlet:actionURL var="editFileEntry">
 	<portlet:param name="struts_action" value="/document_library/edit_file_entry" />
-	<portlet:param name="fileEntryId" value="<%= String.valueOf(fileEntry.getFileEntryId()) %>" />
 </portlet:actionURL>
 
 <aui:form action="<%= editFileEntry %>" method="post" name="fm">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
 	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
+	<aui:input name="fileEntryId" type="hidden" value="<%= String.valueOf(fileEntry.getFileEntryId()) %>" />
 </aui:form>
 
 <c:if test="<%= showHeader && (folder != null) %>">
@@ -122,7 +131,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 	<liferay-ui:header
 		backURL="<%= redirect %>"
 		localizeTitle="<%= false %>"
-		title="<%= fileEntry.getTitle() %>"
+		title="<%= TrashUtil.getOriginalTitle(fileEntry.getTitle()) %>"
 	/>
 </c:if>
 
@@ -130,12 +139,12 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 	<aui:layout>
 		<aui:column columnWidth="<%= 65 %>" cssClass="lfr-asset-column-details" first="<%= true %>">
 			<c:if test="<%= showActions %>">
-				<div class="lfr-header-row">
-					<div class="lfr-header-row-content">
-						<aui:button-row cssClass="edit-toolbar" id='<%= renderResponse.getNamespace() + "fileEntryToolbar" %>' />
-					</div>
-				</div>
+				<liferay-ui:app-view-toolbar>
+					<aui:button-row cssClass="edit-toolbar" id='<%= renderResponse.getNamespace() + "fileEntryToolbar" %>' />
+				</liferay-ui:app-view-toolbar>
 			</c:if>
+
+			<div class="portlet-msg-error aui-helper-hidden" id="<portlet:namespace />openMSOfficeError"></div>
 
 			<c:if test="<%= (fileEntry.getLock() != null) && DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE) %>">
 				<c:choose>
@@ -172,7 +181,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 								<c:when test="<%= versionSpecific %>">
 									<%= fileVersion.getTitle() %>
 
-									(<liferay-ui:message key="version" /> <%= fileVersion.getVersion() %>)
+									(<liferay-ui:message key="version" /> <%= HtmlUtil.escape(fileVersion.getVersion()) %>)
 								</c:when>
 								<c:otherwise>
 									<%= title %>
@@ -183,12 +192,10 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 						<span class="document-thumbnail">
 
 							<%
-							DLFileShortcut dlFileShortcut = null;
-
-							String thumbnailSrc = DLUtil.getThumbnailSrc(fileEntry, fileVersion, dlFileShortcut, themeDisplay);
+							String thumbnailSrc = DLUtil.getThumbnailSrc(fileEntry, fileVersion, null, themeDisplay);
 
 							if (layoutAssetEntry != null) {
-								AssetEntry incrementAssetEntry = AssetEntryServiceUtil.incrementViewCounter(layoutAssetEntry.getClassName(), assetClassPK);
+								AssetEntry incrementAssetEntry = AssetEntryServiceUtil.incrementViewCounter(layoutAssetEntry.getClassName(), fileEntry.getFileEntryId());
 
 								if (incrementAssetEntry != null) {
 									layoutAssetEntry = incrementAssetEntry;
@@ -200,10 +207,21 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 						</span>
 
 						<span class="user-date">
-							<liferay-ui:icon image="../document_library/add_document" label="<%= true %>" message='<%= LanguageUtil.format(pageContext, "uploaded-by-x-x", new Object[] {userDisplay.getDisplayURL(themeDisplay), HtmlUtil.escape(fileEntry.getUserName()), dateFormatDateTime.format(fileEntry.getCreateDate())}) %>' />
+
+							<%
+							String displayURL = StringPool.BLANK;
+
+							User userDisplay = UserLocalServiceUtil.fetchUser(fileEntry.getUserId());
+
+							if (userDisplay != null) {
+								displayURL = userDisplay.getDisplayURL(themeDisplay);
+							}
+							%>
+
+							<liferay-ui:icon image="../document_library/add_document" label="<%= true %>" message='<%= LanguageUtil.format(pageContext, "uploaded-by-x-x", new Object[] {displayURL, HtmlUtil.escape(fileEntry.getUserName()), dateFormatDateTime.format(fileEntry.getCreateDate())}) %>' />
 						</span>
 
-						<c:if test="<%= fileEntry.isSupportsSocial() %>">
+						<c:if test="<%= enableRatings && fileEntry.isSupportsSocial() %>">
 							<span class="lfr-asset-ratings">
 								<liferay-ui:ratings
 									className="<%= DLFileEntryConstants.getClassName() %>"
@@ -423,29 +441,31 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 
 		<aui:column columnWidth="<%= 35 %>" cssClass="lfr-asset-column-details context-pane" last="<%= true %>">
 			<c:if test="<%= showActions %>">
-				<div class="lfr-header-row">
-					<div class="lfr-header-row-content"></div>
-				</div>
+				<liferay-ui:app-view-toolbar>
+					<aui:button-row cssClass="edit-toolbar" id='<%= renderResponse.getNamespace() + "fileEntryToolbar" %>' />
+				</liferay-ui:app-view-toolbar>
 			</c:if>
 
 			<div class="body-row asset-details">
 				<c:if test="<%= showAssetMetadata %>">
 					<div class="asset-details-content">
 						<h3 class="version <%= fileEntry.isCheckedOut() ? "document-locked" : StringPool.BLANK %>">
-							<liferay-ui:message key="version" /> <%= fileVersion.getVersion() %>
+							<liferay-ui:message key="version" /> <%= HtmlUtil.escape(fileVersion.getVersion()) %>
 						</h3>
 
 						<div class="lfr-asset-icon lfr-asset-author">
-							<liferay-ui:message arguments="<%= HtmlUtil.escape(fileVersion.getUserName()) %>" key="last-updated-by-x" />
+							<liferay-ui:message arguments="<%= HtmlUtil.escape(fileVersion.getStatusByUserName()) %>" key="last-updated-by-x" />
 						</div>
 
 						<div class="lfr-asset-icon lfr-asset-date">
 							<%= dateFormatDateTime.format(fileVersion.getModifiedDate()) %>
 						</div>
 
-						<div class="lfr-asset-summary">
-							<aui:workflow-status model="<%= DLFileEntry.class %>" status="<%= fileVersion.getStatus() %>" />
-						</div>
+						<c:if test="<%= !portletId.equals(PortletKeys.TRASH) %>">
+							<div class="lfr-asset-summary">
+								<aui:workflow-status model="<%= DLFileEntry.class %>" status="<%= fileVersion.getStatus() %>" />
+							</div>
+						</c:if>
 
 						<c:if test="<%= Validator.isNotNull(fileVersion.getDescription()) %>">
 							<blockquote class="lfr-asset-description">
@@ -534,36 +554,36 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 					<liferay-ui:panel-container extended="<%= false %>" id="documentLibraryAssetPanelContainer" persistState="<%= true %>">
 
 						<%
-							if (fileEntryTypeId > 0) {
-											try {
-												DLFileEntryType fileEntryType = DLFileEntryTypeServiceUtil.getFileEntryType(fileEntryTypeId);
+						if (fileEntryTypeId > 0) {
+							try {
+								DLFileEntryType fileEntryType = DLFileEntryTypeServiceUtil.getFileEntryType(fileEntryTypeId);
 
-												List<DDMStructure> ddmStructures = fileEntryType.getDDMStructures();
+								List<DDMStructure> ddmStructures = fileEntryType.getDDMStructures();
 
-												for (DDMStructure ddmStructure : ddmStructures) {
-													Fields fields = null;
+								for (DDMStructure ddmStructure : ddmStructures) {
+									Fields fields = null;
 
-													try {
-														DLFileEntryMetadata fileEntryMetadata = DLFileEntryMetadataLocalServiceUtil.getFileEntryMetadata(ddmStructure.getStructureId(), fileVersionId);
+									try {
+										DLFileEntryMetadata fileEntryMetadata = DLFileEntryMetadataLocalServiceUtil.getFileEntryMetadata(ddmStructure.getStructureId(), fileVersionId);
 
-														fields = StorageEngineUtil.getFields(fileEntryMetadata.getDDMStorageId());
-													}
-													catch (Exception e) {
-													}
+										fields = StorageEngineUtil.getFields(fileEntryMetadata.getDDMStorageId());
+									}
+									catch (Exception e) {
+									}
 						%>
 
-									<liferay-ui:panel collapsible="<%= true %>" cssClass="metadata" extended="<%= true %>" id="documentLibraryMetadataPanel" persistState="<%= true %>" title="<%= ddmStructure.getName(LocaleUtil.getDefault()) %>">
+									<liferay-ui:panel collapsible="<%= true %>" cssClass="metadata" extended="<%= true %>" id="documentLibraryMetadataPanel" persistState="<%= true %>" title="<%= HtmlUtil.escape(ddmStructure.getName(LocaleUtil.getDefault())) %>">
 
-										<%=DDMXSDUtil.getHTML(pageContext, ddmStructure.getXsd(), fields, String.valueOf(ddmStructure.getPrimaryKey()), true, locale) %>
+										<%= DDMXSDUtil.getHTML(pageContext, ddmStructure.getXsd(), fields, String.valueOf(ddmStructure.getPrimaryKey()), true, locale) %>
 
 									</liferay-ui:panel>
 
 						<%
+								}
 							}
-											}
-											catch (Exception e) {
-											}
-										}
+							catch (Exception e) {
+							}
+						}
 						%>
 
 						<liferay-ui:custom-attributes-available className="<%= DLFileEntryConstants.getClassName() %>" classPK="<%= fileVersionId %>" editable="<%= false %>">
@@ -578,36 +598,36 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 						</liferay-ui:custom-attributes-available>
 
 						<%
-							try {
-											List<DDMStructure> ddmStructures = DDMStructureLocalServiceUtil.getClassStructures(PortalUtil.getClassNameId(DLFileEntry.class), new StructureStructureKeyComparator(true));
+						try {
+							List<DDMStructure> ddmStructures = DDMStructureLocalServiceUtil.getClassStructures(company.getCompanyId(), PortalUtil.getClassNameId(DLFileEntry.class), new StructureStructureKeyComparator(true));
 
-											for (DDMStructure ddmStructure : ddmStructures) {
-												Fields fields = null;
+							for (DDMStructure ddmStructure : ddmStructures) {
+								Fields fields = null;
 
-												try {
-													DLFileEntryMetadata fileEntryMetadata = DLFileEntryMetadataLocalServiceUtil.getFileEntryMetadata(ddmStructure.getStructureId(), fileVersionId);
+								try {
+									DLFileEntryMetadata fileEntryMetadata = DLFileEntryMetadataLocalServiceUtil.getFileEntryMetadata(ddmStructure.getStructureId(), fileVersionId);
 
-													fields = StorageEngineUtil.getFields(fileEntryMetadata.getDDMStorageId());
-												}
-												catch (Exception e) {
-												}
+									fields = StorageEngineUtil.getFields(fileEntryMetadata.getDDMStorageId());
+								}
+								catch (Exception e) {
+								}
 
-												if (fields != null) {
-													String name = "metadata." + ddmStructure.getName(LocaleUtil.getDefault(), true);
+								if (fields != null) {
+									String name = "metadata." + ddmStructure.getName(LocaleUtil.getDefault(), true);
 						%>
 
 									<liferay-ui:panel collapsible="<%= true %>" cssClass="lfr-asset-metadata" id="documentLibraryAssetMetadataPanel" persistState="<%= true %>" title="<%= name %>">
 
-										<%=DDMXSDUtil.getHTML(pageContext, ddmStructure.getXsd(), fields, String.valueOf(ddmStructure.getPrimaryKey()), true, locale) %>
+										<%= DDMXSDUtil.getHTML(pageContext, ddmStructure.getXsd(), fields, String.valueOf(ddmStructure.getPrimaryKey()), true, locale) %>
 
 									</liferay-ui:panel>
 
 						<%
+								}
 							}
-											}
-										}
-										catch (Exception e) {
-										}
+						}
+						catch (Exception e) {
+						}
 						%>
 
 						<c:if test="<%= showAssetMetadata %>">
@@ -629,7 +649,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 								headerNames.add("date");
 								headerNames.add("size");
 
-								if (showNonApprovedDocuments) {
+								if (showNonApprovedDocuments && !portletId.equals(PortletKeys.TRASH)) {
 									headerNames.add("status");
 								}
 
@@ -675,7 +695,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 
 									// Status
 
-									if (showNonApprovedDocuments) {
+									if (showNonApprovedDocuments && !portletId.equals(PortletKeys.TRASH)) {
 										row.addText(LanguageUtil.get(pageContext, WorkflowConstants.toLabel(curFileVersion.getStatus())));
 									}
 
@@ -793,6 +813,33 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 		},
 		['aui-base', 'selector-css3']
 	);
+
+	<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.VIEW) && DLUtil.isOfficeExtension(extension) && portletDisplay.isWebDAVEnabled() && BrowserSnifferUtil.isIe(request) %>">
+		Liferay.provide(
+			window,
+			'<portlet:namespace />openDocument',
+			function(webDavUrl) {
+				var A = AUI();
+
+				Liferay.Util.openDocument(
+					webDavUrl,
+					null,
+					function(exception) {
+						var errorMessage = A.Lang.sub(
+							Liferay.Language.get('cannot-open-the-requested-document-due-to-the-following-reason'),
+							[exception.message]
+						);
+
+						var openMSOfficeError = A.one('#<portlet:namespace />openMSOfficeError');
+
+						openMSOfficeError.html(errorMessage);
+						openMSOfficeError.show();
+					}
+				);
+			},
+			['aui-base']
+		);
+	</c:if>
 </aui:script>
 
 <aui:script use="aui-base,aui-toolbar">
@@ -836,6 +883,25 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 					label: '<%= UnicodeLanguageUtil.get(pageContext, "download") %>'
 				}
 			);
+
+			<%
+			if (DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.VIEW) && DLUtil.isOfficeExtension(extension) && portletDisplay.isWebDAVEnabled() && BrowserSnifferUtil.isIe(request)) {
+			%>
+
+				fileEntryToolbarChildren.push(
+					{
+						handler: function(event) {
+							<portlet:namespace />openDocument('<%= DLUtil.getWebDavURL(themeDisplay, fileEntry.getFolder(), fileEntry, PropsValues.DL_FILE_ENTRY_OPEN_IN_MS_OFFICE_MANUAL_CHECK_IN_REQUIRED) %>');
+						},
+						icon: 'msoffice',
+						label: '<%= UnicodeLanguageUtil.get(pageContext, "open-in-ms-office") %>'
+					}
+				);
+
+			<%
+			}
+			%>
+
 		</c:if>
 
 		<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE) && (!fileEntry.isCheckedOut() || fileEntry.hasLock()) %>">
@@ -858,7 +924,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 
 					<portlet:renderURL var="moveURL">
 						<portlet:param name="struts_action" value="/document_library/move_file_entry" />
-						<portlet:param name="redirect" value="<%= currentURL %>" />
+						<portlet:param name="redirect" value="<%= redirect %>" />
 						<portlet:param name="fileEntryId" value="<%= String.valueOf(fileEntry.getFileEntryId()) %>" />
 					</portlet:renderURL>
 
@@ -927,7 +993,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 			);
 		</c:if>
 
-		<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DELETE) && (fileEntry.getModel() instanceof DLFileEntry) %>">
+		<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DELETE) && (fileEntry.getModel() instanceof DLFileEntry) && TrashUtil.isTrashEnabled(scopeGroupId) %>">
 			fileEntryToolbarChildren.push(
 				{
 					<portlet:renderURL var="viewFolderURL">
@@ -936,19 +1002,17 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 					</portlet:renderURL>
 
 					handler: function(event) {
-						if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-move-this-entry-to-the-recycle-bin") %>')) {
-							document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.MOVE_TO_TRASH %>';
-							document.<portlet:namespace />fm.<portlet:namespace />redirect.value = '<%= viewFolderURL.toString() %>';
-							submitForm(document.<portlet:namespace />fm);
-						}
+						document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.MOVE_TO_TRASH %>';
+						document.<portlet:namespace />fm.<portlet:namespace />redirect.value = '<%= viewFolderURL.toString() %>';
+						submitForm(document.<portlet:namespace />fm);
 					},
-					icon: 'delete',
+					icon: 'trash',
 					label: '<%= UnicodeLanguageUtil.get(pageContext, "move-to-the-recycle-bin") %>'
 				}
 			);
 		</c:if>
 
-		<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DELETE) && !(fileEntry.getModel() instanceof DLFileEntry) %>">
+		<c:if test="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DELETE) && (!(fileEntry.getModel() instanceof DLFileEntry) || !TrashUtil.isTrashEnabled(scopeGroupId)) %>">
 			fileEntryToolbarChildren.push(
 				{
 					<portlet:renderURL var="viewFolderURL">
@@ -991,5 +1055,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 </aui:script>
 
 <%
-DLUtil.addPortletBreadcrumbEntries(fileEntry, request, renderResponse);
+if (!portletId.equals(PortletKeys.TRASH)) {
+	DLUtil.addPortletBreadcrumbEntries(fileEntry, request, renderResponse);
+}
 %>

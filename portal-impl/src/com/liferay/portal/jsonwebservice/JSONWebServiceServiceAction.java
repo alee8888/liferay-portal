@@ -18,15 +18,24 @@ import com.liferay.portal.action.JSONServiceAction;
 import com.liferay.portal.jsonwebservice.action.JSONWebServiceInvokerAction;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceAction;
-import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionMapping;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManagerUtil;
+import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceConfigurator;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.upload.UploadException;
+import com.liferay.portal.kernel.util.ContextPathUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ServiceLoader;
+import com.liferay.portal.security.pacl.PACLClassLoaderUtil;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.WebKeys;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 
+import java.util.List;
+
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -35,20 +44,31 @@ import org.apache.struts.action.ActionMapping;
 
 /**
  * @author Igor Spasic
+ * @author Raymond Augé
  */
 public class JSONWebServiceServiceAction extends JSONServiceAction {
 
 	public JSONWebServiceServiceAction(
-		String servletContextPath, ClassLoader classLoader) {
+		ServletContext servletContext, ClassLoader classLoader) {
 
-		_jsonWebServiceConfigurator = new JSONWebServiceConfigurator(
-			servletContextPath);
+		String contextPath = ContextPathUtil.getContextPath(servletContext);
+
+		if ((classLoader == null) &&
+			contextPath.equals(PortalUtil.getPathContext())) {
+
+			classLoader = PACLClassLoaderUtil.getPortalClassLoader();
+		}
+
+		_jsonWebServiceConfigurator = getJSONWebServiceConfigurator(
+			classLoader);
+
+		_jsonWebServiceConfigurator.init(servletContext, classLoader);
 
 		_jsonWebServiceConfigurator.clean();
 
 		if (PropsValues.JSON_WEB_SERVICE_ENABLED) {
 			try {
-				_jsonWebServiceConfigurator.configure(classLoader);
+				_jsonWebServiceConfigurator.configure();
 			}
 			catch (Exception e) {
 				_log.error(e, e);
@@ -71,6 +91,13 @@ public class JSONWebServiceServiceAction extends JSONServiceAction {
 			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
+		UploadException uploadException = (UploadException)request.getAttribute(
+			WebKeys.UPLOAD_EXCEPTION);
+
+		if (uploadException != null) {
+			return JSONFactoryUtil.serializeException(uploadException);
+		}
+
 		JSONWebServiceAction jsonWebServiceAction = null;
 
 		String path = GetterUtil.getString(request.getPathInfo());
@@ -85,22 +112,6 @@ public class JSONWebServiceServiceAction extends JSONServiceAction {
 						request);
 			}
 
-			JSONWebServiceActionMapping jsonWebServiceActionMapping =
-				jsonWebServiceAction.getJSONWebServiceActionMapping();
-
-			String actionMethodName = null;
-
-			if (jsonWebServiceActionMapping != null) {
-				Method actionMethod =
-					jsonWebServiceActionMapping.getActionMethod();
-
-				actionMethodName = actionMethod.getName();
-			}
-
-			checkMethodPublicAccess(
-				request, actionMethodName,
-				PropsValues.JSONWS_WEB_SERVICE_PUBLIC_METHODS);
-
 			Object returnObj = jsonWebServiceAction.invoke();
 
 			if (returnObj != null) {
@@ -110,11 +121,47 @@ public class JSONWebServiceServiceAction extends JSONServiceAction {
 				return JSONFactoryUtil.getNullJSON();
 			}
 		}
+		catch (InvocationTargetException ite) {
+			Throwable throwable = ite.getCause();
+
+			if (throwable instanceof SecurityException) {
+				throw (SecurityException)throwable;
+			}
+
+			_log.error(throwable, throwable);
+
+			return JSONFactoryUtil.serializeThrowable(throwable);
+		}
 		catch (Exception e) {
 			_log.error(e, e);
 
 			return JSONFactoryUtil.serializeException(e);
 		}
+	}
+
+	protected JSONWebServiceConfigurator getJSONWebServiceConfigurator(
+		ClassLoader classLoader) {
+
+		JSONWebServiceConfigurator jsonWebServiceConfigurator = null;
+
+		try {
+			List<JSONWebServiceConfigurator> jsonWebServiceConfigurators =
+				ServiceLoader.load(
+					classLoader, JSONWebServiceConfigurator.class);
+
+			if (!jsonWebServiceConfigurators.isEmpty()) {
+				jsonWebServiceConfigurator = jsonWebServiceConfigurators.get(0);
+			}
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		if (jsonWebServiceConfigurator == null) {
+			jsonWebServiceConfigurator = new JSONWebServiceConfiguratorImpl();
+		}
+
+		return jsonWebServiceConfigurator;
 	}
 
 	@Override

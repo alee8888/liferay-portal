@@ -127,6 +127,10 @@ public class WikiPageModelImpl extends BaseModelImpl<WikiPage>
 	 * @return the normal model instance
 	 */
 	public static WikiPage toModel(WikiPageSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		WikiPage model = new WikiPageImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -163,6 +167,10 @@ public class WikiPageModelImpl extends BaseModelImpl<WikiPage>
 	 * @return the normal model instances
 	 */
 	public static List<WikiPage> toModels(WikiPageSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<WikiPage> models = new ArrayList<WikiPage>(soapModels.length);
 
 		for (WikiPageSoap soapModel : soapModels) {
@@ -187,7 +195,7 @@ public class WikiPageModelImpl extends BaseModelImpl<WikiPage>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_pageId);
+		return _pageId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -815,9 +823,17 @@ public class WikiPageModelImpl extends BaseModelImpl<WikiPage>
 		}
 	}
 
+	public boolean isDenied() {
+		if (getStatus() == WorkflowConstants.STATUS_DENIED) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public boolean isDraft() {
-		if ((getStatus() == WorkflowConstants.STATUS_DRAFT) ||
-				(getStatus() == WorkflowConstants.STATUS_DRAFT_FROM_APPROVED)) {
+		if (getStatus() == WorkflowConstants.STATUS_DRAFT) {
 			return true;
 		}
 		else {
@@ -834,6 +850,33 @@ public class WikiPageModelImpl extends BaseModelImpl<WikiPage>
 		}
 	}
 
+	public boolean isInactive() {
+		if (getStatus() == WorkflowConstants.STATUS_INACTIVE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isIncomplete() {
+		if (getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isInTrash() {
+		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public boolean isPending() {
 		if (getStatus() == WorkflowConstants.STATUS_PENDING) {
 			return true;
@@ -843,19 +886,17 @@ public class WikiPageModelImpl extends BaseModelImpl<WikiPage>
 		}
 	}
 
-	public long getColumnBitmask() {
-		return _columnBitmask;
+	public boolean isScheduled() {
+		if (getStatus() == WorkflowConstants.STATUS_SCHEDULED) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
-	@Override
-	public WikiPage toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (WikiPage)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -869,6 +910,16 @@ public class WikiPageModelImpl extends BaseModelImpl<WikiPage>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public WikiPage toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (WikiPage)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -921,8 +972,7 @@ public class WikiPageModelImpl extends BaseModelImpl<WikiPage>
 			return value;
 		}
 
-		value = getTitle().toLowerCase()
-					.compareTo(wikiPage.getTitle().toLowerCase());
+		value = getTitle().compareToIgnoreCase(wikiPage.getTitle());
 
 		if (value != 0) {
 			return value;
@@ -1315,7 +1365,7 @@ public class WikiPageModelImpl extends BaseModelImpl<WikiPage>
 	}
 
 	private static ClassLoader _classLoader = WikiPage.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			WikiPage.class
 		};
 	private String _uuid;
@@ -1365,5 +1415,5 @@ public class WikiPageModelImpl extends BaseModelImpl<WikiPage>
 	private String _statusByUserName;
 	private Date _statusDate;
 	private long _columnBitmask;
-	private WikiPage _escapedModelProxy;
+	private WikiPage _escapedModel;
 }

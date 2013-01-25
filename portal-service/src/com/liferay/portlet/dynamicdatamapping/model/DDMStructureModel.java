@@ -14,11 +14,13 @@
 
 package com.liferay.portlet.dynamicdatamapping.model;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -42,7 +44,8 @@ import java.util.Map;
  * @see com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureModelImpl
  * @generated
  */
-public interface DDMStructureModel extends BaseModel<DDMStructure>, GroupedModel {
+public interface DDMStructureModel extends BaseModel<DDMStructure>, GroupedModel,
+	StagedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -191,6 +194,20 @@ public interface DDMStructureModel extends BaseModel<DDMStructure>, GroupedModel
 	 * @param modifiedDate the modified date of this d d m structure
 	 */
 	public void setModifiedDate(Date modifiedDate);
+
+	/**
+	 * Returns the parent structure ID of this d d m structure.
+	 *
+	 * @return the parent structure ID of this d d m structure
+	 */
+	public long getParentStructureId();
+
+	/**
+	 * Sets the parent structure ID of this d d m structure.
+	 *
+	 * @param parentStructureId the parent structure ID of this d d m structure
+	 */
+	public void setParentStructureId(long parentStructureId);
 
 	/**
 	 * Returns the fully qualified class name of this d d m structure.
@@ -491,6 +508,9 @@ public interface DDMStructureModel extends BaseModel<DDMStructure>, GroupedModel
 
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException;
+
 	public Object clone();
 
 	public int compareTo(DDMStructure ddmStructure);
@@ -500,6 +520,8 @@ public interface DDMStructureModel extends BaseModel<DDMStructure>, GroupedModel
 	public CacheModel<DDMStructure> toCacheModel();
 
 	public DDMStructure toEscapedModel();
+
+	public DDMStructure toUnescapedModel();
 
 	public String toString();
 

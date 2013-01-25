@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
@@ -35,6 +36,31 @@ public class DLFolderImpl extends DLFolderBaseImpl {
 	public DLFolderImpl() {
 	}
 
+	public List<Long> getAncestorFolderIds()
+		throws PortalException, SystemException {
+
+		List<Long> ancestorFolderIds = new ArrayList<Long>();
+
+		DLFolder folder = this;
+
+		while (!folder.isRoot()) {
+			try {
+				folder = folder.getParentFolder();
+
+				ancestorFolderIds.add(folder.getFolderId());
+			}
+			catch (NoSuchFolderException nsfe) {
+				if (folder.isInTrash()) {
+					break;
+				}
+
+				throw nsfe;
+			}
+		}
+
+		return ancestorFolderIds;
+	}
+
 	public List<DLFolder> getAncestors()
 		throws PortalException, SystemException {
 
@@ -43,9 +69,18 @@ public class DLFolderImpl extends DLFolderBaseImpl {
 		DLFolder folder = this;
 
 		while (!folder.isRoot()) {
-			folder = folder.getParentFolder();
+			try {
+				folder = folder.getParentFolder();
 
-			ancestors.add(folder);
+				ancestors.add(folder);
+			}
+			catch (NoSuchFolderException nsfe) {
+				if (folder.isInTrash()) {
+					break;
+				}
+
+				throw nsfe;
+			}
 		}
 
 		return ancestors;
@@ -84,6 +119,32 @@ public class DLFolderImpl extends DLFolderBaseImpl {
 		return StringUtil.split(path, CharPool.SLASH);
 	}
 
+	public DLFolder getTrashContainer() {
+		DLFolder dlFolder = null;
+
+		try {
+			dlFolder = getParentFolder();
+		}
+		catch (Exception e) {
+			return null;
+		}
+
+		while (dlFolder != null) {
+			if (dlFolder.isInTrash()) {
+				return dlFolder;
+			}
+
+			try {
+				dlFolder = dlFolder.getParentFolder();
+			}
+			catch (Exception e) {
+				return null;
+			}
+		}
+
+		return null;
+	}
+
 	public boolean hasInheritableLock() {
 		try {
 			return DLFolderServiceUtil.hasInheritableLock(getFolderId());
@@ -104,6 +165,15 @@ public class DLFolderImpl extends DLFolderBaseImpl {
 		return false;
 	}
 
+	public boolean isInTrashContainer() {
+		if (getTrashContainer() != null) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public boolean isLocked() {
 		try {
 			return DLFolderServiceUtil.isFolderLocked(getFolderId());
@@ -118,9 +188,8 @@ public class DLFolderImpl extends DLFolderBaseImpl {
 		if (getParentFolderId() == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 }

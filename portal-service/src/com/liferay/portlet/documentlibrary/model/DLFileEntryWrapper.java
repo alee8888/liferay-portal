@@ -56,6 +56,8 @@ public class DLFileEntryWrapper implements DLFileEntry,
 		attributes.put("versionUserName", getVersionUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
+		attributes.put("classNameId", getClassNameId());
+		attributes.put("classPK", getClassPK());
 		attributes.put("repositoryId", getRepositoryId());
 		attributes.put("folderId", getFolderId());
 		attributes.put("name", getName());
@@ -72,6 +74,7 @@ public class DLFileEntryWrapper implements DLFileEntry,
 		attributes.put("largeImageId", getLargeImageId());
 		attributes.put("custom1ImageId", getCustom1ImageId());
 		attributes.put("custom2ImageId", getCustom2ImageId());
+		attributes.put("manualCheckInRequired", getManualCheckInRequired());
 
 		return attributes;
 	}
@@ -135,6 +138,18 @@ public class DLFileEntryWrapper implements DLFileEntry,
 
 		if (modifiedDate != null) {
 			setModifiedDate(modifiedDate);
+		}
+
+		Long classNameId = (Long)attributes.get("classNameId");
+
+		if (classNameId != null) {
+			setClassNameId(classNameId);
+		}
+
+		Long classPK = (Long)attributes.get("classPK");
+
+		if (classPK != null) {
+			setClassPK(classPK);
 		}
 
 		Long repositoryId = (Long)attributes.get("repositoryId");
@@ -231,6 +246,13 @@ public class DLFileEntryWrapper implements DLFileEntry,
 
 		if (custom2ImageId != null) {
 			setCustom2ImageId(custom2ImageId);
+		}
+
+		Boolean manualCheckInRequired = (Boolean)attributes.get(
+				"manualCheckInRequired");
+
+		if (manualCheckInRequired != null) {
+			setManualCheckInRequired(manualCheckInRequired);
 		}
 	}
 
@@ -470,6 +492,55 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	*/
 	public void setModifiedDate(java.util.Date modifiedDate) {
 		_dlFileEntry.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	* Returns the fully qualified class name of this document library file entry.
+	*
+	* @return the fully qualified class name of this document library file entry
+	*/
+	public java.lang.String getClassName() {
+		return _dlFileEntry.getClassName();
+	}
+
+	public void setClassName(java.lang.String className) {
+		_dlFileEntry.setClassName(className);
+	}
+
+	/**
+	* Returns the class name ID of this document library file entry.
+	*
+	* @return the class name ID of this document library file entry
+	*/
+	public long getClassNameId() {
+		return _dlFileEntry.getClassNameId();
+	}
+
+	/**
+	* Sets the class name ID of this document library file entry.
+	*
+	* @param classNameId the class name ID of this document library file entry
+	*/
+	public void setClassNameId(long classNameId) {
+		_dlFileEntry.setClassNameId(classNameId);
+	}
+
+	/**
+	* Returns the class p k of this document library file entry.
+	*
+	* @return the class p k of this document library file entry
+	*/
+	public long getClassPK() {
+		return _dlFileEntry.getClassPK();
+	}
+
+	/**
+	* Sets the class p k of this document library file entry.
+	*
+	* @param classPK the class p k of this document library file entry
+	*/
+	public void setClassPK(long classPK) {
+		_dlFileEntry.setClassPK(classPK);
 	}
 
 	/**
@@ -760,6 +831,33 @@ public class DLFileEntryWrapper implements DLFileEntry,
 		_dlFileEntry.setCustom2ImageId(custom2ImageId);
 	}
 
+	/**
+	* Returns the manual check in required of this document library file entry.
+	*
+	* @return the manual check in required of this document library file entry
+	*/
+	public boolean getManualCheckInRequired() {
+		return _dlFileEntry.getManualCheckInRequired();
+	}
+
+	/**
+	* Returns <code>true</code> if this document library file entry is manual check in required.
+	*
+	* @return <code>true</code> if this document library file entry is manual check in required; <code>false</code> otherwise
+	*/
+	public boolean isManualCheckInRequired() {
+		return _dlFileEntry.isManualCheckInRequired();
+	}
+
+	/**
+	* Sets whether this document library file entry is manual check in required.
+	*
+	* @param manualCheckInRequired the manual check in required of this document library file entry
+	*/
+	public void setManualCheckInRequired(boolean manualCheckInRequired) {
+		_dlFileEntry.setManualCheckInRequired(manualCheckInRequired);
+	}
+
 	public boolean isNew() {
 		return _dlFileEntry.isNew();
 	}
@@ -818,6 +916,10 @@ public class DLFileEntryWrapper implements DLFileEntry,
 
 	public com.liferay.portlet.documentlibrary.model.DLFileEntry toEscapedModel() {
 		return new DLFileEntryWrapper(_dlFileEntry.toEscapedModel());
+	}
+
+	public com.liferay.portlet.documentlibrary.model.DLFileEntry toUnescapedModel() {
+		return new DLFileEntryWrapper(_dlFileEntry.toUnescapedModel());
 	}
 
 	@Override
@@ -907,12 +1009,24 @@ public class DLFileEntryWrapper implements DLFileEntry,
 		return _dlFileEntry.getLuceneProperties();
 	}
 
+	public com.liferay.portlet.documentlibrary.model.DLFolder getTrashContainer() {
+		return _dlFileEntry.getTrashContainer();
+	}
+
 	public boolean hasLock() {
 		return _dlFileEntry.hasLock();
 	}
 
 	public boolean isCheckedOut() {
 		return _dlFileEntry.isCheckedOut();
+	}
+
+	public boolean isInHiddenFolder() {
+		return _dlFileEntry.isInHiddenFolder();
+	}
+
+	public boolean isInTrashContainer() {
+		return _dlFileEntry.isInTrashContainer();
 	}
 
 	public void setExtraSettingsProperties(

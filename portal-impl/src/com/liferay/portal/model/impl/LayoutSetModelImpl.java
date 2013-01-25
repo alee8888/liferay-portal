@@ -82,6 +82,8 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 		};
 	public static final String TABLE_SQL_CREATE = "create table LayoutSet (layoutSetId LONG not null primary key,groupId LONG,companyId LONG,createDate DATE null,modifiedDate DATE null,privateLayout BOOLEAN,logo BOOLEAN,logoId LONG,themeId VARCHAR(75) null,colorSchemeId VARCHAR(75) null,wapThemeId VARCHAR(75) null,wapColorSchemeId VARCHAR(75) null,css STRING null,pageCount INTEGER,settings_ STRING null,layoutSetPrototypeUuid VARCHAR(75) null,layoutSetPrototypeLinkEnabled BOOLEAN)";
 	public static final String TABLE_SQL_DROP = "drop table LayoutSet";
+	public static final String ORDER_BY_JPQL = " ORDER BY layoutSet.layoutSetId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY LayoutSet.layoutSetId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -97,6 +99,7 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	public static long GROUPID_COLUMN_BITMASK = 1L;
 	public static long LAYOUTSETPROTOTYPEUUID_COLUMN_BITMASK = 2L;
 	public static long PRIVATELAYOUT_COLUMN_BITMASK = 4L;
+	public static long LAYOUTSETID_COLUMN_BITMASK = 8L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -105,6 +108,10 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	 * @return the normal model instance
 	 */
 	public static LayoutSet toModel(LayoutSetSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		LayoutSet model = new LayoutSetImpl();
 
 		model.setLayoutSetId(soapModel.getLayoutSetId());
@@ -135,6 +142,10 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	 * @return the normal model instances
 	 */
 	public static List<LayoutSet> toModels(LayoutSetSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<LayoutSet> models = new ArrayList<LayoutSet>(soapModels.length);
 
 		for (LayoutSetSoap soapModel : soapModels) {
@@ -159,7 +170,7 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_layoutSetId);
+		return _layoutSetId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -542,19 +553,15 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 		_layoutSetPrototypeLinkEnabled = layoutSetPrototypeLinkEnabled;
 	}
 
-	public long getColumnBitmask() {
-		return _columnBitmask;
+	public java.lang.String getVirtualHostname() {
+		return null;
 	}
 
-	@Override
-	public LayoutSet toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (LayoutSet)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
+	public void setVirtualHostname(java.lang.String virtualHostname) {
+	}
 
-		return _escapedModelProxy;
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -568,6 +575,16 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public LayoutSet toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (LayoutSet)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -753,6 +770,8 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 
 		layoutSetCacheModel.layoutSetPrototypeLinkEnabled = getLayoutSetPrototypeLinkEnabled();
 
+		layoutSetCacheModel._virtualHostname = getVirtualHostname();
+
 		return layoutSetCacheModel;
 	}
 
@@ -881,7 +900,7 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	}
 
 	private static ClassLoader _classLoader = LayoutSet.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			LayoutSet.class
 		};
 	private long _layoutSetId;
@@ -907,5 +926,5 @@ public class LayoutSetModelImpl extends BaseModelImpl<LayoutSet>
 	private String _originalLayoutSetPrototypeUuid;
 	private boolean _layoutSetPrototypeLinkEnabled;
 	private long _columnBitmask;
-	private LayoutSet _escapedModelProxy;
+	private LayoutSet _escapedModel;
 }

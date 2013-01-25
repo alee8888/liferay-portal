@@ -15,12 +15,14 @@
 package com.liferay.portal.spring.util;
 
 import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
+import com.liferay.portal.kernel.spring.util.FactoryBean;
 import com.liferay.portal.kernel.spring.util.SpringFactory;
 import com.liferay.portal.kernel.spring.util.SpringFactoryException;
 import com.liferay.portal.kernel.util.InstanceFactory;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.security.lang.PortalSecurityManagerThreadLocal;
+import com.liferay.portal.security.pacl.PACLClassLoaderUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -71,27 +73,43 @@ public class SpringFactoryImpl implements SpringFactory {
 			throw new SpringFactoryException("Undefined class " + className);
 		}
 
-		Object bean = InstanceFactory.newInstance(
-			PortalClassLoaderUtil.getClassLoader(), className);
+		boolean enabled = PortalSecurityManagerThreadLocal.isEnabled();
 
-		if (properties == null) {
-			return bean;
-		}
+		try {
+			PortalSecurityManagerThreadLocal.setEnabled(false);
 
-		for (Map.Entry<String, Object> entry : properties.entrySet()) {
-			String name = entry.getKey();
+			Object bean = InstanceFactory.newInstance(
+				PACLClassLoaderUtil.getPortalClassLoader(), className);
 
-			if (!allowedProperties.contains(name)) {
-				throw new SpringFactoryException(
-					"Undefined property " + name + " for class " + className);
+			if (bean instanceof FactoryBean) {
+				FactoryBean<Object> factoryBean = (FactoryBean<Object>)bean;
+
+				bean = factoryBean.create();
 			}
 
-			Object value = entry.getValue();
+			if (properties == null) {
+				return bean;
+			}
 
-			BeanPropertiesUtil.setProperty(bean, name, value);
+			for (Map.Entry<String, Object> entry : properties.entrySet()) {
+				String name = entry.getKey();
+
+				if (!allowedProperties.contains(name)) {
+					throw new SpringFactoryException(
+						"Undefined property " + name + " for class " +
+							className);
+				}
+
+				Object value = entry.getValue();
+
+				BeanPropertiesUtil.setProperty(bean, name, value);
+			}
+
+			return bean;
 		}
-
-		return bean;
+		finally {
+			PortalSecurityManagerThreadLocal.setEnabled(enabled);
+		}
 	}
 
 	private Map<String, Set<String>> _beanDefinitions;

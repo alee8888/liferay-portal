@@ -14,6 +14,7 @@
 
 package com.liferay.portal.model;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -298,6 +299,9 @@ public interface LayoutSetPrototypeModel extends BaseModel<LayoutSetPrototype> {
 
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException;
+
 	public Object clone();
 
 	public int compareTo(LayoutSetPrototype layoutSetPrototype);
@@ -307,6 +311,8 @@ public interface LayoutSetPrototypeModel extends BaseModel<LayoutSetPrototype> {
 	public CacheModel<LayoutSetPrototype> toCacheModel();
 
 	public LayoutSetPrototype toEscapedModel();
+
+	public LayoutSetPrototype toUnescapedModel();
 
 	public String toString();
 

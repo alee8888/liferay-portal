@@ -101,6 +101,10 @@ public class AssetTagModelImpl extends BaseModelImpl<AssetTag>
 	 * @return the normal model instance
 	 */
 	public static AssetTag toModel(AssetTagSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		AssetTag model = new AssetTagImpl();
 
 		model.setTagId(soapModel.getTagId());
@@ -123,6 +127,10 @@ public class AssetTagModelImpl extends BaseModelImpl<AssetTag>
 	 * @return the normal model instances
 	 */
 	public static List<AssetTag> toModels(AssetTagSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<AssetTag> models = new ArrayList<AssetTag>(soapModels.length);
 
 		for (AssetTagSoap soapModel : soapModels) {
@@ -156,7 +164,7 @@ public class AssetTagModelImpl extends BaseModelImpl<AssetTag>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_tagId);
+		return _tagId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -371,17 +379,6 @@ public class AssetTagModelImpl extends BaseModelImpl<AssetTag>
 	}
 
 	@Override
-	public AssetTag toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (AssetTag)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			AssetTag.class.getName(), getPrimaryKey());
@@ -392,6 +389,16 @@ public class AssetTagModelImpl extends BaseModelImpl<AssetTag>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public AssetTag toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (AssetTag)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -596,7 +603,7 @@ public class AssetTagModelImpl extends BaseModelImpl<AssetTag>
 	}
 
 	private static ClassLoader _classLoader = AssetTag.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			AssetTag.class
 		};
 	private long _tagId;
@@ -613,5 +620,5 @@ public class AssetTagModelImpl extends BaseModelImpl<AssetTag>
 	private String _originalName;
 	private int _assetCount;
 	private long _columnBitmask;
-	private AssetTag _escapedModelProxy;
+	private AssetTag _escapedModel;
 }

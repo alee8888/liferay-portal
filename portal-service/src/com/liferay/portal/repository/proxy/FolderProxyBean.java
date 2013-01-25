@@ -45,6 +45,12 @@ public class FolderProxyBean
 		return _folder.containsPermission(permissionChecker, actionId);
 	}
 
+	public List<Long> getAncestorFolderIds()
+		throws PortalException, SystemException {
+
+		return _folder.getAncestorFolderIds();
+	}
+
 	public List<Folder> getAncestors() throws PortalException, SystemException {
 		List<Folder> folders = _folder.getAncestors();
 
@@ -192,6 +198,10 @@ public class FolderProxyBean
 		return _folder.isSupportsSocial();
 	}
 
+	public boolean isSupportsSubscribing() {
+		return _folder.isSupportsSubscribing();
+	}
+
 	public void setCompanyId(long companyId) {
 		_folder.setCompanyId(companyId);
 	}
@@ -226,6 +236,12 @@ public class FolderProxyBean
 
 	public Folder toEscapedModel() {
 		Folder folder = _folder.toEscapedModel();
+
+		return newFolderProxyBean(folder);
+	}
+
+	public Folder toUnescapedModel() {
+		Folder folder = _folder.toUnescapedModel();
 
 		return newFolderProxyBean(folder);
 	}

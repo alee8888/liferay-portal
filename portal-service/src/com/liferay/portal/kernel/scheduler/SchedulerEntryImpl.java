@@ -17,16 +17,13 @@ package com.liferay.portal.kernel.scheduler;
 import com.liferay.portal.kernel.messaging.MessageListener;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 
 /**
  * @author Shuyang Zhou
  */
 public class SchedulerEntryImpl implements SchedulerEntry {
-
-	public String getContextPath() {
-		return _contextPath;
-	}
 
 	public String getDescription() {
 		return _description;
@@ -95,10 +92,6 @@ public class SchedulerEntryImpl implements SchedulerEntry {
 		return _triggerValue;
 	}
 
-	public void setContextPath(String contextPath) {
-		_contextPath = contextPath;
-	}
-
 	public void setDescription(String description) {
 		_description = description;
 	}
@@ -137,10 +130,8 @@ public class SchedulerEntryImpl implements SchedulerEntry {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(17);
 
-		sb.append("{contextPath=");
-		sb.append(_contextPath);
 		sb.append(", description=");
 		sb.append(_description);
 		sb.append(", eventListener=");
@@ -162,14 +153,13 @@ public class SchedulerEntryImpl implements SchedulerEntry {
 		return sb.toString();
 	}
 
-	private String _contextPath;
-	private String _description;
+	private String _description = StringPool.BLANK;
 	private transient MessageListener _eventListener;
-	private String _eventListenerClass;
-	private String _propertyKey;
+	private String _eventListenerClass = StringPool.BLANK;
+	private String _propertyKey = StringPool.BLANK;
 	private TimeUnit _timeUnit;
 	private Trigger _trigger;
 	private TriggerType _triggerType;
-	private String _triggerValue;
+	private String _triggerValue = StringPool.BLANK;
 
 }

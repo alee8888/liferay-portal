@@ -18,23 +18,29 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
+import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Group;
-import com.liferay.portal.model.GroupConstants;
+import com.liferay.portal.model.Layout;
 import com.liferay.portal.security.permission.PermissionChecker;
-import com.liferay.portal.service.GroupLocalServiceUtil;
-import com.liferay.portal.service.LayoutLocalServiceUtil;
+import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
 
+import java.util.Locale;
+
+import javax.portlet.PortletMode;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
+import javax.portlet.RenderRequest;
+import javax.portlet.RenderResponse;
 import javax.portlet.WindowState;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Jorge Ferrer
@@ -69,6 +75,10 @@ public abstract class BaseAssetRenderer implements AssetRenderer {
 		return getIconPath(themeDisplay);
 	}
 
+	public String getSearchSummary(Locale locale) {
+		return getSummary(locale);
+	}
+
 	public String getURLDownload(ThemeDisplay themeDisplay) {
 		return null;
 	}
@@ -79,6 +89,62 @@ public abstract class BaseAssetRenderer implements AssetRenderer {
 		throws Exception {
 
 		return null;
+	}
+
+	public PortletURL getURLEdit(
+			LiferayPortletRequest liferayPortletRequest,
+			LiferayPortletResponse liferayPortletResponse,
+			WindowState windowState, PortletURL redirectURL)
+		throws Exception {
+
+		LiferayPortletURL editPortletURL =
+			(LiferayPortletURL)getURLEdit(
+				liferayPortletRequest, liferayPortletResponse);
+
+		if (editPortletURL == null) {
+			return null;
+		}
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)liferayPortletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		Group group = themeDisplay.getScopeGroup();
+
+		if (group.isLayout()) {
+			Layout layout = themeDisplay.getLayout();
+
+			group = layout.getGroup();
+		}
+
+		if (group.hasStagingGroup()) {
+			return null;
+		}
+
+		editPortletURL.setDoAsGroupId(getGroupId());
+
+		editPortletURL.setParameter("redirect", redirectURL.toString());
+		editPortletURL.setParameter("originalRedirect", redirectURL.toString());
+
+		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+
+		String portletResource = ParamUtil.getString(
+			liferayPortletRequest, "portletResource", portletDisplay.getId());
+
+		if (Validator.isNotNull(portletResource)) {
+			editPortletURL.setParameter(
+				"referringPortletResource", portletResource);
+		}
+		else {
+			editPortletURL.setParameter(
+				"referringPortletResource", portletDisplay.getId());
+		}
+
+		editPortletURL.setPortletMode(PortletMode.VIEW);
+		editPortletURL.setRefererPlid(themeDisplay.getPlid());
+		editPortletURL.setWindowState(windowState);
+
+		return editPortletURL;
 	}
 
 	public PortletURL getURLExport(
@@ -148,31 +214,24 @@ public abstract class BaseAssetRenderer implements AssetRenderer {
 		return false;
 	}
 
+	public String renderActions(
+			RenderRequest renderRequest, RenderResponse renderResponse)
+		throws Exception {
+
+		return null;
+	}
+
 	protected long getControlPanelPlid(
 			LiferayPortletRequest liferayPortletRequest)
 		throws PortalException, SystemException {
 
-		HttpServletRequest request =
-			liferayPortletRequest.getHttpServletRequest();
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		Group controlPanelGroup = GroupLocalServiceUtil.getGroup(
-			themeDisplay.getCompanyId(), GroupConstants.CONTROL_PANEL);
-
-		return LayoutLocalServiceUtil.getDefaultPlid(
-			controlPanelGroup.getGroupId(), true);
+		return PortalUtil.getControlPanelPlid(liferayPortletRequest);
 	}
 
 	protected long getControlPanelPlid(ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
 
-		Group controlPanelGroup = GroupLocalServiceUtil.getGroup(
-			themeDisplay.getCompanyId(), GroupConstants.CONTROL_PANEL);
-
-		return LayoutLocalServiceUtil.getDefaultPlid(
-			controlPanelGroup.getGroupId(), true);
+		return PortalUtil.getControlPanelPlid(themeDisplay.getCompanyId());
 	}
 
 	protected String getIconPath(ThemeDisplay themeDisplay) {

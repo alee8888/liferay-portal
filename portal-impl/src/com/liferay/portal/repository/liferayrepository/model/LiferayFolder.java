@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.service.permission.DLFolderPermission;
-import com.liferay.portlet.documentlibrary.util.DLAppUtil;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 
 import java.io.Serializable;
@@ -49,6 +48,12 @@ public class LiferayFolder extends LiferayModel implements Folder {
 
 		return DLFolderPermission.contains(
 			permissionChecker, _dlFolder, actionId);
+	}
+
+	public List<Long> getAncestorFolderIds()
+		throws PortalException, SystemException {
+
+		return _dlFolder.getAncestorFolderIds();
 	}
 
 	public List<Folder> getAncestors() throws PortalException, SystemException {
@@ -109,7 +114,7 @@ public class LiferayFolder extends LiferayModel implements Folder {
 	}
 
 	public String getName() {
-		return DLAppUtil.stripTrashNamespace(_dlFolder.getName());
+		return _dlFolder.getName();
 	}
 
 	public Folder getParentFolder() throws PortalException, SystemException {
@@ -234,6 +239,15 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		}
 	}
 
+	public boolean isSupportsSubscribing() {
+		if (isMountPoint()) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+
 	public void setCompanyId(long companyId) {
 		_dlFolder.setCompanyId(companyId);
 	}
@@ -276,6 +290,20 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		}
 		else {
 			return new LiferayFolder(_dlFolder.toEscapedModel(), true);
+		}
+	}
+
+	@Override
+	public String toString() {
+		return _dlFolder.toString();
+	}
+
+	public Folder toUnescapedModel() {
+		if (isEscapedModel()) {
+			return new LiferayFolder(_dlFolder.toUnescapedModel(), true);
+		}
+		else {
+			return this;
 		}
 	}
 

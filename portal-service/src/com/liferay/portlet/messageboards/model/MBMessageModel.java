@@ -20,6 +20,7 @@ import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.ServiceContext;
 
@@ -43,7 +44,7 @@ import java.util.Date;
  * @generated
  */
 public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
-	GroupedModel, WorkflowedModel {
+	GroupedModel, StagedModel, WorkflowedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -332,27 +333,6 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	public void setFormat(String format);
 
 	/**
-	 * Returns the attachments of this message-boards message.
-	 *
-	 * @return the attachments of this message-boards message
-	 */
-	public boolean getAttachments();
-
-	/**
-	 * Returns <code>true</code> if this message-boards message is attachments.
-	 *
-	 * @return <code>true</code> if this message-boards message is attachments; <code>false</code> otherwise
-	 */
-	public boolean isAttachments();
-
-	/**
-	 * Sets whether this message-boards message is attachments.
-	 *
-	 * @param attachments the attachments of this message-boards message
-	 */
-	public void setAttachments(boolean attachments);
-
-	/**
 	 * Returns the anonymous of this message-boards message.
 	 *
 	 * @return the anonymous of this message-boards message
@@ -514,6 +494,13 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	public boolean isApproved();
 
 	/**
+	 * Returns <code>true</code> if this message-boards message is denied.
+	 *
+	 * @return <code>true</code> if this message-boards message is denied; <code>false</code> otherwise
+	 */
+	public boolean isDenied();
+
+	/**
 	 * Returns <code>true</code> if this message-boards message is a draft.
 	 *
 	 * @return <code>true</code> if this message-boards message is a draft; <code>false</code> otherwise
@@ -528,11 +515,39 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	public boolean isExpired();
 
 	/**
+	 * Returns <code>true</code> if this message-boards message is inactive.
+	 *
+	 * @return <code>true</code> if this message-boards message is inactive; <code>false</code> otherwise
+	 */
+	public boolean isInactive();
+
+	/**
+	 * Returns <code>true</code> if this message-boards message is incomplete.
+	 *
+	 * @return <code>true</code> if this message-boards message is incomplete; <code>false</code> otherwise
+	 */
+	public boolean isIncomplete();
+
+	/**
+	 * Returns <code>true</code> if this message-boards message is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if this message-boards message is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	public boolean isInTrash();
+
+	/**
 	 * Returns <code>true</code> if this message-boards message is pending.
 	 *
 	 * @return <code>true</code> if this message-boards message is pending; <code>false</code> otherwise
 	 */
 	public boolean isPending();
+
+	/**
+	 * Returns <code>true</code> if this message-boards message is scheduled.
+	 *
+	 * @return <code>true</code> if this message-boards message is scheduled; <code>false</code> otherwise
+	 */
+	public boolean isScheduled();
 
 	public boolean isNew();
 
@@ -561,6 +576,8 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	public CacheModel<MBMessage> toCacheModel();
 
 	public MBMessage toEscapedModel();
+
+	public MBMessage toUnescapedModel();
 
 	public String toString();
 

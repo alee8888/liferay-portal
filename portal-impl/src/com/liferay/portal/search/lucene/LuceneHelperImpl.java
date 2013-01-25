@@ -49,6 +49,7 @@ import com.liferay.portal.search.lucene.cluster.LuceneClusterUtil;
 import com.liferay.portal.search.lucene.highlight.QueryTermExtractor;
 import com.liferay.portal.security.auth.TransientTokenUtil;
 import com.liferay.portal.util.PortalInstances;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.util.lucene.KeywordsUtil;
 
@@ -84,11 +85,11 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TermRangeQuery;
 import org.apache.lucene.search.WildcardQuery;
+import org.apache.lucene.search.highlight.Formatter;
 import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
 import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.SimpleFragmenter;
-import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.apache.lucene.search.highlight.WeightedTerm;
 import org.apache.lucene.util.Version;
 
@@ -186,6 +187,18 @@ public class LuceneHelperImpl implements LuceneHelper {
 			return;
 		}
 
+		Analyzer analyzer = getAnalyzer();
+
+		if (analyzer instanceof PerFieldAnalyzer) {
+			PerFieldAnalyzer perFieldAnalyzer = (PerFieldAnalyzer)analyzer;
+
+			Analyzer fieldAnalyzer = perFieldAnalyzer.getAnalyzer(field);
+
+			if (fieldAnalyzer instanceof LikeKeywordAnalyzer) {
+				like = true;
+			}
+		}
+
 		if (like) {
 			value = StringUtil.replace(
 				value, StringPool.PERCENT, StringPool.BLANK);
@@ -193,11 +206,20 @@ public class LuceneHelperImpl implements LuceneHelper {
 
 		try {
 			QueryParser queryParser = new QueryParser(
-				getVersion(), field, getAnalyzer());
+				getVersion(), field, analyzer);
+
+			queryParser.setAllowLeadingWildcard(true);
 
 			Query query = null;
 
 			try {
+				if (like) {
+
+					// LUCENE-89
+
+					value = value.toLowerCase(queryParser.getLocale());
+				}
+
 				query = queryParser.parse(value);
 			}
 			catch (Exception e) {
@@ -349,7 +371,7 @@ public class LuceneHelperImpl implements LuceneHelper {
 		}
 	}
 
-	public String[] getQueryTerms(Query query) {
+	public Set<String> getQueryTerms(Query query) {
 		String queryString = StringUtil.replace(
 			query.toString(), StringPool.STAR, StringPool.BLANK);
 
@@ -386,7 +408,7 @@ public class LuceneHelperImpl implements LuceneHelper {
 			queryTerms.add(weightedTerm.getTerm());
 		}
 
-		return queryTerms.toArray(new String[queryTerms.size()]);
+		return queryTerms;
 	}
 
 	public IndexSearcher getSearcher(long companyId, boolean readOnly)
@@ -407,17 +429,12 @@ public class LuceneHelperImpl implements LuceneHelper {
 
 	public String getSnippet(
 			Query query, String field, String s, int maxNumFragments,
-			int fragmentLength, String fragmentSuffix, String preTag,
-			String postTag)
+			int fragmentLength, String fragmentSuffix, Formatter formatter)
 		throws IOException {
-
-		SimpleHTMLFormatter simpleHTMLFormatter = new SimpleHTMLFormatter(
-			preTag, postTag);
 
 		QueryScorer queryScorer = new QueryScorer(query, field);
 
-		Highlighter highlighter = new Highlighter(
-			simpleHTMLFormatter, queryScorer);
+		Highlighter highlighter = new Highlighter(formatter, queryScorer);
 
 		highlighter.setTextFragmenter(new SimpleFragmenter(fragmentLength));
 
@@ -429,7 +446,8 @@ public class LuceneHelperImpl implements LuceneHelper {
 				tokenStream, s, maxNumFragments, fragmentSuffix);
 
 			if (Validator.isNotNull(snippet) &&
-				!StringUtil.endsWith(snippet, fragmentSuffix)) {
+				!StringUtil.endsWith(snippet, fragmentSuffix) &&
+				!s.equals(snippet)) {
 
 				snippet = snippet.concat(fragmentSuffix);
 			}
@@ -554,6 +572,17 @@ public class LuceneHelperImpl implements LuceneHelper {
 			LuceneIndexer luceneIndexer = new LuceneIndexer(companyId);
 
 			if (PropsValues.INDEX_WITH_THREAD) {
+				if (_luceneIndexThreadPoolExecutor == null) {
+
+					// This should never be null except for the case where
+					// VerifyProcessUtil#_verifyProcess(boolean) sets
+					// PropsValues#INDEX_ON_STARTUP to true.
+
+					_luceneIndexThreadPoolExecutor =
+						PortalExecutorManagerUtil.getPortalExecutor(
+							LuceneHelperImpl.class.getName());
+				}
+
 				_luceneIndexThreadPoolExecutor.execute(luceneIndexer);
 			}
 			else {
@@ -611,9 +640,17 @@ public class LuceneHelperImpl implements LuceneHelper {
 
 			InetAddress inetAddress = clusterNode.getInetAddress();
 
+			String fileName = PortalUtil.getPathContext();
+
+			if (!fileName.endsWith(StringPool.SLASH)) {
+				fileName = fileName.concat(StringPool.SLASH);
+			}
+
+			fileName = fileName.concat("lucene/dump");
+
 			URL url = new URL(
 				"http", inetAddress.getHostAddress(), clusterNode.getPort(),
-				"/lucene/dump");
+				fileName);
 
 			return new ObjectValuePair<String, URL>(transientToken, url);
 		}
@@ -711,10 +748,16 @@ public class LuceneHelperImpl implements LuceneHelper {
 		else if (query instanceof BooleanQuery) {
 			BooleanQuery curBooleanQuery = (BooleanQuery)query;
 
+			BooleanQuery containerBooleanQuery = new BooleanQuery();
+
 			for (BooleanClause booleanClause : curBooleanQuery.getClauses()) {
 				_includeIfUnique(
-					booleanQuery, booleanClause.getQuery(),
+					containerBooleanQuery, booleanClause.getQuery(),
 					booleanClause.getOccur(), like);
+			}
+
+			if (containerBooleanQuery.getClauses().length > 0) {
+				booleanQuery.add(containerBooleanQuery, occur);
 			}
 		}
 		else {
@@ -769,11 +812,9 @@ public class LuceneHelperImpl implements LuceneHelper {
 	private static Log _log = LogFactoryUtil.getLog(LuceneHelperImpl.class);
 
 	private static MethodKey _createTokenMethodKey =
-		new MethodKey(TransientTokenUtil.class.getName(), "createToken",
-		long.class);
+		new MethodKey(TransientTokenUtil.class, "createToken", long.class);
 	private static MethodKey _getLastGenerationMethodKey =
-		new MethodKey(LuceneHelperUtil.class.getName(), "getLastGeneration",
-		long.class);
+		new MethodKey(LuceneHelperUtil.class, "getLastGeneration", long.class);
 
 	private Analyzer _analyzer;
 	private Map<Long, IndexAccessor> _indexAccessors =

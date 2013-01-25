@@ -122,37 +122,37 @@ if (folder != null) {
 	/>
 
 	<%
-		headerNames.clear();
+	headerNames.clear();
 
-			headerNames.add("document");
-			headerNames.add("size");
+	headerNames.add("document");
+	headerNames.add("size");
 
-			if (PropsValues.DL_FILE_ENTRY_READ_COUNT_ENABLED) {
+	if (PropsValues.DL_FILE_ENTRY_BUFFERED_INCREMENT_ENABLED) {
 		headerNames.add("downloads");
-			}
+	}
 
-			headerNames.add("locked");
+	headerNames.add("locked");
 
-			searchContainer = new SearchContainer(renderRequest, null, null, "cur2", SearchContainer.DEFAULT_DELTA, portletURL, headerNames, null);
+	searchContainer = new SearchContainer(renderRequest, null, null, "cur2", SearchContainer.DEFAULT_DELTA, portletURL, headerNames, null);
 
-			total = DLAppServiceUtil.getFileEntriesCount(groupId, folderId);
+	total = DLAppServiceUtil.getFileEntriesCount(groupId, folderId);
 
-			searchContainer.setTotal(total);
+	searchContainer.setTotal(total);
 
-			results = DLAppServiceUtil.getFileEntries(groupId, folderId, searchContainer.getStart(), searchContainer.getEnd());
+	results = DLAppServiceUtil.getFileEntries(groupId, folderId, searchContainer.getStart(), searchContainer.getEnd());
 
-			searchContainer.setResults(results);
+	searchContainer.setResults(results);
 
-			resultRows = searchContainer.getResultRows();
+	resultRows = searchContainer.getResultRows();
 
-			for (int i = 0; i < results.size(); i++) {
+	for (int i = 0; i < results.size(); i++) {
 		FileEntry fileEntry = (FileEntry)results.get(i);
 
 		fileEntry = fileEntry.toEscapedModel();
 
 		ResultRow row = new ResultRow(fileEntry, fileEntry.getFileEntryId(), i);
 
-		StringBundler sb = new StringBundler(9);
+		StringBundler sb = new StringBundler(7);
 
 		sb.append("javascript:opener.");
 		sb.append(renderResponse.getNamespace());
@@ -182,7 +182,7 @@ if (folder != null) {
 
 		row.addText(TextFormatter.formatStorageSize(fileEntry.getSize(), locale), rowHREF);
 
-		if (PropsValues.DL_FILE_ENTRY_READ_COUNT_ENABLED) {
+		if (PropsValues.DL_FILE_ENTRY_BUFFERED_INCREMENT_ENABLED) {
 			row.addText(String.valueOf(fileEntry.getReadCount()), rowHREF);
 		}
 
@@ -193,7 +193,7 @@ if (folder != null) {
 		// Add result row
 
 		resultRows.add(row);
-			}
+	}
 	%>
 
 	<liferay-ui:search-iterator searchContainer="<%= searchContainer %>" />

@@ -34,6 +34,8 @@ import com.liferay.portlet.social.model.impl.SocialActivityCounterImpl;
 import com.liferay.portlet.social.util.SocialCounterPeriodUtil;
 import com.liferay.util.dao.orm.CustomSQLUtil;
 
+import java.io.Serializable;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -80,6 +82,9 @@ public class SocialActivityCounterFinderImpl
 
 			qPos.add(groupId);
 			qPos.add(PortalUtil.getClassNameId(User.class.getName()));
+
+			setNames(qPos, names);
+
 			qPos.add(SocialCounterPeriodUtil.getPeriodLength());
 			qPos.add(SocialCounterPeriodUtil.getActivityDay());
 
@@ -179,7 +184,7 @@ public class SocialActivityCounterFinderImpl
 			}
 			else {
 				if (endPeriod < SocialCounterPeriodUtil.getActivityDay()) {
-					_activityCounters.put(key, activityCounters);
+					_activityCounters.put(key, (Serializable)activityCounters);
 				}
 			}
 
@@ -271,6 +276,8 @@ public class SocialActivityCounterFinderImpl
 			qPos.add(groupId);
 			qPos.add(PortalUtil.getClassNameId(User.class.getName()));
 
+			setNames(qPos, names);
+
 			return (List<SocialActivityCounter>)QueryUtil.list(
 				q, getDialect(), start, end);
 		}
@@ -307,6 +314,9 @@ public class SocialActivityCounterFinderImpl
 
 			qPos.add(groupId);
 			qPos.add(PortalUtil.getClassNameId(User.class.getName()));
+
+			setNames(qPos, names);
+
 			qPos.add(SocialCounterPeriodUtil.getStartPeriod());
 
 			return (List<Long>)QueryUtil.list(q, getDialect(), start, end);
@@ -327,7 +337,7 @@ public class SocialActivityCounterFinderImpl
 		StringBundler sb = new StringBundler(names.length * 2 - 1);
 
 		for (int i = 0; i < names.length; i++) {
-			sb.append(StringUtil.quote(names[i], StringPool.APOSTROPHE));
+			sb.append(StringPool.QUESTION);
 
 			if ((i + 1) < names.length) {
 				sb.append(StringPool.COMMA);
@@ -337,7 +347,15 @@ public class SocialActivityCounterFinderImpl
 		return sb.toString();
 	}
 
-	private static PortalCache _activityCounters = MultiVMPoolUtil.getCache(
-		SocialActivityCounterFinder.class.getName());
+	protected void setNames(QueryPos qPos, String[] names) {
+		if ((names != null) && (names.length > 0)) {
+			for (String name : names) {
+				qPos.add(name);
+			}
+		}
+	}
+
+	private static PortalCache<String, Serializable> _activityCounters =
+		MultiVMPoolUtil.getCache(SocialActivityCounterFinder.class.getName());
 
 }

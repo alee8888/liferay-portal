@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.InstancePool;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -45,16 +44,17 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.Future;
 
 /**
  * @author Sergio González
  * @author Alexander Chow
+ * @author Ivica Cardic
  */
 public class ImageProcessorImpl
 	extends DLPreviewableProcessor implements ImageProcessor {
 
-	public static ImageProcessorImpl getInstance() {
-		return _instance;
+	public void afterPropertiesSet() {
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class ImageProcessorImpl
 
 	@Override
 	public void cleanUp(FileVersion fileVersion) {
-		String type = _instance.getThumbnailType(fileVersion);
+		String type = getThumbnailType(fileVersion);
 
 		deleteFiles(fileVersion, type);
 	}
@@ -73,11 +73,11 @@ public class ImageProcessorImpl
 			FileVersion sourceFileVersion, FileVersion destinationFileVersion)
 		throws Exception {
 
-		_instance._generateImages(sourceFileVersion, destinationFileVersion);
+		_generateImages(sourceFileVersion, destinationFileVersion);
 	}
 
 	public Set<String> getImageMimeTypes() {
-		return _instance._imageMimeTypes;
+		return _imageMimeTypes;
 	}
 
 	public InputStream getPreviewAsStream(FileVersion fileVersion)
@@ -86,7 +86,7 @@ public class ImageProcessorImpl
 		if (_previewGenerationRequired(fileVersion)) {
 			String type = getPreviewType(fileVersion);
 
-			return _instance.doGetPreviewAsStream(fileVersion, type);
+			return doGetPreviewAsStream(fileVersion, type);
 		}
 
 		return fileVersion.getContentStream(false);
@@ -96,7 +96,7 @@ public class ImageProcessorImpl
 		if (_previewGenerationRequired(fileVersion)) {
 			String type = getPreviewType(fileVersion);
 
-			return _instance.doGetPreviewFileSize(fileVersion, type);
+			return doGetPreviewFileSize(fileVersion, type);
 		}
 
 		return fileVersion.getSize();
@@ -110,13 +110,13 @@ public class ImageProcessorImpl
 	public InputStream getThumbnailAsStream(FileVersion fileVersion, int index)
 		throws Exception {
 
-		return _instance.doGetThumbnailAsStream(fileVersion, index);
+		return doGetThumbnailAsStream(fileVersion, index);
 	}
 
 	public long getThumbnailFileSize(FileVersion fileVersion, int index)
 		throws Exception {
 
-		return _instance.doGetThumbnailFileSize(fileVersion, index);
+		return doGetThumbnailFileSize(fileVersion, index);
 	}
 
 	@Override
@@ -134,14 +134,13 @@ public class ImageProcessorImpl
 		boolean hasImages = false;
 
 		try {
-			if (_instance._hasPreview(fileVersion) &&
-				hasThumbnails(fileVersion)) {
+			if (_hasPreview(fileVersion) && hasThumbnails(fileVersion)) {
 
 				hasImages = true;
 			}
 
-			if (!hasImages && _instance.isSupported(fileVersion)) {
-				_instance._queueGeneration(null, fileVersion);
+			if (!hasImages && isSupported(fileVersion)) {
+				_queueGeneration(null, fileVersion);
 			}
 		}
 		catch (Exception e) {
@@ -152,11 +151,11 @@ public class ImageProcessorImpl
 	}
 
 	public boolean isImageSupported(FileVersion fileVersion) {
-		return _instance.isSupported(fileVersion);
+		return isSupported(fileVersion);
 	}
 
 	public boolean isImageSupported(String mimeType) {
-		return _instance.isSupported(mimeType);
+		return isSupported(mimeType);
 	}
 
 	public boolean isSupported(String mimeType) {
@@ -173,15 +172,18 @@ public class ImageProcessorImpl
 			String type)
 		throws Exception {
 
-		_instance._storeThumbnail(
+		_storeThumbnail(
 			companyId, groupId, fileEntryId, fileVersionId, custom1ImageId,
 			custom2ImageId, is, type);
 	}
 
+	@Override
 	public void trigger(
 		FileVersion sourceFileVersion, FileVersion destinationFileVersion) {
 
-		_instance._queueGeneration(sourceFileVersion, destinationFileVersion);
+		super.trigger(sourceFileVersion, destinationFileVersion);
+
+		_queueGeneration(sourceFileVersion, destinationFileVersion);
 	}
 
 	@Override
@@ -236,7 +238,9 @@ public class ImageProcessorImpl
 			getPreviewType(fileVersion));
 	}
 
-	private ImageProcessorImpl() {
+	@Override
+	protected List<Long> getFileVersionIds() {
+		return _fileVersionIds;
 	}
 
 	private void _generateImages(
@@ -271,10 +275,19 @@ public class ImageProcessorImpl
 			}
 
 			if (renderedImage.getColorModel().getNumComponents() == 4) {
-				RenderedImage convertedRenderedImage =
-					ImageToolUtil.convertCMYKtoRGB(
-						bytes, imageBag.getType(),
-						PropsValues.DL_FILE_ENTRY_PREVIEW_FORK_PROCESS_ENABLED);
+				Future<RenderedImage> future = ImageToolUtil.convertCMYKtoRGB(
+					bytes, imageBag.getType());
+
+				if (future == null) {
+					return;
+				}
+
+				String processIdentity = String.valueOf(
+					destinationFileVersion.getFileVersionId());
+
+				futures.put(processIdentity, future);
+
+				RenderedImage convertedRenderedImage = future.get();
 
 				if (convertedRenderedImage != null) {
 					renderedImage = convertedRenderedImage;
@@ -433,12 +446,6 @@ public class ImageProcessorImpl
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(ImageProcessorImpl.class);
-
-	private static ImageProcessorImpl _instance = new ImageProcessorImpl();
-
-	static {
-		InstancePool.put(ImageProcessorImpl.class.getName(), _instance);
-	}
 
 	private List<Long> _fileVersionIds = new Vector<Long>();
 	private Set<String> _imageMimeTypes = SetUtil.fromArray(

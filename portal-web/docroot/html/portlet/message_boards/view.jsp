@@ -33,24 +33,15 @@ Set<Long> categorySubscriptionClassPKs = null;
 Set<Long> threadSubscriptionClassPKs = null;
 
 if (themeDisplay.isSignedIn()) {
-	List<Subscription> categorySubscriptions = SubscriptionLocalServiceUtil.getUserSubscriptions(user.getUserId(), MBCategory.class.getName());
-
-	categorySubscriptionClassPKs = new HashSet<Long>(categorySubscriptions.size());
-
-	for (Subscription subscription : categorySubscriptions) {
-		categorySubscriptionClassPKs.add(subscription.getClassPK());
-	}
-
-	threadSubscriptionClassPKs = new HashSet<Long>();
-
-	List<Subscription> threadSubscriptions = SubscriptionLocalServiceUtil.getUserSubscriptions(user.getUserId(), MBThread.class.getName());
-
-	threadSubscriptionClassPKs = new HashSet<Long>(threadSubscriptions.size());
-
-	for (Subscription subscription : threadSubscriptions) {
-		threadSubscriptionClassPKs.add(subscription.getClassPK());
-	}
+	categorySubscriptionClassPKs = MBUtil.getCategorySubscriptionClassPKs(user.getUserId());
+	threadSubscriptionClassPKs = MBUtil.getThreadSubscriptionClassPKs(user.getUserId());
 }
+
+long groupThreadsUserId = ParamUtil.getLong(request, "groupThreadsUserId");
+
+String assetTagName = ParamUtil.getString(request, "tag");
+
+boolean useAssetEntryQuery = Validator.isNotNull(assetTagName);
 
 PortletURL portletURL = renderResponse.createRenderURL();
 
@@ -68,9 +59,25 @@ request.setAttribute("view.jsp-viewCategory", Boolean.TRUE.toString());
 request.setAttribute("view.jsp-portletURL", portletURL);
 %>
 
+<portlet:actionURL var="undoTrashURL">
+	<portlet:param name="struts_action" value="/message_boards/edit_entry" />
+	<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.RESTORE %>" />
+</portlet:actionURL>
+
+<liferay-ui:trash-undo portletURL="<%= undoTrashURL %>" />
+
 <liferay-util:include page="/html/portlet/message_boards/top_links.jsp" />
 
 <c:choose>
+	<c:when test="<%= useAssetEntryQuery %>">
+		<liferay-ui:categorization-filter
+			assetType="threads"
+			portletURL="<%= portletURL %>"
+		/>
+
+		<%@ include file="/html/portlet/message_boards/view_threads.jspf" %>
+
+	</c:when>
 	<c:when test='<%= topLink.equals("message-boards-home") %>'>
 		<%@ include file="/html/portlet/message_boards/category_subscriptions.jspf" %>
 
@@ -95,7 +102,7 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 						<portlet:param name="parentCategoryId" value="<%= String.valueOf(categoryId) %>" />
 					</portlet:renderURL>
 
-					<aui:button href='<%= editCategoryURL %>' value='<%= (category == null) ? "add-category" : "add-subcategory" %>' />
+					<aui:button href="<%= editCategoryURL %>" value='<%= (category == null) ? "add-category" : "add-subcategory" %>' />
 				</c:if>
 
 				<c:if test="<%= showAddMessageButton %>">
@@ -105,7 +112,7 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 						<portlet:param name="mbCategoryId" value="<%= String.valueOf(categoryId) %>" />
 					</portlet:renderURL>
 
-					<aui:button href='<%= editMessageURL %>' value="post-new-thread" />
+					<aui:button href="<%= editMessageURL %>" value="post-new-thread" />
 				</c:if>
 
 				<c:if test="<%= showPermissionsButton %>">
@@ -159,6 +166,62 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 				localizeTitle="<%= false %>"
 				title="<%= category.getName() %>"
 			/>
+
+			<div class="thread-actions">
+				<liferay-ui:icon-list>
+					<c:if test="<%= enableRSS %>">
+
+						<%
+						if (category.getCategoryId() > 0) {
+							rssURL.setParameter("mbCategoryId", String.valueOf(category.getCategoryId()));
+						}
+						else {
+							rssURL.setParameter("groupId", String.valueOf(scopeGroupId));
+						}
+						%>
+
+						<liferay-ui:rss
+							delta="<%= rssDelta %>"
+							displayStyle="<%= rssDisplayStyle %>"
+							feedType="<%= rssFeedType %>"
+							resourceURL="<%= rssURL %>"
+						/>
+					</c:if>
+
+					<c:if test="<%= MBCategoryPermission.contains(permissionChecker, category, ActionKeys.SUBSCRIBE) %>">
+						<c:choose>
+							<c:when test="<%= (categorySubscriptionClassPKs != null) && categorySubscriptionClassPKs.contains(category.getCategoryId()) %>">
+								<portlet:actionURL var="unsubscribeURL">
+									<portlet:param name="struts_action" value="/message_boards/edit_category" />
+									<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.UNSUBSCRIBE %>" />
+									<portlet:param name="redirect" value="<%= currentURL %>" />
+									<portlet:param name="mbCategoryId" value="<%= String.valueOf(category.getCategoryId()) %>" />
+								</portlet:actionURL>
+
+								<liferay-ui:icon
+									image="unsubscribe"
+									label="<%= true %>"
+									url="<%= unsubscribeURL %>"
+								/>
+							</c:when>
+							<c:otherwise>
+								<portlet:actionURL var="subscribeURL">
+									<portlet:param name="struts_action" value="/message_boards/edit_category" />
+									<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.SUBSCRIBE %>" />
+									<portlet:param name="redirect" value="<%= currentURL %>" />
+									<portlet:param name="mbCategoryId" value="<%= String.valueOf(category.getCategoryId()) %>" />
+								</portlet:actionURL>
+
+								<liferay-ui:icon
+									image="subscribe"
+									label="<%= true %>"
+									url="<%= subscribeURL %>"
+								/>
+							</c:otherwise>
+						</c:choose>
+					</c:if>
+				</liferay-ui:icon-list>
+			</div>
 		</c:if>
 
 		<div class="displayStyle-<%= displayStyle %>">
@@ -178,8 +241,6 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 	<c:when test='<%= topLink.equals("my-posts") || topLink.equals("my-subscriptions") || topLink.equals("recent-posts") %>'>
 
 		<%
-		long groupThreadsUserId = ParamUtil.getLong(request, "groupThreadsUserId");
-
 		if ((topLink.equals("my-posts") || topLink.equals("my-subscriptions")) && themeDisplay.isSignedIn()) {
 			groupThreadsUserId = user.getUserId();
 		}
@@ -228,94 +289,9 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 			</liferay-ui:search-container>
 		</c:if>
 
-		<liferay-ui:search-container
-			headerNames="thread,started-by,posts,views,last-post"
-			iteratorURL="<%= portletURL %>"
-		>
+		<%@ include file="/html/portlet/message_boards/view_threads.jspf" %>
 
-			<%
-			String emptyResultsMessage = null;
-
-			if (topLink.equals("my-posts")) {
-				emptyResultsMessage = "you-do-not-have-any-posts";
-			}
-			else if (topLink.equals("my-subscriptions")) {
-				emptyResultsMessage = "you-are-not-subscribed-to-any-threads";
-			}
-			else if (topLink.equals("recent-posts")) {
-				emptyResultsMessage = "there-are-no-recent-posts";
-			}
-
-			searchContainer.setEmptyResultsMessage(emptyResultsMessage);
-			%>
-
-			<liferay-ui:search-container-results>
-
-				<%
-				if (topLink.equals("my-posts")) {
-					results = MBThreadServiceUtil.getGroupThreads(scopeGroupId, groupThreadsUserId, WorkflowConstants.STATUS_ANY, searchContainer.getStart(), searchContainer.getEnd());
-					total = MBThreadServiceUtil.getGroupThreadsCount(scopeGroupId, groupThreadsUserId, WorkflowConstants.STATUS_ANY);
-				}
-				else if (topLink.equals("my-subscriptions")) {
-					results = MBThreadServiceUtil.getGroupThreads(scopeGroupId, groupThreadsUserId, WorkflowConstants.STATUS_APPROVED, true, searchContainer.getStart(), searchContainer.getEnd());
-					total = MBThreadServiceUtil.getGroupThreadsCount(scopeGroupId, groupThreadsUserId, WorkflowConstants.STATUS_APPROVED, true);
-				}
-				else if (topLink.equals("recent-posts")) {
-					Calendar calendar = Calendar.getInstance();
-
-					int offset = GetterUtil.getInteger(recentPostsDateOffset);
-
-					calendar.add(Calendar.DATE, -offset);
-
-					results = MBThreadServiceUtil.getGroupThreads(scopeGroupId, groupThreadsUserId, calendar.getTime(), WorkflowConstants.STATUS_APPROVED, searchContainer.getStart(), searchContainer.getEnd());
-					total = MBThreadServiceUtil.getGroupThreadsCount(scopeGroupId, groupThreadsUserId, calendar.getTime(), WorkflowConstants.STATUS_APPROVED);
-				}
-
-				pageContext.setAttribute("results", results);
-				pageContext.setAttribute("total", total);
-				%>
-
-			</liferay-ui:search-container-results>
-
-			<liferay-ui:search-container-row
-				className="com.liferay.portlet.messageboards.model.MBThread"
-				keyProperty="threadId"
-				modelVar="thread"
-			>
-
-				<%
-				MBMessage message = null;
-
-				try {
-					message = MBMessageLocalServiceUtil.getMessage(thread.getRootMessageId());
-				}
-				catch (NoSuchMessageException nsme) {
-					_log.error("Thread requires missing root message id " + thread.getRootMessageId());
-
-					message = new MBMessageImpl();
-
-					row.setSkip(true);
-				}
-
-				message = message.toEscapedModel();
-
-				row.setBold(!MBThreadFlagLocalServiceUtil.hasThreadFlag(themeDisplay.getUserId(), thread));
-				row.setObject(new Object[] {message, threadSubscriptionClassPKs});
-				row.setRestricted(!MBMessagePermission.contains(permissionChecker, message, ActionKeys.VIEW));
-				%>
-
-				<liferay-portlet:renderURL varImpl="rowURL">
-					<portlet:param name="struts_action" value="/message_boards/view_message" />
-					<portlet:param name="messageId" value="<%= String.valueOf(message.getMessageId()) %>" />
-				</liferay-portlet:renderURL>
-
-				<%@ include file="/html/portlet/message_boards/user_thread_columns.jspf" %>
-			</liferay-ui:search-container-row>
-
-			<liferay-ui:search-iterator />
-		</liferay-ui:search-container>
-
-		<c:if test='<%= topLink.equals("recent-posts") %>'>
+		<c:if test='<%= enableRSS && topLink.equals("recent-posts") %>'>
 
 			<%
 			rssURL.setParameter("groupId", String.valueOf(scopeGroupId));
@@ -329,20 +305,13 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 
 			<br />
 
-			<table class="lfr-table">
-			<tr>
-				<td>
-					<liferay-ui:icon
-						image="rss"
-						label="<%= true %>"
-						message="subscribe-to-recent-posts"
-						method="get"
-						target="_blank"
-						url="<%= rssURL.toString() %>"
-					/>
-				</td>
-			</tr>
-			</table>
+			<liferay-ui:rss
+				delta="<%= rssDelta %>"
+				displayStyle="<%= rssDisplayStyle %>"
+				feedType="<%= rssFeedType %>"
+				message="subscribe-to-recent-posts"
+				resourceURL="<%= rssURL %>"
+			/>
 		</c:if>
 
 		<%
@@ -365,7 +334,7 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 						<liferay-ui:message key="num-of-posts" />:
 					</dt>
 					<dd>
-						<%= numberFormat.format(MBMessageServiceUtil.getGroupMessagesCount(scopeGroupId, WorkflowConstants.STATUS_APPROVED)) %>
+						<%= numberFormat.format(MBStatsUserLocalServiceUtil.getMessageCountByGroupId(scopeGroupId)) %>
 					</dd>
 					<dt>
 						<liferay-ui:message key="num-of-participants" />:
@@ -423,12 +392,39 @@ request.setAttribute("view.jsp-portletURL", portletURL);
 				keyProperty="banId"
 				modelVar="ban"
 			>
+
+				<%
+				String bannedUserDisplayURL = StringPool.BLANK;
+
+				try {
+					User bannedUser = UserLocalServiceUtil.getUser(ban.getBanUserId());
+
+					bannedUserDisplayURL = bannedUser.getDisplayURL(themeDisplay);
+				}
+				catch (NoSuchUserException nsue) {
+				}
+				%>
+
 				<liferay-ui:search-container-column-text
+					href="<%= bannedUserDisplayURL %>"
 					name="banned-user"
 					value="<%= HtmlUtil.escape(PortalUtil.getUserName(ban.getBanUserId(), StringPool.BLANK)) %>"
 				/>
 
+				<%
+				String bannedByUserDisplayURL = StringPool.BLANK;
+
+				try {
+					User bannedByUser = UserLocalServiceUtil.getUser(ban.getUserId());
+
+					bannedByUserDisplayURL = bannedByUser.getDisplayURL(themeDisplay);
+				}
+				catch (NoSuchUserException nsue) {
+				}
+				%>
+
 				<liferay-ui:search-container-column-text
+					href="<%= bannedByUserDisplayURL %>"
 					name="banned-by"
 					value="<%= HtmlUtil.escape(PortalUtil.getUserName(ban.getUserId(), StringPool.BLANK)) %>"
 				/>

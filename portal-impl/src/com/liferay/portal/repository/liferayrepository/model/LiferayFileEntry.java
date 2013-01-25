@@ -26,7 +26,6 @@ import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileVersion;
 import com.liferay.portlet.documentlibrary.service.DLFileVersionLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.permission.DLFileEntryPermission;
-import com.liferay.portlet.documentlibrary.util.DLAppUtil;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 
 import java.io.InputStream;
@@ -207,7 +206,7 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 	}
 
 	public String getTitle() {
-		return DLAppUtil.stripTrashNamespace(_dlFileEntry.getTitle());
+		return _dlFileEntry.getTitle();
 	}
 
 	public long getUserId() {
@@ -261,6 +260,10 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 
 	public boolean isEscapedModel() {
 		return _escapedModel;
+	}
+
+	public boolean isManualCheckInRequired() {
+		return _dlFileEntry.isManualCheckInRequired();
 	}
 
 	public boolean isSupportsLocking() {
@@ -317,6 +320,20 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 		}
 		else {
 			return new LiferayFileEntry(_dlFileEntry.toEscapedModel(), true);
+		}
+	}
+
+	@Override
+	public String toString() {
+		return _dlFileEntry.toString();
+	}
+
+	public FileEntry toUnescapedModel() {
+		if (isEscapedModel()) {
+			return new LiferayFileEntry(_dlFileEntry.toUnescapedModel(), true);
+		}
+		else {
+			return this;
 		}
 	}
 

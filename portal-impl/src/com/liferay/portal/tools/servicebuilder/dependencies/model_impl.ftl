@@ -26,6 +26,7 @@ import ${packagePath}.model.${entity.name}Soap;
 
 import ${packagePath}.service.${entity.name}LocalServiceUtil;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
@@ -106,47 +107,49 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 
 	<#if entity.getOrder()??>
 		<#assign orderList = entity.getOrder().getColumns()>
-
-		<#assign orderByJPQL = "">
-
-		<#list orderList as order>
-			<#if entity.hasCompoundPK() && order.isPrimary()>
-				<#assign orderByJPQL = orderByJPQL + entity.alias + ".id." + order.name>
-			<#else>
-				<#assign orderByJPQL = orderByJPQL + entity.alias + "." + order.name>
-			</#if>
-
-			<#if order.isOrderByAscending()>
-				<#assign orderByJPQL = orderByJPQL + " ASC">
-			<#else>
-				<#assign orderByJPQL = orderByJPQL + " DESC">
-			</#if>
-
-			<#if order_has_next>
-				<#assign orderByJPQL = orderByJPQL + ", ">
-			</#if>
-		</#list>
-
-		public static final String ORDER_BY_JPQL = " ORDER BY ${orderByJPQL}";
-
-		<#assign orderBySQL = "">
-
-		<#list orderList as order>
-			<#assign orderBySQL = orderBySQL + entity.table + "." + order.DBName>
-
-			<#if order.isOrderByAscending()>
-				<#assign orderBySQL = orderBySQL + " ASC">
-			<#else>
-				<#assign orderBySQL = orderBySQL + " DESC">
-			</#if>
-
-			<#if order_has_next>
-				<#assign orderBySQL = orderBySQL + ", ">
-			</#if>
-		</#list>
-
-		public static final String ORDER_BY_SQL = " ORDER BY ${orderBySQL}";
+	<#else>
+		<#assign orderList = entity.getPKList()>
 	</#if>
+
+	<#assign orderByJPQL = "">
+
+	<#list orderList as order>
+		<#if entity.hasCompoundPK() && order.isPrimary()>
+			<#assign orderByJPQL = orderByJPQL + entity.alias + ".id." + order.name>
+		<#else>
+			<#assign orderByJPQL = orderByJPQL + entity.alias + "." + order.name>
+		</#if>
+
+		<#if order.isOrderByAscending()>
+			<#assign orderByJPQL = orderByJPQL + " ASC">
+		<#else>
+			<#assign orderByJPQL = orderByJPQL + " DESC">
+		</#if>
+
+		<#if order_has_next>
+			<#assign orderByJPQL = orderByJPQL + ", ">
+		</#if>
+	</#list>
+
+	public static final String ORDER_BY_JPQL = " ORDER BY ${orderByJPQL}";
+
+	<#assign orderBySQL = "">
+
+	<#list orderList as order>
+		<#assign orderBySQL = orderBySQL + entity.table + "." + order.DBName>
+
+		<#if order.isOrderByAscending()>
+			<#assign orderBySQL = orderBySQL + " ASC">
+		<#else>
+			<#assign orderBySQL = orderBySQL + " DESC">
+		</#if>
+
+		<#if order_has_next>
+			<#assign orderBySQL = orderBySQL + ", ">
+		</#if>
+	</#list>
+
+	public static final String ORDER_BY_SQL = " ORDER BY ${orderBySQL}";
 
 	public static final String DATA_SOURCE = "${entity.dataSource}";
 
@@ -201,7 +204,15 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 			<#list entity.finderColumnsList as column>
 				public static long ${column.name?upper_case}_COLUMN_BITMASK = ${columnBitmask}L;
 
-				<#assign columnBitmask = columnBitmask * 2 >
+				<#assign columnBitmask = columnBitmask * 2>
+			</#list>
+
+			<#list orderList as order>
+				<#if !entity.finderColumnsList?seq_contains(order)>
+					public static long ${order.name?upper_case}_COLUMN_BITMASK = ${columnBitmask}L;
+
+					<#assign columnBitmask = columnBitmask * 2>
+				</#if>
 			</#list>
 		</#if>
 	</#if>
@@ -214,6 +225,10 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		 * @return the normal model instance
 		 */
 		public static ${entity.name} toModel(${entity.name}Soap soapModel) {
+			if (soapModel == null) {
+				return null;
+			}
+
 			${entity.name} model = new ${entity.name}Impl();
 
 			<#list entity.regularColList as column>
@@ -230,6 +245,10 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		 * @return the normal model instances
 		 */
 		public static List<${entity.name}> toModels(${entity.name}Soap[] soapModels) {
+			if (soapModels == null) {
+				return null;
+			}
+
 			List<${entity.name}> models = new ArrayList<${entity.name}>(soapModels.length);
 
 			for (${entity.name}Soap soapModel : soapModels) {
@@ -313,19 +332,7 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 
 			);
 		<#else>
-			return
-
-			<#if entity.hasPrimitivePK()>
-				new ${serviceBuilder.getPrimitiveObj("${entity.PKClassName}")} (
-			</#if>
-
-			_${entity.PKList[0].name}
-
-			<#if entity.hasPrimitivePK()>
-				)
-			</#if>
-
-			;
+			return _${entity.PKList[0].name};
 		</#if>
 	}
 
@@ -617,6 +624,51 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		}
 	</#list>
 
+	<#if entity.isContainerModel()>
+		<#assign hasParentContainerModelId = entity.hasColumn("parentContainerModelId")>
+
+		<#list entity.columnList as column>
+			<#if column.isContainerModel() && (column.name != "containerModelId")>
+				public long getContainerModelId() {
+					return get${column.methodName}();
+				}
+
+				public void setContainerModelId(long containerModelId) {
+					_${column.name} = containerModelId;
+				}
+			</#if>
+
+			<#if column.isParentContainerModel() && (column.name != "parentContainerModelId")>
+				<#assign hasParentContainerModelId = true>
+
+				public long getParentContainerModelId() {
+					return get${column.methodName}();
+				}
+
+				public void setParentContainerModelId(long parentContainerModelId) {
+					_${column.name} = parentContainerModelId;
+				}
+			</#if>
+		</#list>
+
+		public String getContainerModelName() {
+			<#if entity.hasColumn("name")>
+				return String.valueOf(getName());
+			<#else>
+				return String.valueOf(getContainerModelId());
+			</#if>
+		}
+
+		<#if !hasParentContainerModelId>
+			public long getParentContainerModelId() {
+				return 0;
+			}
+
+			public void setParentContainerModelId(long parentContainerModelId) {
+			}
+		</#if>
+	</#if>
+
 	<#if entity.isWorkflowEnabled()>
 		/**
 		 * @deprecated {@link #isApproved}
@@ -634,10 +686,17 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 			}
 		}
 
-		public boolean isDraft() {
-			if ((getStatus() == WorkflowConstants.STATUS_DRAFT) ||
-				(getStatus() == WorkflowConstants.STATUS_DRAFT_FROM_APPROVED)) {
+		public boolean isDenied() {
+			if (getStatus() == WorkflowConstants.STATUS_DENIED) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
 
+		public boolean isDraft() {
+			if (getStatus() == WorkflowConstants.STATUS_DRAFT) {
 				return true;
 			}
 			else {
@@ -654,8 +713,44 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 			}
 		}
 
+		public boolean isInactive() {
+			if (getStatus() == WorkflowConstants.STATUS_INACTIVE) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		public boolean isIncomplete() {
+			if (getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		public boolean isInTrash() {
+			if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
 		public boolean isPending() {
 			if (getStatus() == WorkflowConstants.STATUS_PENDING) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		public boolean isScheduled() {
+			if (getStatus() == WorkflowConstants.STATUS_SCHEDULED) {
 				return true;
 			}
 			else {
@@ -669,15 +764,6 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 			return _columnBitmask;
 		}
 	</#if>
-
-	@Override
-	public ${entity.name} toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (${entity.name})ProxyUtil.newProxyInstance(_classLoader, _escapedModelProxyInterfaces, new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
 
 	<#if (entity.PKClassName == "long") && !stringUtil.startsWith(entity.name, "Expando")>
 		@Override
@@ -700,6 +786,27 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 			expandoBridge.setAttributes(serviceContext);
 		}
 	</#if>
+
+	<#if entity.hasLocalizedColumn()>
+		@SuppressWarnings("unused")
+		public void prepareLocalizedFieldsForImport(Locale defaultImportLocale) throws LocaleException {
+
+			<#list entity.regularColList as column>
+				<#if column.localized>
+					set${column.methodName}(get${column.methodName}(defaultImportLocale), defaultImportLocale, defaultImportLocale);
+				</#if>
+			</#list>
+		}
+	</#if>
+
+	@Override
+	public ${entity.name} toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (${entity.name})ProxyUtil.newProxyInstance(_classLoader, _escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
 
 	@Override
 	public Object clone() {
@@ -754,7 +861,7 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 						<#if column.isCaseSensitive()>
 							value = get${column.methodName}().compareTo(${entity.varName}.get${column.methodName}());
 						<#else>
-							value = get${column.methodName}().toLowerCase().compareTo(${entity.varName}.get${column.methodName}().toLowerCase());
+							value = get${column.methodName}().compareToIgnoreCase(${entity.varName}.get${column.methodName}());
 						</#if>
 					</#if>
 				</#if>
@@ -941,7 +1048,7 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 
 	private static ClassLoader _classLoader = ${entity.name}.class.getClassLoader();
 
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {${entity.name}.class};
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {${entity.name}.class};
 
 	<#list entity.regularColList as column>
 		<#if (column.type == "Blob") && column.lazy>
@@ -971,6 +1078,6 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		private long _columnBitmask;
 	</#if>
 
-	private ${entity.name} _escapedModelProxy;
+	private ${entity.name} _escapedModel;
 
 }

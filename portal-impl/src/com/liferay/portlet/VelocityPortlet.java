@@ -18,11 +18,12 @@ import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateContextType;
 import com.liferay.portal.kernel.template.TemplateManager;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
+import com.liferay.portal.kernel.template.TemplateResource;
+import com.liferay.portal.kernel.template.TemplateResourceLoaderUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.UnsyncPrintWriterPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.struts.StrutsUtil;
-import com.liferay.portal.velocity.VelocityResourceListener;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -132,7 +133,7 @@ public class VelocityPortlet extends GenericPortlet {
 	@Override
 	public void serveResource(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
-		throws PortletException, IOException {
+		throws IOException, PortletException {
 
 		if (Validator.isNull(_resourceTemplateId)) {
 			super.serveResource(resourceRequest, resourceResponse);
@@ -157,7 +158,7 @@ public class VelocityPortlet extends GenericPortlet {
 		StringBundler sb = new StringBundler(4);
 
 		sb.append(_portletContextName);
-		sb.append(VelocityResourceListener.SERVLET_SEPARATOR);
+		sb.append(TemplateResource.SERVLET_SEPARATOR);
 		sb.append(StrutsUtil.TEXT_HTML_DIR);
 		sb.append(name);
 
@@ -169,8 +170,18 @@ public class VelocityPortlet extends GenericPortlet {
 			PortletResponse portletResponse)
 		throws Exception {
 
+		TemplateResource templateResource =
+			TemplateResourceLoaderUtil.getTemplateResource(
+				TemplateManager.VELOCITY, templateId);
+
+		if (templateResource == null) {
+			throw new Exception(
+				"Unable to load template resource " + templateId);
+		}
+
 		Template template = TemplateManagerUtil.getTemplate(
-			TemplateManager.VELOCITY, templateId, TemplateContextType.STANDARD);
+			TemplateManager.VELOCITY, templateResource,
+			TemplateContextType.STANDARD);
 
 		prepareTemplate(template, portletRequest, portletResponse);
 

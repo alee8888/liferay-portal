@@ -106,6 +106,10 @@ public class DLSyncModelImpl extends BaseModelImpl<DLSync>
 	 * @return the normal model instance
 	 */
 	public static DLSync toModel(DLSyncSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		DLSync model = new DLSyncImpl();
 
 		model.setSyncId(soapModel.getSyncId());
@@ -132,6 +136,10 @@ public class DLSyncModelImpl extends BaseModelImpl<DLSync>
 	 * @return the normal model instances
 	 */
 	public static List<DLSync> toModels(DLSyncSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<DLSync> models = new ArrayList<DLSync>(soapModels.length);
 
 		for (DLSyncSoap soapModel : soapModels) {
@@ -156,7 +164,7 @@ public class DLSyncModelImpl extends BaseModelImpl<DLSync>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_syncId);
+		return _syncId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -471,17 +479,6 @@ public class DLSyncModelImpl extends BaseModelImpl<DLSync>
 	}
 
 	@Override
-	public DLSync toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (DLSync)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			DLSync.class.getName(), getPrimaryKey());
@@ -492,6 +489,16 @@ public class DLSyncModelImpl extends BaseModelImpl<DLSync>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public DLSync toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (DLSync)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -792,9 +799,7 @@ public class DLSyncModelImpl extends BaseModelImpl<DLSync>
 	}
 
 	private static ClassLoader _classLoader = DLSync.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
-			DLSync.class
-		};
+	private static Class<?>[] _escapedModelInterfaces = new Class[] { DLSync.class };
 	private long _syncId;
 	private long _companyId;
 	private long _originalCompanyId;
@@ -816,5 +821,5 @@ public class DLSyncModelImpl extends BaseModelImpl<DLSync>
 	private String _type;
 	private String _version;
 	private long _columnBitmask;
-	private DLSync _escapedModelProxy;
+	private DLSync _escapedModel;
 }

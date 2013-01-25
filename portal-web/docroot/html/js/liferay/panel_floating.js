@@ -126,6 +126,8 @@ AUI.add(
 					);
 
 					instance.set('trigger', instance._trigger);
+
+					Liferay.on('submitForm', instance.hide, instance);
 				},
 
 				prototype: {
@@ -164,6 +166,9 @@ AUI.add(
 
 										var paginatorInstance = new A.Paginator(
 											{
+												TPL: {
+													defaultOutput: '<span class="lfr-paginator-prev">{PrevPageLink}</span>{PageLinks}<span class="lfr-paginator-next">{NextPageLink}</span>'
+												},
 												containers: paginatorContainer,
 												on: {
 													changeRequest: function(newState) {
@@ -176,8 +181,6 @@ AUI.add(
 														this.setState(newState);
 													}
 												},
-												pageContainerTemplate: '<span></span>',
-												template: '<span class="lfr-paginator-prev">{PrevPageLink}</span>{PageLinks}<span class="lfr-paginator-next">{NextPageLink}</span>',
 												total: totalPages
 											}
 										).render();
@@ -272,7 +275,7 @@ AUI.add(
 						var instance = this;
 
 						var sets = instance._container.all('.lfr-panel').filter(
-							function (node) {
+							function(node) {
 								return !node.hasClass('lfr-collapsed');
 							}
 						);

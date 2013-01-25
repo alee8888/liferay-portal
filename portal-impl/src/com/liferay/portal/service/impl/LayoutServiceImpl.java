@@ -19,7 +19,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.scheduler.CronTrigger;
-import com.liferay.portal.kernel.scheduler.SchedulerEngineUtil;
+import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
 import com.liferay.portal.kernel.scheduler.StorageType;
 import com.liferay.portal.kernel.scheduler.Trigger;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -98,12 +98,12 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 	 *         normalized when accessed see {@link
 	 *         com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil#normalize(
 	 *         String)}.
-	 * @param  serviceContext the service context. Must set the universally
-	 *         unique identifier (UUID) for the layout. Can set the creation
-	 *         date, modification date and the expando bridge attributes for the
-	 *         layout. For layouts that belong to a layout set prototype, an
-	 *         attribute named 'layoutUpdateable' can be used to specify whether
-	 *         site administrators can modify this page within their site.
+	 * @param  serviceContext the service context. Must set the UUID for the
+	 *         layout. Can set the creation date, modification date and the
+	 *         expando bridge attributes for the layout. For layouts that belong
+	 *         to a layout set prototype, an attribute named 'layoutUpdateable'
+	 *         can be used to specify whether site administrators can modify
+	 *         this page within their site.
 	 * @return the layout
 	 * @throws PortalException if a group with the primary key could not be
 	 *         found, if the group did not have permission to manage the layouts
@@ -173,12 +173,12 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 	 *         normalized when accessed see {@link
 	 *         com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil#normalize(
 	 *         String)}.
-	 * @param  serviceContext the service context. Must set the universally
-	 *         unique identifier (UUID) for the layout. Can specify the creation
-	 *         date, modification date and the expando bridge attributes for the
-	 *         layout. For layouts that belong to a layout set prototype, an
-	 *         attribute named 'layoutUpdateable' can be used to specify whether
-	 *         site administrators can modify this page within their site.
+	 * @param  serviceContext the service context. Must set the UUID for the
+	 *         layout. Can specify the creation date, modification date and the
+	 *         expando bridge attributes for the layout. For layouts that belong
+	 *         to a layout set prototype, an attribute named 'layoutUpdateable'
+	 *         can be used to specify whether site administrators can modify
+	 *         this page within their site.
 	 * @return the layout
 	 * @throws PortalException if a group with the primary key could not be
 	 *         found, if the group did not have permission to manage the layouts
@@ -414,11 +414,30 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 	}
 
 	/**
+	 * Returns all the ancestor layouts of the layout.
+	 *
+	 * @param  plid the primary key of the layout
+	 * @return the ancestor layouts of the layout
+	 * @throws PortalException if a matching layout could not be found or if a
+	 *         portal exception occurred
+	 * @throws SystemException if a system exception occurred
+	 */
+	public List<Layout> getAncestorLayouts(long plid)
+		throws PortalException, SystemException {
+
+		Layout layout = layoutLocalService.getLayout(plid);
+
+		List<Layout> ancestors = layout.getAncestors();
+
+		return filterLayouts(ancestors);
+	}
+
+	/**
 	 * Returns the primary key of the default layout for the group.
 	 *
 	 * @param  groupId the primary key of the group
 	 * @param  scopeGroupId the primary key of the scope group. See {@link
-	 *         ServiceContext#getScopeGroupId()}.
+	 *         com.liferay.portal.service.ServiceContext#getScopeGroupId()}.
 	 * @param  privateLayout whether the layout is private to the group
 	 * @param  portletId the primary key of the portlet
 	 * @return Returns the primary key of the default layout group; {@link
@@ -520,6 +539,29 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 	}
 
 	/**
+	 * @param  uuid the layout's UUID
+	 * @param  groupId the primary key of the group
+	 * @param  privateLayout whether the layout is private to the group
+	 * @return the matching layout
+	 * @throws PortalException if a matching layout could not be found, if the
+	 *         user did not have permission to view the layout, or if some other
+	 *         portal exception occurred
+	 * @throws SystemException if a system exception occurred
+	 */
+	public Layout getLayoutByUuidAndGroupId(
+			String uuid, long groupId, boolean privateLayout)
+		throws PortalException, SystemException {
+
+		Layout layout = layoutLocalService.getLayoutByUuidAndGroupId(
+			uuid, groupId, privateLayout);
+
+		LayoutPermissionUtil.check(
+			getPermissionChecker(), layout, ActionKeys.VIEW);
+
+		return layout;
+	}
+
+	/**
 	 * Returns the name of the layout.
 	 *
 	 * @param  groupId the primary key of the group
@@ -563,10 +605,26 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 	}
 
 	public List<Layout> getLayouts(long groupId, boolean privateLayout)
+		throws SystemException {
+
+		return layoutPersistence.filterFindByG_P(groupId, privateLayout);
+	}
+
+	public List<Layout> getLayouts(
+			long groupId, boolean privateLayout, long parentLayoutId)
+		throws SystemException {
+
+		return layoutPersistence.filterFindByG_P_P(
+			groupId, privateLayout, parentLayoutId);
+	}
+
+	public List<Layout> getLayouts(
+			long groupId, boolean privateLayout, long parentLayoutId,
+			boolean incomplete, int start, int end)
 		throws PortalException, SystemException {
 
 		List<Layout> layouts = layoutLocalService.getLayouts(
-			groupId, privateLayout);
+			groupId, privateLayout, parentLayoutId, incomplete, start, end);
 
 		return filterLayouts(layouts);
 	}
@@ -772,7 +830,7 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 				command, getUserId(), sourceGroupId, targetGroupId,
 				privateLayout, layoutIdMap, parameterMap, startDate, endDate);
 
-		SchedulerEngineUtil.schedule(
+		SchedulerEngineHelperUtil.schedule(
 			trigger, StorageType.PERSISTED, description,
 			DestinationNames.LAYOUTS_LOCAL_PUBLISHER, publisherRequest, 0);
 	}
@@ -789,6 +847,7 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 	 *         com.liferay.portal.kernel.lar.PortletDataHandlerKeys}
 	 * @param  remoteAddress the remote address
 	 * @param  remotePort the remote port
+	 * @param  remotePathContext the remote path context
 	 * @param  secureConnection whether the connection is secure
 	 * @param  remoteGroupId the primary key of the remote group
 	 * @param  remotePrivateLayout whether remote group's layout is private
@@ -809,10 +868,11 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 	public void schedulePublishToRemote(
 			long sourceGroupId, boolean privateLayout,
 			Map<Long, Boolean> layoutIdMap, Map<String, String[]> parameterMap,
-			String remoteAddress, int remotePort, boolean secureConnection,
-			long remoteGroupId, boolean remotePrivateLayout, Date startDate,
-			Date endDate, String groupName, String cronText,
-			Date schedulerStartDate, Date schedulerEndDate, String description)
+			String remoteAddress, int remotePort, String remotePathContext,
+			boolean secureConnection, long remoteGroupId,
+			boolean remotePrivateLayout, Date startDate, Date endDate,
+			String groupName, String cronText, Date schedulerStartDate,
+			Date schedulerEndDate, String description)
 		throws PortalException, SystemException {
 
 		GroupPermissionUtil.check(
@@ -821,15 +881,16 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 		LayoutsRemotePublisherRequest publisherRequest =
 			new LayoutsRemotePublisherRequest(
 				getUserId(), sourceGroupId, privateLayout, layoutIdMap,
-				parameterMap, remoteAddress, remotePort, secureConnection,
-				remoteGroupId, remotePrivateLayout, startDate, endDate);
+				parameterMap, remoteAddress, remotePort, remotePathContext,
+				secureConnection, remoteGroupId, remotePrivateLayout, startDate,
+				endDate);
 
 		String jobName = PortalUUIDUtil.generate();
 
 		Trigger trigger = new CronTrigger(
 			jobName, groupName, schedulerStartDate, schedulerEndDate, cronText);
 
-		SchedulerEngineUtil.schedule(
+		SchedulerEngineHelperUtil.schedule(
 			trigger, StorageType.PERSISTED, description,
 			DestinationNames.LAYOUTS_REMOTE_PUBLISHER, publisherRequest, 0);
 	}
@@ -881,7 +942,8 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 		GroupPermissionUtil.check(
 			getPermissionChecker(), groupId, ActionKeys.PUBLISH_STAGING);
 
-		SchedulerEngineUtil.delete(jobName, groupName, StorageType.PERSISTED);
+		SchedulerEngineHelperUtil.delete(
+			jobName, groupName, StorageType.PERSISTED);
 	}
 
 	/**
@@ -903,7 +965,8 @@ public class LayoutServiceImpl extends LayoutServiceBaseImpl {
 		GroupPermissionUtil.check(
 			getPermissionChecker(), groupId, ActionKeys.PUBLISH_STAGING);
 
-		SchedulerEngineUtil.delete(jobName, groupName, StorageType.PERSISTED);
+		SchedulerEngineHelperUtil.delete(
+			jobName, groupName, StorageType.PERSISTED);
 	}
 
 	/**

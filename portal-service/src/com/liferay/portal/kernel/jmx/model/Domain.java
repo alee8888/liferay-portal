@@ -50,7 +50,6 @@ public class Domain implements Serializable {
 		Domain domain = (Domain)obj;
 
 		if (Validator.equals(_domainName, domain._domainName)) {
-
 			return true;
 		}
 

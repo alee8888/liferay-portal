@@ -16,9 +16,12 @@ package com.liferay.taglib.ui;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.language.UnicodeLanguageUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.WebKeys;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.TagSupport;
@@ -32,6 +35,16 @@ public class MessageTag extends TagSupport {
 	public int doEndTag() throws JspException {
 		try {
 			String value = StringPool.BLANK;
+
+			HttpServletRequest request =
+				(HttpServletRequest)pageContext.getRequest();
+
+			boolean unicode = GetterUtil.getBoolean(
+				request.getAttribute(WebKeys.JAVASCRIPT_CONTEXT));
+
+			if (unicode) {
+				_unicode = unicode;
+			}
 
 			if (_arguments == null) {
 				if (!_localizeKey) {
@@ -76,11 +89,20 @@ public class MessageTag extends TagSupport {
 	}
 
 	public void setArguments(Object argument) {
-		_arguments = new Object[] {argument};
-	}
+		if (argument == null) {
+			_arguments = null;
 
-	public void setArguments(Object[] arguments) {
-		_arguments = arguments;
+			return;
+		}
+
+		Class<?> clazz = argument.getClass();
+
+		if (clazz.isArray()) {
+			_arguments = (Object[])argument;
+		}
+		else {
+			_arguments = new Object[] {argument};
+		}
 	}
 
 	public void setKey(String key) {

@@ -18,13 +18,14 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.test.EnvironmentExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portlet.documentlibrary.InvalidFileVersionException;
 import com.liferay.portlet.documentlibrary.model.DLFileVersion;
+import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
 
 import java.util.List;
 
@@ -41,42 +42,42 @@ public class DLFileVersionHistoryTest extends BaseDLAppTestCase {
 
 	@Test
 	public void testDeleteOneVersion() throws Exception {
-		testDeleteVersion(false, false);
+		deleteVersion(false, false);
 	}
 
 	@Test
 	public void testDeleteOneVersionOnePWC() throws Exception {
-		testDeleteVersion(false, true);
+		deleteVersion(false, true);
 	}
 
 	@Test
 	public void testDeleteTwoVersions() throws Exception {
-		testDeleteVersion(true, false);
+		deleteVersion(true, false);
 	}
 
 	@Test
 	public void testDeleteTwoVersionsOnePWC() throws Exception {
-		testDeleteVersion(true, true);
+		deleteVersion(true, true);
 	}
 
 	@Test
 	public void testRevertOneVersion() throws Exception {
-		testRevertVersion(false, false);
+		revertVersion(false, false);
 	}
 
 	@Test
 	public void testRevertOneVersionOnePWC() throws Exception {
-		testRevertVersion(false, true);
+		revertVersion(false, true);
 	}
 
 	@Test
 	public void testRevertTwoVersions() throws Exception {
-		testRevertVersion(true, false);
+		revertVersion(true, false);
 	}
 
 	@Test
 	public void testRevertTwoVersionsOnePWC() throws Exception {
-		testRevertVersion(true, true);
+		revertVersion(true, true);
 	}
 
 	protected void assertFileEntryTitle(String fileName)
@@ -112,6 +113,62 @@ public class DLFileVersionHistoryTest extends BaseDLAppTestCase {
 			else {
 				assertFileEntryTitle(fileName);
 			}
+		}
+	}
+
+	protected void deleteVersion(boolean versioned, boolean leaveCheckedOut)
+		throws Exception {
+
+		_fileEntry = DLAppTestUtil.addFileEntry(
+			group.getGroupId(), parentFolder.getFolderId(), false,
+			_VERSION_1_0);
+
+		long fileEntryId = _fileEntry.getFileEntryId();
+
+		if (versioned) {
+			DLAppTestUtil.updateFileEntry(
+				group.getGroupId(), fileEntryId, null, _VERSION_1_1);
+		}
+
+		if (leaveCheckedOut) {
+			DLAppServiceUtil.checkOutFileEntry(
+				fileEntryId, new ServiceContext());
+
+			DLAppTestUtil.updateFileEntry(
+				group.getGroupId(), fileEntryId, null, _VERSION_PWC);
+		}
+
+		if (versioned && leaveCheckedOut) {
+			Assert.assertEquals(3, getFileVersionsCount());
+
+			failDeleteFileVersion("PWC");
+			deleteFileVersion("1.1", _VERSION_PWC, true);
+			failDeleteFileVersion("1.0");
+
+			Assert.assertEquals(2, getFileVersionsCount());
+		}
+		else if (versioned) {
+			Assert.assertEquals(2, getFileVersionsCount());
+
+			deleteFileVersion("1.1", _VERSION_1_0, false);
+			failDeleteFileVersion("1.0");
+
+			Assert.assertEquals(1, getFileVersionsCount());
+		}
+		else if (leaveCheckedOut) {
+			Assert.assertEquals(2, getFileVersionsCount());
+
+			failDeleteFileVersion("PWC");
+			failDeleteFileVersion("1.0");
+
+			Assert.assertEquals(2, getFileVersionsCount());
+		}
+		else {
+			Assert.assertEquals(1, getFileVersionsCount());
+
+			failDeleteFileVersion("1.0");
+
+			Assert.assertEquals(1, getFileVersionsCount());
 		}
 	}
 
@@ -157,74 +214,26 @@ public class DLFileVersionHistoryTest extends BaseDLAppTestCase {
 		}
 	}
 
-	protected void testDeleteVersion(boolean versioned, boolean leaveCheckedOut)
+	protected void revertVersion(boolean versioned, boolean leaveCheckedOut)
 		throws Exception {
 
-		_fileEntry = addFileEntry(false, _VERSION_1_0);
+		_fileEntry = DLAppTestUtil.addFileEntry(
+			group.getGroupId(), parentFolder.getFolderId(), false,
+			_VERSION_1_0);
 
 		long fileEntryId = _fileEntry.getFileEntryId();
 
 		if (versioned) {
-			updateFileEntry(fileEntryId, null, _VERSION_1_1);
+			DLAppTestUtil.updateFileEntry(
+				group.getGroupId(), fileEntryId, null, _VERSION_1_1);
 		}
 
 		if (leaveCheckedOut) {
 			DLAppServiceUtil.checkOutFileEntry(
 				fileEntryId, new ServiceContext());
 
-			updateFileEntry(fileEntryId, null, _VERSION_PWC);
-		}
-
-		if (versioned && leaveCheckedOut) {
-			Assert.assertEquals(3, getFileVersionsCount());
-
-			failDeleteFileVersion("PWC");
-			deleteFileVersion("1.1", _VERSION_PWC, true);
-			failDeleteFileVersion("1.0");
-
-			Assert.assertEquals(2, getFileVersionsCount());
-		}
-		else if (versioned) {
-			Assert.assertEquals(2, getFileVersionsCount());
-
-			deleteFileVersion("1.1", _VERSION_1_0, false);
-			failDeleteFileVersion("1.0");
-
-			Assert.assertEquals(1, getFileVersionsCount());
-		}
-		else if (leaveCheckedOut) {
-			Assert.assertEquals(2, getFileVersionsCount());
-
-			failDeleteFileVersion("PWC");
-			failDeleteFileVersion("1.0");
-
-			Assert.assertEquals(2, getFileVersionsCount());
-		}
-		else {
-			Assert.assertEquals(1, getFileVersionsCount());
-
-			failDeleteFileVersion("1.0");
-
-			Assert.assertEquals(1, getFileVersionsCount());
-		}
-	}
-
-	protected void testRevertVersion(boolean versioned, boolean leaveCheckedOut)
-		throws Exception {
-
-		_fileEntry = addFileEntry(false, _VERSION_1_0);
-
-		long fileEntryId = _fileEntry.getFileEntryId();
-
-		if (versioned) {
-			updateFileEntry(fileEntryId, null, _VERSION_1_1);
-		}
-
-		if (leaveCheckedOut) {
-			DLAppServiceUtil.checkOutFileEntry(
-				fileEntryId, new ServiceContext());
-
-			updateFileEntry(fileEntryId, null, _VERSION_PWC);
+			DLAppTestUtil.updateFileEntry(
+				group.getGroupId(), fileEntryId, null, _VERSION_PWC);
 		}
 
 		if (versioned && leaveCheckedOut) {

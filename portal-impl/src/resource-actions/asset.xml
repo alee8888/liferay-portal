@@ -23,6 +23,29 @@
 		</permissions>
 	</portlet-resource>
 	<portlet-resource>
+	<portlet-name>101</portlet-name>
+		<permissions>
+			<supports>
+				<action-key>ADD_TO_PAGE</action-key>
+				<action-key>CONFIGURATION</action-key>
+				<action-key>SUBSCRIBE</action-key>
+				<action-key>VIEW</action-key>
+			</supports>
+			<site-member-defaults>
+				<action-key>SUBSCRIBE</action-key>
+				<action-key>VIEW</action-key>
+			</site-member-defaults>
+			<guest-defaults>
+				<action-key>VIEW</action-key>
+			</guest-defaults>
+			<guest-unsupported>
+				<action-key>ADD_TO_PAGE</action-key>
+				<action-key>CONFIGURATION</action-key>
+				<action-key>SUBSCRIBE</action-key>
+			</guest-unsupported>
+		</permissions>
+	</portlet-resource>
+	<portlet-resource>
 		<portlet-name>147</portlet-name>
 		<permissions>
 			<supports>
@@ -149,18 +172,50 @@
 		</permissions>
 	</model-resource>
 	<model-resource>
+        <model-name>com.liferay.portlet.assetcategoriesnavigation</model-name>
+        <portlet-ref>
+            <portlet-name>122</portlet-name>
+        </portlet-ref>
+        <permissions>
+            <supports>
+                <action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
+            </supports>
+            <site-member-defaults />
+            <guest-defaults />
+            <guest-unsupported>
+                <action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
+            </guest-unsupported>
+        </permissions>
+    </model-resource>
+	<model-resource>
+		<model-name>com.liferay.portlet.assettagsnavigation</model-name>
+		<portlet-ref>
+			<portlet-name>141</portlet-name>
+		</portlet-ref>
+		<permissions>
+			<supports>
+				<action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
+			</supports>
+			<site-member-defaults />
+			<guest-defaults />
+			<guest-unsupported>
+				<action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
+			</guest-unsupported>
+		</permissions>
+	</model-resource>
+	<model-resource>
 		<model-name>com.liferay.portlet.assetpublisher</model-name>
 		<portlet-ref>
 			<portlet-name>101</portlet-name>
 		</portlet-ref>
 		<permissions>
 			<supports>
-				<action-key>ADD_DISPLAY_STYLE</action-key>
+				<action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
 			</supports>
 			<site-member-defaults />
 			<guest-defaults />
 			<guest-unsupported>
-				<action-key>ADD_DISPLAY_STYLE</action-key>
+				<action-key>ADD_PORTLET_DISPLAY_TEMPLATE</action-key>
 			</guest-unsupported>
 		</permissions>
 	</model-resource>

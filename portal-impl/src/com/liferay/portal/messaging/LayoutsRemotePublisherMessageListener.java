@@ -20,13 +20,16 @@ import com.liferay.portal.kernel.messaging.MessageStatus;
 import com.liferay.portal.kernel.messaging.sender.MessageSender;
 import com.liferay.portal.kernel.messaging.sender.SingleDestinationMessageSender;
 import com.liferay.portal.kernel.staging.StagingUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Time;
+import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
+import com.liferay.portal.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextThreadLocal;
 import com.liferay.portal.service.UserLocalServiceUtil;
@@ -73,6 +76,7 @@ public class LayoutsRemotePublisherMessageListener
 		Map<String, String[]> parameterMap = publisherRequest.getParameterMap();
 		String remoteAddress = publisherRequest.getRemoteAddress();
 		int remotePort = publisherRequest.getRemotePort();
+		String remotePathContext = publisherRequest.getRemotePathContext();
 		boolean secureConnection = publisherRequest.isSecureConnection();
 		long remoteGroupId = publisherRequest.getRemoteGroupId();
 		boolean remotePrivateLayout = publisherRequest.isRemotePrivateLayout();
@@ -81,7 +85,20 @@ public class LayoutsRemotePublisherMessageListener
 
 		String range = MapUtil.getString(parameterMap, "range");
 
-		if (range.equals("last")) {
+		if (range.equals("fromLastPublishDate")) {
+			LayoutSet layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
+				sourceGroupId, privateLayout);
+
+			long lastPublishDate = GetterUtil.getLong(
+				layoutSet.getSettingsProperty("last-publish-date"));
+
+			if (lastPublishDate > 0) {
+				endDate = new Date();
+
+				startDate = new Date(lastPublishDate);
+			}
+		}
+		else if (range.equals("last")) {
 			int last = MapUtil.getInteger(parameterMap, "last");
 
 			if (last > 0) {
@@ -135,8 +152,8 @@ public class LayoutsRemotePublisherMessageListener
 		try {
 			StagingUtil.copyRemoteLayouts(
 				sourceGroupId, privateLayout, layoutIdMap, parameterMap,
-				remoteAddress, remotePort, secureConnection, remoteGroupId,
-				remotePrivateLayout, startDate, endDate);
+				remoteAddress, remotePort, remotePathContext, secureConnection,
+				remoteGroupId, remotePrivateLayout, startDate, endDate);
 		}
 		finally {
 			PrincipalThreadLocal.setName(null);

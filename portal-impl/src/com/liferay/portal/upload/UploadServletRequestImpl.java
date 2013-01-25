@@ -151,6 +151,24 @@ public class UploadServletRequestImpl
 		}
 	}
 
+	public UploadServletRequestImpl(
+		HttpServletRequest request, Map<String, FileItem[]> fileParams,
+		Map<String, List<String>> regularParams) {
+
+		super(request);
+
+		_fileParams = new LinkedHashMap<String, FileItem[]>();
+		_regularParams = new LinkedHashMap<String, List<String>>();
+
+		if (fileParams != null) {
+			_fileParams.putAll(fileParams);
+		}
+
+		if (regularParams != null) {
+			_regularParams.putAll(regularParams);
+		}
+	}
+
 	public void cleanUp() {
 		if ((_fileParams != null) && !_fileParams.isEmpty()) {
 			for (FileItem[] liferayFileItems : _fileParams.values()) {
@@ -184,24 +202,30 @@ public class UploadServletRequestImpl
 
 		FileItem[] liferayFileItems = _fileParams.get(name);
 
-		File file = null;
+		if ((liferayFileItems == null) || (liferayFileItems.length == 0)) {
+			return null;
+		}
 
-		if ((liferayFileItems != null) && (liferayFileItems.length > 0)) {
-			FileItem liferayFileItem = liferayFileItems[0];
+		FileItem liferayFileItem = liferayFileItems[0];
 
-			file = liferayFileItem.getStoreLocation();
+		long size = liferayFileItem.getSize();
 
-			if (liferayFileItem.isInMemory() && forceCreate) {
-				try {
-					FileUtil.write(file, liferayFileItem.getInputStream());
-				}
-				catch (IOException ioe) {
-					if (_log.isWarnEnabled()) {
-						_log.warn(
-							"Unable to write temporary file " +
-								file.getAbsolutePath(),
-							ioe);
-					}
+		if ((size > 0) && (size <= liferayFileItem.getSizeThreshold())) {
+			forceCreate = true;
+		}
+
+		File file = liferayFileItem.getStoreLocation();
+
+		if (liferayFileItem.isInMemory() && forceCreate) {
+			try {
+				FileUtil.write(file, liferayFileItem.getInputStream());
+			}
+			catch (IOException ioe) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Unable to write temporary file " +
+							file.getAbsolutePath(),
+						ioe);
 				}
 			}
 		}
@@ -405,6 +429,10 @@ public class UploadServletRequestImpl
 		}
 
 		return ArrayUtil.append(parameterValues, parentParameterValues);
+	}
+
+	public Map<String, List<String>> getRegularParameterMap() {
+		return _regularParams;
 	}
 
 	public Long getSize(String name) {

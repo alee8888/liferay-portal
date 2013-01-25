@@ -498,7 +498,7 @@ public class JCRStore extends BaseStore {
 			JCRFactoryUtil.closeSession(session);
 		}
 
-		return fileNames.toArray(new String[0]);
+		return fileNames.toArray(new String[fileNames.size()]);
 	}
 
 	@Override
@@ -802,7 +802,7 @@ public class JCRStore extends BaseStore {
 			Version version = versionManager.checkin(contentNode.getPath());
 
 			VersionHistory versionHistory = versionManager.getVersionHistory(
-					contentNode.getPath());
+				contentNode.getPath());
 
 			versionHistory.addVersionLabel(
 				version.getName(), versionLabel,

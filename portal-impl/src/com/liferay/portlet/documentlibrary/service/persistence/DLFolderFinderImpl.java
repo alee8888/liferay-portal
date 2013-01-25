@@ -30,6 +30,7 @@ import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
+import com.liferay.portlet.documentlibrary.model.impl.DLFolderImpl;
 import com.liferay.util.dao.orm.CustomSQLUtil;
 
 import java.util.ArrayList;
@@ -57,6 +58,9 @@ public class DLFolderFinderImpl
 
 	public static final String COUNT_FS_BY_G_F_A_S =
 		DLFolderFinder.class.getName() + ".countFS_ByG_F_A_S";
+
+	public static final String FIND_F_BY_NO_ASSETS =
+		DLFolderFinder.class.getName() + ".findF_ByNoAssets";
 
 	public static final String FIND_F_BY_G_M_F =
 		DLFolderFinder.class.getName() + ".findF_ByG_M_F";
@@ -155,6 +159,28 @@ public class DLFolderFinderImpl
 		return doFindFE_FS_ByG_F(groupId, folderId, queryDefinition, true);
 	}
 
+	public List<DLFolder> findF_ByNoAssets() throws SystemException {
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			String sql = CustomSQLUtil.get(FIND_F_BY_NO_ASSETS);
+
+			SQLQuery q = session.createSQLQuery(sql);
+
+			q.addEntity("DLFolder", DLFolderImpl.class);
+
+			return q.list(true);
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
 	public List<Object> findF_FE_FS_ByG_F_M_M(
 			long groupId, long folderId, String[] mimeTypes,
 			boolean includeMountFolders, QueryDefinition queryDefinition)
@@ -245,6 +271,11 @@ public class DLFolderFinderImpl
 			}
 
 			qPos.add(folderId);
+
+			if (mimeTypes != null) {
+				qPos.add(mimeTypes);
+			}
+
 			qPos.add(groupId);
 			qPos.add(true);
 
@@ -256,6 +287,10 @@ public class DLFolderFinderImpl
 			}
 
 			qPos.add(folderId);
+
+			if (mimeTypes != null) {
+				qPos.add(mimeTypes);
+			}
 
 			int count = 0;
 
@@ -381,6 +416,11 @@ public class DLFolderFinderImpl
 			}
 
 			qPos.add(folderId);
+
+			if (mimeTypes != null) {
+				qPos.add(mimeTypes);
+			}
+
 			qPos.add(groupId);
 			qPos.add(true);
 
@@ -392,6 +432,10 @@ public class DLFolderFinderImpl
 			}
 
 			qPos.add(folderId);
+
+			if (mimeTypes != null) {
+				qPos.add(mimeTypes);
+			}
 
 			int count = 0;
 
@@ -476,9 +520,7 @@ public class DLFolderFinderImpl
 						sb.append(" OR");
 					}
 
-					sb.append(" DLFileEntry.mimeType = '");
-					sb.append(mimeTypes[i]);
-					sb.append("'");
+					sb.append(" DLFileEntry.mimeType = ?");
 				}
 
 				sb.append(StringPool.CLOSE_PARENTHESIS);
@@ -507,9 +549,7 @@ public class DLFolderFinderImpl
 						sb.append(" OR");
 					}
 
-					sb.append(" mimeType = '");
-					sb.append(mimeTypes[i]);
-					sb.append("'");
+					sb.append(" mimeType = ?");
 				}
 
 				sb.append(StringPool.CLOSE_PARENTHESIS);
@@ -564,6 +604,11 @@ public class DLFolderFinderImpl
 			}
 
 			qPos.add(folderId);
+
+			if (mimeTypes != null) {
+				qPos.add(mimeTypes);
+			}
+
 			qPos.add(groupId);
 			qPos.add(true);
 
@@ -575,6 +620,10 @@ public class DLFolderFinderImpl
 			}
 
 			qPos.add(folderId);
+
+			if (mimeTypes != null) {
+				qPos.add(mimeTypes);
+			}
 
 			List<Object> models = new ArrayList<Object>();
 
@@ -638,6 +687,8 @@ public class DLFolderFinderImpl
 			}
 			else {
 				sql = CustomSQLUtil.get(FIND_FE_BY_G_F_S);
+
+				sql = replaceExcludeStatus(sql, queryDefinition);
 			}
 
 			if (inlineSQLHelper) {
@@ -845,10 +896,7 @@ public class DLFolderFinderImpl
 
 		for (int i = 0; i < mimeTypes.length; i++) {
 			sb.append(table);
-
-			sb.append(".mimeType = '");
-			sb.append(mimeTypes[i]);
-			sb.append("'");
+			sb.append(".mimeType = ?");
 
 			if ((i + 1) != mimeTypes.length) {
 				sb.append(WHERE_OR);

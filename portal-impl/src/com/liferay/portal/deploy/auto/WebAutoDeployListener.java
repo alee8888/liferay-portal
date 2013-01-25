@@ -16,6 +16,7 @@ package com.liferay.portal.deploy.auto;
 
 import com.liferay.portal.kernel.deploy.auto.AutoDeployException;
 import com.liferay.portal.kernel.deploy.auto.BaseAutoDeployListener;
+import com.liferay.portal.kernel.deploy.auto.context.AutoDeploymentContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -27,10 +28,14 @@ import java.io.File;
 public class WebAutoDeployListener extends BaseAutoDeployListener {
 
 	public WebAutoDeployListener() {
-		_autoDeployer = new WebAutoDeployer();
+		_autoDeployer = new ThreadSafeAutoDeployer(new WebAutoDeployer());
 	}
 
-	public void deploy(File file, String context) throws AutoDeployException {
+	public void deploy(AutoDeploymentContext autoDeploymentContext)
+		throws AutoDeployException {
+
+		File file = autoDeploymentContext.getFile();
+
 		if (_log.isDebugEnabled()) {
 			_log.debug("Invoking deploy for " + file.getPath());
 		}
@@ -43,9 +48,9 @@ public class WebAutoDeployListener extends BaseAutoDeployListener {
 			_log.info("Copying web plugin for " + file.getPath());
 		}
 
-		_autoDeployer.autoDeploy(file, context);
+		int code = _autoDeployer.autoDeploy(autoDeploymentContext);
 
-		if (_log.isInfoEnabled()) {
+		if ((code == AutoDeployer.CODE_DEFAULT) && _log.isInfoEnabled()) {
 			_log.info(
 				"Web plugin for " + file.getPath() + " copied successfully. " +
 					"Deployment will start in a few seconds.");

@@ -51,9 +51,9 @@ else {
 	}
 }
 
-Group controlPanelGroup = GroupLocalServiceUtil.getGroup(themeDisplay.getCompanyId(), GroupConstants.CONTROL_PANEL);
+long controlPanelPlid = PortalUtil.getControlPanelPlid(company.getCompanyId());
 
-PortletURL assetBrowserURL = PortletURLFactoryUtil.create(request, PortletKeys.ASSET_BROWSER, LayoutLocalServiceUtil.getDefaultPlid(controlPanelGroup.getGroupId(), true), PortletRequest.RENDER_PHASE);
+PortletURL assetBrowserURL = PortletURLFactoryUtil.create(request, PortletKeys.ASSET_BROWSER, controlPanelPlid, PortletRequest.RENDER_PHASE);
 
 assetBrowserURL.setWindowState(LiferayWindowState.POP_UP);
 assetBrowserURL.setPortletMode(PortletMode.VIEW);
@@ -74,11 +74,11 @@ assetBrowserURL.setParameter("groupId", scopeGroupId.toString());
 			assetBrowserURL.setParameter("typeSelection", assetRendererFactory.getClassName());
 			assetBrowserURL.setParameter("callback", randomNamespace + "addAssetLink");
 
-			String href = "javascript:" + randomNamespace + "openAssetBrowser('" + assetBrowserURL.toString() + "')";
+			String href = "javascript:" + randomNamespace + "openAssetBrowser('" + assetBrowserURL.toString() + "', '" + UnicodeLanguageUtil.format(pageContext, "select-x", assetRendererFactory.getTypeName(locale, false)) + "')";
 		%>
 
 			<liferay-ui:icon
-				message='<%= ResourceActionsUtil.getModelResource(locale, assetRendererFactory.getClassName()) %>'
+				message='<%= assetRendererFactory.getTypeName(locale, false) %>'
 				src="<%= assetRendererFactory.getIconPath(portletRequest) %>"
 				url="<%= href %>"
 			/>
@@ -103,7 +103,7 @@ assetBrowserURL.setParameter("groupId", scopeGroupId.toString());
 </liferay-util:buffer>
 
 <liferay-ui:search-container
-	headerNames="type,title,null"
+	headerNames="type,title,scope,null"
 >
 	<liferay-ui:search-container-results
 		results="<%= assetLinks %>"
@@ -128,24 +128,28 @@ assetBrowserURL.setParameter("groupId", scopeGroupId.toString());
 
 		assetLinkEntry = assetLinkEntry.toEscapedModel();
 
-		long assetLinkEntryId = assetLinkEntry.getEntryId();
+		AssetRendererFactory assetRendererFactory = assetLinkEntry.getAssetRendererFactory();
 
-		String assetLinkEntryTitle = assetLinkEntry.getTitle(locale);
-		String assetLinkEntryType = ResourceActionsUtil.getModelResource(locale, assetLinkEntry.getClassName());
+		Group assetLinkEntryGroup = GroupLocalServiceUtil.getGroup(assetLinkEntry.getGroupId());
 		%>
 
 		<liferay-ui:search-container-column-text
 			name="type"
-			value="<%= assetLinkEntryType %>"
+			value="<%= assetRendererFactory.getTypeName(locale, false) %>"
 		/>
 
 		<liferay-ui:search-container-column-text
 			name="title"
-			value="<%= assetLinkEntryTitle %>"
+			value="<%= assetLinkEntry.getTitle(locale) %>"
+		/>
+
+		<liferay-ui:search-container-column-text
+			name="scope"
+			value="<%= assetLinkEntryGroup.getDescriptiveName(locale) %>"
 		/>
 
 		<liferay-ui:search-container-column-text>
-			<a class="modify-link" data-rowId="<%= assetLinkEntryId %>" href="javascript:;"><%= removeLinkIcon %></a>
+			<a class="modify-link" data-rowId="<%= assetLinkEntry.getEntryId() %>" href="javascript:;"><%= removeLinkIcon %></a>
 		</liferay-ui:search-container-column-text>
 	</liferay-ui:search-container-row>
 
@@ -155,7 +159,7 @@ assetBrowserURL.setParameter("groupId", scopeGroupId.toString());
 <aui:input name="assetLinkEntryIds" type="hidden" />
 
 <aui:script>
-	function <%= randomNamespace %>openAssetBrowser(url) {
+	function <%= randomNamespace %>openAssetBrowser(url, title) {
 		Liferay.Util.openWindow(
 			{
 				dialog: {
@@ -163,7 +167,7 @@ assetBrowserURL.setParameter("groupId", scopeGroupId.toString());
 					width: 820
 				},
 				id: '<portlet:namespace />assetBrowser',
-				title: '<%= UnicodeLanguageUtil.get(pageContext, "asset-browser") %>',
+				title: title,
 				uri: url
 			}
 		);
@@ -172,7 +176,7 @@ assetBrowserURL.setParameter("groupId", scopeGroupId.toString());
 	Liferay.provide(
 		window,
 		'<%= randomNamespace %>addAssetLink',
-		function(entryId, entryType, entryTitle) {
+		function(entryId, entryClassName, entryType, entryTitle, entryScope) {
 			var A = AUI();
 
 			var searchContainerName = '<%= portletResponse.getNamespace() %>assetLinksSearchContainer';
@@ -181,7 +185,7 @@ assetBrowserURL.setParameter("groupId", scopeGroupId.toString());
 
 			var entryLink = '<a class="modify-link" data-rowId="' + entryId + '" href="javascript:;"><%= UnicodeFormatter.toString(removeLinkIcon) %></a>';
 
-			searchContainer.addRow([entryType, entryTitle, entryLink], entryId);
+			searchContainer.addRow([entryType, entryTitle, entryScope, entryLink], entryId);
 
 			searchContainer.updateDataStore();
 		},

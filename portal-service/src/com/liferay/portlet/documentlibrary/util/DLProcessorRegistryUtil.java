@@ -17,6 +17,7 @@ package com.liferay.portlet.documentlibrary.util;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.kernel.xml.Element;
 
 /**
@@ -41,7 +42,14 @@ public class DLProcessorRegistryUtil {
 			portletDataContext, fileEntry, fileEntryElement);
 	}
 
+	public static DLProcessor getDLProcessor(String dlProcessorType) {
+		return getDLProcessorRegistry().getDLProcessor(dlProcessorType);
+	}
+
 	public static DLProcessorRegistry getDLProcessorRegistry() {
+		PortalRuntimePermission.checkGetBeanProperty(
+			DLProcessorRegistryUtil.class);
+
 		return _dlProcessorRegistry;
 	}
 
@@ -62,12 +70,20 @@ public class DLProcessorRegistryUtil {
 		getDLProcessorRegistry().trigger(fileEntry, fileVersion);
 	}
 
+	public static void trigger(
+		FileEntry fileEntry, FileVersion fileVersion, boolean trusted) {
+
+		getDLProcessorRegistry().trigger(fileEntry, fileVersion, trusted);
+	}
+
 	public static void unregister(DLProcessor dlProcessor) {
 		getDLProcessorRegistry().unregister(dlProcessor);
 	}
 
 	public void setDLProcessorRegistry(
 		DLProcessorRegistry dlProcessorRegistry) {
+
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
 
 		_dlProcessorRegistry = dlProcessorRegistry;
 	}

@@ -41,76 +41,113 @@ String keywords = ParamUtil.getString(request, "keywords");
 	portletURL.setParameter("struts_action", "/blogs/search");
 	portletURL.setParameter("redirect", redirect);
 	portletURL.setParameter("keywords", keywords);
+	%>
 
-	List<String> headerNames = new ArrayList<String>();
+	<liferay-ui:search-container
+		emptyResultsMessage='<%= LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>") %>'
+		iteratorURL="<%= portletURL %>"
+	>
 
-	headerNames.add("#");
-	headerNames.add("entry");
-
-	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>"));
-
-	searchContainer.setDelta(pageDelta);
-	searchContainer.setDeltaConfigurable(false);
-
-	try {
+		<%
 		Indexer indexer = IndexerRegistryUtil.getIndexer(BlogsEntry.class);
 
 		SearchContext searchContext = SearchContextFactory.getInstance(request);
 
 		searchContext.setAttribute("paginationType", "regular");
 		searchContext.setEnd(searchContainer.getEnd());
+		searchContext.setIncludeDiscussions(true);
 		searchContext.setKeywords(keywords);
 		searchContext.setStart(searchContainer.getStart());
 
-		Hits results = indexer.search(searchContext);
+		Hits hits = indexer.search(searchContext);
+		%>
 
-		int total = results.getLength();
+		<liferay-ui:search-container-results
+			results="<%= BlogsUtil.getEntries(hits) %>"
+			total="<%= hits.getLength() %>"
+		/>
 
-		searchContainer.setTotal(total);
+		<liferay-ui:search-container-row
+			className="Object"
+			modelVar="obj"
+		>
 
-		List resultRows = searchContainer.getResultRows();
+			<c:choose>
+				<c:when test="<%= obj instanceof BlogsEntry %>">
 
-		for (int i = 0; i < results.getDocs().length; i++) {
-			Document doc = results.doc(i);
+					<%
+					BlogsEntry entry = (BlogsEntry)obj;
 
-			ResultRow row = new ResultRow(doc, i, i);
+					entry = entry.toEscapedModel();
+					%>
 
-			// Position
+					<portlet:renderURL var="rowURL">
+						<portlet:param name="struts_action" value="/blogs/view_entry" />
+						<portlet:param name="redirect" value="<%= currentURL %>" />
+						<portlet:param name="urlTitle" value="<%= entry.getUrlTitle() %>" />
+					</portlet:renderURL>
 
-			row.addText(searchContainer.getStart() + i + 1 + StringPool.PERIOD);
+					<liferay-ui:search-container-column-text
+						name="title"
+					>
+						<liferay-ui:icon
+							image="../blogs/blogs"
+							label="<%= true %>"
+							message="<%= entry.getTitle() %>"
+							url="<%= rowURL %>"
+						/>
+					</liferay-ui:search-container-column-text>
 
-			// Entry
+					<liferay-ui:search-container-column-text
+						name="type"
+						value='<%= LanguageUtil.get(locale, "blog") %>'
+					/>
+				</c:when>
+				<c:when test="<%= obj instanceof MBMessage %>">
 
-			long entryId = GetterUtil.getLong(doc.get(Field.ENTRY_CLASS_PK));
+					<%
+					MBMessage message = (MBMessage)obj;
 
-			BlogsEntry entry = null;
+					BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(message.getClassPK());
 
-			try {
-				entry = BlogsEntryLocalServiceUtil.getEntry(entryId);
+					entry = entry.toEscapedModel();
+					%>
 
-				entry = entry.toEscapedModel();
-			}
-			catch (Exception e) {
-				if (_log.isWarnEnabled()) {
-					_log.warn("Blogs search index is stale and contains entry " + entryId);
-				}
+					<portlet:renderURL var="rowURL">
+						<portlet:param name="struts_action" value="/blogs/view_entry" />
+						<portlet:param name="redirect" value="<%= currentURL %>" />
+						<portlet:param name="urlTitle" value="<%= entry.getUrlTitle() %>" />
+					</portlet:renderURL>
 
-				continue;
-			}
+					<liferay-ui:search-container-column-text
+						name="title"
+					>
+						<liferay-ui:icon
+							image="message"
+							label="<%= true %>"
+							message="<%= StringUtil.shorten(message.getBody()) %>"
+							url="<%= rowURL %>"
+						/>
 
-			PortletURL rowURL = renderResponse.createRenderURL();
+						<liferay-util:buffer var="rootEntryIcon">
+							<liferay-ui:icon
+								image="../blogs/blogs"
+								label="<%= true %>"
+								message="<%= entry.getTitle() %>"
+								url="<%= rowURL %>"
+							/>
+						</liferay-util:buffer>
 
-			rowURL.setParameter("struts_action", "/blogs/view_entry");
-			rowURL.setParameter("redirect", currentURL);
-			rowURL.setParameter("urlTitle", entry.getUrlTitle());
+						<span class="search-root-entry">(<liferay-ui:message arguments="<%= rootEntryIcon %>" key="comment-found-in-blog-entry-x" />)</span>
+					</liferay-ui:search-container-column-text>
 
-			row.addText(entry.getTitle(), rowURL);
-
-			// Add result row
-
-			resultRows.add(row);
-		}
-	%>
+					<liferay-ui:search-container-column-text
+						name="type"
+						value='<%= LanguageUtil.get(locale, "comment") %>'
+					/>
+				</c:when>
+			</c:choose>
+		</liferay-ui:search-container-row>
 
 		<span class="aui-search-bar">
 			<aui:input inlineField="<%= true %>" label="" name="keywords" size="30" title="search-entries" type="text" value="<%= keywords %>" />
@@ -120,15 +157,8 @@ String keywords = ParamUtil.getString(request, "keywords");
 
 		<br /><br />
 
-		<liferay-ui:search-iterator searchContainer="<%= searchContainer %>" />
-
-	<%
-	}
-	catch (Exception e) {
-		_log.error(e.getMessage());
-	}
-	%>
-
+		<liferay-ui:search-iterator />
+	</liferay-ui:search-container>
 </aui:form>
 
 <c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
@@ -141,8 +171,4 @@ String keywords = ParamUtil.getString(request, "keywords");
 if (Validator.isNotNull(keywords)) {
 	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "search") + ": " + keywords, currentURL);
 }
-%>
-
-<%!
-private static Log _log = LogFactoryUtil.getLog("portal-web.docroot.html.portlet.blogs.search_jsp");
 %>

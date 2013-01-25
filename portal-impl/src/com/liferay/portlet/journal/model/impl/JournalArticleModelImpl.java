@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.journal.model.impl;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
@@ -133,8 +134,9 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 	public static long STRUCTUREID_COLUMN_BITMASK = 1024L;
 	public static long TEMPLATEID_COLUMN_BITMASK = 2048L;
 	public static long URLTITLE_COLUMN_BITMASK = 4096L;
-	public static long UUID_COLUMN_BITMASK = 8192L;
-	public static long VERSION_COLUMN_BITMASK = 16384L;
+	public static long USERID_COLUMN_BITMASK = 8192L;
+	public static long UUID_COLUMN_BITMASK = 16384L;
+	public static long VERSION_COLUMN_BITMASK = 32768L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -143,6 +145,10 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 	 * @return the normal model instance
 	 */
 	public static JournalArticle toModel(JournalArticleSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		JournalArticle model = new JournalArticleImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -189,6 +195,10 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 	 * @return the normal model instances
 	 */
 	public static List<JournalArticle> toModels(JournalArticleSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<JournalArticle> models = new ArrayList<JournalArticle>(soapModels.length);
 
 		for (JournalArticleSoap soapModel : soapModels) {
@@ -213,7 +223,7 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_id);
+		return _id;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -574,6 +584,14 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 	}
 
 	public void setUserId(long userId) {
+		_columnBitmask |= USERID_COLUMN_BITMASK;
+
+		if (!_setOriginalUserId) {
+			_setOriginalUserId = true;
+
+			_originalUserId = _userId;
+		}
+
 		_userId = userId;
 	}
 
@@ -583,6 +601,10 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 
 	public void setUserUuid(String userUuid) {
 		_userUuid = userUuid;
+	}
+
+	public long getOriginalUserId() {
+		return _originalUserId;
 	}
 
 	@JSON
@@ -1207,9 +1229,17 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 		}
 	}
 
+	public boolean isDenied() {
+		if (getStatus() == WorkflowConstants.STATUS_DENIED) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public boolean isDraft() {
-		if ((getStatus() == WorkflowConstants.STATUS_DRAFT) ||
-				(getStatus() == WorkflowConstants.STATUS_DRAFT_FROM_APPROVED)) {
+		if (getStatus() == WorkflowConstants.STATUS_DRAFT) {
 			return true;
 		}
 		else {
@@ -1226,6 +1256,33 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 		}
 	}
 
+	public boolean isInactive() {
+		if (getStatus() == WorkflowConstants.STATUS_INACTIVE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isIncomplete() {
+		if (getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isInTrash() {
+		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public boolean isPending() {
 		if (getStatus() == WorkflowConstants.STATUS_PENDING) {
 			return true;
@@ -1235,19 +1292,17 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 		}
 	}
 
-	public long getColumnBitmask() {
-		return _columnBitmask;
+	public boolean isScheduled() {
+		if (getStatus() == WorkflowConstants.STATUS_SCHEDULED) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
-	@Override
-	public JournalArticle toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (JournalArticle)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -1261,6 +1316,25 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+		setTitle(getTitle(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setDescription(getDescription(defaultImportLocale),
+			defaultImportLocale, defaultImportLocale);
+	}
+
+	@Override
+	public JournalArticle toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (JournalArticle)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -1381,6 +1455,10 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 		journalArticleModelImpl._originalCompanyId = journalArticleModelImpl._companyId;
 
 		journalArticleModelImpl._setOriginalCompanyId = false;
+
+		journalArticleModelImpl._originalUserId = journalArticleModelImpl._userId;
+
+		journalArticleModelImpl._setOriginalUserId = false;
 
 		journalArticleModelImpl._originalFolderId = journalArticleModelImpl._folderId;
 
@@ -1833,7 +1911,7 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 	}
 
 	private static ClassLoader _classLoader = JournalArticle.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			JournalArticle.class
 		};
 	private String _uuid;
@@ -1850,6 +1928,8 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 	private boolean _setOriginalCompanyId;
 	private long _userId;
 	private String _userUuid;
+	private long _originalUserId;
+	private boolean _setOriginalUserId;
 	private String _userName;
 	private Date _createDate;
 	private Date _modifiedDate;
@@ -1898,5 +1978,5 @@ public class JournalArticleModelImpl extends BaseModelImpl<JournalArticle>
 	private String _statusByUserName;
 	private Date _statusDate;
 	private long _columnBitmask;
-	private JournalArticle _escapedModelProxy;
+	private JournalArticle _escapedModel;
 }

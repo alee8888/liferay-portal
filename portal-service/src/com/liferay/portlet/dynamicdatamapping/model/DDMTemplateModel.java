@@ -14,12 +14,14 @@
 
 package com.liferay.portlet.dynamicdatamapping.model;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.StagedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -44,7 +46,7 @@ import java.util.Map;
  * @generated
  */
 public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
-	GroupedModel {
+	GroupedModel, StagedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -506,6 +508,77 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 */
 	public void setScript(String script);
 
+	/**
+	 * Returns the cacheable of this d d m template.
+	 *
+	 * @return the cacheable of this d d m template
+	 */
+	public boolean getCacheable();
+
+	/**
+	 * Returns <code>true</code> if this d d m template is cacheable.
+	 *
+	 * @return <code>true</code> if this d d m template is cacheable; <code>false</code> otherwise
+	 */
+	public boolean isCacheable();
+
+	/**
+	 * Sets whether this d d m template is cacheable.
+	 *
+	 * @param cacheable the cacheable of this d d m template
+	 */
+	public void setCacheable(boolean cacheable);
+
+	/**
+	 * Returns the small image of this d d m template.
+	 *
+	 * @return the small image of this d d m template
+	 */
+	public boolean getSmallImage();
+
+	/**
+	 * Returns <code>true</code> if this d d m template is small image.
+	 *
+	 * @return <code>true</code> if this d d m template is small image; <code>false</code> otherwise
+	 */
+	public boolean isSmallImage();
+
+	/**
+	 * Sets whether this d d m template is small image.
+	 *
+	 * @param smallImage the small image of this d d m template
+	 */
+	public void setSmallImage(boolean smallImage);
+
+	/**
+	 * Returns the small image ID of this d d m template.
+	 *
+	 * @return the small image ID of this d d m template
+	 */
+	public long getSmallImageId();
+
+	/**
+	 * Sets the small image ID of this d d m template.
+	 *
+	 * @param smallImageId the small image ID of this d d m template
+	 */
+	public void setSmallImageId(long smallImageId);
+
+	/**
+	 * Returns the small image u r l of this d d m template.
+	 *
+	 * @return the small image u r l of this d d m template
+	 */
+	@AutoEscape
+	public String getSmallImageURL();
+
+	/**
+	 * Sets the small image u r l of this d d m template.
+	 *
+	 * @param smallImageURL the small image u r l of this d d m template
+	 */
+	public void setSmallImageURL(String smallImageURL);
+
 	public boolean isNew();
 
 	public void setNew(boolean n);
@@ -524,6 +597,9 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException;
+
 	public Object clone();
 
 	public int compareTo(DDMTemplate ddmTemplate);
@@ -533,6 +609,8 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	public CacheModel<DDMTemplate> toCacheModel();
 
 	public DDMTemplate toEscapedModel();
+
+	public DDMTemplate toUnescapedModel();
 
 	public String toString();
 

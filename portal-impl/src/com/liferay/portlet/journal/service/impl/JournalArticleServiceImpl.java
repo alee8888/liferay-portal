@@ -14,10 +14,12 @@
 
 package com.liferay.portlet.journal.service.impl;
 
+import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.theme.ThemeDisplay;
@@ -28,8 +30,10 @@ import com.liferay.portlet.journal.service.permission.JournalArticlePermission;
 import com.liferay.portlet.journal.service.permission.JournalPermission;
 
 import java.io.File;
+import java.io.Serializable;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -37,6 +41,7 @@ import java.util.Map;
 /**
  * @author Brian Wing Shun Chan
  * @author Raymond Augé
+ * @author Levente Hudák
  */
 public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 
@@ -253,7 +258,8 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 	public List<JournalArticle> getArticles(long groupId, long folderId)
 		throws SystemException {
 
-		return journalArticlePersistence.filterFindByG_F(groupId, folderId);
+		return journalArticlePersistence.filterFindByG_F_NotST(
+			groupId, folderId, WorkflowConstants.STATUS_IN_TRASH);
 	}
 
 	public List<JournalArticle> getArticles(
@@ -261,8 +267,9 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 			OrderByComparator obc)
 		throws SystemException {
 
-		return journalArticlePersistence.filterFindByG_F(
-			groupId, folderId, start, end, obc);
+		return journalArticlePersistence.filterFindByG_F_NotST(
+			groupId, folderId, WorkflowConstants.STATUS_IN_TRASH, start, end,
+			obc);
 	}
 
 	public List<JournalArticle> getArticlesByArticleId(
@@ -281,16 +288,79 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 		return journalArticlePersistence.filterFindByG_L(groupId, layoutUuid);
 	}
 
+	public List<JournalArticle> getArticlesByStructureId(
+			long groupId, long classNameId, String structureId, int status,
+			int start, int end, OrderByComparator obc)
+		throws SystemException {
+
+		QueryDefinition queryDefinition = new QueryDefinition(
+			status, start, end, obc);
+
+		return journalArticleFinder.filterFindByG_C_S(
+			groupId, classNameId, structureId, queryDefinition);
+	}
+
+	public List<JournalArticle> getArticlesByStructureId(
+			long groupId, String structureId, int start, int end,
+			OrderByComparator obc)
+		throws SystemException {
+
+		QueryDefinition queryDefinition = new QueryDefinition(
+			WorkflowConstants.STATUS_ANY, start, end, obc);
+
+		return journalArticleFinder.filterFindByG_C_S(
+			groupId, JournalArticleConstants.CLASSNAME_ID_DEFAULT, structureId,
+			queryDefinition);
+	}
+
+	public List<JournalArticle> getArticlesByUserId(
+			long groupId, long userId, long classNameId, int start, int end,
+			OrderByComparator obc)
+		throws SystemException {
+
+		QueryDefinition queryDefinition = new QueryDefinition(
+			WorkflowConstants.STATUS_ANY, start, end, obc);
+
+		return journalArticleFinder.filterFindByG_U_C(
+			groupId, userId, classNameId, queryDefinition);
+	}
+
 	public int getArticlesCount(long groupId, long folderId)
 		throws SystemException {
 
-		return journalArticlePersistence.filterCountByG_F(groupId, folderId);
+		return journalArticlePersistence.filterCountByG_F_NotST(
+			groupId, folderId, WorkflowConstants.STATUS_IN_TRASH);
 	}
 
 	public int getArticlesCountByArticleId(long groupId, String articleId)
 		throws SystemException {
 
 		return journalArticlePersistence.filterCountByG_A(groupId, articleId);
+	}
+
+	public int getArticlesCountByStructureId(
+			long groupId, long classNameId, String structureId, int status)
+		throws SystemException {
+
+		return journalArticleFinder.filterCountByG_C_S(
+			groupId, classNameId, structureId, new QueryDefinition(status));
+	}
+
+	public int getArticlesCountByStructureId(long groupId, String structureId)
+		throws SystemException {
+
+		return getArticlesCountByStructureId(
+			groupId, JournalArticleConstants.CLASSNAME_ID_DEFAULT, structureId,
+			WorkflowConstants.STATUS_ANY);
+	}
+
+	public int getArticlesCountByUserId(
+			long groupId, long userId, long classNameId)
+		throws SystemException {
+
+		return journalArticleFinder.filterCountByG_U_C(
+			groupId, userId, classNameId,
+			new QueryDefinition(WorkflowConstants.STATUS_ANY));
 	}
 
 	public JournalArticle getDisplayArticleByUrlTitle(
@@ -350,6 +420,31 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 		return article;
 	}
 
+	public void moveArticle(long groupId, String articleId, long newFolderId)
+		throws PortalException, SystemException {
+
+		List<JournalArticle> articles = journalArticlePersistence.findByG_A(
+			groupId, articleId);
+
+		for (JournalArticle article : articles) {
+			JournalArticlePermission.check(
+				getPermissionChecker(), article, ActionKeys.UPDATE);
+
+			journalArticleLocalService.moveArticle(
+				groupId, articleId, newFolderId);
+		}
+	}
+
+	public JournalArticle moveArticleToTrash(long groupId, String articleId)
+		throws PortalException, SystemException {
+
+		JournalArticlePermission.check(
+			getPermissionChecker(), groupId, articleId, ActionKeys.DELETE);
+
+		return journalArticleLocalService.moveArticleToTrash(
+			getUserId(), groupId, articleId);
+	}
+
 	public void removeArticleLocale(long companyId, String languageId)
 		throws PortalException, SystemException {
 
@@ -374,90 +469,121 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 			groupId, articleId, version, languageId);
 	}
 
+	public void restoreArticleFromTrash(long resourcePrimKey)
+		throws PortalException, SystemException {
+
+		JournalArticle article = getLatestArticle(resourcePrimKey);
+
+		JournalArticlePermission.check(
+			getPermissionChecker(), article, ActionKeys.DELETE);
+
+		journalArticleLocalService.restoreArticleFromTrash(
+			getUserId(), article);
+	}
+
+	public void restoreArticleFromTrash(long groupId, String articleId)
+		throws PortalException, SystemException {
+
+		JournalArticle article = getLatestArticle(
+			groupId, articleId, WorkflowConstants.STATUS_IN_TRASH);
+
+		restoreArticleFromTrash(article.getResourcePrimKey());
+	}
+
 	public List<JournalArticle> search(
-			long companyId, long groupId, long folderId, long classNameId,
-			String keywords, Double version, String type, String structureId,
-			String templateId, Date displayDateGT, Date displayDateLT,
-			int status, Date reviewDate, int start, int end,
+			long companyId, long groupId, List<Long> folderIds,
+			long classNameId, String keywords, Double version, String type,
+			String structureId, String templateId, Date displayDateGT,
+			Date displayDateLT, int status, Date reviewDate, int start, int end,
 			OrderByComparator obc)
 		throws SystemException {
 
 		return journalArticleFinder.filterFindByKeywords(
-			companyId, groupId, folderId, classNameId, keywords, version, type,
+			companyId, groupId, folderIds, classNameId, keywords, version, type,
 			structureId, templateId, displayDateGT, displayDateLT, status,
 			reviewDate, start, end, obc);
 	}
 
 	public List<JournalArticle> search(
-			long companyId, long groupId, long folderId, long classNameId,
-			String articleId, Double version, String title, String description,
-			String content, String type, String structureId, String templateId,
-			Date displayDateGT, Date displayDateLT, int status, Date reviewDate,
-			boolean andOperator, int start, int end, OrderByComparator obc)
-		throws SystemException {
-
-		return journalArticleFinder.filterFindByC_G_F_C_A_V_T_D_C_T_S_T_D_S_R(
-			companyId, groupId, folderId, classNameId, articleId, version,
-			title, description, content, type, structureId, templateId,
-			displayDateGT, displayDateLT, status, reviewDate, andOperator,
-			start, end, obc);
-	}
-
-	public List<JournalArticle> search(
-			long companyId, long groupId, long folderId, long classNameId,
-			String articleId, Double version, String title, String description,
-			String content, String type, String[] structureIds,
-			String[] templateIds, Date displayDateGT, Date displayDateLT,
+			long companyId, long groupId, List<Long> folderIds,
+			long classNameId, String articleId, Double version, String title,
+			String description, String content, String type, String structureId,
+			String templateId, Date displayDateGT, Date displayDateLT,
 			int status, Date reviewDate, boolean andOperator, int start,
 			int end, OrderByComparator obc)
 		throws SystemException {
 
-		return journalArticleFinder.filterFindByC_G_F_C_A_V_T_D_C_T_S_T_D_S_R(
-			companyId, groupId, folderId, classNameId, articleId, version,
+		QueryDefinition queryDefinition = new QueryDefinition(
+			status, start, end, obc);
+
+		return journalArticleFinder.filterFindByC_G_F_C_A_V_T_D_C_T_S_T_D_R(
+			companyId, groupId, folderIds, classNameId, articleId, version,
+			title, description, content, type, structureId, templateId,
+			displayDateGT, displayDateLT, reviewDate, andOperator,
+			queryDefinition);
+	}
+
+	public List<JournalArticle> search(
+			long companyId, long groupId, List<Long> folderIds,
+			long classNameId, String articleId, Double version, String title,
+			String description, String content, String type,
+			String[] structureIds, String[] templateIds, Date displayDateGT,
+			Date displayDateLT, int status, Date reviewDate,
+			boolean andOperator, int start, int end, OrderByComparator obc)
+		throws SystemException {
+
+		QueryDefinition queryDefinition = new QueryDefinition(
+			status, start, end, obc);
+
+		return journalArticleFinder.filterFindByC_G_F_C_A_V_T_D_C_T_S_T_D_R(
+			companyId, groupId, folderIds, classNameId, articleId, version,
 			title, description, content, type, structureIds, templateIds,
-			displayDateGT, displayDateLT, status, reviewDate, andOperator,
-			start, end, obc);
+			displayDateGT, displayDateLT, reviewDate, andOperator,
+			queryDefinition);
 	}
 
 	public int searchCount(
-			long companyId, long groupId, long folderId, long classNameId,
-			String keywords, Double version, String type, String structureId,
-			String templateId, Date displayDateGT, Date displayDateLT,
-			int status, Date reviewDate)
+			long companyId, long groupId, List<Long> folderIds,
+			long classNameId, String keywords, Double version, String type,
+			String structureId, String templateId, Date displayDateGT,
+			Date displayDateLT, int status, Date reviewDate)
 		throws SystemException {
 
 		return journalArticleFinder.filterCountByKeywords(
-			companyId, groupId, folderId, classNameId, keywords, version, type,
+			companyId, groupId, folderIds, classNameId, keywords, version, type,
 			structureId, templateId, displayDateGT, displayDateLT, status,
 			reviewDate);
 	}
 
 	public int searchCount(
-			long companyId, long groupId, long folderId, long classNameId,
-			String articleId, Double version, String title, String description,
-			String content, String type, String structureId, String templateId,
-			Date displayDateGT, Date displayDateLT, int status, Date reviewDate,
-			boolean andOperator)
-		throws SystemException {
-
-		return journalArticleFinder.filterCountByC_G_F_C_A_V_T_D_C_T_S_T_D_S_R(
-			companyId, groupId, folderId, classNameId, articleId, version,
-			title, description, content, type, structureId, templateId,
-			displayDateGT, displayDateLT, status, reviewDate, andOperator);
-	}
-
-	public int searchCount(
-			long companyId, long groupId, long folderId, long classNameId,
-			String articleId, Double version, String title, String description,
-			String content, String type, String[] structureIds,
-			String[] templateIds, Date displayDateGT, Date displayDateLT,
+			long companyId, long groupId, List<Long> folderIds,
+			long classNameId, String articleId, Double version, String title,
+			String description, String content, String type, String structureId,
+			String templateId, Date displayDateGT, Date displayDateLT,
 			int status, Date reviewDate, boolean andOperator)
 		throws SystemException {
 
-		return journalArticleFinder.filterCountByC_G_F_C_A_V_T_D_C_T_S_T_D_S_R(
-			companyId, groupId, folderId, classNameId, articleId, version,
+		return journalArticleFinder.filterCountByC_G_F_C_A_V_T_D_C_T_S_T_D_R(
+			companyId, groupId, folderIds, classNameId, articleId, version,
+			title, description, content, type, structureId, templateId,
+			displayDateGT, displayDateLT, reviewDate, andOperator,
+			new QueryDefinition(status));
+	}
+
+	public int searchCount(
+			long companyId, long groupId, List<Long> folderIds,
+			long classNameId, String articleId, Double version, String title,
+			String description, String content, String type,
+			String[] structureIds, String[] templateIds, Date displayDateGT,
+			Date displayDateLT, int status, Date reviewDate,
+			boolean andOperator)
+		throws SystemException {
+
+		return journalArticleFinder.filterCountByC_G_F_C_A_V_T_D_C_T_S_T_D_R(
+			companyId, groupId, folderIds, classNameId, articleId, version,
 			title, description, content, type, structureIds, templateIds,
-			displayDateGT, displayDateLT, status, reviewDate, andOperator);
+			displayDateGT, displayDateLT, reviewDate, andOperator,
+			new QueryDefinition(status));
 	}
 
 	public void subscribe(long groupId)
@@ -576,6 +702,20 @@ public class JournalArticleServiceImpl extends JournalArticleServiceBaseImpl {
 
 		return journalArticleLocalService.updateContent(
 			groupId, articleId, version, content);
+	}
+
+	public JournalArticle updateStatus(
+			long groupId, String articleId, double version, int status,
+			String articleURL, ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		JournalArticlePermission.check(
+			getPermissionChecker(), groupId, articleId, version,
+			ActionKeys.UPDATE);
+
+		return journalArticleLocalService.updateStatus(
+			getUserId(), groupId, articleId, version, status, articleURL,
+			new HashMap<String, Serializable>(), serviceContext);
 	}
 
 }

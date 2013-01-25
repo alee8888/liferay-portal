@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.polls.action;
 
+import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
@@ -94,7 +95,7 @@ public class EditQuestionAction extends PortletAction {
 					 cmd.equals(Constants.UPDATE) ||
 					 cmd.equals(Constants.VOTE)) {
 
-				updateQuestion(portletConfig, actionRequest);
+				updateQuestion(portletConfig, actionRequest, actionResponse);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
 				deleteQuestion(actionRequest);
@@ -131,9 +132,12 @@ public class EditQuestionAction extends PortletAction {
 
 				SessionErrors.add(actionRequest, e.getClass());
 
+				LiferayPortletConfig liferayPortletConfig =
+					(LiferayPortletConfig)portletConfig;
+
 				SessionMessages.add(
 					actionRequest,
-					portletConfig.getPortletName() +
+					liferayPortletConfig.getPortletId() +
 						SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_ERROR_MESSAGE);
 			}
 			else if (e instanceof QuestionExpiredException) {
@@ -197,9 +201,12 @@ public class EditQuestionAction extends PortletAction {
 
 		preferences.store();
 
+		LiferayPortletConfig liferayPortletConfig =
+			(LiferayPortletConfig)portletConfig;
+
 		SessionMessages.add(
 			portletRequest,
-			portletConfig.getPortletName() +
+			liferayPortletConfig.getPortletId() +
 				SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
 			referringPortletResource);
 	}
@@ -213,7 +220,8 @@ public class EditQuestionAction extends PortletAction {
 	}
 
 	protected void updateQuestion(
-			PortletConfig portletConfig, ActionRequest actionRequest)
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		long questionId = ParamUtil.getLong(actionRequest, "questionId");

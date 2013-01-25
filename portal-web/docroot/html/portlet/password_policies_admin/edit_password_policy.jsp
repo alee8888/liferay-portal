@@ -60,7 +60,7 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 
 				<aui:input helpMessage="changeable-help" name="changeable" />
 
-				<div id="<portlet:namespace />changeableSettings">
+				<div class="password-policy-options" id="<portlet:namespace />changeableSettings">
 					<aui:input helpMessage="change-required-help" name="changeRequired" />
 
 					<aui:select helpMessage="minimum-age-help" label="minimum-age" name="minAge">
@@ -101,7 +101,7 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 
 				<aui:input helpMessage="syntax-checking-enabled-help" label="syntax-checking-enabled" name="checkSyntax" />
 
-				<div id="<portlet:namespace />syntaxSettings">
+				<div class="password-policy-options" id="<portlet:namespace />syntaxSettings">
 					<aui:input helpMessage="allow-dictionary-words-help" name="allowDictionaryWords" />
 
 					<aui:input helpMessage="minimum-alpha-numeric-help" label="minimum-alpha-numeric" name="minAlphanumeric" />
@@ -115,6 +115,12 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 					<aui:input helpMessage="minimum-symbols-help" label="minimum-symbols" name="minSymbols" />
 
 					<aui:input helpMessage="minimum-upper-case-help" label="minimum-upper-case" name="minUpperCase" />
+
+					<%
+					String taglinbHelpMessage = LanguageUtil.format(pageContext, "regular-expression-help", new Object[] {"<a href=\"http://docs.oracle.com/javase/tutorial/essential/regex\" target=\"_blank\">", "</a>"});
+					%>
+
+					<aui:input helpMessage="<%= taglinbHelpMessage %>" label="regular-expression" name="regex" />
 				</div>
 			</aui:fieldset>
 		</liferay-ui:panel>
@@ -124,7 +130,7 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 
 				<aui:input helpMessage="history-enabled-help" label="history-enabled" name="history" />
 
-				<div id="<portlet:namespace />historySettings">
+				<div class="password-policy-options" id="<portlet:namespace />historySettings">
 					<aui:select helpMessage="history-count-help" name="historyCount">
 
 						<%
@@ -147,7 +153,7 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 
 				<aui:input helpMessage="expiration-enabled-help" label="expiration-enabled" name="expireable" />
 
-				<div id="<portlet:namespace />expirationSettings">
+				<div class="password-policy-options" id="<portlet:namespace />expirationSettings">
 					<aui:select helpMessage="maximum-age-help" label="maximum-age" name="maxAge">
 
 						<%
@@ -174,6 +180,7 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 						}
 						%>
 
+						<aui:option label="do-not-warn" value="<%= 0 %>" />
 					</aui:select>
 
 					<aui:input helpMessage="grace-limit-help" name="graceLimit" />
@@ -185,7 +192,7 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 			<aui:fieldset>
 				<aui:input helpMessage="lockout-enabled-help" label="lockout-enabled" name="lockout" />
 
-				<div id="<portlet:namespace />lockoutSettings">
+				<div class="password-policy-options" id="<portlet:namespace />lockoutSettings">
 					<aui:input helpMessage="maximum-failure-help" label="maximum-failure" name="maxFailure" />
 
 					<aui:select helpMessage="reset-failure-count-help" name="resetFailureCount">

@@ -24,79 +24,106 @@ import com.liferay.portal.security.pwd.PwdEncryptor;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 
+import java.util.Properties;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Minhchau Dang
+ * @author Tomas Polesovsky
  */
-public class ParameterAutoLogin implements AutoLogin {
+public class ParameterAutoLogin extends BaseAutoLogin implements AuthVerifier {
 
-	public String[] login(
-			HttpServletRequest request, HttpServletResponse response)
-		throws AutoLoginException {
+	public String getAuthType() {
+		return ParameterAutoLogin.class.getSimpleName();
+	}
+
+	public AuthVerifierResult verify(
+			AccessControlContext accessControlContext, Properties properties)
+		throws AuthException {
 
 		try {
-			String login = ParamUtil.getString(request, getLoginParam());
+			AuthVerifierResult authVerifierResult = new AuthVerifierResult();
 
-			if (Validator.isNull(login)) {
-				return null;
+			String[] credentials = login(
+				accessControlContext.getRequest(),
+				accessControlContext.getResponse());
+
+			if (credentials != null) {
+				authVerifierResult.setPassword(credentials[1]);
+				authVerifierResult.setState(AuthVerifierResult.State.SUCCESS);
+				authVerifierResult.setUserId(Long.valueOf(credentials[0]));
 			}
 
-			String password = ParamUtil.getString(request, getPasswordParam());
-
-			if (Validator.isNull(password)) {
-				return null;
-			}
-
-			Company company = PortalUtil.getCompany(request);
-
-			String authType = company.getAuthType();
-
-			long userId = 0;
-
-			if (authType.equals(CompanyConstants.AUTH_TYPE_EA)) {
-				userId = UserLocalServiceUtil.getUserIdByEmailAddress(
-					company.getCompanyId(), login);
-			}
-			else if (authType.equals(CompanyConstants.AUTH_TYPE_SN)) {
-				userId = UserLocalServiceUtil.getUserIdByScreenName(
-					company.getCompanyId(), login);
-			}
-			else if (authType.equals(CompanyConstants.AUTH_TYPE_ID)) {
-				userId = GetterUtil.getLong(login);
-			}
-			else {
-				return null;
-			}
-
-			if (userId > 0) {
-				User user = UserLocalServiceUtil.getUserById(userId);
-
-				String userPassword = user.getPassword();
-
-				if (!user.isPasswordEncrypted()) {
-					userPassword = PwdEncryptor.encrypt(userPassword);
-				}
-
-				String encPassword = PwdEncryptor.encrypt(password);
-
-				if (!userPassword.equals(password) &&
-					!userPassword.equals(encPassword)) {
-
-					return null;
-				}
-			}
-
-			String[] credentials = new String[] {
-				String.valueOf(userId), password, Boolean.FALSE.toString()
-			};
-
-			return credentials;
+			return authVerifierResult;
 		}
-		catch (Exception e) {
-			throw new AutoLoginException(e);
+		catch (AutoLoginException ale) {
+			throw new AuthException(ale);
 		}
+	}
+
+	@Override
+	protected String[] doLogin(
+			HttpServletRequest request, HttpServletResponse response)
+		throws Exception {
+
+		String login = ParamUtil.getString(request, getLoginParam());
+
+		if (Validator.isNull(login)) {
+			return null;
+		}
+
+		String password = ParamUtil.getString(request, getPasswordParam());
+
+		if (Validator.isNull(password)) {
+			return null;
+		}
+
+		Company company = PortalUtil.getCompany(request);
+
+		String authType = company.getAuthType();
+
+		long userId = 0;
+
+		if (authType.equals(CompanyConstants.AUTH_TYPE_EA)) {
+			userId = UserLocalServiceUtil.getUserIdByEmailAddress(
+				company.getCompanyId(), login);
+		}
+		else if (authType.equals(CompanyConstants.AUTH_TYPE_SN)) {
+			userId = UserLocalServiceUtil.getUserIdByScreenName(
+				company.getCompanyId(), login);
+		}
+		else if (authType.equals(CompanyConstants.AUTH_TYPE_ID)) {
+			userId = GetterUtil.getLong(login);
+		}
+		else {
+			return null;
+		}
+
+		if (userId > 0) {
+			User user = UserLocalServiceUtil.getUserById(userId);
+
+			String userPassword = user.getPassword();
+
+			if (!user.isPasswordEncrypted()) {
+				userPassword = PwdEncryptor.encrypt(userPassword);
+			}
+
+			String encPassword = PwdEncryptor.encrypt(password);
+
+			if (!userPassword.equals(password) &&
+				!userPassword.equals(encPassword)) {
+
+				return null;
+			}
+		}
+
+		String[] credentials = new String[] {
+			String.valueOf(userId), password, Boolean.FALSE.toString()
+		};
+
+		return credentials;
 	}
 
 	protected String getLoginParam() {

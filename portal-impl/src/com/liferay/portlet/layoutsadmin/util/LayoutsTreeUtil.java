@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.layoutsadmin.util;
 
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -21,6 +22,7 @@ import com.liferay.portal.kernel.staging.LayoutStagingUtil;
 import com.liferay.portal.kernel.staging.StagingUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Layout;
@@ -30,14 +32,17 @@ import com.liferay.portal.model.LayoutSetBranch;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.VirtualLayout;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
+import com.liferay.portal.service.LayoutServiceUtil;
 import com.liferay.portal.service.LayoutSetBranchLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.SessionClicks;
 import com.liferay.portlet.sites.util.SitesUtil;
 
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 /**
  * @author Brian Wing Shun Chan
@@ -46,31 +51,18 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class LayoutsTreeUtil {
 
-	public static List<Layout> getLayouts(
-			HttpServletRequest request, long groupId, boolean privateLayout,
-			long parentLayoutId)
-		throws Exception {
-
-		boolean incomplete = ParamUtil.getBoolean(request, "incomplete", true);
-		int start = ParamUtil.getInteger(request, "start");
-		int end = start + PropsValues.LAYOUT_MANAGE_PAGES_INITIAL_CHILDREN;
-
-		return LayoutLocalServiceUtil.getLayouts(
-			groupId, privateLayout, parentLayoutId, incomplete, start, end);
-	}
-
 	public static String getLayoutsJSON(
 			HttpServletRequest request, long groupId, boolean privateLayout,
-			long parentLayoutId)
+			long parentLayoutId, boolean incomplete)
 		throws Exception {
 
 		return getLayoutsJSON(
-			request, groupId, privateLayout, parentLayoutId, null);
+			request, groupId, privateLayout, parentLayoutId, null, incomplete);
 	}
 
 	public static String getLayoutsJSON(
 			HttpServletRequest request, long groupId, boolean privateLayout,
-			long parentLayoutId, long[] expandedLayoutIds)
+			long parentLayoutId, long[] expandedLayoutIds, boolean incomplete)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
@@ -80,18 +72,42 @@ public class LayoutsTreeUtil {
 
 		List<Layout> layoutAncestors = null;
 
+		List<Layout> layouts = LayoutServiceUtil.getLayouts(
+			groupId, privateLayout, parentLayoutId, incomplete,
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
 		long selPlid = ParamUtil.getLong(request, "selPlid");
 
 		if (selPlid != 0) {
 			Layout selLayout = LayoutLocalServiceUtil.getLayout(selPlid);
 
-			layoutAncestors = selLayout.getAncestors();
+			layoutAncestors = LayoutServiceUtil.getAncestorLayouts(selPlid);
+
+			layoutAncestors.add(selLayout);
 		}
 
-		List<Layout> layouts = getLayouts(
-			request, groupId, privateLayout, parentLayoutId);
+		int start = 0;
+		int end = layouts.size();
 
-		for (Layout layout : layouts) {
+		if (PropsValues.LAYOUT_MANAGE_PAGES_INITIAL_CHILDREN > -1) {
+			start = ParamUtil.getInteger(request, "start");
+			start = Math.max(0, Math.min(start, layouts.size()));
+
+			end = ParamUtil.getInteger(
+				request, "end",
+				start + PropsValues.LAYOUT_MANAGE_PAGES_INITIAL_CHILDREN);
+
+			int loadedLayoutsCount = _getLoadedLayoutsCount(
+				request, parentLayoutId);
+
+			if (loadedLayoutsCount > end) {
+				end = loadedLayoutsCount;
+			}
+
+			end = Math.max(start, Math.min(end, layouts.size()));
+		}
+
+		for (Layout layout : layouts.subList(start, end)) {
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
 			if ((layoutAncestors != null) && layoutAncestors.contains(layout) ||
@@ -104,18 +120,19 @@ public class LayoutsTreeUtil {
 
 					childrenJSON = getLayoutsJSON(
 						request, virtualLayout.getSourceGroupId(),
-						virtualLayout.getPrivateLayout(),
-						virtualLayout.getLayoutId(), expandedLayoutIds);
+						virtualLayout.isPrivateLayout(),
+						virtualLayout.getLayoutId(), expandedLayoutIds,
+						incomplete);
 
 				}
 				else {
 					childrenJSON = getLayoutsJSON(
-						request, groupId, layout.getPrivateLayout(),
-						layout.getLayoutId(), expandedLayoutIds);
+						request, groupId, layout.isPrivateLayout(),
+						layout.getLayoutId(), expandedLayoutIds, incomplete);
 				}
 
 				jsonObject.put(
-					"children", JSONFactoryUtil.createJSONArray(childrenJSON));
+					"children", JSONFactoryUtil.createJSONObject(childrenJSON));
 			}
 
 			jsonObject.put("contentDisplayPage", layout.isContentDisplayPage());
@@ -179,7 +196,41 @@ public class LayoutsTreeUtil {
 			jsonArray.put(jsonObject);
 		}
 
-		return jsonArray.toString();
+		JSONObject responseJSONObject = JSONFactoryUtil.createJSONObject();
+
+		responseJSONObject.put("layouts", jsonArray);
+		responseJSONObject.put("total", layouts.size());
+
+		return responseJSONObject.toString();
+	}
+
+	private static int _getLoadedLayoutsCount(
+			HttpServletRequest request, long layoutId)
+		throws Exception {
+
+		HttpSession session = request.getSession();
+
+		String treeId = ParamUtil.getString(request, "treeId");
+		long groupId = ParamUtil.getLong(request, "groupId");
+		boolean privateLayout = ParamUtil.getBoolean(request, "privateLayout");
+
+		StringBundler sb = new StringBundler(7);
+
+		sb.append(treeId);
+		sb.append(StringPool.COLON);
+		sb.append(groupId);
+		sb.append(StringPool.COLON);
+		sb.append(privateLayout);
+		sb.append(StringPool.COLON);
+		sb.append("Pagination");
+
+		String paginationJSON = SessionClicks.get(
+			session, sb.toString(), JSONFactoryUtil.getNullJSON());
+
+		JSONObject paginationJSONObject = JSONFactoryUtil.createJSONObject(
+			paginationJSON);
+
+		return paginationJSONObject.getInt(String.valueOf(layoutId), 0);
 	}
 
 }

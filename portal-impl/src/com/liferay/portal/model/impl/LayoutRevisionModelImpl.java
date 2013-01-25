@@ -14,6 +14,7 @@
 
 package com.liferay.portal.model.impl;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
@@ -124,6 +125,7 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	public static long PARENTLAYOUTREVISIONID_COLUMN_BITMASK = 8L;
 	public static long PLID_COLUMN_BITMASK = 16L;
 	public static long STATUS_COLUMN_BITMASK = 32L;
+	public static long MODIFIEDDATE_COLUMN_BITMASK = 64L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -132,6 +134,10 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	 * @return the normal model instance
 	 */
 	public static LayoutRevision toModel(LayoutRevisionSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		LayoutRevision model = new LayoutRevisionImpl();
 
 		model.setLayoutRevisionId(soapModel.getLayoutRevisionId());
@@ -176,6 +182,10 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	 * @return the normal model instances
 	 */
 	public static List<LayoutRevision> toModels(LayoutRevisionSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<LayoutRevision> models = new ArrayList<LayoutRevision>(soapModels.length);
 
 		for (LayoutRevisionSoap soapModel : soapModels) {
@@ -200,7 +210,7 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_layoutRevisionId);
+		return _layoutRevisionId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -1272,9 +1282,17 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 		}
 	}
 
+	public boolean isDenied() {
+		if (getStatus() == WorkflowConstants.STATUS_DENIED) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public boolean isDraft() {
-		if ((getStatus() == WorkflowConstants.STATUS_DRAFT) ||
-				(getStatus() == WorkflowConstants.STATUS_DRAFT_FROM_APPROVED)) {
+		if (getStatus() == WorkflowConstants.STATUS_DRAFT) {
 			return true;
 		}
 		else {
@@ -1291,6 +1309,33 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 		}
 	}
 
+	public boolean isInactive() {
+		if (getStatus() == WorkflowConstants.STATUS_INACTIVE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isIncomplete() {
+		if (getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isInTrash() {
+		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public boolean isPending() {
 		if (getStatus() == WorkflowConstants.STATUS_PENDING) {
 			return true;
@@ -1300,19 +1345,17 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 		}
 	}
 
-	public long getColumnBitmask() {
-		return _columnBitmask;
+	public boolean isScheduled() {
+		if (getStatus() == WorkflowConstants.STATUS_SCHEDULED) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
-	@Override
-	public LayoutRevision toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (LayoutRevision)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -1326,6 +1369,31 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+		setName(getName(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setTitle(getTitle(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setDescription(getDescription(defaultImportLocale),
+			defaultImportLocale, defaultImportLocale);
+		setKeywords(getKeywords(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+		setRobots(getRobots(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+	}
+
+	@Override
+	public LayoutRevision toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (LayoutRevision)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -1822,7 +1890,7 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	}
 
 	private static ClassLoader _classLoader = LayoutRevision.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			LayoutRevision.class
 		};
 	private long _layoutRevisionId;
@@ -1876,5 +1944,5 @@ public class LayoutRevisionModelImpl extends BaseModelImpl<LayoutRevision>
 	private String _statusByUserName;
 	private Date _statusDate;
 	private long _columnBitmask;
-	private LayoutRevision _escapedModelProxy;
+	private LayoutRevision _escapedModel;
 }

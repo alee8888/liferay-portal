@@ -16,6 +16,10 @@
 	.add-record-button-row {
 		margin: 10px 0;
 	}
+
+	.record-toolbar {
+		margin-bottom: 5px;
+	}
 }
 
 .yui3-skin-sam .lfr-spreadsheet-container {
@@ -26,10 +30,10 @@
 			width: 0 1px 1px 0;
 		}
 		outline: 0;
-	}
 
-	.yui3-datatable-liner {
-		min-height: 17px;
+		&:after {
+			content: '\0000a0';
+		}
 	}
 
 	.yui3-datatable-scrollable .yui3-datatable-bd {

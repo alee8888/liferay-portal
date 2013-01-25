@@ -14,40 +14,20 @@
  */
 --%>
 
-<%
-long assetPublisherDDMTemplateClassNameId = PortalUtil.getClassNameId(AssetEntry.class);
-%>
-
 <aui:fieldset cssClass="general-display-settings">
-	<div class="display-style">
-		<aui:select id="displayStyle" name="preferences--displayStyle--">
+	<div class="display-template">
 
-			<%
-			for (String curDisplayStyle : PropsValues.ASSET_PUBLISHER_DISPLAY_STYLES) {
-			%>
+		<%
+		PortletDisplayTemplateHandler portletDisplayTemplateHandler = PortletDisplayTemplateHandlerRegistryUtil.getPortletDisplayTemplateHandler(AssetEntry.class.getName());
+		%>
 
-				<aui:option label="<%= curDisplayStyle %>" selected="<%= displayStyle.equals(curDisplayStyle) %>" />
-
-			<%
-			}
-
-			List<DDMTemplate> assetPublisherDDMTemplates = DDMTemplateLocalServiceUtil.getTemplates(scopeGroupId, assetPublisherDDMTemplateClassNameId, scopeGroupId);
-
-			for (DDMTemplate curAssetPublisherDDMTemplate : assetPublisherDDMTemplates) {
-				if (!DDMTemplatePermission.contains(permissionChecker, curAssetPublisherDDMTemplate, ActionKeys.VIEW)) {
-					continue;
-				}
-			%>
-
-				<aui:option label="<%= curAssetPublisherDDMTemplate.getName(locale) %>" selected="<%= (assetPublisherDDMTemplate != null) && (curAssetPublisherDDMTemplate.getTemplateId() == assetPublisherDDMTemplate.getTemplateId()) %>" value='<%= "ddmTemplate_" + curAssetPublisherDDMTemplate.getTemplateId() %>' />
-
-			<%
-			}
-			%>
-
-		</aui:select>
-
-		<liferay-ui:icon cssClass="manage-display-styles" id="selectDDMTemplate" image="configuration" label="<%= true %>" message="manage-display-styles" url="javascript:;" />
+		<liferay-ui:ddm-template-selector
+			classNameId="<%= PortalUtil.getClassNameId(portletDisplayTemplateHandler.getClassName()) %>"
+			displayStyles="<%= Arrays.asList(PropsValues.ASSET_PUBLISHER_DISPLAY_STYLES) %>"
+			label="display-template"
+			preferenceValue="<%= displayStyle %>"
+			refreshURL="<%= configurationRenderURL.toString() %>"
+		/>
 	</div>
 
 	<aui:select cssClass="hidden-field abstract-length" helpMessage="abstract-length-key-help" name="preferences--abstractLength--">
@@ -67,7 +47,7 @@ long assetPublisherDDMTemplateClassNameId = PortalUtil.getClassNameId(AssetEntry
 		<aui:option label="view-in-a-specific-portlet" selected='<%= assetLinkBehavior.equals("viewInPortlet") %>' value="viewInPortlet" />
 	</aui:select>
 
-	<aui:select label="maximum-items-to-display" name="preferences--delta--">
+	<aui:select helpMessage="number-of-items-to-display-help" label="number-of-items-to-display" name="preferences--delta--">
 
 		<%
 		int[] deltas = {1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100};
@@ -128,7 +108,14 @@ long assetPublisherDDMTemplateClassNameId = PortalUtil.getClassNameId(AssetEntry
 
 	<aui:input name="preferences--enablePermissions--" type="checkbox" value="<%= enablePermissions %>" />
 
-	<aui:input name="preferences--enableRelatedAssets--" type="checkbox" value="<%= enableRelatedAssets %>" />
+	<c:choose>
+		<c:when test="<%= rootPortletId.equals(PortletKeys.RELATED_ASSETS) %>">
+			<aui:input name="preferences--enableRelatedAssets--" type="hidden" value="<%= enableRelatedAssets %>" />
+		</c:when>
+		<c:otherwise>
+			<aui:input name="preferences--enableRelatedAssets--" type="checkbox" value="<%= enableRelatedAssets %>" />
+		</c:otherwise>
+	</c:choose>
 
 	<aui:input name="preferences--enableRatings--" type="checkbox" value="<%= enableRatings %>" />
 
@@ -207,7 +194,6 @@ long assetPublisherDDMTemplateClassNameId = PortalUtil.getClassNameId(AssetEntry
 
 <aui:script use="aui-base">
 	var selectDisplayStyle = A.one('#<portlet:namespace />displayStyle');
-	var selectDDMTemplate = A.one('#<portlet:namespace />selectDDMTemplate');
 
 	function showHiddenFields () {
 		var assetLinkBehavior = A.one('.asset-link-behavior');
@@ -256,40 +242,4 @@ long assetPublisherDDMTemplateClassNameId = PortalUtil.getClassNameId(AssetEntry
 	}
 
 	Liferay.Util.toggleBoxes('<portlet:namespace />enableSocialBookmarksCheckbox','<portlet:namespace />socialBookmarksOptions');
-
-	if (selectDDMTemplate) {
-		var windowId = A.guid();
-
-		selectDDMTemplate.on(
-			'click',
-			function (event) {
-				Liferay.Util.openDDMPortlet(
-					{
-						classNameId: '<%= String.valueOf(assetPublisherDDMTemplateClassNameId) %>',
-						classPK:'<%= String.valueOf(scopeGroupId) %>',
-						ddmResource: 'com.liferay.portlet.assetpublisher',
-						ddmResourceActionId: '<%= ActionKeys.ADD_DISPLAY_STYLE %>',
-						dialog: {
-							width:680
-						},
-						id: windowId,
-						showGlobalScope: true,
-						showToolbar: true,
-						struts_action: '/dynamic_data_mapping/view_template',
-						title: '<%= UnicodeLanguageUtil.get(pageContext, "display-styles") %>'
-					},
-					function (ddmPortletWindow) {
-						ddmPortletWindow.once(
-							'visibleChange',
-							function(event) {
-								if (!event.newVal) {
-									submitForm(document.<portlet:namespace />fm, '<%= configurationRenderURL.toString() %>');
-								}
-							}
-						);
-					}
-				);
-			}
-		);
-	}
 </aui:script>

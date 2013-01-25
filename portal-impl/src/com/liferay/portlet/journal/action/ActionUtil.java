@@ -15,28 +15,40 @@
 package com.liferay.portlet.journal.action;
 
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
+import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
+import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
+import com.liferay.portlet.dynamicdatamapping.service.DDMStructureServiceUtil;
+import com.liferay.portlet.dynamicdatamapping.service.DDMTemplateServiceUtil;
+import com.liferay.portlet.journal.NoSuchArticleException;
+import com.liferay.portlet.journal.NoSuchFolderException;
 import com.liferay.portlet.journal.NoSuchStructureException;
 import com.liferay.portlet.journal.model.JournalArticle;
+import com.liferay.portlet.journal.model.JournalArticleConstants;
 import com.liferay.portlet.journal.model.JournalFeed;
 import com.liferay.portlet.journal.model.JournalFolder;
 import com.liferay.portlet.journal.model.JournalFolderConstants;
-import com.liferay.portlet.journal.model.JournalStructure;
-import com.liferay.portlet.journal.model.JournalTemplate;
+import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalArticleServiceUtil;
 import com.liferay.portlet.journal.service.JournalFeedServiceUtil;
 import com.liferay.portlet.journal.service.JournalFolderServiceUtil;
-import com.liferay.portlet.journal.service.JournalStructureServiceUtil;
-import com.liferay.portlet.journal.service.JournalTemplateServiceUtil;
 import com.liferay.portlet.journal.service.permission.JournalPermission;
 import com.liferay.portlet.journal.util.JournalUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.portlet.ActionRequest;
 import javax.portlet.PortletRequest;
 
 import javax.servlet.http.HttpServletRequest;
@@ -46,10 +58,105 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class ActionUtil {
 
+	public static void deleteArticle(
+			ActionRequest actionRequest, String deleteArticleId)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		String articleId = deleteArticleId;
+		String articleURL = ParamUtil.getString(actionRequest, "articleURL");
+		double version = 0;
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			JournalArticle.class.getName(), actionRequest);
+
+		int pos = deleteArticleId.lastIndexOf(
+			EditArticleAction.VERSION_SEPARATOR);
+
+		if (pos == -1) {
+			JournalArticleServiceUtil.deleteArticle(
+				themeDisplay.getScopeGroupId(), articleId, articleURL,
+				serviceContext);
+		}
+		else {
+			articleId = articleId.substring(0, pos);
+			version = GetterUtil.getDouble(
+				deleteArticleId.substring(
+					pos + EditArticleAction.VERSION_SEPARATOR.length()));
+
+			JournalArticleServiceUtil.deleteArticle(
+				themeDisplay.getScopeGroupId(), articleId, version, articleURL,
+				serviceContext);
+		}
+
+		JournalUtil.removeRecentArticle(actionRequest, articleId, version);
+	}
+
+	public static void expireArticle(
+			ActionRequest actionRequest, String expireArticleId)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		String articleId = expireArticleId;
+		String articleURL = ParamUtil.getString(actionRequest, "articleURL");
+		double version = 0;
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			JournalArticle.class.getName(), actionRequest);
+
+		int pos = expireArticleId.lastIndexOf(
+			EditArticleAction.VERSION_SEPARATOR);
+
+		if (pos == -1) {
+			JournalArticleServiceUtil.expireArticle(
+				themeDisplay.getScopeGroupId(), articleId, articleURL,
+				serviceContext);
+		}
+		else {
+			articleId = articleId.substring(0, pos);
+			version = GetterUtil.getDouble(
+				expireArticleId.substring(
+					pos + EditArticleAction.VERSION_SEPARATOR.length()));
+
+			JournalArticleServiceUtil.expireArticle(
+				themeDisplay.getScopeGroupId(), articleId, version, articleURL,
+				serviceContext);
+		}
+
+		JournalUtil.removeRecentArticle(actionRequest, articleId, version);
+	}
+
+	public static void expireFolder(
+			long groupId, long parentFolderId, ServiceContext serviceContext)
+		throws Exception {
+
+		List<JournalFolder> folders = JournalFolderServiceUtil.getFolders(
+			groupId, parentFolderId);
+
+		for (JournalFolder folder : folders) {
+			expireFolder(groupId, folder.getFolderId(), serviceContext);
+		}
+
+		List<JournalArticle> articles = JournalArticleServiceUtil.getArticles(
+			groupId, parentFolderId);
+
+		for (JournalArticle article : articles) {
+			JournalArticleServiceUtil.expireArticle(
+				groupId, article.getArticleId(), null, serviceContext);
+		}
+	}
+
 	public static void getArticle(HttpServletRequest request) throws Exception {
 		String cmd = ParamUtil.getString(request, Constants.CMD);
 
-		long groupId = ParamUtil.getLong(request, "groupId");
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		long groupId = themeDisplay.getScopeGroupId();
 		long classNameId = ParamUtil.getLong(request, "classNameId");
 		long classPK = ParamUtil.getLong(request, "classPK");
 		String articleId = ParamUtil.getString(request, "articleId");
@@ -61,29 +168,28 @@ public class ActionUtil {
 			article = JournalArticleServiceUtil.getLatestArticle(
 				groupId, articleId, WorkflowConstants.STATUS_ANY);
 		}
-		else if ((classNameId > 0) && (classPK > 0)) {
+		else if ((classNameId > 0) &&
+				 (classPK > JournalArticleConstants.CLASSNAME_ID_DEFAULT)) {
+
 			String className = PortalUtil.getClassName(classNameId);
 
 			article = JournalArticleServiceUtil.getLatestArticle(
 				groupId, className, classPK);
 		}
 		else if (Validator.isNotNull(structureId)) {
-			JournalStructure structure = null;
+			DDMStructure ddmStructure = null;
 
 			try {
-				structure = JournalStructureServiceUtil.getStructure(
+				ddmStructure = DDMStructureServiceUtil.getStructure(
 					groupId, structureId);
 			}
 			catch (NoSuchStructureException nsse1) {
-				ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-					WebKeys.THEME_DISPLAY);
-
 				if (groupId == themeDisplay.getCompanyGroupId()) {
 					return;
 				}
 
 				try {
-					structure = JournalStructureServiceUtil.getStructure(
+					ddmStructure = DDMStructureServiceUtil.getStructure(
 						themeDisplay.getCompanyGroupId(), structureId);
 				}
 				catch (NoSuchStructureException nsse2) {
@@ -92,12 +198,14 @@ public class ActionUtil {
 			}
 
 			article = JournalArticleServiceUtil.getArticle(
-				groupId, JournalStructure.class.getName(), structure.getId());
+				groupId, DDMStructure.class.getName(),
+				ddmStructure.getStructureId());
 
 			article.setNew(true);
 
 			article.setId(0);
-			article.setClassNameId(0);
+			article.setClassNameId(
+				JournalArticleConstants.CLASSNAME_ID_DEFAULT);
 			article.setClassPK(0);
 			article.setArticleId(null);
 			article.setVersion(0);
@@ -118,6 +226,40 @@ public class ActionUtil {
 			WebKeys.JOURNAL_ARTICLE);
 
 		JournalUtil.addRecentArticle(portletRequest, article);
+	}
+
+	public static void getArticles(HttpServletRequest request)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		List<JournalArticle> articles = new ArrayList<JournalArticle>();
+
+		String[] articleIds = StringUtil.split(
+			ParamUtil.getString(request, "articleIds"));
+
+		for (String articleId : articleIds) {
+			try {
+				JournalArticle article = JournalArticleServiceUtil.getArticle(
+					themeDisplay.getScopeGroupId(), articleId);
+
+				articles.add(article);
+			}
+			catch (NoSuchArticleException nsfee) {
+			}
+		}
+
+		request.setAttribute(WebKeys.JOURNAL_ARTICLES, articles);
+	}
+
+	public static void getArticles(PortletRequest portletRequest)
+		throws Exception {
+
+		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+			portletRequest);
+
+		getArticles(request);
 	}
 
 	public static void getFeed(HttpServletRequest request) throws Exception {
@@ -171,20 +313,49 @@ public class ActionUtil {
 		getFolder(request);
 	}
 
+	public static void getFolders(HttpServletRequest request) throws Exception {
+		long[] folderIds = StringUtil.split(
+			ParamUtil.getString(request, "folderIds"), 0L);
+
+		List<JournalFolder> folders = new ArrayList<JournalFolder>();
+
+		for (long folderId : folderIds) {
+			try {
+				JournalFolder folder = JournalFolderServiceUtil.getFolder(
+					folderId);
+
+				folders.add(folder);
+			}
+			catch (NoSuchFolderException nsfee) {
+			}
+		}
+
+		request.setAttribute(WebKeys.JOURNAL_FOLDERS, folders);
+	}
+
+	public static void getFolders(PortletRequest portletRequest)
+		throws Exception {
+
+		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+			portletRequest);
+
+		getFolders(request);
+	}
+
 	public static void getStructure(HttpServletRequest request)
 		throws Exception {
 
 		long groupId = ParamUtil.getLong(request, "groupId");
 		String structureId = ParamUtil.getString(request, "structureId");
 
-		JournalStructure structure = null;
+		DDMStructure ddmStructure = null;
 
 		if (Validator.isNotNull(structureId)) {
-			structure = JournalStructureServiceUtil.getStructure(
+			ddmStructure = DDMStructureServiceUtil.getStructure(
 				groupId, structureId);
 		}
 
-		request.setAttribute(WebKeys.JOURNAL_STRUCTURE, structure);
+		request.setAttribute(WebKeys.JOURNAL_STRUCTURE, ddmStructure);
 	}
 
 	public static void getStructure(PortletRequest portletRequest)
@@ -195,11 +366,11 @@ public class ActionUtil {
 
 		getStructure(request);
 
-		JournalStructure structure =
-			(JournalStructure)portletRequest.getAttribute(
+		DDMStructure ddmStructure =
+			(DDMStructure)portletRequest.getAttribute(
 				WebKeys.JOURNAL_STRUCTURE);
 
-		JournalUtil.addRecentStructure(portletRequest, structure);
+		JournalUtil.addRecentDDMStructure(portletRequest, ddmStructure);
 	}
 
 	public static void getTemplate(HttpServletRequest request)
@@ -208,14 +379,14 @@ public class ActionUtil {
 		long groupId = ParamUtil.getLong(request, "groupId");
 		String templateId = ParamUtil.getString(request, "templateId");
 
-		JournalTemplate template = null;
+		DDMTemplate ddmTemplate = null;
 
 		if (Validator.isNotNull(templateId)) {
-			template = JournalTemplateServiceUtil.getTemplate(
+			ddmTemplate = DDMTemplateServiceUtil.getTemplate(
 				groupId, templateId);
 		}
 
-		request.setAttribute(WebKeys.JOURNAL_TEMPLATE, template);
+		request.setAttribute(WebKeys.JOURNAL_TEMPLATE, ddmTemplate);
 	}
 
 	public static void getTemplate(PortletRequest portletRequest)
@@ -226,10 +397,46 @@ public class ActionUtil {
 
 		getTemplate(request);
 
-		JournalTemplate template = (JournalTemplate)portletRequest.getAttribute(
+		DDMTemplate ddmTemplate = (DDMTemplate)portletRequest.getAttribute(
 			WebKeys.JOURNAL_TEMPLATE);
 
-		JournalUtil.addRecentTemplate(portletRequest, template);
+		JournalUtil.addRecentDDMTemplate(portletRequest, ddmTemplate);
+	}
+
+	protected static boolean hasArticle(ActionRequest actionRequest)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		String articleId = ParamUtil.getString(actionRequest, "articleId");
+
+		if (Validator.isNull(articleId)) {
+			String[] articleIds = StringUtil.split(
+				ParamUtil.getString(actionRequest, "articleIds"));
+
+			if (articleIds.length <= 0) {
+				return false;
+			}
+
+			articleId = articleIds[0];
+		}
+
+		int pos = articleId.lastIndexOf(EditArticleAction.VERSION_SEPARATOR);
+
+		if (pos != -1) {
+			articleId = articleId.substring(0, pos);
+		}
+
+		try {
+			JournalArticleLocalServiceUtil.getArticle(
+				themeDisplay.getScopeGroupId(), articleId);
+		}
+		catch (NoSuchArticleException nsae) {
+			return false;
+		}
+
+		return true;
 	}
 
 }

@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.dao.jdbc.DataSourceFactoryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletClassLoaderUtil;
+import com.liferay.portal.security.pacl.PACLClassLoaderUtil;
 import com.liferay.portal.spring.hibernate.PortalHibernateConfiguration;
 import com.liferay.portal.spring.hibernate.PortletHibernateConfiguration;
 import com.liferay.portal.spring.jpa.LocalContainerEntityManagerFactoryBean;
@@ -210,22 +211,19 @@ public class DataSourceSwapper {
 		for (PortletSessionFactoryImpl portletSessionFactoryImpl :
 				portletSessionFactoryImpls) {
 
-			ClassLoader oldPortletClassLoader =
-				PortletClassLoaderUtil.getClassLoader();
-
-			ClassLoader portletClassLoader =
-				portletSessionFactoryImpl.getSessionFactoryClassLoader();
-
-			PortletClassLoaderUtil.setClassLoader(portletClassLoader);
-
-			Thread currentThread = Thread.currentThread();
-
-			ClassLoader oldContextClassLoader =
-				currentThread.getContextClassLoader();
-
-			currentThread.setContextClassLoader(portletClassLoader);
+			ClassLoader classLoader = PortletClassLoaderUtil.getClassLoader();
+			ClassLoader contextClassLoader =
+				PACLClassLoaderUtil.getContextClassLoader();
 
 			try {
+				ClassLoader sessionFactoryClassLoader =
+					portletSessionFactoryImpl.getSessionFactoryClassLoader();
+
+				PortletClassLoaderUtil.setClassLoader(
+					sessionFactoryClassLoader);
+				PACLClassLoaderUtil.setContextClassLoader(
+					sessionFactoryClassLoader);
+
 				PortletHibernateConfiguration portletHibernateConfiguration =
 					new PortletHibernateConfiguration();
 
@@ -241,9 +239,8 @@ public class DataSourceSwapper {
 					sessionFactoryImplementor);
 			}
 			finally {
-				PortletClassLoaderUtil.setClassLoader(oldPortletClassLoader);
-
-				currentThread.setContextClassLoader(oldContextClassLoader);
+				PortletClassLoaderUtil.setClassLoader(classLoader);
+				PACLClassLoaderUtil.setContextClassLoader(contextClassLoader);
 			}
 		}
 	}

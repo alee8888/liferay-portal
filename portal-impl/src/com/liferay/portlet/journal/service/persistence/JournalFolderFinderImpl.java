@@ -14,13 +14,13 @@
 
 package com.liferay.portlet.journal.service.persistence;
 
+import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -52,39 +52,40 @@ public class JournalFolderFinderImpl extends BasePersistenceImpl<JournalFolder>
 	public static final String FIND_F_BY_G_F =
 		JournalFolderFinder.class.getName() + ".findF_ByG_F";
 
-	public int countF_A_ByG_F(long groupId, long folderId)
+	public int countF_A_ByG_F(
+			long groupId, long folderId, QueryDefinition queryDefinition)
 		throws SystemException {
 
-		return doCountF_A_ByG_F(groupId, folderId, false);
+		return doCountF_A_ByG_F(groupId, folderId, queryDefinition, false);
 	}
 
-	public int filterCountF_A_ByG_F(long groupId, long folderId)
+	public int filterCountF_A_ByG_F(
+			long groupId, long folderId, QueryDefinition queryDefinition)
 		throws SystemException {
 
-		return doCountF_A_ByG_F(groupId, folderId, true);
+		return doCountF_A_ByG_F(groupId, folderId, queryDefinition, true);
 	}
 
 	public List<Object> filterFindF_AByG_F(
-			long groupId, long folderId, int start, int end,
-			OrderByComparator obc)
+			long groupId, long folderId, QueryDefinition queryDefinition)
 		throws SystemException {
 
-		return doFindF_AByG_F(groupId, folderId, start, end, obc, true);
+		return doFindF_AByG_F(groupId, folderId, queryDefinition, true);
 	}
 
 	public List<Object> findF_AByG_F(
-			long groupId, long folderId, int start, int end,
-			OrderByComparator obc)
+			long groupId, long folderId, QueryDefinition queryDefinition)
 		throws SystemException {
 
-		return doFindF_AByG_F(groupId, folderId, start, end, obc, false);
+		return doFindF_AByG_F(groupId, folderId, queryDefinition, false);
 	}
 
 	protected int doCountF_A_ByG_F(
-			long groupId, long folderId, boolean inlineSQLHelper)
+			long groupId, long folderId, QueryDefinition queryDefinition,
+			boolean inlineSQLHelper)
 		throws SystemException {
 
-	   Session session = null;
+		Session session = null;
 
 		try {
 			session = openSession();
@@ -103,7 +104,8 @@ public class JournalFolderFinderImpl extends BasePersistenceImpl<JournalFolder>
 
 			sb.append(sql);
 			sb.append(") UNION ALL (");
-			sb.append(getCountArticlesSQL(groupId, inlineSQLHelper));
+			sb.append(
+				getCountArticlesSQL(groupId, queryDefinition, inlineSQLHelper));
 			sb.append(StringPool.CLOSE_PARENTHESIS);
 
 			sql = sb.toString();
@@ -123,6 +125,7 @@ public class JournalFolderFinderImpl extends BasePersistenceImpl<JournalFolder>
 			}
 
 			qPos.add(groupId);
+			qPos.add(queryDefinition.getStatus());
 
 			if (folderId >= 0) {
 				qPos.add(folderId);
@@ -151,8 +154,8 @@ public class JournalFolderFinderImpl extends BasePersistenceImpl<JournalFolder>
 	}
 
 	protected List<Object> doFindF_AByG_F(
-			long groupId, long folderId, int start, int end,
-			OrderByComparator obc, boolean inlineSQLHelper)
+			long groupId, long folderId, QueryDefinition queryDefinition,
+			boolean inlineSQLHelper)
 		throws SystemException {
 
 		Session session = null;
@@ -174,12 +177,14 @@ public class JournalFolderFinderImpl extends BasePersistenceImpl<JournalFolder>
 
 			sb.append(sql);
 			sb.append(") UNION ALL (");
-			sb.append(getArticlesSQL(groupId, inlineSQLHelper));
+			sb.append(
+				getArticlesSQL(groupId, queryDefinition, inlineSQLHelper));
 			sb.append(StringPool.CLOSE_PARENTHESIS);
 
 			sql = updateSQL(sb.toString(), folderId);
 
-			sql = CustomSQLUtil.replaceOrderBy(sql, obc);
+			sql = CustomSQLUtil.replaceOrderBy(
+				sql, queryDefinition.getOrderByComparator());
 
 			SQLQuery q = session.createSQLQuery(sql);
 
@@ -197,6 +202,7 @@ public class JournalFolderFinderImpl extends BasePersistenceImpl<JournalFolder>
 			}
 
 			qPos.add(groupId);
+			qPos.add(queryDefinition.getStatus());
 
 			if (folderId >= 0) {
 				qPos.add(folderId);
@@ -205,7 +211,8 @@ public class JournalFolderFinderImpl extends BasePersistenceImpl<JournalFolder>
 			List<Object> models = new ArrayList<Object>();
 
 			Iterator<Object[]> itr = (Iterator<Object[]>)QueryUtil.iterate(
-				q, getDialect(), start, end);
+				q, getDialect(), queryDefinition.getStart(),
+				queryDefinition.getEnd());
 
 			while (itr.hasNext()) {
 				Object[] array = itr.next();
@@ -239,8 +246,12 @@ public class JournalFolderFinderImpl extends BasePersistenceImpl<JournalFolder>
 		}
 	}
 
-	protected String getArticlesSQL(long groupId, boolean inlineSQLHelper) {
-		String sql = CustomSQLUtil.get(FIND_A_BY_G_F);
+	protected String getArticlesSQL(
+		long groupId, QueryDefinition queryDefinition,
+		boolean inlineSQLHelper) {
+
+		String sql = CustomSQLUtil.get(
+			FIND_A_BY_G_F, queryDefinition, "JournalArticle");
 
 		if (inlineSQLHelper) {
 			sql = InlineSQLHelperUtil.replacePermissionCheck(
@@ -252,9 +263,11 @@ public class JournalFolderFinderImpl extends BasePersistenceImpl<JournalFolder>
 	}
 
 	protected String getCountArticlesSQL(
-		long groupId, boolean inlineSQLHelper) {
+		long groupId, QueryDefinition queryDefinition,
+		boolean inlineSQLHelper) {
 
-		String sql = CustomSQLUtil.get(COUNT_A_BY_G_F);
+		String sql = CustomSQLUtil.get(
+			COUNT_A_BY_G_F, queryDefinition, "JournalArticle");
 
 		if (inlineSQLHelper) {
 			sql = InlineSQLHelperUtil.replacePermissionCheck(

@@ -82,22 +82,53 @@ Group scopeGroup = themeDisplay.getScopeGroup();
 %>
 
 <c:if test="<%= (scopeGroup != null) && (!scopeGroup.hasStagingGroup() || scopeGroup.isStagingGroup()) && !portletName.equals(PortletKeys.RELATED_ASSETS) %>">
-	<aui:form name="fm">
 
-		<%
-		for (long groupId : groupIds) {
-		%>
+	<%
+	for (long groupId : groupIds) {
+	%>
 
-			<div class="lfr-meta-actions add-asset-selector">
-				<%@ include file="/html/portlet/asset_publisher/add_asset.jspf" %>
-			</div>
+		<div class="lfr-meta-actions add-asset-selector">
+			<%@ include file="/html/portlet/asset_publisher/add_asset.jspf" %>
+		</div>
 
-		<%
-		}
-		%>
+	<%
+	}
+	%>
 
-	</aui:form>
 </c:if>
+
+<div class="subscribe-action">
+	<c:if test="<%= PortletPermissionUtil.contains(permissionChecker, portletDisplay.getId(), ActionKeys.SUBSCRIBE) %>">
+		<c:choose>
+			<c:when test="<%= AssetPublisherUtil.isSubscribed(themeDisplay.getCompanyId(), user.getUserId(), themeDisplay.getPlid(), portletDisplay.getId()) %>">
+				<portlet:actionURL var="unsubscribeURL">
+					<portlet:param name="struts_action" value="/asset_publisher/edit_subscription" />
+					<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.UNSUBSCRIBE %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
+				</portlet:actionURL>
+
+				<liferay-ui:icon
+					image="unsubscribe"
+					label="<%= true %>"
+					url="<%= unsubscribeURL %>"
+				/>
+			</c:when>
+			<c:otherwise>
+				<portlet:actionURL var="subscribeURL">
+					<portlet:param name="struts_action" value="/asset_publisher/edit_subscription" />
+					<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.SUBSCRIBE %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
+				</portlet:actionURL>
+
+				<liferay-ui:icon
+					image="subscribe"
+					label="<%= true %>"
+					url="<%= subscribeURL %>"
+				/>
+			</c:otherwise>
+		</c:choose>
+	</c:if>
+</div>
 
 <%
 PortletURL portletURL = renderResponse.createRenderURL();
@@ -113,9 +144,17 @@ if (!paginationType.equals("none")) {
 <c:if test="<%= showMetadataDescriptions %>">
 	<liferay-ui:categorization-filter
 		assetType="content"
-		portletURL="<%= portletURL%>"
+		portletURL="<%= portletURL %>"
 	/>
 </c:if>
+
+<%
+long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayTemplateDDMTemplateId(themeDisplay, displayStyle);
+
+Map<String, Object> contextObjects = new HashMap<String, Object>();
+
+contextObjects.put(PortletDisplayTemplateConstants.ASSET_PUBLISHER_HELPER, AssetPublisherHelperUtil.getAssetPublisherHelper());
+%>
 
 <c:choose>
 	<c:when test='<%= selectionStyle.equals("dynamic") %>'>
@@ -131,23 +170,13 @@ if (!paginationType.equals("none")) {
 </c:if>
 
 <c:if test="<%= enableRSS %>">
-	<portlet:resourceURL var="rssURL">
+	<liferay-portlet:resourceURL varImpl="rssURL">
 		<portlet:param name="struts_action" value="/asset_publisher/rss" />
-	</portlet:resourceURL>
+	</liferay-portlet:resourceURL>
 
 	<div class="subscribe">
-		<liferay-ui:icon
-			image="rss"
-			label="<%= true %>"
-			method="get"
-			target="_blank"
-			url="<%= rssURL %>"
-		/>
+		<liferay-ui:rss resourceURL="<%= rssURL %>" />
 	</div>
-
-	<liferay-util:html-top>
-		<link href="<%= HtmlUtil.escape(rssURL) %>" rel="alternate" title="RSS" type="application/rss+xml" />
-	</liferay-util:html-top>
 </c:if>
 
 <%!

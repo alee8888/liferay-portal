@@ -112,6 +112,8 @@ public class CalEventModelImpl extends BaseModelImpl<CalEvent>
 	public static long REPEATING_COLUMN_BITMASK = 8L;
 	public static long TYPE_COLUMN_BITMASK = 16L;
 	public static long UUID_COLUMN_BITMASK = 32L;
+	public static long STARTDATE_COLUMN_BITMASK = 64L;
+	public static long TITLE_COLUMN_BITMASK = 128L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -120,6 +122,10 @@ public class CalEventModelImpl extends BaseModelImpl<CalEvent>
 	 * @return the normal model instance
 	 */
 	public static CalEvent toModel(CalEventSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		CalEvent model = new CalEventImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -156,6 +162,10 @@ public class CalEventModelImpl extends BaseModelImpl<CalEvent>
 	 * @return the normal model instances
 	 */
 	public static List<CalEvent> toModels(CalEventSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<CalEvent> models = new ArrayList<CalEvent>(soapModels.length);
 
 		for (CalEventSoap soapModel : soapModels) {
@@ -180,7 +190,7 @@ public class CalEventModelImpl extends BaseModelImpl<CalEvent>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_eventId);
+		return _eventId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -704,17 +714,6 @@ public class CalEventModelImpl extends BaseModelImpl<CalEvent>
 	}
 
 	@Override
-	public CalEvent toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (CalEvent)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			CalEvent.class.getName(), getPrimaryKey());
@@ -725,6 +724,16 @@ public class CalEventModelImpl extends BaseModelImpl<CalEvent>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public CalEvent toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (CalEvent)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -769,8 +778,7 @@ public class CalEventModelImpl extends BaseModelImpl<CalEvent>
 			return value;
 		}
 
-		value = getTitle().toLowerCase()
-					.compareTo(calEvent.getTitle().toLowerCase());
+		value = getTitle().compareToIgnoreCase(calEvent.getTitle());
 
 		if (value != 0) {
 			return value;
@@ -1120,7 +1128,7 @@ public class CalEventModelImpl extends BaseModelImpl<CalEvent>
 	}
 
 	private static ClassLoader _classLoader = CalEvent.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			CalEvent.class
 		};
 	private String _uuid;
@@ -1158,5 +1166,5 @@ public class CalEventModelImpl extends BaseModelImpl<CalEvent>
 	private int _firstReminder;
 	private int _secondReminder;
 	private long _columnBitmask;
-	private CalEvent _escapedModelProxy;
+	private CalEvent _escapedModel;
 }

@@ -28,6 +28,7 @@ import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.asset.model.AssetCategory;
+import com.liferay.portlet.asset.model.AssetCategoryConstants;
 import com.liferay.portlet.asset.model.AssetVocabulary;
 import com.liferay.portlet.asset.service.base.AssetCategoryServiceBaseImpl;
 import com.liferay.portlet.asset.service.permission.AssetCategoryPermission;
@@ -63,6 +64,19 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 		return assetCategoryLocalService.addCategory(
 			getUserId(), parentCategoryId, titleMap, descriptionMap,
 			vocabularyId, categoryProperties, serviceContext);
+	}
+
+	public AssetCategory addCategory(
+			String title, long vocabularyId, ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		AssetCategoryPermission.check(
+			getPermissionChecker(), serviceContext.getScopeGroupId(),
+			AssetCategoryConstants.DEFAULT_PARENT_CATEGORY_ID,
+			ActionKeys.ADD_CATEGORY);
+
+		return assetCategoryLocalService.addCategory(
+			getUserId(), title, vocabularyId, serviceContext);
 	}
 
 	public void deleteCategories(long[] categoryIds)
@@ -155,13 +169,33 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 	}
 
 	public JSONObject getJSONVocabularyCategories(
+			long vocabularyId, int start, int end, OrderByComparator obc)
+		throws PortalException, SystemException {
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+		List<AssetCategory> categories = filterCategories(
+			assetCategoryLocalService.getVocabularyCategories(
+				vocabularyId, start, end, obc));
+
+		jsonObject.put("categories", toJSONArray(categories));
+		jsonObject.put("total", categories.size());
+
+		return jsonObject;
+	}
+
+	public JSONObject getJSONVocabularyCategories(
 			long groupId, String name, long vocabularyId, int start, int end,
 			OrderByComparator obc)
 		throws PortalException, SystemException {
 
 		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
-		int page = end / (end - start);
+		int page = 0;
+
+		if ((end > 0) && (start > 0)) {
+			page = end / (end - start);
+		}
 
 		jsonObject.put("page", page);
 
@@ -180,13 +214,7 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 			total = getVocabularyCategoriesCount(groupId, vocabularyId);
 		}
 
-		String categoriesJSON = JSONFactoryUtil.looseSerialize(categories);
-
-		JSONArray categoriesJSONArray = JSONFactoryUtil.createJSONArray(
-			categoriesJSON);
-
-		jsonObject.put("categories", categoriesJSONArray);
-
+		jsonObject.put("categories", toJSONArray(categories));
 		jsonObject.put("total", total);
 
 		return jsonObject;
@@ -337,7 +365,9 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 					curCategory.getParentCategoryId());
 
 				names.add(parentCategory.getName());
-				names.add(StringPool.SLASH);
+				names.add(
+					StringPool.SPACE + StringPool.GREATER_THAN +
+						StringPool.SPACE);
 
 				curCategory = parentCategory;
 			}
@@ -347,9 +377,8 @@ public class AssetCategoryServiceImpl extends AssetCategoryServiceBaseImpl {
 			AssetVocabulary vocabulary = assetVocabularyService.getVocabulary(
 				category.getVocabularyId());
 
-			StringBundler sb = new StringBundler(2 + names.size());
+			StringBundler sb = new StringBundler(1 + names.size());
 
-			sb.append(" - ");
 			sb.append(vocabulary.getName());
 			sb.append(names.toArray(new String[names.size()]));
 

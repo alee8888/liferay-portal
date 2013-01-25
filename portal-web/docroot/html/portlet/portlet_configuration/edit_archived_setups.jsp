@@ -49,11 +49,10 @@ portletURL.setParameter("portletResource", portletResource);
 
 <portlet:actionURL var="editArchivedSetupsURL">
 	<portlet:param name="struts_action" value="/portlet_configuration/edit_archived_setups" />
-	<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.SAVE %>" />
 </portlet:actionURL>
 
 <aui:form action="<%= editArchivedSetupsURL %>" method="post" name="fm">
-	<aui:input name="<%= Constants.CMD %>" type="hidden" />
+	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.SAVE %>" />
 	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 	<aui:input name="returnToFullPageURL" type="hidden" value="<%= returnToFullPageURL %>" />
 	<aui:input name="portletResource" type="hidden" value="<%= portletResource %>" />
@@ -93,7 +92,7 @@ portletURL.setParameter("portletResource", portletResource);
 
 		// User
 
-		row.addText(HtmlUtil.escape(PortalUtil.getUserName(portletItem.getUserId(), portletItem.getUserName())));
+		row.addText(PortalUtil.getUserName(portletItem));
 
 		// Date
 

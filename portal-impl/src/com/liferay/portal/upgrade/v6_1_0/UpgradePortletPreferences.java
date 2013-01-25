@@ -38,7 +38,7 @@ public class UpgradePortletPreferences
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"insert into PortalPreferences (portalPreferencesId, " +
@@ -65,7 +65,7 @@ public class UpgradePortletPreferences
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"insert into PortletPreferences (portletPreferencesId, " +
@@ -92,6 +92,10 @@ public class UpgradePortletPreferences
 		updatePortletPreferences();
 		updatePortletPreferencesOwner();
 		upgrade(UpgradeCommunityProperties.class);
+
+		runSQL(
+			"create index IX_D1F795F1 on PortalPreferences (ownerId, " +
+				"ownerType)");
 	}
 
 	protected long getOwnerId(long plid) throws Exception {
@@ -100,7 +104,7 @@ public class UpgradePortletPreferences
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"select groupId from Layout where plid = " + plid);
@@ -132,7 +136,7 @@ public class UpgradePortletPreferences
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"select portletPreferencesId from PortletPreferences where " +
@@ -163,7 +167,7 @@ public class UpgradePortletPreferences
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"select ownerId, ownerType, preferences from " +
@@ -196,7 +200,7 @@ public class UpgradePortletPreferences
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(8);
 
@@ -244,9 +248,9 @@ public class UpgradePortletPreferences
 
 	private static final String[] _CAMEL_CASE_UPGRADE_PORTLET_IDS = {
 		"8", "15", "19", "20", "33", "34", "36", "39_INSTANCE_%",
-		"47_INSTANCE_%", "56_INSTANCE_%", "54_INSTANCE_%", "59_INSTANCE_%",
-		"62_INSTANCE_%", "71_INSTANCE_%", "73_INSTANCE_%", "77",
-		"82_INSTANCE_%", "85_INSTANCE_%", "100", "101_INSTANCE_%",
+		"47_INSTANCE_%", "48_INSTANCE_%", "54_INSTANCE_%", "56_INSTANCE_%",
+		"59_INSTANCE_%", "62_INSTANCE_%", "71_INSTANCE_%", "73_INSTANCE_%",
+		"77", "82_INSTANCE_%", "85_INSTANCE_%", "100", "101_INSTANCE_%",
 		"102_INSTANCE_%", "114", "115", "118_INSTANCE_%", "122_INSTANCE_%"
 	};
 

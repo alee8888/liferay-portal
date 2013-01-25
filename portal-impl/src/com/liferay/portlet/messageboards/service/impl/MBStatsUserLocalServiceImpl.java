@@ -14,19 +14,24 @@
 
 package com.liferay.portlet.messageboards.service.impl;
 
+import com.liferay.portal.kernel.dao.orm.Disjunction;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryDefinition;
+import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.security.pacl.PACLClassLoaderUtil;
 import com.liferay.portlet.messageboards.model.MBStatsUser;
+import com.liferay.portlet.messageboards.model.MBThread;
 import com.liferay.portlet.messageboards.model.impl.MBStatsUserImpl;
 import com.liferay.portlet.messageboards.service.base.MBStatsUserLocalServiceBaseImpl;
 
@@ -50,7 +55,7 @@ public class MBStatsUserLocalServiceImpl
 		statsUser.setUserId(userId);
 
 		try {
-			mbStatsUserPersistence.update(statsUser, false);
+			mbStatsUserPersistence.update(statsUser);
 		}
 		catch (SystemException se) {
 			if (_log.isWarnEnabled()) {
@@ -101,10 +106,64 @@ public class MBStatsUserLocalServiceImpl
 		}
 	}
 
+	public Date getLastPostDateByUserId(long groupId, long userId)
+		throws SystemException {
+
+		DynamicQuery dynamicQuery = DynamicQueryFactoryUtil.forClass(
+			MBThread.class, MBStatsUserImpl.TABLE_NAME,
+			PACLClassLoaderUtil.getPortalClassLoader());
+
+		Projection projection = ProjectionFactoryUtil.max("lastPostDate");
+
+		dynamicQuery.setProjection(projection);
+
+		Property property = PropertyFactoryUtil.forName("threadId");
+
+		Disjunction disjunction = RestrictionsFactoryUtil.disjunction();
+
+		QueryDefinition queryDefinition = new QueryDefinition(
+			WorkflowConstants.STATUS_IN_TRASH);
+
+		List<MBThread> threads = mbThreadLocalService.getGroupThreads(
+			groupId, queryDefinition);
+
+		for (MBThread thread : threads) {
+			disjunction.add(property.ne(thread.getThreadId()));
+		}
+
+		dynamicQuery.add(disjunction);
+
+		List<Date> results = mbStatsUserLocalService.dynamicQuery(dynamicQuery);
+
+		return results.get(0);
+	}
+
+	public long getMessageCountByGroupId(long groupId) throws SystemException {
+		DynamicQuery dynamicQuery = DynamicQueryFactoryUtil.forClass(
+			MBStatsUser.class, MBStatsUserImpl.TABLE_NAME,
+			PACLClassLoaderUtil.getPortalClassLoader());
+
+		Projection projection = ProjectionFactoryUtil.sum("messageCount");
+
+		dynamicQuery.setProjection(projection);
+
+		Property property = PropertyFactoryUtil.forName("groupId");
+
+		dynamicQuery.add(property.eq(groupId));
+
+		List<Long> results = mbStatsUserLocalService.dynamicQuery(dynamicQuery);
+
+		if (results.get(0) == null) {
+			return 0;
+		}
+
+		return results.get(0);
+	}
+
 	public long getMessageCountByUserId(long userId) throws SystemException {
 		DynamicQuery dynamicQuery = DynamicQueryFactoryUtil.forClass(
 			MBStatsUser.class, MBStatsUserImpl.TABLE_NAME,
-			PortalClassLoaderUtil.getClassLoader());
+			PACLClassLoaderUtil.getPortalClassLoader());
 
 		Projection projection = ProjectionFactoryUtil.sum("messageCount");
 
@@ -116,7 +175,7 @@ public class MBStatsUserLocalServiceImpl
 
 		List<Long> results = mbStatsUserLocalService.dynamicQuery(dynamicQuery);
 
-		if (results.isEmpty()) {
+		if (results.get(0) == null) {
 			return 0;
 		}
 
@@ -170,14 +229,33 @@ public class MBStatsUserLocalServiceImpl
 	public MBStatsUser updateStatsUser(long groupId, long userId)
 		throws SystemException {
 
-		return updateStatsUser(groupId, userId, null);
+		return updateStatsUser(
+			groupId, userId, getLastPostDateByUserId(groupId, userId));
 	}
 
 	public MBStatsUser updateStatsUser(
 			long groupId, long userId, Date lastPostDate)
 		throws SystemException {
 
-		int messageCount = mbMessagePersistence.countByG_U(groupId, userId);
+		int messageCount = mbMessagePersistence.countByG_U_S(
+			groupId, userId, WorkflowConstants.STATUS_APPROVED);
+
+		QueryDefinition queryDefinition = new QueryDefinition(
+			WorkflowConstants.STATUS_IN_TRASH);
+
+		List<MBThread> threads = mbThreadLocalService.getGroupThreads(
+			groupId, queryDefinition);
+
+		for (MBThread thread : threads) {
+			messageCount = messageCount - thread.getMessageCount();
+		}
+
+		return updateStatsUser(groupId, userId, messageCount, lastPostDate);
+	}
+
+	public MBStatsUser updateStatsUser(
+			long groupId, long userId, int messageCount, Date lastPostDate)
+		throws SystemException {
 
 		MBStatsUser statsUser = getStatsUser(groupId, userId);
 
@@ -187,7 +265,7 @@ public class MBStatsUserLocalServiceImpl
 			statsUser.setLastPostDate(lastPostDate);
 		}
 
-		mbStatsUserPersistence.update(statsUser, false);
+		mbStatsUserPersistence.update(statsUser);
 
 		return statsUser;
 	}

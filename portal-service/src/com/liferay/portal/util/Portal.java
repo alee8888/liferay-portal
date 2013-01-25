@@ -45,6 +45,8 @@ import java.util.TimeZone;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
+import javax.portlet.PortletConfig;
+import javax.portlet.PortletException;
 import javax.portlet.PortletMode;
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
@@ -358,6 +360,26 @@ public interface Portal {
 		throws PortalException, SystemException;
 
 	/**
+	 * Returns the canonical URL of the page, to distinguish it among its
+	 * translations.
+	 *
+	 * @param  completeURL the complete URL of the page
+	 * @param  themeDisplay the current theme display
+	 * @param  layout the layout. If it is <code>null</code>, then it is
+	 *         generated for the current layout
+	 * @param  forceLayoutFriendlyURL adds the page friendly URL to the
+	 *         canonical URL even if it is not needed
+	 * @return the canonical URL
+	 * @throws PortalException if a friendly URL or the group could not be
+	 *         retrieved
+	 * @throws SystemException if a system exception occurred
+	 */
+	public String getCanonicalURL(
+			String completeURL, ThemeDisplay themeDisplay, Layout layout,
+			boolean forceLayoutFriendlyURL)
+		throws PortalException, SystemException;
+
+	/**
 	 * @deprecated Replaced by the more general {@link #getCDNHost(boolean)}
 	 */
 	public String getCDNHost();
@@ -378,7 +400,7 @@ public interface Portal {
 	 * Returns the insecure (HTTP) content distribution network (CDN) host
 	 * address
 	 *
-	 * @param  companyId the company ID of a site TODO?
+	 * @param  companyId the company ID of a site
 	 * @return the CDN host address
 	 */
 	public String getCDNHostHttp(long companyId);
@@ -387,7 +409,7 @@ public interface Portal {
 	 * Returns the secure (HTTPS) content distribution network (CDN) host
 	 * address
 	 *
-	 * @param  companyId the company ID of a site TODO?
+	 * @param  companyId the company ID of a site
 	 * @return the CDN host address
 	 */
 	public String getCDNHostHttps(long companyId);
@@ -452,6 +474,12 @@ public interface Portal {
 			long scopeGroupId, String ppid, Map<String, String[]> params)
 		throws PortalException, SystemException;
 
+	public long getControlPanelPlid(long companyId)
+		throws PortalException, SystemException;
+
+	public long getControlPanelPlid(PortletRequest portletRequest)
+		throws PortalException, SystemException;
+
 	public Set<Portlet> getControlPanelPortlets(long companyId, String category)
 		throws SystemException;
 
@@ -484,15 +512,13 @@ public interface Portal {
 	public Date getDate(int month, int day, int year);
 
 	/**
-	 * Returns the date object for the specified month, day, year, hour, and
-	 * minute, optionally throwing an exception if the date is invalid.
+	 * Returns the date object for the specified month, day, and year,
+	 * optionally throwing an exception if the date is invalid.
 	 *
 	 * @param  month the month (0-based, meaning 0 for January)
 	 * @param  day the day of the month
 	 * @param  year the year
-	 * @param  hour the hour (0-24)
-	 * @param  min the minute of the hour
-	 * @param  pe the exception to throw if the date is invalid. If
+	 * @param  clazz the exception class to throw if the date is invalid. If
 	 *         <code>null</code>, no exception will be thrown for an invalid
 	 *         date.
 	 * @return the date object, or <code>null</code> if the date is invalid and
@@ -501,7 +527,30 @@ public interface Portal {
 	 *         not <code>null</code>
 	 */
 	public Date getDate(
-			int month, int day, int year, int hour, int min, PortalException pe)
+			int month, int day, int year,
+			Class<? extends PortalException> clazz)
+		throws PortalException;
+
+	/**
+	 * Returns the date object for the specified month, day, year, hour, and
+	 * minute, optionally throwing an exception if the date is invalid.
+	 *
+	 * @param  month the month (0-based, meaning 0 for January)
+	 * @param  day the day of the month
+	 * @param  year the year
+	 * @param  hour the hour (0-24)
+	 * @param  min the minute of the hour
+	 * @param  clazz the exception class to throw if the date is invalid. If
+	 *         <code>null</code>, no exception will be thrown for an invalid
+	 *         date.
+	 * @return the date object, or <code>null</code> if the date is invalid and
+	 *         no exception to throw was provided
+	 * @throws PortalException if the date was invalid and <code>pe</code> was
+	 *         not <code>null</code>
+	 */
+	public Date getDate(
+			int month, int day, int year, int hour, int min,
+			Class<? extends PortalException> clazz)
 		throws PortalException;
 
 	/**
@@ -514,7 +563,7 @@ public interface Portal {
 	 * @param  hour the hour (0-24)
 	 * @param  min the minute of the hour
 	 * @param  timeZone the time zone of the date
-	 * @param  pe the exception to throw if the date is invalid. If
+	 * @param  clazz the exception class to throw if the date is invalid. If
 	 *         <code>null</code>, no exception will be thrown for an invalid
 	 *         date.
 	 * @return the date object, or <code>null</code> if the date is invalid and
@@ -524,25 +573,7 @@ public interface Portal {
 	 */
 	public Date getDate(
 			int month, int day, int year, int hour, int min, TimeZone timeZone,
-			PortalException pe)
-		throws PortalException;
-
-	/**
-	 * Returns the date object for the specified month, day, and year,
-	 * optionally throwing an exception if the date is invalid.
-	 *
-	 * @param  month the month (0-based, meaning 0 for January)
-	 * @param  day the day of the month
-	 * @param  year the year
-	 * @param  pe the exception to throw if the date is invalid. If
-	 *         <code>null</code>, no exception will be thrown for an invalid
-	 *         date.
-	 * @return the date object, or <code>null</code> if the date is invalid and
-	 *         no exception to throw was provided
-	 * @throws PortalException if the date was invalid and <code>pe</code> was
-	 *         not <code>null</code>
-	 */
-	public Date getDate(int month, int day, int year, PortalException pe)
+			Class<? extends PortalException> clazz)
 		throws PortalException;
 
 	/**
@@ -553,7 +584,7 @@ public interface Portal {
 	 * @param  day the day of the month
 	 * @param  year the year
 	 * @param  timeZone the time zone of the date
-	 * @param  pe the exception to throw if the date is invalid. If
+	 * @param  clazz the exception class to throw if the date is invalid. If
 	 *         <code>null</code>, no exception will be thrown for an invalid
 	 *         date.
 	 * @return the date object, or <code>null</code> if the date is invalid and
@@ -562,7 +593,8 @@ public interface Portal {
 	 *         not <code>null</code>
 	 */
 	public Date getDate(
-			int month, int day, int year, TimeZone timeZone, PortalException pe)
+			int month, int day, int year, TimeZone timeZone,
+			Class<? extends PortalException> clazz)
 		throws PortalException;
 
 	public long getDefaultCompanyId();
@@ -613,13 +645,30 @@ public interface Portal {
 			Group group, boolean privateLayoutSet, ThemeDisplay themeDisplay)
 		throws PortalException, SystemException;
 
+	public String getGroupFriendlyURL(
+			Group group, boolean privateLayoutSet, ThemeDisplay themeDisplay,
+			Locale locale)
+		throws PortalException, SystemException;
+
 	public String[] getGroupPermissions(HttpServletRequest request);
+
+	public String[] getGroupPermissions(
+		HttpServletRequest request, String className);
 
 	public String[] getGroupPermissions(PortletRequest portletRequest);
 
+	public String[] getGroupPermissions(
+		PortletRequest portletRequest, String className);
+
 	public String[] getGuestPermissions(HttpServletRequest request);
 
+	public String[] getGuestPermissions(
+		HttpServletRequest request, String className);
+
 	public String[] getGuestPermissions(PortletRequest portletRequest);
+
+	public String[] getGuestPermissions(
+		PortletRequest portletRequest, String className);
 
 	public String getHomeURL(HttpServletRequest request)
 		throws PortalException, SystemException;
@@ -635,11 +684,12 @@ public interface Portal {
 		PortletResponse portletResponse);
 
 	public String getJournalArticleActualURL(
-			long groupId, String mainPath, String friendlyURL,
-			Map<String, String[]> params, Map<String, Object> requestContext)
+			long groupId, boolean privateLayout, String mainPath,
+			String friendlyURL, Map<String, String[]> params,
+			Map<String, Object> requestContext)
 		throws PortalException, SystemException;
 
-	public String getJsSafePortletId(String portletId) ;
+	public String getJsSafePortletId(String portletId);
 
 	public String getLayoutActualURL(Layout layout);
 
@@ -725,8 +775,6 @@ public interface Portal {
 	public HttpServletRequest getOriginalServletRequest(
 		HttpServletRequest request);
 
-	public String getOuterPortletId(HttpServletRequest request);
-
 	public long getParentGroupId(long scopeGroupId)
 		throws PortalException, SystemException;
 
@@ -796,6 +844,10 @@ public interface Portal {
 	public List<BreadcrumbEntry> getPortletBreadcrumbs(
 		HttpServletRequest request);
 
+	public PortletConfig getPortletConfig(
+			long companyId, String portletId, ServletContext servletContext)
+		throws PortletException, SystemException;
+
 	public String getPortletDescription(
 		Portlet portlet, ServletContext servletContext, Locale locale);
 
@@ -836,6 +888,8 @@ public interface Portal {
 	public String getPortletTitle(Portlet portlet, String languageId);
 
 	public String getPortletTitle(Portlet portlet, User user);
+
+	public String getPortletTitle(RenderRequest renderRequest);
 
 	public String getPortletTitle(RenderResponse renderResponse);
 
@@ -888,6 +942,12 @@ public interface Portal {
 			PortletRequest portletRequest, boolean checkPermission)
 		throws PortalException, SystemException;
 
+	public long[] getSiteAndCompanyGroupIds(long groupId)
+		throws PortalException, SystemException;
+
+	public long[] getSiteAndCompanyGroupIds(ThemeDisplay themeDisplay)
+		throws PortalException, SystemException;
+
 	/**
 	 * Returns the URL of the login page for the current site if one is
 	 * available.
@@ -923,6 +983,12 @@ public interface Portal {
 
 	public String[] getSystemSiteRoles();
 
+	public String getUniqueElementId(
+		HttpServletRequest request, String namespace, String id);
+
+	public String getUniqueElementId(
+		PortletRequest request, String namespace, String id);
+
 	public UploadPortletRequest getUploadPortletRequest(
 		PortletRequest portletRequest);
 
@@ -944,6 +1010,8 @@ public interface Portal {
 	public long getUserId(HttpServletRequest request);
 
 	public long getUserId(PortletRequest portletRequest);
+
+	public String getUserName(BaseModel<?> baseModel);
 
 	public String getUserName(long userId, String defaultUserName);
 
@@ -979,6 +1047,11 @@ public interface Portal {
 		throws PortalException, SystemException;
 
 	public void initCustomSQL();
+
+	public void invokeTaglibDiscussion(
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
+		throws Exception;
 
 	public boolean isAllowAddPortletDefaultResource(
 			HttpServletRequest request, Portlet portlet)
@@ -1022,6 +1095,9 @@ public interface Portal {
 
 	public boolean isGroupAdmin(User user, long groupId) throws Exception;
 
+	public boolean isGroupFriendlyURL(
+		String fullURL, String groupFriendlyURL, String layoutFriendlyURL);
+
 	public boolean isGroupOwner(User user, long groupId) throws Exception;
 
 	public boolean isLayoutDescendant(Layout layout, long layoutId)
@@ -1050,6 +1126,8 @@ public interface Portal {
 	public boolean isOmniadmin(long userId);
 
 	public boolean isReservedParameter(String name);
+
+	public boolean isRSSFeedsEnabled();
 
 	public boolean isSecure(HttpServletRequest request);
 
@@ -1088,6 +1166,14 @@ public interface Portal {
 	public void sendError(
 			int status, Exception e, HttpServletRequest request,
 			HttpServletResponse response)
+		throws IOException, ServletException;
+
+	public void sendRSSFeedsDisabledError(
+			HttpServletRequest request, HttpServletResponse response)
+		throws IOException, ServletException;
+
+	public void sendRSSFeedsDisabledError(
+			PortletRequest portletRequest, PortletResponse portletResponse)
 		throws IOException, ServletException;
 
 	/**

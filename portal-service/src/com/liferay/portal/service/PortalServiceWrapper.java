@@ -84,6 +84,11 @@ public class PortalServiceWrapper implements PortalService,
 		_portalService.testAddClassNameAndTestTransactionPortletBar_Success(transactionPortletBarText);
 	}
 
+	public void testAutoSyncHibernateSessionStateOnTxCreation()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_portalService.testAutoSyncHibernateSessionStateOnTxCreation();
+	}
+
 	public void testCounterIncrement_Rollback()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_portalService.testCounterIncrement_Rollback();
@@ -93,6 +98,10 @@ public class PortalServiceWrapper implements PortalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_portalService.testDeleteClassName();
+	}
+
+	public int testGetBuildNumber() {
+		return _portalService.testGetBuildNumber();
 	}
 
 	public void testGetUserId() {

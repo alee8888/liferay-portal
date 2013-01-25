@@ -14,6 +14,17 @@
 
 package com.liferay.portlet.dynamicdatamapping.model.impl;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.xml.Document;
+import com.liferay.portal.kernel.xml.Element;
+import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.model.Image;
+import com.liferay.portal.service.ImageLocalServiceUtil;
+
+import java.util.Locale;
+
 /**
  * @author Brian Wing Shun Chan
  */
@@ -21,5 +32,42 @@ public class DDMTemplateImpl extends DDMTemplateBaseImpl {
 
 	public DDMTemplateImpl() {
 	}
+
+	public String getDefaultLanguageId() {
+		Document document = null;
+
+		try {
+			document = SAXReaderUtil.read(getName());
+
+			if (document != null) {
+				Element rootElement = document.getRootElement();
+
+				return rootElement.attributeValue("default-locale");
+			}
+		}
+		catch (Exception e) {
+		}
+
+		Locale locale = LocaleUtil.getDefault();
+
+		return locale.toString();
+	}
+
+	public String getSmallImageType() throws PortalException, SystemException {
+		if ((_smallImageType == null) && isSmallImage()) {
+			Image smallImage = ImageLocalServiceUtil.getImage(
+				getSmallImageId());
+
+			_smallImageType = smallImage.getType();
+		}
+
+		return _smallImageType;
+	}
+
+	public void setSmallImageType(String smallImageType) {
+		_smallImageType = smallImageType;
+	}
+
+	private String _smallImageType;
 
 }

@@ -85,6 +85,8 @@ public class DLFileShortcutModelImpl extends BaseModelImpl<DLFileShortcut>
 		};
 	public static final String TABLE_SQL_CREATE = "create table DLFileShortcut (uuid_ VARCHAR(75) null,fileShortcutId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,repositoryId LONG,folderId LONG,toFileEntryId LONG,active_ BOOLEAN,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
 	public static final String TABLE_SQL_DROP = "drop table DLFileShortcut";
+	public static final String ORDER_BY_JPQL = " ORDER BY dlFileShortcut.fileShortcutId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY DLFileShortcut.fileShortcutId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -104,6 +106,7 @@ public class DLFileShortcutModelImpl extends BaseModelImpl<DLFileShortcut>
 	public static long STATUS_COLUMN_BITMASK = 16L;
 	public static long TOFILEENTRYID_COLUMN_BITMASK = 32L;
 	public static long UUID_COLUMN_BITMASK = 64L;
+	public static long FILESHORTCUTID_COLUMN_BITMASK = 128L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -112,6 +115,10 @@ public class DLFileShortcutModelImpl extends BaseModelImpl<DLFileShortcut>
 	 * @return the normal model instance
 	 */
 	public static DLFileShortcut toModel(DLFileShortcutSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		DLFileShortcut model = new DLFileShortcutImpl();
 
 		model.setUuid(soapModel.getUuid());
@@ -141,6 +148,10 @@ public class DLFileShortcutModelImpl extends BaseModelImpl<DLFileShortcut>
 	 * @return the normal model instances
 	 */
 	public static List<DLFileShortcut> toModels(DLFileShortcutSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<DLFileShortcut> models = new ArrayList<DLFileShortcut>(soapModels.length);
 
 		for (DLFileShortcutSoap soapModel : soapModels) {
@@ -165,7 +176,7 @@ public class DLFileShortcutModelImpl extends BaseModelImpl<DLFileShortcut>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_fileShortcutId);
+		return _fileShortcutId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -579,9 +590,17 @@ public class DLFileShortcutModelImpl extends BaseModelImpl<DLFileShortcut>
 		}
 	}
 
+	public boolean isDenied() {
+		if (getStatus() == WorkflowConstants.STATUS_DENIED) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public boolean isDraft() {
-		if ((getStatus() == WorkflowConstants.STATUS_DRAFT) ||
-				(getStatus() == WorkflowConstants.STATUS_DRAFT_FROM_APPROVED)) {
+		if (getStatus() == WorkflowConstants.STATUS_DRAFT) {
 			return true;
 		}
 		else {
@@ -598,6 +617,33 @@ public class DLFileShortcutModelImpl extends BaseModelImpl<DLFileShortcut>
 		}
 	}
 
+	public boolean isInactive() {
+		if (getStatus() == WorkflowConstants.STATUS_INACTIVE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isIncomplete() {
+		if (getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	public boolean isInTrash() {
+		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public boolean isPending() {
 		if (getStatus() == WorkflowConstants.STATUS_PENDING) {
 			return true;
@@ -607,19 +653,17 @@ public class DLFileShortcutModelImpl extends BaseModelImpl<DLFileShortcut>
 		}
 	}
 
-	public long getColumnBitmask() {
-		return _columnBitmask;
+	public boolean isScheduled() {
+		if (getStatus() == WorkflowConstants.STATUS_SCHEDULED) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
-	@Override
-	public DLFileShortcut toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (DLFileShortcut)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -633,6 +677,16 @@ public class DLFileShortcutModelImpl extends BaseModelImpl<DLFileShortcut>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public DLFileShortcut toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (DLFileShortcut)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -935,7 +989,7 @@ public class DLFileShortcutModelImpl extends BaseModelImpl<DLFileShortcut>
 	}
 
 	private static ClassLoader _classLoader = DLFileShortcut.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			DLFileShortcut.class
 		};
 	private String _uuid;
@@ -970,5 +1024,5 @@ public class DLFileShortcutModelImpl extends BaseModelImpl<DLFileShortcut>
 	private String _statusByUserName;
 	private Date _statusDate;
 	private long _columnBitmask;
-	private DLFileShortcut _escapedModelProxy;
+	private DLFileShortcut _escapedModel;
 }

@@ -66,6 +66,11 @@ public class PollsPortletDataHandlerImpl extends BasePortletDataHandler {
 		return _ALWAYS_EXPORTABLE;
 	}
 
+	@Override
+	public boolean isDataLocalized() {
+		return _DATA_LOCALIZED;
+	}
+
 	protected static void exportChoice(
 			PortletDataContext portletDataContext, Element questionsElement,
 			PollsChoice choice)
@@ -297,8 +302,6 @@ public class PollsPortletDataHandlerImpl extends BasePortletDataHandler {
 			PortletDataContext portletDataContext, PollsVote vote)
 		throws Exception {
 
-		long userId = portletDataContext.getUserId(vote.getUserUuid());
-
 		Map<Long, Long> questionIds =
 			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
 				PollsQuestion.class);
@@ -319,7 +322,7 @@ public class PollsPortletDataHandlerImpl extends BasePortletDataHandler {
 
 		try {
 			PollsVoteLocalServiceUtil.addVote(
-				userId, questionId, choiceId, serviceContext);
+				vote.getUserId(), questionId, choiceId, serviceContext);
 		}
 		catch (DuplicateVoteException dve) {
 		}
@@ -438,6 +441,8 @@ public class PollsPortletDataHandlerImpl extends BasePortletDataHandler {
 	}
 
 	private static final boolean _ALWAYS_EXPORTABLE = true;
+
+	private static final boolean _DATA_LOCALIZED = true;
 
 	private static final String _NAMESPACE = "polls";
 

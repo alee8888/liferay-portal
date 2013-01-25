@@ -33,6 +33,8 @@ public interface DLProcessorRegistry {
 			Element fileEntryElement)
 		throws Exception;
 
+	public DLProcessor getDLProcessor(String dlProcessorType);
+
 	public void importGeneratedFiles(
 			PortletDataContext portletDataContext, FileEntry fileEntry,
 			FileEntry importedFileEntry, Element fileEntryElement)
@@ -41,6 +43,9 @@ public interface DLProcessorRegistry {
 	public void register(DLProcessor dlProcessor);
 
 	public void trigger(FileEntry fileEntry, FileVersion fileVersion);
+
+	public void trigger(
+		FileEntry fileEntry, FileVersion fileVersion, boolean trusted);
 
 	public void unregister(DLProcessor dlProcessor);
 

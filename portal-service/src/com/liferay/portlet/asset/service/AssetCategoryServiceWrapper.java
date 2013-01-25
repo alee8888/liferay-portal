@@ -62,6 +62,15 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 			descriptionMap, vocabularyId, categoryProperties, serviceContext);
 	}
 
+	public com.liferay.portlet.asset.model.AssetCategory addCategory(
+		java.lang.String title, long vocabularyId,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _assetCategoryService.addCategory(title, vocabularyId,
+			serviceContext);
+	}
+
 	public void deleteCategories(long[] categoryIds)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -111,6 +120,15 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _assetCategoryService.getJSONSearch(groupId, name,
 			vocabularyIds, start, end);
+	}
+
+	public com.liferay.portal.kernel.json.JSONObject getJSONVocabularyCategories(
+		long vocabularyId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator obc)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _assetCategoryService.getJSONVocabularyCategories(vocabularyId,
+			start, end, obc);
 	}
 
 	public com.liferay.portal.kernel.json.JSONObject getJSONVocabularyCategories(

@@ -123,6 +123,7 @@ public class ShoppingItemModelImpl extends BaseModelImpl<ShoppingItem>
 	public static long MEDIUMIMAGEID_COLUMN_BITMASK = 16L;
 	public static long SKU_COLUMN_BITMASK = 32L;
 	public static long SMALLIMAGEID_COLUMN_BITMASK = 64L;
+	public static long ITEMID_COLUMN_BITMASK = 128L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -131,6 +132,10 @@ public class ShoppingItemModelImpl extends BaseModelImpl<ShoppingItem>
 	 * @return the normal model instance
 	 */
 	public static ShoppingItem toModel(ShoppingItemSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		ShoppingItem model = new ShoppingItemImpl();
 
 		model.setItemId(soapModel.getItemId());
@@ -178,6 +183,10 @@ public class ShoppingItemModelImpl extends BaseModelImpl<ShoppingItem>
 	 * @return the normal model instances
 	 */
 	public static List<ShoppingItem> toModels(ShoppingItemSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<ShoppingItem> models = new ArrayList<ShoppingItem>(soapModels.length);
 
 		for (ShoppingItemSoap soapModel : soapModels) {
@@ -202,7 +211,7 @@ public class ShoppingItemModelImpl extends BaseModelImpl<ShoppingItem>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_itemId);
+		return _itemId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -951,17 +960,6 @@ public class ShoppingItemModelImpl extends BaseModelImpl<ShoppingItem>
 	}
 
 	@Override
-	public ShoppingItem toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (ShoppingItem)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			ShoppingItem.class.getName(), getPrimaryKey());
@@ -972,6 +970,16 @@ public class ShoppingItemModelImpl extends BaseModelImpl<ShoppingItem>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public ShoppingItem toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (ShoppingItem)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -1471,7 +1479,7 @@ public class ShoppingItemModelImpl extends BaseModelImpl<ShoppingItem>
 	}
 
 	private static ClassLoader _classLoader = ShoppingItem.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			ShoppingItem.class
 		};
 	private long _itemId;
@@ -1523,5 +1531,5 @@ public class ShoppingItemModelImpl extends BaseModelImpl<ShoppingItem>
 	private boolean _setOriginalLargeImageId;
 	private String _largeImageURL;
 	private long _columnBitmask;
-	private ShoppingItem _escapedModelProxy;
+	private ShoppingItem _escapedModel;
 }

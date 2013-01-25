@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.dynamicdatamapping.model.impl;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
@@ -79,6 +80,8 @@ public class DDMContentModelImpl extends BaseModelImpl<DDMContent>
 		};
 	public static final String TABLE_SQL_CREATE = "create table DDMContent (uuid_ VARCHAR(75) null,contentId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name STRING null,description STRING null,xml TEXT null)";
 	public static final String TABLE_SQL_DROP = "drop table DDMContent";
+	public static final String ORDER_BY_JPQL = " ORDER BY ddmContent.contentId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY DDMContent.contentId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -94,6 +97,7 @@ public class DDMContentModelImpl extends BaseModelImpl<DDMContent>
 	public static long COMPANYID_COLUMN_BITMASK = 1L;
 	public static long GROUPID_COLUMN_BITMASK = 2L;
 	public static long UUID_COLUMN_BITMASK = 4L;
+	public static long CONTENTID_COLUMN_BITMASK = 8L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.dynamicdatamapping.model.DDMContent"));
 
@@ -109,7 +113,7 @@ public class DDMContentModelImpl extends BaseModelImpl<DDMContent>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_contentId);
+		return _contentId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -441,17 +445,6 @@ public class DDMContentModelImpl extends BaseModelImpl<DDMContent>
 	}
 
 	@Override
-	public DDMContent toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (DDMContent)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			DDMContent.class.getName(), getPrimaryKey());
@@ -462,6 +455,23 @@ public class DDMContentModelImpl extends BaseModelImpl<DDMContent>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+		setName(getName(defaultImportLocale), defaultImportLocale,
+			defaultImportLocale);
+	}
+
+	@Override
+	public DDMContent toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (DDMContent)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -708,7 +718,7 @@ public class DDMContentModelImpl extends BaseModelImpl<DDMContent>
 	}
 
 	private static ClassLoader _classLoader = DDMContent.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			DDMContent.class
 		};
 	private String _uuid;
@@ -730,5 +740,5 @@ public class DDMContentModelImpl extends BaseModelImpl<DDMContent>
 	private String _description;
 	private String _xml;
 	private long _columnBitmask;
-	private DDMContent _escapedModelProxy;
+	private DDMContent _escapedModel;
 }

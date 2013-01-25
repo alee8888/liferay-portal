@@ -16,8 +16,10 @@ package com.liferay.portal.kernel.portlet;
 
 import com.liferay.portal.kernel.atom.AtomCollectionAdapter;
 import com.liferay.portal.kernel.lar.PortletDataHandler;
+import com.liferay.portal.kernel.lar.StagedModelDataHandler;
 import com.liferay.portal.kernel.poller.PollerProcessor;
 import com.liferay.portal.kernel.pop.MessageListener;
+import com.liferay.portal.kernel.portletdisplaytemplate.PortletDisplayTemplateHandler;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.OpenSearch;
 import com.liferay.portal.kernel.servlet.URLEncoder;
@@ -73,6 +75,9 @@ public interface PortletBag extends Cloneable {
 
 	public PortletDataHandler getPortletDataHandlerInstance();
 
+	public PortletDisplayTemplateHandler
+		getPortletDisplayTemplateHandlerInstance();
+
 	public Portlet getPortletInstance();
 
 	public PortletLayoutListener getPortletLayoutListenerInstance();
@@ -90,6 +95,8 @@ public interface PortletBag extends Cloneable {
 	public SocialActivityInterpreter getSocialActivityInterpreterInstance();
 
 	public SocialRequestInterpreter getSocialRequestInterpreterInstance();
+
+	public List<StagedModelDataHandler<?>> getStagedModelDataHandlerInstances();
 
 	public List<TrashHandler> getTrashHandlerInstances();
 

@@ -48,6 +48,7 @@ public class RepositoryEntryWrapper implements RepositoryEntry,
 		attributes.put("groupId", getGroupId());
 		attributes.put("repositoryId", getRepositoryId());
 		attributes.put("mappedId", getMappedId());
+		attributes.put("manualCheckInRequired", getManualCheckInRequired());
 
 		return attributes;
 	}
@@ -81,6 +82,13 @@ public class RepositoryEntryWrapper implements RepositoryEntry,
 
 		if (mappedId != null) {
 			setMappedId(mappedId);
+		}
+
+		Boolean manualCheckInRequired = (Boolean)attributes.get(
+				"manualCheckInRequired");
+
+		if (manualCheckInRequired != null) {
+			setManualCheckInRequired(manualCheckInRequired);
 		}
 	}
 
@@ -192,6 +200,33 @@ public class RepositoryEntryWrapper implements RepositoryEntry,
 		_repositoryEntry.setMappedId(mappedId);
 	}
 
+	/**
+	* Returns the manual check in required of this repository entry.
+	*
+	* @return the manual check in required of this repository entry
+	*/
+	public boolean getManualCheckInRequired() {
+		return _repositoryEntry.getManualCheckInRequired();
+	}
+
+	/**
+	* Returns <code>true</code> if this repository entry is manual check in required.
+	*
+	* @return <code>true</code> if this repository entry is manual check in required; <code>false</code> otherwise
+	*/
+	public boolean isManualCheckInRequired() {
+		return _repositoryEntry.isManualCheckInRequired();
+	}
+
+	/**
+	* Sets whether this repository entry is manual check in required.
+	*
+	* @param manualCheckInRequired the manual check in required of this repository entry
+	*/
+	public void setManualCheckInRequired(boolean manualCheckInRequired) {
+		_repositoryEntry.setManualCheckInRequired(manualCheckInRequired);
+	}
+
 	public boolean isNew() {
 		return _repositoryEntry.isNew();
 	}
@@ -250,6 +285,10 @@ public class RepositoryEntryWrapper implements RepositoryEntry,
 
 	public com.liferay.portal.model.RepositoryEntry toEscapedModel() {
 		return new RepositoryEntryWrapper(_repositoryEntry.toEscapedModel());
+	}
+
+	public com.liferay.portal.model.RepositoryEntry toUnescapedModel() {
+		return new RepositoryEntryWrapper(_repositoryEntry.toUnescapedModel());
 	}
 
 	@Override

@@ -48,6 +48,14 @@ public class GroupPermissionImpl implements GroupPermission {
 		}
 	}
 
+	public void check(PermissionChecker permissionChecker, String actionId)
+		throws PortalException {
+
+		if (!contains(permissionChecker, actionId)) {
+			throw new PrincipalException();
+		}
+	}
+
 	public boolean contains(
 			PermissionChecker permissionChecker, Group group, String actionId)
 		throws PortalException, SystemException {
@@ -67,7 +75,8 @@ public class GroupPermissionImpl implements GroupPermission {
 
 			User user = UserLocalServiceUtil.getUserById(group.getClassPK());
 
-			if (UserPermissionUtil.contains(
+			if ((permissionChecker.getUserId() != user.getUserId()) &&
+				 UserPermissionUtil.contains(
 					permissionChecker, user.getUserId(),
 					user.getOrganizationIds(), ActionKeys.UPDATE)) {
 
@@ -75,19 +84,25 @@ public class GroupPermissionImpl implements GroupPermission {
 			}
 		}
 
-		if (actionId.equals(ActionKeys.ADD_LAYOUT)) {
-			if (permissionChecker.hasPermission(
-					groupId, Group.class.getName(), groupId,
-					ActionKeys.MANAGE_LAYOUTS)) {
+		if (actionId.equals(ActionKeys.ADD_LAYOUT) &&
+			permissionChecker.hasPermission(
+				groupId, Group.class.getName(), groupId,
+				ActionKeys.MANAGE_LAYOUTS)) {
 
-				return true;
-			}
+			return true;
 		}
 		else if ((actionId.equals(ActionKeys.EXPORT_IMPORT_LAYOUTS) ||
 				  actionId.equals(ActionKeys.EXPORT_IMPORT_PORTLET_INFO)) &&
 				 permissionChecker.hasPermission(
 					 groupId, Group.class.getName(), groupId,
 					 ActionKeys.PUBLISH_STAGING)) {
+
+			return true;
+		}
+		else if (actionId.equals(ActionKeys.VIEW) &&
+				 permissionChecker.hasPermission(
+					 groupId, Group.class.getName(), groupId,
+					 ActionKeys.ASSIGN_USER_ROLES)) {
 
 			return true;
 		}
@@ -142,6 +157,13 @@ public class GroupPermissionImpl implements GroupPermission {
 		else {
 			return false;
 		}
+	}
+
+	public boolean contains(
+		PermissionChecker permissionChecker, String actionId) {
+
+		return permissionChecker.hasPermission(
+			0, Group.class.getName(), 0, actionId);
 	}
 
 }

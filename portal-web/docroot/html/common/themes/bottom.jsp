@@ -16,6 +16,7 @@
 
 <%@ include file="/html/common/init.jsp" %>
 
+<%@ page import="com.liferay.portal.security.ldap.LDAPSettingsUtil" %>
 <%@ page import="com.liferay.taglib.aui.ScriptTag" %>
 
 <%
@@ -30,42 +31,13 @@ List<Portlet> portlets = (List<Portlet>)request.getAttribute(WebKeys.LAYOUT_PORT
 
 <%@ include file="/html/common/themes/bottom_portlet_resources_js.jspf" %>
 
-<%
-Set<String> runtimePortletIds = RuntimeTag.getRuntimePortletIDs(request);
-
-if ((runtimePortletIds != null) && !runtimePortletIds.isEmpty()) {
-	List<Portlet> runtimePortlets = new ArrayList<Portlet>();
-
-	for (String runtimePortletId : runtimePortletIds) {
-		Portlet runtimePortlet = PortletLocalServiceUtil.getPortletById(runtimePortletId);
-
-		if (runtimePortlet != null) {
-			runtimePortlets.add(runtimePortlet);
-		}
-	}
-
-	portlets = runtimePortlets;
-%>
-
-	<%-- Portlet CSS References --%>
-
-	<%@ include file="/html/common/themes/top_portlet_resources_css.jspf" %>
-	<%@ include file="/html/common/themes/bottom_portlet_resources_css.jspf" %>
-
-	<%-- Portlet JavaScript References --%>
-
-	<%@ include file="/html/common/themes/top_portlet_resources_js.jspf" %>
-	<%@ include file="/html/common/themes/bottom_portlet_resources_js.jspf" %>
-
-<%
-}
-%>
-
 <c:if test="<%= PropsValues.JAVASCRIPT_LOG_ENABLED %>">
 	<%@ include file="/html/common/themes/bottom_js_logging.jspf" %>
 </c:if>
 
 <%@ include file="/html/common/themes/bottom_js.jspf" %>
+
+<%@ include file="/html/common/themes/password_expiring_soon.jspf" %>
 
 <%@ include file="/html/common/themes/session_timeout.jspf" %>
 

@@ -72,7 +72,7 @@ public class PortletPreferencesLocalServiceImpl
 		portletPreferences.setPreferences(defaultPreferences);
 
 		try {
-			portletPreferencesPersistence.update(portletPreferences, false);
+			portletPreferencesPersistence.update(portletPreferences);
 		}
 		catch (SystemException se) {
 			if (_log.isWarnEnabled()) {
@@ -105,6 +105,12 @@ public class PortletPreferencesLocalServiceImpl
 
 		portletPreferencesPersistence.removeByO_O_P_P(
 			ownerId, ownerType, plid, portletId);
+	}
+
+	public void deletePortletPreferencesByPlid(long plid)
+		throws SystemException {
+
+		portletPreferencesPersistence.removeByPlid(plid);
 	}
 
 	@Skip
@@ -169,6 +175,14 @@ public class PortletPreferencesLocalServiceImpl
 		throws SystemException {
 
 		return portletPreferencesPersistence.findByPlid(plid);
+	}
+
+	public long getPortletPreferencesCount(
+			int ownerType, long plid, String portletId)
+		throws SystemException {
+
+		return portletPreferencesPersistence.countByO_P_P(
+			ownerType, plid, portletId);
 	}
 
 	public javax.portlet.PortletPreferences getPreferences(
@@ -299,7 +313,7 @@ public class PortletPreferencesLocalServiceImpl
 
 		portletPreferences.setPreferences(xml);
 
-		portletPreferencesPersistence.update(portletPreferences, false);
+		portletPreferencesPersistence.update(portletPreferences);
 
 		return portletPreferences;
 	}

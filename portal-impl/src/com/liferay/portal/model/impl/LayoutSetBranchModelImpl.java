@@ -113,6 +113,10 @@ public class LayoutSetBranchModelImpl extends BaseModelImpl<LayoutSetBranch>
 	 * @return the normal model instance
 	 */
 	public static LayoutSetBranch toModel(LayoutSetBranchSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		LayoutSetBranch model = new LayoutSetBranchImpl();
 
 		model.setLayoutSetBranchId(soapModel.getLayoutSetBranchId());
@@ -148,6 +152,10 @@ public class LayoutSetBranchModelImpl extends BaseModelImpl<LayoutSetBranch>
 	 */
 	public static List<LayoutSetBranch> toModels(
 		LayoutSetBranchSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<LayoutSetBranch> models = new ArrayList<LayoutSetBranch>(soapModels.length);
 
 		for (LayoutSetBranchSoap soapModel : soapModels) {
@@ -172,7 +180,7 @@ public class LayoutSetBranchModelImpl extends BaseModelImpl<LayoutSetBranch>
 	}
 
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_layoutSetBranchId);
+		return _layoutSetBranchId;
 	}
 
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
@@ -651,17 +659,6 @@ public class LayoutSetBranchModelImpl extends BaseModelImpl<LayoutSetBranch>
 	}
 
 	@Override
-	public LayoutSetBranch toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (LayoutSetBranch)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			LayoutSetBranch.class.getName(), getPrimaryKey());
@@ -672,6 +669,16 @@ public class LayoutSetBranchModelImpl extends BaseModelImpl<LayoutSetBranch>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public LayoutSetBranch toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (LayoutSetBranch)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -1037,7 +1044,7 @@ public class LayoutSetBranchModelImpl extends BaseModelImpl<LayoutSetBranch>
 	}
 
 	private static ClassLoader _classLoader = LayoutSetBranch.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			LayoutSetBranch.class
 		};
 	private long _layoutSetBranchId;
@@ -1068,5 +1075,5 @@ public class LayoutSetBranchModelImpl extends BaseModelImpl<LayoutSetBranch>
 	private String _layoutSetPrototypeUuid;
 	private boolean _layoutSetPrototypeLinkEnabled;
 	private long _columnBitmask;
-	private LayoutSetBranch _escapedModelProxy;
+	private LayoutSetBranch _escapedModel;
 }

@@ -38,73 +38,6 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 	 */
 
 	/**
-	* Caches the d d m structure link in the entity cache if it is enabled.
-	*
-	* @param ddmStructureLink the d d m structure link
-	*/
-	public void cacheResult(
-		com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink ddmStructureLink);
-
-	/**
-	* Caches the d d m structure links in the entity cache if it is enabled.
-	*
-	* @param ddmStructureLinks the d d m structure links
-	*/
-	public void cacheResult(
-		java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink> ddmStructureLinks);
-
-	/**
-	* Creates a new d d m structure link with the primary key. Does not add the d d m structure link to the database.
-	*
-	* @param structureLinkId the primary key for the new d d m structure link
-	* @return the new d d m structure link
-	*/
-	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink create(
-		long structureLinkId);
-
-	/**
-	* Removes the d d m structure link with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param structureLinkId the primary key of the d d m structure link
-	* @return the d d m structure link that was removed
-	* @throws com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException if a d d m structure link with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink remove(
-		long structureLinkId)
-		throws com.liferay.portal.kernel.exception.SystemException,
-			com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException;
-
-	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink updateImpl(
-		com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink ddmStructureLink,
-		boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	/**
-	* Returns the d d m structure link with the primary key or throws a {@link com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException} if it could not be found.
-	*
-	* @param structureLinkId the primary key of the d d m structure link
-	* @return the d d m structure link
-	* @throws com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException if a d d m structure link with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink findByPrimaryKey(
-		long structureLinkId)
-		throws com.liferay.portal.kernel.exception.SystemException,
-			com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException;
-
-	/**
-	* Returns the d d m structure link with the primary key or returns <code>null</code> if it could not be found.
-	*
-	* @param structureLinkId the primary key of the d d m structure link
-	* @return the d d m structure link, or <code>null</code> if a d d m structure link with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink fetchByPrimaryKey(
-		long structureLinkId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	/**
 	* Returns all the d d m structure links where classNameId = &#63;.
 	*
 	* @param classNameId the class name ID
@@ -119,7 +52,7 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 	* Returns a range of all the d d m structure links where classNameId = &#63;.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureLinkModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param classNameId the class name ID
@@ -136,7 +69,7 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 	* Returns an ordered range of all the d d m structure links where classNameId = &#63;.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureLinkModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param classNameId the class name ID
@@ -154,10 +87,6 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 	/**
 	* Returns the first d d m structure link in the ordered set where classNameId = &#63;.
 	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	* </p>
-	*
 	* @param classNameId the class name ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching d d m structure link
@@ -171,11 +100,20 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 			com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException;
 
 	/**
-	* Returns the last d d m structure link in the ordered set where classNameId = &#63;.
+	* Returns the first d d m structure link in the ordered set where classNameId = &#63;.
 	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	* </p>
+	* @param classNameId the class name ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the first matching d d m structure link, or <code>null</code> if a matching d d m structure link could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink fetchByClassNameId_First(
+		long classNameId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
+	/**
+	* Returns the last d d m structure link in the ordered set where classNameId = &#63;.
 	*
 	* @param classNameId the class name ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
@@ -190,11 +128,20 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 			com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException;
 
 	/**
-	* Returns the d d m structure links before and after the current d d m structure link in the ordered set where classNameId = &#63;.
+	* Returns the last d d m structure link in the ordered set where classNameId = &#63;.
 	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	* </p>
+	* @param classNameId the class name ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the last matching d d m structure link, or <code>null</code> if a matching d d m structure link could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink fetchByClassNameId_Last(
+		long classNameId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
+	/**
+	* Returns the d d m structure links before and after the current d d m structure link in the ordered set where classNameId = &#63;.
 	*
 	* @param structureLinkId the primary key of the current d d m structure link
 	* @param classNameId the class name ID
@@ -208,6 +155,25 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
 		throws com.liferay.portal.kernel.exception.SystemException,
 			com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException;
+
+	/**
+	* Removes all the d d m structure links where classNameId = &#63; from the database.
+	*
+	* @param classNameId the class name ID
+	* @throws SystemException if a system exception occurred
+	*/
+	public void removeByClassNameId(long classNameId)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
+	/**
+	* Returns the number of d d m structure links where classNameId = &#63;.
+	*
+	* @param classNameId the class name ID
+	* @return the number of matching d d m structure links
+	* @throws SystemException if a system exception occurred
+	*/
+	public int countByClassNameId(long classNameId)
+		throws com.liferay.portal.kernel.exception.SystemException;
 
 	/**
 	* Returns the d d m structure link where classPK = &#63; or throws a {@link com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException} if it could not be found.
@@ -246,6 +212,28 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 		throws com.liferay.portal.kernel.exception.SystemException;
 
 	/**
+	* Removes the d d m structure link where classPK = &#63; from the database.
+	*
+	* @param classPK the class p k
+	* @return the d d m structure link that was removed
+	* @throws SystemException if a system exception occurred
+	*/
+	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink removeByClassPK(
+		long classPK)
+		throws com.liferay.portal.kernel.exception.SystemException,
+			com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException;
+
+	/**
+	* Returns the number of d d m structure links where classPK = &#63;.
+	*
+	* @param classPK the class p k
+	* @return the number of matching d d m structure links
+	* @throws SystemException if a system exception occurred
+	*/
+	public int countByClassPK(long classPK)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
+	/**
 	* Returns all the d d m structure links where structureId = &#63;.
 	*
 	* @param structureId the structure ID
@@ -260,7 +248,7 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 	* Returns a range of all the d d m structure links where structureId = &#63;.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureLinkModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param structureId the structure ID
@@ -277,7 +265,7 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 	* Returns an ordered range of all the d d m structure links where structureId = &#63;.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureLinkModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param structureId the structure ID
@@ -295,10 +283,6 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 	/**
 	* Returns the first d d m structure link in the ordered set where structureId = &#63;.
 	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	* </p>
-	*
 	* @param structureId the structure ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching d d m structure link
@@ -312,11 +296,20 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 			com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException;
 
 	/**
-	* Returns the last d d m structure link in the ordered set where structureId = &#63;.
+	* Returns the first d d m structure link in the ordered set where structureId = &#63;.
 	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	* </p>
+	* @param structureId the structure ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the first matching d d m structure link, or <code>null</code> if a matching d d m structure link could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink fetchByStructureId_First(
+		long structureId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
+	/**
+	* Returns the last d d m structure link in the ordered set where structureId = &#63;.
 	*
 	* @param structureId the structure ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
@@ -331,11 +324,20 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 			com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException;
 
 	/**
-	* Returns the d d m structure links before and after the current d d m structure link in the ordered set where structureId = &#63;.
+	* Returns the last d d m structure link in the ordered set where structureId = &#63;.
 	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	* </p>
+	* @param structureId the structure ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the last matching d d m structure link, or <code>null</code> if a matching d d m structure link could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink fetchByStructureId_Last(
+		long structureId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
+	/**
+	* Returns the d d m structure links before and after the current d d m structure link in the ordered set where structureId = &#63;.
 	*
 	* @param structureLinkId the primary key of the current d d m structure link
 	* @param structureId the structure ID
@@ -351,6 +353,91 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 			com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException;
 
 	/**
+	* Removes all the d d m structure links where structureId = &#63; from the database.
+	*
+	* @param structureId the structure ID
+	* @throws SystemException if a system exception occurred
+	*/
+	public void removeByStructureId(long structureId)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
+	/**
+	* Returns the number of d d m structure links where structureId = &#63;.
+	*
+	* @param structureId the structure ID
+	* @return the number of matching d d m structure links
+	* @throws SystemException if a system exception occurred
+	*/
+	public int countByStructureId(long structureId)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
+	/**
+	* Caches the d d m structure link in the entity cache if it is enabled.
+	*
+	* @param ddmStructureLink the d d m structure link
+	*/
+	public void cacheResult(
+		com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink ddmStructureLink);
+
+	/**
+	* Caches the d d m structure links in the entity cache if it is enabled.
+	*
+	* @param ddmStructureLinks the d d m structure links
+	*/
+	public void cacheResult(
+		java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink> ddmStructureLinks);
+
+	/**
+	* Creates a new d d m structure link with the primary key. Does not add the d d m structure link to the database.
+	*
+	* @param structureLinkId the primary key for the new d d m structure link
+	* @return the new d d m structure link
+	*/
+	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink create(
+		long structureLinkId);
+
+	/**
+	* Removes the d d m structure link with the primary key from the database. Also notifies the appropriate model listeners.
+	*
+	* @param structureLinkId the primary key of the d d m structure link
+	* @return the d d m structure link that was removed
+	* @throws com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException if a d d m structure link with the primary key could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink remove(
+		long structureLinkId)
+		throws com.liferay.portal.kernel.exception.SystemException,
+			com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException;
+
+	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink updateImpl(
+		com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink ddmStructureLink)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
+	/**
+	* Returns the d d m structure link with the primary key or throws a {@link com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException} if it could not be found.
+	*
+	* @param structureLinkId the primary key of the d d m structure link
+	* @return the d d m structure link
+	* @throws com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException if a d d m structure link with the primary key could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink findByPrimaryKey(
+		long structureLinkId)
+		throws com.liferay.portal.kernel.exception.SystemException,
+			com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException;
+
+	/**
+	* Returns the d d m structure link with the primary key or returns <code>null</code> if it could not be found.
+	*
+	* @param structureLinkId the primary key of the d d m structure link
+	* @return the d d m structure link, or <code>null</code> if a d d m structure link with the primary key could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink fetchByPrimaryKey(
+		long structureLinkId)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
+	/**
 	* Returns all the d d m structure links.
 	*
 	* @return the d d m structure links
@@ -363,7 +450,7 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 	* Returns a range of all the d d m structure links.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureLinkModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of d d m structure links
@@ -379,7 +466,7 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 	* Returns an ordered range of all the d d m structure links.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureLinkModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of d d m structure links
@@ -394,71 +481,11 @@ public interface DDMStructureLinkPersistence extends BasePersistence<DDMStructur
 		throws com.liferay.portal.kernel.exception.SystemException;
 
 	/**
-	* Removes all the d d m structure links where classNameId = &#63; from the database.
-	*
-	* @param classNameId the class name ID
-	* @throws SystemException if a system exception occurred
-	*/
-	public void removeByClassNameId(long classNameId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	/**
-	* Removes the d d m structure link where classPK = &#63; from the database.
-	*
-	* @param classPK the class p k
-	* @return the d d m structure link that was removed
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink removeByClassPK(
-		long classPK)
-		throws com.liferay.portal.kernel.exception.SystemException,
-			com.liferay.portlet.dynamicdatamapping.NoSuchStructureLinkException;
-
-	/**
-	* Removes all the d d m structure links where structureId = &#63; from the database.
-	*
-	* @param structureId the structure ID
-	* @throws SystemException if a system exception occurred
-	*/
-	public void removeByStructureId(long structureId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	/**
 	* Removes all the d d m structure links from the database.
 	*
 	* @throws SystemException if a system exception occurred
 	*/
 	public void removeAll()
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	/**
-	* Returns the number of d d m structure links where classNameId = &#63;.
-	*
-	* @param classNameId the class name ID
-	* @return the number of matching d d m structure links
-	* @throws SystemException if a system exception occurred
-	*/
-	public int countByClassNameId(long classNameId)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	/**
-	* Returns the number of d d m structure links where classPK = &#63;.
-	*
-	* @param classPK the class p k
-	* @return the number of matching d d m structure links
-	* @throws SystemException if a system exception occurred
-	*/
-	public int countByClassPK(long classPK)
-		throws com.liferay.portal.kernel.exception.SystemException;
-
-	/**
-	* Returns the number of d d m structure links where structureId = &#63;.
-	*
-	* @param structureId the structure ID
-	* @return the number of matching d d m structure links
-	* @throws SystemException if a system exception occurred
-	*/
-	public int countByStructureId(long structureId)
 		throws com.liferay.portal.kernel.exception.SystemException;
 
 	/**

@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.ModelListener;
+import com.liferay.portal.model.ModelWrapper;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextThreadLocal;
 import com.liferay.portal.service.persistence.BasePersistence;
@@ -157,6 +158,23 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		return findWithDynamicQuery(dynamicQuery, start, end);
 	}
 
+	public void flush() throws SystemException {
+		try {
+			Session session = _sessionFactory.getCurrentSession();
+
+			if (session != null) {
+				session.flush();
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+	}
+
+	public Session getCurrentSession() throws ORMException {
+		return _sessionFactory.getCurrentSession();
+	}
+
 	public DataSource getDataSource() {
 		return _dataSource;
 	}
@@ -210,6 +228,12 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 	}
 
 	public T remove(T model) throws SystemException {
+		if (model instanceof ModelWrapper) {
+			ModelWrapper<T> modelWrapper = (ModelWrapper<T>)model;
+
+			model = modelWrapper.getWrappedModel();
+		}
+
 		for (ModelListener<T> listener : listeners) {
 			listener.onBeforeRemove(model);
 		}
@@ -242,7 +266,48 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 			new ModelListener[listenersList.size()]);
 	}
 
+	public T update(T model) throws SystemException {
+		if (model instanceof ModelWrapper) {
+			ModelWrapper<T> modelWrapper = (ModelWrapper<T>)model;
+
+			model = modelWrapper.getWrappedModel();
+		}
+
+		boolean isNew = model.isNew();
+
+		for (ModelListener<T> listener : listeners) {
+			if (isNew) {
+				listener.onBeforeCreate(model);
+			}
+			else {
+				listener.onBeforeUpdate(model);
+			}
+		}
+
+		model = updateImpl(model);
+
+		for (ModelListener<T> listener : listeners) {
+			if (isNew) {
+				listener.onAfterCreate(model);
+			}
+			else {
+				listener.onAfterUpdate(model);
+			}
+		}
+
+		return model;
+	}
+
+	/**
+	 * @deprecated {@link #update(BaseModel)}}
+	 */
 	public T update(T model, boolean merge) throws SystemException {
+		if (model instanceof ModelWrapper) {
+			ModelWrapper<T> modelWrapper = (ModelWrapper<T>)model;
+
+			model = modelWrapper.getWrappedModel();
+		}
+
 		boolean isNew = model.isNew();
 
 		for (ModelListener<T> listener : listeners) {
@@ -268,19 +333,38 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		return model;
 	}
 
+	/**
+	 * @deprecated {@link #update(BaseModel, ServiceContext)}}
+	 */
 	public T update(T model, boolean merge, ServiceContext serviceContext)
+		throws SystemException {
+
+		return update(model, serviceContext);
+	}
+
+	public T update(T model, ServiceContext serviceContext)
 		throws SystemException {
 
 		try {
 			ServiceContextThreadLocal.pushServiceContext(serviceContext);
 
-			update(model, merge);
+			update(model);
 
 			return model;
 		}
 		finally {
 			ServiceContextThreadLocal.popServiceContext();
 		}
+	}
+
+	protected static String removeConjunction(String sql) {
+		int pos = sql.indexOf(" AND ");
+
+		if (pos != -1) {
+			sql = sql.substring(0, pos);
+		}
+
+		return sql;
 	}
 
 	protected void appendOrderByComparator(
@@ -333,16 +417,18 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 	 * update operation; it only notifies the model listeners.
 	 *
 	 * @param  model the model instance to update
-	 * @param  merge whether to merge the model instance with the current
-	 *         session. See {@link
-	 *         com.liferay.portal.service.persistence.BatchSession#update(
-	 *         com.liferay.portal.kernel.dao.orm.Session, BaseModel, boolean)}
-	 *         for an explanation.
 	 * @return the model instance that was updated
 	 * @throws SystemException if a system exception occurred
 	 */
-	protected T updateImpl(T model, boolean merge) throws SystemException {
+	protected T updateImpl(T model) throws SystemException {
 		throw new UnsupportedOperationException();
+	}
+
+	/**
+	 * @deprecated {@link #updateImpl(BaseModel)}
+	 */
+	protected T updateImpl(T model, boolean merge) throws SystemException {
+		return updateImpl(model);
 	}
 
 	protected static final Object[] FINDER_ARGS_EMPTY = new Object[0];

@@ -69,7 +69,7 @@ public class DLFileShortcutLocalServiceImpl
 		fileShortcut.setStatusByUserName(user.getFullName());
 		fileShortcut.setStatusDate(now);
 
-		dlFileShortcutPersistence.update(fileShortcut, false);
+		dlFileShortcutPersistence.update(fileShortcut);
 
 		// Resources
 
@@ -93,7 +93,7 @@ public class DLFileShortcutLocalServiceImpl
 
 			dlFolder.setLastPostDate(fileShortcut.getModifiedDate());
 
-			dlFolderPersistence.update(dlFolder, false);
+			dlFolderPersistence.update(dlFolder);
 		}
 
 		// Asset
@@ -202,6 +202,26 @@ public class DLFileShortcutLocalServiceImpl
 		}
 	}
 
+	public void deleteFileShortcuts(long groupId, long folderId)
+		throws PortalException, SystemException {
+
+		deleteFileShortcuts(groupId, folderId, true);
+	}
+
+	public void deleteFileShortcuts(
+			long groupId, long folderId, boolean includeTrashedEntries)
+		throws PortalException, SystemException {
+
+		List<DLFileShortcut> fileShortcuts =
+			dlFileShortcutPersistence.findByG_F(groupId, folderId);
+
+		for (DLFileShortcut fileShortcut : fileShortcuts) {
+			if (includeTrashedEntries || !fileShortcut.isInTrash()) {
+				deleteFileShortcut(fileShortcut);
+			}
+		}
+	}
+
 	public void disableFileShortcuts(long toFileEntryId)
 		throws SystemException {
 
@@ -211,7 +231,7 @@ public class DLFileShortcutLocalServiceImpl
 		for (DLFileShortcut fileShortcut : fileShortcuts) {
 			fileShortcut.setActive(false);
 
-			dlFileShortcutPersistence.update(fileShortcut, false);
+			dlFileShortcutPersistence.update(fileShortcut);
 		}
 	}
 
@@ -222,7 +242,7 @@ public class DLFileShortcutLocalServiceImpl
 		for (DLFileShortcut fileShortcut : fileShortcuts) {
 			fileShortcut.setActive(true);
 
-			dlFileShortcutPersistence.update(fileShortcut, false);
+			dlFileShortcutPersistence.update(fileShortcut);
 		}
 	}
 
@@ -230,6 +250,23 @@ public class DLFileShortcutLocalServiceImpl
 		throws PortalException, SystemException {
 
 		return dlFileShortcutPersistence.findByPrimaryKey(fileShortcutId);
+	}
+
+	public List<DLFileShortcut> getFileShortcuts(
+			long groupId, long folderId, boolean active, int status, int start,
+			int end)
+		throws SystemException {
+
+		return dlFileShortcutPersistence.findByG_F_A_S(
+			groupId, folderId, active, status, start, end);
+	}
+
+	public int getFileShortcutsCount(
+			long groupId, long folderId, boolean active, int status)
+		throws SystemException {
+
+		return dlFileShortcutPersistence.countByG_F_A_S(
+			groupId, folderId, active, status);
 	}
 
 	public void updateAsset(
@@ -241,9 +278,10 @@ public class DLFileShortcutLocalServiceImpl
 			fileShortcut.getToFileEntryId());
 
 		assetEntryLocalService.updateEntry(
-			userId, fileShortcut.getGroupId(), DLFileShortcut.class.getName(),
+			userId, fileShortcut.getGroupId(), fileShortcut.getCreateDate(),
+			fileShortcut.getModifiedDate(), DLFileShortcut.class.getName(),
 			fileShortcut.getFileShortcutId(), fileShortcut.getUuid(), 0,
-			assetCategoryIds, assetTagNames, false, null, null, null, null,
+			assetCategoryIds, assetTagNames, false, null, null, null,
 			fileEntry.getMimeType(), fileEntry.getTitle(),
 			fileEntry.getDescription(), null, null, null, 0, 0, null, false);
 	}
@@ -267,7 +305,7 @@ public class DLFileShortcutLocalServiceImpl
 		fileShortcut.setFolderId(folderId);
 		fileShortcut.setToFileEntryId(toFileEntryId);
 
-		dlFileShortcutPersistence.update(fileShortcut, false);
+		dlFileShortcutPersistence.update(fileShortcut);
 
 		// Folder
 
@@ -276,7 +314,7 @@ public class DLFileShortcutLocalServiceImpl
 
 			dlFolder.setLastPostDate(fileShortcut.getModifiedDate());
 
-			dlFolderPersistence.update(dlFolder, false);
+			dlFolderPersistence.update(dlFolder);
 		}
 
 		// Asset
@@ -302,7 +340,7 @@ public class DLFileShortcutLocalServiceImpl
 		for (DLFileShortcut fileShortcut : fileShortcuts) {
 			fileShortcut.setToFileEntryId(newToFileEntryId);
 
-			dlFileShortcutPersistence.update(fileShortcut, false);
+			dlFileShortcutPersistence.update(fileShortcut);
 		}
 	}
 
@@ -321,7 +359,7 @@ public class DLFileShortcutLocalServiceImpl
 		fileShortcut.setStatusByUserName(user.getFullName());
 		fileShortcut.setStatusDate(serviceContext.getModifiedDate(new Date()));
 
-		dlFileShortcutPersistence.update(fileShortcut, false);
+		dlFileShortcutPersistence.update(fileShortcut);
 	}
 
 	protected void copyAssetTags(

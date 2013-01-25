@@ -48,8 +48,8 @@ import org.apache.struts.action.ActionMapping;
  */
 public class CartAction extends PortletAction {
 
-@Override
-public void processAction(
+	@Override
+	public void processAction(
 			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
@@ -78,7 +78,7 @@ public void processAction(
 					 e instanceof CouponStartDateException ||
 					 e instanceof NoSuchCouponException) {
 
-				SessionErrors.add(actionRequest, e.getClass().getName(), e);
+				SessionErrors.add(actionRequest, e.getClass(), e);
 			}
 			else {
 				throw e;

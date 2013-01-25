@@ -20,33 +20,59 @@ import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ResourcePermission;
 import com.liferay.portal.model.impl.ResourcePermissionModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ResourcePermissionPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (ResourcePermissionPersistence)PortalBeanLocatorUtil.locate(ResourcePermissionPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -96,7 +122,7 @@ public class ResourcePermissionPersistenceTest {
 
 		newResourcePermission.setActionIds(ServiceTestUtil.nextLong());
 
-		_persistence.update(newResourcePermission, false);
+		_persistence.update(newResourcePermission);
 
 		ResourcePermission existingResourcePermission = _persistence.findByPrimaryKey(newResourcePermission.getPrimaryKey());
 
@@ -258,10 +284,6 @@ public class ResourcePermissionPersistenceTest {
 				existingResourcePermissionModelImpl.getOriginalPrimKey()));
 		Assert.assertEquals(existingResourcePermissionModelImpl.getRoleId(),
 			existingResourcePermissionModelImpl.getOriginalRoleId());
-		Assert.assertEquals(existingResourcePermissionModelImpl.getOwnerId(),
-			existingResourcePermissionModelImpl.getOriginalOwnerId());
-		Assert.assertEquals(existingResourcePermissionModelImpl.getActionIds(),
-			existingResourcePermissionModelImpl.getOriginalActionIds());
 	}
 
 	protected ResourcePermission addResourcePermission()
@@ -284,10 +306,12 @@ public class ResourcePermissionPersistenceTest {
 
 		resourcePermission.setActionIds(ServiceTestUtil.nextLong());
 
-		_persistence.update(resourcePermission, false);
+		_persistence.update(resourcePermission);
 
 		return resourcePermission;
 	}
 
-	private ResourcePermissionPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(ResourcePermissionPersistenceTest.class);
+	private ResourcePermissionPersistence _persistence = (ResourcePermissionPersistence)PortalBeanLocatorUtil.locate(ResourcePermissionPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

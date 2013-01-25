@@ -49,9 +49,8 @@ import java.rmi.RemoteException;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -235,12 +234,87 @@ public class BookmarksEntryServiceSoap {
 		}
 	}
 
+	public static com.liferay.portlet.bookmarks.model.BookmarksEntrySoap moveEntry(
+		long entryId, long parentFolderId) throws RemoteException {
+		try {
+			com.liferay.portlet.bookmarks.model.BookmarksEntry returnValue = BookmarksEntryServiceUtil.moveEntry(entryId,
+					parentFolderId);
+
+			return com.liferay.portlet.bookmarks.model.BookmarksEntrySoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.bookmarks.model.BookmarksEntrySoap moveEntryFromTrash(
+		long entryId, long parentFolderId) throws RemoteException {
+		try {
+			com.liferay.portlet.bookmarks.model.BookmarksEntry returnValue = BookmarksEntryServiceUtil.moveEntryFromTrash(entryId,
+					parentFolderId);
+
+			return com.liferay.portlet.bookmarks.model.BookmarksEntrySoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static void moveEntryToTrash(long entryId) throws RemoteException {
+		try {
+			BookmarksEntryServiceUtil.moveEntryToTrash(entryId);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	public static com.liferay.portlet.bookmarks.model.BookmarksEntrySoap openEntry(
 		long entryId) throws RemoteException {
 		try {
 			com.liferay.portlet.bookmarks.model.BookmarksEntry returnValue = BookmarksEntryServiceUtil.openEntry(entryId);
 
 			return com.liferay.portlet.bookmarks.model.BookmarksEntrySoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static void restoreEntryFromTrash(long entryId)
+		throws RemoteException {
+		try {
+			BookmarksEntryServiceUtil.restoreEntryFromTrash(entryId);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static void subscribeEntry(long entryId) throws RemoteException {
+		try {
+			BookmarksEntryServiceUtil.subscribeEntry(entryId);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static void unsubscribeEntry(long entryId) throws RemoteException {
+		try {
+			BookmarksEntryServiceUtil.unsubscribeEntry(entryId);
 		}
 		catch (Exception e) {
 			_log.error(e, e);

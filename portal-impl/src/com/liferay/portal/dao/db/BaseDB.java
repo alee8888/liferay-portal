@@ -26,12 +26,13 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.security.pacl.PACLClassLoaderUtil;
 import com.liferay.portal.velocity.VelocityUtil;
 import com.liferay.util.SimpleCounter;
 
@@ -217,6 +218,10 @@ public abstract class BaseDB implements DB {
 		return _SUPPORTS_INLINE_DISTINCT;
 	}
 
+	public boolean isSupportsQueryingAfterException() {
+		return _SUPPORTS_QUERYING_AFTER_EXCEPTION;
+	}
+
 	public boolean isSupportsScrollableResults() {
 		return _SUPPORTS_SCROLLABLE_RESULTS;
 	}
@@ -297,9 +302,7 @@ public abstract class BaseDB implements DB {
 	public void runSQLTemplate(String path, boolean failOnError)
 		throws IOException, NamingException, SQLException {
 
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader classLoader = currentThread.getContextClassLoader();
+		ClassLoader classLoader = PACLClassLoaderUtil.getContextClassLoader();
 
 		InputStream is = classLoader.getResourceAsStream(
 			"com/liferay/portal/tools/sql/dependencies/" + path);
@@ -320,8 +323,6 @@ public abstract class BaseDB implements DB {
 		}
 
 		String template = StringUtil.read(is);
-
-		is.close();
 
 		boolean evaluate = path.endsWith(".vm");
 
@@ -355,10 +356,8 @@ public abstract class BaseDB implements DB {
 
 					String includeFileName = line.substring(pos + 1);
 
-					Thread currentThread = Thread.currentThread();
-
 					ClassLoader classLoader =
-						currentThread.getContextClassLoader();
+						PACLClassLoaderUtil.getContextClassLoader();
 
 					InputStream is = classLoader.getResourceAsStream(
 						"com/liferay/portal/tools/sql/dependencies/" +
@@ -369,8 +368,6 @@ public abstract class BaseDB implements DB {
 					}
 
 					String include = StringUtil.read(is);
-
-					is.close();
 
 					if (includeFileName.endsWith(".vm")) {
 						try {
@@ -410,6 +407,14 @@ public abstract class BaseDB implements DB {
 							}
 							else if (_log.isWarnEnabled()) {
 								_log.warn(ioe.getMessage());
+							}
+						}
+						catch (SecurityException se) {
+							if (failOnError) {
+								throw se;
+							}
+							else if (_log.isWarnEnabled()) {
+								_log.warn(se.getMessage());
 							}
 						}
 						catch (SQLException sqle) {
@@ -536,6 +541,12 @@ public abstract class BaseDB implements DB {
 	protected abstract String buildCreateFileContent(
 			String sqlDir, String databaseName, int population)
 		throws IOException;
+
+	protected String[] buildTableNameTokens(String line) {
+		String[] words = StringUtil.split(line, StringPool.SPACE);
+
+		return new String[] {words[1], words[2]};
+	}
 
 	protected String buildTemplate(String sqlDir, String fileName)
 		throws IOException {
@@ -695,19 +706,18 @@ public abstract class BaseDB implements DB {
 		Map<String, Object> variables = new HashMap<String, Object>();
 
 		variables.put("counter", new SimpleCounter());
+		variables.put("portalUUIDUtil", PortalUUIDUtil.class);
 
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader classLoader = currentThread.getContextClassLoader();
+		ClassLoader classLoader = PACLClassLoaderUtil.getContextClassLoader();
 
 		try {
-			currentThread.setContextClassLoader(
-				PortalClassLoaderUtil.getClassLoader());
+			PACLClassLoaderUtil.setContextClassLoader(
+				PACLClassLoaderUtil.getPortalClassLoader());
 
 			template = VelocityUtil.evaluate(template, variables);
 		}
 		finally {
-			currentThread.setContextClassLoader(classLoader);
+			PACLClassLoaderUtil.setContextClassLoader(classLoader);
 		}
 
 		// Trim insert statements because it breaks MySQL Query Browser
@@ -732,6 +742,32 @@ public abstract class BaseDB implements DB {
 		template = StringUtil.replace(template, "\n\n\n", "\n\n");
 
 		return template;
+	}
+
+	protected String getCreateTablesContent(String sqlDir, String suffix)
+		throws IOException {
+
+		StringBundler sb = new StringBundler(8);
+
+		sb.append(sqlDir);
+
+		if (!sqlDir.endsWith("/WEB-INF/sql")) {
+			sb.append("/portal");
+			sb.append(suffix);
+			sb.append("/portal");
+		}
+		else {
+			sb.append("/tables");
+			sb.append(suffix);
+			sb.append("/tables");
+		}
+
+		sb.append(suffix);
+		sb.append(StringPool.DASH);
+		sb.append(getServerName());
+		sb.append(".sql");
+
+		return readFile(sb.toString());
 	}
 
 	protected abstract String getServerName();
@@ -830,8 +866,8 @@ public abstract class BaseDB implements DB {
 				String portalTableData = portalData.substring(x, y);
 
 				for (int i = 0; i < columns.length; i++) {
-					if (portalTableData.indexOf(
-							columns[i].trim() + " BOOLEAN") != -1) {
+					if (portalTableData.contains(
+							columns[i].trim() + " BOOLEAN")) {
 
 						append = false;
 
@@ -955,9 +991,15 @@ public abstract class BaseDB implements DB {
 
 	protected static final String ALTER_COLUMN_TYPE = "alter_column_type ";
 
+	protected static final String ALTER_TABLE_NAME = "alter_table_name ";
+
 	protected static final String DROP_INDEX = "drop index";
 
 	protected static final String DROP_PRIMARY_KEY = "drop primary key";
+
+	protected static final String[] RENAME_TABLE_TEMPLATE = {
+		"@old-table@", "@new-table@"
+	};
 
 	protected static final String[] REWORD_TEMPLATE = {
 		"@table@", "@old-column@", "@new-column@", "@type@", "@nullable@"
@@ -976,6 +1018,8 @@ public abstract class BaseDB implements DB {
 	private static final boolean _SUPPORTS_DATE_MILLISECONDS = true;
 
 	private static final boolean _SUPPORTS_INLINE_DISTINCT = true;
+
+	private static final boolean _SUPPORTS_QUERYING_AFTER_EXCEPTION = true;
 
 	private static final boolean _SUPPORTS_SCROLLABLE_RESULTS = true;
 

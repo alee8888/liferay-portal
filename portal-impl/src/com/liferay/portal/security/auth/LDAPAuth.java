@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -51,6 +52,7 @@ import javax.naming.ldap.LdapContext;
 /**
  * @author Brian Wing Shun Chan
  * @author Scott Lee
+ * @author Josef Sustacek
  */
 public class LDAPAuth implements Authenticator {
 
@@ -157,8 +159,8 @@ public class LDAPAuth implements Authenticator {
 			catch (Exception e) {
 				if (_log.isDebugEnabled()) {
 					_log.debug(
-						"Failed to bind to the LDAP server with userDN "
-							+ userDN + " and password " + password);
+						"Failed to bind to the LDAP server with userDN " +
+							userDN + " and password " + password);
 				}
 
 				_log.error("Failed to bind to the LDAP server", e);
@@ -185,10 +187,16 @@ public class LDAPAuth implements Authenticator {
 					PropsKeys.LDAP_AUTH_PASSWORD_ENCRYPTION_ALGORITHM);
 
 				if (Validator.isNotNull(algorithm)) {
-					encryptedPassword =
-						"{" + algorithm + "}" +
-							PwdEncryptor.encrypt(
-								algorithm, password, ldapPassword);
+					StringBundler sb = new StringBundler(4);
+
+					sb.append(StringPool.OPEN_CURLY_BRACE);
+					sb.append(algorithm);
+					sb.append(StringPool.CLOSE_CURLY_BRACE);
+					sb.append(
+						PwdEncryptor.encrypt(
+							algorithm, password, ldapPassword));
+
+					encryptedPassword = sb.toString();
 				}
 
 				if (ldapPassword.equals(encryptedPassword)) {
@@ -209,7 +217,7 @@ public class LDAPAuth implements Authenticator {
 	}
 
 	protected int authenticate(
-			long companyId, long ldapServerId, String emailAddress,
+			long ldapServerId, long companyId, String emailAddress,
 			String screenName, long userId, String password)
 		throws Exception {
 
@@ -351,12 +359,19 @@ public class LDAPAuth implements Authenticator {
 			_log.debug("Authenticator is enabled");
 		}
 
+		int preferredLDAPServerResult = authenticateAgainstPreferredLDAPServer(
+			companyId, emailAddress, screenName, userId, password);
+
+		if (preferredLDAPServerResult == SUCCESS) {
+			return preferredLDAPServerResult;
+		}
+
 		long[] ldapServerIds = StringUtil.split(
 			PrefsPropsUtil.getString(companyId, "ldap.server.ids"), 0L);
 
 		for (long ldapServerId : ldapServerIds) {
 			int result = authenticate(
-				companyId, ldapServerId, emailAddress, screenName, userId,
+				ldapServerId, companyId, emailAddress, screenName, userId,
 				password);
 
 			if (result == SUCCESS) {
@@ -375,7 +390,7 @@ public class LDAPAuth implements Authenticator {
 			}
 
 			int result = authenticate(
-				companyId, ldapServerId, emailAddress, screenName, userId,
+				ldapServerId, companyId, emailAddress, screenName, userId,
 				password);
 
 			if (result == SUCCESS) {
@@ -385,6 +400,71 @@ public class LDAPAuth implements Authenticator {
 
 		return authenticateRequired(
 			companyId, userId, emailAddress, screenName, true, FAILURE);
+	}
+
+	protected int authenticateAgainstPreferredLDAPServer(
+			long companyId, String emailAddress, String screenName, long userId,
+			String password)
+		throws Exception {
+
+		int result = DNE;
+
+		User user = null;
+
+		try {
+			if (userId > 0) {
+				user = UserLocalServiceUtil.getUserById(companyId, userId);
+			}
+			else if (Validator.isNotNull(emailAddress)) {
+				user = UserLocalServiceUtil.getUserByEmailAddress(
+					companyId, emailAddress);
+			}
+			else if (Validator.isNotNull(screenName)) {
+				user = UserLocalServiceUtil.getUserByScreenName(
+					companyId, screenName);
+			}
+			else {
+				if (_log.isDebugEnabled()) {
+					_log.debug("Unable to get preferred LDAP server");
+				}
+
+				return result;
+			}
+		}
+		catch (NoSuchUserException nsue) {
+			if (_log.isDebugEnabled()) {
+				_log.debug("Unable to get preferred LDAP server", nsue);
+			}
+
+			return result;
+		}
+
+		long ldapServerId = user.getLdapServerId();
+
+		if (ldapServerId < 0) {
+			return result;
+		}
+
+		String postfix = LDAPSettingsUtil.getPropertyPostfix(ldapServerId);
+
+		String providerUrl = PrefsPropsUtil.getString(
+			user.getCompanyId(), PropsKeys.LDAP_BASE_PROVIDER_URL + postfix);
+
+		if (Validator.isNull(providerUrl)) {
+			return result;
+		}
+
+		if (_log.isDebugEnabled()) {
+			_log.debug(
+				"Using LDAP server ID " + ldapServerId +
+					" to authenticate user " + user.getUserId());
+		}
+
+		result = authenticate(
+			ldapServerId, companyId, emailAddress, screenName, userId,
+			password);
+
+		return result;
 	}
 
 	protected int authenticateOmniadmin(
@@ -400,27 +480,23 @@ public class LDAPAuth implements Authenticator {
 				}
 			}
 			else if (Validator.isNotNull(emailAddress)) {
-				try {
-					User user = UserLocalServiceUtil.getUserByEmailAddress(
-						companyId, emailAddress);
+				User user = UserLocalServiceUtil.fetchUserByEmailAddress(
+					companyId, emailAddress);
 
-					if (OmniadminUtil.isOmniadmin(user.getUserId())) {
+				if (user != null) {
+					if (OmniadminUtil.isOmniadmin(user)) {
 						return SUCCESS;
 					}
-				}
-				catch (NoSuchUserException nsue) {
 				}
 			}
 			else if (Validator.isNotNull(screenName)) {
-				try {
-					User user = UserLocalServiceUtil.getUserByScreenName(
-						companyId, screenName);
+				User user = UserLocalServiceUtil.fetchUserByScreenName(
+					companyId, screenName);
 
-					if (OmniadminUtil.isOmniadmin(user.getUserId())) {
+				if (user != null) {
+					if (OmniadminUtil.isOmniadmin(user)) {
 						return SUCCESS;
 					}
-				}
-				catch (NoSuchUserException nsue) {
 				}
 			}
 		}

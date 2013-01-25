@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MimeTypes;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -40,6 +41,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.Detector;
+import org.apache.tika.io.CloseShieldInputStream;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
@@ -62,6 +64,9 @@ public class MimeTypesImpl implements MimeTypes, MimeTypesReaderMetKeys {
 	public MimeTypesImpl() {
 		_detector = new DefaultDetector(
 			org.apache.tika.mime.MimeTypes.getDefaultMimeTypes());
+
+		_webImageMimeTypes = SetUtil.fromArray(
+			PropsValues.MIME_TYPES_WEB_IMAGES);
 
 		URL url = org.apache.tika.mime.MimeTypes.class.getResource(
 			"tika-mimetypes.xml");
@@ -106,12 +111,15 @@ public class MimeTypesImpl implements MimeTypes, MimeTypesReaderMetKeys {
 		String contentType = null;
 
 		try {
+			CloseShieldInputStream closeShieldInputStream =
+				new CloseShieldInputStream(inputStream);
+
 			Metadata metadata = new Metadata();
 
 			metadata.set(Metadata.RESOURCE_NAME_KEY, fileName);
 
 			MediaType mediaType = _detector.detect(
-				TikaInputStream.get(inputStream), metadata);
+				TikaInputStream.get(closeShieldInputStream), metadata);
 
 			contentType = mediaType.toString();
 
@@ -176,6 +184,10 @@ public class MimeTypesImpl implements MimeTypes, MimeTypesReaderMetKeys {
 		}
 
 		return extensions;
+	}
+
+	public boolean isWebImage(String mimeType) {
+		return _webImageMimeTypes.contains(mimeType);
 	}
 
 	protected void read(InputStream stream) throws Exception {
@@ -269,5 +281,6 @@ public class MimeTypesImpl implements MimeTypes, MimeTypesReaderMetKeys {
 	private Detector _detector;
 	private Map<String, Set<String>> _extensionsMap =
 		new HashMap<String, Set<String>>();
+	private Set<String> _webImageMimeTypes = new HashSet<String>();
 
 }

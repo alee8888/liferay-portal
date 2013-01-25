@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.util;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+
 /**
  * @author Brian Wing Shun Chan
  * @author Clarence Shen
@@ -50,6 +52,14 @@ public class HtmlUtil {
 		return getHtml().escapeURL(url);
 	}
 
+	public static String escapeXPath(String xPath) {
+		return getHtml().escapeXPath(xPath);
+	}
+
+	public static String escapeXPathAttribute(String xPathAttribute) {
+		return getHtml().escapeXPathAttribute(xPathAttribute);
+	}
+
 	public static String extractText(String html) {
 		return getHtml().extractText(html);
 	}
@@ -59,7 +69,13 @@ public class HtmlUtil {
 	}
 
 	public static Html getHtml() {
+		PortalRuntimePermission.checkGetBeanProperty(HtmlUtil.class);
+
 		return _html;
+	}
+
+	public static String render(String html) {
+		return getHtml().render(html);
 	}
 
 	public static String replaceMsWordCharacters(String html) {
@@ -95,6 +111,8 @@ public class HtmlUtil {
 	}
 
 	public void setHtml(Html html) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_html = html;
 	}
 

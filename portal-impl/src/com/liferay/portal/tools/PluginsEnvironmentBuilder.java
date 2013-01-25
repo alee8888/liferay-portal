@@ -15,13 +15,14 @@
 package com.liferay.portal.tools;
 
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.SortedArrayList;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.FileImpl;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.util.UniqueList;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -64,10 +65,27 @@ public class PluginsEnvironmentBuilder {
 
 		String dirName = dir.getCanonicalPath();
 
-		String[] fileNames = ds.getIncludedFiles();
+		for (String fileName : ds.getIncludedFiles()) {
+			setupWarProject(dirName, fileName);
+		}
 
-		for (String fileName : fileNames) {
-			setupProject(dirName, fileName);
+		ds = new DirectoryScanner();
+
+		ds.setBasedir(dir);
+		ds.setIncludes(new String[] {"**\\build.xml"});
+
+		ds.scan();
+
+		for (String fileName : ds.getIncludedFiles()) {
+			String content = _fileUtil.read(dirName + "/" + fileName);
+
+			if (!content.contains(
+					"<import file=\"../build-common-shared.xml\" />")) {
+
+				continue;
+			}
+
+			setupJarProject(dirName, fileName);
 		}
 	}
 
@@ -100,25 +118,8 @@ public class PluginsEnvironmentBuilder {
 		sb.append("\t\t</attributes>\n\t</classpathentry>\n");
 	}
 
-	protected void setupProject(String dirName, String fileName)
-		throws Exception {
-
-		File propertiesFile = new File(dirName + "/" + fileName);
-
-		File libDir = new File(propertiesFile.getParent() + "/lib");
-
-		File projectDir = new File(propertiesFile.getParent() + "/../..");
-
-		Properties properties = new Properties();
-
-		properties.load(new FileInputStream(propertiesFile));
-
-		String[] dependencyJars = StringUtil.split(
-			properties.getProperty(
-				"portal-dependency-jars",
-				properties.getProperty("portal.dependency.jars")));
-
-		List<String> jars = ListUtil.toList(dependencyJars);
+	protected List<String> getCommonJars() {
+		List<String> jars = new ArrayList<String>();
 
 		jars.add("commons-logging.jar");
 		jars.add("log4j.jar");
@@ -126,7 +127,125 @@ public class PluginsEnvironmentBuilder {
 		jars.add("util-java.jar");
 		jars.add("util-taglib.jar");
 
-		Collections.sort(jars);
+		return jars;
+	}
+
+	protected List<String> getImportSharedJars(File projectDir)
+		throws Exception {
+
+		File buildXmlFile = new File(projectDir, "build.xml");
+
+		String content = _fileUtil.read(buildXmlFile);
+
+		int x = content.indexOf("import.shared");
+
+		if (x == -1) {
+			return Collections.emptyList();
+		}
+
+		x = content.indexOf("value=\"", x);
+		x = content.indexOf("\"", x);
+
+		int y = content.indexOf("\" />", x);
+
+		if ((x == -1) || (y == -1)) {
+			return Collections.emptyList();
+		}
+
+		String[] importShared = StringUtil.split(content.substring(x + 1, y));
+
+		if (importShared.length == 0) {
+			return Collections.emptyList();
+		}
+
+		List<String> jars = new ArrayList<String>();
+
+		for (String currentImportShared : importShared) {
+			jars.add(currentImportShared + ".jar");
+
+			File currentImportSharedLibDir = new File(
+				projectDir, "/../../shared/" + currentImportShared + "/lib");
+
+			if (!currentImportSharedLibDir.exists()) {
+				continue;
+			}
+
+			for (File f : currentImportSharedLibDir.listFiles()) {
+				jars.add(f.getName());
+			}
+		}
+
+		return jars;
+	}
+
+	protected List<String> getPortalDependencyJars(Properties properties) {
+		String[] dependencyJars = StringUtil.split(
+			properties.getProperty(
+				"portal-dependency-jars",
+				properties.getProperty("portal.dependency.jars")));
+
+		return ListUtil.toList(dependencyJars);
+	}
+
+	protected List<String> getRequiredDeploymentContextsJars(
+			File libDir, Properties properties)
+		throws Exception {
+
+		List<String> jars = new ArrayList<String>();
+
+		String[] requiredDeploymentContexts = StringUtil.split(
+			properties.getProperty("required-deployment-contexts"));
+
+		for (String requiredDeploymentContext : requiredDeploymentContexts) {
+			if (_fileUtil.exists(
+					libDir.getCanonicalPath() + "/" +
+						requiredDeploymentContext + "-service.jar")) {
+
+				jars.add(requiredDeploymentContext + "-service.jar");
+			}
+		}
+
+		return jars;
+	}
+
+	protected void setupJarProject(String dirName, String fileName)
+		throws Exception {
+
+		File buildFile = new File(dirName + "/" + fileName);
+
+		File projectDir = new File(buildFile.getParent());
+
+		File libDir = new File(projectDir, "lib");
+
+		List<String> dependencyJars = Collections.emptyList();
+
+		writeEclipseFiles(libDir, projectDir, dependencyJars);
+	}
+
+	protected void setupWarProject(String dirName, String fileName)
+		throws Exception {
+
+		File propertiesFile = new File(dirName + "/" + fileName);
+
+		Properties properties = new Properties();
+
+		properties.load(new FileInputStream(propertiesFile));
+
+		List<String> jars = new SortedArrayList<String>();
+
+		jars.addAll(getCommonJars());
+
+		List<String> dependencyJars = getPortalDependencyJars(properties);
+
+		jars.addAll(dependencyJars);
+
+		File projectDir = new File(propertiesFile.getParent() + "/../..");
+
+		jars.addAll(getImportSharedJars(projectDir));
+
+		File libDir = new File(propertiesFile.getParent() + "/lib");
+
+		jars.addAll(getRequiredDeploymentContextsJars(libDir, properties));
 
 		writeEclipseFiles(libDir, projectDir, dependencyJars);
 
@@ -159,7 +278,7 @@ public class PluginsEnvironmentBuilder {
 	}
 
 	protected void writeClasspathFile(
-			File libDir, String[] dependencyJars, String projectDirName,
+			File libDir, List<String> dependencyJars, String projectDirName,
 			String projectName, boolean javaProject)
 		throws Exception {
 
@@ -215,7 +334,7 @@ public class PluginsEnvironmentBuilder {
 		else {
 			globalJars.add("portlet.jar");
 
-			portalJars.addAll(ListUtil.toList(dependencyJars));
+			portalJars.addAll(dependencyJars);
 			portalJars.add("commons-logging.jar");
 			portalJars.add("log4j.jar");
 
@@ -262,7 +381,7 @@ public class PluginsEnvironmentBuilder {
 
 		boolean addJunitJars = false;
 
-		for (String testType :_TEST_TYPES) {
+		for (String testType : _TEST_TYPES) {
 			String testFolder = "test/" + testType;
 
 			if (_fileUtil.exists(projectDirName + "/" + testFolder)) {
@@ -275,6 +394,10 @@ public class PluginsEnvironmentBuilder {
 
 		if (addJunitJars) {
 			addClasspathEntry(sb, "/portal/lib/development/junit.jar");
+			addClasspathEntry(sb, "/portal/lib/development/mockito.jar");
+			addClasspathEntry(
+				sb, "/portal/lib/development/powermock-mockito.jar");
+			addClasspathEntry(sb, "/portal/lib/development/spring-test.jar");
 			addClasspathEntry(sb, "/portal/lib/portal/commons-io.jar");
 		}
 
@@ -315,8 +438,11 @@ public class PluginsEnvironmentBuilder {
 			if (libDirPath.contains("/tmp/WEB-INF/lib")) {
 				addClasspathEntry(sb, "tmp/WEB-INF/lib/" + jar);
 			}
-			else {
+			else if (libDirPath.contains("/docroot/WEB-INF/lib")) {
 				addClasspathEntry(sb, "docroot/WEB-INF/lib/" + jar);
+			}
+			else {
+				addClasspathEntry(sb, "lib/" + jar);
 			}
 		}
 
@@ -332,7 +458,7 @@ public class PluginsEnvironmentBuilder {
 	}
 
 	protected void writeEclipseFiles(
-			File libDir, File projectDir, String[] dependencyJars)
+			File libDir, File projectDir, List<String> dependencyJars)
 		throws Exception {
 
 		String projectDirName = projectDir.getCanonicalPath();
@@ -460,7 +586,7 @@ public class PluginsEnvironmentBuilder {
 		"docroot/WEB-INF/ext-util-bridges/src",
 		"docroot/WEB-INF/ext-util-java/src",
 		"docroot/WEB-INF/ext-util-taglib/src", "docroot/WEB-INF/service",
-		"docroot/WEB-INF/src"
+		"docroot/WEB-INF/src", "src"
 	};
 
 	private static final String[] _TEST_TYPES = {"integration", "unit"};

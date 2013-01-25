@@ -279,6 +279,14 @@ public class CMISFileVersion extends CMISModel implements FileVersion {
 		return false;
 	}
 
+	public boolean isInTrash() {
+		return false;
+	}
+
+	public boolean isInTrashContainer() {
+		return false;
+	}
+
 	public boolean isPending() {
 		return false;
 	}
@@ -319,6 +327,10 @@ public class CMISFileVersion extends CMISModel implements FileVersion {
 	}
 
 	public FileVersion toEscapedModel() {
+		return this;
+	}
+
+	public FileVersion toUnescapedModel() {
 		return this;
 	}
 

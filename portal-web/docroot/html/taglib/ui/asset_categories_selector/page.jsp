@@ -17,8 +17,6 @@
 <%@ include file="/html/taglib/ui/asset_categories_selector/init.jsp" %>
 
 <%
-themeDisplay.setIncludeServiceJs(true);
-
 String randomNamespace = PortalUtil.generateRandomKey(request, "taglib_ui_asset_categories_selector_page") + StringPool.UNDERLINE;
 
 String className = (String)request.getAttribute("liferay-ui:asset-categories-selector:className");
@@ -26,20 +24,21 @@ long classPK = GetterUtil.getLong((String)request.getAttribute("liferay-ui:asset
 String hiddenInput = (String)request.getAttribute("liferay-ui:asset-categories-selector:hiddenInput");
 String curCategoryIds = GetterUtil.getString((String)request.getAttribute("liferay-ui:asset-categories-selector:curCategoryIds"), "");
 String curCategoryNames = StringPool.BLANK;
+int maxEntries = GetterUtil.getInteger(PropsUtil.get(PropsKeys.ASSET_CATEGORIES_SELECTOR_MAX_ENTRIES));
 
 List<AssetVocabulary> vocabularies = new ArrayList<AssetVocabulary>();
 
 Group group = themeDisplay.getScopeGroup();
 
 if (group.isLayout()) {
-	vocabularies.addAll(AssetVocabularyLocalServiceUtil.getGroupVocabularies(group.getParentGroupId(), false));
+	vocabularies.addAll(AssetVocabularyServiceUtil.getGroupVocabularies(group.getParentGroupId(), false));
 }
 else {
-	vocabularies.addAll(AssetVocabularyLocalServiceUtil.getGroupVocabularies(scopeGroupId, false));
+	vocabularies.addAll(AssetVocabularyServiceUtil.getGroupVocabularies(scopeGroupId, false));
 }
 
 if (scopeGroupId != themeDisplay.getCompanyGroupId()) {
-	vocabularies.addAll(AssetVocabularyLocalServiceUtil.getGroupVocabularies(themeDisplay.getCompanyGroupId(), false));
+	vocabularies.addAll(AssetVocabularyServiceUtil.getGroupVocabularies(themeDisplay.getCompanyGroupId(), false));
 }
 
 if (Validator.isNotNull(className)) {
@@ -48,7 +47,7 @@ if (Validator.isNotNull(className)) {
 	for (AssetVocabulary vocabulary : vocabularies) {
 		vocabulary = vocabulary.toEscapedModel();
 
-		int vocabularyCategoriesCount = AssetCategoryLocalServiceUtil.getVocabularyCategoriesCount(vocabulary.getVocabularyId());
+		int vocabularyCategoriesCount = AssetCategoryServiceUtil.getVocabularyCategoriesCount(vocabulary.getGroupId(), vocabulary.getVocabularyId());
 
 		if (vocabularyCategoriesCount == 0) {
 			continue;
@@ -63,7 +62,7 @@ if (Validator.isNotNull(className)) {
 		}
 
 		if (Validator.isNotNull(className) && (classPK > 0)) {
-			List<AssetCategory> categories = AssetCategoryLocalServiceUtil.getCategories(className, classPK);
+			List<AssetCategory> categories = AssetCategoryServiceUtil.getCategories(className, classPK);
 
 			curCategoryIds = ListUtil.toString(categories, AssetCategory.CATEGORY_ID_ACCESSOR);
 			curCategoryNames = ListUtil.toString(categories, AssetCategory.NAME_ACCESSOR);
@@ -107,10 +106,11 @@ if (Validator.isNotNull(className)) {
 					hiddenInput: '#<%= namespace + hiddenInput + StringPool.UNDERLINE + vocabulary.getVocabularyId() %>',
 					instanceVar: '<%= namespace + randomNamespace %>',
 					labelNode: '#<%= namespace %>assetCategoriesLabel_<%= vocabulary.getVocabularyId() %>',
+					maxEntries: <%= maxEntries %>,
 					portalModelResource: <%= Validator.isNotNull(className) && (ResourceActionsUtil.isPortalModelResource(className) || className.equals(Group.class.getName())) %>,
 					singleSelect: <%= !vocabulary.isMultiValued() %>,
-					vocabularyIds: '<%= String.valueOf(vocabulary.getVocabularyId()) %>',
-					vocabularyGroupIds: '<%= vocabulary.getGroupId() %>'
+					vocabularyGroupIds: '<%= vocabulary.getGroupId() %>',
+					vocabularyIds: '<%= String.valueOf(vocabulary.getVocabularyId()) %>'
 				}
 			).render();
 		</aui:script>
@@ -141,6 +141,7 @@ else {
 				curEntryIds: '<%= categoryIdsTitles[0] %>',
 				hiddenInput: '#<%= namespace + hiddenInput %>',
 				instanceVar: '<%= namespace + randomNamespace %>',
+				maxEntries: <%= maxEntries %>,
 				portalModelResource: <%= Validator.isNotNull(className) && (ResourceActionsUtil.isPortalModelResource(className) || className.equals(Group.class.getName())) %>,
 				vocabularyGroupIds: '<%= scopeGroupId %>',
 				vocabularyIds: '<%= ListUtil.toString(vocabularies, "vocabularyId") %>'
@@ -157,7 +158,11 @@ private long[] _filterCategoryIds(long vocabularyId, long[] categoryIds) throws 
 	List<Long> filteredCategoryIds = new ArrayList<Long>();
 
 	for (long categoryId : categoryIds) {
-		AssetCategory category = AssetCategoryLocalServiceUtil.getCategory(categoryId);
+		AssetCategory category = AssetCategoryLocalServiceUtil.fetchCategory(categoryId);
+
+		if (category == null) {
+			continue;
+		}
 
 		if (category.getVocabularyId() == vocabularyId) {
 			filteredCategoryIds.add(category.getCategoryId());
@@ -175,26 +180,36 @@ private String[] _getCategoryIdsTitles(String categoryIds, String categoryNames,
 			categoryIdsArray = _filterCategoryIds(vocabularyId, categoryIdsArray);
 		}
 
-		if (categoryIdsArray.length == 0) {
-			categoryIds = StringPool.BLANK;
-			categoryNames = StringPool.BLANK;
-		}
-		else {
-			StringBundler sb = new StringBundler(categoryIdsArray.length * 2);
+		categoryIds = StringPool.BLANK;
+		categoryNames = StringPool.BLANK;
+
+		if (categoryIdsArray.length > 0) {
+			StringBundler categoryIdsSb = new StringBundler(categoryIdsArray.length * 2);
+			StringBundler categoryNamesSb = new StringBundler(categoryIdsArray.length * 2);
 
 			for (long categoryId : categoryIdsArray) {
-				AssetCategory category = AssetCategoryLocalServiceUtil.getCategory(categoryId);
+				AssetCategory category = AssetCategoryLocalServiceUtil.fetchCategory(categoryId);
+
+				if (category == null) {
+					continue;
+				}
 
 				category = category.toEscapedModel();
 
-				sb.append(category.getTitle(themeDisplay.getLocale()));
-				sb.append(_CATEGORY_SEPARATOR);
+				categoryIdsSb.append(categoryId);
+				categoryIdsSb.append(StringPool.COMMA);
+
+				categoryNamesSb.append(category.getTitle(themeDisplay.getLocale()));
+				categoryNamesSb.append(_CATEGORY_SEPARATOR);
 			}
 
-			sb.setIndex(sb.index() - 1);
+			if(categoryIdsSb.index() > 0){
+				categoryIdsSb.setIndex(categoryIdsSb.index() - 1);
+				categoryNamesSb.setIndex(categoryNamesSb.index() - 1);
 
-			categoryIds = StringUtil.merge(categoryIdsArray);
-			categoryNames = sb.toString();
+				categoryIds = categoryIdsSb.toString();
+				categoryNames = categoryNamesSb.toString();
+			}
 		}
 	}
 

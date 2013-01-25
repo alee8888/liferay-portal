@@ -52,12 +52,8 @@ import com.liferay.portlet.documentlibrary.service.permission.DLFileEntryPermiss
 import com.liferay.portlet.documentlibrary.service.permission.DLFolderPermission;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalFeed;
-import com.liferay.portlet.journal.model.JournalStructure;
-import com.liferay.portlet.journal.model.JournalTemplate;
 import com.liferay.portlet.journal.service.permission.JournalArticlePermission;
 import com.liferay.portlet.journal.service.permission.JournalFeedPermission;
-import com.liferay.portlet.journal.service.permission.JournalStructurePermission;
-import com.liferay.portlet.journal.service.permission.JournalTemplatePermission;
 import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.service.permission.MBCategoryPermission;
@@ -172,16 +168,6 @@ public class PermissionServiceImpl extends PermissionServiceBaseImpl {
 				permissionChecker, GetterUtil.getLong(primKey),
 				ActionKeys.PERMISSIONS);
 		}
-		else if (name.equals(JournalStructure.class.getName())) {
-			JournalStructurePermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(JournalTemplate.class.getName())) {
-			JournalTemplatePermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
 		else if (name.equals(Layout.class.getName())) {
 			LayoutPermissionUtil.check(
 				permissionChecker, GetterUtil.getLong(primKey),
@@ -250,7 +236,7 @@ public class PermissionServiceImpl extends PermissionServiceBaseImpl {
 				ActionKeys.PERMISSIONS);
 		}
 		else if ((primKey != null) &&
-				 (primKey.indexOf(PortletConstants.LAYOUT_SEPARATOR) != -1)) {
+				 primKey.contains(PortletConstants.LAYOUT_SEPARATOR)) {
 
 			int pos = primKey.indexOf(PortletConstants.LAYOUT_SEPARATOR);
 

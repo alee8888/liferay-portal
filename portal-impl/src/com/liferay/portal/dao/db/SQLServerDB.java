@@ -111,11 +111,6 @@ public class SQLServerDB extends BaseDB {
 		return _SUPPORTS_ALTER_COLUMN_TYPE;
 	}
 
-	@Override
-	public boolean isSupportsInlineDistinct() {
-		return _SUPPORTS_INLINE_DISTINCT;
-	}
-
 	protected SQLServerDB() {
 		super(TYPE_SQLSERVER);
 	}
@@ -141,10 +136,7 @@ public class SQLServerDB extends BaseDB {
 		sb.append("use ");
 		sb.append(databaseName);
 		sb.append(";\n\n");
-		sb.append(
-			readFile(
-				sqlDir + "/portal" + suffix + "/portal" + suffix +
-					"-sql-server.sql"));
+		sb.append(getCreateTablesContent(sqlDir, suffix));
 		sb.append("\n\n");
 		sb.append(readFile(sqlDir + "/indexes/indexes-sql-server.sql"));
 		sb.append("\n\n");
@@ -188,7 +180,14 @@ public class SQLServerDB extends BaseDB {
 					"alter table @table@ alter column @old-column@ @type@;",
 					REWORD_TEMPLATE, template);
 			}
-			else if (line.indexOf(DROP_INDEX) != -1) {
+			else if (line.startsWith(ALTER_TABLE_NAME)) {
+				String[] template = buildTableNameTokens(line);
+
+				line = StringUtil.replace(
+					"exec sp_rename '@old-table@', '@new-table@';",
+					RENAME_TABLE_TEMPLATE, template);
+			}
+			else if (line.contains(DROP_INDEX)) {
 				String[] tokens = StringUtil.split(line, ' ');
 
 				String tableName = tokens[4];
@@ -213,15 +212,13 @@ public class SQLServerDB extends BaseDB {
 
 	private static final String[] _SQL_SERVER = {
 		"--", "1", "0", "'19700101'", "GetDate()", " image", " image", " bit",
-		" datetime", " float", " int", " bigint", " nvarchar(2000)", " ntext",
-		" nvarchar", "  identity(1,1)", "go"
+		" datetime", " float", " int", " bigint", " nvarchar(2000)",
+		" nvarchar(max)", " nvarchar", "  identity(1,1)", "go"
 	};
 
 	private static final int _SQL_SERVER_2000 = 8;
 
 	private static final boolean _SUPPORTS_ALTER_COLUMN_TYPE = false;
-
-	private static final boolean _SUPPORTS_INLINE_DISTINCT = false;
 
 	private static SQLServerDB _instance = new SQLServerDB();
 

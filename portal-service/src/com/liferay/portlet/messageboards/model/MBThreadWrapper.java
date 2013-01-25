@@ -555,6 +555,15 @@ public class MBThreadWrapper implements MBThread, ModelWrapper<MBThread> {
 	}
 
 	/**
+	* Returns <code>true</code> if this message boards thread is denied.
+	*
+	* @return <code>true</code> if this message boards thread is denied; <code>false</code> otherwise
+	*/
+	public boolean isDenied() {
+		return _mbThread.isDenied();
+	}
+
+	/**
 	* Returns <code>true</code> if this message boards thread is a draft.
 	*
 	* @return <code>true</code> if this message boards thread is a draft; <code>false</code> otherwise
@@ -573,12 +582,48 @@ public class MBThreadWrapper implements MBThread, ModelWrapper<MBThread> {
 	}
 
 	/**
+	* Returns <code>true</code> if this message boards thread is inactive.
+	*
+	* @return <code>true</code> if this message boards thread is inactive; <code>false</code> otherwise
+	*/
+	public boolean isInactive() {
+		return _mbThread.isInactive();
+	}
+
+	/**
+	* Returns <code>true</code> if this message boards thread is incomplete.
+	*
+	* @return <code>true</code> if this message boards thread is incomplete; <code>false</code> otherwise
+	*/
+	public boolean isIncomplete() {
+		return _mbThread.isIncomplete();
+	}
+
+	/**
+	* Returns <code>true</code> if this message boards thread is in the Recycle Bin.
+	*
+	* @return <code>true</code> if this message boards thread is in the Recycle Bin; <code>false</code> otherwise
+	*/
+	public boolean isInTrash() {
+		return _mbThread.isInTrash();
+	}
+
+	/**
 	* Returns <code>true</code> if this message boards thread is pending.
 	*
 	* @return <code>true</code> if this message boards thread is pending; <code>false</code> otherwise
 	*/
 	public boolean isPending() {
 		return _mbThread.isPending();
+	}
+
+	/**
+	* Returns <code>true</code> if this message boards thread is scheduled.
+	*
+	* @return <code>true</code> if this message boards thread is scheduled; <code>false</code> otherwise
+	*/
+	public boolean isScheduled() {
+		return _mbThread.isScheduled();
 	}
 
 	public boolean isNew() {
@@ -641,6 +686,10 @@ public class MBThreadWrapper implements MBThread, ModelWrapper<MBThread> {
 		return new MBThreadWrapper(_mbThread.toEscapedModel());
 	}
 
+	public com.liferay.portlet.messageboards.model.MBThread toUnescapedModel() {
+		return new MBThreadWrapper(_mbThread.toUnescapedModel());
+	}
+
 	@Override
 	public java.lang.String toString() {
 		return _mbThread.toString();
@@ -655,16 +704,26 @@ public class MBThreadWrapper implements MBThread, ModelWrapper<MBThread> {
 		_mbThread.persist();
 	}
 
-	public java.lang.String getAttachmentsDir() {
-		return _mbThread.getAttachmentsDir();
+	public long getAttachmentsFolderId()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _mbThread.getAttachmentsFolderId();
 	}
 
 	public com.liferay.portal.model.Lock getLock() {
 		return _mbThread.getLock();
 	}
 
+	public com.liferay.portlet.messageboards.model.MBCategory getTrashContainer() {
+		return _mbThread.getTrashContainer();
+	}
+
 	public boolean hasLock(long userId) {
 		return _mbThread.hasLock(userId);
+	}
+
+	public boolean isInTrashContainer() {
+		return _mbThread.isInTrashContainer();
 	}
 
 	public boolean isLocked() {

@@ -109,7 +109,7 @@ public class LayoutLocalServiceUtil {
 	* Performs a dynamic query on the database and returns a range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.LayoutModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -129,7 +129,7 @@ public class LayoutLocalServiceUtil {
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.LayoutModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -189,26 +189,26 @@ public class LayoutLocalServiceUtil {
 	}
 
 	/**
-	* Returns the layout with the UUID in the group.
-	*
 	* @param uuid the UUID of layout
 	* @param groupId the group id of the layout
+	* @param privateLayout whether the layout is private to the group
 	* @return the layout
-	* @throws PortalException if a layout with the UUID in the group could not be found
+	* @throws PortalException if a layout with the UUID in the group and privateLayout could not be found
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Layout getLayoutByUuidAndGroupId(
-		java.lang.String uuid, long groupId)
+		java.lang.String uuid, long groupId, boolean privateLayout)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getLayoutByUuidAndGroupId(uuid, groupId);
+		return getService()
+				   .getLayoutByUuidAndGroupId(uuid, groupId, privateLayout);
 	}
 
 	/**
 	* Returns a range of all the layouts.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.LayoutModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of layouts
@@ -244,20 +244,6 @@ public class LayoutLocalServiceUtil {
 		com.liferay.portal.model.Layout layout)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().updateLayout(layout);
-	}
-
-	/**
-	* Updates the layout in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param layout the layout
-	* @param merge whether to merge the layout with the current session. See {@link com.liferay.portal.service.persistence.BatchSession#update(com.liferay.portal.kernel.dao.orm.Session, com.liferay.portal.model.BaseModel, boolean)} for an explanation.
-	* @return the layout that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.Layout updateLayout(
-		com.liferay.portal.model.Layout layout, boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().updateLayout(layout, merge);
 	}
 
 	/**
@@ -315,18 +301,17 @@ public class LayoutLocalServiceUtil {
 	normalized when accessed see {@link
 	com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil#normalize(
 	String)}.
-	* @param serviceContext the service context. Must set the universally
-	unique identifier (UUID) for the layout. Can set the creation
-	date, modification date and the expando bridge attributes for the
-	layout. For layouts that belong to a layout set prototype, an
-	attribute named 'layoutUpdateable' can be set to specify whether
-	site administrators can modify this page within their site. For
-	layouts that are created from a layout prototype, attributes
-	named 'layoutPrototypeUuid' and 'layoutPrototypeLinkedEnabled'
-	can be specified to provide the unique identifier of the source
-	prototype and a boolean to determined whether a link to it should
-	be enabled to activate propagation of changes made to the linked
-	page in the prototype.
+	* @param serviceContext the service context. Must set the UUID for the
+	layout. Can set the creation date, modification date and the
+	expando bridge attributes for the layout. For layouts that belong
+	to a layout set prototype, an attribute named 'layoutUpdateable'
+	can be set to specify whether site administrators can modify this
+	page within their site. For layouts that are created from a
+	layout prototype, attributes named 'layoutPrototypeUuid' and
+	'layoutPrototypeLinkedEnabled' can be specified to provide the
+	unique identifier of the source prototype and a boolean to
+	determined whether a link to it should be enabled to activate
+	propagation of changes made to the linked page in the prototype.
 	* @return the layout
 	* @throws PortalException if a group or user with the primary key could not
 	be found, or if layout values were invalid
@@ -393,12 +378,11 @@ public class LayoutLocalServiceUtil {
 	normalized when accessed see {@link
 	com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil#normalize(
 	String)}.
-	* @param serviceContext the service context. Must set the universally
-	unique identifier (UUID) for the layout. Can set the creation
-	date and modification date for the layout. For layouts that
-	belong to a layout set prototype, an attribute named
-	'layoutUpdateable' can be set to specify whether site
-	administrators can modify this page within their site.
+	* @param serviceContext the service context. Must set the UUID for the
+	layout. Can set the creation date and modification date for the
+	layout. For layouts that belong to a layout set prototype, an
+	attribute named 'layoutUpdateable' can be set to specify whether
+	site administrators can modify this page within their site.
 	* @return the layout
 	* @throws PortalException if a group or user with the primary key could not
 	be found
@@ -639,20 +623,25 @@ public class LayoutLocalServiceUtil {
 				   .fetchFirstLayout(groupId, privateLayout, parentLayoutId);
 	}
 
+	public static com.liferay.portal.model.Layout fetchLayout(long groupId,
+		boolean privateLayout, long layoutId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchLayout(groupId, privateLayout, layoutId);
+	}
+
 	/**
-	* Returns the layout matching the universally unique identifier and group
-	* ID
-	*
-	* @param uuid the universally unique identifier of the scope layout
+	* @param uuid the layout's UUID
 	* @param groupId the primary key of the group
+	* @param privateLayout whether the layout is private to the group
 	* @return the layout, or <code>null</code> if a matching layout could not
 	be found
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Layout fetchLayoutByUuidAndGroupId(
-		java.lang.String uuid, long groupId)
+		java.lang.String uuid, long groupId, boolean privateLayout)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().fetchLayoutByUuidAndGroupId(uuid, groupId);
+		return getService()
+				   .fetchLayoutByUuidAndGroupId(uuid, groupId, privateLayout);
 	}
 
 	/**
@@ -892,11 +881,27 @@ public class LayoutLocalServiceUtil {
 		return getService().getLayoutsCount(group, privateLayout);
 	}
 
+	public static int getLayoutsCount(com.liferay.portal.model.Group group,
+		boolean privateLayout, boolean includeUserGroups)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getLayoutsCount(group, privateLayout, includeUserGroups);
+	}
+
 	public static int getLayoutsCount(com.liferay.portal.model.User user,
 		boolean privateLayout)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getLayoutsCount(user, privateLayout);
+	}
+
+	public static int getLayoutsCount(com.liferay.portal.model.User user,
+		boolean privateLayout, boolean includeUserGroups)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getLayoutsCount(user, privateLayout, includeUserGroups);
 	}
 
 	/**
@@ -910,6 +915,17 @@ public class LayoutLocalServiceUtil {
 	public static long getNextLayoutId(long groupId, boolean privateLayout)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().getNextLayoutId(groupId, privateLayout);
+	}
+
+	/**
+	* Returns all the layouts without resource permissions
+	*
+	* @return all the layouts without resource permissions
+	* @throws SystemException if a system exception occurred
+	*/
+	public static java.util.List<com.liferay.portal.model.Layout> getNoPermissionLayouts(
+		long roleId) throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getNoPermissionLayouts(roleId);
 	}
 
 	/**
@@ -944,6 +960,13 @@ public class LayoutLocalServiceUtil {
 		return getService().hasLayouts(group, privateLayout);
 	}
 
+	public static boolean hasLayouts(com.liferay.portal.model.Group group,
+		boolean privateLayout, boolean includeUserGroups)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().hasLayouts(group, privateLayout, includeUserGroups);
+	}
+
 	/**
 	* Returns <code>true</code> if the group has any layouts;
 	* <code>false</code> otherwise.
@@ -968,14 +991,31 @@ public class LayoutLocalServiceUtil {
 		return getService().hasLayouts(user, privateLayout);
 	}
 
+	public static boolean hasLayouts(com.liferay.portal.model.User user,
+		boolean privateLayout, boolean includeUserGroups)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().hasLayouts(user, privateLayout, includeUserGroups);
+	}
+
 	public static boolean hasLayoutSetPrototypeLayout(
-		java.lang.String layoutSetPrototypeUuid, java.lang.String layoutUuid,
-		long companyId)
+		long layoutSetPrototypeId, java.lang.String layoutUuid,
+		boolean privateLayout)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .hasLayoutSetPrototypeLayout(layoutSetPrototypeId,
+			layoutUuid, privateLayout);
+	}
+
+	public static boolean hasLayoutSetPrototypeLayout(
+		java.lang.String layoutSetPrototypeUuid, long companyId,
+		java.lang.String layoutUuid, boolean privateLayout)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService()
 				   .hasLayoutSetPrototypeLayout(layoutSetPrototypeUuid,
-			layoutUuid, companyId);
+			companyId, layoutUuid, privateLayout);
 	}
 
 	/**
@@ -1452,12 +1492,11 @@ public class LayoutLocalServiceUtil {
 
 	/**
 	* Updates the names of the portlets within scope of the group, the scope of
-	* the layout's universally unique identifier, and the privacy.
+	* the layout's UUID, and the privacy.
 	*
 	* @param groupId the primary key of the group
 	* @param privateLayout whether the layout is private to the group
-	* @param layoutId the primary key of the layout whose universally unique
-	identifier to match
+	* @param layoutId the primary key of the layout whose UUID to match
 	* @param name the new name for the portlets
 	* @param languageId the primary key of the language
 	* @throws PortalException if a matching layout could not be found

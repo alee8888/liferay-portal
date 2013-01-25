@@ -15,8 +15,7 @@
 package com.liferay.portal.deploy.auto;
 
 import com.liferay.portal.kernel.deploy.auto.AutoDeployException;
-
-import java.io.File;
+import com.liferay.portal.kernel.deploy.auto.context.AutoDeploymentContext;
 
 /**
  * @author Ivica Cardic
@@ -24,7 +23,13 @@ import java.io.File;
  */
 public interface AutoDeployer {
 
-	public void autoDeploy(File file, String context)
+	public static final int CODE_DEFAULT = 1;
+
+	public static final int CODE_SKIP_NEWER_VERSION = 2;
+
+	public int autoDeploy(AutoDeploymentContext autoDeploymentContext)
 		throws AutoDeployException;
+
+	public AutoDeployer cloneAutoDeployer() throws AutoDeployException;
 
 }

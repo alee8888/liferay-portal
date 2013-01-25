@@ -36,9 +36,9 @@ import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.InfrastructureUtil;
+import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PortalLifecycleUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ReleaseInfo;
@@ -53,6 +53,7 @@ import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.PortletApp;
 import com.liferay.portal.model.PortletFilter;
@@ -62,6 +63,7 @@ import com.liferay.portal.plugin.PluginPackageUtil;
 import com.liferay.portal.security.auth.CompanyThreadLocal;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.security.pacl.PACLClassLoaderUtil;
 import com.liferay.portal.security.permission.ResourceActionsUtil;
 import com.liferay.portal.server.capabilities.ServerCapabilitiesUtil;
 import com.liferay.portal.service.CompanyLocalServiceUtil;
@@ -96,7 +98,9 @@ import com.liferay.util.ContentUtil;
 import com.liferay.util.servlet.EncryptedServletRequest;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -108,7 +112,6 @@ import javax.portlet.PortletException;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -186,7 +189,20 @@ public class MainServlet extends ActionServlet {
 
 		ServletContext servletContext = getServletContext();
 
+		servletContext.setAttribute(MainServlet.class.getName(), Boolean.TRUE);
+
 		callParentInit();
+
+		if (_log.isDebugEnabled()) {
+			_log.debug("Initialize servlet context pool");
+		}
+
+		try {
+			initServletContextPool();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Process startup events");
@@ -202,17 +218,6 @@ public class MainServlet extends ActionServlet {
 				"Stopping the server due to unexpected startup errors");
 
 			System.exit(0);
-		}
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("Initialize servlet context pool");
-		}
-
-		try {
-			initServletContextPool();
-		}
-		catch (Exception e) {
-			_log.error(e, e);
 		}
 
 		if (_log.isDebugEnabled()) {
@@ -243,10 +248,10 @@ public class MainServlet extends ActionServlet {
 			_log.debug("Initialize portlets");
 		}
 
-		List<Portlet> portlets = null;
+		List<Portlet> portlets = new ArrayList<Portlet>();
 
 		try {
-			portlets = initPortlets(pluginPackage);
+			portlets.addAll(initPortlets(pluginPackage));
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -422,6 +427,10 @@ public class MainServlet extends ActionServlet {
 		checkPortletSessionTracker(request);
 		checkPortletRequestProcessor(request);
 		checkTilesDefinitionsFactory();
+
+		if (_log.isDebugEnabled()) {
+			_log.debug("Handle non-serializable request");
+		}
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Encrypt request");
@@ -712,13 +721,11 @@ public class MainServlet extends ActionServlet {
 			ControllerConfig controllerConfig =
 				moduleConfig.getControllerConfig();
 
-			String processorClass = controllerConfig.getProcessorClass();
-
-			ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
-
 			try {
-				requestProcessor = (RequestProcessor)classLoader.loadClass(
-					processorClass).newInstance();
+				requestProcessor =
+					(RequestProcessor)InstanceFactory.newInstance(
+						PACLClassLoaderUtil.getPortalClassLoader(),
+						controllerConfig.getProcessorClass());
 			}
 			catch (Exception e) {
 				throw new ServletException(e);
@@ -813,7 +820,7 @@ public class MainServlet extends ActionServlet {
 	}
 
 	/**
-	 * @see {@link SetupWizardUtil#_initPlugins}
+	 * @see SetupWizardUtil#_initPlugins
 	 */
 	protected void initPlugins() throws Exception {
 
@@ -876,7 +883,7 @@ public class MainServlet extends ActionServlet {
 		PortletBagFactory portletBagFactory = new PortletBagFactory();
 
 		portletBagFactory.setClassLoader(
-			PortalClassLoaderUtil.getClassLoader());
+			PACLClassLoaderUtil.getPortalClassLoader());
 		portletBagFactory.setServletContext(servletContext);
 		portletBagFactory.setWARFile(false);
 
@@ -932,7 +939,7 @@ public class MainServlet extends ActionServlet {
 	}
 
 	protected void initSocial(PluginPackage pluginPackage) throws Exception {
-		ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
+		ClassLoader classLoader = PACLClassLoaderUtil.getPortalClassLoader();
 
 		ServletContext servletContext = getServletContext();
 
@@ -1079,9 +1086,9 @@ public class MainServlet extends ActionServlet {
 
 		html = StringUtil.replace(html, "[$MESSAGE$]", message);
 
-		ServletOutputStream servletOutputStream = response.getOutputStream();
+		PrintWriter printWriter = response.getWriter();
 
-		servletOutputStream.print(html);
+		printWriter.print(html);
 	}
 
 	protected boolean processMaintenanceRequest(
@@ -1110,17 +1117,6 @@ public class MainServlet extends ActionServlet {
 		}
 		catch (Exception e) {
 			_log.error(e, e);
-		}
-
-		if (_HTTP_HEADER_VERSION_VERBOSITY_DEFAULT) {
-		}
-		else if (_HTTP_HEADER_VERSION_VERBOSITY_PARTIAL) {
-			response.addHeader(
-				_LIFERAY_PORTAL_REQUEST_HEADER, ReleaseInfo.getName());
-		}
-		else {
-			response.addHeader(
-				_LIFERAY_PORTAL_REQUEST_HEADER, ReleaseInfo.getReleaseInfo());
 		}
 	}
 
@@ -1163,6 +1159,17 @@ public class MainServlet extends ActionServlet {
 			return true;
 		}
 
+		if (_HTTP_HEADER_VERSION_VERBOSITY_DEFAULT) {
+		}
+		else if (_HTTP_HEADER_VERSION_VERBOSITY_PARTIAL) {
+			response.addHeader(
+				_LIFERAY_PORTAL_REQUEST_HEADER, ReleaseInfo.getName());
+		}
+		else {
+			response.addHeader(
+				_LIFERAY_PORTAL_REQUEST_HEADER, ReleaseInfo.getReleaseInfo());
+		}
+
 		return false;
 	}
 
@@ -1190,15 +1197,17 @@ public class MainServlet extends ActionServlet {
 			try {
 				Layout layout = LayoutLocalServiceUtil.getLayout(plid);
 
-				if (layout.getGroup().isStagingGroup()) {
-					Group group = GroupLocalServiceUtil.getGroup(
+				Group group = layout.getGroup();
+
+				plid = group.getDefaultPublicPlid();
+
+				if ((plid == LayoutConstants.DEFAULT_PLID) ||
+					 group.isStagingGroup()) {
+
+					Group guestGroup = GroupLocalServiceUtil.getGroup(
 						layout.getCompanyId(), GroupConstants.GUEST);
 
-					plid = group.getDefaultPublicPlid();
-				}
-				else if (layout.isPrivateLayout()) {
-					plid = LayoutLocalServiceUtil.getDefaultPlid(
-						layout.getGroupId(), false);
+					plid = guestGroup.getDefaultPublicPlid();
 				}
 
 				redirect = HttpUtil.addParameter(redirect, "p_l_id", plid);
