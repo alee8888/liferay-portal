@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,34 +16,65 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchClusterGroupException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.model.ClusterGroup;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ClusterGroupPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (ClusterGroupPersistence)PortalBeanLocatorUtil.locate(ClusterGroupPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -79,16 +110,20 @@ public class ClusterGroupPersistenceTest {
 
 		ClusterGroup newClusterGroup = _persistence.create(pk);
 
+		newClusterGroup.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newClusterGroup.setName(ServiceTestUtil.randomString());
 
 		newClusterGroup.setClusterNodeIds(ServiceTestUtil.randomString());
 
 		newClusterGroup.setWholeCluster(ServiceTestUtil.randomBoolean());
 
-		_persistence.update(newClusterGroup, false);
+		_persistence.update(newClusterGroup);
 
 		ClusterGroup existingClusterGroup = _persistence.findByPrimaryKey(newClusterGroup.getPrimaryKey());
 
+		Assert.assertEquals(existingClusterGroup.getMvccVersion(),
+			newClusterGroup.getMvccVersion());
 		Assert.assertEquals(existingClusterGroup.getClusterGroupId(),
 			newClusterGroup.getClusterGroupId());
 		Assert.assertEquals(existingClusterGroup.getName(),
@@ -123,6 +158,23 @@ public class ClusterGroupPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("ClusterGroup",
+			"mvccVersion", true, "clusterGroupId", true, "name", true,
+			"clusterNodeIds", true, "wholeCluster", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		ClusterGroup newClusterGroup = addClusterGroup();
 
@@ -138,6 +190,26 @@ public class ClusterGroupPersistenceTest {
 		ClusterGroup missingClusterGroup = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingClusterGroup);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new ClusterGroupActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					ClusterGroup clusterGroup = (ClusterGroup)object;
+
+					Assert.assertNotNull(clusterGroup);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -219,16 +291,20 @@ public class ClusterGroupPersistenceTest {
 
 		ClusterGroup clusterGroup = _persistence.create(pk);
 
+		clusterGroup.setMvccVersion(ServiceTestUtil.nextLong());
+
 		clusterGroup.setName(ServiceTestUtil.randomString());
 
 		clusterGroup.setClusterNodeIds(ServiceTestUtil.randomString());
 
 		clusterGroup.setWholeCluster(ServiceTestUtil.randomBoolean());
 
-		_persistence.update(clusterGroup, false);
+		_persistence.update(clusterGroup);
 
 		return clusterGroup;
 	}
 
-	private ClusterGroupPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(ClusterGroupPersistenceTest.class);
+	private ClusterGroupPersistence _persistence = (ClusterGroupPersistence)PortalBeanLocatorUtil.locate(ClusterGroupPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

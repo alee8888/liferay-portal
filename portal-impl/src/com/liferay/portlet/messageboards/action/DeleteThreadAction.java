@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,12 +15,19 @@
 package com.liferay.portlet.messageboards.action;
 
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portlet.messageboards.LockedThreadException;
+import com.liferay.portlet.messageboards.model.MBThread;
 import com.liferay.portlet.messageboards.service.MBThreadServiceUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -32,17 +39,26 @@ import org.apache.struts.action.ActionMapping;
 /**
  * @author Deepak Gothe
  * @author Sergio González
+ * @author Zsolt Berentey
  */
 public class DeleteThreadAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
+		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
+
 		try {
-			deleteThreads(actionRequest, actionResponse);
+			if (cmd.equals(Constants.DELETE)) {
+				deleteThreads(actionRequest, false);
+			}
+			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
+				deleteThreads(actionRequest, true);
+			}
 
 			sendRedirect(actionRequest, actionResponse);
 		}
@@ -61,21 +77,39 @@ public class DeleteThreadAction extends PortletAction {
 	}
 
 	protected void deleteThreads(
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
+
+		long[] deleteThreadIds = null;
 
 		long threadId = ParamUtil.getLong(actionRequest, "threadId");
 
 		if (threadId > 0) {
-			MBThreadServiceUtil.deleteThread(threadId);
+			deleteThreadIds = new long[] {threadId};
 		}
 		else {
-			long[] deleteThreadIds = StringUtil.split(
+			deleteThreadIds = StringUtil.split(
 				ParamUtil.getString(actionRequest, "threadIds"), 0L);
+		}
 
-			for (int i = 0; i < deleteThreadIds.length; i++) {
-				MBThreadServiceUtil.deleteThread(deleteThreadIds[i]);
+		List<TrashedModel> trashedModels = new ArrayList<TrashedModel>();
+
+		for (long deleteThreadId : deleteThreadIds) {
+			if (moveToTrash) {
+				MBThread thread = MBThreadServiceUtil.moveThreadToTrash(
+					deleteThreadId);
+
+				trashedModels.add(thread);
 			}
+			else {
+				MBThreadServiceUtil.deleteThread(deleteThreadId);
+			}
+		}
+
+		if (moveToTrash && !trashedModels.isEmpty()) {
+			TrashUtil.addTrashSessionMessages(actionRequest, trashedModels);
+
+			hideDefaultSuccessMessage(actionRequest);
 		}
 	}
 

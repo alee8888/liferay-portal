@@ -20,10 +20,10 @@ AUI.add(
 
 			OVER_NESTED_PORTLET: false,
 
-			PROXY_NODE: A.Node.create('<div class="lfr-portlet-proxy aui-portal-layout-proxy"></div>'),
+			PROXY_NODE: A.Node.create('<div class="lfr-portlet-proxy sortable-layout-proxy"></div>'),
 
 			PROXY_NODE_ITEM: A.Node.create(
-				'<div class="lfr-portlet-proxy aui-portal-layout-proxy">' +
+				'<div class="lfr-portlet-proxy sortable-layout-proxy">' +
 					'<div class="portlet-topper">' +
 						'<span class="portlet-title"></span>' +
 					'</div>' +
@@ -37,8 +37,8 @@ AUI.add(
 			bindDragDropListeners: function() {
 				var layoutHandler = Layout.getLayoutHandler();
 
-				layoutHandler.on('drag:end', A.bind(Layout._onPortletDragEnd, Layout));
-				layoutHandler.on('drag:start', A.bind(Layout._onPortletDragStart, Layout));
+				layoutHandler.on('drag:end', A.bind('_onPortletDragEnd', Layout));
+				layoutHandler.on('drag:start', A.bind('_onPortletDragStart', Layout));
 			},
 
 			closeNestedPortlets: function(portlet) {
@@ -408,6 +408,7 @@ AUI.add(
 			function(options) {
 				var data = {
 					doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
+					p_auth: Liferay.authToken,
 					p_l_id: themeDisplay.getPlid()
 				};
 
@@ -456,12 +457,17 @@ AUI.add(
 			);
 
 			if (layoutContainer) {
-				layoutContainer.once(
-					'mousemove',
-					function() {
-						Liferay.fire('initLayout');
-					}
-				);
+				if (!A.UA.touch) {
+					layoutContainer.once(
+						'mousemove',
+						function() {
+							Liferay.fire('initLayout');
+						}
+					);
+				}
+				else {
+					Liferay.fire('initLayout');
+				}
 			}
 		}
 

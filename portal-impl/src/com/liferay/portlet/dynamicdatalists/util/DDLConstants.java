@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,6 +22,9 @@ public class DDLConstants {
 
 	public static final String RESERVED_DDM_STRUCTURE_ID =
 		"reserved_ddm_structure_id";
+
+	public static final String RESERVED_DDM_TEMPLATE_ID =
+		"reserved_ddm_template_id";
 
 	public static final String RESERVED_RECORD_SET_DESCRIPTION =
 		"reserved_record_set_description";

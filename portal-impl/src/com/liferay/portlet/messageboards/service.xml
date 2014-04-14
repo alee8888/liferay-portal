@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.1.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_1_0.dtd">
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.0.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_0_0.dtd">
 
-<service-builder package-path="com.liferay.portlet.messageboards">
+<service-builder package-path="com.liferay.portlet.messageboards" auto-import-default-references="false">
 	<namespace>MB</namespace>
-	<entity name="MBBan" human-name="message boards ban" local-service="true" remote-service="true">
+	<entity name="MBBan" human-name="message boards ban" uuid="true" local-service="true" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -40,12 +40,17 @@
 			<finder-column name="groupId" />
 			<finder-column name="banUserId" />
 		</finder>
+
+		<!-- References -->
+
+		<reference package-path="com.liferay.portal" entity="SystemEvent" />
+		<reference package-path="com.liferay.portal" entity="User" />
 	</entity>
-	<entity name="MBCategory" human-name="message boards category" uuid="true" local-service="true" remote-service="true">
+	<entity name="MBCategory" human-name="message boards category" uuid="true" local-service="true" remote-service="true" trash-enabled="true">
 
 		<!-- PK fields -->
 
-		<column name="categoryId" type="long" primary="true" />
+		<column name="categoryId" type="long" primary="true" container-model="true" />
 
 		<!-- Group instance -->
 
@@ -61,13 +66,17 @@
 
 		<!-- Other fields -->
 
-		<column name="parentCategoryId" type="long" />
+		<column name="parentCategoryId" type="long" parent-container-model="true" />
 		<column name="name" type="String" />
 		<column name="description" type="String" />
 		<column name="displayStyle" type="String" />
 		<column name="threadCount" type="int" />
 		<column name="messageCount" type="int" />
 		<column name="lastPostDate" type="Date" />
+		<column name="status" type="int" />
+		<column name="statusByUserId" type="long" />
+		<column name="statusByUserName" type="String" />
+		<column name="statusDate" type="Date" />
 
 		<!-- Order -->
 
@@ -88,19 +97,64 @@
 			<finder-column name="groupId" />
 			<finder-column name="parentCategoryId" arrayable-operator="OR" />
 		</finder>
+		<finder name="G_S" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="C_S" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="G_P_S" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="parentCategoryId" arrayable-operator="OR" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="NotC_G_P" return-type="Collection">
+			<finder-column name="categoryId" comparator="!=" arrayable-operator="AND" />
+			<finder-column name="groupId" />
+			<finder-column name="parentCategoryId" arrayable-operator="OR" />
+		</finder>
+		<finder name="NotC_G_P_S" return-type="Collection">
+			<finder-column name="categoryId" comparator="!=" arrayable-operator="AND" />
+			<finder-column name="groupId" />
+			<finder-column name="parentCategoryId" arrayable-operator="OR" />
+			<finder-column name="status" />
+		</finder>
 
 		<!-- References -->
 
 		<reference package-path="com.liferay.portal" entity="Group" />
+		<reference package-path="com.liferay.portal" entity="Resource" />
 		<reference package-path="com.liferay.portal" entity="Subscription" />
+		<reference package-path="com.liferay.portal" entity="SystemEvent" />
+		<reference package-path="com.liferay.portal" entity="User" />
+		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetTag" />
-		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
+		<reference package-path="com.liferay.portlet.expando" entity="ExpandoRow" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBMailingList" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBMessage" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBThread" />
+		<reference package-path="com.liferay.portlet.trash" entity="TrashEntry" />
+		<reference package-path="com.liferay.portlet.trash" entity="TrashVersion" />
 	</entity>
-	<entity name="MBDiscussion" human-name="message boards discussion" local-service="true" remote-service="false">
+	<entity name="MBDiscussion" human-name="message boards discussion" uuid="true" local-service="true" remote-service="false">
 
 		<!-- PK fields -->
 
 		<column name="discussionId" type="long" primary="true" />
+
+		<!-- Group instance -->
+
+		<column name="groupId" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
 
 		<!-- Other fields -->
 
@@ -120,6 +174,15 @@
 			<finder-column name="classNameId" />
 			<finder-column name="classPK" />
 		</finder>
+
+		<!-- References -->
+
+		<reference package-path="com.liferay.portal" entity="ClassName" />
+		<reference package-path="com.liferay.portal" entity="Subscription" />
+		<reference package-path="com.liferay.portal" entity="User" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBMailingList" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBMessage" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBThread" />
 	</entity>
 	<entity name="MBMailingList" human-name="message boards mailing list" uuid="true" local-service="true" remote-service="false">
 
@@ -169,8 +232,12 @@
 			<finder-column name="groupId" />
 			<finder-column name="categoryId" />
 		</finder>
+
+		<!-- References -->
+
+		<reference package-path="com.liferay.portal" entity="User" />
 	</entity>
-	<entity name="MBMessage" human-name="message-boards message" uuid="true" local-service="true" remote-service="true">
+	<entity name="MBMessage" human-name="message-boards message" uuid="true" local-service="true" remote-service="true" trash-enabled="true">
 
 		<!-- PK fields -->
 
@@ -199,7 +266,6 @@
 		<column name="subject" type="String" />
 		<column name="body" type="String" />
 		<column name="format" type="String" />
-		<column name="attachments" type="boolean" />
 		<column name="anonymous" type="boolean" />
 		<column name="priority" type="double" />
 		<column name="allowPingbacks" type="boolean" />
@@ -325,19 +391,26 @@
 		<!-- References -->
 
 		<reference package-path="com.liferay.mail" entity="Mail" />
+		<reference package-path="com.liferay.portal" entity="ClassName" />
 		<reference package-path="com.liferay.portal" entity="Company" />
 		<reference package-path="com.liferay.portal" entity="Group" />
 		<reference package-path="com.liferay.portal" entity="Lock" />
 		<reference package-path="com.liferay.portal" entity="PortletPreferences" />
+		<reference package-path="com.liferay.portal" entity="Resource" />
 		<reference package-path="com.liferay.portal" entity="Subscription" />
+		<reference package-path="com.liferay.portal" entity="User" />
 		<reference package-path="com.liferay.portal" entity="WorkflowInstanceLink" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetLink" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetTag" />
 		<reference package-path="com.liferay.portlet.blogs" entity="BlogsEntry" />
+		<reference package-path="com.liferay.portlet.expando" entity="ExpandoRow" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBCategory" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBDiscussion" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBStatsUser" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBThread" />
 		<reference package-path="com.liferay.portlet.ratings" entity="RatingsStats" />
 		<reference package-path="com.liferay.portlet.social" entity="SocialActivity" />
-		<reference package-path="com.liferay.portlet.expando" entity="ExpandoValue" />
 		<reference package-path="com.liferay.portlet.wiki" entity="WikiPage" />
 	</entity>
 	<entity name="MBStatsUser" human-name="message boards stats user" local-service="true" remote-service="false">
@@ -386,12 +459,15 @@
 		<!-- References -->
 
 		<reference package-path="com.liferay.portal" entity="Group" />
+		<reference package-path="com.liferay.portal" entity="User" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBMessage" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBThread" />
 	</entity>
-	<entity name="MBThread" human-name="message boards thread" local-service="true" remote-service="true">
+	<entity name="MBThread" human-name="message boards thread" uuid="true" local-service="true" remote-service="true" trash-enabled="true">
 
 		<!-- PK fields -->
 
-		<column name="threadId" type="long" primary="true" />
+		<column name="threadId" type="long" primary="true" container-model="true" />
 
 		<!-- Group instance -->
 
@@ -400,10 +476,14 @@
 		<!-- Audit fields -->
 
 		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
 
 		<!-- Other fields -->
 
-		<column name="categoryId" type="long" />
+		<column name="categoryId" type="long" parent-container-model="true" />
 		<column name="rootMessageId" type="long" />
 		<column name="rootMessageUserId" type="long" />
 		<column name="messageCount" type="int" />
@@ -462,30 +542,56 @@
 			<finder-column name="categoryId" arrayable-operator="OR" />
 			<finder-column name="status" />
 		</finder>
+		<finder name="G_C_NotS" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="categoryId" arrayable-operator="OR" />
+			<finder-column name="status" comparator="!=" />
+		</finder>
 		<finder name="G_NotC_S" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="categoryId" comparator="!=" />
 			<finder-column name="status" />
 		</finder>
+		<finder name="G_NotC_NotS" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="categoryId" comparator="!=" />
+			<finder-column name="status" comparator="!=" />
+		</finder>
 
 		<!-- References -->
 
+		<reference package-path="com.liferay.portal" entity="Group" />
 		<reference package-path="com.liferay.portal" entity="Lock" />
+		<reference package-path="com.liferay.portal" entity="Resource" />
 		<reference package-path="com.liferay.portal" entity="Subscription" />
+		<reference package-path="com.liferay.portal" entity="User" />
 		<reference package-path="com.liferay.portal" entity="WorkflowInstanceLink" />
 		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBCategory" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBMessage" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBStatsUser" />
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBThreadFlag" />
 		<reference package-path="com.liferay.portlet.ratings" entity="RatingsStats" />
 		<reference package-path="com.liferay.portlet.social" entity="SocialActivity" />
+		<reference package-path="com.liferay.portlet.trash" entity="TrashEntry" />
+		<reference package-path="com.liferay.portlet.trash" entity="TrashVersion" />
 	</entity>
-	<entity name="MBThreadFlag" human-name="message boards thread flag" local-service="true" remote-service="false">
+	<entity name="MBThreadFlag" human-name="message boards thread flag" uuid="true" local-service="true" remote-service="false">
 
 		<!-- PK fields -->
 
 		<column name="threadFlagId" type="long" primary="true" />
 
+		<!-- Group instance -->
+
+		<column name="groupId" type="long" />
+
 		<!-- Audit fields -->
 
+		<column name="companyId" type="long" />
 		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
 		<column name="modifiedDate" type="Date" />
 
 		<!-- Other fields -->
@@ -500,23 +606,26 @@
 		<finder name="ThreadId" return-type="Collection">
 			<finder-column name="threadId" />
 		</finder>
-		<finder name="U_T" return-type="MBThreadFlag">
+		<finder name="U_T" return-type="MBThreadFlag" unique="true">
 			<finder-column name="userId" />
 			<finder-column name="threadId" />
 		</finder>
+
+		<!-- References -->
+
+		<reference package-path="com.liferay.portal" entity="User" />
 	</entity>
 	<exceptions>
 		<exception>BannedUser</exception>
 		<exception>CategoryName</exception>
 		<exception>LockedThread</exception>
-		<exception>MessageBody</exception>
-		<exception>MessageSubject</exception>
 		<exception>MailingListEmailAddress</exception>
 		<exception>MailingListInServerName</exception>
 		<exception>MailingListInUserName</exception>
 		<exception>MailingListOutEmailAddress</exception>
 		<exception>MailingListOutServerName</exception>
 		<exception>MailingListOutUserName</exception>
+		<exception>MessageBody</exception>
 		<exception>MessageSubject</exception>
 		<exception>RequiredMessage</exception>
 		<exception>SplitThread</exception>

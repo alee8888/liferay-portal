@@ -4,7 +4,11 @@
 
 <#list entities as entity>
 	<#if entity.hasColumns()>
-		<class name="${packagePath}.model.impl.${entity.name}Impl" table="${entity.table}">
+		<class name="${packagePath}.model.impl.${entity.name}Impl" table="${entity.table}"
+			<#if entity.isDynamicUpdateEnabled()>
+				dynamic-update="true"
+			</#if>
+		>
 			<#if entity.isCacheEnabled()>
 				<cache usage="read-write" />
 			</#if>
@@ -72,6 +76,10 @@
 				</id>
 			</#if>
 
+			<#if entity.isMvccEnabled()>
+				<version name="mvccVersion" type="long" access="com.liferay.portal.dao.orm.hibernate.PrivatePropertyAccessor" />
+			</#if>
+
 			<#list entity.columnList as column>
 				<#if column.EJBName??>
 					<#assign ejbName = true>
@@ -79,7 +87,7 @@
 					<#assign ejbName = false>
 				</#if>
 
-				<#if !column.isPrimary() && !column.isCollection() && !ejbName && ((column.type != "Blob") || ((column.type == "Blob") && !column.lazy))>
+				<#if !column.isPrimary() && !column.isCollection() && !ejbName && ((column.type != "Blob") || ((column.type == "Blob") && !column.lazy)) && (column.name != "mvccVersion")>
 					<property name="${column.name}"
 
 					<#if serviceBuilder.isHBMCamelCasePropertyAccessor(column.name)>
@@ -110,7 +118,11 @@
 
 		<#list entity.blobList as blobColumn>
 			<#if blobColumn.lazy>
-				<class name="${packagePath}.model.${entity.name}${blobColumn.methodName}BlobModel" table="${entity.table}" lazy="true">
+				<class name="${packagePath}.model.${entity.name}${blobColumn.methodName}BlobModel" table="${entity.table}" lazy="true"
+					<#if entity.isDynamicUpdateEnabled()>
+						dynamic-update="true"
+					</#if>
+				>
 					<#assign column = entity.getPKList()?first>
 
 					<id name="${column.name}" column="${column.name}">

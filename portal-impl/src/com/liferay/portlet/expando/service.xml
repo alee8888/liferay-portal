@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.1.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_1_0.dtd">
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.0.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_0_0.dtd">
 
 <service-builder package-path="com.liferay.portlet.expando">
 	<namespace>Expando</namespace>
@@ -46,6 +46,7 @@
 		<!-- Audit fields -->
 
 		<column name="companyId" type="long" />
+		<column name="modifiedDate" type="Date" />
 
 		<!-- Other fields -->
 
@@ -57,12 +58,15 @@
 		<finder name="TableId" return-type="Collection">
 			<finder-column name="tableId" />
 		</finder>
+		<finder name="ClassPK" return-type="Collection">
+			<finder-column name="classPK" />
+		</finder>
 		<finder name="T_C" return-type="ExpandoRow" unique="true">
 			<finder-column name="tableId" />
 			<finder-column name="classPK" />
 		</finder>
 	</entity>
-	<entity name="ExpandoTable" local-service="true" remote-service="false">
+	<entity name="ExpandoTable" local-service="true" remote-service="false" json-enabled="true">
 
 		<!-- PK fields -->
 
@@ -89,7 +93,7 @@
 			<finder-column name="name" />
 		</finder>
 	</entity>
-	<entity name="ExpandoValue" local-service="true" remote-service="true">
+	<entity name="ExpandoValue" local-service="true" remote-service="true" dynamic-update-enabled="true">
 
 		<!-- PK fields -->
 

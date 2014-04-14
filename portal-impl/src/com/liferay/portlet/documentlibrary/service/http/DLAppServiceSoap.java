@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -23,13 +25,11 @@ import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
 import java.rmi.RemoteException;
 
 /**
- * <p>
- * This class provides a SOAP utility for the
+ * Provides the SOAP utility for the
  * {@link com.liferay.portlet.documentlibrary.service.DLAppServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it is difficult for SOAP to
  * support certain types.
- * </p>
  *
  * <p>
  * The benefits of using the SOAP utility is that it is cross platform
@@ -39,9 +39,8 @@ import java.rmi.RemoteException;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -49,11 +48,12 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DLAppServiceHttp
- * @see       com.liferay.portlet.documentlibrary.service.DLAppServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see DLAppServiceHttp
+ * @see com.liferay.portlet.documentlibrary.service.DLAppServiceUtil
  * @generated
  */
+@ProviderType
 public class DLAppServiceSoap {
 	/**
 	* Adds a file entry and associated metadata. It is created based on a byte
@@ -248,6 +248,23 @@ public class DLAppServiceSoap {
 	}
 
 	/**
+	* @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
+	String, ServiceContext)}
+	*/
+	@Deprecated
+	public static void checkInFileEntry(long fileEntryId,
+		java.lang.String lockUuid) throws RemoteException {
+		try {
+			DLAppServiceUtil.checkInFileEntry(fileEntryId, lockUuid);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
 	* Checks in the file entry using the lock's UUID. If a user has not checked
 	* out the specified file entry, invoking this method will result in no
 	* changes. This method is primarily used by WebDAV.
@@ -264,16 +281,20 @@ public class DLAppServiceSoap {
 	* </p>
 	*
 	* @param fileEntryId the primary key of the file entry to check in
-	* @param lockUuid the lock's universally unique identifier
+	* @param lockUuid the lock's UUID
+	* @param serviceContext the service context to be applied
 	* @throws PortalException if the file entry could not be found
 	* @throws SystemException if a system exception occurred
 	* @see #cancelCheckOut(long)
 	* @see #checkOutFileEntry(long, String, long, ServiceContext)
 	*/
 	public static void checkInFileEntry(long fileEntryId,
-		java.lang.String lockUuid) throws RemoteException {
+		java.lang.String lockUuid,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws RemoteException {
 		try {
-			DLAppServiceUtil.checkInFileEntry(fileEntryId, lockUuid);
+			DLAppServiceUtil.checkInFileEntry(fileEntryId, lockUuid,
+				serviceContext);
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -738,6 +759,23 @@ public class DLAppServiceSoap {
 		}
 	}
 
+	public static com.liferay.portal.kernel.repository.model.FileEntrySoap[] getFileEntries(
+		long repositoryId, long folderId, java.lang.String[] mimeTypes)
+		throws RemoteException {
+		try {
+			java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> returnValue =
+				DLAppServiceUtil.getFileEntries(repositoryId, folderId,
+					mimeTypes);
+
+			return com.liferay.portal.kernel.repository.model.FileEntrySoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	/**
 	* Returns the number of file entries and shortcuts in the folder.
 	*
@@ -891,7 +929,7 @@ public class DLAppServiceSoap {
 	/**
 	* Returns the file entry with the UUID and group.
 	*
-	* @param uuid the file entry's universally unique identifier
+	* @param uuid the file entry's UUID
 	* @param groupId the primary key of the file entry's group
 	* @return the file entry with the UUID and group
 	* @throws PortalException if the file entry could not be found
@@ -1897,7 +1935,7 @@ public class DLAppServiceSoap {
 	* @return the temporary file entry names
 	* @throws PortalException if the folder was invalid
 	* @throws SystemException if a system exception occurred
-	* @see #addTempFileEntry(long, long, String, String, File)
+	* @see #addTempFileEntry(long, long, String, String, File, String)
 	* @see com.liferay.portal.kernel.util.TempFileUtil
 	*/
 	public static java.lang.String[] getTempFileEntryNames(long groupId,
@@ -1945,9 +1983,38 @@ public class DLAppServiceSoap {
 	}
 
 	/**
+	* Moves the file entry from a trashed folder to the new folder.
+	*
+	* @param fileEntryId the primary key of the file entry
+	* @param newFolderId the primary key of the new folder
+	* @param serviceContext the service context to be applied
+	* @return the file entry
+	* @throws PortalException if the file entry or the new folder could not be
+	found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.kernel.repository.model.FileEntrySoap moveFileEntryFromTrash(
+		long fileEntryId, long newFolderId,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws RemoteException {
+		try {
+			com.liferay.portal.kernel.repository.model.FileEntry returnValue = DLAppServiceUtil.moveFileEntryFromTrash(fileEntryId,
+					newFolderId, serviceContext);
+
+			return com.liferay.portal.kernel.repository.model.FileEntrySoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
 	* Moves the file entry with the primary key to the trash portlet.
 	*
 	* @param fileEntryId the primary key of the file entry
+	* @return the file entry
 	* @throws PortalException if the file entry could not be found
 	* @throws SystemException if a system exception occurred
 	*/
@@ -1966,9 +2033,39 @@ public class DLAppServiceSoap {
 	}
 
 	/**
+	* Moves the file shortcut from a trashed folder to the new folder.
+	*
+	* @param fileShortcutId the primary key of the file shortcut
+	* @param newFolderId the primary key of the new folder
+	* @param serviceContext the service context to be applied
+	* @return the file shortcut
+	* @throws PortalException if the file entry or the new folder could not be
+	found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.documentlibrary.model.DLFileShortcutSoap moveFileShortcutFromTrash(
+		long fileShortcutId, long newFolderId,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws RemoteException {
+		try {
+			com.liferay.portlet.documentlibrary.model.DLFileShortcut returnValue =
+				DLAppServiceUtil.moveFileShortcutFromTrash(fileShortcutId,
+					newFolderId, serviceContext);
+
+			return com.liferay.portlet.documentlibrary.model.DLFileShortcutSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
 	* Moves the file shortcut with the primary key to the trash portlet.
 	*
 	* @param fileShortcutId the primary key of the file shortcut
+	* @return the file shortcut
 	* @throws PortalException if the file shortcut could not be found
 	* @throws SystemException if a system exception occurred
 	*/
@@ -2015,9 +2112,38 @@ public class DLAppServiceSoap {
 	}
 
 	/**
+	* Moves the folder with the primary key from the trash portlet to the new
+	* parent folder with the primary key.
+	*
+	* @param folderId the primary key of the folder
+	* @param parentFolderId the primary key of the new parent folder
+	* @param serviceContext the service context to be applied
+	* @return the file entry
+	* @throws PortalException if the folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.kernel.repository.model.FolderSoap moveFolderFromTrash(
+		long folderId, long parentFolderId,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws RemoteException {
+		try {
+			com.liferay.portal.kernel.repository.model.Folder returnValue = DLAppServiceUtil.moveFolderFromTrash(folderId,
+					parentFolderId, serviceContext);
+
+			return com.liferay.portal.kernel.repository.model.FolderSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
 	* Moves the folder with the primary key to the trash portlet.
 	*
 	* @param folderId the primary key of the folder
+	* @return the file entry
 	* @throws PortalException if the folder could not be found
 	* @throws SystemException if a system exception occurred
 	*/
@@ -2117,6 +2243,55 @@ public class DLAppServiceSoap {
 		}
 	}
 
+	/**
+	* Subscribe the user to changes in documents of the file entry type. This
+	* method is only supported by the Liferay repository.
+	*
+	* @param groupId the primary key of the file entry type's group
+	* @param fileEntryTypeId the primary key of the file entry type
+	* @throws PortalException if the user or group could not be found, or if
+	subscribing was not permissible
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void subscribeFileEntryType(long groupId, long fileEntryTypeId)
+		throws RemoteException {
+		try {
+			DLAppServiceUtil.subscribeFileEntryType(groupId, fileEntryTypeId);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
+	* Subscribe the user to document changes in the folder. This method is only
+	* supported by the Liferay repository.
+	*
+	* @param groupId the primary key of the folder's group
+	* @param folderId the primary key of the folder
+	* @throws PortalException if the user or group could not be found, or if
+	subscribing was not permissible
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void subscribeFolder(long groupId, long folderId)
+		throws RemoteException {
+		try {
+			DLAppServiceUtil.subscribeFolder(groupId, folderId);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
+	boolean, String, ServiceContext)}.
+	*/
+	@Deprecated
 	public static void unlockFileEntry(long fileEntryId)
 		throws RemoteException {
 		try {
@@ -2129,6 +2304,11 @@ public class DLAppServiceSoap {
 		}
 	}
 
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
+	String)}.
+	*/
+	@Deprecated
 	public static void unlockFileEntry(long fileEntryId,
 		java.lang.String lockUuid) throws RemoteException {
 		try {
@@ -2146,7 +2326,7 @@ public class DLAppServiceSoap {
 	*
 	* @param repositoryId the primary key of the repository
 	* @param folderId the primary key of the folder
-	* @param lockUuid the lock's universally unique identifier
+	* @param lockUuid the lock's UUID
 	* @throws PortalException if the repository or folder could not be found
 	* @throws SystemException if a system exception occurred
 	*/
@@ -2168,7 +2348,7 @@ public class DLAppServiceSoap {
 	* @param repositoryId the primary key of the repository
 	* @param parentFolderId the primary key of the parent folder
 	* @param name the folder's name
-	* @param lockUuid the lock's universally unique identifier
+	* @param lockUuid the lock's UUID
 	* @throws PortalException if the repository or folder could not be found
 	* @throws SystemException if a system exception occurred
 	*/
@@ -2178,6 +2358,50 @@ public class DLAppServiceSoap {
 		try {
 			DLAppServiceUtil.unlockFolder(repositoryId, parentFolderId, name,
 				lockUuid);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
+	* Unsubscribe the user from changes in documents of the file entry type.
+	* This method is only supported by the Liferay repository.
+	*
+	* @param groupId the primary key of the file entry type's group
+	* @param fileEntryTypeId the primary key of the file entry type
+	* @throws PortalException if the user or group could not be found, or if
+	unsubscribing was not permissible
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void unsubscribeFileEntryType(long groupId,
+		long fileEntryTypeId) throws RemoteException {
+		try {
+			DLAppServiceUtil.unsubscribeFileEntryType(groupId, fileEntryTypeId);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
+	* Unsubscribe the user from document changes in the folder. This method is
+	* only supported by the Liferay repository.
+	*
+	* @param groupId the primary key of the folder's group
+	* @param folderId the primary key of the folder
+	* @throws PortalException if the user or group could not be found, or if
+	unsubscribing was not permissible
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void unsubscribeFolder(long groupId, long folderId)
+		throws RemoteException {
+		try {
+			DLAppServiceUtil.unsubscribeFolder(groupId, folderId);
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -2284,15 +2508,15 @@ public class DLAppServiceSoap {
 	* @param serviceContext the service context to be applied. In a Liferay
 	repository, it may include:  <ul> <li> defaultFileEntryTypeId -
 	the file entry type to default all Liferay file entries to </li>
-	<li> fileEntryTypeSearchContainerPrimaryKeys - a comma-delimited
-	list of file entry type primary keys allowed in the given folder
-	and all descendants </li> <li> overrideFileEntryTypes - boolean
-	specifying whether to override ancestral folder's restriction of
-	file entry types allowed </li> <li> workflowDefinitionXYZ - the
-	workflow definition name specified per file entry type. The
-	parameter name must be the string <code>workflowDefinition</code>
-	appended by the <code>fileEntryTypeId</code> (optionally
-	<code>0</code>). </li> </ul>
+	<li> dlFileEntryTypesSearchContainerPrimaryKeys - a
+	comma-delimited list of file entry type primary keys allowed in
+	the given folder and all descendants </li> <li>
+	overrideFileEntryTypes - boolean specifying whether to override
+	ancestral folder's restriction of file entry types allowed </li>
+	<li> workflowDefinitionXYZ - the workflow definition name
+	specified per file entry type. The parameter name must be the
+	string <code>workflowDefinition</code> appended by the <code>
+	fileEntryTypeId</code> (optionally <code>0</code>). </li> </ul>
 	* @return the folder
 	* @throws PortalException if the current or new parent folder could not be
 	found or if the new parent folder's information was invalid
@@ -2321,7 +2545,7 @@ public class DLAppServiceSoap {
 	*
 	* @param repositoryId the primary key for the repository
 	* @param fileEntryId the primary key for the file entry
-	* @param lockUuid the lock's universally unique identifier
+	* @param lockUuid the lock's UUID
 	* @return <code>true</code> if the file entry is checked out;
 	<code>false</code> otherwise
 	* @throws PortalException if the file entry could not be found
@@ -2363,7 +2587,7 @@ public class DLAppServiceSoap {
 	*
 	* @param repositoryId the primary key for the repository
 	* @param folderId the primary key for the folder
-	* @param lockUuid the lock's universally unique identifier
+	* @param lockUuid the lock's UUID
 	* @return <code>true</code> if the inheritable lock exists;
 	<code>false</code> otherwise
 	* @throws PortalException if the folder could not be found

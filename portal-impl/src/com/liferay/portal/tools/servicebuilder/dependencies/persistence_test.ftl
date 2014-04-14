@@ -22,39 +22,73 @@ import ${packagePath}.model.impl.${entity.name}ModelImpl;
 
 import ${beanLocatorUtil};
 import com.liferay.portal.kernel.dao.jdbc.OutputBlob;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
+import com.liferay.portal.kernel.test.AssertUtils;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.AssertUtils;
-import com.liferay.portal.test.EnvironmentConfigTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.EnvironmentExecutionTestListener;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
 import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+import java.io.Serializable;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.Test;
 
 @ExecutionTestListeners(listeners = {PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ${entity.name}PersistenceTest {
 
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (${entity.name}Persistence)${beanLocatorUtilShortName}.locate(${entity.name}Persistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey + " was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -186,7 +220,7 @@ public class ${entity.name}PersistenceTest {
 			</#if>
 		</#list>
 
-		_persistence.update(new${entity.name}, false);
+		_persistence.update(new${entity.name});
 
 		${entity.name} existing${entity.name} = _persistence.findByPrimaryKey(new${entity.name}.getPrimaryKey());
 
@@ -204,6 +238,158 @@ public class ${entity.name}PersistenceTest {
 			</#if>
 		</#list>
 	}
+
+	<#list entity.getFinderList() as finder>
+		@Test
+		public void testCountBy${finder.name}() {
+			try {
+				_persistence.countBy${finder.name}(
+
+				<#assign hasString = false>
+
+				<#list finder.getColumns() as finderCol>
+					<#if finderCol.type == "boolean">
+						ServiceTestUtil.randomBoolean()
+					<#elseif finderCol.type == "double">
+						ServiceTestUtil.nextDouble()
+					<#elseif finderCol.type == "int">
+						ServiceTestUtil.nextInt()
+					<#elseif finderCol.type == "long">
+						ServiceTestUtil.nextLong()
+					<#elseif finderCol.type == "Date">
+						ServiceTestUtil.nextDate()
+					<#elseif finderCol.type == "String">
+						<#assign hasString = true>
+
+						StringPool.BLANK
+					<#else>
+						(${finderCol.type})null
+					</#if>
+
+					<#if finderCol_has_next >
+						,
+					</#if>
+				</#list>
+
+				);
+
+				<#if hasString>
+					_persistence.countBy${finder.name}(
+
+						<#list finder.getColumns() as finderCol>
+							<#if finderCol.type == "boolean">
+								ServiceTestUtil.randomBoolean()
+							<#elseif finderCol.type == "double">
+								0D
+							<#elseif finderCol.type == "int">
+								0
+							<#elseif finderCol.type == "long">
+								0L
+							<#elseif finderCol.type == "Date">
+								ServiceTestUtil.nextDate()
+							<#elseif finderCol.type == "String">
+								StringPool.NULL
+							<#else>
+								(${finderCol.type})null
+							</#if>
+
+							<#if finderCol_has_next >
+								,
+							</#if>
+						</#list>
+
+					);
+				</#if>
+
+				_persistence.countBy${finder.name}(
+
+					<#list finder.getColumns() as finderCol>
+						<#if finderCol.type == "boolean">
+							ServiceTestUtil.randomBoolean()
+						<#elseif finderCol.type == "double">
+							0D
+						<#elseif finderCol.type == "int">
+							0
+						<#elseif finderCol.type == "long">
+							0L
+						<#elseif finderCol.type == "Date">
+							ServiceTestUtil.nextDate()
+						<#else>
+							(${finderCol.type})null
+						</#if>
+
+						<#if finderCol_has_next >
+							,
+						</#if>
+					</#list>
+
+				);
+			}
+			catch (Exception e) {
+				Assert.fail(e.getMessage());
+			}
+		}
+
+		<#if finder.hasArrayableOperator()>
+			@Test
+			public void testCountBy${finder.name}Arrayable() {
+				try {
+					_persistence.countBy${finder.name}(
+
+					<#list finder.getColumns() as finderCol>
+						<#if finderCol.hasArrayableOperator()>
+							new ${finderCol.type}[]{
+
+							<#if finderCol.type == "boolean">
+								ServiceTestUtil.randomBoolean()
+							<#elseif finderCol.type == "double">
+								ServiceTestUtil.nextDouble(), 0D
+							<#elseif finderCol.type == "int">
+								ServiceTestUtil.nextInt(), 0
+							<#elseif finderCol.type == "long">
+								ServiceTestUtil.nextLong(), 0L
+							<#elseif finderCol.type == "Date">
+								ServiceTestUtil.nextDate(), null
+							<#elseif finderCol.type == "String">
+								ServiceTestUtil.randomString(), StringPool.BLANK, StringPool.NULL, null, null
+							<#else>
+								null
+							</#if>
+						<#else>
+							<#if finderCol.type == "boolean">
+								ServiceTestUtil.randomBoolean()
+							<#elseif finderCol.type == "double">
+								ServiceTestUtil.nextDouble()
+							<#elseif finderCol.type == "int">
+								ServiceTestUtil.nextInt()
+							<#elseif finderCol.type == "long">
+								ServiceTestUtil.nextLong()
+							<#elseif finderCol.type == "Date">
+								ServiceTestUtil.nextDate()
+							<#elseif finderCol.type == "String">
+								ServiceTestUtil.randomString()
+							<#else>
+								null
+							</#if>
+						</#if>
+
+						<#if finderCol.hasArrayableOperator()>
+							}
+						</#if>
+
+						<#if finderCol_has_next>
+							,
+						</#if>
+					</#list>
+
+					);
+				}
+				catch (Exception e) {
+					Assert.fail(e.getMessage());
+				}
+			}
+		</#if>
+	</#list>
 
 	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
@@ -259,6 +445,51 @@ public class ${entity.name}PersistenceTest {
 		}
 	}
 
+	<#if !entity.hasCompoundPK()>
+		@Test
+		public void testFindAll() throws Exception {
+			try {
+				_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS, getOrderByComparator());
+			}
+			catch (Exception e) {
+				Assert.fail(e.getMessage());
+			}
+		}
+
+		<#list entity.getFinderList() as finder>
+			<#if (finder.name == "GroupId") && entity.isPermissionCheckEnabled(finder)>
+				@Test
+				public void testFilterFindByGroupId() throws Exception {
+					try {
+						_persistence.filterFindByGroupId(0, QueryUtil.ALL_POS, QueryUtil.ALL_POS, getOrderByComparator());
+					}
+					catch (Exception e) {
+						Assert.fail(e.getMessage());
+					}
+				}
+
+				<#break>
+			</#if>
+		</#list>
+
+		protected OrderByComparator getOrderByComparator() {
+			return OrderByComparatorFactoryUtil.create(
+				"${entity.table}",
+
+				<#list entity.regularColList as column>
+					<#if column.type != "Blob">
+						"${column.name}", true
+
+						<#if column_has_next>
+							,
+						</#if>
+					</#if>
+				</#list>
+
+				);
+		}
+	</#if>
+
 	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		${entity.name} new${entity.name} = add${entity.name}();
@@ -308,6 +539,30 @@ public class ${entity.name}PersistenceTest {
 
 		Assert.assertNull(missing${entity.name});
 	}
+
+	<#if entity.hasActionableDynamicQuery()>
+		@Test
+		public void testActionableDynamicQuery() throws Exception {
+			final IntegerWrapper count = new IntegerWrapper();
+
+			ActionableDynamicQuery actionableDynamicQuery = new ${entity.name}ActionableDynamicQuery() {
+
+				@Override
+				protected void performAction(Object object) {
+					${entity.name} ${entity.varName} = (${entity.name})object;
+
+					Assert.assertNotNull(${entity.varName});
+
+					count.increment();
+				}
+
+			};
+
+			actionableDynamicQuery.performActions();
+
+			Assert.assertEquals(count.getValue(), _persistence.countAll());
+		}
+	</#if>
 
 	@Test
 	public void testDynamicQueryByPrimaryKeyExisting() throws Exception {
@@ -533,7 +788,7 @@ public class ${entity.name}PersistenceTest {
 			</#if>
 		</#list>
 
-		_persistence.update(${entity.varName}, false);
+		_persistence.update(${entity.varName});
 
 		return ${entity.varName};
 	}
@@ -575,7 +830,7 @@ public class ${entity.name}PersistenceTest {
 
 			parent${entity.name}.setParent${pkColumn.methodName}(root${entity.name}.get${pkColumn.methodName}());
 
-			_persistence.update(parent${entity.name}, false);
+			_persistence.update(parent${entity.name});
 
 			root${entity.name} = _persistence.fetchByPrimaryKey(root${entity.name}.getPrimaryKey());
 			child${entity.name} = _persistence.fetchByPrimaryKey(child${entity.name}.getPrimaryKey());
@@ -605,7 +860,7 @@ public class ${entity.name}PersistenceTest {
 
 			parent${entity.name}.setParent${pkColumn.methodName}(root${entity.name}.get${pkColumn.methodName}());
 
-			_persistence.update(parent${entity.name}, false);
+			_persistence.update(parent${entity.name});
 
 			root${entity.name} = _persistence.fetchByPrimaryKey(root${entity.name}.getPrimaryKey());
 			child${entity.name} = _persistence.fetchByPrimaryKey(child${entity.name}.getPrimaryKey());
@@ -643,7 +898,7 @@ public class ${entity.name}PersistenceTest {
 
 			parent${entity.name}.setParent${pkColumn.methodName}(rightRootChild${entity.name}.get${pkColumn.methodName}());
 
-			_persistence.update(parent${entity.name}, false);
+			_persistence.update(parent${entity.name});
 
 			root${entity.name} = _persistence.fetchByPrimaryKey(root${entity.name}.getPrimaryKey());
 			leftRootChild${entity.name} = _persistence.fetchByPrimaryKey(leftRootChild${entity.name}.getPrimaryKey());
@@ -687,7 +942,7 @@ public class ${entity.name}PersistenceTest {
 
 			parent${entity.name}.setParent${pkColumn.methodName}(leftRootChild${entity.name}.get${pkColumn.methodName}());
 
-			_persistence.update(parent${entity.name}, false);
+			_persistence.update(parent${entity.name});
 
 			root${entity.name} = _persistence.fetchByPrimaryKey(root${entity.name}.getPrimaryKey());
 			leftRootChild${entity.name} = _persistence.fetchByPrimaryKey(leftRootChild${entity.name}.getPrimaryKey());
@@ -783,12 +1038,15 @@ public class ${entity.name}PersistenceTest {
 				${entity.varName}.setParent${pkColumn.methodName}(parent${pkColumn.methodName});
 			}
 
-			_persistence.update(${entity.varName}, false);
+			_persistence.update(${entity.varName});
 
 			return ${entity.varName};
 		}
 	</#if>
 
-	private ${entity.name}Persistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(${entity.name}PersistenceTest.class);
+
+	private ${entity.name}Persistence _persistence = (${entity.name}Persistence)${beanLocatorUtilShortName}.locate(${entity.name}Persistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)${beanLocatorUtilShortName}.locate(TransactionalPersistenceAdvice.class.getName());
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,18 +15,14 @@
 package com.liferay.portal.language;
 
 import com.liferay.portal.kernel.util.PropertiesUtil;
-import com.liferay.portal.kernel.util.ResourceBundleThreadLocal;
-import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.MissingResourceException;
-import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -36,16 +32,6 @@ import java.util.Set;
  * @author Brian Wing Shun Chan
  */
 public class LiferayResourceBundle extends ResourceBundle {
-
-	public LiferayResourceBundle(String string, String charsetName)
-		throws IOException {
-
-		_map = new HashMap<String, String>();
-
-		Properties properties = PropertiesUtil.load(string, charsetName);
-
-		LanguageResources.fixValues(_map, properties);
-	}
 
 	public LiferayResourceBundle(InputStream inputStream, String charsetName)
 		throws IOException {
@@ -67,55 +53,23 @@ public class LiferayResourceBundle extends ResourceBundle {
 		LanguageResources.fixValues(_map, properties);
 	}
 
+	public LiferayResourceBundle(String string) throws IOException {
+		_map = new HashMap<String, String>();
+
+		Properties properties = PropertiesUtil.load(string);
+
+		LanguageResources.fixValues(_map, properties);
+	}
+
 	@Override
 	public Enumeration<String> getKeys() {
-		final Set<String> keys = _map.keySet();
+		Set<String> keys = _map.keySet();
 
-		final Enumeration<String> parentKeys =
-			(parent == null) ? null : parent.getKeys();
+		if (parent == null) {
+			return Collections.enumeration(keys);
+		}
 
-		final Iterator<String> itr = keys.iterator();
-
-		return new Enumeration<String>() {
-			String next = null;
-
-			public boolean hasMoreElements() {
-				if (next == null) {
-					if (itr.hasNext()) {
-						next = itr.next();
-					}
-					else if (parentKeys != null) {
-						while ((next == null) && parentKeys.hasMoreElements()) {
-							next = parentKeys.nextElement();
-
-							if (keys.contains(next)) {
-								next = null;
-							}
-						}
-					}
-				}
-
-				if (next != null) {
-					return true;
-				}
-				else {
-					return false;
-				}
-			}
-
-			public String nextElement() {
-				if (hasMoreElements()) {
-					String result = next;
-
-					next = null;
-
-					return result;
-				}
-				else {
-					throw new NoSuchElementException();
-				}
-			}
-		};
+		return new ResourceBundleEnumeration(keys, parent.getKeys());
 	}
 
 	@Override
@@ -124,23 +78,12 @@ public class LiferayResourceBundle extends ResourceBundle {
 			throw new NullPointerException();
 		}
 
-		String value = _map.get(key);
+		return _map.get(key);
+	}
 
-		if ((value == null) && ResourceBundleThreadLocal.isReplace()) {
-			if (parent != null) {
-				try {
-					value = parent.getString(key);
-				}
-				catch (MissingResourceException mre) {
-				}
-			}
-
-			if (value == null) {
-				value = ResourceBundleUtil.NULL_VALUE;
-			}
-		}
-
-		return value;
+	@Override
+	protected Set<String> handleKeySet() {
+		return _map.keySet();
 	}
 
 	private Map<String, String> _map;

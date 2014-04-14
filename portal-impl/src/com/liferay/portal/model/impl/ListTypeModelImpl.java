@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -57,11 +57,12 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 	 */
 	public static final String TABLE_NAME = "ListType";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "listTypeId", Types.INTEGER },
 			{ "name", Types.VARCHAR },
 			{ "type_", Types.VARCHAR }
 		};
-	public static final String TABLE_SQL_CREATE = "create table ListType (listTypeId INTEGER not null primary key,name VARCHAR(75) null,type_ VARCHAR(75) null)";
+	public static final String TABLE_SQL_CREATE = "create table ListType (mvccVersion LONG default 0,listTypeId INTEGER not null primary key,name VARCHAR(75) null,type_ VARCHAR(75) null)";
 	public static final String TABLE_SQL_DROP = "drop table ListType";
 	public static final String ORDER_BY_JPQL = " ORDER BY listType.name ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY ListType.name ASC";
@@ -78,6 +79,7 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 				"value.object.column.bitmask.enabled.com.liferay.portal.model.ListType"),
 			true);
 	public static long TYPE_COLUMN_BITMASK = 1L;
+	public static long NAME_COLUMN_BITMASK = 2L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -86,8 +88,13 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 	 * @return the normal model instance
 	 */
 	public static ListType toModel(ListTypeSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		ListType model = new ListTypeImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setListTypeId(soapModel.getListTypeId());
 		model.setName(soapModel.getName());
 		model.setType(soapModel.getType());
@@ -102,6 +109,10 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 	 * @return the normal model instances
 	 */
 	public static List<ListType> toModels(ListTypeSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<ListType> models = new ArrayList<ListType>(soapModels.length);
 
 		for (ListTypeSoap soapModel : soapModels) {
@@ -117,26 +128,32 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 	public ListTypeModelImpl() {
 	}
 
+	@Override
 	public int getPrimaryKey() {
 		return _listTypeId;
 	}
 
+	@Override
 	public void setPrimaryKey(int primaryKey) {
 		setListTypeId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Integer(_listTypeId);
+		return _listTypeId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Integer)primaryKeyObj).intValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return ListType.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return ListType.class.getName();
 	}
@@ -145,15 +162,25 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("listTypeId", getListTypeId());
 		attributes.put("name", getName());
 		attributes.put("type", getType());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Integer listTypeId = (Integer)attributes.get("listTypeId");
 
 		if (listTypeId != null) {
@@ -174,15 +201,29 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 	}
 
 	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
 	public int getListTypeId() {
 		return _listTypeId;
 	}
 
+	@Override
 	public void setListTypeId(int listTypeId) {
 		_listTypeId = listTypeId;
 	}
 
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -192,6 +233,7 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 		}
 	}
 
+	@Override
 	public void setName(String name) {
 		_columnBitmask = -1L;
 
@@ -199,6 +241,7 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 	}
 
 	@JSON
+	@Override
 	public String getType() {
 		if (_type == null) {
 			return StringPool.BLANK;
@@ -208,6 +251,7 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 		}
 	}
 
+	@Override
 	public void setType(String type) {
 		_columnBitmask |= TYPE_COLUMN_BITMASK;
 
@@ -228,19 +272,19 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 
 	@Override
 	public ListType toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (ListType)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
+		if (_escapedModel == null) {
+			_escapedModel = (ListType)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
 		}
 
-		return _escapedModelProxy;
+		return _escapedModel;
 	}
 
 	@Override
 	public Object clone() {
 		ListTypeImpl listTypeImpl = new ListTypeImpl();
 
+		listTypeImpl.setMvccVersion(getMvccVersion());
 		listTypeImpl.setListTypeId(getListTypeId());
 		listTypeImpl.setName(getName());
 		listTypeImpl.setType(getType());
@@ -250,11 +294,11 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 		return listTypeImpl;
 	}
 
+	@Override
 	public int compareTo(ListType listType) {
 		int value = 0;
 
-		value = getName().toLowerCase()
-					.compareTo(listType.getName().toLowerCase());
+		value = getName().compareToIgnoreCase(listType.getName());
 
 		if (value != 0) {
 			return value;
@@ -265,18 +309,15 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ListType)) {
 			return false;
 		}
 
-		ListType listType = null;
-
-		try {
-			listType = (ListType)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		ListType listType = (ListType)obj;
 
 		int primaryKey = listType.getPrimaryKey();
 
@@ -294,6 +335,16 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		ListTypeModelImpl listTypeModelImpl = this;
 
@@ -305,6 +356,8 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 	@Override
 	public CacheModel<ListType> toCacheModel() {
 		ListTypeCacheModel listTypeCacheModel = new ListTypeCacheModel();
+
+		listTypeCacheModel.mvccVersion = getMvccVersion();
 
 		listTypeCacheModel.listTypeId = getListTypeId();
 
@@ -329,9 +382,11 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
+		StringBundler sb = new StringBundler(9);
 
-		sb.append("{listTypeId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", listTypeId=");
 		sb.append(getListTypeId());
 		sb.append(", name=");
 		sb.append(getName());
@@ -342,13 +397,18 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(13);
+		StringBundler sb = new StringBundler(16);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.ListType");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>listTypeId</column-name><column-value><![CDATA[");
 		sb.append(getListTypeId());
@@ -368,13 +428,14 @@ public class ListTypeModelImpl extends BaseModelImpl<ListType>
 	}
 
 	private static ClassLoader _classLoader = ListType.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			ListType.class
 		};
+	private long _mvccVersion;
 	private int _listTypeId;
 	private String _name;
 	private String _type;
 	private String _originalType;
 	private long _columnBitmask;
-	private ListType _escapedModelProxy;
+	private ListType _escapedModel;
 }

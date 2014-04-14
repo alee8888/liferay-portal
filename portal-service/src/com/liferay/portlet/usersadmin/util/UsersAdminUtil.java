@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,11 +14,13 @@
 
 package com.liferay.portlet.usersadmin.util;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.Hits;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.model.Address;
 import com.liferay.portal.model.EmailAddress;
 import com.liferay.portal.model.Group;
@@ -45,8 +47,13 @@ import javax.servlet.http.HttpServletRequest;
  * @author Jorge Ferrer
  * @author Julio Camarero
  */
+@ProviderType
 public class UsersAdminUtil {
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link UsersAdmin#CUSTOM_QUESTION}
+	 */
+	@Deprecated
 	public static final String CUSTOM_QUESTION = "write-my-own-question";
 
 	public static void addPortletBreadcrumbEntries(
@@ -98,6 +105,23 @@ public class UsersAdminUtil {
 		PermissionChecker permissionChecker, List<Role> roles) {
 
 		return getUsersAdmin().filterRoles(permissionChecker, roles);
+	}
+
+	public static long[] filterUnsetGroupUserIds(
+			PermissionChecker permissionChecker, long groupId, long[] userIds)
+		throws PortalException, SystemException {
+
+		return getUsersAdmin().filterUnsetGroupUserIds(
+			permissionChecker, groupId, userIds);
+	}
+
+	public static long[] filterUnsetOrganizationUserIds(
+			PermissionChecker permissionChecker, long organizationId,
+			long[] userIds)
+		throws PortalException, SystemException {
+
+		return getUsersAdmin().filterUnsetOrganizationUserIds(
+			permissionChecker, organizationId, userIds);
 	}
 
 	public static List<UserGroupRole> filterUserGroupRoles(
@@ -156,7 +180,7 @@ public class UsersAdminUtil {
 			orderByCol, orderByType);
 	}
 
-	public static Tuple getOrganizations(Hits hits)
+	public static List<Organization> getOrganizations(Hits hits)
 		throws PortalException, SystemException {
 
 		return getUsersAdmin().getOrganizations(hits);
@@ -197,6 +221,12 @@ public class UsersAdminUtil {
 		return getUsersAdmin().getUserGroupRoles(portletRequest);
 	}
 
+	public static List<UserGroup> getUserGroups(Hits hits)
+		throws PortalException, SystemException {
+
+		return getUsersAdmin().getUserGroups(hits);
+	}
+
 	public static OrderByComparator getUserOrderByComparator(
 		String orderByCol, String orderByType) {
 
@@ -204,13 +234,15 @@ public class UsersAdminUtil {
 			orderByCol, orderByType);
 	}
 
-	public static Tuple getUsers(Hits hits)
+	public static List<User> getUsers(Hits hits)
 		throws PortalException, SystemException {
 
 		return getUsersAdmin().getUsers(hits);
 	}
 
 	public static UsersAdmin getUsersAdmin() {
+		PortalRuntimePermission.checkGetBeanProperty(UsersAdminUtil.class);
+
 		return _usersAdmin;
 	}
 
@@ -224,6 +256,11 @@ public class UsersAdminUtil {
 		return getUsersAdmin().getWebsites(actionRequest, defaultWebsites);
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #hasUpdateFieldPermission(User, String)}
+	 */
+	@Deprecated
 	public static boolean hasUpdateEmailAddress(
 			PermissionChecker permissionChecker, User user)
 		throws PortalException, SystemException {
@@ -231,6 +268,17 @@ public class UsersAdminUtil {
 		return getUsersAdmin().hasUpdateEmailAddress(permissionChecker, user);
 	}
 
+	public static boolean hasUpdateFieldPermission(User user, String field)
+		throws PortalException, SystemException {
+
+		return getUsersAdmin().hasUpdateFieldPermission(user, field);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #hasUpdateFieldPermission(User, String)}
+	 */
+	@Deprecated
 	public static boolean hasUpdateScreenName(
 			PermissionChecker permissionChecker, User user)
 		throws PortalException, SystemException {
@@ -286,6 +334,8 @@ public class UsersAdminUtil {
 	}
 
 	public void setUsersAdmin(UsersAdmin usersAdmin) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_usersAdmin = usersAdmin;
 	}
 

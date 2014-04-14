@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,6 @@
 
 package com.liferay.portal.servlet.filters.etag;
 
-import com.liferay.portal.kernel.servlet.ByteBufferServletResponse;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -32,57 +31,14 @@ public class ETagUtil {
 
 	public static boolean processETag(
 		HttpServletRequest request, HttpServletResponse response,
-		byte[] bytes) {
+		ByteBuffer byteBuffer) {
 
-		return _processETag(
-			request, response, _hashCode(bytes, 0, bytes.length));
-	}
-
-	public static boolean processETag(
-		HttpServletRequest request, HttpServletResponse response, byte[] bytes,
-		int length) {
-
-		return _processETag(request, response, _hashCode(bytes, 0, length));
-	}
-
-	public static boolean processETag(
-		HttpServletRequest request, HttpServletResponse response, byte[] bytes,
-		int offset, int length) {
-
-		return _processETag(
-			request, response, _hashCode(bytes, offset, length));
-	}
-
-	public static boolean processETag(
-		HttpServletRequest request, HttpServletResponse response,
-		ByteBufferServletResponse byteBufferResponse) {
-
-		ByteBuffer byteBuffer = byteBufferResponse.getByteBuffer();
-
-		return processETag(
-			request, response, byteBuffer.array(), byteBuffer.position(),
-			byteBuffer.limit());
-	}
-
-	public static boolean processETag(
-		HttpServletRequest request, HttpServletResponse response, String s) {
-
-		return _processETag(request, response, s.hashCode());
-	}
-
-	private static int _hashCode(byte[] data, int offset, int length) {
-		int hashCode = 0;
-
-		for (int i = 0; i < length; i++) {
-			hashCode = 31 * hashCode + data[offset++];
+		if (response.isCommitted()) {
+			return false;
 		}
 
-		return hashCode;
-	}
-
-	private static boolean _processETag(
-		HttpServletRequest request, HttpServletResponse response,
-		int hashCode) {
+		int hashCode = _hashCode(
+			byteBuffer.array(), byteBuffer.position(), byteBuffer.limit());
 
 		String eTag = StringPool.QUOTE.concat(
 			StringUtil.toHexString(hashCode)).concat(StringPool.QUOTE);
@@ -100,6 +56,16 @@ public class ETagUtil {
 		else {
 			return false;
 		}
+	}
+
+	private static int _hashCode(byte[] data, int offset, int length) {
+		int hashCode = 0;
+
+		for (int i = 0; i < length; i++) {
+			hashCode = 31 * hashCode + data[offset++];
+		}
+
+		return hashCode;
 	}
 
 }

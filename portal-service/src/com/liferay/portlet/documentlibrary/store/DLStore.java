@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -123,6 +123,8 @@ public interface DLStore {
 			String versionLabel)
 		throws PortalException, SystemException;
 
+	public boolean isValidName(String name);
+
 	public void move(String srcDir, String destDir) throws SystemException;
 
 	public void updateFile(
@@ -176,5 +178,8 @@ public interface DLStore {
 			String fileName, String fileExtension, String sourceFileName,
 			boolean validateFileExtension, InputStream is)
 		throws PortalException, SystemException;
+
+	public void validateDirectoryName(String directoryName)
+		throws PortalException;
 
 }

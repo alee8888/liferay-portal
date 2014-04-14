@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,6 +22,8 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Country;
 import com.liferay.portal.model.Region;
@@ -66,7 +68,9 @@ public class OrganizationSearchTerms extends OrganizationDisplayTerms {
 			try {
 				Country country = CountryServiceUtil.getCountry(countryId);
 
-				countryName = country.getName().toLowerCase();
+				countryName = StringUtil.toLowerCase(country.getName());
+
+				countryName = StringUtil.quote(countryName, StringPool.QUOTE);
 			}
 			catch (NoSuchCountryException nsce) {
 				if (_log.isWarnEnabled()) {
@@ -94,7 +98,9 @@ public class OrganizationSearchTerms extends OrganizationDisplayTerms {
 			try {
 				Region region = RegionServiceUtil.getRegion(regionId);
 
-				regionName = region.getName().toLowerCase();
+				regionName = StringUtil.toLowerCase(region.getName());
+
+				regionName = StringUtil.quote(regionName, StringPool.QUOTE);
 			}
 			catch (NoSuchRegionException nsre) {
 				if (_log.isWarnEnabled()) {

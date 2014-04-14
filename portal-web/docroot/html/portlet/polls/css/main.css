@@ -1,17 +1,25 @@
 .portlet-polls {
-	.choice, .add-choice{
-		clear: both;
-		display: block;
-	}
-
 	.choice {
-		label {
-			float: left;
-			margin: 0.5em 0.5em 0 0;
+		margin-bottom: 30px;
+
+		&:after {
+			clear: both;
+			content: '';
+			display: block;
+			height: 0;
+			visibility: hidden;
 		}
 
-		.aui-field {
+		&.last-choice {
+			margin-bottom: 10px;
+		}
+
+		.btn-delete, .input-localized {
 			float: left;
+		}
+
+		.btn-delete {
+			margin-left: 10px;
 		}
 	}
 }

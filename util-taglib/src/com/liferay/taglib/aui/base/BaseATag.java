@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,6 +30,10 @@ public class BaseATag extends com.liferay.taglib.util.IncludeTag {
 		setAttributeNamespace(_ATTRIBUTE_NAMESPACE);
 
 		return super.doStartTag();
+	}
+
+	public java.lang.String getAriaRole() {
+		return _ariaRole;
 	}
 
 	public java.lang.String getCssClass() {
@@ -66,6 +70,12 @@ public class BaseATag extends com.liferay.taglib.util.IncludeTag {
 
 	public java.lang.String getTitle() {
 		return _title;
+	}
+
+	public void setAriaRole(java.lang.String ariaRole) {
+		_ariaRole = ariaRole;
+
+		setScopedAttribute("ariaRole", ariaRole);
 	}
 
 	public void setCssClass(java.lang.String cssClass) {
@@ -124,6 +134,7 @@ public class BaseATag extends com.liferay.taglib.util.IncludeTag {
 
 	@Override
 	protected void cleanUp() {
+		_ariaRole = null;
 		_cssClass = null;
 		_data = null;
 		_href = null;
@@ -153,6 +164,7 @@ public class BaseATag extends com.liferay.taglib.util.IncludeTag {
 	private static final String _START_PAGE =
 		"/html/taglib/aui/a/start.jsp";
 
+	private java.lang.String _ariaRole = null;
 	private java.lang.String _cssClass = null;
 	private java.util.Map<java.lang.String, java.lang.Object> _data = null;
 	private java.lang.String _href = null;

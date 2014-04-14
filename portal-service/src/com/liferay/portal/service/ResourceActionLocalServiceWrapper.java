@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
- * <p>
- * This class is a wrapper for {@link ResourceActionLocalService}.
- * </p>
+ * Provides a wrapper for {@link ResourceActionLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ResourceActionLocalService
+ * @author Brian Wing Shun Chan
+ * @see ResourceActionLocalService
  * @generated
  */
+@ProviderType
 public class ResourceActionLocalServiceWrapper
 	implements ResourceActionLocalService,
 		ServiceWrapper<ResourceActionLocalService> {
@@ -38,6 +39,7 @@ public class ResourceActionLocalServiceWrapper
 	* @return the resource action that was added
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.ResourceAction addResourceAction(
 		com.liferay.portal.model.ResourceAction resourceAction)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -50,6 +52,7 @@ public class ResourceActionLocalServiceWrapper
 	* @param resourceActionId the primary key for the new resource action
 	* @return the new resource action
 	*/
+	@Override
 	public com.liferay.portal.model.ResourceAction createResourceAction(
 		long resourceActionId) {
 		return _resourceActionLocalService.createResourceAction(resourceActionId);
@@ -63,6 +66,7 @@ public class ResourceActionLocalServiceWrapper
 	* @throws PortalException if a resource action with the primary key could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.ResourceAction deleteResourceAction(
 		long resourceActionId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -77,12 +81,14 @@ public class ResourceActionLocalServiceWrapper
 	* @return the resource action that was removed
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.ResourceAction deleteResourceAction(
 		com.liferay.portal.model.ResourceAction resourceAction)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _resourceActionLocalService.deleteResourceAction(resourceAction);
 	}
 
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _resourceActionLocalService.dynamicQuery();
 	}
@@ -94,6 +100,7 @@ public class ResourceActionLocalServiceWrapper
 	* @return the matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
@@ -105,7 +112,7 @@ public class ResourceActionLocalServiceWrapper
 	* Performs a dynamic query on the database and returns a range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.ResourceActionModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -114,6 +121,7 @@ public class ResourceActionLocalServiceWrapper
 	* @return the range of matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
@@ -125,7 +133,7 @@ public class ResourceActionLocalServiceWrapper
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.ResourceActionModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -135,6 +143,7 @@ public class ResourceActionLocalServiceWrapper
 	* @return the ordered range of matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
@@ -152,12 +161,31 @@ public class ResourceActionLocalServiceWrapper
 	* @return the number of rows that match the dynamic query
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _resourceActionLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _resourceActionLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
+	@Override
 	public com.liferay.portal.model.ResourceAction fetchResourceAction(
 		long resourceActionId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -172,6 +200,7 @@ public class ResourceActionLocalServiceWrapper
 	* @throws PortalException if a resource action with the primary key could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.ResourceAction getResourceAction(
 		long resourceActionId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -179,6 +208,7 @@ public class ResourceActionLocalServiceWrapper
 		return _resourceActionLocalService.getResourceAction(resourceActionId);
 	}
 
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -190,7 +220,7 @@ public class ResourceActionLocalServiceWrapper
 	* Returns a range of all the resource actions.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.ResourceActionModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of resource actions
@@ -198,6 +228,7 @@ public class ResourceActionLocalServiceWrapper
 	* @return the range of resource actions
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portal.model.ResourceAction> getResourceActions(
 		int start, int end)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -210,6 +241,7 @@ public class ResourceActionLocalServiceWrapper
 	* @return the number of resource actions
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public int getResourceActionsCount()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _resourceActionLocalService.getResourceActionsCount();
@@ -222,6 +254,7 @@ public class ResourceActionLocalServiceWrapper
 	* @return the resource action that was updated
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.ResourceAction updateResourceAction(
 		com.liferay.portal.model.ResourceAction resourceAction)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -229,25 +262,11 @@ public class ResourceActionLocalServiceWrapper
 	}
 
 	/**
-	* Updates the resource action in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param resourceAction the resource action
-	* @param merge whether to merge the resource action with the current session. See {@link com.liferay.portal.service.persistence.BatchSession#update(com.liferay.portal.kernel.dao.orm.Session, com.liferay.portal.model.BaseModel, boolean)} for an explanation.
-	* @return the resource action that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portal.model.ResourceAction updateResourceAction(
-		com.liferay.portal.model.ResourceAction resourceAction, boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _resourceActionLocalService.updateResourceAction(resourceAction,
-			merge);
-	}
-
-	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _resourceActionLocalService.getBeanIdentifier();
 	}
@@ -257,21 +276,25 @@ public class ResourceActionLocalServiceWrapper
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_resourceActionLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public void checkResourceActions()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_resourceActionLocalService.checkResourceActions();
 	}
 
+	@Override
 	public void checkResourceActions(java.lang.String name,
 		java.util.List<java.lang.String> actionIds)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_resourceActionLocalService.checkResourceActions(name, actionIds);
 	}
 
+	@Override
 	public void checkResourceActions(java.lang.String name,
 		java.util.List<java.lang.String> actionIds, boolean addDefaultActions)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -279,17 +302,20 @@ public class ResourceActionLocalServiceWrapper
 			addDefaultActions);
 	}
 
+	@Override
 	public com.liferay.portal.model.ResourceAction fetchResourceAction(
 		java.lang.String name, java.lang.String actionId) {
 		return _resourceActionLocalService.fetchResourceAction(name, actionId);
 	}
 
+	@Override
 	public com.liferay.portal.model.ResourceAction getResourceAction(
 		java.lang.String name, java.lang.String actionId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 		return _resourceActionLocalService.getResourceAction(name, actionId);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portal.model.ResourceAction> getResourceActions(
 		java.lang.String name)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -297,24 +323,28 @@ public class ResourceActionLocalServiceWrapper
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ResourceActionLocalService getWrappedResourceActionLocalService() {
 		return _resourceActionLocalService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedResourceActionLocalService(
 		ResourceActionLocalService resourceActionLocalService) {
 		_resourceActionLocalService = resourceActionLocalService;
 	}
 
+	@Override
 	public ResourceActionLocalService getWrappedService() {
 		return _resourceActionLocalService;
 	}
 
+	@Override
 	public void setWrappedService(
 		ResourceActionLocalService resourceActionLocalService) {
 		_resourceActionLocalService = resourceActionLocalService;

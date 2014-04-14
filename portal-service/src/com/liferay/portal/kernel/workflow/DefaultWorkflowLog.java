@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,50 +25,62 @@ import java.util.Date;
  */
 public class DefaultWorkflowLog implements Serializable, WorkflowLog {
 
+	@Override
 	public long getAuditUserId() {
 		return _auditUserId;
 	}
 
+	@Override
 	public String getComment() {
 		return _comment;
 	}
 
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
 
+	@Override
 	public long getPreviousRoleId() {
 		return _previousRoleId;
 	}
 
+	@Override
 	public String getPreviousState() {
 		return _previousState;
 	}
 
+	@Override
 	public long getPreviousUserId() {
 		return _previousUserId;
 	}
 
+	@Override
 	public long getRoleId() {
 		return _roleId;
 	}
 
+	@Override
 	public String getState() {
 		return _state;
 	}
 
+	@Override
 	public int getType() {
 		return _type;
 	}
 
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
 
+	@Override
 	public long getWorkflowLogId() {
 		return _workflowLogId;
 	}
 
+	@Override
 	public long getWorkflowTaskId() {
 		return _workflowTaskId;
 	}

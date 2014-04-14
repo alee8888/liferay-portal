@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,6 @@
 
 package com.liferay.portlet;
 
-import com.liferay.util.SerializableUtil;
-
 import java.io.Serializable;
 
 import javax.portlet.Event;
@@ -25,7 +23,7 @@ import javax.xml.namespace.QName;
 /**
  * @author Brian Wing Shun Chan
  */
-public class EventImpl implements Event {
+public class EventImpl implements Event, Serializable {
 
 	public EventImpl(String name, QName qName, Serializable value) {
 		_name = name;
@@ -33,29 +31,23 @@ public class EventImpl implements Event {
 		_value = value;
 	}
 
+	@Override
 	public String getName() {
 		return _name;
 	}
 
+	@Override
 	public QName getQName() {
 		return _qName;
 	}
 
-	public byte[] getSerializedValue() {
-		if (_serializedValue == null) {
-			_serializedValue = SerializableUtil.serialize(_value);
-		}
-
-		return _serializedValue;
-	}
-
+	@Override
 	public Serializable getValue() {
 		return _value;
 	}
 
 	private String _name;
 	private QName _qName;
-	private byte[] _serializedValue;
 	private Serializable _value;
 
 }

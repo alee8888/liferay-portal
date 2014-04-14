@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.expando.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link ExpandoValueService}.
- * </p>
+ * Provides a wrapper for {@link ExpandoValueService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ExpandoValueService
+ * @author Brian Wing Shun Chan
+ * @see ExpandoValueService
  * @generated
  */
+@ProviderType
 public class ExpandoValueServiceWrapper implements ExpandoValueService,
 	ServiceWrapper<ExpandoValueService> {
 	public ExpandoValueServiceWrapper(ExpandoValueService expandoValueService) {
@@ -36,6 +37,7 @@ public class ExpandoValueServiceWrapper implements ExpandoValueService,
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _expandoValueService.getBeanIdentifier();
 	}
@@ -45,10 +47,12 @@ public class ExpandoValueServiceWrapper implements ExpandoValueService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_expandoValueService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		long companyId, java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, java.lang.Object data)
@@ -58,6 +62,7 @@ public class ExpandoValueServiceWrapper implements ExpandoValueService,
 			columnName, classPK, data);
 	}
 
+	@Override
 	public com.liferay.portlet.expando.model.ExpandoValue addValue(
 		long companyId, java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK, java.lang.String data)
@@ -67,6 +72,7 @@ public class ExpandoValueServiceWrapper implements ExpandoValueService,
 			columnName, classPK, data);
 	}
 
+	@Override
 	public void addValues(long companyId, java.lang.String className,
 		java.lang.String tableName, long classPK,
 		java.util.Map<java.lang.String, java.io.Serializable> attributeValues)
@@ -76,6 +82,7 @@ public class ExpandoValueServiceWrapper implements ExpandoValueService,
 			classPK, attributeValues);
 	}
 
+	@Override
 	public java.util.Map<java.lang.String, java.io.Serializable> getData(
 		long companyId, java.lang.String className, java.lang.String tableName,
 		java.util.Collection<java.lang.String> columnNames, long classPK)
@@ -85,6 +92,7 @@ public class ExpandoValueServiceWrapper implements ExpandoValueService,
 			columnNames, classPK);
 	}
 
+	@Override
 	public java.io.Serializable getData(long companyId,
 		java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK)
@@ -94,6 +102,7 @@ public class ExpandoValueServiceWrapper implements ExpandoValueService,
 			columnName, classPK);
 	}
 
+	@Override
 	public com.liferay.portal.kernel.json.JSONObject getJSONData(
 		long companyId, java.lang.String className, java.lang.String tableName,
 		java.lang.String columnName, long classPK)
@@ -104,24 +113,28 @@ public class ExpandoValueServiceWrapper implements ExpandoValueService,
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ExpandoValueService getWrappedExpandoValueService() {
 		return _expandoValueService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedExpandoValueService(
 		ExpandoValueService expandoValueService) {
 		_expandoValueService = expandoValueService;
 	}
 
+	@Override
 	public ExpandoValueService getWrappedService() {
 		return _expandoValueService;
 	}
 
+	@Override
 	public void setWrappedService(ExpandoValueService expandoValueService) {
 		_expandoValueService = expandoValueService;
 	}

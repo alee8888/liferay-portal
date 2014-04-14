@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,14 +25,17 @@ public class TokenImpl implements Token {
 		_token = token;
 	}
 
+	@Override
 	public String getSecret() {
 		return _token.getSecret();
 	}
 
+	@Override
 	public String getToken() {
 		return _token.getToken();
 	}
 
+	@Override
 	public Object getWrappedToken() {
 		return _token;
 	}

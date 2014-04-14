@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,6 +18,8 @@ import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.trash.TrashRenderer;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.theme.ThemeDisplay;
@@ -29,9 +31,11 @@ import com.liferay.portlet.asset.model.BaseAssetRenderer;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.blogs.service.permission.BlogsEntryPermission;
 
+import java.util.Date;
 import java.util.Locale;
 
 import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
@@ -50,10 +54,12 @@ public class BlogsEntryAssetRenderer
 		_entry = entry;
 	}
 
-	public String getAssetRendererFactoryClassName() {
-		return BlogsEntryAssetRendererFactory.CLASS_NAME;
+	@Override
+	public String getClassName() {
+		return BlogsEntry.class.getName();
 	}
 
+	@Override
 	public long getClassPK() {
 		return _entry.getEntryId();
 	}
@@ -68,6 +74,12 @@ public class BlogsEntryAssetRenderer
 		}
 	}
 
+	@Override
+	public Date getDisplayDate() {
+		return _entry.getDisplayDate();
+	}
+
+	@Override
 	public long getGroupId() {
 		return _entry.getGroupId();
 	}
@@ -77,20 +89,44 @@ public class BlogsEntryAssetRenderer
 		return themeDisplay.getPathThemeImages() + "/blogs/blogs.png";
 	}
 
+	@Override
 	public String getPortletId() {
 		AssetRendererFactory assetRendererFactory = getAssetRendererFactory();
 
 		return assetRendererFactory.getPortletId();
 	}
 
-	public String getSummary(Locale locale) {
-		return HtmlUtil.stripHtml(_entry.getDescription());
+	@Override
+	public String getSummary(
+		PortletRequest portletRequest, PortletResponse portletResponse) {
+
+		String summary = _entry.getDescription();
+
+		if (Validator.isNull(summary)) {
+			summary = StringUtil.shorten(
+				HtmlUtil.stripHtml(_entry.getContent()), 200);
+		}
+
+		return summary;
 	}
 
+	@Override
+	public String getThumbnailPath(PortletRequest portletRequest)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		return themeDisplay.getPathThemeImages() +
+			"/file_system/large/blog.png";
+	}
+
+	@Override
 	public String getTitle(Locale locale) {
 		return _entry.getTitle();
 	}
 
+	@Override
 	public String getType() {
 		return BlogsEntryAssetRendererFactory.TYPE;
 	}
@@ -122,13 +158,14 @@ public class BlogsEntryAssetRenderer
 			WindowState windowState)
 		throws Exception {
 
-		PortletURL portletURL = liferayPortletResponse.createLiferayPortletURL(
-			PortletKeys.BLOGS, PortletRequest.RENDER_PHASE);
+		AssetRendererFactory assetRendererFactory = getAssetRendererFactory();
 
-		portletURL.setWindowState(windowState);
+		PortletURL portletURL = assetRendererFactory.getURLView(
+			liferayPortletResponse, windowState);
 
 		portletURL.setParameter("struts_action", "/blogs/view_entry");
 		portletURL.setParameter("entryId", String.valueOf(_entry.getEntryId()));
+		portletURL.setWindowState(windowState);
 
 		return portletURL;
 	}
@@ -144,14 +181,17 @@ public class BlogsEntryAssetRenderer
 			"entryId", _entry.getEntryId());
 	}
 
+	@Override
 	public long getUserId() {
 		return _entry.getUserId();
 	}
 
+	@Override
 	public String getUserName() {
 		return _entry.getUserName();
 	}
 
+	@Override
 	public String getUuid() {
 		return _entry.getUuid();
 	}
@@ -178,6 +218,7 @@ public class BlogsEntryAssetRenderer
 		return true;
 	}
 
+	@Override
 	public String render(
 			RenderRequest renderRequest, RenderResponse renderResponse,
 			String template)

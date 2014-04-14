@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,14 +22,15 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portal.service.http.RegionServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portal.service.http.RegionServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portal.service.http.RegionServiceSoap
  * @generated
  */
 public class RegionSoap implements Serializable {
 	public static RegionSoap toSoapModel(Region model) {
 		RegionSoap soapModel = new RegionSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setRegionId(model.getRegionId());
 		soapModel.setCountryId(model.getCountryId());
 		soapModel.setRegionCode(model.getRegionCode());
@@ -87,6 +88,14 @@ public class RegionSoap implements Serializable {
 		setRegionId(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public long getRegionId() {
 		return _regionId;
 	}
@@ -131,6 +140,7 @@ public class RegionSoap implements Serializable {
 		_active = active;
 	}
 
+	private long _mvccVersion;
 	private long _regionId;
 	private long _countryId;
 	private String _regionCode;

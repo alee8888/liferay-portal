@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.journal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -26,23 +28,11 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * <p>
- * This class provides a SOAP utility for the
+ * Provides the SOAP utility for the
  * {@link com.liferay.portlet.journal.service.JournalTemplateServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it is difficult for SOAP to
  * support certain types.
- * </p>
- *
- * <p>
- * ServiceBuilder follows certain rules in translating the methods. For example,
- * if the method in the service utility returns a {@link java.util.List}, that
- * is translated to an array of {@link com.liferay.portlet.journal.model.JournalTemplateSoap}.
- * If the method in the service utility returns a
- * {@link com.liferay.portlet.journal.model.JournalTemplate}, that is translated to a
- * {@link com.liferay.portlet.journal.model.JournalTemplateSoap}. Methods that SOAP cannot
- * safely wire are skipped.
- * </p>
  *
  * <p>
  * The benefits of using the SOAP utility is that it is cross platform
@@ -52,9 +42,8 @@ import java.util.Map;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -62,12 +51,15 @@ import java.util.Map;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalTemplateServiceHttp
- * @see       com.liferay.portlet.journal.model.JournalTemplateSoap
- * @see       com.liferay.portlet.journal.service.JournalTemplateServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see JournalTemplateServiceHttp
+ * @see com.liferay.portlet.journal.service.JournalTemplateServiceUtil
+ * @deprecated As of 6.2.0, since Web Content Administration now uses the
+            Dynamic Data Mapping framework to handle templates
  * @generated
  */
+@Deprecated
+@ProviderType
 public class JournalTemplateServiceSoap {
 	public static com.liferay.portlet.journal.model.JournalTemplateSoap addTemplate(
 		long groupId, java.lang.String templateId, boolean autoTemplateId,
@@ -148,6 +140,22 @@ public class JournalTemplateServiceSoap {
 		try {
 			com.liferay.portlet.journal.model.JournalTemplate returnValue = JournalTemplateServiceUtil.getTemplate(groupId,
 					templateId);
+
+			return com.liferay.portlet.journal.model.JournalTemplateSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.journal.model.JournalTemplateSoap getTemplate(
+		long groupId, java.lang.String templateId,
+		boolean includeGlobalTemplates) throws RemoteException {
+		try {
+			com.liferay.portlet.journal.model.JournalTemplate returnValue = JournalTemplateServiceUtil.getTemplate(groupId,
+					templateId, includeGlobalTemplates);
 
 			return com.liferay.portlet.journal.model.JournalTemplateSoap.toSoapModel(returnValue);
 		}

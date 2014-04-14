@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -56,17 +56,35 @@ public abstract class BaseSocialRequestInterpreter
 
 			String userDisplayURL = user.getDisplayURL(themeDisplay);
 
-			userName =
-				"<a href=\"" + userDisplayURL + "\">" +
-					HtmlUtil.escape(userName) + "</a>";
-
-			return userName;
+			return "<a href=\"" + userDisplayURL + "\">" +
+				HtmlUtil.escape(userName) + "</a>";
 		}
 		catch (Exception e) {
 			return StringPool.BLANK;
 		}
 	}
 
+	public String getUserNameLink(long userId, ThemeDisplay themeDisplay) {
+		try {
+			if (userId <= 0) {
+				return StringPool.BLANK;
+			}
+
+			User user = UserLocalServiceUtil.getUserById(userId);
+
+			String userName = user.getFullName();
+
+			String userDisplayURL = user.getDisplayURL(themeDisplay);
+
+			return "<a href=\"" + userDisplayURL + "\">" +
+				HtmlUtil.escape(userName) + "</a>";
+		}
+		catch (Exception e) {
+			return StringPool.BLANK;
+		}
+	}
+
+	@Override
 	public SocialRequestFeedEntry interpret(
 		SocialRequest request, ThemeDisplay themeDisplay) {
 
@@ -80,6 +98,7 @@ public abstract class BaseSocialRequestInterpreter
 		return null;
 	}
 
+	@Override
 	public boolean processConfirmation(
 		SocialRequest request, ThemeDisplay themeDisplay) {
 
@@ -106,7 +125,7 @@ public abstract class BaseSocialRequestInterpreter
 		for (SocialRequest curRequest : requests) {
 			curRequest.setStatus(newStatus);
 
-			SocialRequestUtil.update(curRequest, false);
+			SocialRequestUtil.update(curRequest);
 		}
 	}
 
@@ -123,10 +142,11 @@ public abstract class BaseSocialRequestInterpreter
 		for (SocialRequest curRequest : requests) {
 			curRequest.setStatus(newStatus);
 
-			SocialRequestUtil.update(curRequest, false);
+			SocialRequestUtil.update(curRequest);
 		}
 	}
 
+	@Override
 	public boolean processRejection(
 		SocialRequest request, ThemeDisplay themeDisplay) {
 

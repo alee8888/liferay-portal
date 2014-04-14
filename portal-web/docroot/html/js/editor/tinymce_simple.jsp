@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,6 +28,7 @@ if (Validator.isNotNull(onChangeMethod)) {
 	onChangeMethod = namespace + onChangeMethod;
 }
 
+boolean resizable = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:input-editor:resizable"));
 boolean skipEditorLoading = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:input-editor:skipEditorLoading"));
 %>
 
@@ -50,14 +51,14 @@ boolean skipEditorLoading = GetterUtil.getBoolean((String)request.getAttribute("
 	<textarea id="<%= name %>" name="<%= name %>" style="height: 100%; width: 100%;"></textarea>
 </div>
 
-<aui:script>
+<aui:script use="aui-node-base">
 	window['<%= name %>'] = {
 		onChangeCallbackCounter: 0,
 
 		destroy: function() {
 			tinyMCE.editors['<%= name %>'].destroy();
 
-			delete window['<%= name %>'];
+			window['<%= name %>'] = null;
 		},
 
 		focus: function() {
@@ -68,16 +69,22 @@ boolean skipEditorLoading = GetterUtil.getBoolean((String)request.getAttribute("
 		},
 
 		getHTML: function() {
-			return tinyMCE.editors['<%= name %>'].getContent();
+			var data;
+
+			if (!window['<%= name %>'].instanceReady && window['<%= HtmlUtil.escape(namespace + initMethod) %>']) {
+				data = <%= HtmlUtil.escape(namespace + initMethod) %>();
+			}
+			else {
+				data = tinyMCE.editors['<%= name %>'].getContent();
+			}
+
+			return data;
 		},
 
 		init: function(value) {
-			if (typeof value == 'string') {
-				value = decodeURIComponent(value);
+			if (typeof value != 'string') {
+				value = '';
 			}
-			 else {
-				 value = '';
-			 }
 
 			window['<%= name %>'].setHTML(value);
 		},
@@ -86,7 +93,23 @@ boolean skipEditorLoading = GetterUtil.getBoolean((String)request.getAttribute("
 			<c:if test="<%= Validator.isNotNull(initMethod) %>">
 				window['<%= name %>'].init(<%= HtmlUtil.escape(namespace + initMethod) %>());
 			</c:if>
+
+			var iframe = A.one('#<%= name %>_ifr');
+
+			if (iframe) {
+				var iframeWin = iframe.getDOM().contentWindow;
+
+				if (iframeWin) {
+					var iframeDoc = iframeWin.document.documentElement;
+
+					A.one(iframeDoc).addClass('aui');
+				}
+			}
+
+			window['<%= name %>'].instanceReady = true;
 		},
+
+		instanceReady: false,
 
 		<%
 		if (Validator.isNotNull(onChangeMethod)) {
@@ -108,11 +131,11 @@ boolean skipEditorLoading = GetterUtil.getBoolean((String)request.getAttribute("
 
 				if (onChangeCallbackCounter > 0) {
 
-					<%= HtmlUtil.escape(onChangeMethod) %>(window['<%= name %>'].getHTML());
+					<%= HtmlUtil.escapeJS(onChangeMethod) %>(window['<%= name %>'].getHTML());
 
 				}
 
-				onChangeCallbackCounter++;
+				window['<%= name %>'].onChangeCallbackCounter++;
 			},
 
 		<%
@@ -126,6 +149,7 @@ boolean skipEditorLoading = GetterUtil.getBoolean((String)request.getAttribute("
 
 	tinyMCE.init(
 		{
+			content_css: '<%= HtmlUtil.escapeJS(themeDisplay.getPathThemeCss()) %>/aui.css,<%= HtmlUtil.escapeJS(themeDisplay.getPathThemeCss()) %>/main.css',
 			convert_urls: false,
 			elements: '<%= name %>',
 			extended_valid_elements: 'a[name|href|target|title|onclick],img[class|src|border=0|alt|title|hspace|vspace|width|height|align|onmouseover|onmouseout|name|usemap],hr[class|width|size|noshade],font[face|size|color|style],span[class|align|style]',
@@ -153,6 +177,7 @@ boolean skipEditorLoading = GetterUtil.getBoolean((String)request.getAttribute("
 			theme_advanced_buttons2: '',
 			theme_advanced_buttons3: '',
 			theme_advanced_disable: 'formatselect,styleselect,help,strikethrough',
+			theme_advanced_resize_horizontal: '<%= resizable %>',
 			theme_advanced_toolbar_align: 'left',
 			theme_advanced_toolbar_location: 'top'
 		}

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,15 +30,25 @@ String layoutBreadcrumb = StringPool.BLANK;
 
 if (Validator.isNotNull(layoutUuid)) {
 	try {
-		selLayout = LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(layoutUuid, themeDisplay.getParentGroupId());
+		selLayout = LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(layoutUuid, themeDisplay.getSiteGroupId(), false);
 
 		layoutBreadcrumb = _getLayoutBreadcrumb(selLayout, locale);
 	}
 	catch (NoSuchLayoutException nsle) {
 	}
+
+	if (selLayout == null) {
+		try {
+			selLayout = LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(layoutUuid, themeDisplay.getSiteGroupId(), true);
+
+			layoutBreadcrumb = _getLayoutBreadcrumb(selLayout, locale);
+		}
+		catch (NoSuchLayoutException nsle) {
+		}
+	}
 }
 
-Group parentGroup = themeDisplay.getParentGroup();
+Group parentGroup = themeDisplay.getSiteGroup();
 %>
 
 <liferay-ui:error-marker key="errorSection" value="display-page" />
@@ -48,12 +58,12 @@ Group parentGroup = themeDisplay.getParentGroup();
 <div id="<portlet:namespace />pagesContainer">
 	<aui:input id="pagesContainerInput" name="layoutUuid" type="hidden" value="<%= layoutUuid %>" />
 
-	<div class="display-page-item-container aui-helper-hidden" id="<portlet:namespace />displayPageItemContainer">
+	<div class="display-page-item-container hide" id="<portlet:namespace />displayPageItemContainer">
 		<span class="display-page-item">
 			<span>
 				<span id="<portlet:namespace />displayPageNameInput"><%= layoutBreadcrumb %></span>
 
-				<span class="display-page-item-remove aui-icon aui-icon-close" id="<portlet:namespace />displayPageItemRemove" tabindex="0"></span>
+				<span class="display-page-item-remove icon icon-remove" id="<portlet:namespace />displayPageItemRemove" tabindex="0"></span>
 			</span>
 		</span>
 	</div>
@@ -77,7 +87,7 @@ Group parentGroup = themeDisplay.getParentGroup();
 			'</div>';
 
 			var TPL_TAB_VIEW = '<div id="<portlet:namespace />{pagesTabViewId}"></div>' +
-				'<div class="selected-page-message portlet-msg-alert" id="<portlet:namespace />selectedPageMessage">' +
+				'<div class="alert alert-block selected-page-message" id="<portlet:namespace />selectedPageMessage">' +
 					'<%= UnicodeLanguageUtil.get(pageContext, "there-is-no-selected-page") %>' +
 				'</div>';
 
@@ -106,8 +116,8 @@ Group parentGroup = themeDisplay.getParentGroup();
 
 			<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" var="treeUrlPublicPages">
 				<portlet:param name="struts_action" value="/journal/select_display_page" />
-				<portlet:param name="cmd" value="<%= ActionKeys.VIEW_TREE %>" />
-				<portlet:param name="groupId" value="<%= String.valueOf(themeDisplay.getParentGroupId()) %>" />
+				<portlet:param name="<%= Constants.CMD %>" value="<%= ActionKeys.VIEW_TREE %>" />
+				<portlet:param name="groupId" value="<%= String.valueOf(themeDisplay.getSiteGroupId()) %>" />
 
 				<c:if test="<%= selLayout != null && !selLayout.isPrivateLayout() %>">
 					<portlet:param name="selPlid" value="<%= String.valueOf(selLayout.getPlid()) %>" />
@@ -115,6 +125,7 @@ Group parentGroup = themeDisplay.getParentGroup();
 
 				<portlet:param name="treeId" value="treeContainerPublicPages" />
 				<portlet:param name="checkContentDisplayPage" value="<%= Boolean.TRUE.toString() %>" />
+				<portlet:param name="draggableTree" value="<%= Boolean.FALSE.toString() %>" />
 				<portlet:param name="expandFirstNode" value="<%= Boolean.TRUE.toString() %>" />
 				<portlet:param name="saveState" value="<%= Boolean.FALSE.toString() %>" />
 			</liferay-portlet:resourceURL>
@@ -123,7 +134,7 @@ Group parentGroup = themeDisplay.getParentGroup();
 				<portlet:param name="struts_action" value="/journal/select_display_page" />
 				<portlet:param name="<%= Constants.CMD %>" value="<%= ActionKeys.VIEW_TREE %>" />
 				<portlet:param name="tabs1" value="private-pages" />
-				<portlet:param name="groupId" value="<%= String.valueOf(themeDisplay.getParentGroupId()) %>" />
+				<portlet:param name="groupId" value="<%= String.valueOf(themeDisplay.getSiteGroupId()) %>" />
 
 				<c:if test="<%= selLayout != null && selLayout.isPrivateLayout() %>">
 					<portlet:param name="selPlid" value="<%= String.valueOf(selLayout.getPlid()) %>" />
@@ -150,7 +161,7 @@ Group parentGroup = themeDisplay.getParentGroup();
 				var cssClass = 'selected-page-message';
 
 				if (type) {
-					cssClass += ' portlet-msg-' + type;
+					cssClass += ' alert alert-' + type;
 				}
 
 				selectedNodeMessage.attr('className', cssClass);
@@ -189,40 +200,44 @@ Group parentGroup = themeDisplay.getParentGroup();
 						}
 					);
 
-					dialog = new A.Dialog(
+					dialog = Liferay.Util.Window.getWindow(
 						{
-							align: {
-								node: A.one('#portlet_<%= portletDisplay.getId() %>'),
-								points: ['tc', 'tc']
-							},
-							buttons: [
-								{
-									disabled: true,
-									handler: setDisplayPage,
-									label: '<%= UnicodeLanguageUtil.get(pageContext, "ok") %>'
+							dialog: {
+								align: {
+									node: A.one('#portlet_<%= portletDisplay.getId() %>'),
+									points: ['tc', 'tc']
 								},
-								{
-									handler: function(event) {
-										dialog.hide();
-									},
-									label: '<%= UnicodeLanguageUtil.get(pageContext, "cancel") %>'
+								bodyContent: bodyContent,
+								cssClass: 'display-page-dialog',
+								toolbars: {
+									footer: [
+										{
+											disabled: true,
+											on: {
+												click: setDisplayPage
+											},
+											label: '<%= UnicodeLanguageUtil.get(pageContext, "ok") %>'
+										},
+										{
+											on: {
+												click: function() {
+													dialog.hide();
+												}
+											},
+											label: '<%= UnicodeLanguageUtil.get(pageContext, "cancel") %>'
+										}
+									]
 								}
-							],
-							bodyContent: bodyContent,
-							cssClass: 'display-page-dialog',
-							resizable: false,
-							title: '<%= UnicodeLanguageUtil.get(pageContext, "choose-a-display-page") %>',
-							visible: false,
-							width: 450
+							},
+							title: '<%= UnicodeLanguageUtil.get(pageContext, "choose-a-display-page") %>'
 						}
-					).render();
+					);
 
 					selectedNodeMessage = A.one('#<portlet:namespace />selectedPageMessage');
 
 					var dialogButtons = dialog.buttons;
 
-					okButton = dialogButtons.item(0);
-					cancelButton = dialogButtons.item(1);
+					okButton = dialog.getToolbar('footer').item(0);
 
 					var tabs = [];
 
@@ -258,7 +273,7 @@ Group parentGroup = themeDisplay.getParentGroup();
 
 					tabView = new A.TabView(
 						{
-							items: tabs,
+							children: tabs,
 							contentBox: '#<portlet:namespace />' + pagesTabViewId
 						}
 					);
@@ -295,8 +310,8 @@ Group parentGroup = themeDisplay.getParentGroup();
 			var isPublicPagesTabSelected = function() {
 				var result = <%= parentGroup.getPublicLayoutsPageCount() > 0 %>;
 
-				if (tabView.get('items').length >= 2) {
-					var index = tabView.getTabIndex(tabView.get('activeTab'));
+				if (tabView.size() >= 2) {
+					var index = tabView.indexOf(tabView.get('selection'));
 
 					result = (index == 0);
 				}
@@ -417,6 +432,8 @@ Group parentGroup = themeDisplay.getParentGroup();
 
 			var onSelectDisplayPage = function(event) {
 				<c:if test="<%= (parentGroup.getPrivateLayoutsPageCount() > 0) || (parentGroup.getPublicLayoutsPageCount() > 0) %>">
+					event.domEvent.preventDefault();
+
 					getDialog().show();
 				</c:if>
 			};
@@ -429,7 +446,7 @@ Group parentGroup = themeDisplay.getParentGroup();
 				if (publicPages && treeViewPublic) {
 					tree = treeViewPublic;
 				}
-				else if (treeViewPrivate){
+				else if (treeViewPrivate) {
 					tree = treeViewPrivate;
 				}
 
@@ -503,10 +520,11 @@ Group parentGroup = themeDisplay.getParentGroup();
 								disabled: true,
 							</c:if>
 
-							icon: 'search',
-							id: '<portlet:namespace />chooseDisplayPage',
-							handler: onSelectDisplayPage,
-							label: '<%= UnicodeLanguageUtil.get(pageContext, "select") %>'
+							icon: 'icon-search',
+							label: '<%= UnicodeLanguageUtil.get(pageContext, "select") %>',
+							on: {
+								click: onSelectDisplayPage
+							}
 						}
 					]
 				}
@@ -527,7 +545,7 @@ Group parentGroup = themeDisplay.getParentGroup();
 				}
 			);
 		},
-		['aui-dialog', 'aui-io', 'aui-tabs', 'aui-tree']
+		['aui-io-plugin-deprecated', 'aui-io-request', 'aui-tabview', 'aui-tree', 'liferay-util-window']
 	);
 
 	<c:choose>
@@ -543,7 +561,14 @@ Group parentGroup = themeDisplay.getParentGroup();
 <c:if test="<%= (article != null) && Validator.isNotNull(layoutUuid) %>">
 
 	<%
-	Layout defaultDisplayLayout = LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(layoutUuid, scopeGroupId);
+	Layout defaultDisplayLayout = null;
+
+	try {
+		defaultDisplayLayout = LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(layoutUuid, scopeGroupId, false);
+	}
+	catch (NoSuchLayoutException nsle) {
+		defaultDisplayLayout = LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(layoutUuid, scopeGroupId, true);
+	}
 
 	defaultDisplayLayout = defaultDisplayLayout.toEscapedModel();
 
@@ -555,13 +580,15 @@ Group parentGroup = themeDisplay.getParentGroup();
 	%>
 
 	<c:if test="<%= Validator.isNotNull(urlViewInContext) %>">
-		<a href="<%= urlViewInContext %>" target="blank"><%= LanguageUtil.format(pageContext, "view-content-in-x", defaultDisplayLayout.getName(locale)) %></a>
+		<a href="<%= urlViewInContext %>" target="blank"><%= LanguageUtil.format(pageContext, "view-content-in-x", defaultDisplayLayout.getName(locale), false) %></a>
 	</c:if>
 </c:if>
 
 <%!
 private String _getLayoutBreadcrumb(Layout layout, Locale locale) throws Exception {
-	StringBundler sb = new StringBundler();
+	List<Layout> ancestors = layout.getAncestors();
+
+	StringBundler sb = new StringBundler(4 * ancestors.size() + 5);
 
 	layout = layout.toEscapedModel();
 
@@ -575,8 +602,6 @@ private String _getLayoutBreadcrumb(Layout layout, Locale locale) throws Excepti
 	sb.append(StringPool.SPACE);
 	sb.append(StringPool.GREATER_THAN);
 	sb.append(StringPool.SPACE);
-
-	List<Layout> ancestors = layout.getAncestors();
 
 	Collections.reverse(ancestors);
 

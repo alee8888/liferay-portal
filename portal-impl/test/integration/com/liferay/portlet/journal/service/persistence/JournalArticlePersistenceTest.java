@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,41 +15,73 @@
 package com.liferay.portlet.journal.service.persistence;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.AssertUtils;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.AssertUtils;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
 import com.liferay.portlet.journal.NoSuchArticleException;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.impl.JournalArticleModelImpl;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class JournalArticlePersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (JournalArticlePersistence)PortalBeanLocatorUtil.locate(JournalArticlePersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -107,6 +139,8 @@ public class JournalArticlePersistenceTest {
 
 		newJournalArticle.setClassPK(ServiceTestUtil.nextLong());
 
+		newJournalArticle.setTreePath(ServiceTestUtil.randomString());
+
 		newJournalArticle.setArticleId(ServiceTestUtil.randomString());
 
 		newJournalArticle.setVersion(ServiceTestUtil.nextDouble());
@@ -149,7 +183,7 @@ public class JournalArticlePersistenceTest {
 
 		newJournalArticle.setStatusDate(ServiceTestUtil.nextDate());
 
-		_persistence.update(newJournalArticle, false);
+		_persistence.update(newJournalArticle);
 
 		JournalArticle existingJournalArticle = _persistence.findByPrimaryKey(newJournalArticle.getPrimaryKey());
 
@@ -179,6 +213,8 @@ public class JournalArticlePersistenceTest {
 			newJournalArticle.getClassNameId());
 		Assert.assertEquals(existingJournalArticle.getClassPK(),
 			newJournalArticle.getClassPK());
+		Assert.assertEquals(existingJournalArticle.getTreePath(),
+			newJournalArticle.getTreePath());
 		Assert.assertEquals(existingJournalArticle.getArticleId(),
 			newJournalArticle.getArticleId());
 		AssertUtils.assertEquals(existingJournalArticle.getVersion(),
@@ -228,6 +264,558 @@ public class JournalArticlePersistenceTest {
 	}
 
 	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUUID_G() {
+		try {
+			_persistence.countByUUID_G(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUUID_G(StringPool.NULL, 0L);
+
+			_persistence.countByUUID_G((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByResourcePrimKey() {
+		try {
+			_persistence.countByResourcePrimKey(ServiceTestUtil.nextLong());
+
+			_persistence.countByResourcePrimKey(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByStructureId() {
+		try {
+			_persistence.countByStructureId(StringPool.BLANK);
+
+			_persistence.countByStructureId(StringPool.NULL);
+
+			_persistence.countByStructureId((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByStructureIdArrayable() {
+		try {
+			_persistence.countByStructureId(new String[] {
+					ServiceTestUtil.randomString(), StringPool.BLANK,
+					StringPool.NULL, null, null
+				});
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByTemplateId() {
+		try {
+			_persistence.countByTemplateId(StringPool.BLANK);
+
+			_persistence.countByTemplateId(StringPool.NULL);
+
+			_persistence.countByTemplateId((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByLayoutUuid() {
+		try {
+			_persistence.countByLayoutUuid(StringPool.BLANK);
+
+			_persistence.countByLayoutUuid(StringPool.NULL);
+
+			_persistence.countByLayoutUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountBySmallImageId() {
+		try {
+			_persistence.countBySmallImageId(ServiceTestUtil.nextLong());
+
+			_persistence.countBySmallImageId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByR_I() {
+		try {
+			_persistence.countByR_I(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomBoolean());
+
+			_persistence.countByR_I(0L, ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByR_ST() {
+		try {
+			_persistence.countByR_ST(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextInt());
+
+			_persistence.countByR_ST(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_U() {
+		try {
+			_persistence.countByG_U(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByG_U(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_F() {
+		try {
+			_persistence.countByG_F(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByG_F(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_FArrayable() {
+		try {
+			_persistence.countByG_F(ServiceTestUtil.nextLong(),
+				new long[] { ServiceTestUtil.nextLong(), 0L });
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_A() {
+		try {
+			_persistence.countByG_A(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByG_A(0L, StringPool.NULL);
+
+			_persistence.countByG_A(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_UT() {
+		try {
+			_persistence.countByG_UT(ServiceTestUtil.nextLong(),
+				StringPool.BLANK);
+
+			_persistence.countByG_UT(0L, StringPool.NULL);
+
+			_persistence.countByG_UT(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_S() {
+		try {
+			_persistence.countByG_S(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByG_S(0L, StringPool.NULL);
+
+			_persistence.countByG_S(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_T() {
+		try {
+			_persistence.countByG_T(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByG_T(0L, StringPool.NULL);
+
+			_persistence.countByG_T(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_L() {
+		try {
+			_persistence.countByG_L(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByG_L(0L, StringPool.NULL);
+
+			_persistence.countByG_L(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_ST() {
+		try {
+			_persistence.countByG_ST(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextInt());
+
+			_persistence.countByG_ST(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_V() {
+		try {
+			_persistence.countByC_V(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextDouble());
+
+			_persistence.countByC_V(0L, 0D);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_ST() {
+		try {
+			_persistence.countByC_ST(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextInt());
+
+			_persistence.countByC_ST(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_NotST() {
+		try {
+			_persistence.countByC_NotST(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextInt());
+
+			_persistence.countByC_NotST(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByLtD_S() {
+		try {
+			_persistence.countByLtD_S(ServiceTestUtil.nextDate(),
+				ServiceTestUtil.nextInt());
+
+			_persistence.countByLtD_S(ServiceTestUtil.nextDate(), 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByR_I_S() {
+		try {
+			_persistence.countByR_I_S(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomBoolean(), ServiceTestUtil.nextInt());
+
+			_persistence.countByR_I_S(0L, ServiceTestUtil.randomBoolean(), 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByR_I_SArrayable() {
+		try {
+			_persistence.countByR_I_S(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomBoolean(),
+				new int[] { ServiceTestUtil.nextInt(), 0 });
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_U_C() {
+		try {
+			_persistence.countByG_U_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+
+			_persistence.countByG_U_C(0L, 0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_F_ST() {
+		try {
+			_persistence.countByG_F_ST(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextInt());
+
+			_persistence.countByG_F_ST(0L, 0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_F_STArrayable() {
+		try {
+			_persistence.countByG_F_ST(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(),
+				new int[] { ServiceTestUtil.nextInt(), 0 });
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_C_C() {
+		try {
+			_persistence.countByG_C_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+
+			_persistence.countByG_C_C(0L, 0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_C_S() {
+		try {
+			_persistence.countByG_C_S(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByG_C_S(0L, 0L, StringPool.NULL);
+
+			_persistence.countByG_C_S(0L, 0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_C_T() {
+		try {
+			_persistence.countByG_C_T(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByG_C_T(0L, 0L, StringPool.NULL);
+
+			_persistence.countByG_C_T(0L, 0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_C_L() {
+		try {
+			_persistence.countByG_C_L(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByG_C_L(0L, 0L, StringPool.NULL);
+
+			_persistence.countByG_C_L(0L, 0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_A_V() {
+		try {
+			_persistence.countByG_A_V(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, ServiceTestUtil.nextDouble());
+
+			_persistence.countByG_A_V(0L, StringPool.NULL, 0D);
+
+			_persistence.countByG_A_V(0L, (String)null, 0D);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_A_ST() {
+		try {
+			_persistence.countByG_A_ST(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, ServiceTestUtil.nextInt());
+
+			_persistence.countByG_A_ST(0L, StringPool.NULL, 0);
+
+			_persistence.countByG_A_ST(0L, (String)null, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_A_STArrayable() {
+		try {
+			_persistence.countByG_A_ST(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomString(),
+				new int[] { ServiceTestUtil.nextInt(), 0 });
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_A_NotST() {
+		try {
+			_persistence.countByG_A_NotST(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, ServiceTestUtil.nextInt());
+
+			_persistence.countByG_A_NotST(0L, StringPool.NULL, 0);
+
+			_persistence.countByG_A_NotST(0L, (String)null, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_UT_ST() {
+		try {
+			_persistence.countByG_UT_ST(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, ServiceTestUtil.nextInt());
+
+			_persistence.countByG_UT_ST(0L, StringPool.NULL, 0);
+
+			_persistence.countByG_UT_ST(0L, (String)null, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_V_ST() {
+		try {
+			_persistence.countByC_V_ST(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextDouble(), ServiceTestUtil.nextInt());
+
+			_persistence.countByC_V_ST(0L, 0D, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		JournalArticle newJournalArticle = addJournalArticle();
 
@@ -250,6 +838,42 @@ public class JournalArticlePersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testFilterFindByGroupId() throws Exception {
+		try {
+			_persistence.filterFindByGroupId(0, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("JournalArticle", "uuid",
+			true, "id", true, "resourcePrimKey", true, "groupId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "folderId", true, "classNameId", true,
+			"classPK", true, "treePath", true, "articleId", true, "version",
+			true, "title", true, "urlTitle", true, "description", true,
+			"content", true, "type", true, "structureId", true, "templateId",
+			true, "layoutUuid", true, "displayDate", true, "expirationDate",
+			true, "reviewDate", true, "indexable", true, "smallImage", true,
+			"smallImageId", true, "smallImageURL", true, "status", true,
+			"statusByUserId", true, "statusByUserName", true, "statusDate", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		JournalArticle newJournalArticle = addJournalArticle();
 
@@ -265,6 +889,26 @@ public class JournalArticlePersistenceTest {
 		JournalArticle missingJournalArticle = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingJournalArticle);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new JournalArticleActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					JournalArticle journalArticle = (JournalArticle)object;
+
+					Assert.assertNotNull(journalArticle);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -400,6 +1044,8 @@ public class JournalArticlePersistenceTest {
 
 		journalArticle.setClassPK(ServiceTestUtil.nextLong());
 
+		journalArticle.setTreePath(ServiceTestUtil.randomString());
+
 		journalArticle.setArticleId(ServiceTestUtil.randomString());
 
 		journalArticle.setVersion(ServiceTestUtil.nextDouble());
@@ -442,10 +1088,12 @@ public class JournalArticlePersistenceTest {
 
 		journalArticle.setStatusDate(ServiceTestUtil.nextDate());
 
-		_persistence.update(journalArticle, false);
+		_persistence.update(journalArticle);
 
 		return journalArticle;
 	}
 
-	private JournalArticlePersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(JournalArticlePersistenceTest.class);
+	private JournalArticlePersistence _persistence = (JournalArticlePersistence)PortalBeanLocatorUtil.locate(JournalArticlePersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

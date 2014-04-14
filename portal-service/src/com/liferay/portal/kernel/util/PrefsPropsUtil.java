@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.util;
 
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 
 import java.util.Properties;
 
@@ -191,13 +192,28 @@ public class PrefsPropsUtil {
 		return getPrefsProps().getPreferences();
 	}
 
+	public static PortletPreferences getPreferences(boolean readOnly)
+		throws SystemException {
+
+		return getPrefsProps().getPreferences(readOnly);
+	}
+
 	public static PortletPreferences getPreferences(long companyId)
 		throws SystemException {
 
 		return getPrefsProps().getPreferences(companyId);
 	}
 
+	public static PortletPreferences getPreferences(
+			long companyId, boolean readOnly)
+		throws SystemException {
+
+		return getPrefsProps().getPreferences(companyId, readOnly);
+	}
+
 	public static PrefsProps getPrefsProps() {
+		PortalRuntimePermission.checkGetBeanProperty(PrefsPropsUtil.class);
+
 		return _prefsProps;
 	}
 
@@ -381,6 +397,8 @@ public class PrefsPropsUtil {
 	}
 
 	public void setPrefsProps(PrefsProps prefsProps) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_prefsProps = prefsProps;
 	}
 

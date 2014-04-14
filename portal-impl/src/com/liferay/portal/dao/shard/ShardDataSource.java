@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portal.dao.shard;
 
 import com.liferay.portal.kernel.dao.shard.ShardUtil;
+import com.liferay.portal.tools.javadocformatter.SinceJava;
 
 import java.io.PrintWriter;
 
@@ -34,31 +35,34 @@ public class ShardDataSource implements DataSource {
 		return _instance;
 	}
 
+	@Override
 	public Connection getConnection() throws SQLException {
 		return getDataSource().getConnection();
 	}
 
+	@Override
 	public Connection getConnection(String username, String password)
 		throws SQLException {
 
 		return getDataSource().getConnection(username, password);
 	}
 
+	@Override
 	public int getLoginTimeout() throws SQLException {
 		return getDataSource().getLoginTimeout();
 	}
 
+	@Override
 	public PrintWriter getLogWriter() throws SQLException {
 		return getDataSource().getLogWriter();
 	}
 
+	@SinceJava(1.7)
 	public Logger getParentLogger() {
-
-		// JDK 7
-
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public boolean isWrapperFor(Class<?> clazz) {
 
 		// Directly implement this method for JDK 5 compatibility. Logic is
@@ -67,14 +71,17 @@ public class ShardDataSource implements DataSource {
 		return DataSource.class.equals(clazz);
 	}
 
+	@Override
 	public void setLoginTimeout(int seconds) throws SQLException {
 		getDataSource().setLoginTimeout(seconds);
 	}
 
+	@Override
 	public void setLogWriter(PrintWriter printWriter) throws SQLException {
 		getDataSource().setLogWriter(printWriter);
 	}
 
+	@Override
 	public <T> T unwrap(Class<T> clazz) throws SQLException {
 
 		// Directly implement this method for JDK 5 compatibility. Logic is

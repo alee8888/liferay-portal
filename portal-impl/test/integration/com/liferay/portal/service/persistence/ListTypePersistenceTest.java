@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,31 +19,61 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.ListType;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ListTypePersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (ListTypePersistence)PortalBeanLocatorUtil.locate(ListTypePersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -79,18 +109,36 @@ public class ListTypePersistenceTest {
 
 		ListType newListType = _persistence.create(pk);
 
+		newListType.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newListType.setName(ServiceTestUtil.randomString());
 
 		newListType.setType(ServiceTestUtil.randomString());
 
-		_persistence.update(newListType, false);
+		_persistence.update(newListType);
 
 		ListType existingListType = _persistence.findByPrimaryKey(newListType.getPrimaryKey());
 
+		Assert.assertEquals(existingListType.getMvccVersion(),
+			newListType.getMvccVersion());
 		Assert.assertEquals(existingListType.getListTypeId(),
 			newListType.getListTypeId());
 		Assert.assertEquals(existingListType.getName(), newListType.getName());
 		Assert.assertEquals(existingListType.getType(), newListType.getType());
+	}
+
+	@Test
+	public void testCountByType() {
+		try {
+			_persistence.countByType(StringPool.BLANK);
+
+			_persistence.countByType(StringPool.NULL);
+
+			_persistence.countByType((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -113,6 +161,22 @@ public class ListTypePersistenceTest {
 		}
 		catch (NoSuchListTypeException nsee) {
 		}
+	}
+
+	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("ListType", "mvccVersion",
+			true, "listTypeId", true, "name", true, "type", true);
 	}
 
 	@Test
@@ -210,14 +274,18 @@ public class ListTypePersistenceTest {
 
 		ListType listType = _persistence.create(pk);
 
+		listType.setMvccVersion(ServiceTestUtil.nextLong());
+
 		listType.setName(ServiceTestUtil.randomString());
 
 		listType.setType(ServiceTestUtil.randomString());
 
-		_persistence.update(listType, false);
+		_persistence.update(listType);
 
 		return listType;
 	}
 
-	private ListTypePersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(ListTypePersistenceTest.class);
+	private ListTypePersistence _persistence = (ListTypePersistence)PortalBeanLocatorUtil.locate(ListTypePersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

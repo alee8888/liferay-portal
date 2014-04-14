@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,40 +34,12 @@ if (classPK > 0) {
 
 	<%
 	for (Address address: addresses) {
-		String street1 = address.getStreet1();
-		String street2 = address.getStreet2();
-		String street3 = address.getStreet3();
-
-		String zipCode = address.getZip();
-		String city = address.getCity();
-
-		String mailingName = LanguageUtil.get(pageContext, address.getType().getName());
 	%>
 
 		<li class="<%= address.isPrimary() ? "primary" : "" %>">
-			<em class="mailing-name"><%= mailingName %></em>
+			<%@ include file="/html/portlet/directory/common/addresses_address_init.jspf" %>
 
-			<c:if test="<%= Validator.isNotNull(street1) %>">
-				<%= street1 %><br />
-			</c:if>
-
-			<c:if test="<%= Validator.isNotNull(street2) %>">
-				<%= street2 %><br />
-			</c:if>
-
-			<c:if test="<%= Validator.isNotNull(street3) %>">
-				<%= street3 %><br />
-			</c:if>
-
-			<c:if test="<%= Validator.isNotNull(zipCode) %>">
-				<%= zipCode %>,
-			</c:if>
-
-			<c:if test="<%= Validator.isNotNull(city) %>">
-				<%= city %>
-			</c:if>
-
-			<c:if test="<%= address.isMailing() %>">(<liferay-ui:message key="mailing" />)</c:if>
+			<%@ include file="/html/portlet/directory/common/addresses_address.jspf" %>
 		</li>
 
 	<%

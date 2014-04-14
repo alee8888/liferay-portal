@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,11 +28,7 @@ public class CSVUtil {
 
 		Object[] array = (Object[])obj;
 
-		if (array.length > 0) {
-			return encode(String.valueOf(array[0]));
-		}
-
-		return null;
+		return encode(StringUtil.merge(array));
 	}
 
 	public static String encode(String s) {

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,14 +16,8 @@
 
 <%@ include file="/html/portal/layout/view/portlet_js.jspf" %>
 
-<%@ page import="com.liferay.portlet.sites.util.SitesUtil" %>
-
 <aui:script position="inline">
 	Liferay.Util.addInputFocus();
-
-	<c:if test="<%= (runtimePortletIds != null) && !runtimePortletIds.isEmpty() && !layoutTypePortlet.hasStateMax() %>">
-		Liferay.Portlet.runtimePortletIds = ['<%= ListUtil.toString(portlets, Portlet.PORTLET_ID_ACCESSOR, "','") %>'];
-	</c:if>
 
 	<%
 	String controlPanelCategory = ParamUtil.getString(request, "controlPanelCategory");
@@ -66,6 +60,10 @@
 			Liferay.Util.addInputType(node);
 		}
 	);
+
+	if (A.UA.mobile) {
+		Liferay.Util.addInputCancel();
+	}
 </aui:script>
 
 <%
@@ -80,7 +78,7 @@ if (layout != null) {
 }
 %>
 
-<c:if test="<%= !themeDisplay.isStatePopUp() && !group.isControlPanel() && (layout != null) && (!group.hasStagingGroup() || group.isStagingGroup()) && (GroupPermissionUtil.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_LAYOUT) || LayoutPermissionUtil.contains(permissionChecker, layout, ActionKeys.UPDATE) || (layoutTypePortlet.isCustomizable() && LayoutPermissionUtil.contains(permissionChecker, layout, ActionKeys.CUSTOMIZE))) %>">
+<c:if test="<%= !themeDisplay.isStatePopUp() && !group.isControlPanel() && (layout != null) && (!group.hasStagingGroup() || group.isStagingGroup() || layoutTypePortlet.isCustomizable()) && (GroupPermissionUtil.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_LAYOUT) || LayoutPermissionUtil.contains(permissionChecker, layout, ActionKeys.UPDATE) || (layoutTypePortlet.isCustomizable() && LayoutPermissionUtil.contains(permissionChecker, layout, ActionKeys.CUSTOMIZE))) %>">
 	<c:if test="<%= layout.isTypePortlet() %>">
 		<aui:script>
 			Liferay.Data.layoutConfig = {
@@ -100,7 +98,7 @@ if (layout != null) {
 				</c:choose>
 
 				disabledDropContainerClass: 'portlet-dropzone-disabled',
-				dragNodes: '.portlet-boundary:not(.portlet-static)',
+				dragNodes: '.portlet-boundary',
 				dropContainer: '.portlet-dropzone',
 				emptyColumnClass: 'empty',
 				invalid: '.portlet-static',
@@ -118,24 +116,28 @@ if (layout != null) {
 		Liferay.once(
 			'initNavigation',
 			function() {
+				var TOUCH = A.UA.touch;
+
 				new Liferay.Navigation(
 					{
-						hasPermission: <%= GroupPermissionUtil.contains(permissionChecker, scopeGroupId, ActionKeys.MANAGE_LAYOUTS) %>,
+						hasAddLayoutPermission: <%= GroupPermissionUtil.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_LAYOUT) %>,
 						layoutIds: [
 
 							<%
+							Group scopeGroup = GroupLocalServiceUtil.getGroup(scopeGroupId);
+
 							for (int i = 0; (layouts != null) && (i < layouts.size()); i++) {
 								Layout curLayout = (Layout)layouts.get(i);
-
-								boolean updateable = SitesUtil.isLayoutUpdateable(curLayout);
-								boolean deleteable = updateable && LayoutPermissionUtil.contains(themeDisplay.getPermissionChecker(), curLayout, ActionKeys.DELETE);
 							%>
 
+								<c:if test="<%= (i > 0) %>">,</c:if>
+
 								{
-									deletable: <%= deleteable %>,
+									deletable: !TOUCH && <%= LayoutPermissionUtil.contains(permissionChecker, curLayout, ActionKeys.DELETE) %>,
 									id: <%= curLayout.getLayoutId() %>,
-									updateable: <%= updateable %>
-								},
+									sortable: <%= GroupPermissionUtil.contains(permissionChecker, scopeGroup, ActionKeys.MANAGE_LAYOUTS) && SitesUtil.isLayoutSortable(curLayout) %>,
+									updateable: !TOUCH && <%= LayoutPermissionUtil.contains(permissionChecker, curLayout, ActionKeys.UPDATE) %>
+								}
 
 							<%
 							}
@@ -153,7 +155,7 @@ if (layout != null) {
 			}
 		);
 
-		var navBlock = A.one('#navigation');
+		var navBlock = A.one(Liferay.Data.NAV_SELECTOR);
 
 		if (navBlock) {
 			navBlock.once(

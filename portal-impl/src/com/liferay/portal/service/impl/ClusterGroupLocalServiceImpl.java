@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,6 +28,7 @@ import java.util.List;
 public class ClusterGroupLocalServiceImpl
 	extends ClusterGroupLocalServiceBaseImpl {
 
+	@Override
 	public ClusterGroup addClusterGroup(
 			String name, List<String> clusterNodeIds)
 		throws SystemException {
@@ -40,9 +41,10 @@ public class ClusterGroupLocalServiceImpl
 		clusterGroup.setName(name);
 		clusterGroup.setClusterNodeIds(StringUtil.merge(clusterNodeIds));
 
-		return clusterGroupPersistence.update(clusterGroup, false);
+		return clusterGroupPersistence.update(clusterGroup);
 	}
 
+	@Override
 	public ClusterGroup addWholeClusterGroup(String name)
 		throws SystemException {
 
@@ -54,7 +56,7 @@ public class ClusterGroupLocalServiceImpl
 		clusterGroup.setName(name);
 		clusterGroup.setWholeCluster(true);
 
-		return clusterGroupPersistence.update(clusterGroup, false);
+		return clusterGroupPersistence.update(clusterGroup);
 	}
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,37 +16,69 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchShardException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Shard;
 import com.liferay.portal.model.impl.ShardModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ShardPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (ShardPersistence)PortalBeanLocatorUtil.locate(ShardPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -82,21 +114,52 @@ public class ShardPersistenceTest {
 
 		Shard newShard = _persistence.create(pk);
 
+		newShard.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newShard.setClassNameId(ServiceTestUtil.nextLong());
 
 		newShard.setClassPK(ServiceTestUtil.nextLong());
 
 		newShard.setName(ServiceTestUtil.randomString());
 
-		_persistence.update(newShard, false);
+		_persistence.update(newShard);
 
 		Shard existingShard = _persistence.findByPrimaryKey(newShard.getPrimaryKey());
 
+		Assert.assertEquals(existingShard.getMvccVersion(),
+			newShard.getMvccVersion());
 		Assert.assertEquals(existingShard.getShardId(), newShard.getShardId());
 		Assert.assertEquals(existingShard.getClassNameId(),
 			newShard.getClassNameId());
 		Assert.assertEquals(existingShard.getClassPK(), newShard.getClassPK());
 		Assert.assertEquals(existingShard.getName(), newShard.getName());
+	}
+
+	@Test
+	public void testCountByName() {
+		try {
+			_persistence.countByName(StringPool.BLANK);
+
+			_persistence.countByName(StringPool.NULL);
+
+			_persistence.countByName((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_C() {
+		try {
+			_persistence.countByC_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_C(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -122,6 +185,23 @@ public class ShardPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("Shard", "mvccVersion",
+			true, "shardId", true, "classNameId", true, "classPK", true,
+			"name", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		Shard newShard = addShard();
 
@@ -137,6 +217,26 @@ public class ShardPersistenceTest {
 		Shard missingShard = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingShard);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new ShardActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					Shard shard = (Shard)object;
+
+					Assert.assertNotNull(shard);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -237,16 +337,20 @@ public class ShardPersistenceTest {
 
 		Shard shard = _persistence.create(pk);
 
+		shard.setMvccVersion(ServiceTestUtil.nextLong());
+
 		shard.setClassNameId(ServiceTestUtil.nextLong());
 
 		shard.setClassPK(ServiceTestUtil.nextLong());
 
 		shard.setName(ServiceTestUtil.randomString());
 
-		_persistence.update(shard, false);
+		_persistence.update(shard);
 
 		return shard;
 	}
 
-	private ShardPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(ShardPersistenceTest.class);
+	private ShardPersistence _persistence = (ShardPersistence)PortalBeanLocatorUtil.locate(ShardPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

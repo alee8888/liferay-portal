@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.upgrade;
 
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
@@ -51,7 +52,7 @@ public abstract class BaseUpgradePortletPreferences extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(_GET_USER);
 
@@ -78,7 +79,7 @@ public abstract class BaseUpgradePortletPreferences extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(_GET_COMPANY_ID);
 
@@ -107,7 +108,7 @@ public abstract class BaseUpgradePortletPreferences extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(_GET_LAYOUT);
 
@@ -146,7 +147,7 @@ public abstract class BaseUpgradePortletPreferences extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(_GET_LAYOUT_UUID);
 
@@ -215,7 +216,7 @@ public abstract class BaseUpgradePortletPreferences extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(4);
 
@@ -241,7 +242,8 @@ public abstract class BaseUpgradePortletPreferences extends UpgradeProcess {
 				int ownerType = rs.getInt("ownerType");
 				long plid = rs.getLong("plid");
 				String portletId = rs.getString("portletId");
-				String preferences = rs.getString("preferences");
+				String preferences = GetterUtil.getString(
+					rs.getString("preferences"));
 
 				long companyId = 0;
 
@@ -271,7 +273,7 @@ public abstract class BaseUpgradePortletPreferences extends UpgradeProcess {
 						companyId, ownerId, ownerType, plid, portletId,
 						preferences);
 
-					if (preferences != newPreferences) {
+					if (!preferences.equals(newPreferences)) {
 						updatePortletPreferences(
 							portletPreferencesId, newPreferences);
 					}
@@ -294,7 +296,7 @@ public abstract class BaseUpgradePortletPreferences extends UpgradeProcess {
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"update PortletPreferences set preferences = ? where " +

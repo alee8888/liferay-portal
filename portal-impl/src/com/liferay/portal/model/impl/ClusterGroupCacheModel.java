@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,8 +18,12 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.ClusterGroup;
+import com.liferay.portal.model.MVCCModel;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing ClusterGroup in entity cache.
@@ -29,12 +33,24 @@ import java.io.Serializable;
  * @generated
  */
 public class ClusterGroupCacheModel implements CacheModel<ClusterGroup>,
-	Serializable {
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
+		StringBundler sb = new StringBundler(11);
 
-		sb.append("{clusterGroupId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", clusterGroupId=");
 		sb.append(clusterGroupId);
 		sb.append(", name=");
 		sb.append(name);
@@ -47,9 +63,11 @@ public class ClusterGroupCacheModel implements CacheModel<ClusterGroup>,
 		return sb.toString();
 	}
 
+	@Override
 	public ClusterGroup toEntityModel() {
 		ClusterGroupImpl clusterGroupImpl = new ClusterGroupImpl();
 
+		clusterGroupImpl.setMvccVersion(mvccVersion);
 		clusterGroupImpl.setClusterGroupId(clusterGroupId);
 
 		if (name == null) {
@@ -73,6 +91,39 @@ public class ClusterGroupCacheModel implements CacheModel<ClusterGroup>,
 		return clusterGroupImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		clusterGroupId = objectInput.readLong();
+		name = objectInput.readUTF();
+		clusterNodeIds = objectInput.readUTF();
+		wholeCluster = objectInput.readBoolean();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(clusterGroupId);
+
+		if (name == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(name);
+		}
+
+		if (clusterNodeIds == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(clusterNodeIds);
+		}
+
+		objectOutput.writeBoolean(wholeCluster);
+	}
+
+	public long mvccVersion;
 	public long clusterGroupId;
 	public String name;
 	public String clusterNodeIds;

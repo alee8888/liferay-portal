@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -42,7 +42,7 @@ public class InheritableMap<K, V> extends HashMap<K, V> {
 	@Override
 	public boolean containsKey(Object key) {
 		if ((_parentMap != null) && _parentMap.containsKey(key)) {
-		 	return true;
+			return true;
 		}
 		else {
 			return super.containsKey(key);
@@ -95,6 +95,7 @@ public class InheritableMap<K, V> extends HashMap<K, V> {
 		_parentMap = (Map<K, V>)parentMap;
 	}
 
+	@Override
 	public String toString() {
 		String string = super.toString();
 

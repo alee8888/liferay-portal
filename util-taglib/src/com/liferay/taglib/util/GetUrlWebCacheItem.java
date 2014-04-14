@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,6 +28,7 @@ public class GetUrlWebCacheItem implements WebCacheItem {
 		_refreshTime = refreshTime;
 	}
 
+	@Override
 	public Object convert(String key) throws WebCacheException {
 		String url = _url;
 
@@ -43,6 +44,7 @@ public class GetUrlWebCacheItem implements WebCacheItem {
 		return content;
 	}
 
+	@Override
 	public long getRefreshTime() {
 		return _refreshTime;
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,7 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserTracker;
 import com.liferay.portal.model.UserTrackerPath;
@@ -33,6 +34,7 @@ public class UserTrackerImpl extends UserTrackerBaseImpl {
 	public UserTrackerImpl() {
 	}
 
+	@Override
 	public void addPath(UserTrackerPath path) {
 		try {
 			_paths.add(path);
@@ -48,8 +50,8 @@ public class UserTrackerImpl extends UserTrackerBaseImpl {
 
 	@Override
 	public int compareTo(UserTracker userTracker) {
-		String userName1 = getFullName().toLowerCase();
-		String userName2 = userTracker.getFullName().toLowerCase();
+		String userName1 = StringUtil.toLowerCase(getFullName());
+		String userName2 = StringUtil.toLowerCase(userTracker.getFullName());
 
 		int value = userName1.compareTo(userName2);
 
@@ -60,6 +62,7 @@ public class UserTrackerImpl extends UserTrackerBaseImpl {
 		return value;
 	}
 
+	@Override
 	public String getEmailAddress() {
 		if (_emailAddress == null) {
 			try {
@@ -80,6 +83,7 @@ public class UserTrackerImpl extends UserTrackerBaseImpl {
 		return _emailAddress;
 	}
 
+	@Override
 	public String getFullName() {
 		if (_fullName == null) {
 			try {
@@ -100,10 +104,12 @@ public class UserTrackerImpl extends UserTrackerBaseImpl {
 		return _fullName;
 	}
 
+	@Override
 	public int getHits() {
 		return _paths.size();
 	}
 
+	@Override
 	public List<UserTrackerPath> getPaths() {
 		return _paths;
 	}

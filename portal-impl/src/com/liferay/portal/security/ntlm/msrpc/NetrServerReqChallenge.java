@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,8 +31,8 @@ public class NetrServerReqChallenge extends DcerpcMessage {
 		_clientChallenge = clientChallenge;
 		_serverChallenge = serverChallenge;
 
-		 ptype = 0;
-		 flags = DCERPC_FIRST_FRAG | DCERPC_LAST_FRAG;
+		ptype = 0;
+		flags = DCERPC_FIRST_FRAG | DCERPC_LAST_FRAG;
 	}
 
 	@Override
@@ -44,7 +44,7 @@ public class NetrServerReqChallenge extends DcerpcMessage {
 		ndrBuffer = ndrBuffer.derive(index);
 
 		for (int i = 0; i < 8; i++) {
-			_serverChallenge[i] = (byte) ndrBuffer.dec_ndr_small();
+			_serverChallenge[i] = (byte)ndrBuffer.dec_ndr_small();
 		}
 
 		_status = ndrBuffer.dec_ndr_long();

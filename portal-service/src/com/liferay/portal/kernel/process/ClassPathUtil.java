@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,8 +29,15 @@ import java.io.File;
 
 import java.lang.reflect.Method;
 
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLConnection;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -40,8 +47,55 @@ import javax.servlet.ServletException;
  */
 public class ClassPathUtil {
 
+	public static Set<URL> getClassPathURLs(ClassLoader classLoader) {
+		Set<URL> urls = new LinkedHashSet<URL>();
+
+		while (classLoader != null) {
+			if (classLoader instanceof URLClassLoader) {
+				URLClassLoader urlClassLoader = (URLClassLoader)classLoader;
+
+				urls.addAll(Arrays.asList(urlClassLoader.getURLs()));
+			}
+
+			classLoader = classLoader.getParent();
+		}
+
+		return urls;
+	}
+
+	public static URL[] getClassPathURLs(String classPath)
+		throws MalformedURLException {
+
+		String[] paths = StringUtil.split(classPath, File.pathSeparatorChar);
+
+		Set<URL> urls = new LinkedHashSet<URL>();
+
+		for (String path : paths) {
+			File file = new File(path);
+
+			URI uri = file.toURI();
+
+			urls.add(uri.toURL());
+		}
+
+		return urls.toArray(new URL[urls.size()]);
+	}
+
 	public static String getGlobalClassPath() {
 		return _globalClassPath;
+	}
+
+	public static String getJVMClassPath(boolean includeBootClassPath) {
+		String jvmClassPath = System.getProperty("java.class.path");
+
+		if (includeBootClassPath) {
+			String bootClassPath = System.getProperty("sun.boot.class.path");
+
+			jvmClassPath = jvmClassPath.concat(File.pathSeparator).concat(
+				bootClassPath);
+		}
+
+		return jvmClassPath;
 	}
 
 	public static String getPortalClassPath() {
@@ -57,7 +111,7 @@ public class ClassPathUtil {
 			return;
 		}
 
-		StringBundler sb = new StringBundler(7);
+		StringBundler sb = new StringBundler(8);
 
 		String appServerGlobalClassPath = _buildClassPath(
 			classLoader, ServletException.class.getName());
@@ -77,7 +131,8 @@ public class ClassPathUtil {
 			_buildClassPath(
 				classLoader, "com.liferay.portal.servlet.MainServlet"));
 		sb.append(File.pathSeparator);
-		sb.append(servletContext.getRealPath("").concat("/WEB-INF/classes"));
+		sb.append(servletContext.getRealPath(""));
+		sb.append("/WEB-INF/classes");
 
 		_portalClassPath = sb.toString();
 	}
@@ -197,6 +252,8 @@ public class ClassPathUtil {
 		}
 
 		File[] files = dir.listFiles();
+
+		Arrays.sort(files);
 
 		StringBundler sb = new StringBundler(files.length * 2);
 

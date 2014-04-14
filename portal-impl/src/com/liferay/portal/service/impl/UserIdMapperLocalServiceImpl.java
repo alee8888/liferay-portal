@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,16 +27,19 @@ import java.util.List;
 public class UserIdMapperLocalServiceImpl
 	extends UserIdMapperLocalServiceBaseImpl {
 
+	@Override
 	public void deleteUserIdMappers(long userId) throws SystemException {
 		userIdMapperPersistence.removeByUserId(userId);
 	}
 
+	@Override
 	public UserIdMapper getUserIdMapper(long userId, String type)
 		throws PortalException, SystemException {
 
 		return userIdMapperPersistence.findByU_T(userId, type);
 	}
 
+	@Override
 	public UserIdMapper getUserIdMapperByExternalUserId(
 			String type, String externalUserId)
 		throws PortalException, SystemException {
@@ -44,12 +47,14 @@ public class UserIdMapperLocalServiceImpl
 		return userIdMapperPersistence.findByT_E(type, externalUserId);
 	}
 
+	@Override
 	public List<UserIdMapper> getUserIdMappers(long userId)
 		throws SystemException {
 
 		return userIdMapperPersistence.findByUserId(userId);
 	}
 
+	@Override
 	public UserIdMapper updateUserIdMapper(
 			long userId, String type, String description, String externalUserId)
 		throws SystemException {
@@ -68,7 +73,7 @@ public class UserIdMapperLocalServiceImpl
 		userIdMapper.setDescription(description);
 		userIdMapper.setExternalUserId(externalUserId);
 
-		userIdMapperPersistence.update(userIdMapper, false);
+		userIdMapperPersistence.update(userIdMapper);
 
 		return userIdMapper;
 	}

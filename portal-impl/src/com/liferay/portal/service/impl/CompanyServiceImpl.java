@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,6 +27,7 @@ import com.liferay.portal.model.Phone;
 import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.model.Website;
 import com.liferay.portal.security.auth.PrincipalException;
+import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.base.CompanyServiceBaseImpl;
 import com.liferay.portlet.usersadmin.util.UsersAdminUtil;
 
@@ -35,7 +36,8 @@ import java.io.InputStream;
 import java.util.List;
 
 /**
- * The implementation of the company remote service. Each company refers to a
+ * Provides the local service for accessing, adding, checking, and updating
+ * companies. Its methods include permission checks. Each company refers to a
  * separate portal instance.
  *
  * @author Brian Wing Shun Chan
@@ -62,17 +64,34 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 * @throws SystemException if a system exception occurred
 	 */
 	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
+	@Override
 	public Company addCompany(
 			String webId, String virtualHost, String mx, String shardName,
 			boolean system, int maxUsers, boolean active)
 		throws PortalException, SystemException {
 
-		if (!getPermissionChecker().isOmniadmin()) {
+		PermissionChecker permissionChecker = getPermissionChecker();
+
+		if (!permissionChecker.isOmniadmin()) {
 			throw new PrincipalException();
 		}
 
 		return companyLocalService.addCompany(
 			webId, virtualHost, mx, shardName, system, maxUsers, active);
+	}
+
+	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
+	@Override
+	public Company deleteCompany(long companyId)
+		throws PortalException, SystemException {
+
+		PermissionChecker permissionChecker = getPermissionChecker();
+
+		if (!permissionChecker.isOmniadmin()) {
+			throw new PrincipalException();
+		}
+
+		return companyLocalService.deleteCompany(companyId);
 	}
 
 	/**
@@ -84,6 +103,7 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 *         was not an administrator
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public void deleteLogo(long companyId)
 		throws PortalException, SystemException {
 
@@ -105,6 +125,7 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 *         found
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public Company getCompanyById(long companyId)
 		throws PortalException, SystemException {
 
@@ -119,6 +140,7 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 * @throws PortalException if the company with the logo could not be found
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public Company getCompanyByLogoId(long logoId)
 		throws PortalException, SystemException {
 
@@ -134,6 +156,7 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 *         found
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public Company getCompanyByMx(String mx)
 		throws PortalException, SystemException {
 
@@ -150,6 +173,7 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 *         company
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public Company getCompanyByVirtualHost(String virtualHost)
 		throws PortalException, SystemException {
 
@@ -165,6 +189,7 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 *         found
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public Company getCompanyByWebId(String webId)
 		throws PortalException, SystemException {
 
@@ -184,6 +209,7 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 * @throws SystemException if a system exception occurred
 	 */
 	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
+	@Override
 	public void removePreferences(long companyId, String[] keys)
 		throws PortalException, SystemException {
 
@@ -211,12 +237,15 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 *         not a universal administrator
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public Company updateCompany(
 			long companyId, String virtualHost, String mx, int maxUsers,
 			boolean active)
 		throws PortalException, SystemException {
 
-		if (!getPermissionChecker().isOmniadmin()) {
+		PermissionChecker permissionChecker = getPermissionChecker();
+
+		if (!permissionChecker.isOmniadmin()) {
 			throw new PrincipalException();
 		}
 
@@ -231,6 +260,8 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 * @param  virtualHost the company's virtual host name
 	 * @param  mx the company's mail domain
 	 * @param  homeURL the company's home URL (optionally <code>null</code>)
+	 * @param  logo whether to update the company's logo
+	 * @param  logoBytes the new logo image data
 	 * @param  name the company's account name (optionally <code>null</code>)
 	 * @param  legalName the company's account legal name (optionally
 	 *         <code>null</code>)
@@ -252,11 +283,12 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 *         not an administrator
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public Company updateCompany(
 			long companyId, String virtualHost, String mx, String homeURL,
-			String name, String legalName, String legalId, String legalType,
-			String sicCode, String tickerSymbol, String industry, String type,
-			String size)
+			boolean logo, byte[] logoBytes, String name, String legalName,
+			String legalId, String legalType, String sicCode,
+			String tickerSymbol, String industry, String type, String size)
 		throws PortalException, SystemException {
 
 		if (!roleLocalService.hasUserRole(
@@ -266,8 +298,9 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 		}
 
 		return companyLocalService.updateCompany(
-			companyId, virtualHost, mx, homeURL, name, legalName, legalId,
-			legalType, sicCode, tickerSymbol, industry, type, size);
+			companyId, virtualHost, mx, homeURL, logo, logoBytes, name,
+			legalName, legalId, legalType, sicCode, tickerSymbol, industry,
+			type, size);
 	}
 
 	/**
@@ -277,6 +310,8 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 * @param  virtualHost the company's virtual host name
 	 * @param  mx the company's mail domain
 	 * @param  homeURL the company's home URL (optionally <code>null</code>)
+	 * @param  logo if the company has a custom logo
+	 * @param  logoBytes the new logo image data
 	 * @param  name the company's account name (optionally <code>null</code>)
 	 * @param  legalName the company's account legal name (optionally
 	 *         <code>null</code>)
@@ -306,19 +341,21 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 * @throws SystemException if a system exception occurred
 	 */
 	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
+	@Override
 	public Company updateCompany(
 			long companyId, String virtualHost, String mx, String homeURL,
-			String name, String legalName, String legalId, String legalType,
-			String sicCode, String tickerSymbol, String industry, String type,
-			String size, String languageId, String timeZoneId,
-			List<Address> addresses, List<EmailAddress> emailAddresses,
-			List<Phone> phones, List<Website> websites,
-			UnicodeProperties properties)
+			boolean logo, byte[] logoBytes, String name, String legalName,
+			String legalId, String legalType, String sicCode,
+			String tickerSymbol, String industry, String type, String size,
+			String languageId, String timeZoneId, List<Address> addresses,
+			List<EmailAddress> emailAddresses, List<Phone> phones,
+			List<Website> websites, UnicodeProperties properties)
 		throws PortalException, SystemException {
 
 		Company company = updateCompany(
-			companyId, virtualHost, mx, homeURL, name, legalName, legalId,
-			legalType, sicCode, tickerSymbol, industry, type, size);
+			companyId, virtualHost, mx, homeURL, logo, logoBytes, name,
+			legalName, legalId, legalType, sicCode, tickerSymbol, industry,
+			type, size);
 
 		updateDisplay(company.getCompanyId(), languageId, timeZoneId);
 
@@ -340,6 +377,117 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	}
 
 	/**
+	 * Updates the company with additional account information.
+	 *
+	 * @param      companyId the primary key of the company
+	 * @param      virtualHost the company's virtual host name
+	 * @param      mx the company's mail domain
+	 * @param      homeURL the company's home URL (optionally <code>null</code>)
+	 * @param      name the company's account name (optionally
+	 *             <code>null</code>)
+	 * @param      legalName the company's account legal name (optionally
+	 *             <code>null</code>)
+	 * @param      legalId the company's account legal ID (optionally
+	 *             <code>null</code>)
+	 * @param      legalType the company's account legal type (optionally
+	 *             <code>null</code>)
+	 * @param      sicCode the company's account SIC code (optionally
+	 *             <code>null</code>)
+	 * @param      tickerSymbol the company's account ticker symbol (optionally
+	 *             <code>null</code>)
+	 * @param      industry the the company's account industry (optionally
+	 *             <code>null</code>)
+	 * @param      type the company's account type (optionally
+	 *             <code>null</code>)
+	 * @param      size the company's account size (optionally
+	 *             <code>null</code>)
+	 * @return     the the company with the primary key
+	 * @throws     PortalException if a company with the primary key could not
+	 *             be found or if the new information was invalid or if the user
+	 *             was not an administrator
+	 * @throws     SystemException if a system exception occurred
+	 * @deprecated As of 7.0.0, replaced by {@link #updateCompany(long, String,
+	 *             String, String, boolean, byte[], String, String, String,
+	 *             String, String, String, String, String, String)}
+	 */
+	@Deprecated
+	@Override
+	public Company updateCompany(
+			long companyId, String virtualHost, String mx, String homeURL,
+			String name, String legalName, String legalId, String legalType,
+			String sicCode, String tickerSymbol, String industry, String type,
+			String size)
+		throws PortalException, SystemException {
+
+		return updateCompany(
+			companyId, virtualHost, mx, homeURL, true, null, name, legalName,
+			legalId, legalType, sicCode, tickerSymbol, industry, type, size);
+	}
+
+	/**
+	 * Updates the company with addition information.
+	 *
+	 * @param      companyId the primary key of the company
+	 * @param      virtualHost the company's virtual host name
+	 * @param      mx the company's mail domain
+	 * @param      homeURL the company's home URL (optionally <code>null</code>)
+	 * @param      name the company's account name (optionally
+	 *             <code>null</code>)
+	 * @param      legalName the company's account legal name (optionally
+	 *             <code>null</code>)
+	 * @param      legalId the company's accout legal ID (optionally
+	 *             <code>null</code>)
+	 * @param      legalType the company's account legal type (optionally
+	 *             <code>null</code>)
+	 * @param      sicCode the company's account SIC code (optionally
+	 *             <code>null</code>)
+	 * @param      tickerSymbol the company's account ticker symbol (optionally
+	 *             <code>null</code>)
+	 * @param      industry the the company's account industry (optionally
+	 *             <code>null</code>)
+	 * @param      type the company's account type (optionally
+	 *             <code>null</code>)
+	 * @param      size the company's account size (optionally
+	 *             <code>null</code>)
+	 * @param      languageId the ID of the company's default user's language
+	 * @param      timeZoneId the ID of the company's default user's time zone
+	 * @param      addresses the company's addresses
+	 * @param      emailAddresses the company's email addresses
+	 * @param      phones the company's phone numbers
+	 * @param      websites the company's websites
+	 * @param      properties the company's properties
+	 * @return     the company with the primary key
+	 * @throws     PortalException the company with the primary key could not be
+	 *             found or if the new information was invalid or if the user
+	 *             was not an administrator
+	 * @throws     SystemException if a system exception occurred
+	 * @deprecated As of 7.0.0, replaced by {@link #updateCompany(long, String,
+	 *             String, String, boolean, byte[], String, String, String,
+	 *             String, String, String, String, String, String, String,
+	 *             String, java.util.List, java.util.List, java.util.List,
+	 *             java.util.List, UnicodeProperties)}
+	 */
+	@Deprecated
+	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
+	@Override
+	public Company updateCompany(
+			long companyId, String virtualHost, String mx, String homeURL,
+			String name, String legalName, String legalId, String legalType,
+			String sicCode, String tickerSymbol, String industry, String type,
+			String size, String languageId, String timeZoneId,
+			List<Address> addresses, List<EmailAddress> emailAddresses,
+			List<Phone> phones, List<Website> websites,
+			UnicodeProperties properties)
+		throws PortalException, SystemException {
+
+		return updateCompany(
+			companyId, virtualHost, mx, homeURL, name, legalName, legalId,
+			legalType, sicCode, tickerSymbol, industry, type, size, languageId,
+			timeZoneId, addresses, emailAddresses, phones, websites,
+			properties);
+	}
+
+	/**
 	 * Update the company's display.
 	 *
 	 * @param  companyId the primary key of the company
@@ -349,6 +497,7 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 *         or if the user was not an administrator
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public void updateDisplay(
 			long companyId, String languageId, String timeZoneId)
 		throws PortalException, SystemException {
@@ -366,6 +515,30 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 * Updates the company's logo.
 	 *
 	 * @param  companyId the primary key of the company
+	 * @param  bytes the bytes of the company's logo image
+	 * @return the company with the primary key
+	 * @throws PortalException if the company's logo ID could not be found or if
+	 *         the logo's image was corrupted or if the user was an
+	 *         administrator
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public Company updateLogo(long companyId, byte[] bytes)
+		throws PortalException, SystemException {
+
+		if (!roleLocalService.hasUserRole(
+				getUserId(), companyId, RoleConstants.ADMINISTRATOR, true)) {
+
+			throw new PrincipalException();
+		}
+
+		return companyLocalService.updateLogo(companyId, bytes);
+	}
+
+	/**
+	 * Updates the company's logo.
+	 *
+	 * @param  companyId the primary key of the company
 	 * @param  inputStream the input stream of the company's logo image
 	 * @return the company with the primary key
 	 * @throws PortalException if the company's logo ID could not be found or if
@@ -374,6 +547,7 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 * @throws SystemException if a system exception occurred
 	 */
 	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
+	@Override
 	public Company updateLogo(long companyId, InputStream inputStream)
 		throws PortalException, SystemException {
 
@@ -397,6 +571,7 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 * @throws SystemException if a system exception occurred
 	 */
 	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
+	@Override
 	public void updatePreferences(long companyId, UnicodeProperties properties)
 		throws PortalException, SystemException {
 
@@ -430,6 +605,7 @@ public class CompanyServiceImpl extends CompanyServiceBaseImpl {
 	 * @throws SystemException if a system exception occurred
 	 */
 	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
+	@Override
 	public void updateSecurity(
 			long companyId, String authType, boolean autoLogin,
 			boolean sendPassword, boolean strangers, boolean strangersWithMx,

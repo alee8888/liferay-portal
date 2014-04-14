@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.passwordpoliciesadmin.util;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.kernel.util.OrderByComparator;
 
 /**
@@ -22,6 +23,9 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 public class PasswordPoliciesAdminUtil {
 
 	public static PasswordPoliciesAdmin getPasswordPoliciesAdmin() {
+		PortalRuntimePermission.checkGetBeanProperty(
+			PasswordPoliciesAdminUtil.class);
+
 		return _passwordPoliciesAdmin;
 	}
 
@@ -33,7 +37,9 @@ public class PasswordPoliciesAdminUtil {
 	}
 
 	public void setPasswordPoliciesAdmin(
-			PasswordPoliciesAdmin passwordPoliciesAdmin) {
+		PasswordPoliciesAdmin passwordPoliciesAdmin) {
+
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
 
 		_passwordPoliciesAdmin = passwordPoliciesAdmin;
 	}

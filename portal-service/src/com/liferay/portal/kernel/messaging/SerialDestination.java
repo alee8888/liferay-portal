@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,15 +16,10 @@ package com.liferay.portal.kernel.messaging;
 
 import com.liferay.portal.kernel.cache.Lifecycle;
 import com.liferay.portal.kernel.cache.ThreadLocalCacheManager;
-import com.liferay.portal.kernel.cluster.ClusterLinkUtil;
 import com.liferay.portal.kernel.concurrent.ThreadPoolExecutor;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.messaging.proxy.MessageValuesThreadLocal;
 import com.liferay.portal.kernel.util.CentralizedThreadLocal;
-import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.security.auth.CompanyThreadLocal;
-import com.liferay.portal.security.auth.PrincipalThreadLocal;
 
 import java.util.Set;
 
@@ -46,8 +41,9 @@ public class SerialDestination extends BaseAsyncDestination {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public SerialDestination(String name) {
 		super(name, _WORKERS_CORE_SIZE, _WORKERS_MAX_SIZE);
 	}
@@ -56,54 +52,14 @@ public class SerialDestination extends BaseAsyncDestination {
 	protected void dispatch(
 		final Set<MessageListener> messageListeners, final Message message) {
 
-		if (!message.contains("companyId")) {
-			message.put("companyId", CompanyThreadLocal.getCompanyId());
-		}
-
-		if (!message.contains("principalName")) {
-			message.put("principalName", PrincipalThreadLocal.getName());
-		}
-
-		if (!message.contains("principalPassword")) {
-			message.put(
-				"principalPassword", PrincipalThreadLocal.getPassword());
-		}
-
 		ThreadPoolExecutor threadPoolExecutor = getThreadPoolExecutor();
 
 		Runnable runnable = new MessageRunnable(message) {
 
+			@Override
 			public void run() {
 				try {
-					long messageCompanyId = message.getLong("companyId");
-
-					if (messageCompanyId > 0) {
-						CompanyThreadLocal.setCompanyId(messageCompanyId);
-					}
-
-					String messagePrincipalName = message.getString(
-						"principalName");
-
-					if (Validator.isNotNull(messagePrincipalName)) {
-						PrincipalThreadLocal.setName(messagePrincipalName);
-					}
-
-					String messagePrincipalPassword = message.getString(
-						"principalPassword");
-
-					if (Validator.isNotNull(messagePrincipalPassword)) {
-						PrincipalThreadLocal.setPassword(
-							messagePrincipalPassword);
-					}
-
-					Boolean clusterForwardMessage = (Boolean)message.get(
-						ClusterLinkUtil.CLUSTER_FORWARD_MESSAGE);
-
-					if (clusterForwardMessage != null) {
-						MessageValuesThreadLocal.setValue(
-							ClusterLinkUtil.CLUSTER_FORWARD_MESSAGE,
-							clusterForwardMessage);
-					}
+					populateThreadLocalsFromMessage(message);
 
 					for (MessageListener messageListener : messageListeners) {
 						try {

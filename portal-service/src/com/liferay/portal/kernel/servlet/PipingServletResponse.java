@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -42,7 +42,7 @@ public class PipingServletResponse extends HttpServletResponseWrapper {
 			throw new NullPointerException("Output stream is null");
 		}
 
-		_servletOutputStream = new PipingServletOutputStream(outputStream);
+		_servletOutputStream = new ServletOutputStreamAdapter(outputStream);
 	}
 
 	public PipingServletResponse(
@@ -94,9 +94,10 @@ public class PipingServletResponse extends HttpServletResponseWrapper {
 						"not recommended because it is slow");
 			}
 
-			_servletOutputStream = new PipingServletOutputStream(
+			_servletOutputStream = new ServletOutputStreamAdapter(
 				new WriterOutputStream(
-					_printWriter, getCharacterEncoding(), true));
+					_printWriter, getCharacterEncoding(), getBufferSize(),
+					true));
 		}
 
 		return _servletOutputStream;
@@ -111,7 +112,8 @@ public class PipingServletResponse extends HttpServletResponseWrapper {
 						"not recommended because it is slow");
 			}
 
-			_printWriter = UnsyncPrintWriterPool.borrow(_servletOutputStream);
+			_printWriter = UnsyncPrintWriterPool.borrow(
+				_servletOutputStream, getCharacterEncoding());
 		}
 
 		return _printWriter;

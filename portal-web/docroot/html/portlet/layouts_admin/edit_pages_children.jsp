@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -66,8 +66,7 @@ if (!StringUtil.contains(tabs4Names, tabs4)) {
 		String type = ParamUtil.getString(request, "type");
 		boolean hidden = ParamUtil.getBoolean(request, "hidden");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
-		String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
+		String defaultLanguageId = LocaleUtil.toLanguageId(themeDisplay.getSiteDefaultLocale());
 		%>
 
 		<liferay-ui:message key="add-child-pages" />
@@ -80,7 +79,7 @@ if (!StringUtil.contains(tabs4Names, tabs4)) {
 				<liferay-ui:message key="name" />
 			</td>
 			<td>
-				<input name="<portlet:namespace />name_<%= defaultLanguageId %>" size="30" type="text" value="<%= HtmlUtil.escape(name) %>" />
+				<input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="<portlet:namespace />name_<%= defaultLanguageId %>" size="30" type="text" value="<%= HtmlUtil.escape(name) %>" />
 			</td>
 		</tr>
 		<tr>
@@ -106,7 +105,7 @@ if (!StringUtil.contains(tabs4Names, tabs4)) {
 						for (LayoutPrototype layoutPrototype : layoutPrototypes) {
 						%>
 
-							<option value="<%= layoutPrototype.getLayoutPrototypeId() %>"><%= HtmlUtil.escape(layoutPrototype.getName(user.getLanguageId())) %></option>
+							<option value="<%= layoutPrototype.getLayoutPrototypeId() %>"><%= HtmlUtil.escape(layoutPrototype.getName(locale)) %></option>
 
 						<%
 						}
@@ -167,10 +166,6 @@ if (!StringUtil.contains(tabs4Names, tabs4)) {
 		<input type="submit" value="<liferay-ui:message key="add-page" />" /><br />
 
 		<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-			<aui:script>
-				Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name_<%= defaultLanguageId %>);
-			</aui:script>
-
 			<c:if test="<%= !layoutPrototypes.isEmpty() %>">
 				<aui:script use="aui-base">
 					var layoutPrototypeIdSelect = A.one('#<portlet:namespace />layoutPrototypeId');
@@ -180,7 +175,7 @@ if (!StringUtil.contains(tabs4Names, tabs4)) {
 
 						hiddenFields.hide();
 
-						if (layoutPrototypeIdSelect && layoutPrototypeIdSelect.val() == '') {
+						if (layoutPrototypeIdSelect && (layoutPrototypeIdSelect.val() == '')) {
 							hiddenFields.show();
 						}
 						else {
@@ -216,10 +211,6 @@ if (!StringUtil.contains(tabs4Names, tabs4)) {
 			<c:if test="<%= rle.getType() == RequiredLayoutException.FIRST_LAYOUT_TYPE %>">
 				<liferay-ui:message key="your-first-page-must-have-one-of-the-following-types" />: <%= PortalUtil.getFirstPageLayoutTypes(pageContext) %>
 			</c:if>
-
-			<c:if test="<%= rle.getType() == RequiredLayoutException.FIRST_LAYOUT_HIDDEN %>">
-				<liferay-ui:message key="your-first-page-must-not-be-hidden" />
-			</c:if>
 		</liferay-ui:error>
 
 		<liferay-ui:message key="set-the-display-order-of-child-pages" />
@@ -245,18 +236,18 @@ if (!StringUtil.contains(tabs4Names, tabs4)) {
 				</select>
 			</td>
 			<td class="lfr-top">
-				<a href="javascript:Liferay.Util.reorder(document.<portlet:namespace />fm.<portlet:namespace />layoutIdsBox, 0);"><img border="0" height="16" hspace="0" src="<%= themeDisplay.getPathThemeImages() %>/arrows/02_up.png" vspace="2" width="16" /></a><br />
+				<a href="javascript:Liferay.Util.reorder(document.<portlet:namespace />fm.<portlet:namespace />layoutIdsBox, 0);"><img alt="<liferay-ui:message key="move-up" />" border="0" height="16" hspace="0" src="<%= themeDisplay.getPathThemeImages() %>/arrows/02_up.png" vspace="2" width="16" /></a><br />
 
-				<a href="javascript:Liferay.Util.reorder(document.<portlet:namespace />fm.<portlet:namespace />layoutIdsBox, 1);"><img border="0" height="16" hspace="0" src="<%= themeDisplay.getPathThemeImages() %>/arrows/02_down.png" vspace="2" width="16" /></a><br />
+				<a href="javascript:Liferay.Util.reorder(document.<portlet:namespace />fm.<portlet:namespace />layoutIdsBox, 1);"><img alt="<liferay-ui:message key="move-down" />" border="0" height="16" hspace="0" src="<%= themeDisplay.getPathThemeImages() %>/arrows/02_down.png" vspace="2" width="16" /></a><br />
 
-				<a href="javascript:<portlet:namespace />removePage(document.<portlet:namespace />fm.<portlet:namespace />layoutIdsBox);"><img border="0" height="16" hspace="0" src="<%= themeDisplay.getPathThemeImages() %>/arrows/02_x.png" vspace="2" width="16" /></a><br />
+				<a href="javascript:<portlet:namespace />removePage(document.<portlet:namespace />fm.<portlet:namespace />layoutIdsBox);"><img alt="<liferay-ui:message key="remove" />" border="0" height="16" hspace="0" src="<%= themeDisplay.getPathThemeImages() %>/arrows/02_x.png" vspace="2" width="16" /></a><br />
 			</td>
 		</tr>
 		</table>
 
 		<br />
 
-		<input type="button" value="<liferay-ui:message key="update-display-order" />" onClick="<portlet:namespace />updateDisplayOrder();" />
+		<input onClick="<portlet:namespace />updateDisplayOrder();" type="button" value="<liferay-ui:message key="update-display-order" />" />
 	</c:when>
 	<c:when test='<%= tabs4.equals("merge-pages") %>'>
 
@@ -264,14 +255,14 @@ if (!StringUtil.contains(tabs4Names, tabs4)) {
 		boolean mergeGuestPublicPages = PropertiesParamUtil.getBoolean(groupTypeSettings, request, "mergeGuestPublicPages");
 		%>
 
-		<liferay-ui:message arguments="<%= company.getGroup().getDescriptiveName(locale) %>" key="you-can-configure-the-top-level-pages-of-this-public-site-to-merge-with-the-top-level-pages-of-the-public-x-site" />
+		<liferay-ui:message arguments="<%= HtmlUtil.escape(company.getGroup().getDescriptiveName(locale)) %>" key="you-can-configure-the-top-level-pages-of-this-public-site-to-merge-with-the-top-level-pages-of-the-public-x-site" translateArguments="<%= false %>" />
 
 		<br /><br />
 
 		<table class="lfr-table">
 		<tr>
 			<td class="lfr-label">
-				<liferay-ui:message arguments="<%= company.getGroup().getDescriptiveName(locale) %>" key="merge-x-public-pages" />
+				<liferay-ui:message arguments="<%= HtmlUtil.escape(company.getGroup().getDescriptiveName(locale)) %>" key="merge-x-public-pages" translateArguments="<%= false %>" />
 			</td>
 			<td>
 				<liferay-ui:input-checkbox defaultValue="<%= mergeGuestPublicPages %>" param="mergeGuestPublicPages" />

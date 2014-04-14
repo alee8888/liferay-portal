@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,13 +14,16 @@
 
 package com.liferay.portal.kernel.util;
 
+import java.io.Serializable;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Shuyang Zhou
  */
-public class ListMergeable<T> implements Mergeable<ListMergeable<T>> {
+public class ListMergeable<T>
+	implements Mergeable<ListMergeable<T>>, Serializable {
 
 	public void add(T t) {
 		_list.add(t);
@@ -30,6 +33,7 @@ public class ListMergeable<T> implements Mergeable<ListMergeable<T>> {
 		return _list.contains(t);
 	}
 
+	@Override
 	public ListMergeable<T> merge(ListMergeable<T> listMergeable) {
 		if ((listMergeable == null) || (listMergeable == this)) {
 			return this;
@@ -47,6 +51,8 @@ public class ListMergeable<T> implements Mergeable<ListMergeable<T>> {
 	public String mergeToString(String delimiter) {
 		return StringUtil.merge(_list, delimiter);
 	}
+
+	private static final long serialVersionUID = 1L;
 
 	private List<T> _list = new ArrayList<T>();
 

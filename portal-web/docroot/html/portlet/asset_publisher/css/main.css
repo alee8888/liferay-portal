@@ -1,10 +1,7 @@
 .portlet-asset-publisher {
-	.add-asset-selector {
-		margin-bottom: 1em;
-		overflow: auto;
-	}
-
 	.asset-abstract {
+		margin-bottom: 2em;
+
 		.asset-content p {
 			margin-bottom: 0;
 		}
@@ -71,12 +68,6 @@
 		clear: left;
 	}
 
-	.asset-entries-group-label {
-		background-color: #DDD;
-		clear: both;
-		padding: 3px;
-	}
-
 	.asset-small-image {
 		float: right;
 		padding-left: 0.5em;
@@ -93,9 +84,7 @@
 
 	.asset-title {
 		border-bottom: 1px solid #DDD;
-		margin-bottom: 0.7em;
 		margin-right: 8px;
-		margin-top: 2em;
 		padding-bottom: 1px;
 
 		.asset-actions img {
@@ -132,14 +121,13 @@
 		margin-bottom: 20px;
 	}
 
-	.final-separator {
-		border: 0;
-		margin-bottom: 30px;
-	}
-
 	.lfr-meta-actions {
 		margin-right: 1em;
 		padding-top: 0;
+	}
+
+	.add-asset-selector {
+		margin-right: 0;
 	}
 
 	.metadata-author {
@@ -171,10 +159,12 @@
 		margin-right: 10px;
 	}
 
-	.separator {
-		border-right: 1px solid #999;
-		clear: both;
-		margin: 25px 25px;
+	.subscribe-action {
+		text-align: right;
+
+		.taglib-rss {
+			margin-left: 10px;
+		}
 	}
 
 	.taglib-asset-categories-summary {
@@ -214,7 +204,7 @@
 }
 
 .portlet-configuration {
-	.aui-form {
+	.form {
 		.queryRules fieldset {
 			padding: 0;
 
@@ -232,7 +222,7 @@
 				background-color: #DFFCCB;
 			}
 
-			.aui-field {
+			.field {
 				line-height: 2;
 
 				&.tags-selector, &.categories-selector {
@@ -244,17 +234,12 @@
 			}
 		}
 
+		.asset-query-rule-error {
+			background-color: #FEE5E2;
+		}
+
 		.general-display-settings {
 			margin-bottom: 1em;
-
-			.display-style .aui-field-content {
-				display: inline-block;
-			}
-
-			.display-style .manage-display-styles {
-				position: relative;
-				top: -5px;
-			}
 		}
 	}
 
@@ -283,12 +268,36 @@
 		margin-bottom: 1em;
 	}
 
-	.lfr-actions.select-existing-selector {
-		margin: 0 0 1em 1em;
+	.asset-subtype, .asset-subtypefields-wrapper-enable {
+		margin-left: 2em;
 	}
 
-	.asset-subtype {
-		margin-left: 2em;
+	.asset-subtypefields-wrapper {
+		display: inline;
+	}
+
+	.asset-subtypefields-message {
+		margin-left: 4em;
+	}
+
+	.asset-subtypefields-popup {
+		color: #5B677D;
+		cursor: pointer;
+		text-decoration: underline;
+	}
+
+	.asset-subtypefield-selected {
+		margin-left: 6em;
+		padding-top: 10px;
+	}
+
+	.select-asset-selector {
+		margin: 1em 0;
+		overflow: auto;
+
+		.select-existing-selector {
+			margin: 0;
+		}
 	}
 }
 

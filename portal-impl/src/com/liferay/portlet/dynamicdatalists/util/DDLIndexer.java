@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,10 +26,9 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.Summary;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecord;
@@ -51,6 +50,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 
 /**
@@ -63,13 +64,19 @@ public class DDLIndexer extends BaseIndexer {
 	public static final String PORTLET_ID = PortletKeys.DYNAMIC_DATA_LISTS;
 
 	public DDLIndexer() {
+		setDefaultSelectedFieldNames(
+			Field.COMPANY_ID, Field.ENTRY_CLASS_NAME, Field.ENTRY_CLASS_PK,
+			Field.UID);
+		setDefaultSelectedLocalizedFieldNames(Field.DESCRIPTION, Field.TITLE);
 		setFilterSearch(true);
 	}
 
+	@Override
 	public String[] getClassNames() {
 		return CLASS_NAMES;
 	}
 
+	@Override
 	public String getPortletId() {
 		return PORTLET_ID;
 	}
@@ -114,7 +121,7 @@ public class DDLIndexer extends BaseIndexer {
 		else {
 			long[] groupIds = searchContext.getGroupIds();
 
-			if ((groupIds != null) && (groupIds.length > 0)) {
+			if (ArrayUtil.isNotEmpty(groupIds)) {
 				List<DDMStructure> ddmStructures =
 					DDMStructureLocalServiceUtil.getStructures(groupIds);
 
@@ -170,18 +177,12 @@ public class DDLIndexer extends BaseIndexer {
 
 	@Override
 	protected Summary doGetSummary(
-		Document document, Locale locale, String snippet,
-		PortletURL portletURL) {
+		Document document, Locale locale, String snippet, PortletURL portletURL,
+		PortletRequest portletRequest, PortletResponse portletResponse) {
 
 		long recordSetId = GetterUtil.getLong(document.get("recordSetId"));
 
 		String title = getTitle(recordSetId, locale);
-
-		String content = snippet;
-
-		if (Validator.isNull(snippet)) {
-			content = StringUtil.shorten(document.get(Field.CONTENT), 200);
-		}
 
 		String recordId = document.get(Field.ENTRY_CLASS_PK);
 
@@ -189,7 +190,14 @@ public class DDLIndexer extends BaseIndexer {
 			"struts_action", "/dynamic_data_lists/view_record");
 		portletURL.setParameter("recordId", recordId);
 
-		return new Summary(title, content, portletURL);
+		Summary summary = createSummary(
+			document, Field.TITLE, Field.DESCRIPTION);
+
+		summary.setMaxContentLength(200);
+		summary.setPortletURL(portletURL);
+		summary.setTitle(title);
+
+		return summary;
 	}
 
 	@Override
@@ -234,9 +242,15 @@ public class DDLIndexer extends BaseIndexer {
 			DDLRecordSet recordSet = DDLRecordSetLocalServiceUtil.getRecordSet(
 				recordSetId);
 
-			String name = recordSet.getName(locale);
+			DDMStructure ddmStructure = recordSet.getDDMStructure();
 
-			return LanguageUtil.format(locale, "new-record-for-list-x", name);
+			String ddmStructureName = ddmStructure.getName(locale);
+
+			String recordSetName = recordSet.getName(locale);
+
+			return LanguageUtil.format(
+				locale, "new-x-for-list-x",
+				new Object[] {ddmStructureName, recordSetName}, false);
 		}
 		catch (Exception e) {
 			_log.error(e, e);

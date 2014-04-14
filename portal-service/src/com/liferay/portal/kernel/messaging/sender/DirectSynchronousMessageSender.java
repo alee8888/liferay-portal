@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.messaging.MessageBusException;
 import com.liferay.portal.kernel.messaging.MessageListener;
 import com.liferay.portal.kernel.messaging.MessageListenerException;
 import com.liferay.portal.kernel.messaging.SynchronousDestination;
+import com.liferay.portal.kernel.nio.intraband.messaging.IntrabandBridgeDestination;
 
 import java.util.Set;
 
@@ -32,6 +33,7 @@ import java.util.Set;
 public class DirectSynchronousMessageSender
 	implements SynchronousMessageSender {
 
+	@Override
 	public Object send(String destinationName, Message message)
 		throws MessageBusException {
 
@@ -46,17 +48,9 @@ public class DirectSynchronousMessageSender
 			return null;
 		}
 
-		if (destination.getMessageListenerCount() == 0) {
-			if (_log.isInfoEnabled()) {
-				_log.info(
-					"Destination " + destinationName +
-						" does not have any message listeners");
-			}
+		if ((destination instanceof IntrabandBridgeDestination) ||
+			(destination instanceof SynchronousDestination)) {
 
-			return null;
-		}
-
-		if (destination instanceof SynchronousDestination) {
 			destination.send(message);
 		}
 		else {
@@ -76,6 +70,7 @@ public class DirectSynchronousMessageSender
 		return message.getResponse();
 	}
 
+	@Override
 	public Object send(String destinationName, Message message, long timeout)
 		throws MessageBusException {
 

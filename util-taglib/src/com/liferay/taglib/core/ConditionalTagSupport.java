@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.taglib.core;
 
 import com.liferay.portal.kernel.servlet.taglib.TagSupport;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import javax.servlet.jsp.JspTagException;
 import javax.servlet.jsp.PageContext;
@@ -51,7 +52,7 @@ public abstract class ConditionalTagSupport extends TagSupport {
 	}
 
 	public void setScope(String scope) {
-		String scopeLowerCase = scope.toLowerCase();
+		String scopeLowerCase = StringUtil.toLowerCase(scope);
 
 		if (scopeLowerCase.equals("application")) {
 			_scope = PageContext.APPLICATION_SCOPE;

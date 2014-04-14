@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.messaging.proxy;
 
 import com.liferay.portal.kernel.util.AggregateClassLoader;
+import com.liferay.portal.kernel.util.ArrayUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -74,14 +75,14 @@ public class MultiClassLoaderProxyRequest extends ProxyRequest {
 
 		Annotation[][] annotationsArray = method.getParameterAnnotations();
 
-		if ((annotationsArray == null) || (annotationsArray.length == 0)) {
+		if (ArrayUtil.isEmpty(annotationsArray)) {
 			return null;
 		}
 
 		for (int i = 0; i < annotationsArray.length; i++) {
 			Annotation[] annotations = annotationsArray[i];
 
-			if ((annotations == null) || (annotations.length == 0)) {
+			if (ArrayUtil.isEmpty(annotations)) {
 				continue;
 			}
 

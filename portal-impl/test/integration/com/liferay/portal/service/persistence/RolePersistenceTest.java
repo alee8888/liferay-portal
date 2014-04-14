@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,37 +16,70 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchRoleException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.impl.RoleModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class RolePersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (RolePersistence)PortalBeanLocatorUtil.locate(RolePersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -82,7 +115,19 @@ public class RolePersistenceTest {
 
 		Role newRole = _persistence.create(pk);
 
+		newRole.setMvccVersion(ServiceTestUtil.nextLong());
+
+		newRole.setUuid(ServiceTestUtil.randomString());
+
 		newRole.setCompanyId(ServiceTestUtil.nextLong());
+
+		newRole.setUserId(ServiceTestUtil.nextLong());
+
+		newRole.setUserName(ServiceTestUtil.randomString());
+
+		newRole.setCreateDate(ServiceTestUtil.nextDate());
+
+		newRole.setModifiedDate(ServiceTestUtil.nextDate());
 
 		newRole.setClassNameId(ServiceTestUtil.nextLong());
 
@@ -98,12 +143,22 @@ public class RolePersistenceTest {
 
 		newRole.setSubtype(ServiceTestUtil.randomString());
 
-		_persistence.update(newRole, false);
+		_persistence.update(newRole);
 
 		Role existingRole = _persistence.findByPrimaryKey(newRole.getPrimaryKey());
 
+		Assert.assertEquals(existingRole.getMvccVersion(),
+			newRole.getMvccVersion());
+		Assert.assertEquals(existingRole.getUuid(), newRole.getUuid());
 		Assert.assertEquals(existingRole.getRoleId(), newRole.getRoleId());
 		Assert.assertEquals(existingRole.getCompanyId(), newRole.getCompanyId());
+		Assert.assertEquals(existingRole.getUserId(), newRole.getUserId());
+		Assert.assertEquals(existingRole.getUserName(), newRole.getUserName());
+		Assert.assertEquals(Time.getShortTimestamp(existingRole.getCreateDate()),
+			Time.getShortTimestamp(newRole.getCreateDate()));
+		Assert.assertEquals(Time.getShortTimestamp(
+				existingRole.getModifiedDate()),
+			Time.getShortTimestamp(newRole.getModifiedDate()));
 		Assert.assertEquals(existingRole.getClassNameId(),
 			newRole.getClassNameId());
 		Assert.assertEquals(existingRole.getClassPK(), newRole.getClassPK());
@@ -113,6 +168,152 @@ public class RolePersistenceTest {
 			newRole.getDescription());
 		Assert.assertEquals(existingRole.getType(), newRole.getType());
 		Assert.assertEquals(existingRole.getSubtype(), newRole.getSubtype());
+	}
+
+	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByName() {
+		try {
+			_persistence.countByName(StringPool.BLANK);
+
+			_persistence.countByName(StringPool.NULL);
+
+			_persistence.countByName((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByType() {
+		try {
+			_persistence.countByType(ServiceTestUtil.nextInt());
+
+			_persistence.countByType(0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountBySubtype() {
+		try {
+			_persistence.countBySubtype(StringPool.BLANK);
+
+			_persistence.countBySubtype(StringPool.NULL);
+
+			_persistence.countBySubtype((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_N() {
+		try {
+			_persistence.countByC_N(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByC_N(0L, StringPool.NULL);
+
+			_persistence.countByC_N(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_T() {
+		try {
+			_persistence.countByC_T(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextInt());
+
+			_persistence.countByC_T(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_TArrayable() {
+		try {
+			_persistence.countByC_T(ServiceTestUtil.nextLong(),
+				new int[] { ServiceTestUtil.nextInt(), 0 });
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByT_S() {
+		try {
+			_persistence.countByT_S(ServiceTestUtil.nextInt(), StringPool.BLANK);
+
+			_persistence.countByT_S(0, StringPool.NULL);
+
+			_persistence.countByT_S(0, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_C_C() {
+		try {
+			_persistence.countByC_C_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+
+			_persistence.countByC_C_C(0L, 0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -138,6 +339,25 @@ public class RolePersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("Role_", "mvccVersion",
+			true, "uuid", true, "roleId", true, "companyId", true, "userId",
+			true, "userName", true, "createDate", true, "modifiedDate", true,
+			"classNameId", true, "classPK", true, "name", true, "title", true,
+			"description", true, "type", true, "subtype", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		Role newRole = addRole();
 
@@ -153,6 +373,26 @@ public class RolePersistenceTest {
 		Role missingRole = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingRole);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new RoleActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					Role role = (Role)object;
+
+					Assert.assertNotNull(role);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -257,7 +497,19 @@ public class RolePersistenceTest {
 
 		Role role = _persistence.create(pk);
 
+		role.setMvccVersion(ServiceTestUtil.nextLong());
+
+		role.setUuid(ServiceTestUtil.randomString());
+
 		role.setCompanyId(ServiceTestUtil.nextLong());
+
+		role.setUserId(ServiceTestUtil.nextLong());
+
+		role.setUserName(ServiceTestUtil.randomString());
+
+		role.setCreateDate(ServiceTestUtil.nextDate());
+
+		role.setModifiedDate(ServiceTestUtil.nextDate());
 
 		role.setClassNameId(ServiceTestUtil.nextLong());
 
@@ -273,10 +525,12 @@ public class RolePersistenceTest {
 
 		role.setSubtype(ServiceTestUtil.randomString());
 
-		_persistence.update(role, false);
+		_persistence.update(role);
 
 		return role;
 	}
 
-	private RolePersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(RolePersistenceTest.class);
+	private RolePersistence _persistence = (RolePersistence)PortalBeanLocatorUtil.locate(RolePersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

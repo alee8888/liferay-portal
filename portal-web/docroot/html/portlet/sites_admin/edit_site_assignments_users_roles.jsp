@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,9 +36,14 @@ portletURL.setParameter("p_u_i_d", String.valueOf(selUser.getUserId()));
 <aui:input name="addRoleIds" type="hidden" />
 <aui:input name="removeRoleIds" type="hidden" />
 
-<liferay-ui:message key="edit-site-roles-for-user" />: <%= HtmlUtil.escape(selUser.getFullName()) %>
+<liferay-ui:header
+	backURL="<%= redirect %>"
+	escapeXml="<%= false %>"
+	localizeTitle="<%= false %>"
+	title='<%= LanguageUtil.get(pageContext, "edit-site-roles-for-user") + ": " + HtmlUtil.escape(selUser.getFullName()) %>'
+/>
 
-<br /><br />
+<liferay-ui:membership-policy-error />
 
 <%
 RoleSearch searchContainer = new RoleSearch(renderRequest, portletURL);
@@ -83,8 +88,6 @@ String taglibOnClick = renderResponse.getNamespace() + "updateUserGroupRole('" +
 %>
 
 <aui:button onClick="<%= taglibOnClick %>" value="update-associations" />
-
-<br /><br />
 
 <%
 List resultRows = searchContainer.getResultRows();

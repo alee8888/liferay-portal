@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,16 +36,14 @@ import org.apache.struts.action.ActionMapping;
 public class ViewNodeAction extends PortletAction {
 
 	public static ActionForward viewNode(
-			ActionMapping mapping, RenderRequest renderRequest,
+			ActionMapping actionMapping, RenderRequest renderRequest,
 			String defaultForward)
 		throws Exception {
 
 		try {
 			WikiNode node = ActionUtil.getNode(renderRequest);
 
-			if (node == null) {
-				ActionUtil.getFirstVisibleNode(renderRequest);
-			}
+			ActionUtil.getFirstVisiblePage(node.getNodeId(), renderRequest);
 		}
 		catch (Exception e) {
 			if (e instanceof NoSuchNodeException ||
@@ -53,7 +51,7 @@ public class ViewNodeAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.wiki.error");
+				return actionMapping.findForward("portlet.wiki.error");
 			}
 			else {
 				throw e;
@@ -63,21 +61,23 @@ public class ViewNodeAction extends PortletAction {
 		long categoryId = ParamUtil.getLong(renderRequest, "categoryId");
 
 		if (categoryId > 0) {
-			return mapping.findForward("portlet.wiki.view_categorized_pages");
+			return actionMapping.findForward(
+				"portlet.wiki.view_categorized_pages");
 		}
 		else {
-			return mapping.findForward(defaultForward);
+			return actionMapping.findForward(defaultForward);
 		}
 	}
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		return viewNode(
-			mapping, renderRequest,
+			actionMapping, renderRequest,
 			getForward(renderRequest, "portlet.wiki.view_node"));
 	}
 

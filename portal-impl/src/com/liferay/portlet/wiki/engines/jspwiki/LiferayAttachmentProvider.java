@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,7 +22,7 @@ import com.ecyrd.jspwiki.providers.ProviderException;
 import com.ecyrd.jspwiki.providers.WikiAttachmentProvider;
 
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
-import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portlet.wiki.service.WikiPageLocalServiceUtil;
 
@@ -40,20 +40,25 @@ import java.util.Properties;
  */
 public class LiferayAttachmentProvider implements WikiAttachmentProvider {
 
+	@Override
 	public void deleteAttachment(Attachment attachment) {
 	}
 
+	@Override
 	public void deleteVersion(Attachment attachment) {
 	}
 
+	@Override
 	public Collection<Attachment> findAttachments(QueryItem[] query) {
 		return Collections.emptyList();
 	}
 
+	@Override
 	public InputStream getAttachmentData(Attachment attachment) {
 		return _EMPTY_STREAM;
 	}
 
+	@Override
 	public Attachment getAttachmentInfo(WikiPage page, String name, int version)
 		throws ProviderException {
 
@@ -63,12 +68,10 @@ public class LiferayAttachmentProvider implements WikiAttachmentProvider {
 			wikiPage = WikiPageLocalServiceUtil.getPage(
 				_nodeId, page.getName());
 
-			String[] attachments = wikiPage.getAttachmentsFiles();
+			for (FileEntry fileEntry : wikiPage.getAttachmentsFileEntries()) {
+				String title = fileEntry.getTitle();
 
-			for (int i = 0; i < attachments.length; i++) {
-				String fileName = FileUtil.getShortFileName(attachments[i]);
-
-				if (fileName.equals(name)) {
+				if (title.equals(name)) {
 					return new Attachment(_engine, page.getName(), name);
 				}
 			}
@@ -80,10 +83,12 @@ public class LiferayAttachmentProvider implements WikiAttachmentProvider {
 		}
 	}
 
+	@Override
 	public String getProviderInfo() {
 		return LiferayAttachmentProvider.class.getName();
 	}
 
+	@Override
 	public List<Attachment> getVersionHistory(Attachment attachment) {
 		List<Attachment> history = new ArrayList<Attachment>();
 
@@ -92,22 +97,27 @@ public class LiferayAttachmentProvider implements WikiAttachmentProvider {
 		return history;
 	}
 
+	@Override
 	public void initialize(WikiEngine engine, Properties props) {
 		_engine = engine;
 		_nodeId = GetterUtil.getLong(props.getProperty("nodeId"));
 	}
 
+	@Override
 	public List<Attachment> listAllChanged(Date timestamp) {
 		return Collections.emptyList();
 	}
 
+	@Override
 	public Collection<Attachment> listAttachments(WikiPage page) {
 		return Collections.emptyList();
 	}
 
+	@Override
 	public void moveAttachmentsForPage(String oldParent, String newParent) {
 	}
 
+	@Override
 	public void putAttachmentData(Attachment attachment, InputStream data) {
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,7 +19,14 @@ import javax.servlet.http.HttpSession;
 /**
  * @author Brian Wing Shun Chan
  */
-public abstract class SessionAction {
+public abstract class SessionAction implements LifecycleAction {
+
+	@Override
+	public final void processLifecycleEvent(LifecycleEvent lifecycleEvent)
+		throws ActionException {
+
+		run(lifecycleEvent.getSession());
+	}
 
 	public abstract void run(HttpSession session) throws ActionException;
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,9 +17,15 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.Organization;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
+import java.util.Date;
 
 /**
  * The cache model class for representing Organization in entity cache.
@@ -29,15 +35,37 @@ import java.io.Serializable;
  * @generated
  */
 public class OrganizationCacheModel implements CacheModel<Organization>,
-	Serializable {
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(23);
+		StringBundler sb = new StringBundler(37);
 
-		sb.append("{organizationId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
+		sb.append(uuid);
+		sb.append(", organizationId=");
 		sb.append(organizationId);
 		sb.append(", companyId=");
 		sb.append(companyId);
+		sb.append(", userId=");
+		sb.append(userId);
+		sb.append(", userName=");
+		sb.append(userName);
+		sb.append(", createDate=");
+		sb.append(createDate);
+		sb.append(", modifiedDate=");
+		sb.append(modifiedDate);
 		sb.append(", parentOrganizationId=");
 		sb.append(parentOrganizationId);
 		sb.append(", treePath=");
@@ -56,16 +84,51 @@ public class OrganizationCacheModel implements CacheModel<Organization>,
 		sb.append(statusId);
 		sb.append(", comments=");
 		sb.append(comments);
+		sb.append(", logoId=");
+		sb.append(logoId);
 		sb.append("}");
 
 		return sb.toString();
 	}
 
+	@Override
 	public Organization toEntityModel() {
 		OrganizationImpl organizationImpl = new OrganizationImpl();
 
+		organizationImpl.setMvccVersion(mvccVersion);
+
+		if (uuid == null) {
+			organizationImpl.setUuid(StringPool.BLANK);
+		}
+		else {
+			organizationImpl.setUuid(uuid);
+		}
+
 		organizationImpl.setOrganizationId(organizationId);
 		organizationImpl.setCompanyId(companyId);
+		organizationImpl.setUserId(userId);
+
+		if (userName == null) {
+			organizationImpl.setUserName(StringPool.BLANK);
+		}
+		else {
+			organizationImpl.setUserName(userName);
+		}
+
+		if (createDate == Long.MIN_VALUE) {
+			organizationImpl.setCreateDate(null);
+		}
+		else {
+			organizationImpl.setCreateDate(new Date(createDate));
+		}
+
+		if (modifiedDate == Long.MIN_VALUE) {
+			organizationImpl.setModifiedDate(null);
+		}
+		else {
+			organizationImpl.setModifiedDate(new Date(modifiedDate));
+		}
+
 		organizationImpl.setParentOrganizationId(parentOrganizationId);
 
 		if (treePath == null) {
@@ -101,13 +164,106 @@ public class OrganizationCacheModel implements CacheModel<Organization>,
 			organizationImpl.setComments(comments);
 		}
 
+		organizationImpl.setLogoId(logoId);
+
 		organizationImpl.resetOriginalValues();
 
 		return organizationImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		uuid = objectInput.readUTF();
+		organizationId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		userId = objectInput.readLong();
+		userName = objectInput.readUTF();
+		createDate = objectInput.readLong();
+		modifiedDate = objectInput.readLong();
+		parentOrganizationId = objectInput.readLong();
+		treePath = objectInput.readUTF();
+		name = objectInput.readUTF();
+		type = objectInput.readUTF();
+		recursable = objectInput.readBoolean();
+		regionId = objectInput.readLong();
+		countryId = objectInput.readLong();
+		statusId = objectInput.readInt();
+		comments = objectInput.readUTF();
+		logoId = objectInput.readLong();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
+		if (uuid == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(uuid);
+		}
+
+		objectOutput.writeLong(organizationId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(userId);
+
+		if (userName == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(userName);
+		}
+
+		objectOutput.writeLong(createDate);
+		objectOutput.writeLong(modifiedDate);
+		objectOutput.writeLong(parentOrganizationId);
+
+		if (treePath == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(treePath);
+		}
+
+		if (name == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(name);
+		}
+
+		if (type == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(type);
+		}
+
+		objectOutput.writeBoolean(recursable);
+		objectOutput.writeLong(regionId);
+		objectOutput.writeLong(countryId);
+		objectOutput.writeInt(statusId);
+
+		if (comments == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(comments);
+		}
+
+		objectOutput.writeLong(logoId);
+	}
+
+	public long mvccVersion;
+	public String uuid;
 	public long organizationId;
 	public long companyId;
+	public long userId;
+	public String userName;
+	public long createDate;
+	public long modifiedDate;
 	public long parentOrganizationId;
 	public String treePath;
 	public String name;
@@ -117,4 +273,5 @@ public class OrganizationCacheModel implements CacheModel<Organization>,
 	public long countryId;
 	public int statusId;
 	public String comments;
+	public long logoId;
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,68 +34,77 @@ import javax.servlet.ServletResponse;
 public class SecureServlet
 	extends BasePortalLifecycle implements ServletConfig, Servlet {
 
+	@Override
 	public void destroy() {
 		portalDestroy();
 	}
 
+	@Override
 	public String getInitParameter(String name) {
-		return _servletConfig.getInitParameter(name);
+		return servletConfig.getInitParameter(name);
 	}
 
+	@Override
 	public Enumeration<String> getInitParameterNames() {
-		return _servletConfig.getInitParameterNames();
+		return servletConfig.getInitParameterNames();
 	}
 
+	@Override
 	public ServletConfig getServletConfig() {
-		return _servletConfig;
+		return servletConfig;
 	}
 
+	@Override
 	public ServletContext getServletContext() {
-		return _servletConfig.getServletContext();
+		return servletConfig.getServletContext();
 	}
 
+	@Override
 	public String getServletInfo() {
-		return _servlet.getServletInfo();
+		return servlet.getServletInfo();
 	}
 
+	@Override
 	public String getServletName() {
-		return _servletConfig.getServletName();
+		return servletConfig.getServletName();
 	}
 
+	@Override
 	public void init(ServletConfig servletConfig) {
-		_servletConfig = servletConfig;
+		this.servletConfig = servletConfig;
 
 		registerPortalLifecycle();
 	}
 
+	@Override
 	public void service(
 			ServletRequest servletRequest, ServletResponse servletResponse)
 		throws IOException, ServletException {
 
-		_servlet.service(servletRequest, servletResponse);
+		servlet.service(servletRequest, servletResponse);
 	}
 
 	@Override
 	protected void doPortalDestroy() {
-		_servlet.destroy();
+		servlet.destroy();
 	}
 
 	@Override
 	protected void doPortalInit() throws Exception {
-		ServletContext servletContext = _servletConfig.getServletContext();
+		ServletContext servletContext = servletConfig.getServletContext();
 
 		ClassLoader classLoader = (ClassLoader)servletContext.getAttribute(
 			PluginContextListener.PLUGIN_CLASS_LOADER);
 
-		String servletClass = _servletConfig.getInitParameter("servlet-class");
+		String servletClass = servletConfig.getInitParameter("servlet-class");
 
-		_servlet = (Servlet)InstanceFactory.newInstance(
+		servlet = (Servlet)InstanceFactory.newInstance(
 			classLoader, servletClass);
 
-		_servlet.init(_servletConfig);
+		servlet.init(servletConfig);
 	}
 
-	private Servlet _servlet;
-	private ServletConfig _servletConfig;
+	protected Servlet servlet;
+	protected ServletConfig servletConfig;
 
 }

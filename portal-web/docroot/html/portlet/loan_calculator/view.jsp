@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,15 +17,13 @@
 <%@ include file="/html/portlet/loan_calculator/init.jsp" %>
 
 <%
-int loanAmount = ParamUtil.get(request, "loanAmount", 200000);
-double interest = ParamUtil.get(request, "interest", 7.00);
+String loanAmountString = ParamUtil.get(request, "loanAmount", "200000");
+String interestString = ParamUtil.get(request, "interest", "7.00");
 int years = ParamUtil.get(request, "years", 30);
 int paymentsPerYear = ParamUtil.get(request, "paymentsPerYear", 12);
 
-double tempValue = Math.pow((1 + (interest / 100 / paymentsPerYear)), (years * paymentsPerYear));
-double amountPerPayment = (loanAmount * tempValue * (interest / 100 / paymentsPerYear)) / (tempValue - 1);
-double totalPaid = amountPerPayment * years * paymentsPerYear;
-double interestPaid = totalPaid - loanAmount;
+int loanAmount = 0;
+double interest = 0.0;
 
 NumberFormat doubleFormat = NumberFormat.getNumberInstance(locale);
 
@@ -37,7 +35,17 @@ NumberFormat integerFormat = NumberFormat.getNumberInstance(locale);
 integerFormat.setMaximumFractionDigits(0);
 integerFormat.setMinimumFractionDigits(0);
 
-NumberFormat percentFormat = NumberFormat.getPercentInstance(locale);
+try {
+	loanAmount = GetterUtil.getInteger(integerFormat.parse(loanAmountString));
+	interest = GetterUtil.getDouble(doubleFormat.parse(interestString));
+}
+catch (Exception e) {
+}
+
+double tempValue = Math.pow((1 + (interest / 100 / paymentsPerYear)), (years * paymentsPerYear));
+double amountPerPayment = (loanAmount * tempValue * (interest / 100 / paymentsPerYear)) / (tempValue - 1);
+double totalPaid = amountPerPayment * years * paymentsPerYear;
+double interestPaid = totalPaid - loanAmount;
 %>
 
 <form action="<liferay-portlet:renderURL windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>"><portlet:param name="struts_action" value="/loan_calculator/view" /></liferay-portlet:renderURL>" id="<portlet:namespace />fm" method="post" name="<portlet:namespace />fm">
@@ -48,7 +56,7 @@ NumberFormat percentFormat = NumberFormat.getPercentInstance(locale);
 		<liferay-ui:message key="loan-amount" />
 	</td>
 	<td>
-		<input name="<portlet:namespace />loanAmount" size="5" type="text" value="<%= integerFormat.format(loanAmount) %>" />
+		<input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="<portlet:namespace />loanAmount" size="5" type="text" value="<%= integerFormat.format(loanAmount) %>" />
 	</td>
 </tr>
 <tr>
@@ -98,12 +106,6 @@ NumberFormat percentFormat = NumberFormat.getPercentInstance(locale);
 <input type="submit" value="<liferay-ui:message key="calculate" />" />
 
 </form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />loanAmount);
-	</aui:script>
-</c:if>
 
 <aui:script use="aui-io-request,aui-parse-content">
 	var form = A.one('#<portlet:namespace />fm');

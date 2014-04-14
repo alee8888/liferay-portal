@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -40,19 +40,13 @@ String portletURLString = portletURL.toString();
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
 	<aui:input name="redirect" type="hidden" value="<%= portletURLString %>" />
 
-	<liferay-util:include page="/html/portlet/user_groups_admin/toolbar.jsp">
-		<liferay-util:param name="toolbarItem" value="view-all" />
-	</liferay-util:include>
-
-	<liferay-ui:header
-		title="user-groups"
-	/>
-
 	<%@ include file="/html/portlet/user_groups_admin/view_flat_user_groups.jspf" %>
 
 </aui:form>
 
 <aui:script>
+	Liferay.Util.toggleSearchContainerButton('#<portlet:namespace />delete', '#<portlet:namespace /><%= searchContainerReference.getId() %>SearchContainer', document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 	function <portlet:namespace />deleteUserGroup(userGroupId) {
 		<portlet:namespace />doDeleteUserGroup('<%= UserGroup.class.getName() %>', userGroupId);
 	}
@@ -113,6 +107,7 @@ String portletURLString = portletURL.toString();
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
 		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = document.<portlet:namespace />fm.<portlet:namespace />userGroupsRedirect.value;
 		document.<portlet:namespace />fm.<portlet:namespace />deleteUserGroupIds.value = userGroupIds;
+
 		submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/user_groups_admin/edit_user_group" /></portlet:actionURL>");
 	}
 
@@ -120,14 +115,11 @@ String portletURLString = portletURL.toString();
 		window,
 		'<portlet:namespace />deleteUserGroups',
 		function() {
-			var userGroupIds = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-
-			if (!userGroupIds) {
-				return;
-			}
-
-			<portlet:namespace />doDeleteUserGroup('<%= UserGroup.class.getName() %>', userGroupIds);
-		},
+			<portlet:namespace />doDeleteUserGroup(
+				'<%= UserGroup.class.getName() %>',
+				Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds')
+			);
+	},
 		['liferay-util-list-fields']
 	);
 

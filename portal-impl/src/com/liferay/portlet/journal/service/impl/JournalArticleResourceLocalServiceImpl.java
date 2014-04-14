@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,12 +28,30 @@ import java.util.List;
 public class JournalArticleResourceLocalServiceImpl
 	extends JournalArticleResourceLocalServiceBaseImpl {
 
+	@Override
 	public void deleteArticleResource(long groupId, String articleId)
 		throws PortalException, SystemException {
 
 		journalArticleResourcePersistence.removeByG_A(groupId, articleId);
 	}
 
+	@Override
+	public JournalArticleResource fetchArticleResource(
+			long groupId, String articleId)
+		throws SystemException {
+
+		return journalArticleResourcePersistence.fetchByG_A(groupId, articleId);
+	}
+
+	@Override
+	public JournalArticleResource fetchArticleResource(
+			String uuid, long groupId)
+		throws SystemException {
+
+		return journalArticleResourcePersistence.fetchByUUID_G(uuid, groupId);
+	}
+
+	@Override
 	public JournalArticleResource getArticleResource(
 			long articleResourcePrimKey)
 		throws PortalException, SystemException {
@@ -42,12 +60,14 @@ public class JournalArticleResourceLocalServiceImpl
 			articleResourcePrimKey);
 	}
 
+	@Override
 	public long getArticleResourcePrimKey(long groupId, String articleId)
 		throws SystemException {
 
 		return getArticleResourcePrimKey(null, groupId, articleId);
 	}
 
+	@Override
 	public long getArticleResourcePrimKey(
 			String uuid, long groupId, String articleId)
 		throws SystemException {
@@ -77,12 +97,13 @@ public class JournalArticleResourceLocalServiceImpl
 			articleResource.setGroupId(groupId);
 			articleResource.setArticleId(articleId);
 
-			journalArticleResourcePersistence.update(articleResource, false);
+			journalArticleResourcePersistence.update(articleResource);
 		}
 
 		return articleResource.getResourcePrimKey();
 	}
 
+	@Override
 	public List<JournalArticleResource> getArticleResources(long groupId)
 		throws SystemException {
 

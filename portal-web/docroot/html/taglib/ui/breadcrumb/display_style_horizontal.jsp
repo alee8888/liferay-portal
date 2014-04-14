@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,38 +16,6 @@
 
 <%@ include file="/html/taglib/ui/breadcrumb/init.jsp" %>
 
-<%
-StringBundler sb = new StringBundler();
-
-if (showGuestGroup) {
-	_buildGuestGroupBreadcrumb(themeDisplay, sb);
-}
-
-if (showParentGroups) {
-	_buildParentGroupsBreadcrumb(selLayout.getLayoutSet(), portletURL, themeDisplay, sb);
-}
-
-if (showLayout) {
-	_buildLayoutBreadcrumb(selLayout, selLayoutParam, true, portletURL, themeDisplay, sb);
-}
-
-if (showPortletBreadcrumb) {
-	_buildPortletBreadcrumb(request, showCurrentGroup, showCurrentPortlet, themeDisplay, sb);
-}
-
-String breadcrumbString = sb.toString();
-
-if (Validator.isNotNull(breadcrumbString)) {
-	int pos = breadcrumbString.indexOf("<li");
-
-	breadcrumbString = StringUtil.insert(breadcrumbString, " class=\"first\"", pos + 3);
-
-	pos = breadcrumbString.lastIndexOf("<li");
-
-	breadcrumbString = StringUtil.insert(breadcrumbString, " class=\"last\"", pos + 3);
-}
-%>
-
-<ul class="breadcrumbs breadcrumbs-horizontal lfr-component">
+<ul aria-label="<%= LanguageUtil.get(pageContext, "breadcrumb") %>" class="breadcrumb breadcrumb-horizontal">
 	<%= breadcrumbString %>
 </ul>

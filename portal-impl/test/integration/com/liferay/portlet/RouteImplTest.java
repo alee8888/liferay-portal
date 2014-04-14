@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,21 +15,22 @@
 package com.liferay.portlet;
 
 import com.liferay.portal.kernel.portlet.Route;
-import com.liferay.portal.util.BaseTestCase;
-import com.liferay.portal.util.InitUtil;
+import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 /**
  * @author Connor McKay
  */
-public class RouteImplTest extends BaseTestCase {
+@RunWith(LiferayIntegrationJUnitTestRunner.class)
+public class RouteImplTest {
 
-	public RouteImplTest() {
-		InitUtil.initWithSpring();
-	}
-
+	@Test
 	public void testNonMatchingRoute() {
 		Map<String, String> parameters = new HashMap<String, String>();
 
@@ -43,8 +44,8 @@ public class RouteImplTest extends BaseTestCase {
 
 		String url = route.parametersToUrl(parameters);
 
-		assertNull(url);
-		assertEquals(originalParameters, parameters);
+		Assert.assertNull(url);
+		Assert.assertEquals(originalParameters, parameters);
 	}
 
 }

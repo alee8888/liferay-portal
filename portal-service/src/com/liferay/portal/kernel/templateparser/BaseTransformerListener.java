@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,10 @@
 
 package com.liferay.portal.kernel.templateparser;
 
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.xml.Document;
+
 import java.util.Map;
 
 /**
@@ -21,38 +25,41 @@ import java.util.Map;
  */
 public abstract class BaseTransformerListener implements TransformerListener {
 
-	public String getLanguageId() {
-		return _languageId;
+	@Override
+	public String onOutput(
+		String output, String languageId, Map<String, String> tokens) {
+
+		if (_log.isDebugEnabled()) {
+			_log.debug("onOutput");
+		}
+
+		return output;
 	}
 
-	public Map<String, String> getTokens() {
-		return _tokens;
+	@Override
+	public String onScript(
+		String script, Document document, String languageId,
+		Map<String, String> tokens) {
+
+		if (_log.isDebugEnabled()) {
+			_log.debug("onScript");
+		}
+
+		return script;
 	}
 
-	public boolean isTemplateDriven() {
-		return _templateDriven;
+	@Override
+	public Document onXml(
+		Document document, String languageId, Map<String, String> tokens) {
+
+		if (_log.isDebugEnabled()) {
+			_log.debug("onXml");
+		}
+
+		return document;
 	}
 
-	public abstract String onOutput(String s);
-
-	public abstract String onScript(String s);
-
-	public abstract String onXml(String s);
-
-	public void setLanguageId(String languageId) {
-		_languageId = languageId;
-	}
-
-	public void setTemplateDriven(boolean templateDriven) {
-		_templateDriven = templateDriven;
-	}
-
-	public void setTokens(Map<String, String> tokens) {
-		_tokens = tokens;
-	}
-
-	private String _languageId;
-	private boolean _templateDriven;
-	private Map<String, String> _tokens;
+	private static Log _log = LogFactoryUtil.getLog(
+		BaseTransformerListener.class);
 
 }

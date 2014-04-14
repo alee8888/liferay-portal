@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.model.User;
-import com.liferay.portlet.announcements.NoSuchDeliveryException;
 import com.liferay.portlet.announcements.model.AnnouncementsDelivery;
 import com.liferay.portlet.announcements.model.AnnouncementsEntryConstants;
 import com.liferay.portlet.announcements.service.base.AnnouncementsDeliveryLocalServiceBaseImpl;
@@ -33,6 +32,7 @@ import java.util.List;
 public class AnnouncementsDeliveryLocalServiceImpl
 	extends AnnouncementsDeliveryLocalServiceBaseImpl {
 
+	@Override
 	public AnnouncementsDelivery addUserDelivery(long userId, String type)
 		throws PortalException, SystemException {
 
@@ -51,7 +51,7 @@ public class AnnouncementsDeliveryLocalServiceImpl
 		delivery.setWebsite(true);
 
 		try {
-			announcementsDeliveryPersistence.update(delivery, false);
+			announcementsDeliveryPersistence.update(delivery);
 		}
 		catch (SystemException se) {
 			if (_log.isWarnEnabled()) {
@@ -71,6 +71,7 @@ public class AnnouncementsDeliveryLocalServiceImpl
 		return delivery;
 	}
 
+	@Override
 	public void deleteDeliveries(long userId) throws SystemException {
 		List<AnnouncementsDelivery> deliveries =
 			announcementsDeliveryPersistence.findByUserId(userId);
@@ -80,12 +81,14 @@ public class AnnouncementsDeliveryLocalServiceImpl
 		}
 	}
 
+	@Override
 	public void deleteDelivery(AnnouncementsDelivery delivery)
 		throws SystemException {
 
 		announcementsDeliveryPersistence.remove(delivery);
 	}
 
+	@Override
 	public void deleteDelivery(long deliveryId)
 		throws PortalException, SystemException {
 
@@ -95,25 +98,26 @@ public class AnnouncementsDeliveryLocalServiceImpl
 		deleteDelivery(delivery);
 	}
 
+	@Override
 	public void deleteDelivery(long userId, String type)
 		throws SystemException {
 
-		try {
-			AnnouncementsDelivery delivery =
-				announcementsDeliveryPersistence.findByU_T(userId, type);
+		AnnouncementsDelivery delivery =
+			announcementsDeliveryPersistence.fetchByU_T(userId, type);
 
+		if (delivery != null) {
 			deleteDelivery(delivery);
-		}
-		catch (NoSuchDeliveryException nsde) {
 		}
 	}
 
+	@Override
 	public AnnouncementsDelivery getDelivery(long deliveryId)
 		throws PortalException, SystemException {
 
 		return announcementsDeliveryPersistence.findByPrimaryKey(deliveryId);
 	}
 
+	@Override
 	public List<AnnouncementsDelivery> getUserDeliveries(long userId)
 		throws PortalException, SystemException {
 
@@ -128,6 +132,7 @@ public class AnnouncementsDeliveryLocalServiceImpl
 		return deliveries;
 	}
 
+	@Override
 	public AnnouncementsDelivery getUserDelivery(long userId, String type)
 		throws PortalException, SystemException {
 
@@ -142,6 +147,7 @@ public class AnnouncementsDeliveryLocalServiceImpl
 		return delivery;
 	}
 
+	@Override
 	public AnnouncementsDelivery updateDelivery(
 			long userId, String type, boolean email, boolean sms,
 			boolean website)
@@ -153,7 +159,7 @@ public class AnnouncementsDeliveryLocalServiceImpl
 		delivery.setSms(sms);
 		delivery.setWebsite(website);
 
-		announcementsDeliveryPersistence.update(delivery, false);
+		announcementsDeliveryPersistence.update(delivery);
 
 		return delivery;
 	}

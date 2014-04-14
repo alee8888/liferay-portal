@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,8 +18,6 @@
 
 <%
 boolean accordion = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:panel-container:accordion"));
-String cssClass = (String)request.getAttribute("liferay-ui:panel-container:cssClass");
-Boolean extended = (Boolean)request.getAttribute("liferay-ui:panel-container:extended");
+String cssClass = GetterUtil.getString((String)request.getAttribute("liferay-ui:panel-container:cssClass"));
 String id = (String)request.getAttribute("liferay-ui:panel-container:id");
-boolean persistState = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:panel-container:persistState"));
 %>

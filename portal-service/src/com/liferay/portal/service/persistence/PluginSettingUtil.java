@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.service.persistence;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
@@ -36,6 +38,7 @@ import java.util.List;
  * @see PluginSettingPersistenceImpl
  * @generated
  */
+@ProviderType
 public class PluginSettingUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -60,7 +63,7 @@ public class PluginSettingUtil {
 	/**
 	 * @see com.liferay.portal.service.persistence.BasePersistence#countWithDynamicQuery(DynamicQuery)
 	 */
-	public long countWithDynamicQuery(DynamicQuery dynamicQuery)
+	public static long countWithDynamicQuery(DynamicQuery dynamicQuery)
 		throws SystemException {
 		return getPersistence().countWithDynamicQuery(dynamicQuery);
 	}
@@ -94,99 +97,19 @@ public class PluginSettingUtil {
 	}
 
 	/**
-	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel, boolean)
+	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel)
+	 */
+	public static PluginSetting update(PluginSetting pluginSetting)
+		throws SystemException {
+		return getPersistence().update(pluginSetting);
+	}
+
+	/**
+	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel, ServiceContext)
 	 */
 	public static PluginSetting update(PluginSetting pluginSetting,
-		boolean merge) throws SystemException {
-		return getPersistence().update(pluginSetting, merge);
-	}
-
-	/**
-	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel, boolean, ServiceContext)
-	 */
-	public static PluginSetting update(PluginSetting pluginSetting,
-		boolean merge, ServiceContext serviceContext) throws SystemException {
-		return getPersistence().update(pluginSetting, merge, serviceContext);
-	}
-
-	/**
-	* Caches the plugin setting in the entity cache if it is enabled.
-	*
-	* @param pluginSetting the plugin setting
-	*/
-	public static void cacheResult(
-		com.liferay.portal.model.PluginSetting pluginSetting) {
-		getPersistence().cacheResult(pluginSetting);
-	}
-
-	/**
-	* Caches the plugin settings in the entity cache if it is enabled.
-	*
-	* @param pluginSettings the plugin settings
-	*/
-	public static void cacheResult(
-		java.util.List<com.liferay.portal.model.PluginSetting> pluginSettings) {
-		getPersistence().cacheResult(pluginSettings);
-	}
-
-	/**
-	* Creates a new plugin setting with the primary key. Does not add the plugin setting to the database.
-	*
-	* @param pluginSettingId the primary key for the new plugin setting
-	* @return the new plugin setting
-	*/
-	public static com.liferay.portal.model.PluginSetting create(
-		long pluginSettingId) {
-		return getPersistence().create(pluginSettingId);
-	}
-
-	/**
-	* Removes the plugin setting with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param pluginSettingId the primary key of the plugin setting
-	* @return the plugin setting that was removed
-	* @throws com.liferay.portal.NoSuchPluginSettingException if a plugin setting with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PluginSetting remove(
-		long pluginSettingId)
-		throws com.liferay.portal.NoSuchPluginSettingException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().remove(pluginSettingId);
-	}
-
-	public static com.liferay.portal.model.PluginSetting updateImpl(
-		com.liferay.portal.model.PluginSetting pluginSetting, boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().updateImpl(pluginSetting, merge);
-	}
-
-	/**
-	* Returns the plugin setting with the primary key or throws a {@link com.liferay.portal.NoSuchPluginSettingException} if it could not be found.
-	*
-	* @param pluginSettingId the primary key of the plugin setting
-	* @return the plugin setting
-	* @throws com.liferay.portal.NoSuchPluginSettingException if a plugin setting with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PluginSetting findByPrimaryKey(
-		long pluginSettingId)
-		throws com.liferay.portal.NoSuchPluginSettingException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().findByPrimaryKey(pluginSettingId);
-	}
-
-	/**
-	* Returns the plugin setting with the primary key or returns <code>null</code> if it could not be found.
-	*
-	* @param pluginSettingId the primary key of the plugin setting
-	* @return the plugin setting, or <code>null</code> if a plugin setting with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PluginSetting fetchByPrimaryKey(
-		long pluginSettingId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().fetchByPrimaryKey(pluginSettingId);
+		ServiceContext serviceContext) throws SystemException {
+		return getPersistence().update(pluginSetting, serviceContext);
 	}
 
 	/**
@@ -206,7 +129,7 @@ public class PluginSettingUtil {
 	* Returns a range of all the plugin settings where companyId = &#63;.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PluginSettingModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param companyId the company ID
@@ -225,7 +148,7 @@ public class PluginSettingUtil {
 	* Returns an ordered range of all the plugin settings where companyId = &#63;.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PluginSettingModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param companyId the company ID
@@ -246,10 +169,6 @@ public class PluginSettingUtil {
 	/**
 	* Returns the first plugin setting in the ordered set where companyId = &#63;.
 	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	* </p>
-	*
 	* @param companyId the company ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	* @return the first matching plugin setting
@@ -266,11 +185,23 @@ public class PluginSettingUtil {
 	}
 
 	/**
-	* Returns the last plugin setting in the ordered set where companyId = &#63;.
+	* Returns the first plugin setting in the ordered set where companyId = &#63;.
 	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	* </p>
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the first matching plugin setting, or <code>null</code> if a matching plugin setting could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.PluginSetting fetchByCompanyId_First(
+		long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence()
+				   .fetchByCompanyId_First(companyId, orderByComparator);
+	}
+
+	/**
+	* Returns the last plugin setting in the ordered set where companyId = &#63;.
 	*
 	* @param companyId the company ID
 	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
@@ -288,11 +219,23 @@ public class PluginSettingUtil {
 	}
 
 	/**
-	* Returns the plugin settings before and after the current plugin setting in the ordered set where companyId = &#63;.
+	* Returns the last plugin setting in the ordered set where companyId = &#63;.
 	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	* </p>
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the last matching plugin setting, or <code>null</code> if a matching plugin setting could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.PluginSetting fetchByCompanyId_Last(
+		long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence()
+				   .fetchByCompanyId_Last(companyId, orderByComparator);
+	}
+
+	/**
+	* Returns the plugin settings before and after the current plugin setting in the ordered set where companyId = &#63;.
 	*
 	* @param pluginSettingId the primary key of the current plugin setting
 	* @param companyId the company ID
@@ -309,6 +252,29 @@ public class PluginSettingUtil {
 		return getPersistence()
 				   .findByCompanyId_PrevAndNext(pluginSettingId, companyId,
 			orderByComparator);
+	}
+
+	/**
+	* Removes all the plugin settings where companyId = &#63; from the database.
+	*
+	* @param companyId the company ID
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void removeByCompanyId(long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getPersistence().removeByCompanyId(companyId);
+	}
+
+	/**
+	* Returns the number of plugin settings where companyId = &#63;.
+	*
+	* @param companyId the company ID
+	* @return the number of matching plugin settings
+	* @throws SystemException if a system exception occurred
+	*/
+	public static int countByCompanyId(long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence().countByCompanyId(companyId);
 	}
 
 	/**
@@ -363,6 +329,117 @@ public class PluginSettingUtil {
 	}
 
 	/**
+	* Removes the plugin setting where companyId = &#63; and pluginId = &#63; and pluginType = &#63; from the database.
+	*
+	* @param companyId the company ID
+	* @param pluginId the plugin ID
+	* @param pluginType the plugin type
+	* @return the plugin setting that was removed
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.PluginSetting removeByC_I_T(
+		long companyId, java.lang.String pluginId, java.lang.String pluginType)
+		throws com.liferay.portal.NoSuchPluginSettingException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence().removeByC_I_T(companyId, pluginId, pluginType);
+	}
+
+	/**
+	* Returns the number of plugin settings where companyId = &#63; and pluginId = &#63; and pluginType = &#63;.
+	*
+	* @param companyId the company ID
+	* @param pluginId the plugin ID
+	* @param pluginType the plugin type
+	* @return the number of matching plugin settings
+	* @throws SystemException if a system exception occurred
+	*/
+	public static int countByC_I_T(long companyId, java.lang.String pluginId,
+		java.lang.String pluginType)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence().countByC_I_T(companyId, pluginId, pluginType);
+	}
+
+	/**
+	* Caches the plugin setting in the entity cache if it is enabled.
+	*
+	* @param pluginSetting the plugin setting
+	*/
+	public static void cacheResult(
+		com.liferay.portal.model.PluginSetting pluginSetting) {
+		getPersistence().cacheResult(pluginSetting);
+	}
+
+	/**
+	* Caches the plugin settings in the entity cache if it is enabled.
+	*
+	* @param pluginSettings the plugin settings
+	*/
+	public static void cacheResult(
+		java.util.List<com.liferay.portal.model.PluginSetting> pluginSettings) {
+		getPersistence().cacheResult(pluginSettings);
+	}
+
+	/**
+	* Creates a new plugin setting with the primary key. Does not add the plugin setting to the database.
+	*
+	* @param pluginSettingId the primary key for the new plugin setting
+	* @return the new plugin setting
+	*/
+	public static com.liferay.portal.model.PluginSetting create(
+		long pluginSettingId) {
+		return getPersistence().create(pluginSettingId);
+	}
+
+	/**
+	* Removes the plugin setting with the primary key from the database. Also notifies the appropriate model listeners.
+	*
+	* @param pluginSettingId the primary key of the plugin setting
+	* @return the plugin setting that was removed
+	* @throws com.liferay.portal.NoSuchPluginSettingException if a plugin setting with the primary key could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.PluginSetting remove(
+		long pluginSettingId)
+		throws com.liferay.portal.NoSuchPluginSettingException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence().remove(pluginSettingId);
+	}
+
+	public static com.liferay.portal.model.PluginSetting updateImpl(
+		com.liferay.portal.model.PluginSetting pluginSetting)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence().updateImpl(pluginSetting);
+	}
+
+	/**
+	* Returns the plugin setting with the primary key or throws a {@link com.liferay.portal.NoSuchPluginSettingException} if it could not be found.
+	*
+	* @param pluginSettingId the primary key of the plugin setting
+	* @return the plugin setting
+	* @throws com.liferay.portal.NoSuchPluginSettingException if a plugin setting with the primary key could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.PluginSetting findByPrimaryKey(
+		long pluginSettingId)
+		throws com.liferay.portal.NoSuchPluginSettingException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence().findByPrimaryKey(pluginSettingId);
+	}
+
+	/**
+	* Returns the plugin setting with the primary key or returns <code>null</code> if it could not be found.
+	*
+	* @param pluginSettingId the primary key of the plugin setting
+	* @return the plugin setting, or <code>null</code> if a plugin setting with the primary key could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.PluginSetting fetchByPrimaryKey(
+		long pluginSettingId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence().fetchByPrimaryKey(pluginSettingId);
+	}
+
+	/**
 	* Returns all the plugin settings.
 	*
 	* @return the plugin settings
@@ -377,7 +454,7 @@ public class PluginSettingUtil {
 	* Returns a range of all the plugin settings.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PluginSettingModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of plugin settings
@@ -395,7 +472,7 @@ public class PluginSettingUtil {
 	* Returns an ordered range of all the plugin settings.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PluginSettingModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of plugin settings
@@ -412,33 +489,6 @@ public class PluginSettingUtil {
 	}
 
 	/**
-	* Removes all the plugin settings where companyId = &#63; from the database.
-	*
-	* @param companyId the company ID
-	* @throws SystemException if a system exception occurred
-	*/
-	public static void removeByCompanyId(long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		getPersistence().removeByCompanyId(companyId);
-	}
-
-	/**
-	* Removes the plugin setting where companyId = &#63; and pluginId = &#63; and pluginType = &#63; from the database.
-	*
-	* @param companyId the company ID
-	* @param pluginId the plugin ID
-	* @param pluginType the plugin type
-	* @return the plugin setting that was removed
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PluginSetting removeByC_I_T(
-		long companyId, java.lang.String pluginId, java.lang.String pluginType)
-		throws com.liferay.portal.NoSuchPluginSettingException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().removeByC_I_T(companyId, pluginId, pluginType);
-	}
-
-	/**
 	* Removes all the plugin settings from the database.
 	*
 	* @throws SystemException if a system exception occurred
@@ -446,33 +496,6 @@ public class PluginSettingUtil {
 	public static void removeAll()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		getPersistence().removeAll();
-	}
-
-	/**
-	* Returns the number of plugin settings where companyId = &#63;.
-	*
-	* @param companyId the company ID
-	* @return the number of matching plugin settings
-	* @throws SystemException if a system exception occurred
-	*/
-	public static int countByCompanyId(long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().countByCompanyId(companyId);
-	}
-
-	/**
-	* Returns the number of plugin settings where companyId = &#63; and pluginId = &#63; and pluginType = &#63;.
-	*
-	* @param companyId the company ID
-	* @param pluginId the plugin ID
-	* @param pluginType the plugin type
-	* @return the number of matching plugin settings
-	* @throws SystemException if a system exception occurred
-	*/
-	public static int countByC_I_T(long companyId, java.lang.String pluginId,
-		java.lang.String pluginType)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().countByC_I_T(companyId, pluginId, pluginType);
 	}
 
 	/**
@@ -498,8 +521,9 @@ public class PluginSettingUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setPersistence(PluginSettingPersistence persistence) {
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,43 +14,116 @@
 
 package com.liferay.portlet.dynamicdatamapping.storage;
 
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.Validator;
+
 import java.io.Serializable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
-public class Fields implements Serializable {
+public class Fields implements Iterable<Field>, Serializable {
 
 	public boolean contains(String name) {
 		return _fieldsMap.containsKey(name);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return equals(obj, true);
+	}
+
+	public boolean equals(Object obj, boolean includePrivateFields) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof Fields)) {
+			return false;
+		}
+
+		Fields fields = (Fields)obj;
+
+		if (includePrivateFields) {
+			return Validator.equals(_fieldsMap, fields._fieldsMap);
+		}
+
+		List<Field> fieldList1 = getFieldsList(includePrivateFields);
+		List<Field> fieldList2 = fields.getFieldsList(includePrivateFields);
+
+		if (fieldList1.size() != fieldList2.size()) {
+			return false;
+		}
+
+		if (fieldList1.containsAll(fieldList2)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	public Field get(String name) {
 		return _fieldsMap.get(name);
 	}
 
+	public Set<Locale> getAvailableLocales() {
+		Set<Locale> availableLocales = new HashSet<Locale>();
+
+		for (Field field : _fieldsMap.values()) {
+			if (field.isPrivate()) {
+				continue;
+			}
+
+			for (Locale availableLocale : field.getAvailableLocales()) {
+				availableLocales.add(availableLocale);
+			}
+		}
+
+		return availableLocales;
+	}
+
+	public Locale getDefaultLocale() {
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
+
+		Iterator<Field> itr = iterator();
+
+		if (itr.hasNext()) {
+			Field field = itr.next();
+
+			defaultLocale = field.getDefaultLocale();
+		}
+
+		return defaultLocale;
+	}
+
 	public Set<String> getNames() {
 		return _fieldsMap.keySet();
 	}
 
+	@Override
 	public Iterator<Field> iterator() {
-		return iterator(null);
+		return iterator(false);
 	}
 
-	public Iterator<Field> iterator(Comparator<Field> comparator) {
-		Collection<Field> fieldsCollection = _fieldsMap.values();
+	public Iterator<Field> iterator(boolean includePrivateFields) {
+		return iterator(null, includePrivateFields);
+	}
 
-		List<Field> fieldsList = new ArrayList<Field>(fieldsCollection);
+	public Iterator<Field> iterator(
+		Comparator<Field> comparator, boolean includePrivateFields) {
+
+		List<Field> fieldsList = getFieldsList(includePrivateFields);
 
 		if (comparator != null) {
 			Collections.sort(fieldsList, comparator);
@@ -65,6 +138,20 @@ public class Fields implements Serializable {
 
 	public Field remove(String name) {
 		return _fieldsMap.remove(name);
+	}
+
+	protected List<Field> getFieldsList(boolean includePrivateFields) {
+		List<Field> fieldsList = new ArrayList<Field>();
+
+		for (Field field : _fieldsMap.values()) {
+			if (!includePrivateFields && field.isPrivate()) {
+				continue;
+			}
+
+			fieldsList.add(field);
+		}
+
+		return fieldsList;
 	}
 
 	private Map<String, Field> _fieldsMap = new HashMap<String, Field>();

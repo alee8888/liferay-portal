@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -40,24 +40,25 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_role_assignments.
 	searchContainer="<%= new UserGroupSearch(renderRequest, portletURL) %>"
 >
 	<liferay-ui:search-form
-		page="/html/portlet/users_admin/user_group_search.jsp"
+		page="/html/portlet/user_groups_admin/user_group_search.jsp"
 	/>
 
 	<%
-	UserGroupSearchTerms searchTerms = (UserGroupSearchTerms)searchContainer.getSearchTerms();
+	UserGroupDisplayTerms searchTerms = (UserGroupDisplayTerms)searchContainer.getSearchTerms();
 
-	LinkedHashMap userGroupParams = new LinkedHashMap();
+	LinkedHashMap<String, Object> userGroupParams = new LinkedHashMap<String, Object>();
 
 	if (tabs3.equals("current")) {
-		List userGroupsRoles = new ArrayList();
-
 		userGroupParams.put("userGroupsRoles", new Long(role.getRoleId()));
 	}
+
+	total = UserGroupLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getKeywords(), userGroupParams);
+
+	searchContainer.setTotal(total);
 	%>
 
 	<liferay-ui:search-container-results
 		results="<%= UserGroupLocalServiceUtil.search(company.getCompanyId(), searchTerms.getKeywords(), userGroupParams, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator()) %>"
-		total="<%= UserGroupLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getKeywords(), userGroupParams) %>"
 	/>
 
 	<liferay-ui:search-container-row
@@ -86,8 +87,6 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_role_assignments.
 	%>
 
 	<aui:button onClick="<%= taglibOnClick %>" value="update-associations" />
-
-	<br /><br />
 
 	<liferay-ui:search-iterator />
 </liferay-ui:search-container>

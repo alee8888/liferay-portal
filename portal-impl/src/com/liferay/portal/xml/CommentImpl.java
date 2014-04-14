@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,6 +35,14 @@ public class CommentImpl extends NodeImpl implements Comment {
 
 	@Override
 	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof CommentImpl)) {
+			return false;
+		}
+
 		org.dom4j.Comment comment = ((CommentImpl)obj).getWrappedComment();
 
 		return _comment.equals(comment);

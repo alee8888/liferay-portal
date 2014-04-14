@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
- * <p>
- * This class is a wrapper for {@link PortalPreferencesLocalService}.
- * </p>
+ * Provides a wrapper for {@link PortalPreferencesLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       PortalPreferencesLocalService
+ * @author Brian Wing Shun Chan
+ * @see PortalPreferencesLocalService
  * @generated
  */
+@ProviderType
 public class PortalPreferencesLocalServiceWrapper
 	implements PortalPreferencesLocalService,
 		ServiceWrapper<PortalPreferencesLocalService> {
@@ -38,6 +39,7 @@ public class PortalPreferencesLocalServiceWrapper
 	* @return the portal preferences that was added
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.PortalPreferences addPortalPreferences(
 		com.liferay.portal.model.PortalPreferences portalPreferences)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -50,6 +52,7 @@ public class PortalPreferencesLocalServiceWrapper
 	* @param portalPreferencesId the primary key for the new portal preferences
 	* @return the new portal preferences
 	*/
+	@Override
 	public com.liferay.portal.model.PortalPreferences createPortalPreferences(
 		long portalPreferencesId) {
 		return _portalPreferencesLocalService.createPortalPreferences(portalPreferencesId);
@@ -63,6 +66,7 @@ public class PortalPreferencesLocalServiceWrapper
 	* @throws PortalException if a portal preferences with the primary key could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.PortalPreferences deletePortalPreferences(
 		long portalPreferencesId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -77,12 +81,14 @@ public class PortalPreferencesLocalServiceWrapper
 	* @return the portal preferences that was removed
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.PortalPreferences deletePortalPreferences(
 		com.liferay.portal.model.PortalPreferences portalPreferences)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _portalPreferencesLocalService.deletePortalPreferences(portalPreferences);
 	}
 
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _portalPreferencesLocalService.dynamicQuery();
 	}
@@ -94,6 +100,7 @@ public class PortalPreferencesLocalServiceWrapper
 	* @return the matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
@@ -105,7 +112,7 @@ public class PortalPreferencesLocalServiceWrapper
 	* Performs a dynamic query on the database and returns a range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PortalPreferencesModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -114,6 +121,7 @@ public class PortalPreferencesLocalServiceWrapper
 	* @return the range of matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
@@ -126,7 +134,7 @@ public class PortalPreferencesLocalServiceWrapper
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PortalPreferencesModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -136,6 +144,7 @@ public class PortalPreferencesLocalServiceWrapper
 	* @return the ordered range of matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
@@ -153,12 +162,31 @@ public class PortalPreferencesLocalServiceWrapper
 	* @return the number of rows that match the dynamic query
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _portalPreferencesLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portalPreferencesLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
+	@Override
 	public com.liferay.portal.model.PortalPreferences fetchPortalPreferences(
 		long portalPreferencesId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -173,6 +201,7 @@ public class PortalPreferencesLocalServiceWrapper
 	* @throws PortalException if a portal preferences with the primary key could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.PortalPreferences getPortalPreferences(
 		long portalPreferencesId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -180,6 +209,7 @@ public class PortalPreferencesLocalServiceWrapper
 		return _portalPreferencesLocalService.getPortalPreferences(portalPreferencesId);
 	}
 
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -191,7 +221,7 @@ public class PortalPreferencesLocalServiceWrapper
 	* Returns a range of all the portal preferenceses.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PortalPreferencesModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of portal preferenceses
@@ -199,6 +229,7 @@ public class PortalPreferencesLocalServiceWrapper
 	* @return the range of portal preferenceses
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portal.model.PortalPreferences> getPortalPreferenceses(
 		int start, int end)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -211,6 +242,7 @@ public class PortalPreferencesLocalServiceWrapper
 	* @return the number of portal preferenceses
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public int getPortalPreferencesesCount()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _portalPreferencesLocalService.getPortalPreferencesesCount();
@@ -223,6 +255,7 @@ public class PortalPreferencesLocalServiceWrapper
 	* @return the portal preferences that was updated
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.PortalPreferences updatePortalPreferences(
 		com.liferay.portal.model.PortalPreferences portalPreferences)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -230,26 +263,11 @@ public class PortalPreferencesLocalServiceWrapper
 	}
 
 	/**
-	* Updates the portal preferences in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param portalPreferences the portal preferences
-	* @param merge whether to merge the portal preferences with the current session. See {@link com.liferay.portal.service.persistence.BatchSession#update(com.liferay.portal.kernel.dao.orm.Session, com.liferay.portal.model.BaseModel, boolean)} for an explanation.
-	* @return the portal preferences that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portal.model.PortalPreferences updatePortalPreferences(
-		com.liferay.portal.model.PortalPreferences portalPreferences,
-		boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _portalPreferencesLocalService.updatePortalPreferences(portalPreferences,
-			merge);
-	}
-
-	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _portalPreferencesLocalService.getBeanIdentifier();
 	}
@@ -259,10 +277,25 @@ public class PortalPreferencesLocalServiceWrapper
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_portalPreferencesLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
+	public com.liferay.portal.model.PortalPreferences addPortalPreferences(
+		long ownerId, int ownerType, java.lang.String defaultPreferences)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portalPreferencesLocalService.addPortalPreferences(ownerId,
+			ownerType, defaultPreferences);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #addPortalPreferences(long,
+	int, String)}
+	*/
+	@Deprecated
+	@Override
 	public com.liferay.portal.model.PortalPreferences addPortalPreferences(
 		long companyId, long ownerId, int ownerType,
 		java.lang.String defaultPreferences)
@@ -271,6 +304,26 @@ public class PortalPreferencesLocalServiceWrapper
 			ownerId, ownerType, defaultPreferences);
 	}
 
+	@Override
+	public javax.portlet.PortletPreferences getPreferences(long ownerId,
+		int ownerType)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portalPreferencesLocalService.getPreferences(ownerId, ownerType);
+	}
+
+	@Override
+	public javax.portlet.PortletPreferences getPreferences(long ownerId,
+		int ownerType, java.lang.String defaultPreferences)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portalPreferencesLocalService.getPreferences(ownerId,
+			ownerType, defaultPreferences);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getPreferences(long, int)}
+	*/
+	@Deprecated
+	@Override
 	public javax.portlet.PortletPreferences getPreferences(long companyId,
 		long ownerId, int ownerType)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -278,6 +331,12 @@ public class PortalPreferencesLocalServiceWrapper
 			ownerId, ownerType);
 	}
 
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getPreferences(long, int,
+	String)}
+	*/
+	@Deprecated
+	@Override
 	public javax.portlet.PortletPreferences getPreferences(long companyId,
 		long ownerId, int ownerType, java.lang.String defaultPreferences)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -285,6 +344,7 @@ public class PortalPreferencesLocalServiceWrapper
 			ownerId, ownerType, defaultPreferences);
 	}
 
+	@Override
 	public com.liferay.portal.model.PortalPreferences updatePreferences(
 		long ownerId, int ownerType,
 		com.liferay.portlet.PortalPreferences portalPreferences)
@@ -293,6 +353,7 @@ public class PortalPreferencesLocalServiceWrapper
 			ownerType, portalPreferences);
 	}
 
+	@Override
 	public com.liferay.portal.model.PortalPreferences updatePreferences(
 		long ownerId, int ownerType, java.lang.String xml)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -301,24 +362,28 @@ public class PortalPreferencesLocalServiceWrapper
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PortalPreferencesLocalService getWrappedPortalPreferencesLocalService() {
 		return _portalPreferencesLocalService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPortalPreferencesLocalService(
 		PortalPreferencesLocalService portalPreferencesLocalService) {
 		_portalPreferencesLocalService = portalPreferencesLocalService;
 	}
 
+	@Override
 	public PortalPreferencesLocalService getWrappedService() {
 		return _portalPreferencesLocalService;
 	}
 
+	@Override
 	public void setWrappedService(
 		PortalPreferencesLocalService portalPreferencesLocalService) {
 		_portalPreferencesLocalService = portalPreferencesLocalService;

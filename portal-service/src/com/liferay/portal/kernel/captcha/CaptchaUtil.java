@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.kernel.captcha;
+
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 
 import java.io.IOException;
 
@@ -41,6 +43,8 @@ public class CaptchaUtil {
 	}
 
 	public static Captcha getCaptcha() {
+		PortalRuntimePermission.checkGetBeanProperty(CaptchaUtil.class);
+
 		return _captcha;
 	}
 
@@ -55,7 +59,7 @@ public class CaptchaUtil {
 	}
 
 	public static boolean isEnabled(PortletRequest portletRequest)
-		throws CaptchaException{
+		throws CaptchaException {
 
 		return getCaptcha().isEnabled(portletRequest);
 	}
@@ -75,6 +79,8 @@ public class CaptchaUtil {
 	}
 
 	public void setCaptcha(Captcha captcha) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_captcha = captcha;
 	}
 

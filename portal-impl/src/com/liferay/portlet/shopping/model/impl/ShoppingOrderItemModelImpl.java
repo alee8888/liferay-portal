@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -86,32 +86,40 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 				"value.object.column.bitmask.enabled.com.liferay.portlet.shopping.model.ShoppingOrderItem"),
 			true);
 	public static long ORDERID_COLUMN_BITMASK = 1L;
+	public static long NAME_COLUMN_BITMASK = 2L;
+	public static long DESCRIPTION_COLUMN_BITMASK = 4L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.shopping.model.ShoppingOrderItem"));
 
 	public ShoppingOrderItemModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _orderItemId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setOrderItemId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_orderItemId);
+		return _orderItemId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return ShoppingOrderItem.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return ShoppingOrderItem.class.getName();
 	}
@@ -130,6 +138,9 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 		attributes.put("price", getPrice());
 		attributes.put("quantity", getQuantity());
 		attributes.put("shippedDate", getShippedDate());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -197,18 +208,22 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 		}
 	}
 
+	@Override
 	public long getOrderItemId() {
 		return _orderItemId;
 	}
 
+	@Override
 	public void setOrderItemId(long orderItemId) {
 		_orderItemId = orderItemId;
 	}
 
+	@Override
 	public long getOrderId() {
 		return _orderId;
 	}
 
+	@Override
 	public void setOrderId(long orderId) {
 		_columnBitmask |= ORDERID_COLUMN_BITMASK;
 
@@ -225,6 +240,7 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 		return _originalOrderId;
 	}
 
+	@Override
 	public String getItemId() {
 		if (_itemId == null) {
 			return StringPool.BLANK;
@@ -234,10 +250,12 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 		}
 	}
 
+	@Override
 	public void setItemId(String itemId) {
 		_itemId = itemId;
 	}
 
+	@Override
 	public String getSku() {
 		if (_sku == null) {
 			return StringPool.BLANK;
@@ -247,10 +265,12 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 		}
 	}
 
+	@Override
 	public void setSku(String sku) {
 		_sku = sku;
 	}
 
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -260,12 +280,14 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 		}
 	}
 
+	@Override
 	public void setName(String name) {
 		_columnBitmask = -1L;
 
 		_name = name;
 	}
 
+	@Override
 	public String getDescription() {
 		if (_description == null) {
 			return StringPool.BLANK;
@@ -275,12 +297,14 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 		}
 	}
 
+	@Override
 	public void setDescription(String description) {
 		_columnBitmask = -1L;
 
 		_description = description;
 	}
 
+	@Override
 	public String getProperties() {
 		if (_properties == null) {
 			return StringPool.BLANK;
@@ -290,47 +314,43 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 		}
 	}
 
+	@Override
 	public void setProperties(String properties) {
 		_properties = properties;
 	}
 
+	@Override
 	public double getPrice() {
 		return _price;
 	}
 
+	@Override
 	public void setPrice(double price) {
 		_price = price;
 	}
 
+	@Override
 	public int getQuantity() {
 		return _quantity;
 	}
 
+	@Override
 	public void setQuantity(int quantity) {
 		_quantity = quantity;
 	}
 
+	@Override
 	public Date getShippedDate() {
 		return _shippedDate;
 	}
 
+	@Override
 	public void setShippedDate(Date shippedDate) {
 		_shippedDate = shippedDate;
 	}
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public ShoppingOrderItem toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (ShoppingOrderItem)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -344,6 +364,16 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public ShoppingOrderItem toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (ShoppingOrderItem)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -366,6 +396,7 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 		return shoppingOrderItemImpl;
 	}
 
+	@Override
 	public int compareTo(ShoppingOrderItem shoppingOrderItem) {
 		int value = 0;
 
@@ -386,18 +417,15 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ShoppingOrderItem)) {
 			return false;
 		}
 
-		ShoppingOrderItem shoppingOrderItem = null;
-
-		try {
-			shoppingOrderItem = (ShoppingOrderItem)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		ShoppingOrderItem shoppingOrderItem = (ShoppingOrderItem)obj;
 
 		long primaryKey = shoppingOrderItem.getPrimaryKey();
 
@@ -412,6 +440,16 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -518,6 +556,7 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(34);
 
@@ -572,7 +611,7 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 	}
 
 	private static ClassLoader _classLoader = ShoppingOrderItem.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			ShoppingOrderItem.class
 		};
 	private long _orderItemId;
@@ -588,5 +627,5 @@ public class ShoppingOrderItemModelImpl extends BaseModelImpl<ShoppingOrderItem>
 	private int _quantity;
 	private Date _shippedDate;
 	private long _columnBitmask;
-	private ShoppingOrderItem _escapedModelProxy;
+	private ShoppingOrderItem _escapedModel;
 }

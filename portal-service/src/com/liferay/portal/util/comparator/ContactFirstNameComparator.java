@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,9 +16,9 @@ package com.liferay.portal.util.comparator;
 
 /**
  * @author     Brian Wing Shun Chan
- * @deprecated This class has been renamed to
- *             <code>UserFirstNameComparator</code>.
+ * @deprecated As of 6.2.0, renamed to {@link UserFirstNameComparator}
  */
+@Deprecated
 public class ContactFirstNameComparator extends UserFirstNameComparator {
 
 	public ContactFirstNameComparator() {

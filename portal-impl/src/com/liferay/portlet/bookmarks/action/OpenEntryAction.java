@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,9 +15,11 @@
 package com.liferay.portlet.bookmarks.action;
 
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.struts.ActionConstants;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
+import com.liferay.portlet.bookmarks.NoSuchEntryException;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
 import com.liferay.portlet.bookmarks.service.BookmarksEntryServiceUtil;
 
@@ -36,18 +38,29 @@ public class OpenEntryAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		try {
 			long entryId = ParamUtil.getLong(request, "entryId");
 
-			BookmarksEntry entry = BookmarksEntryServiceUtil.openEntry(entryId);
+			BookmarksEntry entry = BookmarksEntryServiceUtil.getEntry(entryId);
+
+			if (entry.isInTrash()) {
+				int status = ParamUtil.getInteger(
+					request, "status", WorkflowConstants.STATUS_APPROVED);
+
+				if (status != WorkflowConstants.STATUS_IN_TRASH) {
+					throw new NoSuchEntryException("{entryId=" + entryId + "}");
+				}
+			}
+
+			entry = BookmarksEntryServiceUtil.openEntry(entry);
 
 			request.setAttribute(WebKeys.FORWARD_URL, entry.getUrl());
 
-			return mapping.findForward(ActionConstants.COMMON_FORWARD);
+			return actionMapping.findForward(ActionConstants.COMMON_FORWARD);
 		}
 		catch (Exception e) {
 			PortalUtil.sendError(e, request, response);

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,22 +36,27 @@ public class DDLRecordSetImpl extends DDLRecordSetBaseImpl {
 	public DDLRecordSetImpl() {
 	}
 
+	@Override
 	public DDMStructure getDDMStructure()
 		throws PortalException, SystemException {
 
 		return DDMStructureLocalServiceUtil.getStructure(getDDMStructureId());
 	}
 
-	public DDMStructure getDDMStructure(long detailDDMTemplateId)
+	@Override
+	public DDMStructure getDDMStructure(long formDDMTemplateId)
 		throws PortalException, SystemException {
 
 		DDMStructure ddmStructure = getDDMStructure();
 
-		if (detailDDMTemplateId > 0) {
+		if (formDDMTemplateId > 0) {
 			try {
 				DDMTemplate ddmTemplate =
-					DDMTemplateLocalServiceUtil.getTemplate(
-						detailDDMTemplateId);
+					DDMTemplateLocalServiceUtil.getTemplate(formDDMTemplateId);
+
+				// Clone ddmStructure to make sure changes are never persisted
+
+				ddmStructure = (DDMStructure)ddmStructure.clone();
 
 				ddmStructure.setXsd(ddmTemplate.getScript());
 			}
@@ -62,10 +67,12 @@ public class DDLRecordSetImpl extends DDLRecordSetBaseImpl {
 		return ddmStructure;
 	}
 
+	@Override
 	public List<DDLRecord> getRecords() throws SystemException {
 		return DDLRecordLocalServiceUtil.getRecords(getRecordSetId());
 	}
 
+	@Override
 	public List<Fields> getRecordsFieldsList()
 		throws PortalException, SystemException {
 

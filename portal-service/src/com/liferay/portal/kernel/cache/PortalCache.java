@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,41 +16,36 @@ package com.liferay.portal.kernel.cache;
 
 import java.io.Serializable;
 
-import java.util.Collection;
-
 /**
  * @author Brian Wing Shun Chan
  * @author Edward Han
  * @author Shuyang Zhou
  */
-public interface PortalCache {
+public interface PortalCache<K extends Serializable, V> {
 
-	public void destroy();
-
-	public Collection<Object> get(Collection<Serializable> keys);
-
-	public Object get(Serializable key);
+	public V get(K key);
 
 	public String getName();
 
-	public void put(Serializable key, Object value);
+	public void put(K key, V value);
 
-	public void put(Serializable key, Object value, int timeToLive);
+	public void put(K key, V value, int timeToLive);
 
-	public void put(Serializable key, Serializable value);
+	public void putQuiet(K key, V value);
 
-	public void put(Serializable key, Serializable value, int timeToLive);
+	public void putQuiet(K key, V value, int timeToLive);
 
-	public void registerCacheListener(CacheListener cacheListener);
+	public void registerCacheListener(CacheListener<K, V> cacheListener);
 
 	public void registerCacheListener(
-		CacheListener cacheListener, CacheListenerScope cacheListenerScope);
+		CacheListener<K, V> cacheListener,
+		CacheListenerScope cacheListenerScope);
 
-	public void remove(Serializable key);
+	public void remove(K key);
 
 	public void removeAll();
 
-	public void unregisterCacheListener(CacheListener cacheListener);
+	public void unregisterCacheListener(CacheListener<K, V> cacheListener);
 
 	public void unregisterCacheListeners();
 

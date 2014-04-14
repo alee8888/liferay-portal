@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -55,6 +55,7 @@ public class JSPWikiEngine implements WikiEngine {
 			jspWikiName, _JSP_WIKI_NAME_2, _JSP_WIKI_NAME_1);
 	}
 
+	@Override
 	public String convert(
 			com.liferay.portlet.wiki.model.WikiPage page,
 			PortletURL viewPageURL, PortletURL editPageURL,
@@ -69,6 +70,7 @@ public class JSPWikiEngine implements WikiEngine {
 		}
 	}
 
+	@Override
 	public Map<String, Boolean> getOutgoingLinks(
 			com.liferay.portlet.wiki.model.WikiPage page)
 		throws PageContentException {
@@ -129,13 +131,16 @@ public class JSPWikiEngine implements WikiEngine {
 		}
 	}
 
+	@Override
 	public void setInterWikiConfiguration(String interWikiConfiguration) {
 	}
 
+	@Override
 	public void setMainConfiguration(String mainConfiguration) {
 		setProperties(mainConfiguration);
 	}
 
+	@Override
 	public boolean validate(long nodeId, String newContent) {
 		return true;
 	}
@@ -210,7 +215,6 @@ public class JSPWikiEngine implements WikiEngine {
 	}
 
 	private static String _encodeJSPWikiContent(String content) {
-
 		StringBundler encodedContent = new StringBundler();
 
 		Matcher commentMatcher = _wikiCommentPattern.matcher(content);
@@ -218,39 +222,14 @@ public class JSPWikiEngine implements WikiEngine {
 		int start = 0;
 		int end = 0;
 
-		String oldContent = StringPool.BLANK;
-		String newContent = StringPool.BLANK;
-
 		while (commentMatcher.find()) {
 			end = commentMatcher.start();
 
-			oldContent = content.substring(start, end);
+			String oldContent = content.substring(start, end);
 
 			Matcher wikiLinkMatcher = _wikiLinkPattern.matcher(oldContent);
 
-			newContent = oldContent;
-
-			while (wikiLinkMatcher.find()) {
-				String link = wikiLinkMatcher.group();
-				String linkValues = wikiLinkMatcher.group(1);
-
-				String name = linkValues;
-				String url = linkValues;
-
-				int pos = linkValues.indexOf(CharPool.PIPE);
-
-				if (pos != -1) {
-					name = linkValues.substring(pos + 1);
-					url = linkValues.substring(0, pos);
-				}
-
-				String newLink =
-					"[[" + _encodeJSPWikiName(url) + "|" + name + "]]";
-
-				newContent = StringUtil.replace(newContent, link, newLink);
-			}
-
-			encodedContent.append(newContent);
+			encodedContent.append(_encodeLink(oldContent, wikiLinkMatcher));
 			encodedContent.append(
 				content.substring(
 					commentMatcher.start(), commentMatcher.end()));
@@ -258,8 +237,12 @@ public class JSPWikiEngine implements WikiEngine {
 			start = commentMatcher.end();
 		}
 
-		if (start != content.length()) {
-			encodedContent.append(content.substring(start));
+		if (start < content.length()) {
+			content = content.substring(start);
+
+			Matcher wikiLinkMatcher = _wikiLinkPattern.matcher(content);
+
+			encodedContent.append(_encodeLink(content, wikiLinkMatcher));
 		}
 
 		return encodedContent.toString();
@@ -271,6 +254,31 @@ public class JSPWikiEngine implements WikiEngine {
 		}
 
 		return StringUtil.replace(name, _JSP_WIKI_NAME_1, _JSP_WIKI_NAME_2);
+	}
+
+	private static String _encodeLink(String content, Matcher wikiLinkMatcher) {
+		while (wikiLinkMatcher.find()) {
+			String link = wikiLinkMatcher.group();
+			String linkValues = wikiLinkMatcher.group(1);
+
+			String name = linkValues;
+			String url = linkValues;
+
+			int pos = linkValues.indexOf(CharPool.PIPE);
+
+			if (pos != -1) {
+				name = linkValues.substring(pos + 1);
+				url = linkValues.substring(0, pos);
+			}
+
+			String newLink =
+				"[[" + _encodeJSPWikiName(url) + "|" +
+					_encodeJSPWikiName(name) + "]]";
+
+			content = StringUtil.replace(content, link, newLink);
+		}
+
+		return content;
 	}
 
 	private static final String[] _JSP_WIKI_NAME_1 = {
@@ -290,7 +298,7 @@ public class JSPWikiEngine implements WikiEngine {
 	private static Pattern _wikiCommentPattern = Pattern.compile(
 		"[\\{]{3,3}(.*?)[\\}]{3,3}", Pattern.DOTALL);
 	private static Pattern _wikiLinkPattern = Pattern.compile(
-		"[\\[]{2,2}(.+?)[\\]]{2,2}", Pattern.DOTALL);
+		"[\\[]{1,2}(.+?)[\\]]{1,2}", Pattern.DOTALL);
 
 	private Map<Long, LiferayJSPWikiEngine> _engines =
 		new ConcurrentHashMap<Long, LiferayJSPWikiEngine>();

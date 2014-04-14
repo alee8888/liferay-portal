@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -59,8 +59,9 @@ public class EditCouponAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -100,16 +101,14 @@ public class EditCouponAction extends PortletAction {
 						(CouponLimitCategoriesException)e;
 
 					SessionErrors.add(
-						actionRequest, e.getClass().getName(),
-						clce.getCategoryIds());
+						actionRequest, e.getClass(), clce.getCategoryIds());
 				}
 				else if (e instanceof CouponLimitSKUsException) {
 					CouponLimitSKUsException clskue =
 						(CouponLimitSKUsException)e;
 
 					SessionErrors.add(
-						actionRequest, e.getClass().getName(),
-						clskue.getSkus());
+						actionRequest, e.getClass(), clskue.getSkus());
 				}
 				else {
 					SessionErrors.add(actionRequest, e.getClass());
@@ -123,8 +122,9 @@ public class EditCouponAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -136,14 +136,14 @@ public class EditCouponAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.shopping.error");
+				return actionMapping.findForward("portlet.shopping.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.shopping.edit_coupon"));
 	}
 

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,9 +19,11 @@
 <%
 FileEntry fileEntry = (FileEntry)request.getAttribute("view_entries.jsp-fileEntry");
 
-FileVersion latestFileVersion = fileEntry.getFileVersion();
+FileVersion fileVersion = fileEntry.getFileVersion();
 
-if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGroupId) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE)) {
+FileVersion latestFileVersion = fileVersion;
+
+if ((user.getUserId() == fileEntry.getUserId()) || permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE)) {
 	latestFileVersion = fileEntry.getLatestFileVersion();
 }
 
@@ -29,70 +31,47 @@ DLFileShortcut fileShortcut = (DLFileShortcut)request.getAttribute("view_entries
 
 PortletURL tempRowURL = (PortletURL)request.getAttribute("view_entries.jsp-tempRowURL");
 
-boolean showCheckBox = DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DELETE) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE);
+long assetClassPK = 0;
+
+if (!latestFileVersion.getVersion().equals(DLFileEntryConstants.VERSION_DEFAULT) && (latestFileVersion.getStatus() != WorkflowConstants.STATUS_APPROVED)) {
+	assetClassPK = latestFileVersion.getFileVersionId();
+}
+else {
+	assetClassPK = fileEntry.getFileEntryId();
+}
+
+String rowCheckerName = FileEntry.class.getSimpleName();
+long rowCheckerId = fileEntry.getFileEntryId();
+
+if (fileShortcut != null) {
+	rowCheckerName = DLFileShortcut.class.getSimpleName();
+	rowCheckerId = fileShortcut.getFileShortcutId();
+}
 %>
 
-<div class="document-display-style display-descriptive <%= showCheckBox ? "selectable" : StringPool.BLANK %>" data-draggable="<%= showCheckBox ? Boolean.TRUE.toString() : Boolean.FALSE.toString() %>" data-title="<%= StringUtil.shorten(fileEntry.getTitle(), 60) %>">
-	<a class="document-link" data-folder="<%= Boolean.FALSE.toString() %>" href="<%= tempRowURL.toString() %>" title="<%= HtmlUtil.escapeAttribute(HtmlUtil.unescape(fileEntry.getTitle()) + " - " + HtmlUtil.unescape(fileEntry.getDescription())) %>">
-
-		<%
-		String thumbnailDivStyle = DLUtil.getThumbnailStyle(false, 4);
-		%>
-
-		<div class="document-thumbnail" style="<%= thumbnailDivStyle %>">
-
-			<%
-			String thumbnailSrc = DLUtil.getThumbnailSrc(fileEntry, fileShortcut, themeDisplay);
-			String thumbnailStyle = DLUtil.getThumbnailStyle();
-			%>
-
-			<img alt="" border="no" src="<%= thumbnailSrc %>" style="<%= thumbnailStyle %>" />
-
-			<c:if test="<%= fileShortcut != null %>">
-				<img alt="<liferay-ui:message key="shortcut" />" class="shortcut-icon" src="<%= themeDisplay.getPathThemeImages() %>/file_system/large/overlay_link.png" />
-			</c:if>
-
-			<c:if test="<%= fileEntry.isCheckedOut() %>">
-				<img alt="<liferay-ui:message key="locked" />" class="locked-icon" src="<%= themeDisplay.getPathThemeImages() %>/file_system/large/overlay_lock.png" />
-			</c:if>
-		</div>
-
-		<span class="entry-title">
-			<%= fileEntry.getTitle() %>
-
-			<c:if test="<%= latestFileVersion.isDraft() || latestFileVersion.isPending() %>">
-
-				<%
-				String statusLabel = WorkflowConstants.toLabel(latestFileVersion.getStatus());
-				%>
-
-				<span class="workflow-status-<%= statusLabel %>">
-					(<liferay-ui:message key="<%= statusLabel %>" />)
-				</span>
-			</c:if>
-		</span>
-
-		<span class="document-description"><%= fileEntry.getDescription() %></span>
-	</a>
-
-	<%
-	request.removeAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
-	%>
-
-	<liferay-util:include page="/html/portlet/document_library/file_entry_action.jsp" />
-
-	<c:if test="<%= showCheckBox %>">
-
-		<%
-		String rowCheckerName = FileEntry.class.getSimpleName();
-		long rowCheckerId = fileEntry.getFileEntryId();
-
-		if (fileShortcut != null) {
-			rowCheckerName = DLFileShortcut.class.getSimpleName();
-			rowCheckerId = fileShortcut.getFileShortcutId();
-		}
-		%>
-
-		<aui:input cssClass="overlay document-selector" label="" name="<%= RowChecker.ROW_IDS + rowCheckerName %>" type="checkbox" value="<%= rowCheckerId %>" />
-	</c:if>
-</div>
+<liferay-ui:app-view-entry
+	actionJsp="/html/portlet/document_library/file_entry_action.jsp"
+	assetCategoryClassName="<%= DLFileEntryConstants.getClassName() %>"
+	assetCategoryClassPK="<%= assetClassPK %>"
+	assetTagClassName="<%= DLFileEntryConstants.getClassName() %>"
+	assetTagClassPK="<%= assetClassPK %>"
+	author="<%= latestFileVersion.getUserName() %>"
+	createDate="<%= latestFileVersion.getCreateDate() %>"
+	description="<%= latestFileVersion.getDescription() %>"
+	displayStyle="descriptive"
+	latestApprovedVersion="<%= fileVersion.getVersion().equals(DLFileEntryConstants.VERSION_DEFAULT) ? null : fileVersion.getVersion() %>"
+	latestApprovedVersionAuthor="<%= fileVersion.getVersion().equals(DLFileEntryConstants.VERSION_DEFAULT) ? null : fileVersion.getUserName() %>"
+	locked="<%= fileEntry.isCheckedOut() %>"
+	modifiedDate="<%= latestFileVersion.getModifiedDate() %>"
+	rowCheckerId="<%= String.valueOf(rowCheckerId) %>"
+	rowCheckerName="<%= rowCheckerName %>"
+	shortcut="<%= fileShortcut != null %>"
+	showCheckbox="<%= DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.DELETE) || DLFileEntryPermission.contains(permissionChecker, fileEntry, ActionKeys.UPDATE) %>"
+	status="<%= latestFileVersion.getStatus() %>"
+	thumbnailDivStyle="<%= DLUtil.getThumbnailStyle(false, 4) %>"
+	thumbnailSrc="<%= DLUtil.getThumbnailSrc(fileEntry, latestFileVersion, fileShortcut, themeDisplay) %>"
+	thumbnailStyle="<%= DLUtil.getThumbnailStyle() %>"
+	title="<%= latestFileVersion.getTitle() %>"
+	url="<%= tempRowURL.toString() %>"
+	version="<%= latestFileVersion.getVersion() %>"
+/>

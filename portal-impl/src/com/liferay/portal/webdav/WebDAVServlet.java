@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,7 @@ package com.liferay.portal.webdav;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.InstancePool;
@@ -26,6 +27,8 @@ import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
+import com.liferay.portal.kernel.webdav.methods.Method;
+import com.liferay.portal.kernel.webdav.methods.MethodFactory;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.auth.PrincipalThreadLocal;
@@ -33,9 +36,8 @@ import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.service.UserLocalServiceUtil;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.webdav.methods.Method;
-import com.liferay.portal.webdav.methods.MethodFactory;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -44,6 +46,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author Brian Wing Shun Chan
  * @author Alexander Chow
+ * @author Fabio Pezzutto
  */
 public class WebDAVServlet extends HttpServlet {
 
@@ -76,8 +79,8 @@ public class WebDAVServlet extends HttpServlet {
 				return;
 			}
 
-			// Set the path only if it has not already been set. This works
-			// if and only if the servlet is not mapped to more than one URL.
+			// Set the path only if it has not already been set. This works if
+			// and only if the servlet is not mapped to more than one URL.
 
 			if (storage.getRootPath() == null) {
 				storage.setRootPath(getRootPath(request));
@@ -101,15 +104,17 @@ public class WebDAVServlet extends HttpServlet {
 
 			// Get the method instance
 
-			Method method = MethodFactory.create(request);
+			MethodFactory methodFactory = storage.getMethodFactory();
+
+			Method method = methodFactory.create(request);
 
 			// Process the method
 
 			try {
-				WebDAVRequest webDavRequest = new WebDAVRequestImpl(
+				WebDAVRequest webDAVRequest = new WebDAVRequestImpl(
 					storage, request, response, userAgent, permissionChecker);
 
-				status = method.process(webDavRequest);
+				status = method.process(webDAVRequest);
 			}
 			catch (WebDAVException wde) {
 				boolean logError = false;
@@ -157,7 +162,7 @@ public class WebDAVServlet extends HttpServlet {
 
 	protected String getRootPath(HttpServletRequest request) {
 		String contextPath = HttpUtil.fixPath(
-			request.getContextPath(), false, true);
+			PortalUtil.getPathContext(request), false, true);
 		String ServletPath = HttpUtil.fixPath(
 			request.getServletPath(), false, true);
 
@@ -165,8 +170,12 @@ public class WebDAVServlet extends HttpServlet {
 	}
 
 	protected WebDAVStorage getStorage(HttpServletRequest request) {
-		String[] pathArray = WebDAVUtil.getPathArray(
-			request.getPathInfo(), true);
+		String pathInfo = WebDAVUtil.stripManualCheckInRequiredPath(
+			request.getPathInfo());
+
+		pathInfo = WebDAVUtil.stripOfficeExtension(pathInfo);
+
+		String[] pathArray = WebDAVUtil.getPathArray(pathInfo, true);
 
 		WebDAVStorage storage = null;
 
@@ -189,7 +198,7 @@ public class WebDAVServlet extends HttpServlet {
 		String[] pathArray = WebDAVUtil.getPathArray(
 			request.getPathInfo(), true);
 
-		if ((pathArray == null) || (pathArray.length == 0)) {
+		if (ArrayUtil.isEmpty(pathArray)) {
 			return false;
 		}
 

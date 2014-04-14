@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,8 +24,14 @@ public class OrderedListNode extends BaseListNode {
 	public OrderedListNode() {
 	}
 
-	public OrderedListNode(CollectionNode collectionNode) {
-		super(collectionNode);
+	public OrderedListNode(BaseParentableNode baseParentableNode) {
+		super(baseParentableNode, null);
+	}
+
+	public OrderedListNode(
+		BaseParentableNode baseParentableNode, CollectionNode collectionNode) {
+
+		super(baseParentableNode, collectionNode);
 	}
 
 	public OrderedListNode(int tokenType) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -55,6 +55,7 @@ public class JavaMD5CacheKeyGenerator extends BaseCacheKeyGenerator {
 		}
 	}
 
+	@Override
 	public String getCacheKey(String key) {
 		if ((_maxLength > -1) && (key.length() < _maxLength)) {
 			return key;
@@ -74,18 +75,22 @@ public class JavaMD5CacheKeyGenerator extends BaseCacheKeyGenerator {
 		}
 	}
 
+	@Override
 	public String getCacheKey(String[] keys) {
 		return getCacheKey(new StringBundler(keys));
 	}
 
+	@Override
 	public String getCacheKey(StringBundler sb) {
 		if ((_maxLength > -1) && (sb.length() < _maxLength)) {
 			return sb.toString();
 		}
 
 		try {
+			String[] array = sb.getStrings();
+
 			for (int i = 0; i < sb.index(); i++) {
-				String key = sb.stringAt(i);
+				String key = array[i];
 
 				_messageDigest.update(
 					_charsetEncoder.encode(CharBuffer.wrap(key)));

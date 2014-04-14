@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,7 +19,7 @@ import java.io.InputStream;
 
 /**
  * <p>
- * See http://issues.liferay.com/browse/LPS-6648.
+ * See https://issues.liferay.com/browse/LPS-6648.
  * </p>
  *
  * @author Shuyang Zhou
@@ -67,26 +67,27 @@ public class UnsyncBufferedInputStream extends UnsyncFilterInputStream {
 
 		markLimitIndex = readLimit;
 
-		if (index > 0) {
+		if (index == 0) {
+			return;
+		}
 
-			int available = firstInvalidIndex - index;
+		int available = firstInvalidIndex - index;
 
-			if (available > 0) {
+		if (available > 0) {
 
-				// Shuffle mark beginning to buffer beginning
+			// Shuffle mark beginning to buffer beginning
 
-				System.arraycopy(buffer, index, buffer, 0, available);
+			System.arraycopy(buffer, index, buffer, 0, available);
 
-				index = 0;
+			index = 0;
 
-				firstInvalidIndex = available;
-			}
-			else {
+			firstInvalidIndex = available;
+		}
+		else {
 
-				// Reset buffer states
+			// Reset buffer states
 
-				index = firstInvalidIndex = 0;
-			}
+			index = firstInvalidIndex = 0;
 		}
 	}
 

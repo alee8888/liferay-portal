@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
- * <p>
- * This class is a wrapper for {@link RoleService}.
- * </p>
+ * Provides a wrapper for {@link RoleService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       RoleService
+ * @author Brian Wing Shun Chan
+ * @see RoleService
  * @generated
  */
+@ProviderType
 public class RoleServiceWrapper implements RoleService,
 	ServiceWrapper<RoleService> {
 	public RoleServiceWrapper(RoleService roleService) {
@@ -34,6 +35,7 @@ public class RoleServiceWrapper implements RoleService,
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _roleService.getBeanIdentifier();
 	}
@@ -43,8 +45,45 @@ public class RoleServiceWrapper implements RoleService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_roleService.setBeanIdentifier(beanIdentifier);
+	}
+
+	/**
+	* Adds a role. The user is reindexed after role is added.
+	*
+	* @param className the name of the class for which the role is created
+	* @param classPK the primary key of the class for which the role is
+	created (optionally <code>0</code>)
+	* @param name the role's name
+	* @param titleMap the role's localized titles (optionally
+	<code>null</code>)
+	* @param descriptionMap the role's localized descriptions (optionally
+	<code>null</code>)
+	* @param type the role's type (optionally <code>0</code>)
+	* @param subtype the role's subtype (optionally <code>null</code>)
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set the expando bridge attributes for the
+	role.
+	* @return the role
+	* @throws PortalException if a user with the primary key could not be
+	found, if the user did not have permission to add roles, if the
+	class name or the role name were invalid, or if the role is a
+	duplicate
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.Role addRole(java.lang.String className,
+		long classPK, java.lang.String name,
+		java.util.Map<java.util.Locale, java.lang.String> titleMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		int type, java.lang.String subtype,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _roleService.addRole(className, classPK, name, titleMap,
+			descriptionMap, type, subtype, serviceContext);
 	}
 
 	/**
@@ -58,11 +97,15 @@ public class RoleServiceWrapper implements RoleService,
 	* @param type the role's type (optionally <code>0</code>)
 	* @return the role
 	* @throws PortalException if a user with the primary key could not be
-	found, if the user did not have permission to add roles, if the
-	class name or the role name were invalid, or if the role is a
-	duplicate
+	found, if the user did not have permission to add roles, if
+	the class name or the role name were invalid, or if the role
+	is a duplicate
 	* @throws SystemException if a system exception occurred
+	* @deprecated As of 6.2.0, replaced by {@link #addRole(String, long,
+	String, Map, Map, int, String, ServiceContext)}
 	*/
+	@Deprecated
+	@Override
 	public com.liferay.portal.model.Role addRole(java.lang.String name,
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
 		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
@@ -83,6 +126,7 @@ public class RoleServiceWrapper implements RoleService,
 	of the roles
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public void addUserRoles(long userId, long[] roleIds)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -99,6 +143,7 @@ public class RoleServiceWrapper implements RoleService,
 	not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public void deleteRole(long roleId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -113,6 +158,7 @@ public class RoleServiceWrapper implements RoleService,
 	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portal.model.Role> getGroupRoles(
 		long groupId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -129,6 +175,7 @@ public class RoleServiceWrapper implements RoleService,
 	or if the user did not have permission to view the role
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.Role getRole(long roleId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -150,6 +197,7 @@ public class RoleServiceWrapper implements RoleService,
 	company or if the user did not have permission to view the role
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.Role getRole(long companyId,
 		java.lang.String name)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -166,6 +214,7 @@ public class RoleServiceWrapper implements RoleService,
 	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portal.model.Role> getUserGroupGroupRoles(
 		long userId, long groupId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -182,6 +231,7 @@ public class RoleServiceWrapper implements RoleService,
 	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portal.model.Role> getUserGroupRoles(
 		long userId, long groupId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -198,6 +248,7 @@ public class RoleServiceWrapper implements RoleService,
 	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portal.model.Role> getUserRelatedRoles(
 		long userId, java.util.List<com.liferay.portal.model.Group> groups)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -213,6 +264,7 @@ public class RoleServiceWrapper implements RoleService,
 	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portal.model.Role> getUserRoles(
 		long userId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -235,6 +287,7 @@ public class RoleServiceWrapper implements RoleService,
 	company or if a default user for the company could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public boolean hasUserRole(long userId, long companyId,
 		java.lang.String name, boolean inherited)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -258,6 +311,7 @@ public class RoleServiceWrapper implements RoleService,
 	could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public boolean hasUserRoles(long userId, long companyId,
 		java.lang.String[] names, boolean inherited)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -277,6 +331,7 @@ public class RoleServiceWrapper implements RoleService,
 	be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public void unsetUserRoles(long userId, long[] roleIds)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -293,41 +348,50 @@ public class RoleServiceWrapper implements RoleService,
 	* @param descriptionMap the new localized descriptions (optionally
 	<code>null</code>) to replace those existing for the role
 	* @param subtype the role's new subtype (optionally <code>null</code>)
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set the expando bridge attributes for the
+	role.
 	* @return the role with the primary key
 	* @throws PortalException if the user did not have permission to update the
 	role, if a role with the primary could not be found, or if the
 	role's name was invalid
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.Role updateRole(long roleId,
 		java.lang.String name,
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
 		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
-		java.lang.String subtype)
+		java.lang.String subtype,
+		com.liferay.portal.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _roleService.updateRole(roleId, name, titleMap, descriptionMap,
-			subtype);
+			subtype, serviceContext);
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public RoleService getWrappedRoleService() {
 		return _roleService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedRoleService(RoleService roleService) {
 		_roleService = roleService;
 	}
 
+	@Override
 	public RoleService getWrappedService() {
 		return _roleService;
 	}
 
+	@Override
 	public void setWrappedService(RoleService roleService) {
 		_roleService = roleService;
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,25 +14,28 @@
 
 package com.liferay.portal.kernel.portlet;
 
-import com.liferay.portal.kernel.servlet.PluginContextListener;
+import aQute.bnd.annotation.ProviderType;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+import com.liferay.portal.kernel.servlet.PluginContextListener;
+import com.liferay.portal.kernel.util.AutoResetThreadLocal;
+import com.liferay.portal.kernel.util.ClassLoaderPool;
 
 import javax.servlet.ServletContext;
 
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public class PortletClassLoaderUtil {
 
 	public static ClassLoader getClassLoader() {
-		Thread currentThread = Thread.currentThread();
-
-		return _classLoaders.get(currentThread.getId());
+		return ClassLoaderPool.getClassLoader(getServletContextName());
 	}
 
 	public static ClassLoader getClassLoader(String portletId) {
+		PortalRuntimePermission.checkGetClassLoader(portletId);
+
 		PortletBag portletBag = PortletBagPool.get(portletId);
 
 		if (portletBag == null) {
@@ -46,22 +49,25 @@ public class PortletClassLoaderUtil {
 	}
 
 	public static String getServletContextName() {
-		return _servletContextName;
-	}
+		String servletContextName = _servletContextName.get();
 
-	public static void setClassLoader(ClassLoader classLoader) {
-		Thread currentThread = Thread.currentThread();
+		if (servletContextName == null) {
+			throw new IllegalStateException(
+				"No servlet context name specified");
+		}
 
-		_classLoaders.put(currentThread.getId(), classLoader);
+		return servletContextName;
 	}
 
 	public static void setServletContextName(String servletContextName) {
-		_servletContextName = servletContextName;
+		PortalRuntimePermission.checkSetBeanProperty(
+			PortletClassLoaderUtil.class);
+
+		_servletContextName.set(servletContextName);
 	}
 
-	private static Map<Long, ClassLoader> _classLoaders =
-		new HashMap<Long, ClassLoader>();
-
-	private static String _servletContextName;
+	private static ThreadLocal<String> _servletContextName =
+		new AutoResetThreadLocal<String>(
+			PortletClassLoaderUtil.class + "._servletContextName");
 
 }

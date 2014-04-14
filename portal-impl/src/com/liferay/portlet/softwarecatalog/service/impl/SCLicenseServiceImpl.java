@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,6 +28,7 @@ import com.liferay.portlet.softwarecatalog.service.permission.SCLicensePermissio
  */
 public class SCLicenseServiceImpl extends SCLicenseServiceBaseImpl {
 
+	@Override
 	public SCLicense addLicense(
 			String name, String url, boolean openSource, boolean active,
 			boolean recommended)
@@ -40,6 +41,7 @@ public class SCLicenseServiceImpl extends SCLicenseServiceBaseImpl {
 			name, url, openSource, active, recommended);
 	}
 
+	@Override
 	public void deleteLicense(long licenseId)
 		throws PortalException, SystemException {
 
@@ -49,12 +51,14 @@ public class SCLicenseServiceImpl extends SCLicenseServiceBaseImpl {
 		scLicenseLocalService.deleteLicense(licenseId);
 	}
 
+	@Override
 	public SCLicense getLicense(long licenseId)
 		throws PortalException, SystemException {
 
 		return scLicenseLocalService.getLicense(licenseId);
 	}
 
+	@Override
 	public SCLicense updateLicense(
 			long licenseId, String name, String url, boolean openSource,
 			boolean active, boolean recommended)

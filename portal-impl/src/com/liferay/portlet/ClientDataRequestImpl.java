@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,14 +27,17 @@ import javax.portlet.ClientDataRequest;
 public abstract class ClientDataRequestImpl
 	extends PortletRequestImpl implements ClientDataRequest {
 
+	@Override
 	public String getCharacterEncoding() {
 		return getHttpServletRequest().getCharacterEncoding();
 	}
 
+	@Override
 	public int getContentLength() {
 		return getHttpServletRequest().getContentLength();
 	}
 
+	@Override
 	public String getContentType() {
 		return getHttpServletRequest().getContentType();
 	}
@@ -44,10 +47,12 @@ public abstract class ClientDataRequestImpl
 		return getHttpServletRequest().getMethod();
 	}
 
+	@Override
 	public InputStream getPortletInputStream() throws IOException {
 		return getHttpServletRequest().getInputStream();
 	}
 
+	@Override
 	public BufferedReader getReader()
 		throws IOException, UnsupportedEncodingException {
 
@@ -56,6 +61,7 @@ public abstract class ClientDataRequestImpl
 		return getHttpServletRequest().getReader();
 	}
 
+	@Override
 	public void setCharacterEncoding(String enc)
 		throws UnsupportedEncodingException {
 

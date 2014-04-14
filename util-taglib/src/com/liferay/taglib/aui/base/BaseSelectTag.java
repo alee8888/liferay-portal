@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -61,6 +61,10 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 		return _helpMessage;
 	}
 
+	public boolean getHideLabel() {
+		return _hideLabel;
+	}
+
 	public java.lang.String getId() {
 		return _id;
 	}
@@ -75,10 +79,6 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 
 	public java.lang.String getInlineLabel() {
 		return _inlineLabel;
-	}
-
-	public java.lang.String getInputCssClass() {
-		return _inputCssClass;
 	}
 
 	public java.lang.String getLabel() {
@@ -117,8 +117,16 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 		return _prefix;
 	}
 
+	public boolean getRequired() {
+		return _required;
+	}
+
 	public boolean getShowEmptyOption() {
 		return _showEmptyOption;
+	}
+
+	public boolean getShowRequiredLabel() {
+		return _showRequiredLabel;
 	}
 
 	public java.lang.String getSuffix() {
@@ -131,6 +139,10 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 
 	public boolean getUseNamespace() {
 		return _useNamespace;
+	}
+
+	public java.lang.Object getValue() {
+		return _value;
 	}
 
 	public void setBean(java.lang.Object bean) {
@@ -175,6 +187,12 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 		setScopedAttribute("helpMessage", helpMessage);
 	}
 
+	public void setHideLabel(boolean hideLabel) {
+		_hideLabel = hideLabel;
+
+		setScopedAttribute("hideLabel", hideLabel);
+	}
+
 	public void setId(java.lang.String id) {
 		_id = id;
 
@@ -197,12 +215,6 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 		_inlineLabel = inlineLabel;
 
 		setScopedAttribute("inlineLabel", inlineLabel);
-	}
-
-	public void setInputCssClass(java.lang.String inputCssClass) {
-		_inputCssClass = inputCssClass;
-
-		setScopedAttribute("inputCssClass", inputCssClass);
 	}
 
 	public void setLabel(java.lang.String label) {
@@ -259,10 +271,22 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 		setScopedAttribute("prefix", prefix);
 	}
 
+	public void setRequired(boolean required) {
+		_required = required;
+
+		setScopedAttribute("required", required);
+	}
+
 	public void setShowEmptyOption(boolean showEmptyOption) {
 		_showEmptyOption = showEmptyOption;
 
 		setScopedAttribute("showEmptyOption", showEmptyOption);
+	}
+
+	public void setShowRequiredLabel(boolean showRequiredLabel) {
+		_showRequiredLabel = showRequiredLabel;
+
+		setScopedAttribute("showRequiredLabel", showRequiredLabel);
 	}
 
 	public void setSuffix(java.lang.String suffix) {
@@ -283,6 +307,12 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 		setScopedAttribute("useNamespace", useNamespace);
 	}
 
+	public void setValue(java.lang.Object value) {
+		_value = value;
+
+		setScopedAttribute("value", value);
+	}
+
 	@Override
 	protected void cleanUp() {
 		_bean = null;
@@ -292,11 +322,11 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 		_disabled = false;
 		_first = false;
 		_helpMessage = null;
+		_hideLabel = false;
 		_id = null;
 		_ignoreRequestValue = false;
 		_inlineField = false;
 		_inlineLabel = null;
-		_inputCssClass = null;
 		_label = null;
 		_last = false;
 		_listType = null;
@@ -306,10 +336,13 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 		_onChange = null;
 		_onClick = null;
 		_prefix = null;
+		_required = false;
 		_showEmptyOption = false;
+		_showRequiredLabel = true;
 		_suffix = null;
 		_title = null;
 		_useNamespace = true;
+		_value = null;
 	}
 
 	@Override
@@ -331,11 +364,11 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 		setNamespacedAttribute(request, "disabled", _disabled);
 		setNamespacedAttribute(request, "first", _first);
 		setNamespacedAttribute(request, "helpMessage", _helpMessage);
+		setNamespacedAttribute(request, "hideLabel", _hideLabel);
 		setNamespacedAttribute(request, "id", _id);
 		setNamespacedAttribute(request, "ignoreRequestValue", _ignoreRequestValue);
 		setNamespacedAttribute(request, "inlineField", _inlineField);
 		setNamespacedAttribute(request, "inlineLabel", _inlineLabel);
-		setNamespacedAttribute(request, "inputCssClass", _inputCssClass);
 		setNamespacedAttribute(request, "label", _label);
 		setNamespacedAttribute(request, "last", _last);
 		setNamespacedAttribute(request, "listType", _listType);
@@ -345,10 +378,13 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 		setNamespacedAttribute(request, "onChange", _onChange);
 		setNamespacedAttribute(request, "onClick", _onClick);
 		setNamespacedAttribute(request, "prefix", _prefix);
+		setNamespacedAttribute(request, "required", _required);
 		setNamespacedAttribute(request, "showEmptyOption", _showEmptyOption);
+		setNamespacedAttribute(request, "showRequiredLabel", _showRequiredLabel);
 		setNamespacedAttribute(request, "suffix", _suffix);
 		setNamespacedAttribute(request, "title", _title);
 		setNamespacedAttribute(request, "useNamespace", _useNamespace);
+		setNamespacedAttribute(request, "value", _value);
 	}
 
 	protected static final String _ATTRIBUTE_NAMESPACE = "aui:select:";
@@ -366,11 +402,11 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 	private boolean _disabled = false;
 	private boolean _first = false;
 	private java.lang.String _helpMessage = null;
+	private boolean _hideLabel = false;
 	private java.lang.String _id = null;
 	private boolean _ignoreRequestValue = false;
 	private boolean _inlineField = false;
 	private java.lang.String _inlineLabel = null;
-	private java.lang.String _inputCssClass = null;
 	private java.lang.String _label = null;
 	private boolean _last = false;
 	private java.lang.String _listType = null;
@@ -380,9 +416,12 @@ public class BaseSelectTag extends com.liferay.taglib.util.IncludeTag {
 	private java.lang.String _onChange = null;
 	private java.lang.String _onClick = null;
 	private java.lang.String _prefix = null;
+	private boolean _required = false;
 	private boolean _showEmptyOption = false;
+	private boolean _showRequiredLabel = true;
 	private java.lang.String _suffix = null;
 	private java.lang.String _title = null;
 	private boolean _useNamespace = true;
+	private java.lang.Object _value = null;
 
 }

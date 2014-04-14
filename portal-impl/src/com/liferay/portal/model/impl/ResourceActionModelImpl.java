@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -56,12 +56,13 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 	 */
 	public static final String TABLE_NAME = "ResourceAction";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "resourceActionId", Types.BIGINT },
 			{ "name", Types.VARCHAR },
 			{ "actionId", Types.VARCHAR },
 			{ "bitwiseValue", Types.BIGINT }
 		};
-	public static final String TABLE_SQL_CREATE = "create table ResourceAction (resourceActionId LONG not null primary key,name VARCHAR(255) null,actionId VARCHAR(75) null,bitwiseValue LONG)";
+	public static final String TABLE_SQL_CREATE = "create table ResourceAction (mvccVersion LONG default 0,resourceActionId LONG not null primary key,name VARCHAR(255) null,actionId VARCHAR(75) null,bitwiseValue LONG)";
 	public static final String TABLE_SQL_DROP = "drop table ResourceAction";
 	public static final String ORDER_BY_JPQL = " ORDER BY resourceAction.name ASC, resourceAction.bitwiseValue ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY ResourceAction.name ASC, ResourceAction.bitwiseValue ASC";
@@ -79,32 +80,39 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 			true);
 	public static long ACTIONID_COLUMN_BITMASK = 1L;
 	public static long NAME_COLUMN_BITMASK = 2L;
+	public static long BITWISEVALUE_COLUMN_BITMASK = 4L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portal.model.ResourceAction"));
 
 	public ResourceActionModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _resourceActionId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setResourceActionId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_resourceActionId);
+		return _resourceActionId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return ResourceAction.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return ResourceAction.class.getName();
 	}
@@ -113,16 +121,26 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("resourceActionId", getResourceActionId());
 		attributes.put("name", getName());
 		attributes.put("actionId", getActionId());
 		attributes.put("bitwiseValue", getBitwiseValue());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long resourceActionId = (Long)attributes.get("resourceActionId");
 
 		if (resourceActionId != null) {
@@ -148,14 +166,27 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 		}
 	}
 
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@Override
 	public long getResourceActionId() {
 		return _resourceActionId;
 	}
 
+	@Override
 	public void setResourceActionId(long resourceActionId) {
 		_resourceActionId = resourceActionId;
 	}
 
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -165,6 +196,7 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 		}
 	}
 
+	@Override
 	public void setName(String name) {
 		_columnBitmask = -1L;
 
@@ -179,6 +211,7 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 		return GetterUtil.getString(_originalName);
 	}
 
+	@Override
 	public String getActionId() {
 		if (_actionId == null) {
 			return StringPool.BLANK;
@@ -188,6 +221,7 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 		}
 	}
 
+	@Override
 	public void setActionId(String actionId) {
 		_columnBitmask |= ACTIONID_COLUMN_BITMASK;
 
@@ -202,10 +236,12 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 		return GetterUtil.getString(_originalActionId);
 	}
 
+	@Override
 	public long getBitwiseValue() {
 		return _bitwiseValue;
 	}
 
+	@Override
 	public void setBitwiseValue(long bitwiseValue) {
 		_columnBitmask = -1L;
 
@@ -214,17 +250,6 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public ResourceAction toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (ResourceAction)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -241,9 +266,20 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 	}
 
 	@Override
+	public ResourceAction toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (ResourceAction)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		ResourceActionImpl resourceActionImpl = new ResourceActionImpl();
 
+		resourceActionImpl.setMvccVersion(getMvccVersion());
 		resourceActionImpl.setResourceActionId(getResourceActionId());
 		resourceActionImpl.setName(getName());
 		resourceActionImpl.setActionId(getActionId());
@@ -254,6 +290,7 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 		return resourceActionImpl;
 	}
 
+	@Override
 	public int compareTo(ResourceAction resourceAction) {
 		int value = 0;
 
@@ -282,18 +319,15 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ResourceAction)) {
 			return false;
 		}
 
-		ResourceAction resourceAction = null;
-
-		try {
-			resourceAction = (ResourceAction)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		ResourceAction resourceAction = (ResourceAction)obj;
 
 		long primaryKey = resourceAction.getPrimaryKey();
 
@@ -311,6 +345,16 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		ResourceActionModelImpl resourceActionModelImpl = this;
 
@@ -324,6 +368,8 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 	@Override
 	public CacheModel<ResourceAction> toCacheModel() {
 		ResourceActionCacheModel resourceActionCacheModel = new ResourceActionCacheModel();
+
+		resourceActionCacheModel.mvccVersion = getMvccVersion();
 
 		resourceActionCacheModel.resourceActionId = getResourceActionId();
 
@@ -350,9 +396,11 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
+		StringBundler sb = new StringBundler(11);
 
-		sb.append("{resourceActionId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", resourceActionId=");
 		sb.append(getResourceActionId());
 		sb.append(", name=");
 		sb.append(getName());
@@ -365,13 +413,18 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(16);
+		StringBundler sb = new StringBundler(19);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.ResourceAction");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>resourceActionId</column-name><column-value><![CDATA[");
 		sb.append(getResourceActionId());
@@ -395,9 +448,10 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 	}
 
 	private static ClassLoader _classLoader = ResourceAction.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			ResourceAction.class
 		};
+	private long _mvccVersion;
 	private long _resourceActionId;
 	private String _name;
 	private String _originalName;
@@ -405,5 +459,5 @@ public class ResourceActionModelImpl extends BaseModelImpl<ResourceAction>
 	private String _originalActionId;
 	private long _bitwiseValue;
 	private long _columnBitmask;
-	private ResourceAction _escapedModelProxy;
+	private ResourceAction _escapedModel;
 }

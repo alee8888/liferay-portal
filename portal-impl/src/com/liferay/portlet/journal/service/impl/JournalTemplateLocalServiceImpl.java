@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,44 +14,35 @@
 
 package com.liferay.portlet.journal.service.impl;
 
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.CharPool;
-import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Image;
-import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.PrefsPropsUtil;
-import com.liferay.portlet.dynamicdatamapping.util.DDMXMLUtil;
-import com.liferay.portlet.expando.model.ExpandoBridge;
+import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
+import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
+import com.liferay.portlet.dynamicdatamapping.model.DDMTemplateConstants;
 import com.liferay.portlet.journal.DuplicateTemplateIdException;
 import com.liferay.portlet.journal.NoSuchTemplateException;
-import com.liferay.portlet.journal.RequiredTemplateException;
 import com.liferay.portlet.journal.TemplateIdException;
-import com.liferay.portlet.journal.TemplateNameException;
-import com.liferay.portlet.journal.TemplateSmallImageNameException;
-import com.liferay.portlet.journal.TemplateSmallImageSizeException;
-import com.liferay.portlet.journal.TemplateXslException;
+import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalStructure;
 import com.liferay.portlet.journal.model.JournalTemplate;
-import com.liferay.portlet.journal.model.JournalTemplateConstants;
+import com.liferay.portlet.journal.model.JournalTemplateAdapter;
 import com.liferay.portlet.journal.service.base.JournalTemplateLocalServiceBaseImpl;
 import com.liferay.portlet.journal.util.JournalUtil;
 
 import java.io.File;
-import java.io.IOException;
 
 import java.util.Date;
 import java.util.List;
@@ -59,12 +50,26 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * @author Brian Wing Shun Chan
- * @author Raymond Augé
+ * @author     Brian Wing Shun Chan
+ * @author     Raymond Augé
+ * @author     Marcellus Tavares
+ * @deprecated As of 6.2.0, since Web Content Administration now uses the
+ *             Dynamic Data Mapping framework to handle templates
  */
+@Deprecated
 public class JournalTemplateLocalServiceImpl
 	extends JournalTemplateLocalServiceBaseImpl {
 
+	@Override
+	public JournalTemplate addJournalTemplate(JournalTemplate template)
+		throws PortalException, SystemException {
+
+		template.setNew(true);
+
+		return updateTemplate(template);
+	}
+
+	@Override
 	public JournalTemplate addTemplate(
 			long userId, long groupId, String templateId,
 			boolean autoTemplateId, String structureId,
@@ -74,159 +79,93 @@ public class JournalTemplateLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
-		// Template
+		long classPK = 0;
 
-		User user = userPersistence.findByPrimaryKey(userId);
-		templateId = templateId.trim().toUpperCase();
-		Date now = new Date();
+		if (Validator.isNotNull(structureId)) {
+			JournalStructure structure =
+				journalStructureLocalService.getStructure(
+					groupId, structureId, true);
 
-		try {
-			if (formatXsl) {
-				if (langType.equals(JournalTemplateConstants.LANG_TYPE_VM)) {
-					xsl = JournalUtil.formatVM(xsl);
-				}
-				else {
-					xsl = DDMXMLUtil.formatXML(xsl);
-				}
-			}
-		}
-		catch (Exception e) {
-			throw new TemplateXslException();
+			classPK = structure.getPrimaryKey();
 		}
 
-		byte[] smallImageBytes = null;
+		DDMTemplate ddmTemplate = ddmTemplateLocalService.addTemplate(
+			userId, groupId,
+			classNameLocalService.getClassNameId(DDMStructure.class), classPK,
+			templateId, nameMap, descriptionMap,
+			DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY,
+			DDMTemplateConstants.TEMPLATE_MODE_CREATE, langType, xsl, cacheable,
+			smallImage, smallImageURL, smallImageFile, serviceContext);
 
-		try {
-			smallImageBytes = FileUtil.getBytes(smallImageFile);
-		}
-		catch (IOException ioe) {
-		}
-
-		validate(
-			groupId, templateId, autoTemplateId, nameMap, xsl, smallImage,
-			smallImageURL, smallImageFile, smallImageBytes);
-
-		if (autoTemplateId) {
-			templateId = String.valueOf(counterLocalService.increment());
-		}
-
-		long id = counterLocalService.increment();
-
-		JournalTemplate template = journalTemplatePersistence.create(id);
-
-		template.setUuid(serviceContext.getUuid());
-		template.setGroupId(groupId);
-		template.setCompanyId(user.getCompanyId());
-		template.setUserId(user.getUserId());
-		template.setUserName(user.getFullName());
-		template.setCreateDate(serviceContext.getCreateDate(now));
-		template.setModifiedDate(serviceContext.getModifiedDate(now));
-		template.setTemplateId(templateId);
-		template.setStructureId(structureId);
-		template.setNameMap(nameMap);
-		template.setDescriptionMap(descriptionMap);
-		template.setXsl(xsl);
-		template.setLangType(langType);
-		template.setCacheable(cacheable);
-		template.setSmallImage(smallImage);
-		template.setSmallImageId(counterLocalService.increment());
-		template.setSmallImageURL(smallImageURL);
-
-		journalTemplatePersistence.update(template, false);
-
-		// Resources
-
-		if (serviceContext.isAddGroupPermissions() ||
-			serviceContext.isAddGuestPermissions()) {
-
-			addTemplateResources(
-				template, serviceContext.isAddGroupPermissions(),
-				serviceContext.isAddGuestPermissions());
-		}
-		else {
-			addTemplateResources(
-				template, serviceContext.getGroupPermissions(),
-				serviceContext.getGuestPermissions());
-		}
-
-		// Expando
-
-		ExpandoBridge expandoBridge = template.getExpandoBridge();
-
-		expandoBridge.setAttributes(serviceContext);
-
-		// Small image
-
-		saveImages(
-			smallImage, template.getSmallImageId(), smallImageFile,
-			smallImageBytes);
-
-		return template;
+		return new JournalTemplateAdapter(ddmTemplate);
 	}
 
+	@Override
 	public void addTemplateResources(
 			JournalTemplate template, boolean addGroupPermissions,
 			boolean addGuestPermissions)
 		throws PortalException, SystemException {
 
-		resourceLocalService.addResources(
-			template.getCompanyId(), template.getGroupId(),
-			template.getUserId(), JournalTemplate.class.getName(),
-			template.getId(), false, addGroupPermissions, addGuestPermissions);
+		DDMTemplate ddmTemplate = getDDMTemplate(template);
+
+		ddmTemplateLocalService.addTemplateResources(
+			ddmTemplate, addGroupPermissions, addGuestPermissions);
 	}
 
+	@Override
 	public void addTemplateResources(
 			JournalTemplate template, String[] groupPermissions,
 			String[] guestPermissions)
 		throws PortalException, SystemException {
 
-		resourceLocalService.addModelResources(
-			template.getCompanyId(), template.getGroupId(),
-			template.getUserId(), JournalTemplate.class.getName(),
-			template.getId(), groupPermissions, guestPermissions);
+		DDMTemplate ddmTemplate = getDDMTemplate(template);
+
+		ddmTemplateLocalService.addTemplateResources(
+			ddmTemplate, groupPermissions, guestPermissions);
 	}
 
+	@Override
 	public void addTemplateResources(
 			long groupId, String templateId, boolean addGroupPermissions,
 			boolean addGuestPermissions)
 		throws PortalException, SystemException {
 
-		JournalTemplate template = journalTemplatePersistence.findByG_T(
-			groupId, templateId);
+		JournalTemplate template = doGetTemplate(groupId, templateId);
 
 		addTemplateResources(
 			template, addGroupPermissions, addGuestPermissions);
 	}
 
+	@Override
 	public void addTemplateResources(
 			long groupId, String templateId, String[] groupPermissions,
 			String[] guestPermissions)
 		throws PortalException, SystemException {
 
-		JournalTemplate template = journalTemplatePersistence.findByG_T(
-			groupId, templateId);
+		JournalTemplate template = doGetTemplate(groupId, templateId);
 
 		addTemplateResources(template, groupPermissions, guestPermissions);
 	}
 
+	@Override
 	public void checkNewLine(long groupId, String templateId)
 		throws PortalException, SystemException {
 
-		JournalTemplate template = journalTemplatePersistence.findByG_T(
-			groupId, templateId);
+		JournalTemplate template = doGetTemplate(groupId, templateId);
 
 		String xsl = template.getXsl();
 
-		if ((xsl != null) && (xsl.indexOf("\\n") != -1)) {
+		if ((xsl != null) && xsl.contains("\\n")) {
 			xsl = StringUtil.replace(
 				xsl, new String[] {"\\n", "\\r"}, new String[] {"\n", "\r"});
 
 			template.setXsl(xsl);
 
-			journalTemplatePersistence.update(template, false);
+			updateTemplate(template);
 		}
 	}
 
+	@Override
 	public JournalTemplate copyTemplate(
 			long userId, long groupId, String oldTemplateId,
 			String newTemplateId, boolean autoTemplateId)
@@ -235,30 +174,36 @@ public class JournalTemplateLocalServiceImpl
 		// Template
 
 		User user = userPersistence.findByPrimaryKey(userId);
-		oldTemplateId = oldTemplateId.trim().toUpperCase();
-		newTemplateId = newTemplateId.trim().toUpperCase();
+		oldTemplateId = StringUtil.toUpperCase(oldTemplateId.trim());
+		newTemplateId = StringUtil.toUpperCase(newTemplateId.trim());
 		Date now = new Date();
 
-		JournalTemplate oldTemplate = journalTemplatePersistence.findByG_T(
-			groupId, oldTemplateId);
+		JournalTemplate oldTemplate = doGetTemplate(groupId, oldTemplateId);
 
 		if (autoTemplateId) {
 			newTemplateId = String.valueOf(counterLocalService.increment());
 		}
 		else {
-			validate(newTemplateId);
+			validateTemplateId(newTemplateId);
 
-			JournalTemplate newTemplate = journalTemplatePersistence.fetchByG_T(
-				groupId, newTemplateId);
+			JournalTemplate newTemplate = fetchTemplate(groupId, newTemplateId);
 
 			if (newTemplate != null) {
-				throw new DuplicateTemplateIdException();
+				StringBundler sb = new StringBundler(5);
+
+				sb.append("{groupId=");
+				sb.append(groupId);
+				sb.append(", templateId=");
+				sb.append(newTemplateId);
+				sb.append("}");
+
+				throw new DuplicateTemplateIdException(sb.toString());
 			}
 		}
 
 		long id = counterLocalService.increment();
 
-		JournalTemplate newTemplate = journalTemplatePersistence.create(id);
+		JournalTemplate newTemplate = createJournalTemplate(id);
 
 		newTemplate.setGroupId(groupId);
 		newTemplate.setCompanyId(user.getCompanyId());
@@ -276,8 +221,9 @@ public class JournalTemplateLocalServiceImpl
 		newTemplate.setSmallImage(oldTemplate.isSmallImage());
 		newTemplate.setSmallImageId(counterLocalService.increment());
 		newTemplate.setSmallImageURL(oldTemplate.getSmallImageURL());
+		newTemplate.setExpandoBridgeAttributes(oldTemplate);
 
-		journalTemplatePersistence.update(newTemplate, false);
+		updateTemplate(newTemplate);
 
 		// Small image
 
@@ -291,145 +237,116 @@ public class JournalTemplateLocalServiceImpl
 				newTemplate.getSmallImageId(), smallImageBytes);
 		}
 
-		// Resources
-
-		addTemplateResources(newTemplate, true, true);
-
 		return newTemplate;
 	}
 
+	@Override
+	public JournalTemplate createJournalTemplate(long id) {
+		DDMTemplate ddmTemplate = ddmTemplateLocalService.createDDMTemplate(id);
+
+		return new JournalTemplateAdapter(ddmTemplate);
+	}
+
+	@Override
 	public void deleteTemplate(JournalTemplate template)
 		throws PortalException, SystemException {
 
-		Group companyGroup = groupLocalService.getCompanyGroup(
-			template.getCompanyId());
+		DDMTemplate ddmTemplate = getDDMTemplate(template);
 
-		if (template.getGroupId() == companyGroup.getGroupId()) {
-			if (journalArticlePersistence.countByTemplateId(
-					template.getTemplateId()) > 0) {
-
-				throw new RequiredTemplateException();
-			}
-		}
-		else {
-			if (journalArticlePersistence.countByG_C_T(
-					template.getGroupId(), 0, template.getTemplateId()) > 0) {
-
-				throw new RequiredTemplateException();
-			}
-		}
-
-		// WebDAVProps
-
-		webDAVPropsLocalService.deleteWebDAVProps(
-			JournalTemplate.class.getName(), template.getId());
-
-		// Small image
-
-		imageLocalService.deleteImage(template.getSmallImageId());
-
-		// Expando
-
-		expandoValueLocalService.deleteValues(
-			JournalTemplate.class.getName(), template.getId());
-
-		// Resources
-
-		resourceLocalService.deleteResource(
-			template.getCompanyId(), JournalTemplate.class.getName(),
-			ResourceConstants.SCOPE_INDIVIDUAL, template.getId());
-
-		// Article
-
-		journalArticleLocalService.updateTemplateId(
-			template.getGroupId(),
-			PortalUtil.getClassNameId(JournalStructure.class.getName()),
-			template.getTemplateId(), StringPool.BLANK);
-
-		// Template
-
-		journalTemplatePersistence.remove(template);
+		ddmTemplateLocalService.deleteTemplate(ddmTemplate);
 	}
 
+	@Override
 	public void deleteTemplate(long groupId, String templateId)
 		throws PortalException, SystemException {
 
-		templateId = templateId.trim().toUpperCase();
-
-		JournalTemplate template = journalTemplatePersistence.findByG_T(
-			groupId, templateId);
+		JournalTemplate template = doGetTemplate(groupId, templateId);
 
 		deleteTemplate(template);
 	}
 
+	@Override
 	public void deleteTemplates(long groupId)
 		throws PortalException, SystemException {
 
-		for (JournalTemplate template :
-				journalTemplatePersistence.findByGroupId(groupId)) {
+		List<JournalTemplate> templates = doGetTemplates(
+			groupId, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
+		for (JournalTemplate template : templates) {
 			deleteTemplate(template);
 		}
 	}
 
+	@Override
 	public List<JournalTemplate> getStructureTemplates(
 			long groupId, String structureId)
-		throws SystemException {
-
-		return journalTemplatePersistence.findByG_S(groupId, structureId);
-	}
-
-	public List<JournalTemplate> getStructureTemplates(
-			long groupId, String structureId, int start, int end)
-		throws SystemException {
-
-		return journalTemplatePersistence.findByG_S(
-			groupId, structureId, start, end);
-	}
-
-	public int getStructureTemplatesCount(long groupId, String structureId)
-		throws SystemException {
-
-		return journalTemplatePersistence.countByG_S(groupId, structureId);
-	}
-
-	public JournalTemplate getTemplate(long id)
 		throws PortalException, SystemException {
 
-		return journalTemplatePersistence.findByPrimaryKey(id);
+		return getStructureTemplates(groupId, structureId, false);
 	}
 
+	@Override
+	public List<JournalTemplate> getStructureTemplates(
+			long groupId, String structureId, boolean includeAncestorTemplates)
+		throws PortalException, SystemException {
+
+		long[] groupIds = new long[] {groupId};
+
+		if (includeAncestorTemplates) {
+			groupIds = PortalUtil.getCurrentAndAncestorSiteGroupIds(groupId);
+		}
+
+		JournalStructure structure = journalStructureLocalService.getStructure(
+			groupId, structureId, true);
+
+		List<DDMTemplate> ddmTemplates =
+			ddmTemplateLocalService.getTemplatesByClassPK(
+				groupIds, structure.getPrimaryKey());
+
+		return JournalUtil.toJournalTemplates(ddmTemplates);
+	}
+
+	@Override
+	public List<JournalTemplate> getStructureTemplates(
+			long groupId, String structureId, int start, int end)
+		throws PortalException, SystemException {
+
+		JournalStructure structure = journalStructureLocalService.getStructure(
+			groupId, structureId, true);
+
+		List<DDMTemplate> ddmTemplates =
+			ddmTemplateLocalService.getTemplatesByClassPK(
+				groupId, structure.getPrimaryKey(), start, end);
+
+		return JournalUtil.toJournalTemplates(ddmTemplates);
+	}
+
+	@Override
+	public int getStructureTemplatesCount(long groupId, String structureId)
+		throws PortalException, SystemException {
+
+		JournalStructure structure = journalStructureLocalService.getStructure(
+			groupId, structureId, true);
+
+		return ddmTemplateLocalService.getTemplatesByClassPKCount(
+			groupId, structure.getPrimaryKey());
+	}
+
+	@Override
 	public JournalTemplate getTemplate(long groupId, String templateId)
 		throws PortalException, SystemException {
 
 		return getTemplate(groupId, templateId, false);
 	}
 
+	@Override
 	public JournalTemplate getTemplate(
 			long groupId, String templateId, boolean includeGlobalTemplates)
 		throws PortalException, SystemException {
 
-		templateId = GetterUtil.getString(templateId).toUpperCase();
+		templateId = StringUtil.toUpperCase(GetterUtil.getString(templateId));
 
-		if (groupId == 0) {
-			_log.error(
-				"No group id was passed for " + templateId + ". Group id is " +
-					"required since 4.2.0. Please update all custom code and " +
-						"data that references templates without a group id.");
-
-			List<JournalTemplate> templates =
-				journalTemplatePersistence.findByTemplateId(templateId);
-
-			if (!templates.isEmpty()) {
-				return templates.get(0);
-			}
-
-			throw new NoSuchTemplateException(
-				"No JournalTemplate exists with the template id " + templateId);
-		}
-
-		JournalTemplate template = journalTemplatePersistence.fetchByG_T(
-			groupId, templateId);
+		JournalTemplate template = fetchTemplate(groupId, templateId);
 
 		if (template != null) {
 			return template;
@@ -437,7 +354,7 @@ public class JournalTemplateLocalServiceImpl
 
 		if (!includeGlobalTemplates) {
 			throw new NoSuchTemplateException(
-				"No JournalTemplate exists with the template id " + templateId);
+				"No JournalTemplate exists with the template ID " + templateId);
 		}
 
 		Group group = groupPersistence.findByPrimaryKey(groupId);
@@ -445,36 +362,48 @@ public class JournalTemplateLocalServiceImpl
 		Group companyGroup = groupLocalService.getCompanyGroup(
 			group.getCompanyId());
 
-		return journalTemplatePersistence.findByG_T(
-			companyGroup.getGroupId(), templateId);
+		return doGetTemplate(companyGroup.getGroupId(), templateId);
 	}
 
+	@Override
 	public JournalTemplate getTemplateBySmallImageId(long smallImageId)
 		throws PortalException, SystemException {
 
-		return journalTemplatePersistence.findBySmallImageId(smallImageId);
+		DDMTemplate ddmTemplate =
+			ddmTemplateLocalService.getTemplateBySmallImageId(smallImageId);
+
+		return new JournalTemplateAdapter(ddmTemplate);
 	}
 
+	@Override
 	public List<JournalTemplate> getTemplates() throws SystemException {
-		return journalTemplatePersistence.findAll();
+		List<DDMTemplate> ddmTemplates = ddmTemplateFinder.findByG_SC(
+			null, classNameLocalService.getClassNameId(JournalArticle.class),
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+
+		return JournalUtil.toJournalTemplates(ddmTemplates);
 	}
 
+	@Override
 	public List<JournalTemplate> getTemplates(long groupId)
 		throws SystemException {
 
-		return journalTemplatePersistence.findByGroupId(groupId);
+		return doGetTemplates(groupId);
 	}
 
+	@Override
 	public List<JournalTemplate> getTemplates(long groupId, int start, int end)
 		throws SystemException {
 
-		return journalTemplatePersistence.findByGroupId(groupId, start, end);
+		return doGetTemplates(groupId, start, end);
 	}
 
+	@Override
 	public int getTemplatesCount(long groupId) throws SystemException {
-		return journalTemplatePersistence.countByGroupId(groupId);
+		return doGetTemplatesCount(groupId);
 	}
 
+	@Override
 	public boolean hasTemplate(long groupId, String templateId)
 		throws SystemException {
 
@@ -488,17 +417,27 @@ public class JournalTemplateLocalServiceImpl
 		}
 	}
 
+	@Override
 	public List<JournalTemplate> search(
 			long companyId, long[] groupIds, String keywords,
 			String structureId, String structureIdComparator, int start,
 			int end, OrderByComparator obc)
 		throws SystemException {
 
-		return journalTemplateFinder.findByKeywords(
-			companyId, groupIds, keywords, structureId, structureIdComparator,
+		long[] classNameIds = {
+			classNameLocalService.getClassNameId(DDMStructure.class)
+		};
+		long[] classPKs = JournalUtil.getStructureClassPKs(
+			groupIds, structureId);
+
+		List<DDMTemplate> ddmTemplates = ddmTemplateFinder.findByKeywords(
+			companyId, groupIds, classNameIds, classPKs, keywords, null, null,
 			start, end, obc);
+
+		return JournalUtil.toJournalTemplates(ddmTemplates);
 	}
 
+	@Override
 	public List<JournalTemplate> search(
 			long companyId, long[] groupIds, String templateId,
 			String structureId, String structureIdComparator, String name,
@@ -506,31 +445,62 @@ public class JournalTemplateLocalServiceImpl
 			OrderByComparator obc)
 		throws SystemException {
 
-		return journalTemplateFinder.findByC_G_T_S_N_D(
-			companyId, groupIds, templateId, structureId, structureIdComparator,
-			name, description, andOperator, start, end, obc);
+		long[] classNameIds = {
+			classNameLocalService.getClassNameId(DDMStructure.class)
+		};
+		long[] classPKs = JournalUtil.getStructureClassPKs(
+			groupIds, structureId);
+
+		List<DDMTemplate> ddmTemplates =
+			ddmTemplateFinder.findByC_G_C_C_N_D_T_M_L(
+				companyId, groupIds, classNameIds, classPKs, name, description,
+				null, null, null, andOperator, start, end, obc);
+
+		return JournalUtil.toJournalTemplates(ddmTemplates);
 	}
 
+	@Override
 	public int searchCount(
 			long companyId, long[] groupIds, String keywords,
 			String structureId, String structureIdComparator)
 		throws SystemException {
 
-		return journalTemplateFinder.countByKeywords(
-			companyId, groupIds, keywords, structureId, structureIdComparator);
+		long[] classNameIds = {
+			classNameLocalService.getClassNameId(DDMStructure.class)
+		};
+		long[] classPKs = JournalUtil.getStructureClassPKs(
+			groupIds, structureId);
+
+		return ddmTemplateFinder.countByKeywords(
+			companyId, groupIds, classNameIds, classPKs, keywords, null, null);
 	}
 
+	@Override
 	public int searchCount(
 			long companyId, long[] groupIds, String templateId,
 			String structureId, String structureIdComparator, String name,
 			String description, boolean andOperator)
 		throws SystemException {
 
-		return journalTemplateFinder.countByC_G_T_S_N_D(
-			companyId, groupIds, templateId, structureId, structureIdComparator,
-			name, description, andOperator);
+		long[] classNameIds = {
+			classNameLocalService.getClassNameId(DDMStructure.class)
+		};
+		long[] classPKs = JournalUtil.getStructureClassPKs(
+			groupIds, structureId);
+
+		return ddmTemplateFinder.countByC_G_C_C_N_D_T_M_L(
+			companyId, groupIds, classNameIds, classPKs, name, description,
+			null, null, null, andOperator);
 	}
 
+	@Override
+	public JournalTemplate updateJournalTemplate(JournalTemplate template)
+		throws PortalException, SystemException {
+
+		return updateTemplate(template);
+	}
+
+	@Override
 	public JournalTemplate updateTemplate(
 			long groupId, String templateId, String structureId,
 			Map<Locale, String> nameMap, Map<Locale, String> descriptionMap,
@@ -539,178 +509,150 @@ public class JournalTemplateLocalServiceImpl
 			ServiceContext serviceContext)
 		throws PortalException, SystemException {
 
-		// Template
+		JournalTemplate template = doGetTemplate(groupId, templateId);
 
-		templateId = templateId.trim().toUpperCase();
+		long classPK = 0;
+
+		if (Validator.isNotNull(structureId)) {
+			JournalStructure structure =
+				journalStructureLocalService.getStructure(
+					groupId, structureId, true);
+
+			classPK = structure.getPrimaryKey();
+		}
+
+		DDMTemplate ddmTemplate = ddmTemplateLocalService.updateTemplate(
+			template.getPrimaryKey(), classPK, nameMap, descriptionMap,
+			DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY,
+			DDMTemplateConstants.TEMPLATE_MODE_CREATE, langType, xsl, cacheable,
+			smallImage, smallImageURL, smallImageFile, serviceContext);
+
+		return new JournalTemplateAdapter(ddmTemplate);
+	}
+
+	protected JournalTemplate doGetTemplate(long groupId, String templateId)
+		throws PortalException, SystemException {
+
+		DDMTemplate ddmTemplate = getDDMTemplate(groupId, templateId);
+
+		return new JournalTemplateAdapter(ddmTemplate);
+	}
+
+	protected List<JournalTemplate> doGetTemplates(long groupId)
+		throws SystemException {
+
+		return doGetTemplates(groupId, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+	}
+
+	protected List<JournalTemplate> doGetTemplates(
+			long groupId, int start, int end)
+		throws SystemException {
+
+		List<DDMTemplate> ddmTemplates = ddmTemplateFinder.findByG_SC(
+			groupId, classNameLocalService.getClassNameId(JournalArticle.class),
+			start, end, null);
+
+		return JournalUtil.toJournalTemplates(ddmTemplates);
+	}
+
+	protected int doGetTemplatesCount(long groupId) throws SystemException {
+		return ddmTemplateFinder.countByG_SC(
+			groupId,
+			classNameLocalService.getClassNameId(JournalArticle.class));
+	}
+
+	protected DDMTemplate fetchDDMTemplate(long groupId, String templateId)
+		throws SystemException {
+
+		return ddmTemplateLocalService.fetchTemplate(
+			groupId, classNameLocalService.getClassNameId(DDMStructure.class),
+			templateId);
+	}
+
+	protected JournalTemplate fetchTemplate(long groupId, String templateId)
+		throws SystemException {
+
+		DDMTemplate ddmTemplate = fetchDDMTemplate(groupId, templateId);
+
+		if (ddmTemplate != null) {
+			return new JournalTemplateAdapter(ddmTemplate);
+		}
+
+		return null;
+	}
+
+	protected DDMTemplate getDDMTemplate(JournalTemplate template)
+		throws PortalException, SystemException {
+
+		return getDDMTemplate(template.getGroupId(), template.getTemplateId());
+	}
+
+	protected DDMTemplate getDDMTemplate(long groupId, String templateId)
+		throws PortalException, SystemException {
 
 		try {
-			if (formatXsl) {
-				if (langType.equals(JournalTemplateConstants.LANG_TYPE_VM)) {
-					xsl = JournalUtil.formatVM(xsl);
-				}
-				else {
-					xsl = DDMXMLUtil.formatXML(xsl);
-				}
-			}
+			return ddmTemplateLocalService.getTemplate(
+				groupId,
+				classNameLocalService.getClassNameId(DDMStructure.class),
+				templateId);
 		}
-		catch (Exception e) {
-			throw new TemplateXslException();
+		catch (PortalException pe) {
+			throw new NoSuchTemplateException(pe);
 		}
-
-		byte[] smallImageBytes = null;
-
-		try {
-			smallImageBytes = FileUtil.getBytes(smallImageFile);
-		}
-		catch (IOException ioe) {
-		}
-
-		validate(
-			nameMap, xsl, smallImage, smallImageURL, smallImageFile,
-			smallImageBytes);
-
-		JournalTemplate template = journalTemplatePersistence.findByG_T(
-			groupId, templateId);
-
-		template.setModifiedDate(new Date());
-
-		if (Validator.isNull(template.getStructureId()) &&
-			Validator.isNotNull(structureId)) {
-
-			// Allow users to set the structure if and only if it currently
-			// does not have one. Otherwise, you can have bad data because there
-			// may be an existing article that has chosen to use a structure and
-			// template combination that no longer exists.
-
-			template.setStructureId(structureId);
-		}
-
-		template.setNameMap(nameMap);
-		template.setDescriptionMap(descriptionMap);
-		template.setXsl(xsl);
-		template.setLangType(langType);
-		template.setCacheable(cacheable);
-		template.setSmallImage(smallImage);
-		template.setSmallImageURL(smallImageURL);
-		template.setModifiedDate(serviceContext.getModifiedDate(null));
-
-		journalTemplatePersistence.update(template, false);
-
-		// Expando
-
-		ExpandoBridge expandoBridge = template.getExpandoBridge();
-
-		expandoBridge.setAttributes(serviceContext);
-
-		// Small image
-
-		saveImages(
-			smallImage, template.getSmallImageId(), smallImageFile,
-			smallImageBytes);
-
-		return template;
 	}
 
-	protected void saveImages(
-			boolean smallImage, long smallImageId, File smallImageFile,
-			byte[] smallImageBytes)
+	protected String getUuid(JournalTemplate template) {
+		String uuid = template.getUuid();
+
+		if (Validator.isNotNull(uuid)) {
+			return uuid;
+		}
+
+		return PortalUUIDUtil.generate();
+	}
+
+	protected JournalTemplate updateTemplate(JournalTemplate template)
 		throws PortalException, SystemException {
 
-		if (smallImage) {
-			if ((smallImageFile != null) && (smallImageBytes != null)) {
-				imageLocalService.updateImage(smallImageId, smallImageBytes);
-			}
+		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setAddGroupPermissions(true);
+		serviceContext.setAddGuestPermissions(true);
+
+		String uuid = getUuid(template);
+
+		serviceContext.setUuid(uuid);
+
+		if (template.isNew()) {
+			return addTemplate(
+				template.getUserId(), template.getGroupId(),
+				template.getTemplateId(), false, template.getStructureId(),
+				template.getNameMap(), template.getDescriptionMap(),
+				template.getXsl(), true, template.getLangType(),
+				template.isCacheable(), template.isSmallImage(),
+				template.getSmallImageURL(), template.getSmallImageFile(),
+				serviceContext);
 		}
-		else {
-			imageLocalService.deleteImage(smallImageId);
-		}
+
+		return updateTemplate(
+			template.getGroupId(), template.getTemplateId(),
+			template.getStructureId(), template.getNameMap(),
+			template.getDescriptionMap(), template.getXsl(), true,
+			template.getLangType(), template.isCacheable(),
+			template.isSmallImage(), template.getSmallImageURL(),
+			template.getSmallImageFile(), serviceContext);
 	}
 
-	protected void validate(
-			long groupId, String templateId, boolean autoTemplateId,
-			Map<Locale, String> nameMap, String xsl, boolean smallImage,
-			String smallImageURL, File smallImageFile, byte[] smallImageBytes)
-		throws PortalException, SystemException {
+	protected void validateTemplateId(String templateId)
+		throws PortalException {
 
-		if (!autoTemplateId) {
-			validate(templateId);
-
-			JournalTemplate template = journalTemplatePersistence.fetchByG_T(
-				groupId, templateId);
-
-			if (template != null) {
-				throw new DuplicateTemplateIdException();
-			}
-		}
-
-		validate(
-			nameMap, xsl, smallImage, smallImageURL, smallImageFile,
-			smallImageBytes);
-	}
-
-	protected void validate(
-			Map<Locale, String> nameMap, String xsl, boolean smallImage,
-			String smallImageURL, File smallImageFile, byte[] smallImageBytes)
-		throws PortalException, SystemException {
-
-		Locale locale = LocaleUtil.getDefault();
-
-		if (nameMap.isEmpty() || Validator.isNull(nameMap.get(locale))) {
-			throw new TemplateNameException();
-		}
-		else if (Validator.isNull(xsl)) {
-			throw new TemplateXslException();
-		}
-
-		String[] imageExtensions = PrefsPropsUtil.getStringArray(
-			PropsKeys.JOURNAL_IMAGE_EXTENSIONS, StringPool.COMMA);
-
-		if (smallImage && Validator.isNull(smallImageURL) &&
-			(smallImageFile != null) && (smallImageBytes != null)) {
-
-			String smallImageName = smallImageFile.getName();
-
-			if (smallImageName != null) {
-				boolean validSmallImageExtension = false;
-
-				for (int i = 0; i < imageExtensions.length; i++) {
-					if (StringPool.STAR.equals(imageExtensions[i]) ||
-						StringUtil.endsWith(
-							smallImageName, imageExtensions[i])) {
-
-						validSmallImageExtension = true;
-
-						break;
-					}
-				}
-
-				if (!validSmallImageExtension) {
-					throw new TemplateSmallImageNameException(smallImageName);
-				}
-			}
-
-			long smallImageMaxSize = PrefsPropsUtil.getLong(
-				PropsKeys.JOURNAL_IMAGE_SMALL_MAX_SIZE);
-
-			if ((smallImageMaxSize > 0) &&
-				((smallImageBytes == null) ||
-				 (smallImageBytes.length > smallImageMaxSize))) {
-
-				throw new TemplateSmallImageSizeException();
-			}
-		}
-	}
-
-	protected void validate(String templateId) throws PortalException {
 		if (Validator.isNull(templateId) ||
 			Validator.isNumber(templateId) ||
+			(templateId.indexOf(CharPool.COMMA) != -1) ||
 			(templateId.indexOf(CharPool.SPACE) != -1)) {
 
 			throw new TemplateIdException();
 		}
 	}
-
-	private static Log _log = LogFactoryUtil.getLog(
-		JournalTemplateLocalServiceImpl.class);
 
 }

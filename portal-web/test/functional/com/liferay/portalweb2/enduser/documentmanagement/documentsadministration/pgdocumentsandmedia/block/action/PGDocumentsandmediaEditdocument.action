@@ -1,0 +1,13 @@
+<definition>
+	<command name="assertClick">
+		<case locator-key1="PUBLISH_BUTTON">
+			<execute function="AssertClick#assertTextClickAtAndWait" />
+		</case>
+	</command>
+
+	<command name="isElementNotPresent">
+		<case locator-key1="CATEGORIZATION_TAGS_FIELD">
+			<execute function="IsElementNotPresent#isNotVisible" />
+		</case>
+	</command>
+</definition>

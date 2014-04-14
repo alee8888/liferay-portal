@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -37,6 +37,7 @@ import java.util.List;
 public class ShoppingCategoryLocalServiceImpl
 	extends ShoppingCategoryLocalServiceBaseImpl {
 
+	@Override
 	public ShoppingCategory addCategory(
 			long userId, long parentCategoryId, String name, String description,
 			ServiceContext serviceContext)
@@ -66,7 +67,7 @@ public class ShoppingCategoryLocalServiceImpl
 		category.setName(name);
 		category.setDescription(description);
 
-		shoppingCategoryPersistence.update(category, false);
+		shoppingCategoryPersistence.update(category);
 
 		// Resources
 
@@ -86,6 +87,7 @@ public class ShoppingCategoryLocalServiceImpl
 		return category;
 	}
 
+	@Override
 	public void addCategoryResources(
 			long categoryId, boolean addGroupPermissions,
 			boolean addGuestPermissions)
@@ -98,6 +100,7 @@ public class ShoppingCategoryLocalServiceImpl
 			category, addGroupPermissions, addGuestPermissions);
 	}
 
+	@Override
 	public void addCategoryResources(
 			long categoryId, String[] groupPermissions,
 			String[] guestPermissions)
@@ -109,6 +112,7 @@ public class ShoppingCategoryLocalServiceImpl
 		addCategoryResources(category, groupPermissions, guestPermissions);
 	}
 
+	@Override
 	public void addCategoryResources(
 			ShoppingCategory category, boolean addGroupPermissions,
 			boolean addGuestPermissions)
@@ -121,6 +125,7 @@ public class ShoppingCategoryLocalServiceImpl
 			addGuestPermissions);
 	}
 
+	@Override
 	public void addCategoryResources(
 			ShoppingCategory category, String[] groupPermissions,
 			String[] guestPermissions)
@@ -132,6 +137,7 @@ public class ShoppingCategoryLocalServiceImpl
 			category.getCategoryId(), groupPermissions, guestPermissions);
 	}
 
+	@Override
 	public void deleteCategories(long groupId)
 		throws PortalException, SystemException {
 
@@ -143,6 +149,7 @@ public class ShoppingCategoryLocalServiceImpl
 		}
 	}
 
+	@Override
 	public void deleteCategory(long categoryId)
 		throws PortalException, SystemException {
 
@@ -152,6 +159,7 @@ public class ShoppingCategoryLocalServiceImpl
 		deleteCategory(category);
 	}
 
+	@Override
 	public void deleteCategory(ShoppingCategory category)
 		throws PortalException, SystemException {
 
@@ -181,12 +189,14 @@ public class ShoppingCategoryLocalServiceImpl
 			category.getGroupId(), category.getCategoryId());
 	}
 
+	@Override
 	public List<ShoppingCategory> getCategories(long groupId)
 		throws SystemException {
 
 		return shoppingCategoryPersistence.findByGroupId(groupId);
 	}
 
+	@Override
 	public List<ShoppingCategory> getCategories(
 			long groupId, long parentCategoryId, int start, int end)
 		throws SystemException {
@@ -195,6 +205,7 @@ public class ShoppingCategoryLocalServiceImpl
 			groupId, parentCategoryId, start, end);
 	}
 
+	@Override
 	public int getCategoriesCount(long groupId, long parentCategoryId)
 		throws SystemException {
 
@@ -202,12 +213,14 @@ public class ShoppingCategoryLocalServiceImpl
 			groupId, parentCategoryId);
 	}
 
+	@Override
 	public ShoppingCategory getCategory(long categoryId)
 		throws PortalException, SystemException {
 
 		return shoppingCategoryPersistence.findByPrimaryKey(categoryId);
 	}
 
+	@Override
 	public List<ShoppingCategory> getParentCategories(long categoryId)
 		throws PortalException, SystemException {
 
@@ -215,6 +228,7 @@ public class ShoppingCategoryLocalServiceImpl
 			shoppingCategoryPersistence.findByPrimaryKey(categoryId));
 	}
 
+	@Override
 	public List<ShoppingCategory> getParentCategories(ShoppingCategory category)
 		throws PortalException, SystemException {
 
@@ -223,7 +237,7 @@ public class ShoppingCategoryLocalServiceImpl
 
 		ShoppingCategory tempCategory = category;
 
-		for (;;) {
+		while (true) {
 			parentCategories.add(tempCategory);
 
 			if (tempCategory.getParentCategoryId() ==
@@ -241,6 +255,7 @@ public class ShoppingCategoryLocalServiceImpl
 		return parentCategories;
 	}
 
+	@Override
 	public ShoppingCategory getParentCategory(ShoppingCategory category)
 		throws PortalException, SystemException {
 
@@ -251,6 +266,7 @@ public class ShoppingCategoryLocalServiceImpl
 		return parentCategory;
 	}
 
+	@Override
 	public void getSubcategoryIds(
 			List<Long> categoryIds, long groupId, long categoryId)
 		throws SystemException {
@@ -266,6 +282,7 @@ public class ShoppingCategoryLocalServiceImpl
 		}
 	}
 
+	@Override
 	public ShoppingCategory updateCategory(
 			long categoryId, long parentCategoryId, String name,
 			String description, boolean mergeWithParentCategory,
@@ -298,7 +315,7 @@ public class ShoppingCategoryLocalServiceImpl
 		category.setName(name);
 		category.setDescription(description);
 
-		shoppingCategoryPersistence.update(category, false);
+		shoppingCategoryPersistence.update(category);
 
 		return category;
 	}
@@ -336,28 +353,26 @@ public class ShoppingCategoryLocalServiceImpl
 		if (category.getCategoryId() == parentCategoryId) {
 			return category.getParentCategoryId();
 		}
-		else {
-			ShoppingCategory parentCategory =
-				shoppingCategoryPersistence.fetchByPrimaryKey(parentCategoryId);
 
-			if ((parentCategory == null) ||
-				(category.getGroupId() != parentCategory.getGroupId())) {
+		ShoppingCategory parentCategory =
+			shoppingCategoryPersistence.fetchByPrimaryKey(parentCategoryId);
 
-				return category.getParentCategoryId();
-			}
+		if ((parentCategory == null) ||
+			(category.getGroupId() != parentCategory.getGroupId())) {
 
-			List<Long> subcategoryIds = new ArrayList<Long>();
-
-			getSubcategoryIds(
-				subcategoryIds, category.getGroupId(),
-				category.getCategoryId());
-
-			if (subcategoryIds.contains(parentCategoryId)) {
-				return category.getParentCategoryId();
-			}
-
-			return parentCategoryId;
+			return category.getParentCategoryId();
 		}
+
+		List<Long> subcategoryIds = new ArrayList<Long>();
+
+		getSubcategoryIds(
+			subcategoryIds, category.getGroupId(), category.getCategoryId());
+
+		if (subcategoryIds.contains(parentCategoryId)) {
+			return category.getParentCategoryId();
+		}
+
+		return parentCategoryId;
 	}
 
 	protected void mergeCategories(
@@ -381,15 +396,15 @@ public class ShoppingCategoryLocalServiceImpl
 
 			item.setCategoryId(toCategoryId);
 
-			shoppingItemPersistence.update(item, false);
+			shoppingItemPersistence.update(item);
 		}
 
 		deleteCategory(fromCategory);
 	}
 
 	protected void validate(String name) throws PortalException {
-		if ((Validator.isNull(name)) || (name.indexOf("\\\\") != -1) ||
-			(name.indexOf("//") != -1)) {
+		if (Validator.isNull(name) || name.contains("\\\\") ||
+			name.contains("//")) {
 
 			throw new CategoryNameException();
 		}

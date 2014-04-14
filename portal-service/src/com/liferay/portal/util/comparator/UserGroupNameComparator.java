@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -41,7 +41,10 @@ public class UserGroupNameComparator extends OrderByComparator {
 		UserGroup userGroup1 = (UserGroup)obj1;
 		UserGroup userGroup2 = (UserGroup)obj2;
 
-		int value = userGroup1.getName().compareTo(userGroup2.getName());
+		String name1 = userGroup1.getName();
+		String name2 = userGroup2.getName();
+
+		int value = name1.compareTo(name2);
 
 		if (_ascending) {
 			return value;

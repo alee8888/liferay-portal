@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,27 +18,31 @@
 
 // Article id
 
-row.addText(curArticle.getArticleId(), rowURL);
+row.addText(curArticle.getArticleId());
 
 // Title
 
-row.addText(HtmlUtil.escape(curArticle.getTitle(locale)), rowURL);
+TextSearchEntry articleTitleTextSearchEntry = new TextSearchEntry();
+
+articleTitleTextSearchEntry.setName(articleTitle);
+
+row.addSearchEntry(articleTitleTextSearchEntry);
 
 // Status
 
-row.addText(LanguageUtil.get(pageContext, WorkflowConstants.toLabel(curArticle.getStatus())), rowURL);
+row.addStatus(curArticle.getStatus(), curArticle.getStatusByUserId(), curArticle.getStatusDate());
 
 // Modified date
 
-row.addText(dateFormatDateTime.format(curArticle.getModifiedDate()), rowURL);
+row.addDate(curArticle.getModifiedDate());
 
 // Display date
 
-row.addText(dateFormatDateTime.format(curArticle.getDisplayDate()), rowURL);
+row.addDate(curArticle.getDisplayDate());
 
 // Author
 
-row.addText(HtmlUtil.escape(PortalUtil.getUserName(curArticle.getUserId(), curArticle.getUserName())), rowURL);
+row.addText(PortalUtil.getUserName(curArticle));
 
 // Action
 

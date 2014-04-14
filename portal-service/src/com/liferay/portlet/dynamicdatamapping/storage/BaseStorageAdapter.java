@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +28,6 @@ import com.liferay.portlet.dynamicdatamapping.service.DDMStorageLinkLocalService
 import com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalServiceUtil;
 import com.liferay.portlet.dynamicdatamapping.storage.query.Condition;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +38,7 @@ import java.util.Map;
  */
 public abstract class BaseStorageAdapter implements StorageAdapter {
 
+	@Override
 	public long create(
 			long companyId, long ddmStructureId, Fields fields,
 			ServiceContext serviceContext)
@@ -57,6 +57,7 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 		}
 	}
 
+	@Override
 	public void deleteByClass(long classPK) throws StorageException {
 		try {
 			doDeleteByClass(classPK);
@@ -69,6 +70,7 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 		}
 	}
 
+	@Override
 	public void deleteByDDMStructure(long ddmStructureId)
 		throws StorageException {
 
@@ -83,10 +85,12 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 		}
 	}
 
+	@Override
 	public Fields getFields(long classPK) throws StorageException {
 		return getFields(classPK, null);
 	}
 
+	@Override
 	public Fields getFields(long classPK, List<String> fieldNames)
 		throws StorageException {
 
@@ -108,6 +112,7 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 		}
 	}
 
+	@Override
 	public List<Fields> getFieldsList(
 			long ddmStructureId, List<String> fieldNames)
 		throws StorageException {
@@ -115,6 +120,7 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 		return getFieldsList(ddmStructureId, fieldNames, null);
 	}
 
+	@Override
 	public List<Fields> getFieldsList(
 			long ddmStructureId, List<String> fieldNames,
 			OrderByComparator orderByComparator)
@@ -132,6 +138,7 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 		}
 	}
 
+	@Override
 	public List<Fields> getFieldsList(
 			long ddmStructureId, long[] classPKs, List<String> fieldNames,
 			OrderByComparator orderByComparator)
@@ -149,6 +156,7 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 		}
 	}
 
+	@Override
 	public List<Fields> getFieldsList(
 			long ddmStructureId, long[] classPKs,
 			OrderByComparator orderByComparator)
@@ -157,12 +165,14 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 		return getFieldsList(ddmStructureId, classPKs, null, orderByComparator);
 	}
 
+	@Override
 	public Map<Long, Fields> getFieldsMap(long ddmStructureId, long[] classPKs)
 		throws StorageException {
 
 		return getFieldsMap(ddmStructureId, classPKs, null);
 	}
 
+	@Override
 	public Map<Long, Fields> getFieldsMap(
 			long ddmStructureId, long[] classPKs, List<String> fieldNames)
 		throws StorageException {
@@ -179,6 +189,7 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 		}
 	}
 
+	@Override
 	public List<Fields> query(
 			long ddmStructureId, List<String> fieldNames, Condition condition,
 			OrderByComparator orderByComparator)
@@ -196,6 +207,7 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 		}
 	}
 
+	@Override
 	public int queryCount(long ddmStructureId, Condition condition)
 		throws StorageException {
 
@@ -210,6 +222,7 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 		}
 	}
 
+	@Override
 	public void update(
 			long classPK, Fields fields, boolean mergeFields,
 			ServiceContext serviceContext)
@@ -228,6 +241,7 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 		}
 	}
 
+	@Override
 	public void update(
 			long classPK, Fields fields, ServiceContext serviceContext)
 		throws StorageException {
@@ -289,11 +303,7 @@ public abstract class BaseStorageAdapter implements StorageAdapter {
 		DDMStructure ddmStructure =
 			DDMStructureLocalServiceUtil.getDDMStructure(ddmStructureId);
 
-		Iterator<Field> itr = fields.iterator();
-
-		while (itr.hasNext()) {
-			Field field = itr.next();
-
+		for (Field field : fields) {
 			if (!ddmStructure.hasField(field.getName())) {
 				throw new StorageFieldNameException();
 			}

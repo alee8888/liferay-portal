@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,6 +24,7 @@ public class ShoppingItemFieldImpl extends ShoppingItemFieldBaseImpl {
 	public ShoppingItemFieldImpl() {
 	}
 
+	@Override
 	public String[] getValuesArray() {
 		return _valuesArray;
 	}
@@ -35,6 +36,7 @@ public class ShoppingItemFieldImpl extends ShoppingItemFieldBaseImpl {
 		super.setValues(values);
 	}
 
+	@Override
 	public void setValuesArray(String[] valuesArray) {
 		_valuesArray = valuesArray;
 

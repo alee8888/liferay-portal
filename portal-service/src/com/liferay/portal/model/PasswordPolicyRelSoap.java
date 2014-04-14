@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,13 +22,14 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services.
  *
- * @author    Brian Wing Shun Chan
+ * @author Brian Wing Shun Chan
  * @generated
  */
 public class PasswordPolicyRelSoap implements Serializable {
 	public static PasswordPolicyRelSoap toSoapModel(PasswordPolicyRel model) {
 		PasswordPolicyRelSoap soapModel = new PasswordPolicyRelSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setPasswordPolicyRelId(model.getPasswordPolicyRelId());
 		soapModel.setPasswordPolicyId(model.getPasswordPolicyId());
 		soapModel.setClassNameId(model.getClassNameId());
@@ -88,6 +89,14 @@ public class PasswordPolicyRelSoap implements Serializable {
 		setPasswordPolicyRelId(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public long getPasswordPolicyRelId() {
 		return _passwordPolicyRelId;
 	}
@@ -120,6 +129,7 @@ public class PasswordPolicyRelSoap implements Serializable {
 		_classPK = classPK;
 	}
 
+	private long _mvccVersion;
 	private long _passwordPolicyRelId;
 	private long _passwordPolicyId;
 	private long _classNameId;

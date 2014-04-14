@@ -1,0 +1,52 @@
+Bundle-SymbolicName: ${ant.project.name}
+Bundle-Vendor: ${release.info.vendor}
+Bundle-Version: ${release.info.version}
+Git-Descriptor: ${system-allow-fail;git describe --dirty --always}
+Git-SHA: ${system-allow-fail;git rev-list -1 HEAD}
+Javac-Compiler: ${javac.compiler}
+Javac-Debug: ${javac.debug}
+Javac-Deprecation: ${javac.deprecation}
+Javac-Encoding: ${javac.encoding}
+Liferay-Portal-Build-Date: ${release.info.build.date}
+Liferay-Portal-Build-Number: ${release.info.build.number}
+Liferay-Portal-Build-Time: ${build.time}
+Liferay-Portal-Code-Name: ${release.info.code.name}
+Liferay-Portal-Parent-Build-Number: ${release.info.parent.build.number}
+Liferay-Portal-Release-Info: ${release.info.release.info}
+Liferay-Portal-Server-Info: ${release.info.server.info}
+Liferay-Portal-Version: ${release.info.version}
+
+-baseline:
+-baselinerepo: remoterepo
+-donotcopy: (\.touch)
+-dsannotations: *
+-plugin:\
+	aQute.bnd.deployer.repository.LocalIndexedRepo;\
+		local=${workspace}/.bnd/localrepo;\
+		name=localrepo;\
+		phase=any;\
+		type=R5,\
+	aQute.bnd.deployer.repository.FixedIndexedRepo;\
+		cache=${workspace}/.bnd/bndtoolsrepo;\
+		locations='https://github.com/bndtools/bundle-hub/raw/master/index.xml.gz';\
+		name=bndtoolsrepo;\
+		phase=any;\
+		type=R5,\
+	aQute.bnd.deployer.repository.FixedIndexedRepo;\
+		cache=${workspace}/.bnd/remoterepo;\
+		locations='http://obr.liferay.com/r5/liferay-portal/index.xml.gz';\
+		name=remoterepo;\
+		phase=any;\
+		type=R5
+-pluginpath: ${workspace}/osgi/lib/plugin/bnd-repository.jar
+-releaserepo: localrepo
+-sources: false
+
+##
+## Test Properties
+##
+
+-resolve.effective: active
+-runee: JavaSE-1.6
+-runfw: org.apache.felix.framework
+-runvm: -ea

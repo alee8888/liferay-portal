@@ -1,0 +1,95 @@
+@import "compass";
+@import "mixins";
+
+@include respond-to(phone, tablet) {
+	.aui {
+		.dockbar .navbar-inner .container {
+			@include box-sizing(border-box);
+
+			padding: 0 5px;
+
+			#_145_navAddControlsNavbarBtn, #_145_navSiteNavigationNavbarBtn {
+				display: none;
+			}
+
+			.nav-account-controls {
+				text-align: top;
+			}
+
+			.brand {
+				line-height: 16px;
+				padding: 12px 0 0 0;
+
+				.control-panel-back-link {
+					float: left;
+					margin-top: 6px;
+
+					@include respond-to(phone) {
+						margin: 0;
+						padding: 6px 8px;
+					}
+				}
+
+				h1 {
+					@include respond-to(phone) {
+						height: 51px;
+						margin-top: -5px;
+						max-width: 165px;
+						position: relative;
+
+						a {
+							display: inline-block;
+							overflow: hidden;
+							text-overflow: ellipsis;
+							white-space: nowrap;
+							width: 75px;
+
+							.lfr-icon-menu-text {
+								font-size: 18px;
+							}
+						}
+
+						.control-panel-site-selector, .site-administration-title {
+							@include ellipsis;
+							font-size: 16px;
+						}
+
+						.control-panel-site-selector {
+							position: static;
+
+							i {
+								bottom: 4px;
+								position: absolute;
+								right: -15px;
+							}
+						}
+
+						.divider {
+							display: none;
+						}
+					}
+
+					@include respond-to(tablet) {
+						line-height: 32px;
+					}
+				}
+			}
+
+			.btn-navbar {
+				float: right;
+			}
+
+			.nav-account-controls > li:hover {
+				background-color: transparent;
+			}
+		}
+	}
+}
+
+@include respond-to(phone) {
+	.aui{
+		.control-panel-home-actions, .portlet-title .taglib-icon-help {
+			display: none;
+		}
+	}
+}

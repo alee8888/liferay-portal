@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -37,7 +39,8 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.TeamModelImpl
  * @generated
  */
-public interface TeamModel extends BaseModel<Team>, GroupedModel {
+@ProviderType
+public interface TeamModel extends BaseModel<Team>, GroupedModel, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -59,6 +62,22 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	public void setPrimaryKey(long primaryKey);
 
 	/**
+	 * Returns the mvcc version of this team.
+	 *
+	 * @return the mvcc version of this team
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this team.
+	 *
+	 * @param mvccVersion the mvcc version of this team
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
 	 * Returns the team ID of this team.
 	 *
 	 * @return the team ID of this team
@@ -77,6 +96,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 *
 	 * @return the company ID of this team
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -84,6 +104,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 *
 	 * @param companyId the company ID of this team
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -91,6 +112,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 *
 	 * @return the user ID of this team
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -98,6 +120,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 *
 	 * @param userId the user ID of this team
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
@@ -106,6 +129,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 * @return the user uuid of this team
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public String getUserUuid() throws SystemException;
 
 	/**
@@ -113,6 +137,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 *
 	 * @param userUuid the user uuid of this team
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -121,6 +146,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 * @return the user name of this team
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -128,6 +154,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 *
 	 * @param userName the user name of this team
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -135,6 +162,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 *
 	 * @return the create date of this team
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -142,6 +170,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 *
 	 * @param createDate the create date of this team
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -149,6 +178,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 *
 	 * @return the modified date of this team
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -156,6 +186,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 *
 	 * @param modifiedDate the modified date of this team
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -163,6 +194,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 *
 	 * @return the group ID of this team
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -170,6 +202,7 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 *
 	 * @param groupId the group ID of this team
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -202,35 +235,60 @@ public interface TeamModel extends BaseModel<Team>, GroupedModel {
 	 */
 	public void setDescription(String description);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(Team team);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<Team> toCacheModel();
 
+	@Override
 	public Team toEscapedModel();
 
+	@Override
+	public Team toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

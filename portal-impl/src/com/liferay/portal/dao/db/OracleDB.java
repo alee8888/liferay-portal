@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -150,7 +150,7 @@ public class OracleDB extends BaseDB {
 
 				boolean unique = true;
 
-				if (uniqueness.equalsIgnoreCase("NONUNIQUE")) {
+				if (StringUtil.equalsIgnoreCase(uniqueness, "NONUNIQUE")) {
 					unique = false;
 				}
 
@@ -185,18 +185,19 @@ public class OracleDB extends BaseDB {
 		sb.append("drop user &1 cascade;\n");
 		sb.append("create user &1 identified by &2;\n");
 		sb.append("grant connect,resource to &1;\n");
-		sb.append("connect &1/&2;\n");
-		sb.append("set define off;\n");
-		sb.append("\n");
-		sb.append(
-			readFile(
-				sqlDir + "/portal" + suffix + "/portal" + suffix +
-					"-oracle.sql"));
-		sb.append("\n\n");
-		sb.append(readFile(sqlDir + "/indexes/indexes-oracle.sql"));
-		sb.append("\n\n");
-		sb.append(readFile(sqlDir + "/sequences/sequences-oracle.sql"));
-		sb.append("\n");
+
+		if (population != BARE) {
+			sb.append("connect &1/&2;\n");
+			sb.append("set define off;\n");
+			sb.append("\n");
+			sb.append(getCreateTablesContent(sqlDir, suffix));
+			sb.append("\n\n");
+			sb.append(readFile(sqlDir + "/indexes/indexes-oracle.sql"));
+			sb.append("\n\n");
+			sb.append(readFile(sqlDir + "/sequences/sequences-oracle.sql"));
+			sb.append("\n");
+		}
+
 		sb.append("quit");
 
 		return sb.toString();
@@ -222,7 +223,7 @@ public class OracleDB extends BaseDB {
 		StringBuffer sb = new StringBuffer();
 
 		while (matcher.find()) {
-			int size = GetterUtil.getInteger(matcher.group());
+			int size = GetterUtil.getInteger(matcher.group(1));
 
 			if (size > 4000) {
 				size = 4000;
@@ -263,7 +264,14 @@ public class OracleDB extends BaseDB {
 					"alter table @table@ modify @old-column@ @type@;",
 					REWORD_TEMPLATE, template);
 			}
-			else if (line.indexOf(DROP_INDEX) != -1) {
+			else if (line.startsWith(ALTER_TABLE_NAME)) {
+				String[] template = buildTableNameTokens(line);
+
+				line = StringUtil.replace(
+					"alter table @old-table@ rename to @new-table@;",
+					RENAME_TABLE_TEMPLATE, template);
+			}
+			else if (line.contains(DROP_INDEX)) {
 				String[] tokens = StringUtil.split(line, ' ');
 
 				line = StringUtil.replace(
@@ -324,6 +332,6 @@ public class OracleDB extends BaseDB {
 	private static OracleDB _instance = new OracleDB();
 
 	private static Pattern _varcharPattern = Pattern.compile(
-		"VARCHAR(\\(\\d+\\))");
+		"VARCHAR\\((\\d+)\\)");
 
 }

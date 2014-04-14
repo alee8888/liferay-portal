@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,13 @@
 
 package com.liferay.portlet.wiki.action;
 
-import com.liferay.portal.kernel.portlet.DefaultConfigurationAction;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.portlet.SettingsConfigurationAction;
 import com.liferay.portal.kernel.servlet.SessionErrors;
-import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.settings.Settings;
+import com.liferay.portlet.wiki.WikiSettings;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -26,7 +29,7 @@ import javax.portlet.PortletConfig;
 /**
  * @author Bruno Farache
  */
-public class ConfigurationActionImpl extends DefaultConfigurationAction {
+public class ConfigurationActionImpl extends SettingsConfigurationAction {
 
 	@Override
 	public void processAction(
@@ -34,80 +37,26 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 			ActionResponse actionResponse)
 		throws Exception {
 
-		String tabs2 = ParamUtil.getString(actionRequest, "tabs2");
-
-		if (tabs2.equals("display-settings")) {
-			validateDisplaySettings(actionRequest);
-		}
-		else if (tabs2.equals("email-from")) {
-			validateEmailFrom(actionRequest);
-		}
-		else if (tabs2.equals("page-added-email")) {
-			validateEmailPageAdded(actionRequest);
-		}
-		else if (tabs2.equals("page-updated-email")) {
-			validateEmailPageUpdated(actionRequest);
-		}
+		validateDisplaySettings(actionRequest);
+		validateEmail(actionRequest, "emailPageAdded");
+		validateEmail(actionRequest, "emailPageUpdated");
+		validateEmailFrom(actionRequest);
 
 		super.processAction(portletConfig, actionRequest, actionResponse);
 	}
 
-	protected void validateDisplaySettings(ActionRequest actionRequest)
-		throws Exception {
+	@Override
+	protected Settings getSettings(ActionRequest actionRequest)
+		throws PortalException, SystemException {
 
+		return new WikiSettings(super.getSettings(actionRequest));
+	}
+
+	protected void validateDisplaySettings(ActionRequest actionRequest) {
 		String visibleNodes = getParameter(actionRequest, "visibleNodes");
 
 		if (Validator.isNull(visibleNodes)) {
 			SessionErrors.add(actionRequest, "visibleNodesCount");
-		}
-	}
-
-	protected void validateEmailFrom(ActionRequest actionRequest)
-		throws Exception {
-
-		String emailFromName = getParameter(actionRequest, "emailFromName");
-		String emailFromAddress = getParameter(
-			actionRequest, "emailFromAddress");
-
-		if (Validator.isNull(emailFromName)) {
-			SessionErrors.add(actionRequest, "emailFromName");
-		}
-		else if (!Validator.isEmailAddress(emailFromAddress) &&
-				 !Validator.isVariableTerm(emailFromAddress)) {
-
-			SessionErrors.add(actionRequest, "emailFromAddress");
-		}
-	}
-
-	protected void validateEmailPageAdded(ActionRequest actionRequest)
-		throws Exception {
-
-		String emailPageAddedSubjectPrefix = getParameter(
-			actionRequest, "emailPageAddedSubjectPrefix");
-		String emailPageAddedBody = getParameter(
-			actionRequest, "emailPageAddedBody");
-
-		if (Validator.isNull(emailPageAddedSubjectPrefix)) {
-			SessionErrors.add(actionRequest, "emailPageAddedSubjectPrefix");
-		}
-		else if (Validator.isNull(emailPageAddedBody)) {
-			SessionErrors.add(actionRequest, "emailPageAddedBody");
-		}
-	}
-
-	protected void validateEmailPageUpdated(ActionRequest actionRequest)
-		throws Exception {
-
-		String emailPageUpdatedSubjectPrefix = getParameter(
-			actionRequest, "emailPageUpdatedSubjectPrefix");
-		String emailPageUpdatedBody = getParameter(
-			actionRequest, "emailPageUpdatedBody");
-
-		if (Validator.isNull(emailPageUpdatedSubjectPrefix)) {
-			SessionErrors.add(actionRequest, "emailPageUpdatedSubjectPrefix");
-		}
-		else if (Validator.isNull(emailPageUpdatedBody)) {
-			SessionErrors.add(actionRequest, "emailPageUpdatedBody");
 		}
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,12 +19,13 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portlet.journal.model.JournalStructure;
-import com.liferay.portlet.journal.service.JournalStructureLocalServiceUtil;
 
 /**
- * @author Brian Wing Shun Chan
- * @author Raymond Augé
+ * @author     Brian Wing Shun Chan
+ * @author     Raymond Augé
+ * @deprecated As of 6.2.0
  */
+@Deprecated
 public class JournalStructurePermission {
 
 	public static void check(
@@ -33,15 +34,6 @@ public class JournalStructurePermission {
 		throws PortalException {
 
 		if (!contains(permissionChecker, structure, actionId)) {
-			throw new PrincipalException();
-		}
-	}
-
-	public static void check(
-			PermissionChecker permissionChecker, long id, String actionId)
-		throws PortalException, SystemException {
-
-		if (!contains(permissionChecker, id, actionId)) {
 			throw new PrincipalException();
 		}
 	}
@@ -73,23 +65,14 @@ public class JournalStructurePermission {
 	}
 
 	public static boolean contains(
-			PermissionChecker permissionChecker, long id, String actionId)
-		throws PortalException, SystemException {
-
-		JournalStructure structure =
-			JournalStructureLocalServiceUtil.getStructure(id);
-
-		return contains(permissionChecker, structure, actionId);
-	}
-
-	public static boolean contains(
 			PermissionChecker permissionChecker, long groupId,
 			String structureId, String actionId)
 		throws PortalException, SystemException {
 
 		JournalStructure structure =
-			JournalStructureLocalServiceUtil.getStructure(
-				groupId, structureId, true);
+			com.liferay.portlet.journal.service.
+				JournalStructureLocalServiceUtil.getStructure(
+					groupId, structureId, true);
 
 		return contains(permissionChecker, structure, actionId);
 	}

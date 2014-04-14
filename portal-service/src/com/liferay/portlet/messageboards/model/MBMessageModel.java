@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,16 +14,22 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.StagedGroupedModel;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
+import com.liferay.portlet.trash.model.TrashEntry;
 
 import java.io.Serializable;
 
@@ -42,8 +48,9 @@ import java.util.Date;
  * @see com.liferay.portlet.messageboards.model.impl.MBMessageModelImpl
  * @generated
  */
+@ProviderType
 public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
-	GroupedModel, WorkflowedModel {
+	StagedGroupedModel, TrashedModel, WorkflowedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -70,6 +77,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 * @return the uuid of this message-boards message
 	 */
 	@AutoEscape
+	@Override
 	public String getUuid();
 
 	/**
@@ -77,6 +85,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param uuid the uuid of this message-boards message
 	 */
+	@Override
 	public void setUuid(String uuid);
 
 	/**
@@ -98,6 +107,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @return the group ID of this message-boards message
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -105,6 +115,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param groupId the group ID of this message-boards message
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -112,6 +123,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @return the company ID of this message-boards message
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -119,6 +131,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param companyId the company ID of this message-boards message
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -126,6 +139,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @return the user ID of this message-boards message
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -133,6 +147,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param userId the user ID of this message-boards message
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
@@ -141,6 +156,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 * @return the user uuid of this message-boards message
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public String getUserUuid() throws SystemException;
 
 	/**
@@ -148,6 +164,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param userUuid the user uuid of this message-boards message
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -156,6 +173,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 * @return the user name of this message-boards message
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -163,6 +181,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param userName the user name of this message-boards message
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -170,6 +189,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @return the create date of this message-boards message
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -177,6 +197,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param createDate the create date of this message-boards message
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -184,6 +205,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @return the modified date of this message-boards message
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -191,6 +213,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param modifiedDate the modified date of this message-boards message
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -198,6 +221,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @return the fully qualified class name of this message-boards message
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -207,6 +231,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @return the class name ID of this message-boards message
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -214,6 +239,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param classNameId the class name ID of this message-boards message
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -221,6 +247,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @return the class p k of this message-boards message
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -228,6 +255,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param classPK the class p k of this message-boards message
 	 */
+	@Override
 	public void setClassPK(long classPK);
 
 	/**
@@ -332,27 +360,6 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	public void setFormat(String format);
 
 	/**
-	 * Returns the attachments of this message-boards message.
-	 *
-	 * @return the attachments of this message-boards message
-	 */
-	public boolean getAttachments();
-
-	/**
-	 * Returns <code>true</code> if this message-boards message is attachments.
-	 *
-	 * @return <code>true</code> if this message-boards message is attachments; <code>false</code> otherwise
-	 */
-	public boolean isAttachments();
-
-	/**
-	 * Sets whether this message-boards message is attachments.
-	 *
-	 * @param attachments the attachments of this message-boards message
-	 */
-	public void setAttachments(boolean attachments);
-
-	/**
 	 * Returns the anonymous of this message-boards message.
 	 *
 	 * @return the anonymous of this message-boards message
@@ -434,6 +441,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @return the status of this message-boards message
 	 */
+	@Override
 	public int getStatus();
 
 	/**
@@ -441,6 +449,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param status the status of this message-boards message
 	 */
+	@Override
 	public void setStatus(int status);
 
 	/**
@@ -448,6 +457,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @return the status by user ID of this message-boards message
 	 */
+	@Override
 	public long getStatusByUserId();
 
 	/**
@@ -455,6 +465,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param statusByUserId the status by user ID of this message-boards message
 	 */
+	@Override
 	public void setStatusByUserId(long statusByUserId);
 
 	/**
@@ -463,6 +474,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 * @return the status by user uuid of this message-boards message
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public String getStatusByUserUuid() throws SystemException;
 
 	/**
@@ -470,6 +482,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param statusByUserUuid the status by user uuid of this message-boards message
 	 */
+	@Override
 	public void setStatusByUserUuid(String statusByUserUuid);
 
 	/**
@@ -478,6 +491,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 * @return the status by user name of this message-boards message
 	 */
 	@AutoEscape
+	@Override
 	public String getStatusByUserName();
 
 	/**
@@ -485,6 +499,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param statusByUserName the status by user name of this message-boards message
 	 */
+	@Override
 	public void setStatusByUserName(String statusByUserName);
 
 	/**
@@ -492,6 +507,7 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @return the status date of this message-boards message
 	 */
+	@Override
 	public Date getStatusDate();
 
 	/**
@@ -499,11 +515,59 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @param statusDate the status date of this message-boards message
 	 */
+	@Override
 	public void setStatusDate(Date statusDate);
 
 	/**
-	 * @deprecated Renamed to {@link #isApproved()}
+	 * Returns the trash entry created when this message-boards message was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this message-boards message.
+	 *
+	 * @return the trash entry created when this message-boards message was moved to the Recycle Bin
+	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
+	public TrashEntry getTrashEntry() throws PortalException, SystemException;
+
+	/**
+	 * Returns the class primary key of the trash entry for this message-boards message.
+	 *
+	 * @return the class primary key of the trash entry for this message-boards message
+	 */
+	@Override
+	public long getTrashEntryClassPK();
+
+	/**
+	 * Returns the trash handler for this message-boards message.
+	 *
+	 * @return the trash handler for this message-boards message
+	 */
+	@Override
+	public TrashHandler getTrashHandler();
+
+	/**
+	 * Returns <code>true</code> if this message-boards message is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if this message-boards message is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInTrash();
+
+	/**
+	 * Returns <code>true</code> if the parent of this message-boards message is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if the parent of this message-boards message is in the Recycle Bin; <code>false</code> otherwise
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public boolean isInTrashContainer();
+
+	@Override
+	public boolean isInTrashExplicitly() throws SystemException;
+
+	/**
+	 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
+	 */
+	@Deprecated
+	@Override
 	public boolean getApproved();
 
 	/**
@@ -511,13 +575,23 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @return <code>true</code> if this message-boards message is approved; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isApproved();
+
+	/**
+	 * Returns <code>true</code> if this message-boards message is denied.
+	 *
+	 * @return <code>true</code> if this message-boards message is denied; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isDenied();
 
 	/**
 	 * Returns <code>true</code> if this message-boards message is a draft.
 	 *
 	 * @return <code>true</code> if this message-boards message is a draft; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isDraft();
 
 	/**
@@ -525,44 +599,95 @@ public interface MBMessageModel extends AttachedModel, BaseModel<MBMessage>,
 	 *
 	 * @return <code>true</code> if this message-boards message is expired; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isExpired();
+
+	/**
+	 * Returns <code>true</code> if this message-boards message is inactive.
+	 *
+	 * @return <code>true</code> if this message-boards message is inactive; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInactive();
+
+	/**
+	 * Returns <code>true</code> if this message-boards message is incomplete.
+	 *
+	 * @return <code>true</code> if this message-boards message is incomplete; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isIncomplete();
 
 	/**
 	 * Returns <code>true</code> if this message-boards message is pending.
 	 *
 	 * @return <code>true</code> if this message-boards message is pending; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isPending();
 
+	/**
+	 * Returns <code>true</code> if this message-boards message is scheduled.
+	 *
+	 * @return <code>true</code> if this message-boards message is scheduled; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isScheduled();
+
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(MBMessage mbMessage);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<MBMessage> toCacheModel();
 
+	@Override
 	public MBMessage toEscapedModel();
 
+	@Override
+	public MBMessage toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

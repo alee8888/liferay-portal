@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,7 +31,8 @@ public class NullServletResponse extends HttpServletResponseWrapper {
 		super(response);
 
 		_servletOutputStream = new NullServletOutputStream();
-		_printWriter = UnsyncPrintWriterPool.borrow(_servletOutputStream);
+		_printWriter = UnsyncPrintWriterPool.borrow(
+			_servletOutputStream, getCharacterEncoding());
 	}
 
 	@Override

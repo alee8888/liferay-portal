@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,12 +14,15 @@
 
 package com.liferay.portlet.mobiledevicerules.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.StagedGroupedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -43,8 +46,9 @@ import java.util.Map;
  * @see com.liferay.portlet.mobiledevicerules.model.impl.MDRActionModelImpl
  * @generated
  */
+@ProviderType
 public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
-	GroupedModel {
+	StagedGroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -71,6 +75,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 * @return the uuid of this m d r action
 	 */
 	@AutoEscape
+	@Override
 	public String getUuid();
 
 	/**
@@ -78,6 +83,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @param uuid the uuid of this m d r action
 	 */
+	@Override
 	public void setUuid(String uuid);
 
 	/**
@@ -99,6 +105,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @return the group ID of this m d r action
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -106,6 +113,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @param groupId the group ID of this m d r action
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -113,6 +121,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @return the company ID of this m d r action
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -120,6 +129,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @param companyId the company ID of this m d r action
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -127,6 +137,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @return the user ID of this m d r action
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -134,6 +145,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @param userId the user ID of this m d r action
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
@@ -142,6 +154,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 * @return the user uuid of this m d r action
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public String getUserUuid() throws SystemException;
 
 	/**
@@ -149,6 +162,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @param userUuid the user uuid of this m d r action
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -157,6 +171,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 * @return the user name of this m d r action
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -164,6 +179,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @param userName the user name of this m d r action
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -171,6 +187,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @return the create date of this m d r action
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -178,6 +195,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @param createDate the create date of this m d r action
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -185,6 +203,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @return the modified date of this m d r action
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -192,6 +211,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @param modifiedDate the modified date of this m d r action
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -199,6 +219,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @return the fully qualified class name of this m d r action
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -208,6 +229,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @return the class name ID of this m d r action
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -215,6 +237,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @param classNameId the class name ID of this m d r action
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -222,6 +245,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @return the class p k of this m d r action
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -229,6 +253,7 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 *
 	 * @param classPK the class p k of this m d r action
 	 */
+	@Override
 	public void setClassPK(long classPK);
 
 	/**
@@ -475,35 +500,69 @@ public interface MDRActionModel extends AttachedModel, BaseModel<MDRAction>,
 	 */
 	public void setTypeSettings(String typeSettings);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	public String[] getAvailableLanguageIds();
+
+	public String getDefaultLanguageId();
+
+	public void prepareLocalizedFieldsForImport() throws LocaleException;
+
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException;
+
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(MDRAction mdrAction);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<MDRAction> toCacheModel();
 
+	@Override
 	public MDRAction toEscapedModel();
 
+	@Override
+	public MDRAction toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

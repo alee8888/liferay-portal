@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -61,15 +61,15 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	 */
 	public static final String TABLE_NAME = "Image";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "imageId", Types.BIGINT },
 			{ "modifiedDate", Types.TIMESTAMP },
-			{ "text_", Types.CLOB },
 			{ "type_", Types.VARCHAR },
 			{ "height", Types.INTEGER },
 			{ "width", Types.INTEGER },
 			{ "size_", Types.INTEGER }
 		};
-	public static final String TABLE_SQL_CREATE = "create table Image (imageId LONG not null primary key,modifiedDate DATE null,text_ TEXT null,type_ VARCHAR(75) null,height INTEGER,width INTEGER,size_ INTEGER)";
+	public static final String TABLE_SQL_CREATE = "create table Image (mvccVersion LONG default 0,imageId LONG not null primary key,modifiedDate DATE null,type_ VARCHAR(75) null,height INTEGER,width INTEGER,size_ INTEGER)";
 	public static final String TABLE_SQL_DROP = "drop table Image";
 	public static final String ORDER_BY_JPQL = " ORDER BY image.imageId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY Image.imageId ASC";
@@ -86,6 +86,7 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 				"value.object.column.bitmask.enabled.com.liferay.portal.model.Image"),
 			true);
 	public static long SIZE_COLUMN_BITMASK = 1L;
+	public static long IMAGEID_COLUMN_BITMASK = 2L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -94,11 +95,15 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	 * @return the normal model instance
 	 */
 	public static Image toModel(ImageSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		Image model = new ImageImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setImageId(soapModel.getImageId());
 		model.setModifiedDate(soapModel.getModifiedDate());
-		model.setText(soapModel.getText());
 		model.setType(soapModel.getType());
 		model.setHeight(soapModel.getHeight());
 		model.setWidth(soapModel.getWidth());
@@ -114,6 +119,10 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	 * @return the normal model instances
 	 */
 	public static List<Image> toModels(ImageSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<Image> models = new ArrayList<Image>(soapModels.length);
 
 		for (ImageSoap soapModel : soapModels) {
@@ -129,26 +138,32 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	public ImageModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _imageId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setImageId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_imageId);
+		return _imageId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return Image.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return Image.class.getName();
 	}
@@ -157,19 +172,28 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("imageId", getImageId());
 		attributes.put("modifiedDate", getModifiedDate());
-		attributes.put("text", getText());
 		attributes.put("type", getType());
 		attributes.put("height", getHeight());
 		attributes.put("width", getWidth());
 		attributes.put("size", getSize());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long imageId = (Long)attributes.get("imageId");
 
 		if (imageId != null) {
@@ -180,12 +204,6 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 
 		if (modifiedDate != null) {
 			setModifiedDate(modifiedDate);
-		}
-
-		String text = (String)attributes.get("text");
-
-		if (text != null) {
-			setText(text);
 		}
 
 		String type = (String)attributes.get("type");
@@ -214,10 +232,23 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	}
 
 	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
 	public long getImageId() {
 		return _imageId;
 	}
 
+	@Override
 	public void setImageId(long imageId) {
 		_columnBitmask = -1L;
 
@@ -225,29 +256,18 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	}
 
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
 
+	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		_modifiedDate = modifiedDate;
 	}
 
 	@JSON
-	public String getText() {
-		if (_text == null) {
-			return StringPool.BLANK;
-		}
-		else {
-			return _text;
-		}
-	}
-
-	public void setText(String text) {
-		_text = text;
-	}
-
-	@JSON
+	@Override
 	public String getType() {
 		if (_type == null) {
 			return StringPool.BLANK;
@@ -257,33 +277,40 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 		}
 	}
 
+	@Override
 	public void setType(String type) {
 		_type = type;
 	}
 
 	@JSON
+	@Override
 	public int getHeight() {
 		return _height;
 	}
 
+	@Override
 	public void setHeight(int height) {
 		_height = height;
 	}
 
 	@JSON
+	@Override
 	public int getWidth() {
 		return _width;
 	}
 
+	@Override
 	public void setWidth(int width) {
 		_width = width;
 	}
 
 	@JSON
+	@Override
 	public int getSize() {
 		return _size;
 	}
 
+	@Override
 	public void setSize(int size) {
 		_columnBitmask |= SIZE_COLUMN_BITMASK;
 
@@ -305,17 +332,6 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	}
 
 	@Override
-	public Image toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Image)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
 			Image.class.getName(), getPrimaryKey());
@@ -329,12 +345,22 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	}
 
 	@Override
+	public Image toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Image)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		ImageImpl imageImpl = new ImageImpl();
 
+		imageImpl.setMvccVersion(getMvccVersion());
 		imageImpl.setImageId(getImageId());
 		imageImpl.setModifiedDate(getModifiedDate());
-		imageImpl.setText(getText());
 		imageImpl.setType(getType());
 		imageImpl.setHeight(getHeight());
 		imageImpl.setWidth(getWidth());
@@ -345,6 +371,7 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 		return imageImpl;
 	}
 
+	@Override
 	public int compareTo(Image image) {
 		int value = 0;
 
@@ -367,18 +394,15 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof Image)) {
 			return false;
 		}
 
-		Image image = null;
-
-		try {
-			image = (Image)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		Image image = (Image)obj;
 
 		long primaryKey = image.getPrimaryKey();
 
@@ -396,6 +420,16 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		ImageModelImpl imageModelImpl = this;
 
@@ -410,6 +444,8 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	public CacheModel<Image> toCacheModel() {
 		ImageCacheModel imageCacheModel = new ImageCacheModel();
 
+		imageCacheModel.mvccVersion = getMvccVersion();
+
 		imageCacheModel.imageId = getImageId();
 
 		Date modifiedDate = getModifiedDate();
@@ -419,14 +455,6 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 		}
 		else {
 			imageCacheModel.modifiedDate = Long.MIN_VALUE;
-		}
-
-		imageCacheModel.text = getText();
-
-		String text = imageCacheModel.text;
-
-		if ((text != null) && (text.length() == 0)) {
-			imageCacheModel.text = null;
 		}
 
 		imageCacheModel.type = getType();
@@ -450,12 +478,12 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	public String toString() {
 		StringBundler sb = new StringBundler(15);
 
-		sb.append("{imageId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", imageId=");
 		sb.append(getImageId());
 		sb.append(", modifiedDate=");
 		sb.append(getModifiedDate());
-		sb.append(", text=");
-		sb.append(getText());
 		sb.append(", type=");
 		sb.append(getType());
 		sb.append(", height=");
@@ -469,6 +497,7 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(25);
 
@@ -477,16 +506,16 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 		sb.append("</model-name>");
 
 		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
+		sb.append(
 			"<column><column-name>imageId</column-name><column-value><![CDATA[");
 		sb.append(getImageId());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>modifiedDate</column-name><column-value><![CDATA[");
 		sb.append(getModifiedDate());
-		sb.append("]]></column-value></column>");
-		sb.append(
-			"<column><column-name>text</column-name><column-value><![CDATA[");
-		sb.append(getText());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>type</column-name><column-value><![CDATA[");
@@ -511,12 +540,10 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	}
 
 	private static ClassLoader _classLoader = Image.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
-			Image.class
-		};
+	private static Class<?>[] _escapedModelInterfaces = new Class[] { Image.class };
+	private long _mvccVersion;
 	private long _imageId;
 	private Date _modifiedDate;
-	private String _text;
 	private String _type;
 	private int _height;
 	private int _width;
@@ -524,5 +551,5 @@ public class ImageModelImpl extends BaseModelImpl<Image> implements ImageModel {
 	private int _originalSize;
 	private boolean _setOriginalSize;
 	private long _columnBitmask;
-	private Image _escapedModelProxy;
+	private Image _escapedModel;
 }

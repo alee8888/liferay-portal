@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,13 +24,11 @@ import com.liferay.portal.service.http.TunnelUtil;
 import com.liferay.portlet.journal.service.JournalTemplateServiceUtil;
 
 /**
- * <p>
- * This class provides a HTTP utility for the
+ * Provides the HTTP utility for the
  * {@link com.liferay.portlet.journal.service.JournalTemplateServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it requires an additional
  * {@link com.liferay.portal.security.auth.HttpPrincipal} parameter.
- * </p>
  *
  * <p>
  * The benefits of using the HTTP utility is that it is fast and allows for
@@ -47,12 +45,15 @@ import com.liferay.portlet.journal.service.JournalTemplateServiceUtil;
  * The HTTP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalTemplateServiceSoap
- * @see       com.liferay.portal.security.auth.HttpPrincipal
- * @see       com.liferay.portlet.journal.service.JournalTemplateServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see JournalTemplateServiceSoap
+ * @see com.liferay.portal.security.auth.HttpPrincipal
+ * @see com.liferay.portlet.journal.service.JournalTemplateServiceUtil
+ * @deprecated As of 6.2.0, since Web Content Administration now uses the
+            Dynamic Data Mapping framework to handle templates
  * @generated
  */
+@Deprecated
 public class JournalTemplateServiceHttp {
 	public static com.liferay.portlet.journal.model.JournalTemplate addTemplate(
 		HttpPrincipal httpPrincipal, long groupId, java.lang.String templateId,
@@ -66,7 +67,7 @@ public class JournalTemplateServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class,
 					"addTemplate", _addTemplateParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
@@ -111,7 +112,7 @@ public class JournalTemplateServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class,
 					"addTemplate", _addTemplateParameterTypes1);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
@@ -152,7 +153,7 @@ public class JournalTemplateServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class,
 					"copyTemplate", _copyTemplateParameterTypes2);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
@@ -189,7 +190,7 @@ public class JournalTemplateServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class,
 					"deleteTemplate", _deleteTemplateParameterTypes3);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
@@ -219,9 +220,10 @@ public class JournalTemplateServiceHttp {
 
 	public static java.util.List<com.liferay.portlet.journal.model.JournalTemplate> getStructureTemplates(
 		HttpPrincipal httpPrincipal, long groupId, java.lang.String structureId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class,
 					"getStructureTemplates",
 					_getStructureTemplatesParameterTypes4);
 
@@ -234,6 +236,10 @@ public class JournalTemplateServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception e) {
+				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
+					throw (com.liferay.portal.kernel.exception.PortalException)e;
+				}
+
 				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
 					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
@@ -255,11 +261,49 @@ public class JournalTemplateServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class,
 					"getTemplate", _getTemplateParameterTypes5);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
 					templateId);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception e) {
+				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
+					throw (com.liferay.portal.kernel.exception.PortalException)e;
+				}
+
+				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
+					throw (com.liferay.portal.kernel.exception.SystemException)e;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(e);
+			}
+
+			return (com.liferay.portlet.journal.model.JournalTemplate)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException se) {
+			_log.error(se, se);
+
+			throw se;
+		}
+	}
+
+	public static com.liferay.portlet.journal.model.JournalTemplate getTemplate(
+		HttpPrincipal httpPrincipal, long groupId, java.lang.String templateId,
+		boolean includeGlobalTemplates)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		try {
+			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class,
+					"getTemplate", _getTemplateParameterTypes6);
+
+			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
+					templateId, includeGlobalTemplates);
 
 			Object returnObj = null;
 
@@ -294,8 +338,8 @@ public class JournalTemplateServiceHttp {
 		com.liferay.portal.kernel.util.OrderByComparator obc)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class.getName(),
-					"search", _searchParameterTypes6);
+			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class,
+					"search", _searchParameterTypes7);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey,
 					companyId, groupIds, keywords, structureId,
@@ -331,8 +375,8 @@ public class JournalTemplateServiceHttp {
 		com.liferay.portal.kernel.util.OrderByComparator obc)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class.getName(),
-					"search", _searchParameterTypes7);
+			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class,
+					"search", _searchParameterTypes8);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey,
 					companyId, groupIds, templateId, structureId,
@@ -366,8 +410,8 @@ public class JournalTemplateServiceHttp {
 		java.lang.String structureId, java.lang.String structureIdComparator)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class.getName(),
-					"searchCount", _searchCountParameterTypes8);
+			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class,
+					"searchCount", _searchCountParameterTypes9);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey,
 					companyId, groupIds, keywords, structureId,
@@ -401,8 +445,8 @@ public class JournalTemplateServiceHttp {
 		java.lang.String name, java.lang.String description, boolean andOperator)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class.getName(),
-					"searchCount", _searchCountParameterTypes9);
+			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class,
+					"searchCount", _searchCountParameterTypes10);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey,
 					companyId, groupIds, templateId, structureId,
@@ -442,8 +486,8 @@ public class JournalTemplateServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class.getName(),
-					"updateTemplate", _updateTemplateParameterTypes10);
+			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class,
+					"updateTemplate", _updateTemplateParameterTypes11);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
 					templateId, structureId, nameMap, descriptionMap, xsl,
@@ -487,8 +531,8 @@ public class JournalTemplateServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class.getName(),
-					"updateTemplate", _updateTemplateParameterTypes11);
+			MethodKey methodKey = new MethodKey(JournalTemplateServiceUtil.class,
+					"updateTemplate", _updateTemplateParameterTypes12);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
 					templateId, structureId, nameMap, descriptionMap, xsl,
@@ -547,35 +591,38 @@ public class JournalTemplateServiceHttp {
 	private static final Class<?>[] _getTemplateParameterTypes5 = new Class[] {
 			long.class, java.lang.String.class
 		};
-	private static final Class<?>[] _searchParameterTypes6 = new Class[] {
+	private static final Class<?>[] _getTemplateParameterTypes6 = new Class[] {
+			long.class, java.lang.String.class, boolean.class
+		};
+	private static final Class<?>[] _searchParameterTypes7 = new Class[] {
 			long.class, long[].class, java.lang.String.class,
 			java.lang.String.class, java.lang.String.class, int.class, int.class,
 			com.liferay.portal.kernel.util.OrderByComparator.class
 		};
-	private static final Class<?>[] _searchParameterTypes7 = new Class[] {
+	private static final Class<?>[] _searchParameterTypes8 = new Class[] {
 			long.class, long[].class, java.lang.String.class,
 			java.lang.String.class, java.lang.String.class,
 			java.lang.String.class, java.lang.String.class, boolean.class,
 			int.class, int.class,
 			com.liferay.portal.kernel.util.OrderByComparator.class
 		};
-	private static final Class<?>[] _searchCountParameterTypes8 = new Class[] {
+	private static final Class<?>[] _searchCountParameterTypes9 = new Class[] {
 			long.class, long[].class, java.lang.String.class,
 			java.lang.String.class, java.lang.String.class
 		};
-	private static final Class<?>[] _searchCountParameterTypes9 = new Class[] {
+	private static final Class<?>[] _searchCountParameterTypes10 = new Class[] {
 			long.class, long[].class, java.lang.String.class,
 			java.lang.String.class, java.lang.String.class,
 			java.lang.String.class, java.lang.String.class, boolean.class
 		};
-	private static final Class<?>[] _updateTemplateParameterTypes10 = new Class[] {
+	private static final Class<?>[] _updateTemplateParameterTypes11 = new Class[] {
 			long.class, java.lang.String.class, java.lang.String.class,
 			java.util.Map.class, java.util.Map.class, java.lang.String.class,
 			boolean.class, java.lang.String.class, boolean.class, boolean.class,
 			java.lang.String.class, java.io.File.class,
 			com.liferay.portal.service.ServiceContext.class
 		};
-	private static final Class<?>[] _updateTemplateParameterTypes11 = new Class[] {
+	private static final Class<?>[] _updateTemplateParameterTypes12 = new Class[] {
 			long.class, java.lang.String.class, java.lang.String.class,
 			java.util.Map.class, java.util.Map.class, java.lang.String.class,
 			boolean.class, java.lang.String.class, boolean.class,

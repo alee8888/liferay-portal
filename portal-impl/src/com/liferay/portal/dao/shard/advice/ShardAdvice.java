@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.InfrastructureUtil;
 import com.liferay.portal.kernel.util.InitialThreadLocal;
 import com.liferay.portal.model.Company;
@@ -29,7 +30,6 @@ import com.liferay.portal.security.auth.CompanyThreadLocal;
 import com.liferay.portal.service.ShardLocalServiceUtil;
 import com.liferay.portal.util.PropsValues;
 
-import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -76,19 +76,14 @@ public class ShardAdvice {
 	}
 
 	public String getCurrentShardName() {
-		String shardName = null;
+		Stack<String> stack = _getCompanyServiceStack();
 
-		try {
-			shardName = _getCompanyServiceStack().peek();
-		}
-		catch (EmptyStackException ese) {
+		if (stack.isEmpty()) {
+			return PropsValues.SHARD_DEFAULT_NAME;
 		}
 
-		if (shardName == null) {
-			shardName = PropsValues.SHARD_DEFAULT_NAME;
-		}
-
-		return shardName;
+		return GetterUtil.getString(
+			stack.peek(), PropsValues.SHARD_DEFAULT_NAME);
 	}
 
 	public DataSource getDataSource() {
@@ -145,19 +140,20 @@ public class ShardAdvice {
 		_shardDataSourceTargetSource = shardDataSourceTargetSource;
 	}
 
-	public void setShardNameByCompany() throws Throwable {
+	public String setShardNameByCompany() throws Throwable {
 		Stack<String> companyServiceStack = _getCompanyServiceStack();
 
 		if (companyServiceStack.isEmpty()) {
 			long companyId = CompanyThreadLocal.getCompanyId();
 
-			_setShardNameByCompanyId(companyId);
+			return _setShardNameByCompanyId(companyId);
 		}
-		else {
-			String shardName = companyServiceStack.peek();
 
-			_setShardName(shardName);
-		}
+		String shardName = companyServiceStack.peek();
+
+		_setShardName(shardName);
+
+		return shardName;
 	}
 
 	public void setShardSessionFactoryTargetSource(
@@ -182,20 +178,21 @@ public class ShardAdvice {
 		_shardName.set(shardName);
 	}
 
-	private void _setShardNameByCompanyId(long companyId)
+	private String _setShardNameByCompanyId(long companyId)
 		throws PortalException, SystemException {
 
-		if (companyId == 0) {
-			_setShardName(PropsValues.SHARD_DEFAULT_NAME);
-		}
-		else {
+		String shardName = PropsValues.SHARD_DEFAULT_NAME;
+
+		if (companyId != 0) {
 			Shard shard = ShardLocalServiceUtil.getShard(
 				Company.class.getName(), companyId);
 
-			String shardName = shard.getName();
-
-			_setShardName(shardName);
+			shardName = shard.getName();
 		}
+
+		_setShardName(shardName);
+
+		return shardName;
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(ShardAdvice.class);
@@ -213,8 +210,9 @@ public class ShardAdvice {
 
 	static {
 		try {
-			_shardSelector = (ShardSelector)Class.forName(
-				PropsValues.SHARD_SELECTOR).newInstance();
+			Class<?> clazz = Class.forName(PropsValues.SHARD_SELECTOR);
+
+			_shardSelector = (ShardSelector)clazz.newInstance();
 		}
 		catch (Exception e) {
 			_log.error(e, e);

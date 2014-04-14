@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,18 +14,22 @@
 
 package com.liferay.portal.kernel.dao.shard;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.kernel.util.StringPool;
 
 import javax.sql.DataSource;
 
 /**
  * @author Alexander Chow
+ * @author Raymond Augé
  */
 public class ShardUtil {
 
 	public static String[] getAvailableShardNames() {
-		if (_shard != null) {
-			String[] availableShardNames = _shard.getAvailableShardNames();
+		Shard shard = getShard();
+
+		if (shard != null) {
+			String[] availableShardNames = shard.getAvailableShardNames();
 
 			if (availableShardNames != null) {
 				return availableShardNames;
@@ -36,60 +40,92 @@ public class ShardUtil {
 	}
 
 	public static String getCurrentShardName() {
-		if (_shard != null) {
-			return _shard.getCurrentShardName();
+		Shard shard = getShard();
+
+		if (shard != null) {
+			return shard.getCurrentShardName();
 		}
 
 		return StringPool.BLANK;
 	}
 
 	public static DataSource getDataSource() {
-		if (_shard != null) {
-			return _shard.getDataSource();
+		Shard shard = getShard();
+
+		if (shard != null) {
+			return shard.getDataSource();
 		}
 
 		return null;
 	}
 
 	public static String getDefaultShardName() {
-		if (_shard != null) {
-			return _shard.getDefaultShardName();
+		Shard shard = getShard();
+
+		if (shard != null) {
+			return shard.getDefaultShardName();
 		}
 
 		return null;
 	}
 
+	public static Shard getShard() {
+		PortalRuntimePermission.checkGetBeanProperty(ShardUtil.class);
+
+		return _shard;
+	}
+
 	public static boolean isEnabled() {
-		if (_shard != null) {
-			return _shard.isEnabled();
+		if (_shard == null) {
+			return false;
 		}
 
-		return false;
+		return _shard.isEnabled();
 	}
 
 	public static String popCompanyService() {
 		String value = null;
 
-		if (_shard != null) {
-			value = _shard.popCompanyService();
+		Shard shard = getShard();
+
+		if (shard != null) {
+			value = shard.popCompanyService();
 		}
 
 		return value;
 	}
 
 	public static void pushCompanyService(long companyId) {
-		if (_shard != null) {
-			_shard.pushCompanyService(companyId);
+		Shard shard = getShard();
+
+		if (shard != null) {
+			shard.pushCompanyService(companyId);
 		}
 	}
 
 	public static void pushCompanyService(String shardName) {
-		if (_shard != null) {
-			_shard.pushCompanyService(shardName);
+		Shard shard = getShard();
+
+		if (shard != null) {
+			shard.pushCompanyService(shardName);
 		}
 	}
 
+	public static String setTargetSource(String shardName) {
+		String value = null;
+
+		Shard shard = getShard();
+
+		if (shard != null) {
+			value = shard.setTargetSource(shardName);
+		}
+
+		return value;
+	}
+
 	public void setShard(Shard shard) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_shard = shard;
 	}
 

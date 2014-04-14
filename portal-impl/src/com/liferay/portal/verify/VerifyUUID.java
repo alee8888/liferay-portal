@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,7 +36,7 @@ public class VerifyUUID extends VerifyProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"select " + pkColumnName + " from " + modelName +
@@ -55,7 +55,7 @@ public class VerifyUUID extends VerifyProcess {
 		}
 	}
 
-	public static void verifyModel(
+	protected static void verifyModel(
 			String modelName, String pkColumnName, long pk)
 		throws Exception {
 
@@ -64,8 +64,8 @@ public class VerifyUUID extends VerifyProcess {
 		DB db = DBFactoryUtil.getDB();
 
 		db.runSQL(
-			"update " + modelName + " set uuid_ = '" + uuid +
-				"' where " + pkColumnName + " = " + pk);
+			"update " + modelName + " set uuid_ = '" + uuid + "' where " +
+				pkColumnName + " = " + pk);
 	}
 
 	@Override
@@ -77,19 +77,22 @@ public class VerifyUUID extends VerifyProcess {
 
 	private static final String[][] _MODELS = new String[][] {
 		new String[] {
+			"Address", "addressId"
+		},
+		new String[] {
 			"DLFileVersion", "fileVersionId"
+		},
+		new String[] {
+			"EmailAddress", "emailAddressId"
+		},
+		new String[] {
+			"Group_", "groupId"
 		},
 		new String[] {
 			"JournalArticleResource", "resourcePrimKey"
 		},
 		new String[] {
 			"JournalFeed", "id_"
-		},
-		new String[] {
-			"JournalStructure", "id_"
-		},
-		new String[] {
-			"JournalTemplate", "id_"
 		},
 		new String[] {
 			"Layout", "plid"
@@ -99,6 +102,42 @@ public class VerifyUUID extends VerifyProcess {
 		},
 		new String[] {
 			"LayoutSetPrototype", "layoutSetPrototypeId"
+		},
+		new String[] {
+			"MBBan", "banId"
+		},
+		new String[] {
+			"MBDiscussion", "discussionId"
+		},
+		new String[] {
+			"MBThread", "threadId"
+		},
+		new String[] {
+			"MBThreadFlag", "threadFlagId"
+		},
+		new String[] {
+			"Organization_", "organizationId"
+		},
+		new String[] {
+			"PasswordPolicy", "passwordPolicyId"
+		},
+		new String[] {
+			"Phone", "phoneId"
+		},
+		new String[] {
+			"PollsVote", "voteId"
+		},
+		new String[] {
+			"RatingsEntry", "entryId"
+		},
+		new String[] {
+			"Role_", "roleId"
+		},
+		new String[] {
+			"UserGroup", "userGroupId"
+		},
+		new String[] {
+			"Website", "websiteId"
 		},
 		new String[] {
 			"WikiPageResource", "resourcePrimKey"

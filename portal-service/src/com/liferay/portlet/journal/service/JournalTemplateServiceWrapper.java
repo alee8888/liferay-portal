@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,21 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link JournalTemplateService}.
- * </p>
+ * Provides a wrapper for {@link JournalTemplateService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalTemplateService
+ * @author Brian Wing Shun Chan
+ * @see JournalTemplateService
+ * @deprecated As of 6.2.0, since Web Content Administration now uses the
+Dynamic Data Mapping framework to handle templates
  * @generated
  */
+@Deprecated
+@ProviderType
 public class JournalTemplateServiceWrapper implements JournalTemplateService,
 	ServiceWrapper<JournalTemplateService> {
 	public JournalTemplateServiceWrapper(
@@ -37,6 +41,7 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _journalTemplateService.getBeanIdentifier();
 	}
@@ -46,10 +51,12 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_journalTemplateService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public com.liferay.portlet.journal.model.JournalTemplate addTemplate(
 		long groupId, java.lang.String templateId, boolean autoTemplateId,
 		java.lang.String structureId,
@@ -67,6 +74,7 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 			smallFile, serviceContext);
 	}
 
+	@Override
 	public com.liferay.portlet.journal.model.JournalTemplate addTemplate(
 		long groupId, java.lang.String templateId, boolean autoTemplateId,
 		java.lang.String structureId,
@@ -82,6 +90,7 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 			formatXsl, langType, cacheable, serviceContext);
 	}
 
+	@Override
 	public com.liferay.portlet.journal.model.JournalTemplate copyTemplate(
 		long groupId, java.lang.String oldTemplateId,
 		java.lang.String newTemplateId, boolean autoTemplateId)
@@ -91,19 +100,23 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 			newTemplateId, autoTemplateId);
 	}
 
+	@Override
 	public void deleteTemplate(long groupId, java.lang.String templateId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_journalTemplateService.deleteTemplate(groupId, templateId);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portlet.journal.model.JournalTemplate> getStructureTemplates(
 		long groupId, java.lang.String structureId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _journalTemplateService.getStructureTemplates(groupId,
 			structureId);
 	}
 
+	@Override
 	public com.liferay.portlet.journal.model.JournalTemplate getTemplate(
 		long groupId, java.lang.String templateId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -111,6 +124,17 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 		return _journalTemplateService.getTemplate(groupId, templateId);
 	}
 
+	@Override
+	public com.liferay.portlet.journal.model.JournalTemplate getTemplate(
+		long groupId, java.lang.String templateId,
+		boolean includeGlobalTemplates)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _journalTemplateService.getTemplate(groupId, templateId,
+			includeGlobalTemplates);
+	}
+
+	@Override
 	public java.util.List<com.liferay.portlet.journal.model.JournalTemplate> search(
 		long companyId, long[] groupIds, java.lang.String keywords,
 		java.lang.String structureId, java.lang.String structureIdComparator,
@@ -120,6 +144,7 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 			structureId, structureIdComparator, start, end, obc);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portlet.journal.model.JournalTemplate> search(
 		long companyId, long[] groupIds, java.lang.String templateId,
 		java.lang.String structureId, java.lang.String structureIdComparator,
@@ -132,6 +157,7 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 			start, end, obc);
 	}
 
+	@Override
 	public int searchCount(long companyId, long[] groupIds,
 		java.lang.String keywords, java.lang.String structureId,
 		java.lang.String structureIdComparator)
@@ -140,6 +166,7 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 			keywords, structureId, structureIdComparator);
 	}
 
+	@Override
 	public int searchCount(long companyId, long[] groupIds,
 		java.lang.String templateId, java.lang.String structureId,
 		java.lang.String structureIdComparator, java.lang.String name,
@@ -150,6 +177,7 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 			andOperator);
 	}
 
+	@Override
 	public com.liferay.portlet.journal.model.JournalTemplate updateTemplate(
 		long groupId, java.lang.String templateId,
 		java.lang.String structureId,
@@ -166,6 +194,7 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 			cacheable, smallImage, smallImageURL, smallFile, serviceContext);
 	}
 
+	@Override
 	public com.liferay.portlet.journal.model.JournalTemplate updateTemplate(
 		long groupId, java.lang.String templateId,
 		java.lang.String structureId,
@@ -182,24 +211,28 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public JournalTemplateService getWrappedJournalTemplateService() {
 		return _journalTemplateService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedJournalTemplateService(
 		JournalTemplateService journalTemplateService) {
 		_journalTemplateService = journalTemplateService;
 	}
 
+	@Override
 	public JournalTemplateService getWrappedService() {
 		return _journalTemplateService;
 	}
 
+	@Override
 	public void setWrappedService(JournalTemplateService journalTemplateService) {
 		_journalTemplateService = journalTemplateService;
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,7 +19,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.scheduler.CronText;
 import com.liferay.portal.kernel.scheduler.CronTrigger;
-import com.liferay.portal.kernel.scheduler.SchedulerEngineUtil;
+import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
 import com.liferay.portal.kernel.scheduler.StorageType;
 import com.liferay.portal.kernel.scheduler.Trigger;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
@@ -46,6 +46,7 @@ import java.util.Date;
 public class MBMailingListLocalServiceImpl
 	extends MBMailingListLocalServiceBaseImpl {
 
+	@Override
 	public MBMailingList addMailingList(
 			long userId, long groupId, long categoryId, String emailAddress,
 			String inProtocol, String inServerName, int inServerPort,
@@ -96,7 +97,7 @@ public class MBMailingListLocalServiceImpl
 		mailingList.setAllowAnonymous(allowAnonymous);
 		mailingList.setActive(active);
 
-		mbMailingListPersistence.update(mailingList, false);
+		mbMailingListPersistence.update(mailingList);
 
 		// Scheduler
 
@@ -107,6 +108,7 @@ public class MBMailingListLocalServiceImpl
 		return mailingList;
 	}
 
+	@Override
 	public void deleteCategoryMailingList(long groupId, long categoryId)
 		throws PortalException, SystemException {
 
@@ -116,6 +118,7 @@ public class MBMailingListLocalServiceImpl
 		deleteMailingList(mailingList);
 	}
 
+	@Override
 	public void deleteMailingList(long mailingListId)
 		throws PortalException, SystemException {
 
@@ -125,6 +128,7 @@ public class MBMailingListLocalServiceImpl
 		deleteMailingList(mailingList);
 	}
 
+	@Override
 	public void deleteMailingList(MBMailingList mailingList)
 		throws PortalException, SystemException {
 
@@ -133,12 +137,14 @@ public class MBMailingListLocalServiceImpl
 		mbMailingListPersistence.remove(mailingList);
 	}
 
+	@Override
 	public MBMailingList getCategoryMailingList(long groupId, long categoryId)
 		throws PortalException, SystemException {
 
 		return mbMailingListPersistence.findByG_C(groupId, categoryId);
 	}
 
+	@Override
 	public MBMailingList updateMailingList(
 			long mailingListId, String emailAddress, String inProtocol,
 			String inServerName, int inServerPort, boolean inUseSSL,
@@ -177,7 +183,7 @@ public class MBMailingListLocalServiceImpl
 		mailingList.setAllowAnonymous(allowAnonymous);
 		mailingList.setActive(active);
 
-		mbMailingListPersistence.update(mailingList, false);
+		mbMailingListPersistence.update(mailingList);
 
 		// Scheduler
 
@@ -223,8 +229,8 @@ public class MBMailingListLocalServiceImpl
 		mailingListRequest.setInPassword(mailingList.getInPassword());
 		mailingListRequest.setAllowAnonymous(mailingList.getAllowAnonymous());
 
-		SchedulerEngineUtil.schedule(
-			trigger, StorageType.MEMORY_CLUSTERED, null,
+		SchedulerEngineHelperUtil.schedule(
+			trigger, StorageType.PERSISTED, null,
 			DestinationNames.MESSAGE_BOARDS_MAILING_LIST, mailingListRequest,
 			0);
 	}
@@ -234,7 +240,7 @@ public class MBMailingListLocalServiceImpl
 
 		String groupName = getSchedulerGroupName(mailingList);
 
-		SchedulerEngineUtil.unschedule(groupName, StorageType.MEMORY_CLUSTERED);
+		SchedulerEngineHelperUtil.unschedule(groupName, StorageType.PERSISTED);
 	}
 
 	protected void validate(

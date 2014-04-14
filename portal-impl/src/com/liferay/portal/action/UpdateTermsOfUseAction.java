@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -33,15 +33,15 @@ public class UpdateTermsOfUseAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		long userId = PortalUtil.getUserId(request);
 
 		UserServiceUtil.updateAgreedToTermsOfUse(userId, true);
 
-		return mapping.findForward(ActionConstants.COMMON_REFERER_JSP);
+		return actionMapping.findForward(ActionConstants.COMMON_REFERER_JSP);
 	}
 
 }

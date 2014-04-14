@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link AssetTagPropertyService}.
- * </p>
+ * Provides a wrapper for {@link AssetTagPropertyService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetTagPropertyService
+ * @author Brian Wing Shun Chan
+ * @see AssetTagPropertyService
  * @generated
  */
+@ProviderType
 public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	ServiceWrapper<AssetTagPropertyService> {
 	public AssetTagPropertyServiceWrapper(
@@ -37,6 +38,7 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _assetTagPropertyService.getBeanIdentifier();
 	}
@@ -46,6 +48,7 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_assetTagPropertyService.setBeanIdentifier(beanIdentifier);
 	}
@@ -61,6 +64,7 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	asset tag, or if the key or value were invalid
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.asset.model.AssetTagProperty addTagProperty(
 		long tagId, java.lang.String key, java.lang.String value)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -77,6 +81,7 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	update the asset tag property
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public void deleteTagProperty(long tagPropertyId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -90,6 +95,7 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	* @return the matching asset tag properties
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portlet.asset.model.AssetTagProperty> getTagProperties(
 		long tagId) throws com.liferay.portal.kernel.exception.SystemException {
 		return _assetTagPropertyService.getTagProperties(tagId);
@@ -103,6 +109,7 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	* @return the matching asset tag properties
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portlet.asset.model.AssetTagProperty> getTagPropertyValues(
 		long companyId, java.lang.String key)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -121,6 +128,7 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	the asset tag, or if the key or value were invalid
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.asset.model.AssetTagProperty updateTagProperty(
 		long tagPropertyId, java.lang.String key, java.lang.String value)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -130,24 +138,28 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AssetTagPropertyService getWrappedAssetTagPropertyService() {
 		return _assetTagPropertyService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAssetTagPropertyService(
 		AssetTagPropertyService assetTagPropertyService) {
 		_assetTagPropertyService = assetTagPropertyService;
 	}
 
+	@Override
 	public AssetTagPropertyService getWrappedService() {
 		return _assetTagPropertyService;
 	}
 
+	@Override
 	public void setWrappedService(
 		AssetTagPropertyService assetTagPropertyService) {
 		_assetTagPropertyService = assetTagPropertyService;

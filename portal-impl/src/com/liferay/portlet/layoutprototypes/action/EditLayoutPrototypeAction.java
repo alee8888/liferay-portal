@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,10 +22,14 @@ import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.LayoutPrototype;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.LayoutPrototypeServiceUtil;
+import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.portlet.sites.util.SitesUtil;
 
 import java.util.Locale;
 import java.util.Map;
@@ -43,13 +47,15 @@ import org.apache.struts.action.ActionMapping;
 /**
  * @author Jorge Ferrer
  * @author Vilmos Papp
+ * @author Josef Sustacek
  */
 public class EditLayoutPrototypeAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -60,6 +66,9 @@ public class EditLayoutPrototypeAction extends PortletAction {
 			}
 			else if (cmd.equals(Constants.DELETE)) {
 				deleteLayoutPrototypes(actionRequest);
+			}
+			else if (cmd.equals("reset_merge_fail_count")) {
+				resetMergeFailCount(actionRequest);
 			}
 
 			sendRedirect(actionRequest, actionResponse);
@@ -88,8 +97,9 @@ public class EditLayoutPrototypeAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -101,15 +111,18 @@ public class EditLayoutPrototypeAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.layout_prototypes.error");
+				return actionMapping.findForward(
+					"portlet.layout_prototypes.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(getForward(
-			renderRequest, "portlet.layout_prototypes.edit_layout_prototype"));
+		return actionMapping.findForward(
+			getForward(
+				renderRequest,
+				"portlet.layout_prototypes.edit_layout_prototype"));
 	}
 
 	protected void deleteLayoutPrototypes(ActionRequest actionRequest)
@@ -123,6 +136,31 @@ public class EditLayoutPrototypeAction extends PortletAction {
 		}
 	}
 
+	/**
+	 * Resets the number of failed merge attempts for the page template, which
+	 * is accessed from the action request's <code>layoutPrototypeId</code>
+	 * param.
+	 *
+	 * <p>
+	 * No merge from the page template to the actual page(s) is performed at
+	 * this point.
+	 * </p>
+	 *
+	 * @param  actionRequest the action request
+	 * @throws Exception if an exception occurred
+	 */
+	protected void resetMergeFailCount(ActionRequest actionRequest)
+		throws Exception {
+
+		long layoutPrototypeId = ParamUtil.getLong(
+			actionRequest, "layoutPrototypeId");
+
+		LayoutPrototype layoutPrototype =
+			LayoutPrototypeServiceUtil.getLayoutPrototype(layoutPrototypeId);
+
+		SitesUtil.setMergeFailCount(layoutPrototype, 0);
+	}
+
 	protected void updateLayoutPrototype(ActionRequest actionRequest)
 		throws Exception {
 
@@ -131,22 +169,27 @@ public class EditLayoutPrototypeAction extends PortletAction {
 
 		Map<Locale, String> nameMap = LocalizationUtil.getLocalizationMap(
 			actionRequest, "name");
-		String description = ParamUtil.getString(actionRequest, "description");
+		Map<Locale, String> descriptionMap =
+			LocalizationUtil.getLocalizationMap(actionRequest, "description");
 		boolean active = ParamUtil.getBoolean(actionRequest, "active");
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			LayoutPrototype.class.getName(), actionRequest);
 
 		if (layoutPrototypeId <= 0) {
 
 			// Add layout prototoype
 
 			LayoutPrototypeServiceUtil.addLayoutPrototype(
-				nameMap, description, active);
+				nameMap, descriptionMap, active, serviceContext);
 		}
 		else {
 
 			// Update layout prototoype
 
 			LayoutPrototypeServiceUtil.updateLayoutPrototype(
-				layoutPrototypeId, nameMap, description, active);
+				layoutPrototypeId, nameMap, descriptionMap, active,
+				serviceContext);
 		}
 	}
 

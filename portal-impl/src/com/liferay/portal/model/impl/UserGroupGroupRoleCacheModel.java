@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,9 +16,13 @@ package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.UserGroupGroupRole;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing UserGroupGroupRole in entity cache.
@@ -28,12 +32,24 @@ import java.io.Serializable;
  * @generated
  */
 public class UserGroupGroupRoleCacheModel implements CacheModel<UserGroupGroupRole>,
-	Serializable {
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
+		StringBundler sb = new StringBundler(9);
 
-		sb.append("{userGroupId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", userGroupId=");
 		sb.append(userGroupId);
 		sb.append(", groupId=");
 		sb.append(groupId);
@@ -44,9 +60,11 @@ public class UserGroupGroupRoleCacheModel implements CacheModel<UserGroupGroupRo
 		return sb.toString();
 	}
 
+	@Override
 	public UserGroupGroupRole toEntityModel() {
 		UserGroupGroupRoleImpl userGroupGroupRoleImpl = new UserGroupGroupRoleImpl();
 
+		userGroupGroupRoleImpl.setMvccVersion(mvccVersion);
 		userGroupGroupRoleImpl.setUserGroupId(userGroupId);
 		userGroupGroupRoleImpl.setGroupId(groupId);
 		userGroupGroupRoleImpl.setRoleId(roleId);
@@ -56,6 +74,24 @@ public class UserGroupGroupRoleCacheModel implements CacheModel<UserGroupGroupRo
 		return userGroupGroupRoleImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		userGroupId = objectInput.readLong();
+		groupId = objectInput.readLong();
+		roleId = objectInput.readLong();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(userGroupId);
+		objectOutput.writeLong(groupId);
+		objectOutput.writeLong(roleId);
+	}
+
+	public long mvccVersion;
 	public long userGroupId;
 	public long groupId;
 	public long roleId;

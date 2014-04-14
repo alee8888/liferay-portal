@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portal.kernel.servlet;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ClassUtil;
 import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.StringUtil;
 
@@ -44,6 +45,7 @@ public class SecurePluginContextListener
 			   HttpSessionBindingListener, HttpSessionListener,
 			   ServletRequestAttributeListener, ServletRequestListener {
 
+	@Override
 	public void attributeAdded(
 		HttpSessionBindingEvent httpSessionBindingEvent) {
 
@@ -59,6 +61,7 @@ public class SecurePluginContextListener
 		}
 	}
 
+	@Override
 	public void attributeAdded(
 		ServletRequestAttributeEvent servletRequestAttributeEvent) {
 
@@ -74,6 +77,7 @@ public class SecurePluginContextListener
 		}
 	}
 
+	@Override
 	public void attributeRemoved(
 		HttpSessionBindingEvent httpSessionBindingEvent) {
 
@@ -87,9 +91,9 @@ public class SecurePluginContextListener
 			httpSessionAttributeListener.attributeRemoved(
 				httpSessionBindingEvent);
 		}
-
 	}
 
+	@Override
 	public void attributeRemoved(
 		ServletRequestAttributeEvent servletRequestAttributeEvent) {
 
@@ -105,6 +109,7 @@ public class SecurePluginContextListener
 		}
 	}
 
+	@Override
 	public void attributeReplaced(
 		HttpSessionBindingEvent httpSessionBindingEvent) {
 
@@ -120,6 +125,7 @@ public class SecurePluginContextListener
 		}
 	}
 
+	@Override
 	public void attributeReplaced(
 		ServletRequestAttributeEvent servletRequestAttributeEvent) {
 
@@ -135,6 +141,30 @@ public class SecurePluginContextListener
 		}
 	}
 
+	@Override
+	public void contextInitialized(ServletContextEvent servletContextEvent) {
+		servletContext = servletContextEvent.getServletContext();
+
+		servletContext.setAttribute(
+			SecurePluginContextListener.class.getName(), this);
+
+		super.contextInitialized(servletContextEvent);
+	}
+
+	public void instantiatingListeners() throws Exception {
+		if (_servletRequestListeners != null) {
+			return;
+		}
+
+		String[] listenerClassNames = StringUtil.split(
+			servletContext.getInitParameter("portalListenerClasses"));
+
+		for (String listenerClassName : listenerClassNames) {
+			instantiatingListener(listenerClassName);
+		}
+	}
+
+	@Override
 	public void requestDestroyed(ServletRequestEvent servletRequestEvent) {
 		if (_servletRequestListeners == null) {
 			return;
@@ -147,6 +177,7 @@ public class SecurePluginContextListener
 		}
 	}
 
+	@Override
 	public void requestInitialized(ServletRequestEvent servletRequestEvent) {
 		if (_servletRequestListeners == null) {
 			return;
@@ -159,6 +190,7 @@ public class SecurePluginContextListener
 		}
 	}
 
+	@Override
 	public void sessionCreated(HttpSessionEvent httpSessionEvent) {
 		if (_httpSessionListeners == null) {
 			return;
@@ -169,6 +201,7 @@ public class SecurePluginContextListener
 		}
 	}
 
+	@Override
 	public void sessionDestroyed(HttpSessionEvent httpSessionEvent) {
 		if (_httpSessionListeners == null) {
 			return;
@@ -179,6 +212,7 @@ public class SecurePluginContextListener
 		}
 	}
 
+	@Override
 	public void sessionDidActivate(HttpSessionEvent httpSessionEvent) {
 		if (_httpSessionActivationListeners == null) {
 			return;
@@ -191,6 +225,7 @@ public class SecurePluginContextListener
 		}
 	}
 
+	@Override
 	public void sessionWillPassivate(HttpSessionEvent httpSessionEvent) {
 		if (_httpSessionActivationListeners == null) {
 			return;
@@ -204,6 +239,7 @@ public class SecurePluginContextListener
 		}
 	}
 
+	@Override
 	public void valueBound(HttpSessionBindingEvent httpSessionBindingEvent) {
 		if (_httpSessionBindingListeners == null) {
 			return;
@@ -216,6 +252,7 @@ public class SecurePluginContextListener
 		}
 	}
 
+	@Override
 	public void valueUnbound(HttpSessionBindingEvent httpSessionBindingEvent) {
 		if (_httpSessionBindingListeners == null) {
 			return;
@@ -229,22 +266,6 @@ public class SecurePluginContextListener
 	}
 
 	@Override
-	protected void fireDeployEvent() {
-		super.fireDeployEvent();
-
-		if (_servletContextListeners != null) {
-			ServletContextEvent servletContextEvent = new ServletContextEvent(
-				servletContext);
-
-			for (ServletContextListener servletContextListener :
-					_servletContextListeners) {
-
-				servletContextListener.contextInitialized(servletContextEvent);
-			}
-		}
-	}
-
-	@Override
 	protected void fireUndeployEvent() {
 		if (_servletContextListeners != null) {
 			ServletContextEvent servletContextEvent = new ServletContextEvent(
@@ -253,7 +274,20 @@ public class SecurePluginContextListener
 			for (ServletContextListener servletContextListener :
 					_servletContextListeners) {
 
-				servletContextListener.contextDestroyed(servletContextEvent);
+				try {
+					servletContextListener.contextDestroyed(
+						servletContextEvent);
+				}
+				catch (Throwable t) {
+					String className = ClassUtil.getClassName(
+						servletContextListener.getClass());
+
+					_log.error(
+						className + " is unable to process a context " +
+							"destroyed event for " +
+								servletContext.getServletContextName(),
+						t);
+				}
 			}
 		}
 
@@ -315,7 +349,15 @@ public class SecurePluginContextListener
 					new CopyOnWriteArrayList<ServletContextListener>();
 			}
 
-			_servletContextListeners.add((ServletContextListener)listener);
+			ServletContextListener servletContextListener =
+				(ServletContextListener)listener;
+
+			_servletContextListeners.add(servletContextListener);
+
+			ServletContextEvent servletContextEvent = new ServletContextEvent(
+				servletContext);
+
+			servletContextListener.contextInitialized(servletContextEvent);
 		}
 
 		if (listener instanceof ServletRequestAttributeListener) {
@@ -335,15 +377,6 @@ public class SecurePluginContextListener
 			}
 
 			_servletRequestListeners.add((ServletRequestListener)listener);
-		}
-	}
-
-	protected void instantiatingListeners() throws Exception {
-		String[] listenerClassNames = StringUtil.split(
-			servletContext.getInitParameter("portalListenerClasses"));
-
-		for (String listenerClassName : listenerClassNames) {
-			instantiatingListener(listenerClassName);
 		}
 	}
 

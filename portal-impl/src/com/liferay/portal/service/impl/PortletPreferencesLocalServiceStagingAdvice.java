@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.staging.MergeLayoutPrototypesThreadLocal;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.LayoutRevision;
 import com.liferay.portal.model.PortletPreferencesIds;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
@@ -26,6 +27,8 @@ import com.liferay.portal.service.LayoutRevisionLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextThreadLocal;
 import com.liferay.portal.service.persistence.LayoutRevisionUtil;
+import com.liferay.portal.staging.ProxiedLayoutsThreadLocal;
+import com.liferay.portal.staging.StagingAdvicesThreadLocal;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -37,9 +40,14 @@ import org.aopalliance.intercept.MethodInvocation;
  * @author Raymond Augé
  */
 public class PortletPreferencesLocalServiceStagingAdvice
-	extends LayoutLocalServiceImpl implements MethodInterceptor {
+	implements MethodInterceptor {
 
+	@Override
 	public Object invoke(MethodInvocation methodInvocation) throws Throwable {
+		if (!StagingAdvicesThreadLocal.isEnabled()) {
+			return methodInvocation.proceed();
+		}
+
 		try {
 			Object[] arguments = methodInvocation.getArguments();
 
@@ -52,9 +60,14 @@ public class PortletPreferencesLocalServiceStagingAdvice
 			String methodName = method.getName();
 
 			if (methodName.equals("getPortletPreferences") &&
-				(arguments.length == 4)) {
+				((arguments.length == 3) || (arguments.length == 4))) {
 
 				return getPortletPreferences(methodInvocation);
+			}
+			else if (methodName.equals("getPortletPreferencesCount") &&
+					 ((arguments.length == 3) || (arguments.length == 5))) {
+
+				return getPortletPreferencesCount(methodInvocation);
 			}
 			else if (methodName.equals("getPreferences")) {
 				return getPreferences(methodInvocation);
@@ -82,7 +95,13 @@ public class PortletPreferencesLocalServiceStagingAdvice
 		Method method = methodInvocation.getMethod();
 		Object[] arguments = methodInvocation.getArguments();
 
-		long plid = (Long)arguments[2];
+		long plid = 0;
+
+		if (((arguments.length == 3) || (arguments.length == 4)) &&
+			(arguments[2] instanceof Long)) {
+
+			plid = (Long)arguments[2];
+		}
 
 		if (plid <= 0) {
 			return methodInvocation.proceed();
@@ -98,6 +117,49 @@ public class PortletPreferencesLocalServiceStagingAdvice
 			layout);
 
 		arguments[2] = layoutRevision.getLayoutRevisionId();
+
+		return method.invoke(methodInvocation.getThis(), arguments);
+	}
+
+	protected Object getPortletPreferencesCount(
+			MethodInvocation methodInvocation)
+		throws Throwable {
+
+		Method method = methodInvocation.getMethod();
+		Object[] arguments = methodInvocation.getArguments();
+
+		long plid = LayoutConstants.DEFAULT_PLID;
+
+		if (arguments.length == 3) {
+			plid = (Long)arguments[1];
+		}
+		else {
+			plid = (Long)arguments[2];
+		}
+
+		if (plid <= 0) {
+			return methodInvocation.proceed();
+		}
+
+		Layout layout = LayoutLocalServiceUtil.fetchLayout(plid);
+
+		if (layout == null) {
+			return methodInvocation.proceed();
+		}
+
+		if (!LayoutStagingUtil.isBranchingLayout(layout)) {
+			return methodInvocation.proceed();
+		}
+
+		LayoutRevision layoutRevision = LayoutStagingUtil.getLayoutRevision(
+			layout);
+
+		if (arguments.length == 3) {
+			arguments[1] = layoutRevision.getLayoutRevisionId();
+		}
+		else {
+			arguments[2] = layoutRevision.getLayoutRevisionId();
+		}
 
 		return method.invoke(methodInvocation.getThis(), arguments);
 	}
@@ -132,6 +194,10 @@ public class PortletPreferencesLocalServiceStagingAdvice
 
 		LayoutRevision layoutRevision = LayoutStagingUtil.getLayoutRevision(
 			layout);
+
+		if (layoutRevision == null) {
+			return methodInvocation.proceed();
+		}
 
 		plid = layoutRevision.getLayoutRevisionId();
 
@@ -193,6 +259,8 @@ public class PortletPreferencesLocalServiceStagingAdvice
 			serviceContext);
 
 		arguments[2] = layoutRevision.getLayoutRevisionId();
+
+		ProxiedLayoutsThreadLocal.clearProxiedLayouts();
 
 		return method.invoke(methodInvocation.getThis(), arguments);
 	}

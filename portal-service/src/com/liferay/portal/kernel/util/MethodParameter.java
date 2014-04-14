@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -160,7 +160,12 @@ public class MethodParameter {
 			else if (c == CharPool.OPEN_BRACKET) {
 				className = className.replace(CharPool.SLASH, CharPool.PERIOD);
 
-				types[i] = contextClassLoader.loadClass(className);
+				try {
+					types[i] = contextClassLoader.loadClass(className);
+				}
+				catch (ClassNotFoundException cnfe) {
+					types[i] = Class.forName(className);
+				}
 			}
 			else {
 				throw new ClassNotFoundException(className);

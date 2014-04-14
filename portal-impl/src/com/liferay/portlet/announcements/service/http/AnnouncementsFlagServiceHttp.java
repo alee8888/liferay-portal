@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,13 +24,11 @@ import com.liferay.portal.service.http.TunnelUtil;
 import com.liferay.portlet.announcements.service.AnnouncementsFlagServiceUtil;
 
 /**
- * <p>
- * This class provides a HTTP utility for the
+ * Provides the HTTP utility for the
  * {@link com.liferay.portlet.announcements.service.AnnouncementsFlagServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it requires an additional
  * {@link com.liferay.portal.security.auth.HttpPrincipal} parameter.
- * </p>
  *
  * <p>
  * The benefits of using the HTTP utility is that it is fast and allows for
@@ -47,10 +45,10 @@ import com.liferay.portlet.announcements.service.AnnouncementsFlagServiceUtil;
  * The HTTP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AnnouncementsFlagServiceSoap
- * @see       com.liferay.portal.security.auth.HttpPrincipal
- * @see       com.liferay.portlet.announcements.service.AnnouncementsFlagServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see AnnouncementsFlagServiceSoap
+ * @see com.liferay.portal.security.auth.HttpPrincipal
+ * @see com.liferay.portlet.announcements.service.AnnouncementsFlagServiceUtil
  * @generated
  */
 public class AnnouncementsFlagServiceHttp {
@@ -59,7 +57,7 @@ public class AnnouncementsFlagServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(AnnouncementsFlagServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(AnnouncementsFlagServiceUtil.class,
 					"addFlag", _addFlagParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, entryId,
@@ -91,7 +89,7 @@ public class AnnouncementsFlagServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(AnnouncementsFlagServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(AnnouncementsFlagServiceUtil.class,
 					"deleteFlag", _deleteFlagParameterTypes1);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, flagId);
@@ -123,7 +121,7 @@ public class AnnouncementsFlagServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(AnnouncementsFlagServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(AnnouncementsFlagServiceUtil.class,
 					"getFlag", _getFlagParameterTypes2);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, entryId,

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.util.Accessor;
 
 /**
@@ -25,6 +27,7 @@ import com.liferay.portal.kernel.util.Accessor;
  * @see com.liferay.portal.model.impl.RoleModelImpl
  * @generated
  */
+@ProviderType
 public interface Role extends RoleModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -32,12 +35,14 @@ public interface Role extends RoleModel, PersistedModel {
 	 * Never modify this interface directly. Add methods to {@link com.liferay.portal.model.impl.RoleImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static final Accessor<Role, Long> ROLE_ID_ACCESSOR = new Accessor<Role, Long>() {
+			@Override
 			public Long get(Role role) {
 				return role.getRoleId();
 			}
 		};
 
 	public static final Accessor<Role, String> NAME_ACCESSOR = new Accessor<Role, String>() {
+			@Override
 			public String get(Role role) {
 				return role.getName();
 			}
@@ -46,11 +51,6 @@ public interface Role extends RoleModel, PersistedModel {
 	public java.lang.String getDescriptiveName()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
-
-	public java.lang.String getTitle(java.lang.String languageId);
-
-	public java.lang.String getTitle(java.lang.String languageId,
-		boolean useDefault);
 
 	public java.lang.String getTypeLabel();
 

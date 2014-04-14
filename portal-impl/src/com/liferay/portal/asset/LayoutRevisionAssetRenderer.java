@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,7 @@ package com.liferay.portal.asset;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.Layout;
@@ -32,6 +33,8 @@ import com.liferay.portlet.asset.model.BaseAssetRenderer;
 
 import java.util.Locale;
 
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
@@ -55,19 +58,27 @@ public class LayoutRevisionAssetRenderer extends BaseAssetRenderer {
 		}
 	}
 
-	public String getAssetRendererFactoryClassName() {
-		return LayoutRevisionAssetRendererFactory.CLASS_NAME;
+	@Override
+	public String getClassName() {
+		return LayoutRevision.class.getName();
 	}
 
+	@Override
 	public long getClassPK() {
 		return _layoutRevision.getLayoutRevisionId();
 	}
 
+	@Override
 	public long getGroupId() {
 		return _layoutRevision.getGroupId();
 	}
 
-	public String getSummary(Locale locale) {
+	@Override
+	public String getSummary(
+		PortletRequest portletRequest, PortletResponse portletResponse) {
+
+		Locale locale = getLocale(portletRequest);
+
 		StringBundler sb = new StringBundler(16);
 
 		sb.append("<strong>");
@@ -90,6 +101,7 @@ public class LayoutRevisionAssetRenderer extends BaseAssetRenderer {
 		return sb.toString();
 	}
 
+	@Override
 	public String getTitle(Locale locale) {
 		return _layoutRevision.getHTMLTitle(locale);
 	}
@@ -108,29 +120,33 @@ public class LayoutRevisionAssetRenderer extends BaseAssetRenderer {
 			Layout layout = LayoutLocalServiceUtil.getLayout(
 				_layoutRevision.getPlid());
 
-			StringBundler sb = new StringBundler(5);
+			String layoutURL = PortalUtil.getLayoutURL(layout, themeDisplay);
 
-			sb.append(PortalUtil.getLayoutFriendlyURL(layout, themeDisplay));
-			sb.append("?layoutSetBranchId=");
-			sb.append(_layoutRevision.getLayoutSetBranchId());
-			sb.append("&layoutRevisionId=");
-			sb.append(_layoutRevision.getLayoutRevisionId());
+			layoutURL = HttpUtil.addParameter(
+				layoutURL, "layoutSetBranchId",
+				_layoutRevision.getLayoutSetBranchId());
+			layoutURL = HttpUtil.addParameter(
+				layoutURL, "layoutRevisionId",
+				_layoutRevision.getLayoutRevisionId());
 
-			return sb.toString();
+			return layoutURL;
 		}
 		catch (Exception e) {
 			return StringPool.BLANK;
 		}
 	}
 
+	@Override
 	public long getUserId() {
 		return _layoutRevision.getUserId();
 	}
 
+	@Override
 	public String getUserName() {
 		return _layoutRevision.getUserName();
 	}
 
+	@Override
 	public String getUuid() {
 		return null;
 	}
@@ -140,6 +156,7 @@ public class LayoutRevisionAssetRenderer extends BaseAssetRenderer {
 		return true;
 	}
 
+	@Override
 	public String render(
 			RenderRequest renderRequest, RenderResponse renderResponse,
 			String template)

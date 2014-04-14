@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,16 +28,19 @@ import java.util.List;
  */
 public class ListTypeServiceImpl extends ListTypeServiceBaseImpl {
 
+	@Override
 	public ListType getListType(int listTypeId)
 		throws PortalException, SystemException {
 
 		return listTypePersistence.findByPrimaryKey(listTypeId);
 	}
 
+	@Override
 	public List<ListType> getListTypes(String type) throws SystemException {
 		return listTypePersistence.findByType(type);
 	}
 
+	@Override
 	public void validate(int listTypeId, long classNameId, String type)
 		throws PortalException, SystemException {
 
@@ -46,6 +49,7 @@ public class ListTypeServiceImpl extends ListTypeServiceBaseImpl {
 		validate(listTypeId, className.getValue() + type);
 	}
 
+	@Override
 	public void validate(int listTypeId, String type)
 		throws PortalException, SystemException {
 

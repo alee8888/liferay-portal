@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,7 +21,7 @@ String redirect = ParamUtil.getString(request, "redirect");
 
 DDLRecordSet recordSet = (DDLRecordSet)request.getAttribute(WebKeys.DYNAMIC_DATA_LISTS_RECORD_SET);
 
-long listDDMTemplateId = ParamUtil.getLong(request, "listDDMTemplateId");
+long displayDDMTemplateId = ParamUtil.getLong(request, "displayDDMTemplateId");
 
 boolean spreadsheet = ParamUtil.getBoolean(request, "spreadsheet");
 %>
@@ -33,20 +33,26 @@ boolean spreadsheet = ParamUtil.getBoolean(request, "spreadsheet");
 />
 
 <c:choose>
-	<c:when test="<%= listDDMTemplateId > 0 %>">
-		<%= DDLUtil.getTemplateContent(listDDMTemplateId, recordSet, themeDisplay, renderRequest, renderResponse) %>
-	</c:when>
-	<c:when test="<%= spreadsheet %>">
-		<liferay-util:include page="/html/portlet/dynamic_data_lists/view_spreadsheet_records.jsp" />
+	<c:when test="<%= displayDDMTemplateId > 0 %>">
+		<liferay-util:include page="/html/portlet/dynamic_data_lists/view_template_records.jsp" />
 	</c:when>
 	<c:otherwise>
-		<liferay-util:include page="/html/portlet/dynamic_data_lists/view_records.jsp" />
+		<c:choose>
+			<c:when test="<%= spreadsheet %>">
+				<liferay-util:include page="/html/portlet/dynamic_data_lists/view_spreadsheet_records.jsp" />
+			</c:when>
+			<c:otherwise>
+				<liferay-util:include page="/html/portlet/dynamic_data_lists/view_records.jsp" />
+			</c:otherwise>
+		</c:choose>
 	</c:otherwise>
 </c:choose>
 
 <%
-PortalUtil.setPageSubtitle(recordSet.getName(locale), request);
-PortalUtil.setPageDescription(recordSet.getDescription(locale), request);
+if (portletName.equals(PortletKeys.DYNAMIC_DATA_LISTS)) {
+	PortalUtil.setPageSubtitle(recordSet.getName(locale), request);
+	PortalUtil.setPageDescription(recordSet.getDescription(locale), request);
+}
 
 PortalUtil.addPortletBreadcrumbEntry(request, recordSet.getName(locale), currentURL);
 %>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,9 +30,11 @@ import org.jgroups.View;
  */
 public class BaseReceiver implements Receiver {
 
+	@Override
 	public void block() {
 	}
 
+	@Override
 	public void getState(OutputStream outputStream) throws Exception {
 	}
 
@@ -40,18 +42,23 @@ public class BaseReceiver implements Receiver {
 		return view;
 	}
 
+	@Override
 	public void receive(Message message) {
 	}
 
+	@Override
 	public void setState(InputStream inputStream) throws Exception {
 	}
 
+	@Override
 	public void suspect(Address address) {
 	}
 
+	@Override
 	public void unblock() {
 	}
 
+	@Override
 	public void viewAccepted(View view) {
 		if (_log.isInfoEnabled()) {
 			_log.info("Accepted view " + view);

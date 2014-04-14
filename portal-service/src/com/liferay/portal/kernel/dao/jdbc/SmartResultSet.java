@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.dao.jdbc;
 
 import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -50,7 +51,7 @@ public class SmartResultSet {
 		for (int i = 1; i <= _columnCount; ++i) {
 			String availableName = _metaData.getColumnName(i);
 
-			if (availableName.equalsIgnoreCase(columnName)) {
+			if (StringUtil.equalsIgnoreCase(availableName, columnName)) {
 				_columnIndexCache.put(columnName, i);
 
 				return i;
@@ -67,7 +68,7 @@ public class SmartResultSet {
 			for (int i = 1; i <= _columnCount; ++i) {
 				String availableName = _metaData.getColumnName(i);
 
-				if (availableName.equalsIgnoreCase(shortName)) {
+				if (StringUtil.equalsIgnoreCase(availableName, shortName)) {
 					_columnIndexCache.put(columnName, i);
 
 					return i;

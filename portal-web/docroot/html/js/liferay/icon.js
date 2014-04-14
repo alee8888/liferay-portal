@@ -7,25 +7,29 @@ AUI.add(
 
 				var icon = A.one('#' + config.id);
 
-				var srcHover = config.srcHover;
-				var src = config.src;
 				var forcePost = config.forcePost;
+				var src = config.src;
+				var srcHover = config.srcHover;
+				var useDialog = config.useDialog;
 
 				if (icon) {
 					if (srcHover) {
-						instance._onMouseOver = A.rbind(instance._onMouseHover, instance, srcHover);
-						instance._onMouseOut = A.rbind(instance._onMouseHover, instance, src);
+						instance._onMouseOver = A.rbind('_onMouseHover', instance, srcHover);
+						instance._onMouseOut = A.rbind('_onMouseHover', instance, src);
 
 						icon.hover(instance._onMouseOver, instance._onMouseOut);
 					}
 
-					if (forcePost) {
-						icon.on('click', instance._onClick, instance);
+					if (useDialog) {
+						icon.on('click', instance._useDialog, instance);
+					}
+					else if (forcePost) {
+						icon.on('click', instance._forcePost, instance);
 					}
 				}
 			},
 
-			_onClick: function(event) {
+			_forcePost: function(event) {
 				var instance = this;
 
 				Liferay.Util.forcePost(event.currentTarget);
@@ -41,6 +45,10 @@ AUI.add(
 				if (img) {
 					img.attr('src', src);
 				}
+			},
+
+			_useDialog: function(event) {
+				Liferay.Util.openInDialog(event, event.currentTarget);
 			}
 		};
 
@@ -48,6 +56,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-base']
+		requires: ['aui-base', 'liferay-util-window']
 	}
 );

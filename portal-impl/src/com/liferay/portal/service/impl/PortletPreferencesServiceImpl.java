@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.model.PortletItem;
 import com.liferay.portal.model.PortletPreferences;
 import com.liferay.portal.security.permission.ActionKeys;
@@ -41,6 +42,7 @@ import javax.portlet.ValidatorException;
 public class PortletPreferencesServiceImpl
 	extends PortletPreferencesServiceBaseImpl {
 
+	@Override
 	public void deleteArchivedPreferences(long portletItemId)
 		throws PortalException, SystemException {
 
@@ -62,6 +64,7 @@ public class PortletPreferencesServiceImpl
 		portletItemLocalService.deletePortletItem(portletItemId);
 	}
 
+	@Override
 	public void restoreArchivedPreferences(
 			long groupId, Layout layout, String portletId, long portletItemId,
 			javax.portlet.PortletPreferences preferences)
@@ -74,6 +77,7 @@ public class PortletPreferencesServiceImpl
 			groupId, layout, portletId, portletItem, preferences);
 	}
 
+	@Override
 	public void restoreArchivedPreferences(
 			long groupId, Layout layout, String portletId,
 			PortletItem portletItem,
@@ -91,11 +95,12 @@ public class PortletPreferencesServiceImpl
 		javax.portlet.PortletPreferences archivedPreferences =
 			portletPreferencesLocalService.getPreferences(
 				portletItem.getCompanyId(), ownerId, ownerType, plid,
-				portletId);
+				PortletConstants.getRootPortletId(portletId));
 
 		copyPreferences(archivedPreferences, preferences);
 	}
 
+	@Override
 	public void restoreArchivedPreferences(
 			long groupId, String name, Layout layout, String portletId,
 			javax.portlet.PortletPreferences preferences)
@@ -108,6 +113,7 @@ public class PortletPreferencesServiceImpl
 			groupId, layout, portletId, portletItem, preferences);
 	}
 
+	@Override
 	public void updateArchivePreferences(
 			long userId, long groupId, String name, String portletId,
 			javax.portlet.PortletPreferences preferences)

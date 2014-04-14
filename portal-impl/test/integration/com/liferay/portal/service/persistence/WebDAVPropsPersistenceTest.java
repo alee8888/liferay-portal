@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,37 +16,68 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchWebDAVPropsException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.WebDAVProps;
 import com.liferay.portal.model.impl.WebDAVPropsModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class WebDAVPropsPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (WebDAVPropsPersistence)PortalBeanLocatorUtil.locate(WebDAVPropsPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -82,6 +113,8 @@ public class WebDAVPropsPersistenceTest {
 
 		WebDAVProps newWebDAVProps = _persistence.create(pk);
 
+		newWebDAVProps.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newWebDAVProps.setCompanyId(ServiceTestUtil.nextLong());
 
 		newWebDAVProps.setCreateDate(ServiceTestUtil.nextDate());
@@ -94,10 +127,12 @@ public class WebDAVPropsPersistenceTest {
 
 		newWebDAVProps.setProps(ServiceTestUtil.randomString());
 
-		_persistence.update(newWebDAVProps, false);
+		_persistence.update(newWebDAVProps);
 
 		WebDAVProps existingWebDAVProps = _persistence.findByPrimaryKey(newWebDAVProps.getPrimaryKey());
 
+		Assert.assertEquals(existingWebDAVProps.getMvccVersion(),
+			newWebDAVProps.getMvccVersion());
 		Assert.assertEquals(existingWebDAVProps.getWebDavPropsId(),
 			newWebDAVProps.getWebDavPropsId());
 		Assert.assertEquals(existingWebDAVProps.getCompanyId(),
@@ -114,6 +149,19 @@ public class WebDAVPropsPersistenceTest {
 			newWebDAVProps.getClassPK());
 		Assert.assertEquals(existingWebDAVProps.getProps(),
 			newWebDAVProps.getProps());
+	}
+
+	@Test
+	public void testCountByC_C() {
+		try {
+			_persistence.countByC_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_C(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -140,6 +188,24 @@ public class WebDAVPropsPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("WebDAVProps",
+			"mvccVersion", true, "webDavPropsId", true, "companyId", true,
+			"createDate", true, "modifiedDate", true, "classNameId", true,
+			"classPK", true, "props", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		WebDAVProps newWebDAVProps = addWebDAVProps();
 
@@ -155,6 +221,26 @@ public class WebDAVPropsPersistenceTest {
 		WebDAVProps missingWebDAVProps = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingWebDAVProps);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new WebDAVPropsActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					WebDAVProps webDAVProps = (WebDAVProps)object;
+
+					Assert.assertNotNull(webDAVProps);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -254,6 +340,8 @@ public class WebDAVPropsPersistenceTest {
 
 		WebDAVProps webDAVProps = _persistence.create(pk);
 
+		webDAVProps.setMvccVersion(ServiceTestUtil.nextLong());
+
 		webDAVProps.setCompanyId(ServiceTestUtil.nextLong());
 
 		webDAVProps.setCreateDate(ServiceTestUtil.nextDate());
@@ -266,10 +354,12 @@ public class WebDAVPropsPersistenceTest {
 
 		webDAVProps.setProps(ServiceTestUtil.randomString());
 
-		_persistence.update(webDAVProps, false);
+		_persistence.update(webDAVProps);
 
 		return webDAVProps;
 	}
 
-	private WebDAVPropsPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(WebDAVPropsPersistenceTest.class);
+	private WebDAVPropsPersistence _persistence = (WebDAVPropsPersistence)PortalBeanLocatorUtil.locate(WebDAVPropsPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

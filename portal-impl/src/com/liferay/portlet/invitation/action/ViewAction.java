@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,6 +18,7 @@ import com.liferay.mail.service.MailServiceUtil;
 import com.liferay.portal.kernel.mail.MailMessage;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,9 +32,9 @@ import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.invitation.util.InvitationUtil;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.mail.internet.InternetAddress;
@@ -56,12 +57,13 @@ public class ViewAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
-		List<String> validEmailAddresses = new ArrayList<String>();
 		Set<String> invalidEmailAddresses = new HashSet<String>();
+		Set<String> validEmailAddresses = new HashSet<String>();
 
 		int emailMessageMaxRecipients =
 			InvitationUtil.getEmailMessageMaxRecipients();
@@ -71,9 +73,7 @@ public class ViewAction extends PortletAction {
 				actionRequest, "emailAddress" + i);
 
 			if (Validator.isEmailAddress(emailAddress)) {
-				if (!validEmailAddresses.contains(emailAddress)) {
-					validEmailAddresses.add(emailAddress);
-				}
+				validEmailAddresses.add(emailAddress);
 			}
 			else if (Validator.isNotNull(emailAddress)) {
 				invalidEmailAddresses.add("emailAddress" + i);
@@ -108,12 +108,29 @@ public class ViewAction extends PortletAction {
 		String layoutFullURL = PortalUtil.getLayoutFullURL(
 			layout, themeDisplay);
 
-		PortletPreferences preferences =
+		PortletPreferences portletPreferences =
 			PortletPreferencesFactoryUtil.getPortletSetup(
 				actionRequest, PortletKeys.INVITATION);
 
-		String subject = InvitationUtil.getEmailMessageSubject(preferences);
-		String body = InvitationUtil.getEmailMessageBody(preferences);
+		Map<Locale, String> localizedSubjectMap =
+			InvitationUtil.getEmailMessageSubjectMap(portletPreferences);
+		Map<Locale, String> localizedBodyMap =
+			InvitationUtil.getEmailMessageBodyMap(portletPreferences);
+
+		Locale locale = user.getLocale();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
+
+		String subject = localizedSubjectMap.get(locale);
+
+		if (Validator.isNull(subject)) {
+			subject = localizedSubjectMap.get(defaultLocale);
+		}
+
+		String body = localizedBodyMap.get(locale);
+
+		if (Validator.isNull(body)) {
+			body = localizedBodyMap.get(defaultLocale);
+		}
 
 		subject = StringUtil.replace(
 			subject,
@@ -156,11 +173,12 @@ public class ViewAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.invitation.view"));
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,8 +18,12 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.MVCCModel;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import java.util.Date;
 
@@ -30,12 +34,25 @@ import java.util.Date;
  * @see Layout
  * @generated
  */
-public class LayoutCacheModel implements CacheModel<Layout>, Serializable {
+public class LayoutCacheModel implements CacheModel<Layout>, Externalizable,
+	MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(59);
+		StringBundler sb = new StringBundler(63);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", plid=");
 		sb.append(plid);
@@ -43,6 +60,10 @@ public class LayoutCacheModel implements CacheModel<Layout>, Serializable {
 		sb.append(groupId);
 		sb.append(", companyId=");
 		sb.append(companyId);
+		sb.append(", userId=");
+		sb.append(userId);
+		sb.append(", userName=");
+		sb.append(userName);
 		sb.append(", createDate=");
 		sb.append(createDate);
 		sb.append(", modifiedDate=");
@@ -71,8 +92,6 @@ public class LayoutCacheModel implements CacheModel<Layout>, Serializable {
 		sb.append(hidden);
 		sb.append(", friendlyURL=");
 		sb.append(friendlyURL);
-		sb.append(", iconImage=");
-		sb.append(iconImage);
 		sb.append(", iconImageId=");
 		sb.append(iconImageId);
 		sb.append(", themeId=");
@@ -98,8 +117,11 @@ public class LayoutCacheModel implements CacheModel<Layout>, Serializable {
 		return sb.toString();
 	}
 
+	@Override
 	public Layout toEntityModel() {
 		LayoutImpl layoutImpl = new LayoutImpl();
+
+		layoutImpl.setMvccVersion(mvccVersion);
 
 		if (uuid == null) {
 			layoutImpl.setUuid(StringPool.BLANK);
@@ -111,6 +133,14 @@ public class LayoutCacheModel implements CacheModel<Layout>, Serializable {
 		layoutImpl.setPlid(plid);
 		layoutImpl.setGroupId(groupId);
 		layoutImpl.setCompanyId(companyId);
+		layoutImpl.setUserId(userId);
+
+		if (userName == null) {
+			layoutImpl.setUserName(StringPool.BLANK);
+		}
+		else {
+			layoutImpl.setUserName(userName);
+		}
 
 		if (createDate == Long.MIN_VALUE) {
 			layoutImpl.setCreateDate(null);
@@ -188,7 +218,6 @@ public class LayoutCacheModel implements CacheModel<Layout>, Serializable {
 			layoutImpl.setFriendlyURL(friendlyURL);
 		}
 
-		layoutImpl.setIconImage(iconImage);
 		layoutImpl.setIconImageId(iconImageId);
 
 		if (themeId == null) {
@@ -249,10 +278,192 @@ public class LayoutCacheModel implements CacheModel<Layout>, Serializable {
 		return layoutImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		uuid = objectInput.readUTF();
+		plid = objectInput.readLong();
+		groupId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		userId = objectInput.readLong();
+		userName = objectInput.readUTF();
+		createDate = objectInput.readLong();
+		modifiedDate = objectInput.readLong();
+		privateLayout = objectInput.readBoolean();
+		layoutId = objectInput.readLong();
+		parentLayoutId = objectInput.readLong();
+		name = objectInput.readUTF();
+		title = objectInput.readUTF();
+		description = objectInput.readUTF();
+		keywords = objectInput.readUTF();
+		robots = objectInput.readUTF();
+		type = objectInput.readUTF();
+		typeSettings = objectInput.readUTF();
+		hidden = objectInput.readBoolean();
+		friendlyURL = objectInput.readUTF();
+		iconImageId = objectInput.readLong();
+		themeId = objectInput.readUTF();
+		colorSchemeId = objectInput.readUTF();
+		wapThemeId = objectInput.readUTF();
+		wapColorSchemeId = objectInput.readUTF();
+		css = objectInput.readUTF();
+		priority = objectInput.readInt();
+		layoutPrototypeUuid = objectInput.readUTF();
+		layoutPrototypeLinkEnabled = objectInput.readBoolean();
+		sourcePrototypeLayoutUuid = objectInput.readUTF();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
+		if (uuid == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(uuid);
+		}
+
+		objectOutput.writeLong(plid);
+		objectOutput.writeLong(groupId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(userId);
+
+		if (userName == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(userName);
+		}
+
+		objectOutput.writeLong(createDate);
+		objectOutput.writeLong(modifiedDate);
+		objectOutput.writeBoolean(privateLayout);
+		objectOutput.writeLong(layoutId);
+		objectOutput.writeLong(parentLayoutId);
+
+		if (name == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(name);
+		}
+
+		if (title == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(title);
+		}
+
+		if (description == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(description);
+		}
+
+		if (keywords == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(keywords);
+		}
+
+		if (robots == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(robots);
+		}
+
+		if (type == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(type);
+		}
+
+		if (typeSettings == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(typeSettings);
+		}
+
+		objectOutput.writeBoolean(hidden);
+
+		if (friendlyURL == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(friendlyURL);
+		}
+
+		objectOutput.writeLong(iconImageId);
+
+		if (themeId == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(themeId);
+		}
+
+		if (colorSchemeId == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(colorSchemeId);
+		}
+
+		if (wapThemeId == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(wapThemeId);
+		}
+
+		if (wapColorSchemeId == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(wapColorSchemeId);
+		}
+
+		if (css == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(css);
+		}
+
+		objectOutput.writeInt(priority);
+
+		if (layoutPrototypeUuid == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(layoutPrototypeUuid);
+		}
+
+		objectOutput.writeBoolean(layoutPrototypeLinkEnabled);
+
+		if (sourcePrototypeLayoutUuid == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(sourcePrototypeLayoutUuid);
+		}
+	}
+
+	public long mvccVersion;
 	public String uuid;
 	public long plid;
 	public long groupId;
 	public long companyId;
+	public long userId;
+	public String userName;
 	public long createDate;
 	public long modifiedDate;
 	public boolean privateLayout;
@@ -267,7 +478,6 @@ public class LayoutCacheModel implements CacheModel<Layout>, Serializable {
 	public String typeSettings;
 	public boolean hidden;
 	public String friendlyURL;
-	public boolean iconImage;
 	public long iconImageId;
 	public String themeId;
 	public String colorSchemeId;

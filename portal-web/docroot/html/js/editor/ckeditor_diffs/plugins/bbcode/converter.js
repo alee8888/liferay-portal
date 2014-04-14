@@ -1,4 +1,7 @@
 ;(function() {
+	var BBCodeUtil = Liferay.BBCodeUtil;
+	var Util = Liferay.Util;
+
 	var Parser = Liferay.BBCodeParser;
 
 	var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -73,7 +76,7 @@
 
 	var REGEX_TAG_NAME = /^\/?(?:b|center|code|colou?r|email|i|img|justify|left|pre|q|quote|right|\*|s|size|table|tr|th|td|li|list|font|u|url)$/i;
 
-	var REGEX_URI = /^[-;\/\?:@&=\+\$,_\.!~\*'\(\)%0-9a-z#]{1,512}$/i;
+	var REGEX_URI = /^[-;\/\?:@&=\+\$,_\.!~\*'\(\)%0-9a-z#]{1,512}$|\${\S+}/i;
 
 	var STR_BLANK = '';
 
@@ -174,7 +177,7 @@
 			instance._stack = [];
 		},
 
-		_escapeHTML: Liferay.Util.escapeHTML,
+		_escapeHTML: Util.escapeHTML,
 
 		_extractData: function(toTagName, consume) {
 			var instance = this;
@@ -253,7 +256,7 @@
 			var hrefInput = token.attribute || instance._extractData(STR_EMAIL, false);
 
 			if (REGEX_URI.test(hrefInput)) {
-				if (hrefInput.indexOf(STR_MAILTO) != 0) {
+				if (hrefInput.indexOf(STR_MAILTO) !== 0) {
 					hrefInput = STR_MAILTO + hrefInput;
 				}
 
@@ -402,7 +405,7 @@
 			var result = '<blockquote>';
 
 			if (cite && cite.length) {
-				cite = instance._escapeHTML(cite);
+				cite = BBCodeUtil.escape(cite);
 
 				result = '<blockquote><cite>' + cite + '</cite>';
 			}

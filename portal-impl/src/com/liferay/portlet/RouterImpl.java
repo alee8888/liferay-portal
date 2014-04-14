@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,6 +27,7 @@ import java.util.Map;
  */
 public class RouterImpl implements Router {
 
+	@Override
 	public Route addRoute(String pattern) {
 		Route route = new RouteImpl(pattern);
 
@@ -35,6 +36,7 @@ public class RouterImpl implements Router {
 		return route;
 	}
 
+	@Override
 	public String parametersToUrl(Map<String, String> parameters) {
 		for (Route route : _routes) {
 			String url = route.parametersToUrl(parameters);
@@ -47,6 +49,7 @@ public class RouterImpl implements Router {
 		return null;
 	}
 
+	@Override
 	public boolean urlToParameters(String url, Map<String, String> parameters) {
 		for (Route route : _routes) {
 			if (route.urlToParameters(url, parameters)) {

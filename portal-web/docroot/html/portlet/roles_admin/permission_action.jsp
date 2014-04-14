@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -37,8 +37,9 @@ Role role = (Role)objArray[1];
 		<portlet:param name="actionId" value="<%= String.valueOf(permission.getActionId()) %>" />
 	</portlet:actionURL>
 
-	<liferay-ui:icon
-		image="delete"
+	<liferay-ui:icon-delete
+		confirmation="are-your-sure-you-want-to-remove-this-permission"
+		message="remove"
 		url="<%= deletePermissionURL %>"
 	/>
 </liferay-ui:icon-menu>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 import java.lang.reflect.Constructor;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -29,11 +30,42 @@ import java.util.Map;
 public class MapUtil {
 
 	public static <K, V> void copy(
-		Map<K, V> master, Map<? super K, ? super V> copy) {
+		Map<? extends K, ? extends V> master, Map<? super K, ? super V> copy) {
 
 		copy.clear();
 
 		merge(master, copy);
+	}
+
+	public static <K, V> Map<K, V> filter(
+		Map<? extends K, ? extends V> inputMap, Map<K, V> outputMap,
+		PredicateFilter<K> keyPredicateFilter) {
+
+		for (Map.Entry<? extends K, ? extends V> entry : inputMap.entrySet()) {
+			if (keyPredicateFilter.filter(entry.getKey())) {
+				outputMap.put(entry.getKey(), entry.getValue());
+			}
+		}
+
+		return outputMap;
+	}
+
+	public static <T> Map<T, T> fromArray(T... array) {
+		if ((array.length % 2) != 0) {
+			throw new IllegalArgumentException(
+				"Array length is not an even number");
+		}
+
+		Map<T, T> map = new HashMap<T, T>();
+
+		for (int i = 0; i < array.length; i += 2) {
+			T key = array[i];
+			T value = array[i + 1];
+
+			map.put(key, value);
+		}
+
+		return map;
 	}
 
 	public static boolean getBoolean(Map<String, ?> map, String key) {
@@ -43,8 +75,27 @@ public class MapUtil {
 	public static boolean getBoolean(
 		Map<String, ?> map, String key, boolean defaultValue) {
 
-		return GetterUtil.getBoolean(
-			getString(map, key, String.valueOf(defaultValue)), defaultValue);
+		Object value = map.get(key);
+
+		if (value == null) {
+			return defaultValue;
+		}
+
+		if (value instanceof Boolean) {
+			return (Boolean)value;
+		}
+
+		if (value instanceof String[]) {
+			String[] array = (String[])value;
+
+			if (array.length == 0) {
+				return defaultValue;
+			}
+
+			return GetterUtil.getBoolean(array[0], defaultValue);
+		}
+
+		return GetterUtil.getBoolean(String.valueOf(value), defaultValue);
 	}
 
 	public static double getDouble(Map<String, ?> map, String key) {
@@ -54,8 +105,27 @@ public class MapUtil {
 	public static double getDouble(
 		Map<String, ?> map, String key, double defaultValue) {
 
-		return GetterUtil.getDouble(
-			getString(map, key, String.valueOf(defaultValue)), defaultValue);
+		Object value = map.get(key);
+
+		if (value == null) {
+			return defaultValue;
+		}
+
+		if (value instanceof Double) {
+			return (Double)value;
+		}
+
+		if (value instanceof String[]) {
+			String[] array = (String[])value;
+
+			if (array.length == 0) {
+				return defaultValue;
+			}
+
+			return GetterUtil.getDouble(array[0], defaultValue);
+		}
+
+		return GetterUtil.getDouble(String.valueOf(value), defaultValue);
 	}
 
 	public static int getInteger(Map<String, ?> map, String key) {
@@ -65,8 +135,27 @@ public class MapUtil {
 	public static int getInteger(
 		Map<String, ?> map, String key, int defaultValue) {
 
-		return GetterUtil.getInteger(
-			getString(map, key, String.valueOf(defaultValue)), defaultValue);
+		Object value = map.get(key);
+
+		if (value == null) {
+			return defaultValue;
+		}
+
+		if (value instanceof Integer) {
+			return (Integer)value;
+		}
+
+		if (value instanceof String[]) {
+			String[] array = (String[])value;
+
+			if (array.length == 0) {
+				return defaultValue;
+			}
+
+			return GetterUtil.getInteger(array[0], defaultValue);
+		}
+
+		return GetterUtil.getInteger(String.valueOf(value), defaultValue);
 	}
 
 	public static long getLong(Map<Long, Long> map, long key) {
@@ -76,7 +165,7 @@ public class MapUtil {
 	public static long getLong(
 		Map<Long, Long> map, long key, long defaultValue) {
 
-		Long value = map.get(new Long(key));
+		Long value = map.get(key);
 
 		if (value == null) {
 			return defaultValue;
@@ -93,8 +182,27 @@ public class MapUtil {
 	public static long getLong(
 		Map<String, ?> map, String key, long defaultValue) {
 
-		return GetterUtil.getLong(
-			getString(map, key, String.valueOf(defaultValue)), defaultValue);
+		Object value = map.get(key);
+
+		if (value == null) {
+			return defaultValue;
+		}
+
+		if (value instanceof Long) {
+			return (Long)value;
+		}
+
+		if (value instanceof String[]) {
+			String[] array = (String[])value;
+
+			if (array.length == 0) {
+				return defaultValue;
+			}
+
+			return GetterUtil.getLong(array[0], defaultValue);
+		}
+
+		return GetterUtil.getLong(String.valueOf(value), defaultValue);
 	}
 
 	public static short getShort(Map<String, ?> map, String key) {
@@ -104,8 +212,27 @@ public class MapUtil {
 	public static short getShort(
 		Map<String, ?> map, String key, short defaultValue) {
 
-		return GetterUtil.getShort(
-			getString(map, key, String.valueOf(defaultValue)), defaultValue);
+		Object value = map.get(key);
+
+		if (value == null) {
+			return defaultValue;
+		}
+
+		if (value instanceof Short) {
+			return (Short)value;
+		}
+
+		if (value instanceof String[]) {
+			String[] array = (String[])value;
+
+			if (array.length == 0) {
+				return defaultValue;
+			}
+
+			return GetterUtil.getShort(array[0], defaultValue);
+		}
+
+		return GetterUtil.getShort(String.valueOf(value), defaultValue);
 	}
 
 	public static String getString(Map<String, ?> map, String key) {
@@ -117,28 +244,41 @@ public class MapUtil {
 
 		Object value = map.get(key);
 
-		if (value != null) {
-			if (value instanceof String[]) {
-				String[] array = (String[])value;
-
-				if (array.length > 0) {
-					return GetterUtil.getString(array[0], defaultValue);
-				}
-			}
-			else if (value instanceof String) {
-				return GetterUtil.getString((String)value, defaultValue);
-			}
-			else {
-				return GetterUtil.getString(
-					String.valueOf(value), defaultValue);
-			}
+		if (value == null) {
+			return defaultValue;
 		}
 
-		return defaultValue;
+		if (value instanceof String) {
+			return GetterUtil.getString((String)value, defaultValue);
+		}
+
+		if (value instanceof String[]) {
+			String[] array = (String[])value;
+
+			if (array.length == 0 ) {
+				return defaultValue;
+			}
+
+			return GetterUtil.getString(array[0], defaultValue);
+		}
+
+		return GetterUtil.getString(String.valueOf(value), defaultValue);
+	}
+
+	public static boolean isEmpty(Map<?, ?> map) {
+		if ((map == null) || map.isEmpty()) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public static boolean isNotEmpty(Map<?, ?> map) {
+		return !isEmpty(map);
 	}
 
 	public static <K, V> void merge(
-		Map<K, V> master, Map<? super K, ? super V> copy) {
+		Map<? extends K, ? extends V> master, Map<? super K, ? super V> copy) {
 
 		copy.putAll(master);
 	}
@@ -154,8 +294,8 @@ public class MapUtil {
 
 		LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
 
-		for (int i = 0; i < params.length; i++) {
-			String[] kvp = StringUtil.split(params[i], delimiter);
+		for (String param : params) {
+			String[] kvp = StringUtil.split(param, delimiter);
 
 			if (kvp.length == 2) {
 				map.put(kvp[0], kvp[1]);
@@ -163,27 +303,27 @@ public class MapUtil {
 			else if (kvp.length == 3) {
 				String type = kvp[2];
 
-				if (type.equalsIgnoreCase("boolean") ||
+				if (StringUtil.equalsIgnoreCase(type, "boolean") ||
 					type.equals(Boolean.class.getName())) {
 
-					map.put(kvp[0], new Boolean(kvp[1]));
+					map.put(kvp[0], Boolean.valueOf(kvp[1]));
 				}
-				else if (type.equalsIgnoreCase("double") ||
+				else if (StringUtil.equalsIgnoreCase(type, "double") ||
 						 type.equals(Double.class.getName())) {
 
 					map.put(kvp[0], new Double(kvp[1]));
 				}
-				else if (type.equalsIgnoreCase("int") ||
+				else if (StringUtil.equalsIgnoreCase(type, "int") ||
 						 type.equals(Integer.class.getName())) {
 
 					map.put(kvp[0], new Integer(kvp[1]));
 				}
-				else if (type.equalsIgnoreCase("long") ||
+				else if (StringUtil.equalsIgnoreCase(type, "long") ||
 						 type.equals(Long.class.getName())) {
 
 					map.put(kvp[0], new Long(kvp[1]));
 				}
-				else if (type.equalsIgnoreCase("short") ||
+				else if (StringUtil.equalsIgnoreCase(type, "short") ||
 						 type.equals(Short.class.getName())) {
 
 					map.put(kvp[0], new Short(kvp[1]));
@@ -196,7 +336,7 @@ public class MapUtil {
 						Class<?> clazz = Class.forName(type);
 
 						Constructor<?> constructor = clazz.getConstructor(
-							new Class<?>[] {String.class});
+							String.class);
 
 						map.put(kvp[0], constructor.newInstance(kvp[1]));
 					}
@@ -207,11 +347,17 @@ public class MapUtil {
 			}
 		}
 
-		return (LinkedHashMap<String, T>) map;
+		return (LinkedHashMap<String, T>)map;
 	}
 
 	public static String toString(Map<?, ?> map) {
-		if (map.isEmpty()) {
+		return toString(map, null, null);
+	}
+
+	public static String toString(
+		Map<?, ?> map, String hideIncludesRegex, String hideExcludesRegex) {
+
+		if (isEmpty(map)) {
 			return StringPool.OPEN_CURLY_BRACE + StringPool.CLOSE_CURLY_BRACE;
 		}
 
@@ -223,7 +369,21 @@ public class MapUtil {
 			Object key = entry.getKey();
 			Object value = entry.getValue();
 
-			sb.append(key);
+			String keyString = String.valueOf(key);
+
+			if (hideIncludesRegex != null) {
+				if (!keyString.matches(hideIncludesRegex)) {
+					value = "********";
+				}
+			}
+
+			if (hideExcludesRegex != null) {
+				if (keyString.matches(hideExcludesRegex)) {
+					value = "********";
+				}
+			}
+
+			sb.append(keyString);
 			sb.append(StringPool.EQUAL);
 
 			if (value instanceof Map<?, ?>) {
@@ -244,7 +404,7 @@ public class MapUtil {
 			sb.append(StringPool.COMMA_AND_SPACE);
 		}
 
-		sb.setStringAt(StringPool.CLOSE_CURLY_BRACE, sb.index());
+		sb.setStringAt(StringPool.CLOSE_CURLY_BRACE, sb.index() - 1);
 
 		return sb.toString();
 	}

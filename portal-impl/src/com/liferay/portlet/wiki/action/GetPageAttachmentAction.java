@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,25 +16,24 @@ package com.liferay.portlet.wiki.action;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
-import com.liferay.portal.kernel.util.CharPool;
-import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.model.CompanyConstants;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.struts.ActionConstants;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.documentlibrary.NoSuchFileException;
-import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
+import com.liferay.portlet.documentlibrary.model.DLFileEntry;
+import com.liferay.portlet.trash.util.TrashUtil;
 import com.liferay.portlet.wiki.NoSuchPageException;
 import com.liferay.portlet.wiki.model.WikiPage;
 import com.liferay.portlet.wiki.service.WikiPageServiceUtil;
 
-import java.io.InputStream;
-
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionResponse;
 import javax.portlet.PortletConfig;
+import javax.portlet.ResourceRequest;
+import javax.portlet.ResourceResponse;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,42 +48,47 @@ import org.apache.struts.action.ActionMapping;
 public class GetPageAttachmentAction extends PortletAction {
 
 	@Override
-	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+	public void serveResource(
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ResourceRequest resourceRequest,
+			ResourceResponse resourceResponse)
 		throws Exception {
 
+		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+			resourceRequest);
+		HttpServletResponse response = PortalUtil.getHttpServletResponse(
+			resourceResponse);
+
 		try {
-			long nodeId = ParamUtil.getLong(actionRequest, "nodeId");
-			String title = ParamUtil.getString(actionRequest, "title");
-			String fileName = ParamUtil.getString(actionRequest, "fileName");
+			long nodeId = ParamUtil.getLong(resourceRequest, "nodeId");
+			String title = ParamUtil.getString(resourceRequest, "title");
+			String fileName = ParamUtil.getString(resourceRequest, "fileName");
+			int status = ParamUtil.getInteger(
+				resourceRequest, "status", WorkflowConstants.STATUS_APPROVED);
 
-			HttpServletRequest request = PortalUtil.getHttpServletRequest(
-				actionRequest);
-			HttpServletResponse response = PortalUtil.getHttpServletResponse(
-				actionResponse);
+			getFile(nodeId, title, fileName, status, request, response);
 
-			getFile(nodeId, title, fileName, request, response);
-
-			setForward(actionRequest, ActionConstants.COMMON_NULL);
+			setForward(resourceRequest, ActionConstants.COMMON_NULL);
 		}
 		catch (Exception e) {
-			PortalUtil.sendError(e, actionRequest, actionResponse);
+			PortalUtil.sendError(e, request, response);
 		}
 	}
 
 	@Override
 	public ActionForward strutsExecute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		try {
 			long nodeId = ParamUtil.getLong(request, "nodeId");
 			String title = ParamUtil.getString(request, "title");
 			String fileName = ParamUtil.getString(request, "fileName");
+			int status = ParamUtil.getInteger(
+				request, "status", WorkflowConstants.STATUS_APPROVED);
 
-			getFile(nodeId, title, fileName, request, response);
+			getFile(nodeId, title, fileName, status, request, response);
 
 			return null;
 		}
@@ -105,29 +109,30 @@ public class GetPageAttachmentAction extends PortletAction {
 	}
 
 	protected void getFile(
-			long nodeId, String title, String fileName,
+			long nodeId, String title, String fileName, int status,
 			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
-		int pos = fileName.indexOf(CharPool.SLASH);
+		WikiPage wikiPage = WikiPageServiceUtil.getPage(nodeId, title);
 
-		if (pos != -1) {
-			title = fileName.substring(0, pos);
-			fileName = fileName.substring(pos + 1);
+		FileEntry fileEntry = PortletFileRepositoryUtil.getPortletFileEntry(
+			wikiPage.getGroupId(), wikiPage.getAttachmentsFolderId(), fileName);
+
+		DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
+
+		if ((status != WorkflowConstants.STATUS_IN_TRASH) &&
+			dlFileEntry.isInTrash()) {
+
+			return;
 		}
 
-		WikiPage page = WikiPageServiceUtil.getPage(nodeId, title);
-
-		String path = page.getAttachmentsDir() + "/" + fileName;
-
-		InputStream is = DLStoreUtil.getFileAsStream(
-			page.getCompanyId(), CompanyConstants.SYSTEM, path);
-		long contentLength = DLStoreUtil.getFileSize(
-			page.getCompanyId(), CompanyConstants.SYSTEM, path);
-		String contentType = MimeTypesUtil.getContentType(fileName);
+		if (dlFileEntry.isInTrash()) {
+			fileName = TrashUtil.getOriginalTitle(dlFileEntry.getTitle());
+		}
 
 		ServletResponseUtil.sendFile(
-			request, response, fileName, is, contentLength, contentType);
+			request, response, fileName, fileEntry.getContentStream(),
+			fileEntry.getSize(), fileEntry.getMimeType());
 	}
 
 	@Override

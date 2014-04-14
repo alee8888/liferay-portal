@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,18 +16,22 @@ package com.liferay.portal.increment;
 
 import com.liferay.portal.kernel.cache.key.CacheKeyGenerator;
 import com.liferay.portal.kernel.cache.key.CacheKeyGeneratorUtil;
-import com.liferay.portal.kernel.concurrent.BatchablePipe;
 import com.liferay.portal.kernel.increment.BufferedIncrement;
 import com.liferay.portal.kernel.increment.Increment;
 import com.liferay.portal.kernel.increment.IncrementFactory;
-import com.liferay.portal.kernel.messaging.DestinationNames;
-import com.liferay.portal.kernel.messaging.MessageBusUtil;
+import com.liferay.portal.kernel.transaction.TransactionCommitCallbackRegistryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.spring.aop.AnnotationChainableMethodAdvice;
 
 import java.io.Serializable;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.aopalliance.intercept.MethodInvocation;
 
@@ -47,6 +51,41 @@ public class BufferedIncrementAdvice
 			return null;
 		}
 
+		String configuration = bufferedIncrement.configuration();
+
+		BufferedIncrementConfiguration bufferedIncrementConfiguration =
+			_bufferedIncrementConfigurations.get(configuration);
+
+		if (bufferedIncrementConfiguration == null) {
+			bufferedIncrementConfiguration = new BufferedIncrementConfiguration(
+				configuration);
+
+			_bufferedIncrementConfigurations.put(
+				configuration, bufferedIncrementConfiguration);
+		}
+
+		if (!bufferedIncrementConfiguration.isEnabled()) {
+			return nullResult;
+		}
+
+		Method method = methodInvocation.getMethod();
+
+		BufferedIncrementProcessor bufferedIncrementProcessor =
+			_bufferedIncrementProcessors.get(method);
+
+		if (bufferedIncrementProcessor == null) {
+			bufferedIncrementProcessor = new BufferedIncrementProcessor(
+				bufferedIncrementConfiguration, method);
+
+			BufferedIncrementProcessor previousBufferedIncrementProcessor =
+				_bufferedIncrementProcessors.putIfAbsent(
+					method, bufferedIncrementProcessor);
+
+			if (previousBufferedIncrementProcessor != null) {
+				bufferedIncrementProcessor = previousBufferedIncrementProcessor;
+			}
+		}
+
 		Object[] arguments = methodInvocation.getArguments();
 
 		Object value = arguments[arguments.length - 1];
@@ -54,8 +93,6 @@ public class BufferedIncrementAdvice
 		CacheKeyGenerator cacheKeyGenerator =
 			CacheKeyGeneratorUtil.getCacheKeyGenerator(
 				BufferedIncrementAdvice.class.getName());
-
-		cacheKeyGenerator.append(methodInvocation.toString());
 
 		for (int i = 0; i < arguments.length - 1; i++) {
 			cacheKeyGenerator.append(StringUtil.toHexString(arguments[i]));
@@ -66,23 +103,34 @@ public class BufferedIncrementAdvice
 		Increment<?> increment = IncrementFactory.createIncrement(
 			bufferedIncrement.incrementClass(), value);
 
-		BufferedIncreasableEntry bufferedIncreasableEntry =
-			new BufferedIncreasableEntry(
-				nextMethodInterceptor, methodInvocation, batchKey, increment);
+		final BufferedIncrementProcessor callbackBufferedIncrementProcessor =
+			bufferedIncrementProcessor;
 
-		if (_batchablePipe.put(bufferedIncreasableEntry)) {
-			if (bufferedIncrement.parallel()) {
-				MessageBusUtil.sendMessage(
-					DestinationNames.BUFFERED_INCREMENT_PARALLEL,
-					_batchablePipe);
-			}
-			else {
-				MessageBusUtil.sendMessage(
-					DestinationNames.BUFFERED_INCREMENT_SERIAL, _batchablePipe);
-			}
-		}
+		final BufferedIncreasableEntry bufferedIncreasableEntry =
+			new BufferedIncreasableEntry(methodInvocation, batchKey, increment);
+
+		TransactionCommitCallbackRegistryUtil.registerCallback(
+			new Callable<Void>() {
+
+				@Override
+				public Void call() throws Exception {
+					callbackBufferedIncrementProcessor.process(
+						bufferedIncreasableEntry);
+
+					return null;
+				}
+
+			});
 
 		return nullResult;
+	}
+
+	public void destroy() {
+		for (BufferedIncrementProcessor bufferedIncrementProcessor :
+				_bufferedIncrementProcessors.values()) {
+
+			bufferedIncrementProcessor.destroy();
+		}
 	}
 
 	@Override
@@ -90,25 +138,31 @@ public class BufferedIncrementAdvice
 		return _nullBufferedIncrement;
 	}
 
-	@SuppressWarnings("rawtypes")
-	private static BatchablePipe<String, BufferedIncreasableEntry>
-		_batchablePipe = new BatchablePipe<String, BufferedIncreasableEntry>();
-
 	private static BufferedIncrement _nullBufferedIncrement =
 		new BufferedIncrement() {
 
+			@Override
 			public Class<? extends Annotation> annotationType() {
 				return BufferedIncrement.class;
 			}
 
+			@Override
+			public String configuration() {
+				return "default";
+			}
+
+			@Override
 			public Class<? extends Increment<?>> incrementClass() {
 				return null;
 			}
 
-			public boolean parallel() {
-				return true;
-			}
-
 		};
+
+	private Map<String, BufferedIncrementConfiguration>
+		_bufferedIncrementConfigurations =
+			new ConcurrentHashMap<String, BufferedIncrementConfiguration>();
+	private ConcurrentMap<Method, BufferedIncrementProcessor>
+		_bufferedIncrementProcessors =
+			new ConcurrentHashMap<Method, BufferedIncrementProcessor>();
 
 }

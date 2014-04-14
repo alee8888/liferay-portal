@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,8 +21,10 @@ import java.util.Random;
 import java.util.Set;
 
 /**
- * @author Brian Wing Shun Chan
+ * @author     Brian Wing Shun Chan
+ * @deprecated As of 6.2.0
  */
+@Deprecated
 public class Randomizer extends Random {
 
 	public static Randomizer getInstance() {
@@ -67,7 +69,7 @@ public class Randomizer extends Random {
 		return array;
 	}
 
-	public void randomize(char array[]) {
+	public void randomize(char[] array) {
 		int length = array.length;
 
 		for (int i = 0; i < length - 1; i++) {
@@ -81,7 +83,7 @@ public class Randomizer extends Random {
 		}
 	}
 
-	public void randomize(int array[]) {
+	public void randomize(int[] array) {
 		int length = array.length;
 
 		for (int i = 0; i < length - 1; i++) {
@@ -110,7 +112,7 @@ public class Randomizer extends Random {
 		}
 	}
 
-	public void randomize(Object array[]) {
+	public void randomize(Object[] array) {
 		int length = array.length;
 
 		for (int i = 0; i < length - 1; i++) {

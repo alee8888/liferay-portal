@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,7 @@ package com.liferay.portlet.wiki.engines.antlrwiki;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.parsers.creole.ast.ASTNode;
 import com.liferay.portal.parsers.creole.ast.WikiPageNode;
 import com.liferay.portal.parsers.creole.ast.link.LinkNode;
@@ -44,6 +45,7 @@ import org.antlr.runtime.RecognitionException;
  */
 public class CreoleWikiEngine implements WikiEngine {
 
+	@Override
 	public String convert(
 		WikiPage page, PortletURL viewPageURL, PortletURL editPageURL,
 		String attachmentURLPrefix) {
@@ -55,6 +57,7 @@ public class CreoleWikiEngine implements WikiEngine {
 			parse(page.getContent()));
 	}
 
+	@Override
 	public Map<String, Boolean> getOutgoingLinks(WikiPage page)
 		throws PageContentException {
 
@@ -81,7 +84,7 @@ public class CreoleWikiEngine implements WikiEngine {
 				}
 
 				if (existingLink) {
-					title = title.toLowerCase();
+					title = StringUtil.toLowerCase(title);
 				}
 
 				outgoingLinks.put(title, existingLink);
@@ -94,12 +97,15 @@ public class CreoleWikiEngine implements WikiEngine {
 		return outgoingLinks;
 	}
 
+	@Override
 	public void setInterWikiConfiguration(String interWikiConfiguration) {
 	}
 
+	@Override
 	public void setMainConfiguration(String mainConfiguration) {
 	}
 
+	@Override
 	public boolean validate(long nodeId, String content) {
 		return true;
 	}
@@ -124,12 +130,16 @@ public class CreoleWikiEngine implements WikiEngine {
 		catch (RecognitionException re) {
 			if (_log.isDebugEnabled()) {
 				_log.debug("Unable to parse:\n" + creoleCode, re);
+
+				for (String error : creole10Parser.getErrors()) {
+					_log.debug(error);
+				}
 			}
 		}
 
 		return creole10Parser.getWikiPageNode();
 	}
 
-	private Log _log = LogFactoryUtil.getLog(CreoleWikiEngine.class);
+	private static Log _log = LogFactoryUtil.getLog(CreoleWikiEngine.class);
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.softwarecatalog.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
- * The utility for the s c product entry local service. This utility wraps {@link com.liferay.portlet.softwarecatalog.service.impl.SCProductEntryLocalServiceImpl} and is the primary access point for service operations in application layer code running on the local server.
- *
- * <p>
- * This is a local service. Methods of this service will not have security checks based on the propagated JAAS credentials because this service can only be accessed from within the same VM.
- * </p>
+ * Provides the local service utility for SCProductEntry. This utility wraps
+ * {@link com.liferay.portlet.softwarecatalog.service.impl.SCProductEntryLocalServiceImpl} and is the
+ * primary access point for service operations in application layer code running
+ * on the local server. Methods of this service will not have security checks
+ * based on the propagated JAAS credentials because this service can only be
+ * accessed from within the same VM.
  *
  * @author Brian Wing Shun Chan
  * @see SCProductEntryLocalService
@@ -30,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.softwarecatalog.service.impl.SCProductEntryLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class SCProductEntryLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -111,7 +115,7 @@ public class SCProductEntryLocalServiceUtil {
 	* Performs a dynamic query on the database and returns a range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.softwarecatalog.model.impl.SCProductEntryModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -131,7 +135,7 @@ public class SCProductEntryLocalServiceUtil {
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.softwarecatalog.model.impl.SCProductEntryModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -162,6 +166,21 @@ public class SCProductEntryLocalServiceUtil {
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
 	}
 
 	public static com.liferay.portlet.softwarecatalog.model.SCProductEntry fetchSCProductEntry(
@@ -196,7 +215,7 @@ public class SCProductEntryLocalServiceUtil {
 	* Returns a range of all the s c product entries.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.softwarecatalog.model.impl.SCProductEntryModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of s c product entries
@@ -235,18 +254,147 @@ public class SCProductEntryLocalServiceUtil {
 	}
 
 	/**
-	* Updates the s c product entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param scProductEntry the s c product entry
-	* @param merge whether to merge the s c product entry with the current session. See {@link com.liferay.portal.service.persistence.BatchSession#update(com.liferay.portal.kernel.dao.orm.Session, com.liferay.portal.model.BaseModel, boolean)} for an explanation.
-	* @return the s c product entry that was updated
 	* @throws SystemException if a system exception occurred
 	*/
-	public static com.liferay.portlet.softwarecatalog.model.SCProductEntry updateSCProductEntry(
-		com.liferay.portlet.softwarecatalog.model.SCProductEntry scProductEntry,
-		boolean merge)
+	public static void addSCLicenseSCProductEntry(long licenseId,
+		long productEntryId)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().updateSCProductEntry(scProductEntry, merge);
+		getService().addSCLicenseSCProductEntry(licenseId, productEntryId);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void addSCLicenseSCProductEntry(long licenseId,
+		com.liferay.portlet.softwarecatalog.model.SCProductEntry scProductEntry)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().addSCLicenseSCProductEntry(licenseId, scProductEntry);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void addSCLicenseSCProductEntries(long licenseId,
+		long[] productEntryIds)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().addSCLicenseSCProductEntries(licenseId, productEntryIds);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void addSCLicenseSCProductEntries(long licenseId,
+		java.util.List<com.liferay.portlet.softwarecatalog.model.SCProductEntry> SCProductEntries)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().addSCLicenseSCProductEntries(licenseId, SCProductEntries);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void clearSCLicenseSCProductEntries(long licenseId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().clearSCLicenseSCProductEntries(licenseId);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void deleteSCLicenseSCProductEntry(long licenseId,
+		long productEntryId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().deleteSCLicenseSCProductEntry(licenseId, productEntryId);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void deleteSCLicenseSCProductEntry(long licenseId,
+		com.liferay.portlet.softwarecatalog.model.SCProductEntry scProductEntry)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().deleteSCLicenseSCProductEntry(licenseId, scProductEntry);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void deleteSCLicenseSCProductEntries(long licenseId,
+		long[] productEntryIds)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().deleteSCLicenseSCProductEntries(licenseId, productEntryIds);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void deleteSCLicenseSCProductEntries(long licenseId,
+		java.util.List<com.liferay.portlet.softwarecatalog.model.SCProductEntry> SCProductEntries)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().deleteSCLicenseSCProductEntries(licenseId, SCProductEntries);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static java.util.List<com.liferay.portlet.softwarecatalog.model.SCProductEntry> getSCLicenseSCProductEntries(
+		long licenseId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getSCLicenseSCProductEntries(licenseId);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static java.util.List<com.liferay.portlet.softwarecatalog.model.SCProductEntry> getSCLicenseSCProductEntries(
+		long licenseId, int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getSCLicenseSCProductEntries(licenseId, start, end);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static java.util.List<com.liferay.portlet.softwarecatalog.model.SCProductEntry> getSCLicenseSCProductEntries(
+		long licenseId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getSCLicenseSCProductEntries(licenseId, start, end,
+			orderByComparator);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static int getSCLicenseSCProductEntriesCount(long licenseId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getSCLicenseSCProductEntriesCount(licenseId);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static boolean hasSCLicenseSCProductEntry(long licenseId,
+		long productEntryId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().hasSCLicenseSCProductEntry(licenseId, productEntryId);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static boolean hasSCLicenseSCProductEntries(long licenseId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().hasSCLicenseSCProductEntries(licenseId);
+	}
+
+	/**
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void setSCLicenseSCProductEntries(long licenseId,
+		long[] productEntryIds)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().setSCLicenseSCProductEntries(licenseId, productEntryIds);
 	}
 
 	/**
@@ -441,8 +589,9 @@ public class SCProductEntryLocalServiceUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(SCProductEntryLocalService service) {
 	}
 

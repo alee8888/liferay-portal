@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,12 +19,24 @@
 <%
 List<Layout> rootLayouts = LayoutLocalServiceUtil.getLayouts(layout.getGroupId(), layout.isPrivateLayout(), rootLayoutId);
 
-StringBundler sb = new StringBundler();
-
-_buildSiteMap(layout, rootLayouts, rootLayout, includeRootInTree, displayDepth, showCurrentPage, useHtmlTitle, showHiddenPages, 1, themeDisplay, sb);
+long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayTemplateDDMTemplateId(displayStyleGroupId, displayStyle);
 %>
 
-<%= sb.toString() %>
+<c:choose>
+	<c:when test="<%= portletDisplayDDMTemplateId > 0 %>">
+		<%= PortletDisplayTemplateUtil.renderDDMTemplate(pageContext, portletDisplayDDMTemplateId, rootLayouts) %>
+	</c:when>
+	<c:otherwise>
+
+		<%
+		StringBundler sb = new StringBundler();
+
+		_buildSiteMap(layout, rootLayouts, rootLayout, includeRootInTree, displayDepth, showCurrentPage, useHtmlTitle, showHiddenPages, 1, themeDisplay, sb);
+		%>
+
+		<%= sb.toString() %>
+	</c:otherwise>
+</c:choose>
 
 <%!
 private void _buildLayoutView(Layout layout, String cssClass, boolean useHtmlTitle, ThemeDisplay themeDisplay, StringBundler sb) throws Exception {
@@ -44,10 +56,10 @@ private void _buildLayoutView(Layout layout, String cssClass, boolean useHtmlTit
 
 	sb.append("> ");
 
-	String layoutName = layout.getName(themeDisplay.getLocale());
+	String layoutName = HtmlUtil.escape(layout.getName(themeDisplay.getLocale()));
 
 	if (useHtmlTitle) {
-		layoutName = layout.getHTMLTitle(themeDisplay.getLocale());
+		layoutName = HtmlUtil.escape(layout.getHTMLTitle(themeDisplay.getLocale()));
 	}
 
 	sb.append(layoutName);
@@ -59,15 +71,12 @@ private void _buildSiteMap(Layout layout, List<Layout> layouts, Layout rootLayou
 		return;
 	}
 
-	PermissionChecker permissionChecker = themeDisplay.getPermissionChecker();
-	boolean showRoot = (rootLayout != null) && (curDepth == 1) && includeRootInTree;
-
 	sb.append("<ul>");
 
-	if (showRoot) {
-		String cssClass = "root";
-
+	if (includeRootInTree && (rootLayout != null) && (curDepth == 1)) {
 		sb.append("<li>");
+
+		String cssClass = "root";
 
 		if (rootLayout.getPlid() == layout.getPlid()) {
 			cssClass += " current";
@@ -75,28 +84,34 @@ private void _buildSiteMap(Layout layout, List<Layout> layouts, Layout rootLayou
 
 		_buildLayoutView(rootLayout, cssClass, useHtmlTitle, themeDisplay, sb);
 
+		_buildSiteMap(layout, layouts, rootLayout, includeRootInTree, displayDepth, showCurrentPage, useHtmlTitle, showHiddenPages, curDepth +1, themeDisplay, sb);
+
 		sb.append("</li>");
 	}
+	else {
+		for (Layout curLayout : layouts) {
+			if ((showHiddenPages || !curLayout.isHidden()) && LayoutPermissionUtil.contains(themeDisplay.getPermissionChecker(), curLayout, ActionKeys.VIEW)) {
+				sb.append("<li>");
 
-	for (int i = 0; i < layouts.size(); i++) {
-		Layout curLayout = layouts.get(i);
+				String cssClass = StringPool.BLANK;
 
-		if ((showHiddenPages || !curLayout.isHidden()) && LayoutPermissionUtil.contains(permissionChecker, curLayout, ActionKeys.VIEW)) {
-			String cssClass = StringPool.BLANK;
+				if (curLayout.getPlid() == layout.getPlid()) {
+					cssClass = "current";
+				}
 
-			if (curLayout.getPlid() == layout.getPlid()) {
-				cssClass = "current";
+				_buildLayoutView(curLayout, cssClass, useHtmlTitle, themeDisplay, sb);
+
+				if ((displayDepth == 0) || (displayDepth > curDepth)) {
+					if (showHiddenPages) {
+						_buildSiteMap(layout, curLayout.getChildren(), rootLayout, includeRootInTree, displayDepth, showCurrentPage, useHtmlTitle, showHiddenPages, curDepth + 1, themeDisplay, sb);
+					}
+					else {
+						_buildSiteMap(layout, curLayout.getChildren(themeDisplay.getPermissionChecker()), rootLayout, includeRootInTree, displayDepth, showCurrentPage, useHtmlTitle, showHiddenPages, curDepth + 1, themeDisplay, sb);
+					}
+				}
+
+				sb.append("</li>");
 			}
-
-			sb.append("<li>");
-
-			_buildLayoutView(curLayout, cssClass, useHtmlTitle, themeDisplay, sb);
-
-			if ((displayDepth == 0) || (displayDepth > curDepth)) {
-				_buildSiteMap(layout, curLayout.getChildren(), rootLayout, includeRootInTree, displayDepth, showCurrentPage, useHtmlTitle, showHiddenPages, curDepth + 1, themeDisplay, sb);
-			}
-
-			sb.append("</li>");
 		}
 	}
 

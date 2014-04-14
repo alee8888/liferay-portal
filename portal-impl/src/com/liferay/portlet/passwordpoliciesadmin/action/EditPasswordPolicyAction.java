@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,8 +22,11 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.PasswordPolicy;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.PasswordPolicyServiceUtil;
+import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.util.PortalUtil;
 
@@ -44,8 +47,9 @@ public class EditPasswordPolicyAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -91,8 +95,9 @@ public class EditPasswordPolicyAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -104,7 +109,7 @@ public class EditPasswordPolicyAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward(
+				return actionMapping.findForward(
 					"portlet.password_policies_admin.error");
 			}
 			else {
@@ -112,9 +117,10 @@ public class EditPasswordPolicyAction extends PortletAction {
 			}
 		}
 
-		return mapping.findForward(getForward(
-			renderRequest,
-			"portlet.password_policies_admin.edit_password_policy"));
+		return actionMapping.findForward(
+			getForward(
+				renderRequest,
+				"portlet.password_policies_admin.edit_password_policy"));
 	}
 
 	protected void deletePasswordPolicy(ActionRequest actionRequest)
@@ -149,6 +155,7 @@ public class EditPasswordPolicyAction extends PortletAction {
 		int minNumbers = ParamUtil.getInteger(actionRequest, "minNumbers");
 		int minSymbols = ParamUtil.getInteger(actionRequest, "minSymbols");
 		int minUpperCase = ParamUtil.getInteger(actionRequest, "minUpperCase");
+		String regex = ParamUtil.getString(actionRequest, "regex");
 		boolean history = ParamUtil.getBoolean(actionRequest, "history");
 		int historyCount = ParamUtil.getInteger(actionRequest, "historyCount");
 		boolean expireable = ParamUtil.getBoolean(actionRequest, "expireable");
@@ -164,6 +171,9 @@ public class EditPasswordPolicyAction extends PortletAction {
 		long resetTicketMaxAge = ParamUtil.getLong(
 			actionRequest, "resetTicketMaxAge");
 
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			PasswordPolicy.class.getName(), actionRequest);
+
 		if (passwordPolicyId <= 0) {
 
 			// Add password policy
@@ -171,10 +181,10 @@ public class EditPasswordPolicyAction extends PortletAction {
 			PasswordPolicyServiceUtil.addPasswordPolicy(
 				name, description, changeable, changeRequired, minAge,
 				checkSyntax, allowDictionaryWords, minAlphanumeric, minLength,
-				minLowerCase, minNumbers, minSymbols, minUpperCase, history,
-				historyCount, expireable, maxAge, warningTime, graceLimit,
-				lockout, maxFailure, lockoutDuration, resetFailureCount,
-				resetTicketMaxAge);
+				minLowerCase, minNumbers, minSymbols, minUpperCase, regex,
+				history, historyCount, expireable, maxAge, warningTime,
+				graceLimit, lockout, maxFailure, lockoutDuration,
+				resetFailureCount, resetTicketMaxAge, serviceContext);
 		}
 		else {
 
@@ -184,9 +194,9 @@ public class EditPasswordPolicyAction extends PortletAction {
 				passwordPolicyId, name, description, changeable, changeRequired,
 				minAge, checkSyntax, allowDictionaryWords, minAlphanumeric,
 				minLength, minLowerCase, minNumbers, minSymbols, minUpperCase,
-				history, historyCount, expireable, maxAge, warningTime,
+				regex, history, historyCount, expireable, maxAge, warningTime,
 				graceLimit, lockout, maxFailure, lockoutDuration,
-				resetFailureCount, resetTicketMaxAge);
+				resetFailureCount, resetTicketMaxAge, serviceContext);
 		}
 	}
 

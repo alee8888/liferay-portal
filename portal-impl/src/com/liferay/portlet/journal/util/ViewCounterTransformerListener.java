@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,30 +29,14 @@ import java.util.Map;
 public class ViewCounterTransformerListener extends BaseTransformerListener {
 
 	@Override
-	public String onOutput(String s) {
+	public String onOutput(
+		String output, String languageId, Map<String, String> tokens) {
+
 		if (_log.isDebugEnabled()) {
 			_log.debug("onOutput");
 		}
 
-		return replace(s);
-	}
-
-	@Override
-	public String onScript(String s) {
-		if (_log.isDebugEnabled()) {
-			_log.debug("onScript");
-		}
-
-		return s;
-	}
-
-	@Override
-	public String onXml(String s) {
-		if (_log.isDebugEnabled()) {
-			_log.debug("onXml");
-		}
-
-		return s;
+		return replace(output, tokens);
 	}
 
 	/**
@@ -60,12 +44,12 @@ public class ViewCounterTransformerListener extends BaseTransformerListener {
 	 *
 	 * @return the processed string
 	 */
-	protected String replace(String s) {
-		Map<String, String> tokens = getTokens();
+	protected String replace(String s, Map<String, String> tokens) {
+		if (!s.contains(_COUNTER_TOKEN)) {
+			return s;
+		}
 
 		String articleResourcePK = tokens.get("article_resource_pk");
-
-		String counterToken = StringPool.AT + "view_counter" + StringPool.AT;
 
 		StringBundler sb = new StringBundler(8);
 
@@ -78,10 +62,13 @@ public class ViewCounterTransformerListener extends BaseTransformerListener {
 		sb.append("});");
 		sb.append("</script>");
 
-		s = StringUtil.replace(s, counterToken, sb.toString());
+		s = StringUtil.replace(s, _COUNTER_TOKEN, sb.toString());
 
 		return s;
 	}
+
+	private static final String _COUNTER_TOKEN =
+		StringPool.AT + "view_counter" + StringPool.AT;
 
 	private static Log _log = LogFactoryUtil.getLog(
 		ViewCounterTransformerListener.class);

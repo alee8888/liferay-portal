@@ -14,8 +14,16 @@
 	</#if>
 </#if>
 
-<@aui["field-wrapper"] label=label>
-	<a href="${fileEntryURL}">${fileEntryTitle}</a>
-</@>
+<div class="field-wrapper-content lfr-forms-field-wrapper">
+	<#if !disabled>
+		<@aui.input name=namespacedFieldName type="hidden" value=fieldRawValue />
+	</#if>
 
-<@aui.input name=namespacedFieldName type="hidden" value=fieldRawValue />
+	<label>
+		<@liferay_ui.message key=escape(label) />
+	</label>
+
+	<a href="${fileEntryURL}">${escape(fileEntryTitle)}</a>
+
+	${fieldStructure.children}
+</div>

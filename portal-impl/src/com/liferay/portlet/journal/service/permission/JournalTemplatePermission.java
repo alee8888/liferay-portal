@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,12 +21,13 @@ import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.journal.model.JournalTemplate;
-import com.liferay.portlet.journal.service.JournalTemplateLocalServiceUtil;
 
 /**
- * @author Brian Wing Shun Chan
- * @author Raymond Augé
+ * @author     Brian Wing Shun Chan
+ * @author     Raymond Augé
+ * @deprecated As of 6.2.0
  */
+@Deprecated
 public class JournalTemplatePermission {
 
 	public static void check(
@@ -35,15 +36,6 @@ public class JournalTemplatePermission {
 		throws PortalException {
 
 		if (!contains(permissionChecker, template, actionId)) {
-			throw new PrincipalException();
-		}
-	}
-
-	public static void check(
-			PermissionChecker permissionChecker, long id, String actionId)
-		throws PortalException, SystemException {
-
-		if (!contains(permissionChecker, id, actionId)) {
 			throw new PrincipalException();
 		}
 	}
@@ -84,22 +76,14 @@ public class JournalTemplatePermission {
 	}
 
 	public static boolean contains(
-			PermissionChecker permissionChecker, long id, String actionId)
-		throws PortalException, SystemException {
-
-		JournalTemplate template = JournalTemplateLocalServiceUtil.getTemplate(
-			id);
-
-		return contains(permissionChecker, template, actionId);
-	}
-
-	public static boolean contains(
 			PermissionChecker permissionChecker, long groupId,
 			String templateId, String actionId)
 		throws PortalException, SystemException {
 
-		JournalTemplate template = JournalTemplateLocalServiceUtil.getTemplate(
-			groupId, templateId, true);
+		JournalTemplate template =
+			com.liferay.portlet.journal.service.
+				JournalTemplateLocalServiceUtil.getTemplate(
+					groupId, templateId, true);
 
 		return contains(permissionChecker, template, actionId);
 	}

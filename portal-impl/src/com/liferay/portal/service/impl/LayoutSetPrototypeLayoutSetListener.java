@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,6 +24,8 @@ import com.liferay.portal.model.LayoutSetPrototype;
 import com.liferay.portal.service.LayoutSetPrototypeLocalServiceUtil;
 import com.liferay.portal.service.persistence.LayoutSetPrototypeUtil;
 
+import java.util.Date;
+
 /**
  * @author Raymond Augé
  */
@@ -32,20 +34,22 @@ public class LayoutSetPrototypeLayoutSetListener
 
 	@Override
 	public void onAfterCreate(LayoutSet layoutSet) {
-		updateLayoutSetPrototype(layoutSet);
+		updateLayoutSetPrototype(layoutSet, layoutSet.getModifiedDate());
 	}
 
 	@Override
 	public void onAfterRemove(LayoutSet layoutSet) {
-		updateLayoutSetPrototype(layoutSet);
+		updateLayoutSetPrototype(layoutSet, new Date());
 	}
 
 	@Override
 	public void onAfterUpdate(LayoutSet layoutSet) {
-		updateLayoutSetPrototype(layoutSet);
+		updateLayoutSetPrototype(layoutSet, layoutSet.getModifiedDate());
 	}
 
-	protected void updateLayoutSetPrototype(LayoutSet layoutSet) {
+	protected void updateLayoutSetPrototype(
+		LayoutSet layoutSet, Date modifiedDate) {
+
 		try {
 			Group group = layoutSet.getGroup();
 
@@ -57,14 +61,14 @@ public class LayoutSetPrototypeLayoutSetListener
 				LayoutSetPrototypeLocalServiceUtil.getLayoutSetPrototype(
 					group.getClassPK());
 
-			layoutSetPrototype.setModifiedDate(layoutSet.getModifiedDate());
+			layoutSetPrototype.setModifiedDate(modifiedDate);
 
 			UnicodeProperties settingsProperties =
 				layoutSet.getSettingsProperties();
 
 			settingsProperties.remove("merge-fail-count");
 
-			LayoutSetPrototypeUtil.update(layoutSetPrototype, false);
+			LayoutSetPrototypeUtil.update(layoutSetPrototype);
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -72,6 +76,6 @@ public class LayoutSetPrototypeLayoutSetListener
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(
-		LayoutSetPrototypeLayoutListener.class);
+		LayoutSetPrototypeLayoutSetListener.class);
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.AddressStreetException;
 import com.liferay.portal.AddressZipException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Account;
 import com.liferay.portal.model.Address;
@@ -26,9 +27,10 @@ import com.liferay.portal.model.Contact;
 import com.liferay.portal.model.Country;
 import com.liferay.portal.model.ListTypeConstants;
 import com.liferay.portal.model.Organization;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
+import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.AddressLocalServiceBaseImpl;
-import com.liferay.portal.util.PortalUtil;
 
 import java.util.Date;
 import java.util.List;
@@ -39,6 +41,13 @@ import java.util.List;
  */
 public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #addAddress(long, String,
+	 *             long, String, String, String, String, String, long, long,
+	 *             int, boolean, boolean, ServiceContext)}
+	 */
+	@Deprecated
+	@Override
 	public Address addAddress(
 			long userId, String className, long classPK, String street1,
 			String street2, String street3, String city, String zip,
@@ -46,8 +55,22 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 			boolean primary)
 		throws PortalException, SystemException {
 
+		return addAddress(
+			userId, className, classPK, street1, street2, street3, city, zip,
+			regionId, countryId, typeId, mailing, primary,
+			new ServiceContext());
+	}
+
+	@Override
+	public Address addAddress(
+			long userId, String className, long classPK, String street1,
+			String street2, String street3, String city, String zip,
+			long regionId, long countryId, int typeId, boolean mailing,
+			boolean primary, ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
 		User user = userPersistence.findByPrimaryKey(userId);
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 		Date now = new Date();
 
 		validate(
@@ -58,11 +81,12 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 
 		Address address = addressPersistence.create(addressId);
 
+		address.setUuid(serviceContext.getUuid());
 		address.setCompanyId(user.getCompanyId());
 		address.setUserId(user.getUserId());
 		address.setUserName(user.getFullName());
-		address.setCreateDate(now);
-		address.setModifiedDate(now);
+		address.setCreateDate(serviceContext.getCreateDate(now));
+		address.setModifiedDate(serviceContext.getModifiedDate(now));
 		address.setClassNameId(classNameId);
 		address.setClassPK(classPK);
 		address.setStreet1(street1);
@@ -76,37 +100,60 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 		address.setMailing(mailing);
 		address.setPrimary(primary);
 
-		addressPersistence.update(address, false);
+		addressPersistence.update(address);
 
 		return address;
 	}
 
+	@Override
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE)
+	public Address deleteAddress(Address address) throws SystemException {
+		addressPersistence.remove(address);
+
+		return address;
+	}
+
+	@Override
+	public Address deleteAddress(long addressId)
+		throws PortalException, SystemException {
+
+		Address address = addressPersistence.findByPrimaryKey(addressId);
+
+		return addressLocalService.deleteAddress(address);
+	}
+
+	@Override
 	public void deleteAddresses(long companyId, String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		List<Address> addresses = addressPersistence.findByC_C_C(
 			companyId, classNameId, classPK);
 
 		for (Address address : addresses) {
-			deleteAddress(address);
+			addressLocalService.deleteAddress(address);
 		}
 	}
 
+	@Override
 	public List<Address> getAddresses() throws SystemException {
 		return addressPersistence.findAll();
 	}
 
+	@Override
 	public List<Address> getAddresses(
 			long companyId, String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return addressPersistence.findByC_C_C(companyId, classNameId, classPK);
 	}
 
+	@Override
 	public Address updateAddress(
 			long addressId, String street1, String street2, String street3,
 			String city, String zip, long regionId, long countryId, int typeId,
@@ -131,7 +178,7 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 		address.setMailing(mailing);
 		address.setPrimary(primary);
 
-		addressPersistence.update(address, false);
+		addressPersistence.update(address);
 
 		return address;
 	}
@@ -152,7 +199,7 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 				if ((addressId <= 0) || (address.getAddressId() != addressId)) {
 					address.setMailing(false);
 
-					addressPersistence.update(address, false);
+					addressPersistence.update(address);
 				}
 			}
 		}
@@ -168,7 +215,7 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 				if ((addressId <= 0) || (address.getAddressId() != addressId)) {
 					address.setPrimary(false);
 
-					addressPersistence.update(address, false);
+					addressPersistence.update(address);
 				}
 			}
 		}
@@ -202,9 +249,12 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 			classPK = address.getClassPK();
 		}
 
-		if ((classNameId == PortalUtil.getClassNameId(Account.class)) ||
-			(classNameId == PortalUtil.getClassNameId(Contact.class)) ||
-			(classNameId == PortalUtil.getClassNameId(Organization.class))) {
+		if ((classNameId ==
+				classNameLocalService.getClassNameId(Account.class)) ||
+			(classNameId ==
+				classNameLocalService.getClassNameId(Contact.class)) ||
+			(classNameId ==
+				classNameLocalService.getClassNameId(Organization.class))) {
 
 			listTypeService.validate(
 				typeId, classNameId, ListTypeConstants.ADDRESS);

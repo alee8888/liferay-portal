@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,35 +16,67 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchLayoutSetPrototypeException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.LayoutSetPrototype;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class LayoutSetPrototypePersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (LayoutSetPrototypePersistence)PortalBeanLocatorUtil.locate(LayoutSetPrototypePersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -80,9 +112,15 @@ public class LayoutSetPrototypePersistenceTest {
 
 		LayoutSetPrototype newLayoutSetPrototype = _persistence.create(pk);
 
+		newLayoutSetPrototype.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newLayoutSetPrototype.setUuid(ServiceTestUtil.randomString());
 
 		newLayoutSetPrototype.setCompanyId(ServiceTestUtil.nextLong());
+
+		newLayoutSetPrototype.setUserId(ServiceTestUtil.nextLong());
+
+		newLayoutSetPrototype.setUserName(ServiceTestUtil.randomString());
 
 		newLayoutSetPrototype.setCreateDate(ServiceTestUtil.nextDate());
 
@@ -96,16 +134,22 @@ public class LayoutSetPrototypePersistenceTest {
 
 		newLayoutSetPrototype.setActive(ServiceTestUtil.randomBoolean());
 
-		_persistence.update(newLayoutSetPrototype, false);
+		_persistence.update(newLayoutSetPrototype);
 
 		LayoutSetPrototype existingLayoutSetPrototype = _persistence.findByPrimaryKey(newLayoutSetPrototype.getPrimaryKey());
 
+		Assert.assertEquals(existingLayoutSetPrototype.getMvccVersion(),
+			newLayoutSetPrototype.getMvccVersion());
 		Assert.assertEquals(existingLayoutSetPrototype.getUuid(),
 			newLayoutSetPrototype.getUuid());
 		Assert.assertEquals(existingLayoutSetPrototype.getLayoutSetPrototypeId(),
 			newLayoutSetPrototype.getLayoutSetPrototypeId());
 		Assert.assertEquals(existingLayoutSetPrototype.getCompanyId(),
 			newLayoutSetPrototype.getCompanyId());
+		Assert.assertEquals(existingLayoutSetPrototype.getUserId(),
+			newLayoutSetPrototype.getUserId());
+		Assert.assertEquals(existingLayoutSetPrototype.getUserName(),
+			newLayoutSetPrototype.getUserName());
 		Assert.assertEquals(Time.getShortTimestamp(
 				existingLayoutSetPrototype.getCreateDate()),
 			Time.getShortTimestamp(newLayoutSetPrototype.getCreateDate()));
@@ -120,6 +164,60 @@ public class LayoutSetPrototypePersistenceTest {
 			newLayoutSetPrototype.getSettings());
 		Assert.assertEquals(existingLayoutSetPrototype.getActive(),
 			newLayoutSetPrototype.getActive());
+	}
+
+	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_A() {
+		try {
+			_persistence.countByC_A(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomBoolean());
+
+			_persistence.countByC_A(0L, ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -146,6 +244,25 @@ public class LayoutSetPrototypePersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("LayoutSetPrototype",
+			"mvccVersion", true, "uuid", true, "layoutSetPrototypeId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "name", true, "description", true,
+			"settings", true, "active", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		LayoutSetPrototype newLayoutSetPrototype = addLayoutSetPrototype();
 
@@ -161,6 +278,26 @@ public class LayoutSetPrototypePersistenceTest {
 		LayoutSetPrototype missingLayoutSetPrototype = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingLayoutSetPrototype);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new LayoutSetPrototypeActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					LayoutSetPrototype layoutSetPrototype = (LayoutSetPrototype)object;
+
+					Assert.assertNotNull(layoutSetPrototype);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -244,9 +381,15 @@ public class LayoutSetPrototypePersistenceTest {
 
 		LayoutSetPrototype layoutSetPrototype = _persistence.create(pk);
 
+		layoutSetPrototype.setMvccVersion(ServiceTestUtil.nextLong());
+
 		layoutSetPrototype.setUuid(ServiceTestUtil.randomString());
 
 		layoutSetPrototype.setCompanyId(ServiceTestUtil.nextLong());
+
+		layoutSetPrototype.setUserId(ServiceTestUtil.nextLong());
+
+		layoutSetPrototype.setUserName(ServiceTestUtil.randomString());
 
 		layoutSetPrototype.setCreateDate(ServiceTestUtil.nextDate());
 
@@ -260,10 +403,12 @@ public class LayoutSetPrototypePersistenceTest {
 
 		layoutSetPrototype.setActive(ServiceTestUtil.randomBoolean());
 
-		_persistence.update(layoutSetPrototype, false);
+		_persistence.update(layoutSetPrototype);
 
 		return layoutSetPrototype;
 	}
 
-	private LayoutSetPrototypePersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(LayoutSetPrototypePersistenceTest.class);
+	private LayoutSetPrototypePersistence _persistence = (LayoutSetPrototypePersistence)PortalBeanLocatorUtil.locate(LayoutSetPrototypePersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

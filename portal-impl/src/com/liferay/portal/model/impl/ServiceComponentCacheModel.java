@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,9 +17,13 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.ServiceComponent;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing ServiceComponent in entity cache.
@@ -29,12 +33,24 @@ import java.io.Serializable;
  * @generated
  */
 public class ServiceComponentCacheModel implements CacheModel<ServiceComponent>,
-	Serializable {
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(11);
+		StringBundler sb = new StringBundler(13);
 
-		sb.append("{serviceComponentId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", serviceComponentId=");
 		sb.append(serviceComponentId);
 		sb.append(", buildNamespace=");
 		sb.append(buildNamespace);
@@ -49,9 +65,11 @@ public class ServiceComponentCacheModel implements CacheModel<ServiceComponent>,
 		return sb.toString();
 	}
 
+	@Override
 	public ServiceComponent toEntityModel() {
 		ServiceComponentImpl serviceComponentImpl = new ServiceComponentImpl();
 
+		serviceComponentImpl.setMvccVersion(mvccVersion);
 		serviceComponentImpl.setServiceComponentId(serviceComponentId);
 
 		if (buildNamespace == null) {
@@ -76,6 +94,41 @@ public class ServiceComponentCacheModel implements CacheModel<ServiceComponent>,
 		return serviceComponentImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		serviceComponentId = objectInput.readLong();
+		buildNamespace = objectInput.readUTF();
+		buildNumber = objectInput.readLong();
+		buildDate = objectInput.readLong();
+		data = objectInput.readUTF();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(serviceComponentId);
+
+		if (buildNamespace == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(buildNamespace);
+		}
+
+		objectOutput.writeLong(buildNumber);
+		objectOutput.writeLong(buildDate);
+
+		if (data == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(data);
+		}
+	}
+
+	public long mvccVersion;
 	public long serviceComponentId;
 	public String buildNamespace;
 	public long buildNumber;

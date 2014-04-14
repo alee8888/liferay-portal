@@ -1,0 +1,17 @@
+.aui {
+	.add-content-menu, .lfr-edit-layout-panel, .panel-page-menu .portlet-borderless-container {
+		.accordion .accordion-group {
+			.toggler-header .accordion-toggle {
+				background-position: 0 -20px;
+			}
+
+			.toggler-header-collapsed .accordion-toggle {
+				background-position: 0 0;
+			}
+		}
+	}
+
+	.table-data tr.lfr-role .first {
+		background-position: 95% 50%;
+	}
+}

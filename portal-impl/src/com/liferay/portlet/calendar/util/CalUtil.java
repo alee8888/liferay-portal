@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.calendar.util;
 
+import com.liferay.portal.kernel.cal.TZSRecurrence;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -41,6 +42,33 @@ import javax.portlet.PortletPreferences;
  */
 public class CalUtil {
 
+	public static Date getDaylightSavingTimeOffsetDate(
+		CalEvent event, TimeZone userTimeZone, Calendar cal, Date date) {
+
+		TZSRecurrence recurrence = event.getRecurrenceObj();
+
+		TimeZone eventTimeZone = recurrence.getTimeZone();
+
+		if (eventTimeZone.inDaylightTime(cal.getTime()) ==
+				userTimeZone.inDaylightTime(cal.getTime())) {
+
+			return date;
+		}
+
+		Calendar calendar = Calendar.getInstance();
+
+		calendar.setTime(date);
+
+		if (eventTimeZone.inDaylightTime(cal.getTime())) {
+			calendar.add(Calendar.HOUR_OF_DAY, -1);
+		}
+		else {
+			calendar.add(Calendar.HOUR_OF_DAY, 1);
+		}
+
+		return calendar.getTime();
+	}
+
 	public static String getEmailEventReminderBody(
 		PortletPreferences preferences) {
 
@@ -51,8 +79,8 @@ public class CalUtil {
 			return emailEventReminderBody;
 		}
 		else {
-			return ContentUtil.get(PropsUtil.get(
-				PropsKeys.CALENDAR_EMAIL_EVENT_REMINDER_BODY));
+			return ContentUtil.get(
+				PropsUtil.get(PropsKeys.CALENDAR_EMAIL_EVENT_REMINDER_BODY));
 		}
 	}
 
@@ -66,8 +94,8 @@ public class CalUtil {
 			return GetterUtil.getBoolean(emailEventReminderEnabled);
 		}
 		else {
-			return GetterUtil.getBoolean(PropsUtil.get(
-				PropsKeys.CALENDAR_EMAIL_EVENT_REMINDER_ENABLED));
+			return GetterUtil.getBoolean(
+				PropsUtil.get(PropsKeys.CALENDAR_EMAIL_EVENT_REMINDER_ENABLED));
 		}
 	}
 
@@ -81,8 +109,8 @@ public class CalUtil {
 			return emailEventReminderSubject;
 		}
 		else {
-			return ContentUtil.get(PropsUtil.get(
-				PropsKeys.CALENDAR_EMAIL_EVENT_REMINDER_SUBJECT));
+			return ContentUtil.get(
+				PropsUtil.get(PropsKeys.CALENDAR_EMAIL_EVENT_REMINDER_SUBJECT));
 		}
 	}
 
@@ -115,6 +143,10 @@ public class CalUtil {
 	public static boolean isAllDay(
 		CalEvent event, TimeZone timeZone, Locale locale) {
 
+		if (event.isAllDay()) {
+			return true;
+		}
+
 		Calendar cal = null;
 
 		if (event.getTimeZoneSensitive()) {
@@ -144,7 +176,6 @@ public class CalUtil {
 	}
 
 	public static String toString(Calendar cal, String[] types) {
-
 		StringBundler sb = new StringBundler(9);
 
 		if (cal != null) {

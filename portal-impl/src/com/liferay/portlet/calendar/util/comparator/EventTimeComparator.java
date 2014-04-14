@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portlet.calendar.util.comparator;
 
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portlet.calendar.model.CalEvent;
 import com.liferay.portlet.calendar.util.CalUtil;
@@ -27,7 +28,7 @@ import java.util.TimeZone;
 
 /**
  * @author Samuel Kong
- * @author Janghyun Kim
+ * @author Jang Kim
  */
 public class EventTimeComparator implements Comparator<CalEvent> {
 
@@ -36,6 +37,7 @@ public class EventTimeComparator implements Comparator<CalEvent> {
 		_locale = locale;
 	}
 
+	@Override
 	public int compare(CalEvent event1, CalEvent event2) {
 		boolean allDay1 = CalUtil.isAllDay(event1, _timeZone, _locale);
 		boolean allDay2 = CalUtil.isAllDay(event2, _timeZone, _locale);
@@ -74,8 +76,10 @@ public class EventTimeComparator implements Comparator<CalEvent> {
 	}
 
 	protected int compareTitle(CalEvent event1, CalEvent event2) {
-		return event1.getTitle().toLowerCase().compareTo(
-			event2.getTitle().toLowerCase());
+		String title1 = StringUtil.toLowerCase(event1.getTitle());
+		String title2 = StringUtil.toLowerCase(event2.getTitle());
+
+		return title1.compareTo(title2);
 	}
 
 	protected Long getDuration(CalEvent event) {
@@ -108,13 +112,12 @@ public class EventTimeComparator implements Comparator<CalEvent> {
 
 			return Time.getDate(calendar);
 		}
+
+		if (event.isTimeZoneSensitive()) {
+			return Time.getDate(event.getStartDate(), timeZone);
+		}
 		else {
-			if (event.isTimeZoneSensitive()) {
-				return Time.getDate(event.getStartDate(), timeZone);
-			}
-			else {
-				return event.getStartDate();
-			}
+			return event.getStartDate();
 		}
 	}
 

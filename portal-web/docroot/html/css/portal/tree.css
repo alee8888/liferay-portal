@@ -1,29 +1,43 @@
-.lfr-tree .aui-tree-label {
-	display: table-cell;
-	float: none;
-	padding-left: 2px;
-}
+@import "compass";
 
-.lfr-tree li {
-	margin-bottom: 2px;
-	padding-left: 0;
-}
+.lfr-tree {
+	.tree-label {
+		display: inline-block;
+	}
 
-.lfr-tree li ul li, .lfr-tree li.tree-item {
-	padding-left: 0;
-}
+	li {
+		margin-bottom: 2px;
+		padding-left: 0;
 
-.lfr-tree li.tree-item {
-	padding-left: 5px;
-}
+		ul li, &.tree-item {
+			padding-left: 0;
+		}
 
-.lfr-tree li.tree-item li {
-	padding-left: 20px;
-}
+		&.tree-node .tree-node-content {
+			@include ellipsis;
 
-.lfr-tree li.tree-item ul {
-	margin-left: 0;
-	margin-top: 5px;
+			.tree-label {
+				display: inline;
+			}
+		}
+
+		&.tree-item {
+			padding-left: 5px;
+
+			li {
+				padding-left: 20px;
+			}
+
+			ul {
+				margin-left: 0;
+				margin-top: 5px;
+			}
+		}
+	}
+
+	.tree-container, .tree-root-container {
+		margin-left: 15px;
+	}
 }
 
 /* Skin */

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,6 +30,7 @@ import java.util.List;
 public class AssetCategoryPropertyServiceImpl
 	extends AssetCategoryPropertyServiceBaseImpl {
 
+	@Override
 	public AssetCategoryProperty addCategoryProperty(
 			long entryId, String key, String value)
 		throws PortalException, SystemException {
@@ -41,6 +42,7 @@ public class AssetCategoryPropertyServiceImpl
 			getUserId(), entryId, key, value);
 	}
 
+	@Override
 	public void deleteCategoryProperty(long categoryPropertyId)
 		throws PortalException, SystemException {
 
@@ -56,12 +58,14 @@ public class AssetCategoryPropertyServiceImpl
 			categoryPropertyId);
 	}
 
+	@Override
 	public List<AssetCategoryProperty> getCategoryProperties(long entryId)
 		throws SystemException {
 
 		return assetCategoryPropertyLocalService.getCategoryProperties(entryId);
 	}
 
+	@Override
 	public List<AssetCategoryProperty> getCategoryPropertyValues(
 			long companyId, String key)
 		throws SystemException {
@@ -70,8 +74,9 @@ public class AssetCategoryPropertyServiceImpl
 			companyId, key);
 	}
 
+	@Override
 	public AssetCategoryProperty updateCategoryProperty(
-			long categoryPropertyId, String key, String value)
+			long userId, long categoryPropertyId, String key, String value)
 		throws PortalException, SystemException {
 
 		AssetCategoryProperty assetCategoryProperty =
@@ -83,7 +88,15 @@ public class AssetCategoryPropertyServiceImpl
 			ActionKeys.UPDATE);
 
 		return assetCategoryPropertyLocalService.updateCategoryProperty(
-			categoryPropertyId, key, value);
+			userId, categoryPropertyId, key, value);
+	}
+
+	@Override
+	public AssetCategoryProperty updateCategoryProperty(
+			long categoryPropertyId, String key, String value)
+		throws PortalException, SystemException {
+
+		return updateCategoryProperty(0, categoryPropertyId, key, value);
 	}
 
 }

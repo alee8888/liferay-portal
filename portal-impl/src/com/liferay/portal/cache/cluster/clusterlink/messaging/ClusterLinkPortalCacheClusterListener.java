@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,12 +20,15 @@ import com.liferay.portal.dao.orm.hibernate.region.SingletonLiferayEhcacheRegion
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.cache.cluster.PortalCacheClusterEvent;
 import com.liferay.portal.kernel.cache.cluster.PortalCacheClusterEventType;
+import com.liferay.portal.kernel.io.Deserializer;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.BaseMessageListener;
 import com.liferay.portal.kernel.messaging.Message;
 
 import java.io.Serializable;
+
+import java.nio.ByteBuffer;
 
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Ehcache;
@@ -42,8 +45,8 @@ public class ClusterLinkPortalCacheClusterListener extends BaseMessageListener {
 
 		_hibernateCacheManager = liferayEhcacheRegionFactory.getCacheManager();
 
-		EhcachePortalCacheManager ehcachePortalCacheManager =
-			(EhcachePortalCacheManager)PortalBeanLocatorUtil.locate(
+		EhcachePortalCacheManager<?, ?> ehcachePortalCacheManager =
+			(EhcachePortalCacheManager<?, ?>)PortalBeanLocatorUtil.locate(
 				_MULTI_VM_PORTAL_CACHE_MANAGER_BEAN_NAME);
 
 		_portalCacheManager = ehcachePortalCacheManager.getEhcacheManager();
@@ -51,8 +54,12 @@ public class ClusterLinkPortalCacheClusterListener extends BaseMessageListener {
 
 	@Override
 	protected void doReceive(Message message) throws Exception {
+		byte[] data = (byte[])message.getPayload();
+
+		Deserializer deserializer = new Deserializer(ByteBuffer.wrap(data));
+
 		PortalCacheClusterEvent portalCacheClusterEvent =
-			(PortalCacheClusterEvent)message.getPayload();
+			(PortalCacheClusterEvent)deserializer.readObject();
 
 		if (portalCacheClusterEvent == null) {
 			if (_log.isWarnEnabled()) {
@@ -66,7 +73,7 @@ public class ClusterLinkPortalCacheClusterListener extends BaseMessageListener {
 
 		Ehcache ehcache = _portalCacheManager.getEhcache(cacheName);
 
-		if (ehcache == null) {
+		if ((ehcache == null) && (_hibernateCacheManager != null)) {
 			ehcache = _hibernateCacheManager.getEhcache(cacheName);
 		}
 
@@ -81,7 +88,7 @@ public class ClusterLinkPortalCacheClusterListener extends BaseMessageListener {
 			}
 			else if (portalCacheClusterEventType.equals(
 						PortalCacheClusterEventType.PUT) ||
-					portalCacheClusterEventType.equals(
+					 portalCacheClusterEventType.equals(
 						PortalCacheClusterEventType.UPDATE)) {
 
 				Serializable elementKey =
@@ -90,19 +97,10 @@ public class ClusterLinkPortalCacheClusterListener extends BaseMessageListener {
 					portalCacheClusterEvent.getElementValue();
 
 				if (elementValue == null) {
-					ehcache.remove(
-						portalCacheClusterEvent.getElementKey(), true);
+					ehcache.remove(elementKey, true);
 				}
 				else {
-					Element oldElement = ehcache.get(elementKey);
-					Element newElement = new Element(elementKey, elementValue);
-
-					if (oldElement != null) {
-						ehcache.replace(newElement);
-					}
-					else {
-						ehcache.put(newElement);
-					}
+					ehcache.put(new Element(elementKey, elementValue), true);
 				}
 			}
 			else {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,8 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.transaction.Propagation;
+import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portlet.documentlibrary.DuplicateFileException;
@@ -111,6 +113,7 @@ public class DBStore extends BaseStore {
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public InputStream getFileAsStream(
 			long companyId, long repositoryId, String fileName)
 		throws PortalException, SystemException {
@@ -159,6 +162,7 @@ public class DBStore extends BaseStore {
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public InputStream getFileAsStream(
 			long companyId, long repositoryId, String fileName,
 			String versionLabel)
@@ -209,6 +213,7 @@ public class DBStore extends BaseStore {
 		}
 	}
 
+	@Override
 	public String[] getFileNames(long companyId, long repositoryId)
 		throws SystemException {
 
@@ -287,6 +292,7 @@ public class DBStore extends BaseStore {
 			companyId, repositoryId, newRepositoryId, fileName, fileName);
 	}
 
+	@Override
 	public void updateFile(
 			long companyId, long repositoryId, String fileName,
 			String newFileName)
@@ -327,7 +333,7 @@ public class DBStore extends BaseStore {
 		InputStream inputStream = null;
 
 		try {
-			 inputStream = new FileInputStream(file);
+			inputStream = new FileInputStream(file);
 		}
 		catch (FileNotFoundException fnfe) {
 			throw new SystemException(fnfe);

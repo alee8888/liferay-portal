@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,16 @@
 
 package com.liferay.portal.kernel.messaging;
 
+import com.liferay.portal.kernel.io.Deserializer;
+import com.liferay.portal.kernel.io.Serializer;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.TransientValue;
 
 import java.io.Serializable;
+
+import java.nio.ByteBuffer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +33,14 @@ import java.util.Map;
  * @author Michael C. Han
  */
 public class Message implements Cloneable, Serializable {
+
+	public static Message fromByteArray(byte[] bytes)
+		throws ClassNotFoundException {
+
+		Deserializer deserializer = new Deserializer(ByteBuffer.wrap(bytes));
+
+		return deserializer.readObject();
+	}
 
 	@Override
 	public Message clone() {
@@ -54,13 +68,45 @@ public class Message implements Cloneable, Serializable {
 		}
 	}
 
+	public void copyFrom(Message message) {
+		_destinationName = message._destinationName;
+		_payload = message._payload;
+		_response = message._response;
+		_responseDestinationName = message._responseDestinationName;
+		_responseId = message._responseId;
+
+		if (message._values != null) {
+			_values = new HashMap<String, Object>(message._values);
+		}
+	}
+
+	public void copyTo(Message message) {
+		message._destinationName = _destinationName;
+		message._payload = _payload;
+		message._response = _response;
+		message._responseDestinationName = _responseDestinationName;
+		message._responseId = _responseId;
+
+		if (_values != null) {
+			message._values = new HashMap<String, Object>(_values);
+		}
+	}
+
 	public Object get(String key) {
 		if (_values == null) {
 			return null;
 		}
-		else {
-			return _values.get(key);
+
+		Object value = _values.get(key);
+
+		if (value instanceof TransientValue) {
+			TransientValue<Object> transientValue =
+				(TransientValue<Object>)value;
+
+			value = transientValue.getValue();
 		}
+
+		return value;
 	}
 
 	public boolean getBoolean(String key) {
@@ -152,8 +198,20 @@ public class Message implements Cloneable, Serializable {
 	}
 
 	public void put(String key, Object value) {
+		if (value == null) {
+			if (_values != null) {
+				_values.remove(key);
+			}
+
+			return;
+		}
+
 		if (_values == null) {
-			 _values = new HashMap<String, Object>();
+			_values = new HashMap<String, Object>();
+		}
+
+		if (!(value instanceof Serializable)) {
+			value = new TransientValue<Object>(value);
 		}
 
 		_values.put(key, value);
@@ -189,6 +247,16 @@ public class Message implements Cloneable, Serializable {
 		_values = values;
 	}
 
+	public byte[] toByteArray() {
+		Serializer serializer = new Serializer();
+
+		serializer.writeObject(this);
+
+		ByteBuffer byteBuffer = serializer.toByteBuffer();
+
+		return byteBuffer.array();
+	}
+
 	@Override
 	public String toString() {
 		StringBundler sb = new StringBundler(11);
@@ -204,7 +272,7 @@ public class Message implements Cloneable, Serializable {
 		sb.append(", payload=");
 		sb.append(_payload);
 		sb.append(", values=");
-		sb.append(_values);
+		sb.append(MapUtil.toString(_values, null, ".*[pP]assword.*"));
 		sb.append("}");
 
 		return sb.toString();
@@ -212,7 +280,7 @@ public class Message implements Cloneable, Serializable {
 
 	private String _destinationName;
 	private Object _payload;
-	private transient Object _response;
+	private Object _response;
 	private String _responseDestinationName;
 	private String _responseId;
 	private Map<String, Object> _values;

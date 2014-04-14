@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portlet.social.model.impl;
 
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
@@ -22,8 +23,10 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -72,6 +75,8 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		};
 	public static final String TABLE_SQL_CREATE = "create table SocialActivityLimit (activityLimitId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,classNameId LONG,classPK LONG,activityType INTEGER,activityCounterName VARCHAR(75) null,value VARCHAR(75) null)";
 	public static final String TABLE_SQL_DROP = "drop table SocialActivityLimit";
+	public static final String ORDER_BY_JPQL = " ORDER BY socialActivityLimit.activityLimitId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY SocialActivityLimit.activityLimitId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -90,32 +95,39 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 	public static long CLASSPK_COLUMN_BITMASK = 8L;
 	public static long GROUPID_COLUMN_BITMASK = 16L;
 	public static long USERID_COLUMN_BITMASK = 32L;
+	public static long ACTIVITYLIMITID_COLUMN_BITMASK = 64L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.social.model.SocialActivityLimit"));
 
 	public SocialActivityLimitModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _activityLimitId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setActivityLimitId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_activityLimitId);
+		return _activityLimitId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return SocialActivityLimit.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return SocialActivityLimit.class.getName();
 	}
@@ -133,6 +145,9 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		attributes.put("activityType", getActivityType());
 		attributes.put("activityCounterName", getActivityCounterName());
 		attributes.put("value", getValue());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -195,18 +210,22 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		}
 	}
 
+	@Override
 	public long getActivityLimitId() {
 		return _activityLimitId;
 	}
 
+	@Override
 	public void setActivityLimitId(long activityLimitId) {
 		_activityLimitId = activityLimitId;
 	}
 
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
 
+	@Override
 	public void setGroupId(long groupId) {
 		_columnBitmask |= GROUPID_COLUMN_BITMASK;
 
@@ -223,18 +242,22 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		return _originalGroupId;
 	}
 
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_companyId = companyId;
 	}
 
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
 
+	@Override
 	public void setUserId(long userId) {
 		_columnBitmask |= USERID_COLUMN_BITMASK;
 
@@ -247,18 +270,27 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		_userId = userId;
 	}
 
+	@Override
 	public String getUserUuid() throws SystemException {
-		return PortalUtil.getUserValue(getUserId(), "uuid", _userUuid);
+		try {
+			User user = UserLocalServiceUtil.getUserById(getUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
+		}
 	}
 
+	@Override
 	public void setUserUuid(String userUuid) {
-		_userUuid = userUuid;
 	}
 
 	public long getOriginalUserId() {
 		return _originalUserId;
 	}
 
+	@Override
 	public String getClassName() {
 		if (getClassNameId() <= 0) {
 			return StringPool.BLANK;
@@ -267,6 +299,7 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		return PortalUtil.getClassName(getClassNameId());
 	}
 
+	@Override
 	public void setClassName(String className) {
 		long classNameId = 0;
 
@@ -277,10 +310,12 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		setClassNameId(classNameId);
 	}
 
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
 
+	@Override
 	public void setClassNameId(long classNameId) {
 		_columnBitmask |= CLASSNAMEID_COLUMN_BITMASK;
 
@@ -297,10 +332,12 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		return _originalClassNameId;
 	}
 
+	@Override
 	public long getClassPK() {
 		return _classPK;
 	}
 
+	@Override
 	public void setClassPK(long classPK) {
 		_columnBitmask |= CLASSPK_COLUMN_BITMASK;
 
@@ -317,10 +354,12 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		return _originalClassPK;
 	}
 
+	@Override
 	public int getActivityType() {
 		return _activityType;
 	}
 
+	@Override
 	public void setActivityType(int activityType) {
 		_columnBitmask |= ACTIVITYTYPE_COLUMN_BITMASK;
 
@@ -337,6 +376,7 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		return _originalActivityType;
 	}
 
+	@Override
 	public String getActivityCounterName() {
 		if (_activityCounterName == null) {
 			return StringPool.BLANK;
@@ -346,6 +386,7 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		}
 	}
 
+	@Override
 	public void setActivityCounterName(String activityCounterName) {
 		_columnBitmask |= ACTIVITYCOUNTERNAME_COLUMN_BITMASK;
 
@@ -360,6 +401,7 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		return GetterUtil.getString(_originalActivityCounterName);
 	}
 
+	@Override
 	public String getValue() {
 		if (_value == null) {
 			return StringPool.BLANK;
@@ -369,23 +411,13 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		}
 	}
 
+	@Override
 	public void setValue(String value) {
 		_value = value;
 	}
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public SocialActivityLimit toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (SocialActivityLimit)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -399,6 +431,16 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public SocialActivityLimit toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (SocialActivityLimit)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -420,6 +462,7 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		return socialActivityLimitImpl;
 	}
 
+	@Override
 	public int compareTo(SocialActivityLimit socialActivityLimit) {
 		long primaryKey = socialActivityLimit.getPrimaryKey();
 
@@ -436,18 +479,15 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SocialActivityLimit)) {
 			return false;
 		}
 
-		SocialActivityLimit socialActivityLimit = null;
-
-		try {
-			socialActivityLimit = (SocialActivityLimit)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		SocialActivityLimit socialActivityLimit = (SocialActivityLimit)obj;
 
 		long primaryKey = socialActivityLimit.getPrimaryKey();
 
@@ -462,6 +502,16 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -558,6 +608,7 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(31);
 
@@ -608,7 +659,7 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 	}
 
 	private static ClassLoader _classLoader = SocialActivityLimit.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			SocialActivityLimit.class
 		};
 	private long _activityLimitId;
@@ -617,7 +668,6 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 	private boolean _setOriginalGroupId;
 	private long _companyId;
 	private long _userId;
-	private String _userUuid;
 	private long _originalUserId;
 	private boolean _setOriginalUserId;
 	private long _classNameId;
@@ -633,5 +683,5 @@ public class SocialActivityLimitModelImpl extends BaseModelImpl<SocialActivityLi
 	private String _originalActivityCounterName;
 	private String _value;
 	private long _columnBitmask;
-	private SocialActivityLimit _escapedModelProxy;
+	private SocialActivityLimit _escapedModel;
 }

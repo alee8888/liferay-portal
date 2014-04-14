@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,7 +25,6 @@ import com.liferay.portal.security.ntlm.msrpc.NetrLogonSamLogon;
 import java.io.IOException;
 
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 
 import jcifs.dcerpc.DcerpcBinding;
 import jcifs.dcerpc.DcerpcHandle;
@@ -47,10 +46,8 @@ public class Netlogon {
 		NetlogonConnection netlogonConnection = new NetlogonConnection();
 
 		try {
-
 			netlogonConnection.connect(
-				_domainController, _domainControllerName, _ntlmServiceAccount,
-				_secureRandom);
+				_domainController, _domainControllerName, _ntlmServiceAccount);
 
 			NetlogonAuthenticator netlogonAuthenticator =
 				netlogonConnection.computeNetlogonAuthenticator();
@@ -80,13 +77,12 @@ public class Netlogon {
 
 				return new NtlmUserAccount(name.toString());
 			}
-			else {
-				SmbException smbe = new SmbException(
-					netrLogonSamLogon.getStatus(), false);
 
-				throw new NtlmLogonException(
-					"Unable to authenticate user: " + smbe.getMessage());
-			}
+			SmbException smbe = new SmbException(
+				netrLogonSamLogon.getStatus(), false);
+
+			throw new NtlmLogonException(
+				"Unable to authenticate user: " + smbe.getMessage());
 		}
 		catch (NoSuchAlgorithmException nsae) {
 			throw new NtlmLogonException(
@@ -123,7 +119,6 @@ public class Netlogon {
 	private String _domainController;
 	private String _domainControllerName;
 	private NtlmServiceAccount _ntlmServiceAccount;
-	private SecureRandom _secureRandom = new SecureRandom();
 
 	static {
 		DcerpcBinding.addInterface(

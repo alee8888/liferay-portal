@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.documentlibrary.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
- * The utility for the d l app local service. This utility wraps {@link com.liferay.portlet.documentlibrary.service.impl.DLAppLocalServiceImpl} and is the primary access point for service operations in application layer code running on the local server.
- *
- * <p>
- * This is a local service. Methods of this service will not have security checks based on the propagated JAAS credentials because this service can only be accessed from within the same VM.
- * </p>
+ * Provides the local service utility for DLApp. This utility wraps
+ * {@link com.liferay.portlet.documentlibrary.service.impl.DLAppLocalServiceImpl} and is the
+ * primary access point for service operations in application layer code running
+ * on the local server. Methods of this service will not have security checks
+ * based on the propagated JAAS credentials because this service can only be
+ * accessed from within the same VM.
  *
  * @author Brian Wing Shun Chan
  * @see DLAppLocalService
@@ -30,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.documentlibrary.service.impl.DLAppLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class DLAppLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -103,7 +107,8 @@ public class DLAppLocalServiceUtil {
 	}
 
 	/**
-	* Adds a file entry and associated metadata based on a {@link File} object.
+	* Adds a file entry and associated metadata based on a {@link java.io.File}
+	* object.
 	*
 	* <p>
 	* This method takes two file names, the <code>sourceFileName</code> and the
@@ -416,7 +421,7 @@ public class DLAppLocalServiceUtil {
 	/**
 	* Returns the file entry with the UUID and group.
 	*
-	* @param uuid the file entry's universally unique identifier
+	* @param uuid the file entry's UUID
 	* @param groupId the primary key of the file entry's group
 	* @return the file entry with the UUID and group
 	* @throws PortalException if the file entry could not be found
@@ -547,6 +552,112 @@ public class DLAppLocalServiceUtil {
 	}
 
 	/**
+	* Moves the file entry with the primary key to the trash portlet.
+	*
+	* @param userId the primary key of the user
+	* @param fileEntryId the primary key of the file entry
+	* @return the file entry
+	* @throws PortalException if the file entry could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.kernel.repository.model.FileEntry moveFileEntryToTrash(
+		long userId, long fileEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().moveFileEntryToTrash(userId, fileEntryId);
+	}
+
+	public static com.liferay.portal.kernel.repository.model.Folder moveFolder(
+		long userId, long folderId, long parentFolderId,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .moveFolder(userId, folderId, parentFolderId, serviceContext);
+	}
+
+	/**
+	* Restores the file entry with the primary key from the trash portlet.
+	*
+	* @param userId the primary key of the user
+	* @param fileEntryId the primary key of the file entry
+	* @throws PortalException if the file entry could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void restoreFileEntryFromTrash(long userId, long fileEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().restoreFileEntryFromTrash(userId, fileEntryId);
+	}
+
+	/**
+	* Subscribe the user to changes in documents of the file entry type. This
+	* method is only supported by the Liferay repository.
+	*
+	* @param userId the primary key of the user
+	* @param groupId the primary key of the file entry type's group
+	* @param fileEntryTypeId the primary key of the file entry type
+	* @throws PortalException if the user or group could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void subscribeFileEntryType(long userId, long groupId,
+		long fileEntryTypeId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().subscribeFileEntryType(userId, groupId, fileEntryTypeId);
+	}
+
+	/**
+	* Subscribe the user to document changes in the folder. This method is only
+	* supported by the Liferay repository.
+	*
+	* @param userId the primary key of the user
+	* @param groupId the primary key of the folder's group
+	* @param folderId the primary key of the folder
+	* @throws PortalException if the user or group could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void subscribeFolder(long userId, long groupId, long folderId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().subscribeFolder(userId, groupId, folderId);
+	}
+
+	/**
+	* Unsubscribe the user from changes in documents of the file entry type.
+	* This method is only supported by the Liferay repository.
+	*
+	* @param userId the primary key of the user
+	* @param groupId the primary key of the file entry type's group
+	* @param fileEntryTypeId the primary key of the file entry type
+	* @throws PortalException if the user or group could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void unsubscribeFileEntryType(long userId, long groupId,
+		long fileEntryTypeId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().unsubscribeFileEntryType(userId, groupId, fileEntryTypeId);
+	}
+
+	/**
+	* Unsubscribe the user from document changes in the folder. This method is
+	* only supported by the Liferay repository.
+	*
+	* @param userId the primary key of the user
+	* @param groupId the primary key of the folder's group
+	* @param folderId the primary key of the folder
+	* @throws PortalException if the user or group could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void unsubscribeFolder(long userId, long groupId,
+		long folderId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().unsubscribeFolder(userId, groupId, folderId);
+	}
+
+	/**
 	* Updates the file entry's asset replacing its asset categories, tags, and
 	* links.
 	*
@@ -622,10 +733,11 @@ public class DLAppLocalServiceUtil {
 	}
 
 	/**
-	* Updates a file entry and associated metadata based on a {@link File}
-	* object. If the file data is <code>null</code>, then only the associated
-	* metadata (i.e., <code>title</code>, <code>description</code>, and
-	* parameters in the <code>serviceContext</code>) will be updated.
+	* Updates a file entry and associated metadata based on a {@link
+	* java.io.File} object. If the file data is <code>null</code>, then only
+	* the associated metadata (i.e., <code>title</code>,
+	* <code>description</code>, and parameters in the
+	* <code>serviceContext</code>) will be updated.
 	*
 	* <p>
 	* This method takes two file names, the <code>sourceFileName</code> and the
@@ -646,7 +758,7 @@ public class DLAppLocalServiceUtil {
 	* @param changeLog the file's version change log (optionally
 	<code>null</code>)
 	* @param majorVersion whether the new file version is a major version
-	* @param file EntryId the primary key of the file entry
+	* @param file the file's data (optionally <code>null</code>)
 	* @param serviceContext the service context to be applied. Can set the
 	asset category IDs, asset tag names, and expando bridge
 	attributes for the file entry. In a Liferay repository, it may
@@ -797,17 +909,15 @@ public class DLAppLocalServiceUtil {
 	* @param serviceContext the service context to be applied. In a Liferay
 	repository, it may include:  <ul> <li> defaultFileEntryTypeId -
 	the file entry type to default all Liferay file entries to </li>
-	<li> fileEntryTypeSearchContainerPrimaryKeys - a comma-delimited
-	list of file entry type primary keys allowed in the given folder
-	and all descendants </li> <li> mountPoint - boolean specifying
-	whether folder is a facade for mounting a third-party repository
-	</li> <li> overrideFileEntryTypes - boolean specifying whether to
-	override ancestral folder's restriction of file entry types
-	allowed </li> <li> workflowDefinitionXYZ - the workflow
-	definition name specified per file entry type. The parameter name
-	must be the string <code>workflowDefinition</code> appended by
-	the <code>fileEntryTypeId</code> (optionally <code>0</code>).
-	</li> </ul>
+	<li> dlFileEntryTypesSearchContainerPrimaryKeys - a
+	comma-delimited list of file entry type primary keys allowed in
+	the given folder and all descendants </li> <li>
+	overrideFileEntryTypes - boolean specifying whether to override
+	ancestral folder's restriction of file entry types allowed </li>
+	<li> workflowDefinitionXYZ - the workflow definition name
+	specified per file entry type. The parameter name must be the
+	string <code>workflowDefinition</code> appended by the <code>
+	fileEntryTypeId</code> (optionally <code>0</code>). </li> </ul>
 	* @return the folder
 	* @throws PortalException if the current or new parent folder could not be
 	found, or if the new parent folder's information was invalid
@@ -836,8 +946,9 @@ public class DLAppLocalServiceUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(DLAppLocalService service) {
 	}
 

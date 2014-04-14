@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -37,6 +37,7 @@ public class PollerCometHandler extends BaseCometHandler {
 		return new PollerCometHandler();
 	}
 
+	@Override
 	public void receiveData(String data) {
 	}
 
@@ -66,8 +67,8 @@ public class PollerCometHandler extends BaseCometHandler {
 				cometRequest.getRequest(), pollerRequestString);
 
 		if (pollerResponseHeaderJSONObject != null) {
-			 _channelListener = new PollerCometChannelListener(
-				 cometSession, pollerResponseHeaderJSONObject);
+			_channelListener = new PollerCometChannelListener(
+				cometSession, pollerResponseHeaderJSONObject);
 
 			try {
 				ChannelHubManagerUtil.registerChannelListener(

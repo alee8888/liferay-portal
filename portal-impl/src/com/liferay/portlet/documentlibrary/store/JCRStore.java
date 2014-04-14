@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -463,6 +463,7 @@ public class JCRStore extends BaseStore {
 		}
 	}
 
+	@Override
 	public String[] getFileNames(long companyId, long repositoryId)
 		throws SystemException {
 
@@ -498,7 +499,7 @@ public class JCRStore extends BaseStore {
 			JCRFactoryUtil.closeSession(session);
 		}
 
-		return fileNames.toArray(new String[0]);
+		return fileNames.toArray(new String[fileNames.size()]);
 	}
 
 	@Override
@@ -695,6 +696,7 @@ public class JCRStore extends BaseStore {
 		}
 	}
 
+	@Override
 	public void updateFile(
 			long companyId, long repositoryId, String fileName,
 			String newFileName)
@@ -802,7 +804,7 @@ public class JCRStore extends BaseStore {
 			Version version = versionManager.checkin(contentNode.getPath());
 
 			VersionHistory versionHistory = versionManager.getVersionHistory(
-					contentNode.getPath());
+				contentNode.getPath());
 
 			versionHistory.addVersionLabel(
 				version.getName(), versionLabel,

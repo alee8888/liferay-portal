@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portal.lar;
 
 import com.liferay.portal.NoSuchTeamException;
+import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
@@ -22,11 +23,14 @@ import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.Role;
+import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.model.Team;
+import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.service.RoleLocalServiceUtil;
 import com.liferay.portal.service.TeamLocalServiceUtil;
@@ -51,6 +55,78 @@ import java.util.Map;
  */
 public class PermissionImporter {
 
+	protected Role checkRole(
+			LayoutCache layoutCache, long companyId, long groupId, long userId,
+			Element roleElement)
+		throws Exception {
+
+		String name = roleElement.attributeValue("name");
+
+		Role role = null;
+
+		if (name.startsWith(PermissionExporter.ROLE_TEAM_PREFIX)) {
+			name = name.substring(PermissionExporter.ROLE_TEAM_PREFIX.length());
+
+			String description = roleElement.attributeValue("description");
+
+			Team team = null;
+
+			try {
+				team = TeamLocalServiceUtil.getTeam(groupId, name);
+			}
+			catch (NoSuchTeamException nste) {
+				team = TeamLocalServiceUtil.addTeam(
+					userId, groupId, name, description);
+			}
+
+			role = RoleLocalServiceUtil.getTeamRole(
+				companyId, team.getTeamId());
+		}
+		else {
+			role = layoutCache.getRole(companyId, name);
+		}
+
+		if (role == null) {
+			String title = roleElement.attributeValue("title");
+
+			Map<Locale, String> titleMap = LocalizationUtil.getLocalizationMap(
+				title);
+
+			String description = roleElement.attributeValue("description");
+
+			Map<Locale, String> descriptionMap =
+				LocalizationUtil.getLocalizationMap(description);
+
+			int type = GetterUtil.getInteger(
+				roleElement.attributeValue("type"));
+			String subtype = roleElement.attributeValue("subtype");
+
+			role = RoleLocalServiceUtil.addRole(
+				userId, null, 0, name, titleMap, descriptionMap, type, subtype,
+				null);
+		}
+
+		return role;
+	}
+
+	protected void checkRoles(
+			LayoutCache layoutCache, long companyId, long groupId, long userId,
+			Element portletElement)
+		throws Exception {
+
+		Element permissionsElement = portletElement.element("permissions");
+
+		if (permissionsElement == null) {
+			return;
+		}
+
+		List<Element> roleElements = permissionsElement.elements("role");
+
+		for (Element roleElement : roleElements) {
+			checkRole(layoutCache, companyId, groupId, userId, roleElement);
+		}
+	}
+
 	protected List<String> getActions(Element element) {
 		List<String> actions = new ArrayList<String>();
 
@@ -63,26 +139,9 @@ public class PermissionImporter {
 		return actions;
 	}
 
-	protected void importLayoutPermissions(
-			LayoutCache layoutCache, long companyId, long groupId, long userId,
-			Layout layout, Element layoutElement, Element parentElement)
-		throws Exception {
-
-		Element permissionsElement = layoutElement.element("permissions");
-
-		if (permissionsElement != null) {
-			String resourceName = Layout.class.getName();
-			String resourcePrimKey = String.valueOf(layout.getPlid());
-
-			importPermissions(
-				layoutCache, companyId, groupId, userId, resourceName,
-				resourcePrimKey, permissionsElement, false);
-		}
-	}
-
 	protected void importPermissions(
 			LayoutCache layoutCache, long companyId, long groupId, long userId,
-			String resourceName, String resourcePrimKey,
+			Layout layout, String resourceName, String resourcePrimKey,
 			Element permissionsElement, boolean portletActions)
 		throws Exception {
 
@@ -91,48 +150,19 @@ public class PermissionImporter {
 		List<Element> roleElements = permissionsElement.elements("role");
 
 		for (Element roleElement : roleElements) {
-			String name = roleElement.attributeValue("name");
-			int type = GetterUtil.getInteger(
-				roleElement.attributeValue("type"));
+			Role role = checkRole(
+				layoutCache, companyId, groupId, userId, roleElement);
 
-			Role role = null;
+			Group group = GroupLocalServiceUtil.getGroup(groupId);
 
-			if (name.startsWith(PermissionExporter.ROLE_TEAM_PREFIX)) {
-				name = name.substring(
-					PermissionExporter.ROLE_TEAM_PREFIX.length());
+			if (!group.isLayoutPrototype() && !group.isLayoutSetPrototype() &&
+				layout.isPrivateLayout()) {
 
-				String description = roleElement.attributeValue("description");
+				String roleName = role.getName();
 
-				Team team = null;
-
-				try {
-					team = TeamLocalServiceUtil.getTeam(groupId, name);
+				if (roleName.equals(RoleConstants.GUEST)) {
+					continue;
 				}
-				catch (NoSuchTeamException nste) {
-					team = TeamLocalServiceUtil.addTeam(
-						userId, groupId, name, description);
-				}
-
-				role = RoleLocalServiceUtil.getTeamRole(
-					companyId, team.getTeamId());
-			}
-			else {
-				role = layoutCache.getRole(companyId, name);
-			}
-
-			if (role == null) {
-				String title = roleElement.attributeValue("title");
-
-				Map<Locale, String> titleMap =
-					LocalizationUtil.getLocalizationMap(title);
-
-				String description = roleElement.attributeValue("description");
-
-				Map<Locale, String> descriptionMap =
-					LocalizationUtil.getLocalizationMap(description);
-
-				role = RoleLocalServiceUtil.addRole(
-					userId, companyId, name, titleMap, descriptionMap, type);
 			}
 
 			List<String> actions = getActions(roleElement);
@@ -157,14 +187,14 @@ public class PermissionImporter {
 
 		Element permissionsElement = portletElement.element("permissions");
 
-		if (permissionsElement != null) {
+		if ((layout != null) && (permissionsElement != null)) {
 			String resourceName = PortletConstants.getRootPortletId(portletId);
 
 			String resourcePrimKey = PortletPermissionUtil.getPrimaryKey(
 				layout.getPlid(), portletId);
 
 			importPermissions(
-				layoutCache, companyId, groupId, userId, resourceName,
+				layoutCache, companyId, groupId, userId, layout, resourceName,
 				resourcePrimKey, permissionsElement, true);
 		}
 	}
@@ -174,7 +204,7 @@ public class PermissionImporter {
 		throws Exception {
 
 		String xml = portletDataContext.getZipEntryAsString(
-			portletDataContext.getSourceRootPath() +
+			ExportImportPathUtil.getSourceRootPath(portletDataContext) +
 				"/portlet-data-permissions.xml");
 
 		if (xml == null) {

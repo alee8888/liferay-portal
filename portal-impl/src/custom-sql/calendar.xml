@@ -31,8 +31,16 @@
 					) OR
 					(
 						(repeating = [$TRUE$]) AND
-						(endDate >= ?)
+						(endDate >= ? OR endDate IS NULL)
 					)
+				) AND
+				EXISTS (
+					SELECT
+						1
+					FROM
+						User_
+					WHERE
+						User_.userId = CalEvent.userId
 				)
 		]]>
 	</sql>
@@ -43,7 +51,7 @@
 			FROM
 				CalEvent
 			WHERE
-				(eventId NOT IN(
+				(eventId NOT IN (
 					SELECT
 						classPK
 					FROM

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,7 +34,7 @@ Collections.sort(customAttributesDisplays, new CustomAttributesDisplayComparator
 	iteratorURL="<%= portletURL %>"
 >
 	<liferay-ui:search-container-results
-		results="<%= ListUtil.subList(customAttributesDisplays, searchContainer.getStart(), searchContainer.getEnd()) %>"
+		results="<%= customAttributesDisplays %>"
 		total="<%= customAttributesDisplays.size() %>"
 	/>
 
@@ -61,12 +61,12 @@ Collections.sort(customAttributesDisplays, new CustomAttributesDisplayComparator
 		>
 
 			<%
-			buffer.append("<img align=\"left\" border=\"0\" src=\"");
+			buffer.append("<img alt=\"");
+			buffer.append(LanguageUtil.get(locale, "icon"));
+			buffer.append("\" class=\"custom-attribute-icon\" src=\"");
 			buffer.append(customAttributesDisplay.getIconPath(themeDisplay));
-			buffer.append("\" style=\"margin-right: 5px;\">");
-			buffer.append("<strong>");
+			buffer.append("\">");
 			buffer.append(ResourceActionsUtil.getModelResource(locale, customAttributesDisplay.getClassName()));
-			buffer.append("</strong>");
 			%>
 
 		</liferay-ui:search-container-column-text>

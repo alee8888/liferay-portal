@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -67,6 +67,8 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 		};
 	public static final String TABLE_SQL_CREATE = "create table DDMStorageLink (uuid_ VARCHAR(75) null,storageLinkId LONG not null primary key,classNameId LONG,classPK LONG,structureId LONG)";
 	public static final String TABLE_SQL_DROP = "drop table DDMStorageLink";
+	public static final String ORDER_BY_JPQL = " ORDER BY ddmStorageLink.storageLinkId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY DDMStorageLink.storageLinkId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -82,32 +84,39 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 	public static long CLASSPK_COLUMN_BITMASK = 1L;
 	public static long STRUCTUREID_COLUMN_BITMASK = 2L;
 	public static long UUID_COLUMN_BITMASK = 4L;
+	public static long STORAGELINKID_COLUMN_BITMASK = 8L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.dynamicdatamapping.model.DDMStorageLink"));
 
 	public DDMStorageLinkModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _storageLinkId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setStorageLinkId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_storageLinkId);
+		return _storageLinkId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return DDMStorageLink.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return DDMStorageLink.class.getName();
 	}
@@ -121,6 +130,9 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classPK", getClassPK());
 		attributes.put("structureId", getStructureId());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -158,6 +170,7 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 		}
 	}
 
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -167,6 +180,7 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 		}
 	}
 
+	@Override
 	public void setUuid(String uuid) {
 		if (_originalUuid == null) {
 			_originalUuid = _uuid;
@@ -179,14 +193,17 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 		return GetterUtil.getString(_originalUuid);
 	}
 
+	@Override
 	public long getStorageLinkId() {
 		return _storageLinkId;
 	}
 
+	@Override
 	public void setStorageLinkId(long storageLinkId) {
 		_storageLinkId = storageLinkId;
 	}
 
+	@Override
 	public String getClassName() {
 		if (getClassNameId() <= 0) {
 			return StringPool.BLANK;
@@ -195,6 +212,7 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 		return PortalUtil.getClassName(getClassNameId());
 	}
 
+	@Override
 	public void setClassName(String className) {
 		long classNameId = 0;
 
@@ -205,18 +223,22 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 		setClassNameId(classNameId);
 	}
 
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
 
+	@Override
 	public void setClassNameId(long classNameId) {
 		_classNameId = classNameId;
 	}
 
+	@Override
 	public long getClassPK() {
 		return _classPK;
 	}
 
+	@Override
 	public void setClassPK(long classPK) {
 		_columnBitmask |= CLASSPK_COLUMN_BITMASK;
 
@@ -233,10 +255,12 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 		return _originalClassPK;
 	}
 
+	@Override
 	public long getStructureId() {
 		return _structureId;
 	}
 
+	@Override
 	public void setStructureId(long structureId) {
 		_columnBitmask |= STRUCTUREID_COLUMN_BITMASK;
 
@@ -258,17 +282,6 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 	}
 
 	@Override
-	public DDMStorageLink toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (DDMStorageLink)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
 			DDMStorageLink.class.getName(), getPrimaryKey());
@@ -279,6 +292,16 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public DDMStorageLink toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (DDMStorageLink)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -296,6 +319,7 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 		return ddmStorageLinkImpl;
 	}
 
+	@Override
 	public int compareTo(DDMStorageLink ddmStorageLink) {
 		long primaryKey = ddmStorageLink.getPrimaryKey();
 
@@ -312,18 +336,15 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DDMStorageLink)) {
 			return false;
 		}
 
-		DDMStorageLink ddmStorageLink = null;
-
-		try {
-			ddmStorageLink = (DDMStorageLink)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		DDMStorageLink ddmStorageLink = (DDMStorageLink)obj;
 
 		long primaryKey = ddmStorageLink.getPrimaryKey();
 
@@ -338,6 +359,16 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -399,6 +430,7 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(19);
 
@@ -433,7 +465,7 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 	}
 
 	private static ClassLoader _classLoader = DDMStorageLink.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			DDMStorageLink.class
 		};
 	private String _uuid;
@@ -447,5 +479,5 @@ public class DDMStorageLinkModelImpl extends BaseModelImpl<DDMStorageLink>
 	private long _originalStructureId;
 	private boolean _setOriginalStructureId;
 	private long _columnBitmask;
-	private DDMStorageLink _escapedModelProxy;
+	private DDMStorageLink _escapedModel;
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -41,7 +41,7 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"select count(*) from DLFileEntry where groupId = ? and " +
@@ -54,7 +54,7 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 			rs = ps.executeQuery();
 
 			while (rs.next()) {
-				long count = rs.getLong(1);
+				int count = rs.getInt(1);
 
 				if (count > 0) {
 					return true;
@@ -74,7 +74,7 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"select fileEntryId, groupId, folderId, title, extension, " +
@@ -90,7 +90,7 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 				String extension = rs.getString("extension");
 				String version = rs.getString("version");
 
-				String periodAndExtension = StringPool.PERIOD + extension;
+				String periodAndExtension = StringPool.PERIOD.concat(extension);
 
 				if (!title.endsWith(periodAndExtension)) {
 					continue;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,35 +16,66 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchImageException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.Image;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ImagePersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (ImagePersistence)PortalBeanLocatorUtil.locate(ImagePersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -80,9 +111,9 @@ public class ImagePersistenceTest {
 
 		Image newImage = _persistence.create(pk);
 
-		newImage.setModifiedDate(ServiceTestUtil.nextDate());
+		newImage.setMvccVersion(ServiceTestUtil.nextLong());
 
-		newImage.setText(ServiceTestUtil.randomString());
+		newImage.setModifiedDate(ServiceTestUtil.nextDate());
 
 		newImage.setType(ServiceTestUtil.randomString());
 
@@ -92,19 +123,32 @@ public class ImagePersistenceTest {
 
 		newImage.setSize(ServiceTestUtil.nextInt());
 
-		_persistence.update(newImage, false);
+		_persistence.update(newImage);
 
 		Image existingImage = _persistence.findByPrimaryKey(newImage.getPrimaryKey());
 
+		Assert.assertEquals(existingImage.getMvccVersion(),
+			newImage.getMvccVersion());
 		Assert.assertEquals(existingImage.getImageId(), newImage.getImageId());
 		Assert.assertEquals(Time.getShortTimestamp(
 				existingImage.getModifiedDate()),
 			Time.getShortTimestamp(newImage.getModifiedDate()));
-		Assert.assertEquals(existingImage.getText(), newImage.getText());
 		Assert.assertEquals(existingImage.getType(), newImage.getType());
 		Assert.assertEquals(existingImage.getHeight(), newImage.getHeight());
 		Assert.assertEquals(existingImage.getWidth(), newImage.getWidth());
 		Assert.assertEquals(existingImage.getSize(), newImage.getSize());
+	}
+
+	@Test
+	public void testCountByLtSize() {
+		try {
+			_persistence.countByLtSize(ServiceTestUtil.nextInt());
+
+			_persistence.countByLtSize(0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -130,6 +174,23 @@ public class ImagePersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("Image", "mvccVersion",
+			true, "imageId", true, "modifiedDate", true, "type", true,
+			"height", true, "width", true, "size", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		Image newImage = addImage();
 
@@ -145,6 +206,26 @@ public class ImagePersistenceTest {
 		Image missingImage = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingImage);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new ImageActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					Image image = (Image)object;
+
+					Assert.assertNotNull(image);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -224,9 +305,9 @@ public class ImagePersistenceTest {
 
 		Image image = _persistence.create(pk);
 
-		image.setModifiedDate(ServiceTestUtil.nextDate());
+		image.setMvccVersion(ServiceTestUtil.nextLong());
 
-		image.setText(ServiceTestUtil.randomString());
+		image.setModifiedDate(ServiceTestUtil.nextDate());
 
 		image.setType(ServiceTestUtil.randomString());
 
@@ -236,10 +317,12 @@ public class ImagePersistenceTest {
 
 		image.setSize(ServiceTestUtil.nextInt());
 
-		_persistence.update(image, false);
+		_persistence.update(image);
 
 		return image;
 	}
 
-	private ImagePersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(ImagePersistenceTest.class);
+	private ImagePersistence _persistence = (ImagePersistence)PortalBeanLocatorUtil.locate(ImagePersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

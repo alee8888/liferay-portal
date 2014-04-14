@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.util;
 
 import com.liferay.portal.kernel.util.HashCode;
 import com.liferay.portal.kernel.util.HashCodeFactoryUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 /**
  * @author Brian Wing Shun Chan
@@ -31,11 +32,12 @@ public class State {
 		State state = (State)obj;
 
 		if ((getId() != null) && (state.getId() != null)) {
-			return getId().toLowerCase().compareTo(state.getId().toLowerCase());
+			return StringUtil.toLowerCase(getId()).compareTo(
+				StringUtil.toLowerCase(state.getId()));
 		}
 		else if ((getName() != null) && (state.getName() != null)) {
-			return getName().toLowerCase().compareTo(
-				state.getName().toLowerCase());
+			return StringUtil.toLowerCase(getName()).compareTo(
+				StringUtil.toLowerCase(state.getName()));
 		}
 		else {
 			return -1;
@@ -44,13 +46,21 @@ public class State {
 
 	@Override
 	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof State)) {
+			return false;
+		}
+
 		State state = (State)obj;
 
 		if ((getId() != null) && (state.getId() != null)) {
-			return getId().equalsIgnoreCase(state.getId());
+			return StringUtil.equalsIgnoreCase(getId(), state.getId());
 		}
 		else if ((getName() != null) && (state.getName() != null)) {
-			return getName().equalsIgnoreCase(state.getName());
+			return StringUtil.equalsIgnoreCase(getName(), state.getName());
 		}
 		else {
 			return false;

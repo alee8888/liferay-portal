@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,21 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link JournalTemplateLocalService}.
- * </p>
+ * Provides a wrapper for {@link JournalTemplateLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalTemplateLocalService
+ * @author Brian Wing Shun Chan
+ * @see JournalTemplateLocalService
+ * @deprecated As of 6.2.0, since Web Content Administration now uses the
+Dynamic Data Mapping framework to handle templates
  * @generated
  */
+@Deprecated
+@ProviderType
 public class JournalTemplateLocalServiceWrapper
 	implements JournalTemplateLocalService,
 		ServiceWrapper<JournalTemplateLocalService> {
@@ -34,240 +38,11 @@ public class JournalTemplateLocalServiceWrapper
 	}
 
 	/**
-	* Adds the journal template to the database. Also notifies the appropriate model listeners.
-	*
-	* @param journalTemplate the journal template
-	* @return the journal template that was added
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.journal.model.JournalTemplate addJournalTemplate(
-		com.liferay.portlet.journal.model.JournalTemplate journalTemplate)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.addJournalTemplate(journalTemplate);
-	}
-
-	/**
-	* Creates a new journal template with the primary key. Does not add the journal template to the database.
-	*
-	* @param id the primary key for the new journal template
-	* @return the new journal template
-	*/
-	public com.liferay.portlet.journal.model.JournalTemplate createJournalTemplate(
-		long id) {
-		return _journalTemplateLocalService.createJournalTemplate(id);
-	}
-
-	/**
-	* Deletes the journal template with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param id the primary key of the journal template
-	* @return the journal template that was removed
-	* @throws PortalException if a journal template with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.journal.model.JournalTemplate deleteJournalTemplate(
-		long id)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.deleteJournalTemplate(id);
-	}
-
-	/**
-	* Deletes the journal template from the database. Also notifies the appropriate model listeners.
-	*
-	* @param journalTemplate the journal template
-	* @return the journal template that was removed
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.journal.model.JournalTemplate deleteJournalTemplate(
-		com.liferay.portlet.journal.model.JournalTemplate journalTemplate)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.deleteJournalTemplate(journalTemplate);
-	}
-
-	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
-		return _journalTemplateLocalService.dynamicQuery();
-	}
-
-	/**
-	* Performs a dynamic query on the database and returns the matching rows.
-	*
-	* @param dynamicQuery the dynamic query
-	* @return the matching rows
-	* @throws SystemException if a system exception occurred
-	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.dynamicQuery(dynamicQuery);
-	}
-
-	/**
-	* Performs a dynamic query on the database and returns a range of the matching rows.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	* </p>
-	*
-	* @param dynamicQuery the dynamic query
-	* @param start the lower bound of the range of model instances
-	* @param end the upper bound of the range of model instances (not inclusive)
-	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
-	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.dynamicQuery(dynamicQuery, start,
-			end);
-	}
-
-	/**
-	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	* </p>
-	*
-	* @param dynamicQuery the dynamic query
-	* @param start the lower bound of the range of model instances
-	* @param end the upper bound of the range of model instances (not inclusive)
-	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
-	*/
-	@SuppressWarnings("rawtypes")
-	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.dynamicQuery(dynamicQuery, start,
-			end, orderByComparator);
-	}
-
-	/**
-	* Returns the number of rows that match the dynamic query.
-	*
-	* @param dynamicQuery the dynamic query
-	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
-	*/
-	public long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.dynamicQueryCount(dynamicQuery);
-	}
-
-	public com.liferay.portlet.journal.model.JournalTemplate fetchJournalTemplate(
-		long id) throws com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.fetchJournalTemplate(id);
-	}
-
-	/**
-	* Returns the journal template with the primary key.
-	*
-	* @param id the primary key of the journal template
-	* @return the journal template
-	* @throws PortalException if a journal template with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.journal.model.JournalTemplate getJournalTemplate(
-		long id)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.getJournalTemplate(id);
-	}
-
-	public com.liferay.portal.model.PersistedModel getPersistedModel(
-		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.getPersistedModel(primaryKeyObj);
-	}
-
-	/**
-	* Returns the journal template with the UUID in the group.
-	*
-	* @param uuid the UUID of journal template
-	* @param groupId the group id of the journal template
-	* @return the journal template
-	* @throws PortalException if a journal template with the UUID in the group could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.journal.model.JournalTemplate getJournalTemplateByUuidAndGroupId(
-		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.getJournalTemplateByUuidAndGroupId(uuid,
-			groupId);
-	}
-
-	/**
-	* Returns a range of all the journal templates.
-	*
-	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
-	* </p>
-	*
-	* @param start the lower bound of the range of journal templates
-	* @param end the upper bound of the range of journal templates (not inclusive)
-	* @return the range of journal templates
-	* @throws SystemException if a system exception occurred
-	*/
-	public java.util.List<com.liferay.portlet.journal.model.JournalTemplate> getJournalTemplates(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.getJournalTemplates(start, end);
-	}
-
-	/**
-	* Returns the number of journal templates.
-	*
-	* @return the number of journal templates
-	* @throws SystemException if a system exception occurred
-	*/
-	public int getJournalTemplatesCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.getJournalTemplatesCount();
-	}
-
-	/**
-	* Updates the journal template in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param journalTemplate the journal template
-	* @return the journal template that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.journal.model.JournalTemplate updateJournalTemplate(
-		com.liferay.portlet.journal.model.JournalTemplate journalTemplate)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.updateJournalTemplate(journalTemplate);
-	}
-
-	/**
-	* Updates the journal template in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param journalTemplate the journal template
-	* @param merge whether to merge the journal template with the current session. See {@link com.liferay.portal.service.persistence.BatchSession#update(com.liferay.portal.kernel.dao.orm.Session, com.liferay.portal.model.BaseModel, boolean)} for an explanation.
-	* @return the journal template that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.journal.model.JournalTemplate updateJournalTemplate(
-		com.liferay.portlet.journal.model.JournalTemplate journalTemplate,
-		boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.updateJournalTemplate(journalTemplate,
-			merge);
-	}
-
-	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _journalTemplateLocalService.getBeanIdentifier();
 	}
@@ -277,10 +52,20 @@ public class JournalTemplateLocalServiceWrapper
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_journalTemplateLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
+	public com.liferay.portlet.journal.model.JournalTemplate addJournalTemplate(
+		com.liferay.portlet.journal.model.JournalTemplate template)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _journalTemplateLocalService.addJournalTemplate(template);
+	}
+
+	@Override
 	public com.liferay.portlet.journal.model.JournalTemplate addTemplate(
 		long userId, long groupId, java.lang.String templateId,
 		boolean autoTemplateId, java.lang.String structureId,
@@ -298,6 +83,7 @@ public class JournalTemplateLocalServiceWrapper
 			smallImageFile, serviceContext);
 	}
 
+	@Override
 	public void addTemplateResources(
 		com.liferay.portlet.journal.model.JournalTemplate template,
 		boolean addGroupPermissions, boolean addGuestPermissions)
@@ -307,6 +93,7 @@ public class JournalTemplateLocalServiceWrapper
 			addGroupPermissions, addGuestPermissions);
 	}
 
+	@Override
 	public void addTemplateResources(
 		com.liferay.portlet.journal.model.JournalTemplate template,
 		java.lang.String[] groupPermissions, java.lang.String[] guestPermissions)
@@ -316,6 +103,7 @@ public class JournalTemplateLocalServiceWrapper
 			groupPermissions, guestPermissions);
 	}
 
+	@Override
 	public void addTemplateResources(long groupId, java.lang.String templateId,
 		boolean addGroupPermissions, boolean addGuestPermissions)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -324,6 +112,7 @@ public class JournalTemplateLocalServiceWrapper
 			addGroupPermissions, addGuestPermissions);
 	}
 
+	@Override
 	public void addTemplateResources(long groupId, java.lang.String templateId,
 		java.lang.String[] groupPermissions, java.lang.String[] guestPermissions)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -332,12 +121,14 @@ public class JournalTemplateLocalServiceWrapper
 			groupPermissions, guestPermissions);
 	}
 
+	@Override
 	public void checkNewLine(long groupId, java.lang.String templateId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_journalTemplateLocalService.checkNewLine(groupId, templateId);
 	}
 
+	@Override
 	public com.liferay.portlet.journal.model.JournalTemplate copyTemplate(
 		long userId, long groupId, java.lang.String oldTemplateId,
 		java.lang.String newTemplateId, boolean autoTemplateId)
@@ -347,6 +138,13 @@ public class JournalTemplateLocalServiceWrapper
 			oldTemplateId, newTemplateId, autoTemplateId);
 	}
 
+	@Override
+	public com.liferay.portlet.journal.model.JournalTemplate createJournalTemplate(
+		long id) {
+		return _journalTemplateLocalService.createJournalTemplate(id);
+	}
+
+	@Override
 	public void deleteTemplate(
 		com.liferay.portlet.journal.model.JournalTemplate template)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -354,46 +152,58 @@ public class JournalTemplateLocalServiceWrapper
 		_journalTemplateLocalService.deleteTemplate(template);
 	}
 
+	@Override
 	public void deleteTemplate(long groupId, java.lang.String templateId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_journalTemplateLocalService.deleteTemplate(groupId, templateId);
 	}
 
+	@Override
 	public void deleteTemplates(long groupId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_journalTemplateLocalService.deleteTemplates(groupId);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portlet.journal.model.JournalTemplate> getStructureTemplates(
 		long groupId, java.lang.String structureId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _journalTemplateLocalService.getStructureTemplates(groupId,
 			structureId);
 	}
 
+	@Override
+	public java.util.List<com.liferay.portlet.journal.model.JournalTemplate> getStructureTemplates(
+		long groupId, java.lang.String structureId,
+		boolean includeAncestorTemplates)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _journalTemplateLocalService.getStructureTemplates(groupId,
+			structureId, includeAncestorTemplates);
+	}
+
+	@Override
 	public java.util.List<com.liferay.portlet.journal.model.JournalTemplate> getStructureTemplates(
 		long groupId, java.lang.String structureId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _journalTemplateLocalService.getStructureTemplates(groupId,
 			structureId, start, end);
 	}
 
+	@Override
 	public int getStructureTemplatesCount(long groupId,
 		java.lang.String structureId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _journalTemplateLocalService.getStructureTemplatesCount(groupId,
 			structureId);
 	}
 
-	public com.liferay.portlet.journal.model.JournalTemplate getTemplate(
-		long id)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _journalTemplateLocalService.getTemplate(id);
-	}
-
+	@Override
 	public com.liferay.portlet.journal.model.JournalTemplate getTemplate(
 		long groupId, java.lang.String templateId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -401,6 +211,7 @@ public class JournalTemplateLocalServiceWrapper
 		return _journalTemplateLocalService.getTemplate(groupId, templateId);
 	}
 
+	@Override
 	public com.liferay.portlet.journal.model.JournalTemplate getTemplate(
 		long groupId, java.lang.String templateId,
 		boolean includeGlobalTemplates)
@@ -410,6 +221,7 @@ public class JournalTemplateLocalServiceWrapper
 			includeGlobalTemplates);
 	}
 
+	@Override
 	public com.liferay.portlet.journal.model.JournalTemplate getTemplateBySmallImageId(
 		long smallImageId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -417,33 +229,39 @@ public class JournalTemplateLocalServiceWrapper
 		return _journalTemplateLocalService.getTemplateBySmallImageId(smallImageId);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portlet.journal.model.JournalTemplate> getTemplates()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalTemplateLocalService.getTemplates();
 	}
 
+	@Override
 	public java.util.List<com.liferay.portlet.journal.model.JournalTemplate> getTemplates(
 		long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalTemplateLocalService.getTemplates(groupId);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portlet.journal.model.JournalTemplate> getTemplates(
 		long groupId, int start, int end)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalTemplateLocalService.getTemplates(groupId, start, end);
 	}
 
+	@Override
 	public int getTemplatesCount(long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalTemplateLocalService.getTemplatesCount(groupId);
 	}
 
+	@Override
 	public boolean hasTemplate(long groupId, java.lang.String templateId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalTemplateLocalService.hasTemplate(groupId, templateId);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portlet.journal.model.JournalTemplate> search(
 		long companyId, long[] groupIds, java.lang.String keywords,
 		java.lang.String structureId, java.lang.String structureIdComparator,
@@ -453,6 +271,7 @@ public class JournalTemplateLocalServiceWrapper
 			keywords, structureId, structureIdComparator, start, end, obc);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portlet.journal.model.JournalTemplate> search(
 		long companyId, long[] groupIds, java.lang.String templateId,
 		java.lang.String structureId, java.lang.String structureIdComparator,
@@ -465,6 +284,7 @@ public class JournalTemplateLocalServiceWrapper
 			andOperator, start, end, obc);
 	}
 
+	@Override
 	public int searchCount(long companyId, long[] groupIds,
 		java.lang.String keywords, java.lang.String structureId,
 		java.lang.String structureIdComparator)
@@ -473,6 +293,7 @@ public class JournalTemplateLocalServiceWrapper
 			keywords, structureId, structureIdComparator);
 	}
 
+	@Override
 	public int searchCount(long companyId, long[] groupIds,
 		java.lang.String templateId, java.lang.String structureId,
 		java.lang.String structureIdComparator, java.lang.String name,
@@ -483,6 +304,15 @@ public class JournalTemplateLocalServiceWrapper
 			andOperator);
 	}
 
+	@Override
+	public com.liferay.portlet.journal.model.JournalTemplate updateJournalTemplate(
+		com.liferay.portlet.journal.model.JournalTemplate template)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _journalTemplateLocalService.updateJournalTemplate(template);
+	}
+
+	@Override
 	public com.liferay.portlet.journal.model.JournalTemplate updateTemplate(
 		long groupId, java.lang.String templateId,
 		java.lang.String structureId,
@@ -500,24 +330,28 @@ public class JournalTemplateLocalServiceWrapper
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public JournalTemplateLocalService getWrappedJournalTemplateLocalService() {
 		return _journalTemplateLocalService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedJournalTemplateLocalService(
 		JournalTemplateLocalService journalTemplateLocalService) {
 		_journalTemplateLocalService = journalTemplateLocalService;
 	}
 
+	@Override
 	public JournalTemplateLocalService getWrappedService() {
 		return _journalTemplateLocalService;
 	}
 
+	@Override
 	public void setWrappedService(
 		JournalTemplateLocalService journalTemplateLocalService) {
 		_journalTemplateLocalService = journalTemplateLocalService;

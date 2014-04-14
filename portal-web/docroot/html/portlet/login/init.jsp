@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,6 +24,7 @@ page import="com.liferay.portal.ContactFirstNameException" %><%@
 page import="com.liferay.portal.ContactFullNameException" %><%@
 page import="com.liferay.portal.ContactLastNameException" %><%@
 page import="com.liferay.portal.CookieNotSupportedException" %><%@
+page import="com.liferay.portal.DuplicateOpenIdException" %><%@
 page import="com.liferay.portal.DuplicateUserEmailAddressException" %><%@
 page import="com.liferay.portal.DuplicateUserIdException" %><%@
 page import="com.liferay.portal.DuplicateUserScreenNameException" %><%@
@@ -60,15 +61,7 @@ page import="org.openid4java.discovery.DiscoveryException" %><%@
 page import="org.openid4java.message.MessageException" %>
 
 <%
-PortletPreferences preferences = renderRequest.getPreferences();
-
-String portletResource = ParamUtil.getString(request, "portletResource");
-
-if (Validator.isNotNull(portletResource)) {
-	preferences = PortletPreferencesFactoryUtil.getPortletSetup(request, portletResource);
-}
-
-String authType = preferences.getValue("authType", StringPool.BLANK);
+String authType = portletPreferences.getValue("authType", StringPool.BLANK);
 %>
 
 <%@ include file="/html/portlet/login/init-ext.jsp" %>

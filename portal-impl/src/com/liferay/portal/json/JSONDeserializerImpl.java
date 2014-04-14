@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,20 +31,24 @@ public class JSONDeserializerImpl<T> implements JSONDeserializer<T> {
 		_jsonDeserializer.use(Object.class, _portalBeanObjectFactory);
 	}
 
+	@Override
 	public T deserialize(Reader input) {
 		return _jsonDeserializer.deserialize(input);
 	}
 
+	@Override
 	public T deserialize(String input) {
 		return _jsonDeserializer.deserialize(input);
 	}
 
+	@Override
 	public JSONDeserializer<T> safeMode(boolean safeMode) {
 		_portalBeanObjectFactory.setSafeMode(safeMode);
 
 		return this;
 	}
 
+	@Override
 	public JSONDeserializer<T> use(String path, Class<?> clazz) {
 		_jsonDeserializer.use(path, clazz);
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,9 +15,12 @@
 package com.liferay.portal.action;
 
 import com.liferay.portal.kernel.portlet.WindowStateFactory;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.theme.ThemeDisplay;
@@ -51,8 +54,8 @@ public class LoginAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
@@ -62,6 +65,21 @@ public class LoginAction extends Action {
 			response.sendRedirect(
 				themeDisplay.getPathMain() +
 					PropsValues.AUTH_LOGIN_DISABLED_PATH);
+
+			return null;
+		}
+
+		if (PropsValues.COMPANY_SECURITY_AUTH_REQUIRES_HTTPS &&
+			!request.isSecure()) {
+
+			StringBundler sb = new StringBundler(4);
+
+			sb.append(PortalUtil.getPortalURL(request, true));
+			sb.append(request.getRequestURI());
+			sb.append(StringPool.QUESTION);
+			sb.append(request.getQueryString());
+
+			response.sendRedirect(sb.toString());
 
 			return null;
 		}
@@ -82,13 +100,29 @@ public class LoginAction extends Action {
 			(session.getAttribute("j_password") != null)) {
 
 			if (PropsValues.PORTAL_JAAS_ENABLE) {
-				return mapping.findForward("/portal/touch_protected.jsp");
+				return actionMapping.findForward("/portal/touch_protected.jsp");
 			}
-			else {
-				response.sendRedirect(themeDisplay.getPathMain());
 
-				return null;
+			String redirect = ParamUtil.getString(request, "redirect");
+
+			redirect = PortalUtil.escapeRedirect(redirect);
+
+			if (Validator.isNull(redirect)) {
+				redirect = themeDisplay.getPathMain();
 			}
+
+			if (redirect.charAt(0) == CharPool.SLASH) {
+				String portalURL = PortalUtil.getPortalURL(
+					request, request.isSecure());
+
+				if (Validator.isNotNull(portalURL)) {
+					redirect = portalURL.concat(redirect);
+				}
+			}
+
+			response.sendRedirect(redirect);
+
+			return null;
 		}
 
 		String redirect = PortalUtil.getSiteLoginURL(themeDisplay);
@@ -102,18 +136,16 @@ public class LoginAction extends Action {
 				request, PortletKeys.LOGIN, themeDisplay.getPlid(),
 				PortletRequest.RENDER_PHASE);
 
-			portletURL.setWindowState(getWindowState(request));
-			portletURL.setPortletMode(PortletMode.VIEW);
-
-			portletURL.setParameter("saveLastPath", "0");
+			portletURL.setParameter("saveLastPath", Boolean.FALSE.toString());
 			portletURL.setParameter("struts_action", "/login/login");
+			portletURL.setPortletMode(PortletMode.VIEW);
+			portletURL.setWindowState(getWindowState(request));
 
 			redirect = portletURL.toString();
 		}
 
 		if (PropsValues.COMPANY_SECURITY_AUTH_REQUIRES_HTTPS) {
 			String portalURL = PortalUtil.getPortalURL(request);
-
 			String portalURLSecure = PortalUtil.getPortalURL(request, true);
 
 			if (!portalURL.equals(portalURLSecure)) {
@@ -123,6 +155,8 @@ public class LoginAction extends Action {
 		}
 
 		String loginRedirect = ParamUtil.getString(request, "redirect");
+
+		loginRedirect = PortalUtil.escapeRedirect(loginRedirect);
 
 		if (Validator.isNotNull(loginRedirect)) {
 			if (PrefsPropsUtil.getBoolean(

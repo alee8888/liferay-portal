@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -41,7 +41,11 @@ public interface UpgradeTable {
 
 	public String getSelectSQL() throws Exception;
 
+	public String getTempFileName();
+
 	public boolean isAllowUniqueIndexes() throws Exception;
+
+	public boolean isDeleteTempFile();
 
 	public void setAllowUniqueIndexes(boolean allowUniqueIndexes)
 		throws Exception;
@@ -51,6 +55,8 @@ public interface UpgradeTable {
 		throws Exception;
 
 	public void setCreateSQL(String createSQL) throws Exception;
+
+	public void setDeleteTempFile(boolean deleteTempFile);
 
 	public void setIndexesSQL(String[] indexesSQL) throws Exception;
 

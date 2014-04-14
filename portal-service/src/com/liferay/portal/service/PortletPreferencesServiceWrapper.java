@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
- * <p>
- * This class is a wrapper for {@link PortletPreferencesService}.
- * </p>
+ * Provides a wrapper for {@link PortletPreferencesService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       PortletPreferencesService
+ * @author Brian Wing Shun Chan
+ * @see PortletPreferencesService
  * @generated
  */
+@ProviderType
 public class PortletPreferencesServiceWrapper
 	implements PortletPreferencesService,
 		ServiceWrapper<PortletPreferencesService> {
@@ -36,6 +37,7 @@ public class PortletPreferencesServiceWrapper
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _portletPreferencesService.getBeanIdentifier();
 	}
@@ -45,16 +47,19 @@ public class PortletPreferencesServiceWrapper
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_portletPreferencesService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public void deleteArchivedPreferences(long portletItemId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_portletPreferencesService.deleteArchivedPreferences(portletItemId);
 	}
 
+	@Override
 	public void restoreArchivedPreferences(long groupId,
 		com.liferay.portal.model.Layout layout, java.lang.String portletId,
 		long portletItemId, javax.portlet.PortletPreferences preferences)
@@ -64,6 +69,7 @@ public class PortletPreferencesServiceWrapper
 			portletId, portletItemId, preferences);
 	}
 
+	@Override
 	public void restoreArchivedPreferences(long groupId,
 		com.liferay.portal.model.Layout layout, java.lang.String portletId,
 		com.liferay.portal.model.PortletItem portletItem,
@@ -74,6 +80,7 @@ public class PortletPreferencesServiceWrapper
 			portletId, portletItem, preferences);
 	}
 
+	@Override
 	public void restoreArchivedPreferences(long groupId, java.lang.String name,
 		com.liferay.portal.model.Layout layout, java.lang.String portletId,
 		javax.portlet.PortletPreferences preferences)
@@ -83,6 +90,7 @@ public class PortletPreferencesServiceWrapper
 			layout, portletId, preferences);
 	}
 
+	@Override
 	public void updateArchivePreferences(long userId, long groupId,
 		java.lang.String name, java.lang.String portletId,
 		javax.portlet.PortletPreferences preferences)
@@ -93,24 +101,28 @@ public class PortletPreferencesServiceWrapper
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PortletPreferencesService getWrappedPortletPreferencesService() {
 		return _portletPreferencesService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPortletPreferencesService(
 		PortletPreferencesService portletPreferencesService) {
 		_portletPreferencesService = portletPreferencesService;
 	}
 
+	@Override
 	public PortletPreferencesService getWrappedService() {
 		return _portletPreferencesService;
 	}
 
+	@Override
 	public void setWrappedService(
 		PortletPreferencesService portletPreferencesService) {
 		_portletPreferencesService = portletPreferencesService;

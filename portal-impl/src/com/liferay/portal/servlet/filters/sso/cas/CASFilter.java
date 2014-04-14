@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -139,7 +139,9 @@ public class CASFilter extends BasePortalFilter {
 			return;
 		}
 
-		if (pathInfo.indexOf("/portal/logout") != -1) {
+		if (Validator.isNotNull(pathInfo) &&
+			pathInfo.contains("/portal/logout")) {
+
 			session.invalidate();
 
 			String logoutUrl = PrefsPropsUtil.getString(
@@ -152,6 +154,12 @@ public class CASFilter extends BasePortalFilter {
 		}
 		else {
 			String login = (String)session.getAttribute(WebKeys.CAS_LOGIN);
+
+			if (Validator.isNotNull(login)) {
+				processFilter(CASFilter.class, request, response, filterChain);
+
+				return;
+			}
 
 			String serverName = PrefsPropsUtil.getString(
 				companyId, PropsKeys.CAS_SERVER_NAME,
@@ -169,20 +177,14 @@ public class CASFilter extends BasePortalFilter {
 			String ticket = ParamUtil.getString(request, "ticket");
 
 			if (Validator.isNull(ticket)) {
-				if (Validator.isNotNull(login)) {
-					processFilter(
-						CASFilter.class, request, response, filterChain);
-				}
-				else {
-					String loginUrl = PrefsPropsUtil.getString(
-						companyId, PropsKeys.CAS_LOGIN_URL,
-						PropsValues.CAS_LOGIN_URL);
+				String loginUrl = PrefsPropsUtil.getString(
+					companyId, PropsKeys.CAS_LOGIN_URL,
+					PropsValues.CAS_LOGIN_URL);
 
-					loginUrl = HttpUtil.addParameter(
-						loginUrl, "service", serviceUrl);
+				loginUrl = HttpUtil.addParameter(
+					loginUrl, "service", serviceUrl);
 
-					response.sendRedirect(loginUrl);
-				}
+				response.sendRedirect(loginUrl);
 
 				return;
 			}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,13 +22,11 @@ import com.liferay.portal.security.auth.HttpPrincipal;
 import com.liferay.portal.service.UserGroupGroupRoleServiceUtil;
 
 /**
- * <p>
- * This class provides a HTTP utility for the
+ * Provides the HTTP utility for the
  * {@link com.liferay.portal.service.UserGroupGroupRoleServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it requires an additional
  * {@link com.liferay.portal.security.auth.HttpPrincipal} parameter.
- * </p>
  *
  * <p>
  * The benefits of using the HTTP utility is that it is fast and allows for
@@ -45,10 +43,10 @@ import com.liferay.portal.service.UserGroupGroupRoleServiceUtil;
  * The HTTP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       UserGroupGroupRoleServiceSoap
- * @see       com.liferay.portal.security.auth.HttpPrincipal
- * @see       com.liferay.portal.service.UserGroupGroupRoleServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see UserGroupGroupRoleServiceSoap
+ * @see com.liferay.portal.security.auth.HttpPrincipal
+ * @see com.liferay.portal.service.UserGroupGroupRoleServiceUtil
  * @generated
  */
 public class UserGroupGroupRoleServiceHttp {
@@ -57,7 +55,7 @@ public class UserGroupGroupRoleServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(UserGroupGroupRoleServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(UserGroupGroupRoleServiceUtil.class,
 					"addUserGroupGroupRoles",
 					_addUserGroupGroupRolesParameterTypes0);
 
@@ -91,7 +89,7 @@ public class UserGroupGroupRoleServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(UserGroupGroupRoleServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(UserGroupGroupRoleServiceUtil.class,
 					"addUserGroupGroupRoles",
 					_addUserGroupGroupRolesParameterTypes1);
 
@@ -125,7 +123,7 @@ public class UserGroupGroupRoleServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(UserGroupGroupRoleServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(UserGroupGroupRoleServiceUtil.class,
 					"deleteUserGroupGroupRoles",
 					_deleteUserGroupGroupRolesParameterTypes2);
 
@@ -159,7 +157,7 @@ public class UserGroupGroupRoleServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(UserGroupGroupRoleServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(UserGroupGroupRoleServiceUtil.class,
 					"deleteUserGroupGroupRoles",
 					_deleteUserGroupGroupRolesParameterTypes3);
 

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -41,8 +41,6 @@ else {
 <h3><liferay-ui:message key="alerts-and-announcements" /></h3>
 
 <liferay-ui:message key="select-the-delivery-options-for-alerts-and-announcements" />
-
-<br /><br />
 
 <liferay-ui:search-container>
 	<liferay-ui:search-container-results

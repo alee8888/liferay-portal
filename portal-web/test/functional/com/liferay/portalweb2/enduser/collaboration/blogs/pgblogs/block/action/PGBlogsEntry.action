@@ -1,0 +1,31 @@
+<definition>
+	<command name="assertClick">
+		<case comparator="startsWith" locator-key1="COMMENT">
+			<execute function="AssertClick#assertTextClickWaitForInlineCKEditor" />
+		</case>
+
+		<case locator-key1="COMMENT_READ_MORE_1">
+			<execute function="AssertClick#assertTextClickAndWait" />
+		</case>
+	</command>
+
+	<command name="assertTextEquals">
+		<case locator-key1="COMMENTS">
+			<execute function="AssertTextEquals#assertTextWaitForInlineCKEditor" />
+		</case>
+
+		<case locator-key1="COMMENTS_TRACKBACK_URL">
+			<execute function="AssertTextEquals#assertValue" />
+		</case>
+	</command>
+
+	<command name="click">
+		<case comparator="startsWith" locator-key1="COMMENT">
+			<execute function="Click#clickWaitForInlineCKEditor" />
+		</case>
+
+		<case comparator="startsWith" locator-key1="YOUR_RATING_STAR_EMPTY_">
+			<execute function="Click#clickWaitForInlineCKEditor" />
+		</case>
+	</command>
+</definition>

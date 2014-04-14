@@ -4,6 +4,18 @@ import ${packagePath}.service.${entity.name}${sessionTypeName}ServiceUtil;
 
 import java.util.Arrays;
 
+/**
+ * @author ${author}
+<#if classDeprecated>
+ * @deprecated ${classDeprecatedComment}
+</#if>
+ * @generated
+ */
+
+<#if classDeprecated>
+	@Deprecated
+</#if>
+
 public class ${entity.name}${sessionTypeName}ServiceClpInvoker {
 
 	public ${entity.name}${sessionTypeName}ServiceClpInvoker() {
@@ -59,6 +71,11 @@ public class ${entity.name}${sessionTypeName}ServiceClpInvoker {
 					</#list>
 
 					);
+
+					<#if returnTypeName == "void">
+						return null;
+					</#if>
+
 				}
 			</#if>
 		</#list>

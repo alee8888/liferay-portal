@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portlet.mobiledevicerules.service.permission;
 
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.security.permission.PermissionChecker;
 
 /**
@@ -41,6 +42,8 @@ public class MDRPermissionUtil {
 	}
 
 	public void setMDRPermission(MDRPermission mdrPermission) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_mdrPermission = mdrPermission;
 	}
 

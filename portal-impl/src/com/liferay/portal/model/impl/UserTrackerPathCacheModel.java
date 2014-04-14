@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,9 +17,13 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.UserTrackerPath;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import java.util.Date;
 
@@ -31,12 +35,24 @@ import java.util.Date;
  * @generated
  */
 public class UserTrackerPathCacheModel implements CacheModel<UserTrackerPath>,
-	Serializable {
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
+		StringBundler sb = new StringBundler(11);
 
-		sb.append("{userTrackerPathId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", userTrackerPathId=");
 		sb.append(userTrackerPathId);
 		sb.append(", userTrackerId=");
 		sb.append(userTrackerId);
@@ -49,9 +65,11 @@ public class UserTrackerPathCacheModel implements CacheModel<UserTrackerPath>,
 		return sb.toString();
 	}
 
+	@Override
 	public UserTrackerPath toEntityModel() {
 		UserTrackerPathImpl userTrackerPathImpl = new UserTrackerPathImpl();
 
+		userTrackerPathImpl.setMvccVersion(mvccVersion);
 		userTrackerPathImpl.setUserTrackerPathId(userTrackerPathId);
 		userTrackerPathImpl.setUserTrackerId(userTrackerId);
 
@@ -74,6 +92,33 @@ public class UserTrackerPathCacheModel implements CacheModel<UserTrackerPath>,
 		return userTrackerPathImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		userTrackerPathId = objectInput.readLong();
+		userTrackerId = objectInput.readLong();
+		path = objectInput.readUTF();
+		pathDate = objectInput.readLong();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(userTrackerPathId);
+		objectOutput.writeLong(userTrackerId);
+
+		if (path == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(path);
+		}
+
+		objectOutput.writeLong(pathDate);
+	}
+
+	public long mvccVersion;
 	public long userTrackerPathId;
 	public long userTrackerId;
 	public String path;

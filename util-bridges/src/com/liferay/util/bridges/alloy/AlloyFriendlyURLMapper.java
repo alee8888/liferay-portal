@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.util.PortalUtil;
 
 import java.util.HashMap;
@@ -95,8 +96,9 @@ public class AlloyFriendlyURLMapper extends DefaultFriendlyURLMapper {
 		HttpServletRequest request = (HttpServletRequest)requestContext.get(
 			"request");
 
-		friendlyURLPath = request.getMethod() +
-			friendlyURLPath.substring(getMapping().length() + 1);
+		friendlyURLPath =
+			request.getMethod() +
+				friendlyURLPath.substring(getMapping().length() + 1);
 
 		if (friendlyURLPath.endsWith(StringPool.SLASH)) {
 			friendlyURLPath = friendlyURLPath.substring(
@@ -131,7 +133,7 @@ public class AlloyFriendlyURLMapper extends DefaultFriendlyURLMapper {
 	protected String getLifecycle(HttpServletRequest request) {
 		String method = request.getMethod();
 
-		if (method.equalsIgnoreCase(HttpMethods.POST)) {
+		if (StringUtil.equalsIgnoreCase(method, HttpMethods.POST)) {
 			return "1";
 		}
 

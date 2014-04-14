@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,57 +14,42 @@
 
 package com.liferay.portlet.documentlibrary.antivirus;
 
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.util.StringUtil;
-
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * @author Michael C. Han
  */
 public class ClamAntivirusScannerImpl extends BaseFileAntivirusScanner {
 
-	public void scan(File file)
-		throws AntivirusScannerException, SystemException {
-
-		Runtime runtime = Runtime.getRuntime();
-
-		String filePath = file.getAbsolutePath();
-
-		String[] parameters = new String[] {
-			"clamscan", "--stdout", "--no-summary", filePath };
-
+	@Override
+	public void scan(File file) throws AntivirusScannerException {
 		Process process = null;
 
 		try {
-			process = runtime.exec(parameters);
+			ProcessBuilder processBuilder = new ProcessBuilder(
+				"clamscan", "--stdout", "--no-summary", file.getAbsolutePath());
 
-			InputStream inputStream = process.getInputStream();
+			processBuilder.redirectErrorStream(true);
 
-			String scanResult = StringUtil.read(inputStream);
+			process = processBuilder.start();
 
 			process.waitFor();
 
 			int exitValue = process.exitValue();
 
-			if (exitValue != 0) {
+			if (exitValue == 1) {
 				throw new AntivirusScannerException(
-					"Unable to scan file due to inability to execute " +
-						"antivirus process");
+					"Virus detected in " + file.getAbsolutePath(),
+					AntivirusScannerException.VIRUS_DETECTED);
 			}
-
-			if (scanResult.contains("FOUND")) {
+			else if (exitValue >= 2) {
 				throw new AntivirusScannerException(
-					"Virus detected in " + filePath);
+					AntivirusScannerException.PROCESS_FAILURE);
 			}
 		}
-		catch (IOException ioe) {
-			throw new SystemException("Unable to scan file", ioe);
-		}
-		catch (InterruptedException ie) {
-			throw new SystemException("Unable to scan file", ie);
+		catch (Exception e) {
+			throw new AntivirusScannerException(
+				AntivirusScannerException.PROCESS_FAILURE);
 		}
 		finally {
 			if (process != null) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.social.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.model.AttachedModel;
@@ -37,6 +39,7 @@ import java.io.Serializable;
  * @see com.liferay.portlet.social.model.impl.SocialActivityCounterModelImpl
  * @generated
  */
+@ProviderType
 public interface SocialActivityCounterModel extends AttachedModel,
 	BaseModel<SocialActivityCounter> {
 	/*
@@ -106,6 +109,7 @@ public interface SocialActivityCounterModel extends AttachedModel,
 	 *
 	 * @return the fully qualified class name of this social activity counter
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -115,6 +119,7 @@ public interface SocialActivityCounterModel extends AttachedModel,
 	 *
 	 * @return the class name ID of this social activity counter
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -122,6 +127,7 @@ public interface SocialActivityCounterModel extends AttachedModel,
 	 *
 	 * @param classNameId the class name ID of this social activity counter
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -129,6 +135,7 @@ public interface SocialActivityCounterModel extends AttachedModel,
 	 *
 	 * @return the class p k of this social activity counter
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -136,6 +143,7 @@ public interface SocialActivityCounterModel extends AttachedModel,
 	 *
 	 * @param classPK the class p k of this social activity counter
 	 */
+	@Override
 	public void setClassPK(long classPK);
 
 	/**
@@ -258,35 +266,60 @@ public interface SocialActivityCounterModel extends AttachedModel,
 	 */
 	public void setActive(boolean active);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(SocialActivityCounter socialActivityCounter);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<SocialActivityCounter> toCacheModel();
 
+	@Override
 	public SocialActivityCounter toEscapedModel();
 
+	@Override
+	public SocialActivityCounter toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

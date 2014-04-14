@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,9 @@ import bsh.Interpreter;
 import com.liferay.portal.kernel.scripting.BaseScriptingExecutor;
 import com.liferay.portal.kernel.scripting.ExecutionException;
 import com.liferay.portal.kernel.scripting.ScriptingException;
+import com.liferay.portal.kernel.util.AggregateClassLoader;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.util.ClassLoaderUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,9 +34,10 @@ public class BeanShellExecutor extends BaseScriptingExecutor {
 
 	public static final String LANGUAGE = "beanshell";
 
+	@Override
 	public Map<String, Object> eval(
 			Set<String> allowedClasses, Map<String, Object> inputObjects,
-			Set<String> outputNames, String script)
+			Set<String> outputNames, String script, ClassLoader... classLoaders)
 		throws ScriptingException {
 
 		if (allowedClasses != null) {
@@ -46,6 +50,14 @@ public class BeanShellExecutor extends BaseScriptingExecutor {
 
 			for (Map.Entry<String, Object> entry : inputObjects.entrySet()) {
 				interpreter.set(entry.getKey(), entry.getValue());
+			}
+
+			if (ArrayUtil.isNotEmpty(classLoaders)) {
+				ClassLoader aggregateClassLoader =
+					AggregateClassLoader.getAggregateClassLoader(
+						ClassLoaderUtil.getPortalClassLoader(), classLoaders);
+
+				interpreter.setClassLoader(aggregateClassLoader);
 			}
 
 			interpreter.eval(script);
@@ -67,6 +79,7 @@ public class BeanShellExecutor extends BaseScriptingExecutor {
 		}
 	}
 
+	@Override
 	public String getLanguage() {
 		return LANGUAGE;
 	}

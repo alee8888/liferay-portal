@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -80,32 +80,39 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 				"value.object.column.bitmask.enabled.com.liferay.portlet.shopping.model.ShoppingItemField"),
 			true);
 	public static long ITEMID_COLUMN_BITMASK = 1L;
+	public static long NAME_COLUMN_BITMASK = 2L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.shopping.model.ShoppingItemField"));
 
 	public ShoppingItemFieldModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _itemFieldId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setItemFieldId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_itemFieldId);
+		return _itemFieldId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return ShoppingItemField.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return ShoppingItemField.class.getName();
 	}
@@ -119,6 +126,9 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 		attributes.put("name", getName());
 		attributes.put("values", getValues());
 		attributes.put("description", getDescription());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -156,18 +166,22 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 		}
 	}
 
+	@Override
 	public long getItemFieldId() {
 		return _itemFieldId;
 	}
 
+	@Override
 	public void setItemFieldId(long itemFieldId) {
 		_itemFieldId = itemFieldId;
 	}
 
+	@Override
 	public long getItemId() {
 		return _itemId;
 	}
 
+	@Override
 	public void setItemId(long itemId) {
 		_columnBitmask = -1L;
 
@@ -184,6 +198,7 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 		return _originalItemId;
 	}
 
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -193,12 +208,14 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 		}
 	}
 
+	@Override
 	public void setName(String name) {
 		_columnBitmask = -1L;
 
 		_name = name;
 	}
 
+	@Override
 	public String getValues() {
 		if (_values == null) {
 			return StringPool.BLANK;
@@ -208,10 +225,12 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 		}
 	}
 
+	@Override
 	public void setValues(String values) {
 		_values = values;
 	}
 
+	@Override
 	public String getDescription() {
 		if (_description == null) {
 			return StringPool.BLANK;
@@ -221,23 +240,13 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 		}
 	}
 
+	@Override
 	public void setDescription(String description) {
 		_description = description;
 	}
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public ShoppingItemField toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (ShoppingItemField)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -251,6 +260,16 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public ShoppingItemField toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (ShoppingItemField)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -268,6 +287,7 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 		return shoppingItemFieldImpl;
 	}
 
+	@Override
 	public int compareTo(ShoppingItemField shoppingItemField) {
 		int value = 0;
 
@@ -285,8 +305,7 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 			return value;
 		}
 
-		value = getName().toLowerCase()
-					.compareTo(shoppingItemField.getName().toLowerCase());
+		value = getName().compareToIgnoreCase(shoppingItemField.getName());
 
 		if (value != 0) {
 			return value;
@@ -297,18 +316,15 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ShoppingItemField)) {
 			return false;
 		}
 
-		ShoppingItemField shoppingItemField = null;
-
-		try {
-			shoppingItemField = (ShoppingItemField)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		ShoppingItemField shoppingItemField = (ShoppingItemField)obj;
 
 		long primaryKey = shoppingItemField.getPrimaryKey();
 
@@ -323,6 +339,16 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -390,6 +416,7 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(19);
 
@@ -424,7 +451,7 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 	}
 
 	private static ClassLoader _classLoader = ShoppingItemField.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			ShoppingItemField.class
 		};
 	private long _itemFieldId;
@@ -435,5 +462,5 @@ public class ShoppingItemFieldModelImpl extends BaseModelImpl<ShoppingItemField>
 	private String _values;
 	private String _description;
 	private long _columnBitmask;
-	private ShoppingItemField _escapedModelProxy;
+	private ShoppingItemField _escapedModel;
 }

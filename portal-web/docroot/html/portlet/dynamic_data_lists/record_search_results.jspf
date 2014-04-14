@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,9 +24,11 @@ if (DDLRecordSetPermission.contains(permissionChecker, recordSet, ActionKeys.ADD
 }
 
 if (Validator.isNull(displayTerms.getKeywords())) {
-	results = DDLRecordLocalServiceUtil.getRecords(recordSet.getRecordSetId(), status, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
-
 	total = DDLRecordLocalServiceUtil.getRecordsCount(recordSet.getRecordSetId(), status);
+
+	searchContainer.setTotal(total);
+
+	results = DDLRecordLocalServiceUtil.getRecords(recordSet.getRecordSetId(), status, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
 }
 else {
 	SearchContext searchContext = SearchContextFactory.getInstance(request);
@@ -37,13 +39,14 @@ else {
 	searchContext.setKeywords(displayTerms.getKeywords());
 	searchContext.setStart(searchContainer.getStart());
 
-	Hits hits = DDLRecordLocalServiceUtil.search(searchContext);
+	BaseModelSearchResult<DDLRecord> baseModelSearchResult = DDLRecordLocalServiceUtil.searchDDLRecords(searchContext);
 
-	results = DDLUtil.getRecords(hits);
+	results = baseModelSearchResult.getBaseModels();
 
-	total = results.size();
+	total = baseModelSearchResult.getLength();
+
+	searchContainer.setTotal(total);
 }
 
-pageContext.setAttribute("results", results);
-pageContext.setAttribute("total", total);
+searchContainer.setResults(results);
 %>

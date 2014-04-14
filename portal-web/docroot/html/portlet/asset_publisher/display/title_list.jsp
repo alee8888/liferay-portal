@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,8 +31,6 @@ if (Validator.isNull(title)) {
 	title = assetRenderer.getTitle(locale);
 }
 
-boolean show = ((Boolean)request.getAttribute("view.jsp-show")).booleanValue();
-
 request.setAttribute("view.jsp-showIconLabel", false);
 
 PortletURL viewFullContentURL = renderResponse.createRenderURL();
@@ -49,13 +47,22 @@ if (Validator.isNotNull(assetRenderer.getUrlTitle())) {
 	viewFullContentURL.setParameter("urlTitle", assetRenderer.getUrlTitle());
 }
 
-String viewFullContentURLString = viewFullContentURL.toString();
+String viewURL = null;
 
-viewFullContentURLString = HttpUtil.setParameter(viewFullContentURLString, "redirect", currentURL);
+boolean viewInContext = ((Boolean)request.getAttribute("view.jsp-viewInContext")).booleanValue();
 
-String viewURL = viewInContext ? assetRenderer.getURLViewInContext(liferayPortletRequest, liferayPortletResponse, viewFullContentURLString) : viewFullContentURL.toString();
+if (viewInContext) {
+	String viewFullContentURLString = viewFullContentURL.toString();
 
-viewURL = _checkViewURL(viewURL, currentURL, themeDisplay);
+	viewFullContentURLString = HttpUtil.setParameter(viewFullContentURLString, "redirect", currentURL);
+
+	viewURL = assetRenderer.getURLViewInContext(liferayPortletRequest, liferayPortletResponse, viewFullContentURLString);
+}
+else {
+	viewURL = viewFullContentURL.toString();
+}
+
+viewURL = AssetUtil.checkViewURL(assetEntry, viewInContext, viewURL, currentURL, themeDisplay);
 %>
 
 	<c:if test="<%= assetEntryIndex == 0 %>">
@@ -73,6 +80,13 @@ viewURL = _checkViewURL(viewURL, currentURL, themeDisplay);
 		<liferay-util:include page="/html/portlet/asset_publisher/asset_actions.jsp" />
 
 		<div class="asset-metadata">
+
+			<%
+			boolean filterByMetadata = true;
+
+			String[] metadataFields = assetPublisherDisplayContext.getMetadataFields();
+			%>
+
 			<%@ include file="/html/portlet/asset_publisher/asset_metadata.jspf" %>
 		</div>
 	</li>

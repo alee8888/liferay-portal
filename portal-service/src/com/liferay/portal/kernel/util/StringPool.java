@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.kernel.util;
+
+import java.nio.charset.Charset;
 
 /**
  * @author Brian Wing Shun Chan
@@ -53,7 +55,12 @@ public class StringPool {
 
 	public static final String COMMA_AND_SPACE = ", ";
 
+	public static final String CONTENT = "content";
+
 	public static final String DASH = "-";
+
+	public static final String DEFAULT_CHARSET_NAME =
+		Charset.defaultCharset().name();
 
 	public static final String DOLLAR = "$";
 
@@ -83,6 +90,8 @@ public class StringPool {
 
 	public static final String DOUBLE_UNDERLINE = "__";
 
+	public static final String[] EMPTY_ARRAY = new String[0];
+
 	public static final String EQUAL = "=";
 
 	public static final String EXCLAMATION = "!";
@@ -109,6 +118,10 @@ public class StringPool {
 
 	public static final String ISO_8859_1 = "ISO-8859-1";
 
+	public static final String LAQUO = "&laquo;";
+
+	public static final String LAQUO_CHAR = "\u00AB";
+
 	public static final String LESS_THAN = "<";
 
 	public static final String LESS_THAN_OR_EQUAL = "<=";
@@ -126,6 +139,8 @@ public class StringPool {
 	public static final String NOT_LIKE = "NOT LIKE";
 
 	public static final String NULL = "null";
+
+	public static final String NULL_CHAR = "\u0000";
 
 	public static final String OPEN_BRACKET = "[";
 
@@ -145,9 +160,15 @@ public class StringPool {
 
 	public static final String POUND = "#";
 
+	public static final String PRIME = "`";
+
 	public static final String QUESTION = "?";
 
 	public static final String QUOTE = "\"";
+
+	public static final String RAQUO = "&raquo;";
+
+	public static final String RAQUO_CHAR = "\u00BB";
 
 	public static final String RETURN = "\r";
 
@@ -166,6 +187,8 @@ public class StringPool {
 	public static final String THREE_SPACES = "   ";
 
 	public static final String TILDE = "~";
+
+	public static final String TRIPLE_PERIOD = "...";
 
 	public static final String TRUE = "true";
 

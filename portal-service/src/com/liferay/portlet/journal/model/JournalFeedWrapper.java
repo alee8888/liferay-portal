@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.journal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,24 +29,28 @@ import java.util.Map;
  * This class is a wrapper for {@link JournalFeed}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalFeed
+ * @author Brian Wing Shun Chan
+ * @see JournalFeed
  * @generated
  */
+@ProviderType
 public class JournalFeedWrapper implements JournalFeed,
 	ModelWrapper<JournalFeed> {
 	public JournalFeedWrapper(JournalFeed journalFeed) {
 		_journalFeed = journalFeed;
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return JournalFeed.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return JournalFeed.class.getName();
 	}
 
+	@Override
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
@@ -67,12 +75,13 @@ public class JournalFeedWrapper implements JournalFeed,
 		attributes.put("targetLayoutFriendlyUrl", getTargetLayoutFriendlyUrl());
 		attributes.put("targetPortletId", getTargetPortletId());
 		attributes.put("contentField", getContentField());
-		attributes.put("feedType", getFeedType());
+		attributes.put("feedFormat", getFeedFormat());
 		attributes.put("feedVersion", getFeedVersion());
 
 		return attributes;
 	}
 
+	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
 		String uuid = (String)attributes.get("uuid");
 
@@ -201,10 +210,10 @@ public class JournalFeedWrapper implements JournalFeed,
 			setContentField(contentField);
 		}
 
-		String feedType = (String)attributes.get("feedType");
+		String feedFormat = (String)attributes.get("feedFormat");
 
-		if (feedType != null) {
-			setFeedType(feedType);
+		if (feedFormat != null) {
+			setFeedFormat(feedFormat);
 		}
 
 		Double feedVersion = (Double)attributes.get("feedVersion");
@@ -219,6 +228,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the primary key of this journal feed
 	*/
+	@Override
 	public long getPrimaryKey() {
 		return _journalFeed.getPrimaryKey();
 	}
@@ -228,6 +238,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param primaryKey the primary key of this journal feed
 	*/
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_journalFeed.setPrimaryKey(primaryKey);
 	}
@@ -237,6 +248,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the uuid of this journal feed
 	*/
+	@Override
 	public java.lang.String getUuid() {
 		return _journalFeed.getUuid();
 	}
@@ -246,6 +258,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param uuid the uuid of this journal feed
 	*/
+	@Override
 	public void setUuid(java.lang.String uuid) {
 		_journalFeed.setUuid(uuid);
 	}
@@ -255,6 +268,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the ID of this journal feed
 	*/
+	@Override
 	public long getId() {
 		return _journalFeed.getId();
 	}
@@ -264,6 +278,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param id the ID of this journal feed
 	*/
+	@Override
 	public void setId(long id) {
 		_journalFeed.setId(id);
 	}
@@ -273,6 +288,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the group ID of this journal feed
 	*/
+	@Override
 	public long getGroupId() {
 		return _journalFeed.getGroupId();
 	}
@@ -282,6 +298,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param groupId the group ID of this journal feed
 	*/
+	@Override
 	public void setGroupId(long groupId) {
 		_journalFeed.setGroupId(groupId);
 	}
@@ -291,6 +308,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the company ID of this journal feed
 	*/
+	@Override
 	public long getCompanyId() {
 		return _journalFeed.getCompanyId();
 	}
@@ -300,6 +318,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param companyId the company ID of this journal feed
 	*/
+	@Override
 	public void setCompanyId(long companyId) {
 		_journalFeed.setCompanyId(companyId);
 	}
@@ -309,6 +328,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the user ID of this journal feed
 	*/
+	@Override
 	public long getUserId() {
 		return _journalFeed.getUserId();
 	}
@@ -318,6 +338,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param userId the user ID of this journal feed
 	*/
+	@Override
 	public void setUserId(long userId) {
 		_journalFeed.setUserId(userId);
 	}
@@ -328,6 +349,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	* @return the user uuid of this journal feed
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.lang.String getUserUuid()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalFeed.getUserUuid();
@@ -338,6 +360,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param userUuid the user uuid of this journal feed
 	*/
+	@Override
 	public void setUserUuid(java.lang.String userUuid) {
 		_journalFeed.setUserUuid(userUuid);
 	}
@@ -347,6 +370,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the user name of this journal feed
 	*/
+	@Override
 	public java.lang.String getUserName() {
 		return _journalFeed.getUserName();
 	}
@@ -356,6 +380,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param userName the user name of this journal feed
 	*/
+	@Override
 	public void setUserName(java.lang.String userName) {
 		_journalFeed.setUserName(userName);
 	}
@@ -365,6 +390,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the create date of this journal feed
 	*/
+	@Override
 	public java.util.Date getCreateDate() {
 		return _journalFeed.getCreateDate();
 	}
@@ -374,6 +400,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param createDate the create date of this journal feed
 	*/
+	@Override
 	public void setCreateDate(java.util.Date createDate) {
 		_journalFeed.setCreateDate(createDate);
 	}
@@ -383,6 +410,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the modified date of this journal feed
 	*/
+	@Override
 	public java.util.Date getModifiedDate() {
 		return _journalFeed.getModifiedDate();
 	}
@@ -392,6 +420,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param modifiedDate the modified date of this journal feed
 	*/
+	@Override
 	public void setModifiedDate(java.util.Date modifiedDate) {
 		_journalFeed.setModifiedDate(modifiedDate);
 	}
@@ -401,6 +430,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the feed ID of this journal feed
 	*/
+	@Override
 	public java.lang.String getFeedId() {
 		return _journalFeed.getFeedId();
 	}
@@ -410,6 +440,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param feedId the feed ID of this journal feed
 	*/
+	@Override
 	public void setFeedId(java.lang.String feedId) {
 		_journalFeed.setFeedId(feedId);
 	}
@@ -419,6 +450,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the name of this journal feed
 	*/
+	@Override
 	public java.lang.String getName() {
 		return _journalFeed.getName();
 	}
@@ -428,6 +460,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param name the name of this journal feed
 	*/
+	@Override
 	public void setName(java.lang.String name) {
 		_journalFeed.setName(name);
 	}
@@ -437,6 +470,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the description of this journal feed
 	*/
+	@Override
 	public java.lang.String getDescription() {
 		return _journalFeed.getDescription();
 	}
@@ -446,6 +480,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param description the description of this journal feed
 	*/
+	@Override
 	public void setDescription(java.lang.String description) {
 		_journalFeed.setDescription(description);
 	}
@@ -455,6 +490,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the type of this journal feed
 	*/
+	@Override
 	public java.lang.String getType() {
 		return _journalFeed.getType();
 	}
@@ -464,6 +500,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param type the type of this journal feed
 	*/
+	@Override
 	public void setType(java.lang.String type) {
 		_journalFeed.setType(type);
 	}
@@ -473,6 +510,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the structure ID of this journal feed
 	*/
+	@Override
 	public java.lang.String getStructureId() {
 		return _journalFeed.getStructureId();
 	}
@@ -482,6 +520,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param structureId the structure ID of this journal feed
 	*/
+	@Override
 	public void setStructureId(java.lang.String structureId) {
 		_journalFeed.setStructureId(structureId);
 	}
@@ -491,6 +530,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the template ID of this journal feed
 	*/
+	@Override
 	public java.lang.String getTemplateId() {
 		return _journalFeed.getTemplateId();
 	}
@@ -500,6 +540,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param templateId the template ID of this journal feed
 	*/
+	@Override
 	public void setTemplateId(java.lang.String templateId) {
 		_journalFeed.setTemplateId(templateId);
 	}
@@ -509,6 +550,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the renderer template ID of this journal feed
 	*/
+	@Override
 	public java.lang.String getRendererTemplateId() {
 		return _journalFeed.getRendererTemplateId();
 	}
@@ -518,6 +560,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param rendererTemplateId the renderer template ID of this journal feed
 	*/
+	@Override
 	public void setRendererTemplateId(java.lang.String rendererTemplateId) {
 		_journalFeed.setRendererTemplateId(rendererTemplateId);
 	}
@@ -527,6 +570,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the delta of this journal feed
 	*/
+	@Override
 	public int getDelta() {
 		return _journalFeed.getDelta();
 	}
@@ -536,6 +580,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param delta the delta of this journal feed
 	*/
+	@Override
 	public void setDelta(int delta) {
 		_journalFeed.setDelta(delta);
 	}
@@ -545,6 +590,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the order by col of this journal feed
 	*/
+	@Override
 	public java.lang.String getOrderByCol() {
 		return _journalFeed.getOrderByCol();
 	}
@@ -554,6 +600,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param orderByCol the order by col of this journal feed
 	*/
+	@Override
 	public void setOrderByCol(java.lang.String orderByCol) {
 		_journalFeed.setOrderByCol(orderByCol);
 	}
@@ -563,6 +610,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the order by type of this journal feed
 	*/
+	@Override
 	public java.lang.String getOrderByType() {
 		return _journalFeed.getOrderByType();
 	}
@@ -572,6 +620,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param orderByType the order by type of this journal feed
 	*/
+	@Override
 	public void setOrderByType(java.lang.String orderByType) {
 		_journalFeed.setOrderByType(orderByType);
 	}
@@ -581,6 +630,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the target layout friendly url of this journal feed
 	*/
+	@Override
 	public java.lang.String getTargetLayoutFriendlyUrl() {
 		return _journalFeed.getTargetLayoutFriendlyUrl();
 	}
@@ -590,6 +640,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param targetLayoutFriendlyUrl the target layout friendly url of this journal feed
 	*/
+	@Override
 	public void setTargetLayoutFriendlyUrl(
 		java.lang.String targetLayoutFriendlyUrl) {
 		_journalFeed.setTargetLayoutFriendlyUrl(targetLayoutFriendlyUrl);
@@ -600,6 +651,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the target portlet ID of this journal feed
 	*/
+	@Override
 	public java.lang.String getTargetPortletId() {
 		return _journalFeed.getTargetPortletId();
 	}
@@ -609,6 +661,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param targetPortletId the target portlet ID of this journal feed
 	*/
+	@Override
 	public void setTargetPortletId(java.lang.String targetPortletId) {
 		_journalFeed.setTargetPortletId(targetPortletId);
 	}
@@ -618,6 +671,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the content field of this journal feed
 	*/
+	@Override
 	public java.lang.String getContentField() {
 		return _journalFeed.getContentField();
 	}
@@ -627,26 +681,29 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param contentField the content field of this journal feed
 	*/
+	@Override
 	public void setContentField(java.lang.String contentField) {
 		_journalFeed.setContentField(contentField);
 	}
 
 	/**
-	* Returns the feed type of this journal feed.
+	* Returns the feed format of this journal feed.
 	*
-	* @return the feed type of this journal feed
+	* @return the feed format of this journal feed
 	*/
-	public java.lang.String getFeedType() {
-		return _journalFeed.getFeedType();
+	@Override
+	public java.lang.String getFeedFormat() {
+		return _journalFeed.getFeedFormat();
 	}
 
 	/**
-	* Sets the feed type of this journal feed.
+	* Sets the feed format of this journal feed.
 	*
-	* @param feedType the feed type of this journal feed
+	* @param feedFormat the feed format of this journal feed
 	*/
-	public void setFeedType(java.lang.String feedType) {
-		_journalFeed.setFeedType(feedType);
+	@Override
+	public void setFeedFormat(java.lang.String feedFormat) {
+		_journalFeed.setFeedFormat(feedFormat);
 	}
 
 	/**
@@ -654,6 +711,7 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @return the feed version of this journal feed
 	*/
+	@Override
 	public double getFeedVersion() {
 		return _journalFeed.getFeedVersion();
 	}
@@ -663,42 +721,64 @@ public class JournalFeedWrapper implements JournalFeed,
 	*
 	* @param feedVersion the feed version of this journal feed
 	*/
+	@Override
 	public void setFeedVersion(double feedVersion) {
 		_journalFeed.setFeedVersion(feedVersion);
 	}
 
+	@Override
 	public boolean isNew() {
 		return _journalFeed.isNew();
 	}
 
+	@Override
 	public void setNew(boolean n) {
 		_journalFeed.setNew(n);
 	}
 
+	@Override
 	public boolean isCachedModel() {
 		return _journalFeed.isCachedModel();
 	}
 
+	@Override
 	public void setCachedModel(boolean cachedModel) {
 		_journalFeed.setCachedModel(cachedModel);
 	}
 
+	@Override
 	public boolean isEscapedModel() {
 		return _journalFeed.isEscapedModel();
 	}
 
+	@Override
 	public java.io.Serializable getPrimaryKeyObj() {
 		return _journalFeed.getPrimaryKeyObj();
 	}
 
+	@Override
 	public void setPrimaryKeyObj(java.io.Serializable primaryKeyObj) {
 		_journalFeed.setPrimaryKeyObj(primaryKeyObj);
 	}
 
+	@Override
 	public com.liferay.portlet.expando.model.ExpandoBridge getExpandoBridge() {
 		return _journalFeed.getExpandoBridge();
 	}
 
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portal.model.BaseModel<?> baseModel) {
+		_journalFeed.setExpandoBridgeAttributes(baseModel);
+	}
+
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portlet.expando.model.ExpandoBridge expandoBridge) {
+		_journalFeed.setExpandoBridgeAttributes(expandoBridge);
+	}
+
+	@Override
 	public void setExpandoBridgeAttributes(
 		com.liferay.portal.service.ServiceContext serviceContext) {
 		_journalFeed.setExpandoBridgeAttributes(serviceContext);
@@ -709,6 +789,7 @@ public class JournalFeedWrapper implements JournalFeed,
 		return new JournalFeedWrapper((JournalFeed)_journalFeed.clone());
 	}
 
+	@Override
 	public int compareTo(
 		com.liferay.portlet.journal.model.JournalFeed journalFeed) {
 		return _journalFeed.compareTo(journalFeed);
@@ -719,12 +800,19 @@ public class JournalFeedWrapper implements JournalFeed,
 		return _journalFeed.hashCode();
 	}
 
+	@Override
 	public com.liferay.portal.model.CacheModel<com.liferay.portlet.journal.model.JournalFeed> toCacheModel() {
 		return _journalFeed.toCacheModel();
 	}
 
+	@Override
 	public com.liferay.portlet.journal.model.JournalFeed toEscapedModel() {
 		return new JournalFeedWrapper(_journalFeed.toEscapedModel());
+	}
+
+	@Override
+	public com.liferay.portlet.journal.model.JournalFeed toUnescapedModel() {
+		return new JournalFeedWrapper(_journalFeed.toUnescapedModel());
 	}
 
 	@Override
@@ -732,26 +820,65 @@ public class JournalFeedWrapper implements JournalFeed,
 		return _journalFeed.toString();
 	}
 
+	@Override
 	public java.lang.String toXmlString() {
 		return _journalFeed.toXmlString();
 	}
 
+	@Override
 	public void persist()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_journalFeed.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof JournalFeedWrapper)) {
+			return false;
+		}
+
+		JournalFeedWrapper journalFeedWrapper = (JournalFeedWrapper)obj;
+
+		if (Validator.equals(_journalFeed, journalFeedWrapper._journalFeed)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _journalFeed.getStagedModelType();
+	}
+
 	/**
-	 * @deprecated Renamed to {@link #getWrappedModel}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public JournalFeed getWrappedJournalFeed() {
 		return _journalFeed;
 	}
 
+	@Override
 	public JournalFeed getWrappedModel() {
 		return _journalFeed;
 	}
 
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _journalFeed.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _journalFeed.isFinderCacheEnabled();
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		_journalFeed.resetOriginalValues();
 	}

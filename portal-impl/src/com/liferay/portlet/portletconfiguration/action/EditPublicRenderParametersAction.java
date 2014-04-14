@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,14 +18,11 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.PublicRenderParameter;
 import com.liferay.portal.security.auth.PrincipalException;
-import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.WebKeys;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.portletconfiguration.util.PublicRenderParameterConfiguration;
 
 import java.util.Enumeration;
@@ -44,18 +41,19 @@ import org.apache.struts.action.ActionMapping;
 /**
  * @author Alberto Montero
  */
-public class EditPublicRenderParametersAction extends EditConfigurationAction {
+public class EditPublicRenderParametersAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		Portlet portlet = null;
 
 		try {
-			portlet = getPortlet(actionRequest);
+			portlet = ActionUtil.getPortlet(actionRequest);
 		}
 		catch (PrincipalException pe) {
 			SessionErrors.add(
@@ -64,76 +62,86 @@ public class EditPublicRenderParametersAction extends EditConfigurationAction {
 			setForward(actionRequest, "portlet.portlet_configuration.error");
 		}
 
+		PortletPreferences portletPreferences =
+			ActionUtil.getLayoutPortletSetup(actionRequest, portlet);
+
+		actionRequest = ActionUtil.getWrappedActionRequest(
+			actionRequest, portletPreferences);
+
 		updatePreferences(actionRequest, portlet);
 
-		if (SessionErrors.isEmpty(actionRequest)) {
-			String portletResource = ParamUtil.getString(
-				actionRequest, "portletResource");
+		if (!SessionErrors.isEmpty(actionRequest)) {
+			return;
+		}
 
-			SessionMessages.add(
-				actionRequest,
-				portletConfig.getPortletName() +
-					SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
-				portletResource);
+		String portletResource = ParamUtil.getString(
+			actionRequest, "portletResource");
 
-			SessionMessages.add(
-				actionRequest,
-				portletConfig.getPortletName() +
-					SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
+		SessionMessages.add(
+			actionRequest,
+			PortalUtil.getPortletId(actionRequest) +
+				SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
+			portletResource);
 
-			String redirect = PortalUtil.escapeRedirect(
-				ParamUtil.getString(actionRequest, "redirect"));
+		SessionMessages.add(
+			actionRequest,
+			PortalUtil.getPortletId(actionRequest) +
+				SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
 
-			if (Validator.isNotNull(redirect)) {
-				actionResponse.sendRedirect(redirect);
-			}
+		String redirect = PortalUtil.escapeRedirect(
+			ParamUtil.getString(actionRequest, "redirect"));
+
+		if (Validator.isNotNull(redirect)) {
+			actionResponse.sendRedirect(redirect);
 		}
 	}
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		Portlet portlet = null;
 
 		try {
-			portlet = getPortlet(renderRequest);
+			portlet = ActionUtil.getPortlet(renderRequest);
 		}
 		catch (PrincipalException pe) {
 			SessionErrors.add(
 				renderRequest, PrincipalException.class.getName());
 
-			return mapping.findForward("portlet.portlet_configuration.error");
+			return actionMapping.findForward(
+				"portlet.portlet_configuration.error");
 		}
+
+		PortletPreferences portletPreferences =
+			ActionUtil.getLayoutPortletSetup(renderRequest, portlet);
+
+		renderRequest = ActionUtil.getWrappedRenderRequest(
+			renderRequest, portletPreferences);
 
 		ActionUtil.getLayoutPublicRenderParameters(renderRequest);
 
 		ActionUtil.getPublicRenderParameterConfigurationList(
 			renderRequest, portlet);
 
-		renderResponse.setTitle(getTitle(portlet, renderRequest));
+		renderResponse.setTitle(ActionUtil.getTitle(portlet, renderRequest));
 
-		return mapping.findForward(getForward(
-			renderRequest,
-			"portlet.portlet_configuration.edit_public_render_parameters"));
+		return actionMapping.findForward(
+			getForward(
+				renderRequest,
+				"portlet.portlet_configuration.edit_public_render_parameters"));
 	}
 
 	protected void updatePreferences(
 			ActionRequest actionRequest, Portlet portlet)
 		throws Exception {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		PortletPreferences portletPreferences = actionRequest.getPreferences();
 
-		Layout layout = themeDisplay.getLayout();
-
-		PortletPreferences preferences =
-			PortletPreferencesFactoryUtil.getLayoutPortletSetup(
-				layout, portlet.getPortletId());
-
-		Enumeration<String> enu = preferences.getNames();
+		Enumeration<String> enu = portletPreferences.getNames();
 
 		while (enu.hasMoreElements()) {
 			String name = enu.nextElement();
@@ -143,7 +151,7 @@ public class EditPublicRenderParametersAction extends EditConfigurationAction {
 				name.startsWith(
 					PublicRenderParameterConfiguration.MAPPING_PREFIX)) {
 
-				preferences.reset(name);
+				portletPreferences.reset(name);
 			}
 		}
 
@@ -157,7 +165,8 @@ public class EditPublicRenderParametersAction extends EditConfigurationAction {
 				actionRequest, ignoreKey);
 
 			if (ignoreValue) {
-				preferences.setValue(ignoreKey, String.valueOf(Boolean.TRUE));
+				portletPreferences.setValue(
+					ignoreKey, String.valueOf(Boolean.TRUE));
 			}
 			else {
 				String mappingKey =
@@ -168,13 +177,13 @@ public class EditPublicRenderParametersAction extends EditConfigurationAction {
 					actionRequest, mappingKey);
 
 				if (Validator.isNotNull(mappingValue)) {
-					preferences.setValue(mappingKey, mappingValue);
+					portletPreferences.setValue(mappingKey, mappingValue);
 				}
 			}
 		}
 
 		if (SessionErrors.isEmpty(actionRequest)) {
-			preferences.store();
+			portletPreferences.store();
 		}
 	}
 

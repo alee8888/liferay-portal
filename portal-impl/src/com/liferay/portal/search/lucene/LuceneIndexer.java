@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -68,6 +68,7 @@ public class LuceneIndexer implements Runnable {
 		}
 	}
 
+	@Override
 	public void run() {
 		reindex(PropsValues.INDEX_ON_STARTUP_DELAY);
 	}
@@ -93,13 +94,9 @@ public class LuceneIndexer implements Runnable {
 		catch (InterruptedException ie) {
 		}
 
-		StopWatch stopWatch = null;
+		StopWatch stopWatch = new StopWatch();
 
-		if (_log.isInfoEnabled()) {
-			stopWatch = new StopWatch();
-
-			stopWatch.start();
-		}
+		stopWatch.start();
 
 		try {
 			LuceneHelperUtil.delete(_companyId);
@@ -120,7 +117,16 @@ public class LuceneIndexer implements Runnable {
 					continue;
 				}
 
+				Set<String> searchEngineIds = new HashSet<String>();
+
 				for (Indexer indexer : indexers) {
+					String searchEngineId = indexer.getSearchEngineId();
+
+					if (searchEngineIds.add(searchEngineId)) {
+						SearchEngineUtil.deletePortletDocuments(
+							searchEngineId, _companyId, portlet.getPortletId());
+					}
+
 					reindex(indexer);
 				}
 			}
@@ -143,13 +149,9 @@ public class LuceneIndexer implements Runnable {
 	}
 
 	protected void reindex(Indexer indexer) throws Exception {
-		StopWatch stopWatch = null;
+		StopWatch stopWatch = new StopWatch();
 
-		if (_log.isInfoEnabled()) {
-			stopWatch = new StopWatch();
-
-			stopWatch.start();
-		}
+		stopWatch.start();
 
 		if (_log.isInfoEnabled()) {
 			_log.info("Reindexing with " + indexer.getClass() + " started");

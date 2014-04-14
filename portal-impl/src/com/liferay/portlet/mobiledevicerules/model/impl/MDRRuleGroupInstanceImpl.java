@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,10 +31,12 @@ public class MDRRuleGroupInstanceImpl extends MDRRuleGroupInstanceBaseImpl {
 	public MDRRuleGroupInstanceImpl() {
 	}
 
+	@Override
 	public List<MDRAction> getActions() throws SystemException {
 		return MDRActionLocalServiceUtil.getActions(getRuleGroupInstanceId());
 	}
 
+	@Override
 	public MDRRuleGroup getRuleGroup() throws PortalException, SystemException {
 		return MDRRuleGroupLocalServiceUtil.getRuleGroup(getRuleGroupId());
 	}

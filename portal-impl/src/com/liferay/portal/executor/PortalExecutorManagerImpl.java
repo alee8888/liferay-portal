@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.executor.PortalExecutorFactory;
 import com.liferay.portal.kernel.executor.PortalExecutorManager;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -31,6 +32,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * @author Shuyang Zhou
  */
+@DoPrivileged
 public class PortalExecutorManagerImpl implements PortalExecutorManager {
 
 	public void afterPropertiesSet() {
@@ -40,12 +42,14 @@ public class PortalExecutorManagerImpl implements PortalExecutorManager {
 		}
 	}
 
+	@Override
 	public <T> Future<T> execute(String name, Callable<T> callable) {
 		ThreadPoolExecutor threadPoolExecutor = getPortalExecutor(name);
 
 		return threadPoolExecutor.submit(callable);
 	}
 
+	@Override
 	public <T> T execute(
 			String name, Callable<T> callable, long timeout, TimeUnit timeUnit)
 		throws ExecutionException, InterruptedException, TimeoutException {
@@ -57,10 +61,12 @@ public class PortalExecutorManagerImpl implements PortalExecutorManager {
 		return future.get(timeout, timeUnit);
 	}
 
+	@Override
 	public ThreadPoolExecutor getPortalExecutor(String name) {
 		return getPortalExecutor(name, true);
 	}
 
+	@Override
 	public ThreadPoolExecutor getPortalExecutor(
 		String name, boolean createIfAbsent) {
 
@@ -82,6 +88,7 @@ public class PortalExecutorManagerImpl implements PortalExecutorManager {
 		return threadPoolExecutor;
 	}
 
+	@Override
 	public ThreadPoolExecutor registerPortalExecutor(
 		String name, ThreadPoolExecutor threadPoolExecutor) {
 
@@ -118,13 +125,17 @@ public class PortalExecutorManagerImpl implements PortalExecutorManager {
 		}
 	}
 
+	@Override
 	public void shutdown() {
 		shutdown(false);
 	}
 
+	@Override
 	public void shutdown(boolean interrupt) {
-		for (ThreadPoolExecutor threadPoolExecutor :
-				_threadPoolExecutors.values()) {
+		for (Map.Entry<String, ThreadPoolExecutor> entry :
+				_threadPoolExecutors.entrySet()) {
+
+			ThreadPoolExecutor threadPoolExecutor = entry.getValue();
 
 			if (interrupt) {
 				threadPoolExecutor.shutdownNow();
@@ -137,10 +148,12 @@ public class PortalExecutorManagerImpl implements PortalExecutorManager {
 		_threadPoolExecutors.clear();
 	}
 
+	@Override
 	public void shutdown(String name) {
 		shutdown(name, false);
 	}
 
+	@Override
 	public void shutdown(String name, boolean interrupt) {
 		ThreadPoolExecutor threadPoolExecutor = _threadPoolExecutors.remove(
 			name);

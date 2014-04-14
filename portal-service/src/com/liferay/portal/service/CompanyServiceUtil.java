@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,18 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
- * The utility for the company remote service. This utility wraps {@link com.liferay.portal.service.impl.CompanyServiceImpl} and is the primary access point for service operations in application layer code running on a remote server.
- *
- * <p>
- * This is a remote service. Methods of this service are expected to have security checks based on the propagated JAAS credentials because this service can be accessed remotely.
- * </p>
+ * Provides the remote service utility for Company. This utility wraps
+ * {@link com.liferay.portal.service.impl.CompanyServiceImpl} and is the
+ * primary access point for service operations in application layer code running
+ * on a remote server. Methods of this service are expected to have security
+ * checks based on the propagated JAAS credentials because this service can be
+ * accessed remotely.
  *
  * @author Brian Wing Shun Chan
  * @see CompanyService
@@ -30,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.CompanyServiceImpl
  * @generated
  */
+@ProviderType
 public class CompanyServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -81,6 +85,12 @@ public class CompanyServiceUtil {
 		return getService()
 				   .addCompany(webId, virtualHost, mx, shardName, system,
 			maxUsers, active);
+	}
+
+	public static com.liferay.portal.model.Company deleteCompany(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().deleteCompany(companyId);
 	}
 
 	/**
@@ -227,6 +237,8 @@ public class CompanyServiceUtil {
 	* @param virtualHost the company's virtual host name
 	* @param mx the company's mail domain
 	* @param homeURL the company's home URL (optionally <code>null</code>)
+	* @param logo whether to update the company's logo
+	* @param logoBytes the new logo image data
 	* @param name the company's account name (optionally <code>null</code>)
 	* @param legalName the company's account legal name (optionally
 	<code>null</code>)
@@ -250,17 +262,17 @@ public class CompanyServiceUtil {
 	*/
 	public static com.liferay.portal.model.Company updateCompany(
 		long companyId, java.lang.String virtualHost, java.lang.String mx,
-		java.lang.String homeURL, java.lang.String name,
-		java.lang.String legalName, java.lang.String legalId,
-		java.lang.String legalType, java.lang.String sicCode,
-		java.lang.String tickerSymbol, java.lang.String industry,
-		java.lang.String type, java.lang.String size)
+		java.lang.String homeURL, boolean logo, byte[] logoBytes,
+		java.lang.String name, java.lang.String legalName,
+		java.lang.String legalId, java.lang.String legalType,
+		java.lang.String sicCode, java.lang.String tickerSymbol,
+		java.lang.String industry, java.lang.String type, java.lang.String size)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService()
-				   .updateCompany(companyId, virtualHost, mx, homeURL, name,
-			legalName, legalId, legalType, sicCode, tickerSymbol, industry,
-			type, size);
+				   .updateCompany(companyId, virtualHost, mx, homeURL, logo,
+			logoBytes, name, legalName, legalId, legalType, sicCode,
+			tickerSymbol, industry, type, size);
 	}
 
 	/**
@@ -270,6 +282,8 @@ public class CompanyServiceUtil {
 	* @param virtualHost the company's virtual host name
 	* @param mx the company's mail domain
 	* @param homeURL the company's home URL (optionally <code>null</code>)
+	* @param logo if the company has a custom logo
+	* @param logoBytes the new logo image data
 	* @param name the company's account name (optionally <code>null</code>)
 	* @param legalName the company's account legal name (optionally
 	<code>null</code>)
@@ -298,6 +312,123 @@ public class CompanyServiceUtil {
 	not an administrator
 	* @throws SystemException if a system exception occurred
 	*/
+	public static com.liferay.portal.model.Company updateCompany(
+		long companyId, java.lang.String virtualHost, java.lang.String mx,
+		java.lang.String homeURL, boolean logo, byte[] logoBytes,
+		java.lang.String name, java.lang.String legalName,
+		java.lang.String legalId, java.lang.String legalType,
+		java.lang.String sicCode, java.lang.String tickerSymbol,
+		java.lang.String industry, java.lang.String type,
+		java.lang.String size, java.lang.String languageId,
+		java.lang.String timeZoneId,
+		java.util.List<com.liferay.portal.model.Address> addresses,
+		java.util.List<com.liferay.portal.model.EmailAddress> emailAddresses,
+		java.util.List<com.liferay.portal.model.Phone> phones,
+		java.util.List<com.liferay.portal.model.Website> websites,
+		com.liferay.portal.kernel.util.UnicodeProperties properties)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .updateCompany(companyId, virtualHost, mx, homeURL, logo,
+			logoBytes, name, legalName, legalId, legalType, sicCode,
+			tickerSymbol, industry, type, size, languageId, timeZoneId,
+			addresses, emailAddresses, phones, websites, properties);
+	}
+
+	/**
+	* Updates the company with additional account information.
+	*
+	* @param companyId the primary key of the company
+	* @param virtualHost the company's virtual host name
+	* @param mx the company's mail domain
+	* @param homeURL the company's home URL (optionally <code>null</code>)
+	* @param name the company's account name (optionally
+	<code>null</code>)
+	* @param legalName the company's account legal name (optionally
+	<code>null</code>)
+	* @param legalId the company's account legal ID (optionally
+	<code>null</code>)
+	* @param legalType the company's account legal type (optionally
+	<code>null</code>)
+	* @param sicCode the company's account SIC code (optionally
+	<code>null</code>)
+	* @param tickerSymbol the company's account ticker symbol (optionally
+	<code>null</code>)
+	* @param industry the the company's account industry (optionally
+	<code>null</code>)
+	* @param type the company's account type (optionally
+	<code>null</code>)
+	* @param size the company's account size (optionally
+	<code>null</code>)
+	* @return the the company with the primary key
+	* @throws PortalException if a company with the primary key could not
+	be found or if the new information was invalid or if the user
+	was not an administrator
+	* @throws SystemException if a system exception occurred
+	* @deprecated As of 7.0.0, replaced by {@link #updateCompany(long, String,
+	String, String, boolean, byte[], String, String, String,
+	String, String, String, String, String, String)}
+	*/
+	@Deprecated
+	public static com.liferay.portal.model.Company updateCompany(
+		long companyId, java.lang.String virtualHost, java.lang.String mx,
+		java.lang.String homeURL, java.lang.String name,
+		java.lang.String legalName, java.lang.String legalId,
+		java.lang.String legalType, java.lang.String sicCode,
+		java.lang.String tickerSymbol, java.lang.String industry,
+		java.lang.String type, java.lang.String size)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .updateCompany(companyId, virtualHost, mx, homeURL, name,
+			legalName, legalId, legalType, sicCode, tickerSymbol, industry,
+			type, size);
+	}
+
+	/**
+	* Updates the company with addition information.
+	*
+	* @param companyId the primary key of the company
+	* @param virtualHost the company's virtual host name
+	* @param mx the company's mail domain
+	* @param homeURL the company's home URL (optionally <code>null</code>)
+	* @param name the company's account name (optionally
+	<code>null</code>)
+	* @param legalName the company's account legal name (optionally
+	<code>null</code>)
+	* @param legalId the company's accout legal ID (optionally
+	<code>null</code>)
+	* @param legalType the company's account legal type (optionally
+	<code>null</code>)
+	* @param sicCode the company's account SIC code (optionally
+	<code>null</code>)
+	* @param tickerSymbol the company's account ticker symbol (optionally
+	<code>null</code>)
+	* @param industry the the company's account industry (optionally
+	<code>null</code>)
+	* @param type the company's account type (optionally
+	<code>null</code>)
+	* @param size the company's account size (optionally
+	<code>null</code>)
+	* @param languageId the ID of the company's default user's language
+	* @param timeZoneId the ID of the company's default user's time zone
+	* @param addresses the company's addresses
+	* @param emailAddresses the company's email addresses
+	* @param phones the company's phone numbers
+	* @param websites the company's websites
+	* @param properties the company's properties
+	* @return the company with the primary key
+	* @throws PortalException the company with the primary key could not be
+	found or if the new information was invalid or if the user
+	was not an administrator
+	* @throws SystemException if a system exception occurred
+	* @deprecated As of 7.0.0, replaced by {@link #updateCompany(long, String,
+	String, String, boolean, byte[], String, String, String,
+	String, String, String, String, String, String, String,
+	String, java.util.List, java.util.List, java.util.List,
+	java.util.List, UnicodeProperties)}
+	*/
+	@Deprecated
 	public static com.liferay.portal.model.Company updateCompany(
 		long companyId, java.lang.String virtualHost, java.lang.String mx,
 		java.lang.String homeURL, java.lang.String name,
@@ -335,6 +466,24 @@ public class CompanyServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		getService().updateDisplay(companyId, languageId, timeZoneId);
+	}
+
+	/**
+	* Updates the company's logo.
+	*
+	* @param companyId the primary key of the company
+	* @param bytes the bytes of the company's logo image
+	* @return the company with the primary key
+	* @throws PortalException if the company's logo ID could not be found or if
+	the logo's image was corrupted or if the user was an
+	administrator
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.Company updateLogo(long companyId,
+		byte[] bytes)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().updateLogo(companyId, bytes);
 	}
 
 	/**
@@ -415,8 +564,9 @@ public class CompanyServiceUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(CompanyService service) {
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portal.tools.deploy;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 
 import javax.enterprise.deploy.shared.ModuleType;
 import javax.enterprise.deploy.spi.DeploymentManager;
@@ -39,6 +40,7 @@ public class DeploymentProgressListener implements ProgressListener {
 		_deploymentManager = _deploymentHandler.getDeploymentManager();
 	}
 
+	@Override
 	public void handleProgressEvent(ProgressEvent progressEvent) {
 		DeploymentStatus deploymentStatus = progressEvent.getDeploymentStatus();
 
@@ -52,7 +54,7 @@ public class DeploymentProgressListener implements ProgressListener {
 					_deploymentManager.getNonRunningModules(
 						ModuleType.WAR, _deploymentManager.getTargets());
 
-				if ((targetModuleIDs != null) && (targetModuleIDs.length > 0)) {
+				if (ArrayUtil.isNotEmpty(targetModuleIDs)) {
 					for (TargetModuleID targetModuleID : targetModuleIDs) {
 						if (!_warContext.equals(targetModuleID.getModuleID())) {
 							continue;

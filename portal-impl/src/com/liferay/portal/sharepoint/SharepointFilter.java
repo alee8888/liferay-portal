@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -55,6 +55,14 @@ public class SharepointFilter extends SecureFilter {
 		return false;
 	}
 
+	protected boolean isWebDAVRequest(String uri) {
+		if (uri.startsWith("/webdav")) {
+			return true;
+		}
+
+		return false;
+	}
+
 	@Override
 	protected void processFilter(
 			HttpServletRequest request, HttpServletResponse response,
@@ -71,7 +79,7 @@ public class SharepointFilter extends SecureFilter {
 			 userAgent.startsWith("Microsoft Office Protocol Discovery")) &&
 			method.equals(HttpMethods.OPTIONS)) {
 
-			setOptionsHeaders(response);
+			setOptionsHeaders(request, response);
 
 			return;
 		}
@@ -103,8 +111,16 @@ public class SharepointFilter extends SecureFilter {
 		response.setHeader("Cache-Control", "no-cache");
 	}
 
-	protected void setOptionsHeaders(HttpServletResponse response) {
-		response.setHeader("MS-Author-Via", "MS-FP/4.0,DAV");
+	protected void setOptionsHeaders(
+		HttpServletRequest request, HttpServletResponse response) {
+
+		if (isWebDAVRequest(request.getRequestURI())) {
+			response.setHeader("MS-Author-Via", "DAV,MS-FP/4.0");
+		}
+		else {
+			response.setHeader("MS-Author-Via", "MS-FP/4.0,DAV");
+		}
+
 		response.setHeader("MicrosoftOfficeWebServer", "5.0_Collab");
 		response.setHeader(
 			"MicrosoftSharePointTeamServices", SharepointUtil.VERSION);

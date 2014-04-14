@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
- * <p>
- * This class is a wrapper for {@link ImageLocalService}.
- * </p>
+ * Provides a wrapper for {@link ImageLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ImageLocalService
+ * @author Brian Wing Shun Chan
+ * @see ImageLocalService
  * @generated
  */
+@ProviderType
 public class ImageLocalServiceWrapper implements ImageLocalService,
 	ServiceWrapper<ImageLocalService> {
 	public ImageLocalServiceWrapper(ImageLocalService imageLocalService) {
@@ -36,6 +37,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* @return the image that was added
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.Image addImage(
 		com.liferay.portal.model.Image image)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -48,6 +50,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* @param imageId the primary key for the new image
 	* @return the new image
 	*/
+	@Override
 	public com.liferay.portal.model.Image createImage(long imageId) {
 		return _imageLocalService.createImage(imageId);
 	}
@@ -60,6 +63,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* @throws PortalException if a image with the primary key could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.Image deleteImage(long imageId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -73,12 +77,14 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* @return the image that was removed
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.Image deleteImage(
 		com.liferay.portal.model.Image image)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _imageLocalService.deleteImage(image);
 	}
 
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _imageLocalService.dynamicQuery();
 	}
@@ -90,6 +96,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* @return the matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
@@ -101,7 +108,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* Performs a dynamic query on the database and returns a range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.ImageModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -110,6 +117,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* @return the range of matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
@@ -121,7 +129,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.ImageModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -131,6 +139,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* @return the ordered range of matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
@@ -148,12 +157,30 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* @return the number of rows that match the dynamic query
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _imageLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _imageLocalService.dynamicQueryCount(dynamicQuery, projection);
+	}
+
+	@Override
 	public com.liferay.portal.model.Image fetchImage(long imageId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _imageLocalService.fetchImage(imageId);
@@ -167,12 +194,14 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* @throws PortalException if a image with the primary key could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.Image getImage(long imageId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _imageLocalService.getImage(imageId);
 	}
 
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -184,7 +213,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* Returns a range of all the images.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.ImageModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of images
@@ -192,6 +221,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* @return the range of images
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portal.model.Image> getImages(int start,
 		int end) throws com.liferay.portal.kernel.exception.SystemException {
 		return _imageLocalService.getImages(start, end);
@@ -203,6 +233,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* @return the number of images
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public int getImagesCount()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _imageLocalService.getImagesCount();
@@ -215,6 +246,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	* @return the image that was updated
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.Image updateImage(
 		com.liferay.portal.model.Image image)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -222,24 +254,11 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	}
 
 	/**
-	* Updates the image in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param image the image
-	* @param merge whether to merge the image with the current session. See {@link com.liferay.portal.service.persistence.BatchSession#update(com.liferay.portal.kernel.dao.orm.Session, com.liferay.portal.model.BaseModel, boolean)} for an explanation.
-	* @return the image that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portal.model.Image updateImage(
-		com.liferay.portal.model.Image image, boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _imageLocalService.updateImage(image, merge);
-	}
-
-	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _imageLocalService.getBeanIdentifier();
 	}
@@ -249,83 +268,41 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_imageLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public com.liferay.portal.model.Image getCompanyLogo(long imageId) {
 		return _imageLocalService.getCompanyLogo(imageId);
 	}
 
-	public com.liferay.portal.model.Image getDefaultCompanyLogo() {
-		return _imageLocalService.getDefaultCompanyLogo();
-	}
-
-	public com.liferay.portal.model.Image getDefaultOrganizationLogo() {
-		return _imageLocalService.getDefaultOrganizationLogo();
-	}
-
-	public com.liferay.portal.model.Image getDefaultSpacer() {
-		return _imageLocalService.getDefaultSpacer();
-	}
-
-	public com.liferay.portal.model.Image getDefaultUserFemalePortrait() {
-		return _imageLocalService.getDefaultUserFemalePortrait();
-	}
-
-	public com.liferay.portal.model.Image getDefaultUserMalePortrait() {
-		return _imageLocalService.getDefaultUserMalePortrait();
-	}
-
-	public com.liferay.portal.model.Image getImage(byte[] bytes)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _imageLocalService.getImage(bytes);
-	}
-
-	public com.liferay.portal.model.Image getImage(java.io.File file)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _imageLocalService.getImage(file);
-	}
-
-	public com.liferay.portal.model.Image getImage(java.io.InputStream is)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _imageLocalService.getImage(is);
-	}
-
-	public com.liferay.portal.model.Image getImage(java.io.InputStream is,
-		boolean cleanUpStream)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _imageLocalService.getImage(is, cleanUpStream);
-	}
-
+	@Override
 	public com.liferay.portal.model.Image getImageOrDefault(long imageId) {
 		return _imageLocalService.getImageOrDefault(imageId);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portal.model.Image> getImages()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _imageLocalService.getImages();
 	}
 
+	@Override
 	public java.util.List<com.liferay.portal.model.Image> getImagesBySize(
 		int size) throws com.liferay.portal.kernel.exception.SystemException {
 		return _imageLocalService.getImagesBySize(size);
 	}
 
-	public boolean isNullOrDefaultSpacer(byte[] bytes) {
-		return _imageLocalService.isNullOrDefaultSpacer(bytes);
-	}
-
+	@Override
 	public com.liferay.portal.model.Image updateImage(long imageId, byte[] bytes)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _imageLocalService.updateImage(imageId, bytes);
 	}
 
+	@Override
 	public com.liferay.portal.model.Image updateImage(long imageId,
 		byte[] bytes, java.lang.String type, int height, int width, int size)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -334,6 +311,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 			width, size);
 	}
 
+	@Override
 	public com.liferay.portal.model.Image updateImage(long imageId,
 		java.io.File file)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -341,6 +319,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 		return _imageLocalService.updateImage(imageId, file);
 	}
 
+	@Override
 	public com.liferay.portal.model.Image updateImage(long imageId,
 		java.io.InputStream is)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -348,6 +327,7 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 		return _imageLocalService.updateImage(imageId, is);
 	}
 
+	@Override
 	public com.liferay.portal.model.Image updateImage(long imageId,
 		java.io.InputStream is, boolean cleanUpStream)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -356,23 +336,27 @@ public class ImageLocalServiceWrapper implements ImageLocalService,
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ImageLocalService getWrappedImageLocalService() {
 		return _imageLocalService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedImageLocalService(ImageLocalService imageLocalService) {
 		_imageLocalService = imageLocalService;
 	}
 
+	@Override
 	public ImageLocalService getWrappedService() {
 		return _imageLocalService;
 	}
 
+	@Override
 	public void setWrappedService(ImageLocalService imageLocalService) {
 		_imageLocalService = imageLocalService;
 	}

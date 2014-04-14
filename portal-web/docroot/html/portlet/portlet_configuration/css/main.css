@@ -8,7 +8,7 @@
 	.edit-permissions {
 		form:after {
 			clear: both;
-			content: ".";
+			content: '';
 			display: block;
 			height: 0;
 			visibility: hidden;
@@ -17,7 +17,7 @@
 		.assign-permissions {
 			float: left;
 
-			.aui-button-holder {
+			.button-holder {
 				position: relative;
 
 				.finished {
@@ -28,9 +28,51 @@
 		}
 	}
 
-	.portlet-type-data-section .aui-legend {
-		border-width: 0;
-		font-size: 90%;
+	.relative-range {
+		width: 165px;
+	}
+
+	.process-list {
+		.background-task-status-column {
+			width: 700px;
+
+			.background-task-status-message {
+				margin-top: 1em;
+
+				.error-list-items li {
+					list-style: disc inside;
+				}
+			}
+
+			.details-link {
+				margin-left: 1em;
+			}
+
+			.publish-error {
+				margin-bottom: 0;
+			}
+
+			.toggler-header-collapsed:after {
+				content: " »";
+			}
+
+			.toggler-header-expanded:after {
+				content: " «";
+			}
+
+			.background-task-status-in-progress {
+				float: left;
+				margin-right: 1em;
+			}
+
+			.progress {
+				margin-bottom: 0.3em;
+			}
+
+			.progress-current-item {
+				font-size: 0.7em;
+			}
+		}
 	}
 }
 

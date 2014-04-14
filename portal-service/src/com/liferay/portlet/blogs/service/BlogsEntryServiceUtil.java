@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.blogs.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
- * The utility for the blogs entry remote service. This utility wraps {@link com.liferay.portlet.blogs.service.impl.BlogsEntryServiceImpl} and is the primary access point for service operations in application layer code running on a remote server.
- *
- * <p>
- * This is a remote service. Methods of this service are expected to have security checks based on the propagated JAAS credentials because this service can be accessed remotely.
- * </p>
+ * Provides the remote service utility for BlogsEntry. This utility wraps
+ * {@link com.liferay.portlet.blogs.service.impl.BlogsEntryServiceImpl} and is the
+ * primary access point for service operations in application layer code running
+ * on a remote server. Methods of this service are expected to have security
+ * checks based on the propagated JAAS credentials because this service can be
+ * accessed remotely.
  *
  * @author Brian Wing Shun Chan
  * @see BlogsEntryService
@@ -30,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.blogs.service.impl.BlogsEntryServiceImpl
  * @generated
  */
+@ProviderType
 public class BlogsEntryServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -194,10 +198,11 @@ public class BlogsEntryServiceUtil {
 			themeDisplay);
 	}
 
-	public static void moveEntryToTrash(long entryId)
+	public static com.liferay.portlet.blogs.model.BlogsEntry moveEntryToTrash(
+		long entryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		getService().moveEntryToTrash(entryId);
+		return getService().moveEntryToTrash(entryId);
 	}
 
 	public static void restoreEntryFromTrash(long entryId)
@@ -249,8 +254,9 @@ public class BlogsEntryServiceUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(BlogsEntryService service) {
 	}
 

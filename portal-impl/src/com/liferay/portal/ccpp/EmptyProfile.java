@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,22 +26,27 @@ import javax.ccpp.ProfileDescription;
  */
 public class EmptyProfile implements Profile {
 
+	@Override
 	public Attribute getAttribute(String name) {
 		return null;
 	}
 
+	@Override
 	public Set<Attribute> getAttributes() {
 		return null;
 	}
 
+	@Override
 	public Component getComponent(String localtype) {
 		return null;
 	}
 
+	@Override
 	public Set<Component> getComponents() {
 		return null;
 	}
 
+	@Override
 	public ProfileDescription getDescription() {
 		return null;
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.shopping.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -40,6 +42,7 @@ import java.util.Date;
  * @see com.liferay.portlet.shopping.model.impl.ShoppingCategoryModelImpl
  * @generated
  */
+@ProviderType
 public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	GroupedModel {
 	/*
@@ -81,6 +84,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 *
 	 * @return the group ID of this shopping category
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -88,6 +92,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 *
 	 * @param groupId the group ID of this shopping category
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -95,6 +100,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 *
 	 * @return the company ID of this shopping category
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -102,6 +108,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 *
 	 * @param companyId the company ID of this shopping category
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -109,6 +116,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 *
 	 * @return the user ID of this shopping category
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -116,6 +124,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 *
 	 * @param userId the user ID of this shopping category
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
@@ -124,6 +133,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 * @return the user uuid of this shopping category
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public String getUserUuid() throws SystemException;
 
 	/**
@@ -131,6 +141,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 *
 	 * @param userUuid the user uuid of this shopping category
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -139,6 +150,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 * @return the user name of this shopping category
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -146,6 +158,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 *
 	 * @param userName the user name of this shopping category
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -153,6 +166,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 *
 	 * @return the create date of this shopping category
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -160,6 +174,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 *
 	 * @param createDate the create date of this shopping category
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -167,6 +182,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 *
 	 * @return the modified date of this shopping category
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -174,6 +190,7 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 *
 	 * @param modifiedDate the modified date of this shopping category
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -220,35 +237,60 @@ public interface ShoppingCategoryModel extends BaseModel<ShoppingCategory>,
 	 */
 	public void setDescription(String description);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(ShoppingCategory shoppingCategory);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<ShoppingCategory> toCacheModel();
 
+	@Override
 	public ShoppingCategory toEscapedModel();
 
+	@Override
+	public ShoppingCategory toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

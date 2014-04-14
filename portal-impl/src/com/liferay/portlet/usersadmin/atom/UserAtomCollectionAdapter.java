@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.Address;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.auth.CompanyThreadLocal;
-import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.service.UserServiceUtil;
 import com.liferay.portal.util.PortletKeys;
 
@@ -39,10 +38,12 @@ import java.util.List;
  */
 public class UserAtomCollectionAdapter extends BaseAtomCollectionAdapter<User> {
 
+	@Override
 	public String getCollectionName() {
 		return _COLLECTION_NAME;
 	}
 
+	@Override
 	public List<String> getEntryAuthors(User user) {
 		List<String> authors = new ArrayList<String>();
 
@@ -51,6 +52,7 @@ public class UserAtomCollectionAdapter extends BaseAtomCollectionAdapter<User> {
 		return authors;
 	}
 
+	@Override
 	public AtomEntryContent getEntryContent(
 		User user, AtomRequestContext atomRequestContext) {
 
@@ -83,22 +85,27 @@ public class UserAtomCollectionAdapter extends BaseAtomCollectionAdapter<User> {
 		return new AtomEntryContent(content.toString());
 	}
 
+	@Override
 	public String getEntryId(User user) {
 		return String.valueOf(user.getUserId());
 	}
 
+	@Override
 	public String getEntrySummary(User user) {
 		return user.getFullName();
 	}
 
+	@Override
 	public String getEntryTitle(User user) {
 		return user.getScreenName();
 	}
 
+	@Override
 	public Date getEntryUpdated(User user) {
 		return user.getModifiedDate();
 	}
 
+	@Override
 	public String getFeedTitle(AtomRequestContext atomRequestContext) {
 		return AtomUtil.createFeedTitleFromPortletName(
 			atomRequestContext, PortletKeys.USERS_ADMIN);
@@ -122,7 +129,7 @@ public class UserAtomCollectionAdapter extends BaseAtomCollectionAdapter<User> {
 		long groupId = atomRequestContext.getLongParameter("groupId");
 
 		if (groupId > 0) {
-			List<User> users = UserLocalServiceUtil.getGroupUsers(groupId);
+			List<User> users = UserServiceUtil.getGroupUsers(groupId);
 
 			return users;
 		}
@@ -131,7 +138,7 @@ public class UserAtomCollectionAdapter extends BaseAtomCollectionAdapter<User> {
 			"organizationId");
 
 		if (organizationId > 0) {
-			List<User> users = UserLocalServiceUtil.getOrganizationUsers(
+			List<User> users = UserServiceUtil.getOrganizationUsers(
 				organizationId);
 
 			return users;
@@ -140,8 +147,7 @@ public class UserAtomCollectionAdapter extends BaseAtomCollectionAdapter<User> {
 		long userGroupId = atomRequestContext.getLongParameter("userGroupId");
 
 		if (userGroupId > 0) {
-			List<User> users = UserLocalServiceUtil.getUserGroupUsers(
-				userGroupId);
+			List<User> users = UserServiceUtil.getUserGroupUsers(userGroupId);
 
 			return users;
 		}
@@ -149,14 +155,13 @@ public class UserAtomCollectionAdapter extends BaseAtomCollectionAdapter<User> {
 		long companyId = CompanyThreadLocal.getCompanyId();
 
 		if (companyId > 0) {
-			int usersCount = UserLocalServiceUtil.getCompanyUsersCount(
-				companyId);
+			int usersCount = UserServiceUtil.getCompanyUsersCount(companyId);
 
 			AtomPager atomPager = new AtomPager(atomRequestContext, usersCount);
 
 			AtomUtil.saveAtomPagerInRequest(atomRequestContext, atomPager);
 
-			List<User> users = UserLocalServiceUtil.getCompanyUsers(
+			List<User> users = UserServiceUtil.getCompanyUsers(
 				companyId, atomPager.getStart(), atomPager.getEnd() + 1);
 
 			return users;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,35 +16,66 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchContactException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.Contact;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ContactPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (ContactPersistence)PortalBeanLocatorUtil.locate(ContactPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -79,6 +110,8 @@ public class ContactPersistenceTest {
 		long pk = ServiceTestUtil.nextLong();
 
 		Contact newContact = _persistence.create(pk);
+
+		newContact.setMvccVersion(ServiceTestUtil.nextLong());
 
 		newContact.setCompanyId(ServiceTestUtil.nextLong());
 
@@ -144,10 +177,12 @@ public class ContactPersistenceTest {
 
 		newContact.setHoursOfOperation(ServiceTestUtil.randomString());
 
-		_persistence.update(newContact, false);
+		_persistence.update(newContact);
 
 		Contact existingContact = _persistence.findByPrimaryKey(newContact.getPrimaryKey());
 
+		Assert.assertEquals(existingContact.getMvccVersion(),
+			newContact.getMvccVersion());
 		Assert.assertEquals(existingContact.getContactId(),
 			newContact.getContactId());
 		Assert.assertEquals(existingContact.getCompanyId(),
@@ -213,6 +248,43 @@ public class ContactPersistenceTest {
 	}
 
 	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByAccountId() {
+		try {
+			_persistence.countByAccountId(ServiceTestUtil.nextLong());
+
+			_persistence.countByAccountId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_C() {
+		try {
+			_persistence.countByC_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_C(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		Contact newContact = addContact();
 
@@ -235,6 +307,31 @@ public class ContactPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("Contact_", "mvccVersion",
+			true, "contactId", true, "companyId", true, "userId", true,
+			"userName", true, "createDate", true, "modifiedDate", true,
+			"classNameId", true, "classPK", true, "accountId", true,
+			"parentContactId", true, "emailAddress", true, "firstName", true,
+			"middleName", true, "lastName", true, "prefixId", true, "suffixId",
+			true, "male", true, "birthday", true, "smsSn", true, "aimSn", true,
+			"facebookSn", true, "icqSn", true, "jabberSn", true, "msnSn", true,
+			"mySpaceSn", true, "skypeSn", true, "twitterSn", true, "ymSn",
+			true, "employeeStatusId", true, "employeeNumber", true, "jobTitle",
+			true, "jobClass", true, "hoursOfOperation", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		Contact newContact = addContact();
 
@@ -250,6 +347,26 @@ public class ContactPersistenceTest {
 		Contact missingContact = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingContact);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new ContactActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					Contact contact = (Contact)object;
+
+					Assert.assertNotNull(contact);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -329,6 +446,8 @@ public class ContactPersistenceTest {
 
 		Contact contact = _persistence.create(pk);
 
+		contact.setMvccVersion(ServiceTestUtil.nextLong());
+
 		contact.setCompanyId(ServiceTestUtil.nextLong());
 
 		contact.setUserId(ServiceTestUtil.nextLong());
@@ -393,10 +512,12 @@ public class ContactPersistenceTest {
 
 		contact.setHoursOfOperation(ServiceTestUtil.randomString());
 
-		_persistence.update(contact, false);
+		_persistence.update(contact);
 
 		return contact;
 	}
 
-	private ContactPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(ContactPersistenceTest.class);
+	private ContactPersistence _persistence = (ContactPersistence)PortalBeanLocatorUtil.locate(ContactPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

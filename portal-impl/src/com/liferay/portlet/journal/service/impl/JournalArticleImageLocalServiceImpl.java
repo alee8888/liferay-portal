@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,7 +17,6 @@ package com.liferay.portlet.journal.service.impl;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portlet.journal.DuplicateArticleImageIdException;
-import com.liferay.portlet.journal.NoSuchArticleImageException;
 import com.liferay.portlet.journal.model.JournalArticleImage;
 import com.liferay.portlet.journal.service.base.JournalArticleImageLocalServiceBaseImpl;
 
@@ -29,6 +28,7 @@ import java.util.List;
 public class JournalArticleImageLocalServiceImpl
 	extends JournalArticleImageLocalServiceBaseImpl {
 
+	@Override
 	public void addArticleImageId(
 			long articleImageId, long groupId, String articleId, double version,
 			String elInstanceId, String elName, String languageId)
@@ -54,15 +54,15 @@ public class JournalArticleImageLocalServiceImpl
 			articleImage.setLanguageId(languageId);
 			articleImage.setTempImage(false);
 
-			journalArticleImagePersistence.update(articleImage, false);
+			journalArticleImagePersistence.update(articleImage);
 		}
-		else if (articleImage.getArticleImageId() == articleImageId) {
-		}
-		else {
-			throw new DuplicateArticleImageIdException();
+		else if (articleImage.getArticleImageId() != articleImageId) {
+			throw new DuplicateArticleImageIdException(
+				"{articleImageId=" + articleImageId + "}");
 		}
 	}
 
+	@Override
 	public void deleteArticleImage(JournalArticleImage articleImage)
 		throws SystemException {
 
@@ -75,33 +75,32 @@ public class JournalArticleImageLocalServiceImpl
 		journalArticleImagePersistence.remove(articleImage);
 	}
 
+	@Override
 	public void deleteArticleImage(long articleImageId) throws SystemException {
-		try {
-			JournalArticleImage articleImage =
-				journalArticleImagePersistence.findByPrimaryKey(articleImageId);
+		JournalArticleImage articleImage =
+			journalArticleImagePersistence.fetchByPrimaryKey(articleImageId);
 
+		if (articleImage != null) {
 			deleteArticleImage(articleImage);
-		}
-		catch (NoSuchArticleImageException nsaie) {
 		}
 	}
 
+	@Override
 	public void deleteArticleImage(
 			long groupId, String articleId, double version, String elInstanceId,
 			String elName, String languageId)
 		throws SystemException {
 
-		try {
-			JournalArticleImage articleImage =
-				journalArticleImagePersistence.findByG_A_V_E_E_L(
+		JournalArticleImage articleImage =
+			journalArticleImagePersistence.fetchByG_A_V_E_E_L(
 				groupId, articleId, version, elInstanceId, elName, languageId);
 
+		if (articleImage != null) {
 			deleteArticleImage(articleImage);
-		}
-		catch (NoSuchArticleImageException nsaie) {
 		}
 	}
 
+	@Override
 	public void deleteImages(long groupId, String articleId, double version)
 		throws SystemException {
 
@@ -113,12 +112,14 @@ public class JournalArticleImageLocalServiceImpl
 		}
 	}
 
+	@Override
 	public JournalArticleImage getArticleImage(long articleImageId)
 		throws PortalException, SystemException {
 
 		return journalArticleImagePersistence.findByPrimaryKey(articleImageId);
 	}
 
+	@Override
 	public long getArticleImageId(
 			long groupId, String articleId, double version, String elInstanceId,
 			String elName, String languageId)
@@ -129,6 +130,7 @@ public class JournalArticleImageLocalServiceImpl
 			false);
 	}
 
+	@Override
 	public long getArticleImageId(
 			long groupId, String articleId, double version, String elInstanceId,
 			String elName, String languageId, boolean tempImage)
@@ -152,16 +154,31 @@ public class JournalArticleImageLocalServiceImpl
 			articleImage.setLanguageId(languageId);
 			articleImage.setTempImage(tempImage);
 
-			journalArticleImagePersistence.update(articleImage, false);
+			journalArticleImagePersistence.update(articleImage);
 		}
 
 		return articleImage.getArticleImageId();
 	}
 
+	@Override
 	public List<JournalArticleImage> getArticleImages(long groupId)
 		throws SystemException {
 
 		return journalArticleImagePersistence.findByGroupId(groupId);
+	}
+
+	@Override
+	public List<JournalArticleImage> getArticleImages(
+			long groupId, String articleId, double version)
+		throws SystemException {
+
+		return journalArticleImagePersistence.findByG_A_V(
+			groupId, articleId, version);
+	}
+
+	@Override
+	public int getArticleImagesCount(long groupId) throws SystemException {
+		return journalArticleImagePersistence.countByGroupId(groupId);
 	}
 
 }

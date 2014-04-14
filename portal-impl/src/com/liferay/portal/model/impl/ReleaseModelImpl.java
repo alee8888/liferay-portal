@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -57,6 +57,7 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 	 */
 	public static final String TABLE_NAME = "Release_";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "releaseId", Types.BIGINT },
 			{ "createDate", Types.TIMESTAMP },
 			{ "modifiedDate", Types.TIMESTAMP },
@@ -67,8 +68,10 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 			{ "state_", Types.INTEGER },
 			{ "testString", Types.VARCHAR }
 		};
-	public static final String TABLE_SQL_CREATE = "create table Release_ (releaseId LONG not null primary key,createDate DATE null,modifiedDate DATE null,servletContextName VARCHAR(75) null,buildNumber INTEGER,buildDate DATE null,verified BOOLEAN,state_ INTEGER,testString VARCHAR(1024) null)";
+	public static final String TABLE_SQL_CREATE = "create table Release_ (mvccVersion LONG default 0,releaseId LONG not null primary key,createDate DATE null,modifiedDate DATE null,servletContextName VARCHAR(75) null,buildNumber INTEGER,buildDate DATE null,verified BOOLEAN,state_ INTEGER,testString VARCHAR(1024) null)";
 	public static final String TABLE_SQL_DROP = "drop table Release_";
+	public static final String ORDER_BY_JPQL = " ORDER BY release.releaseId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY Release_.releaseId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -82,32 +85,39 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 				"value.object.column.bitmask.enabled.com.liferay.portal.model.Release"),
 			true);
 	public static long SERVLETCONTEXTNAME_COLUMN_BITMASK = 1L;
+	public static long RELEASEID_COLUMN_BITMASK = 2L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portal.model.Release"));
 
 	public ReleaseModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _releaseId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setReleaseId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_releaseId);
+		return _releaseId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return Release.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return Release.class.getName();
 	}
@@ -116,6 +126,7 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("releaseId", getReleaseId());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
@@ -126,11 +137,20 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 		attributes.put("state", getState());
 		attributes.put("testString", getTestString());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long releaseId = (Long)attributes.get("releaseId");
 
 		if (releaseId != null) {
@@ -186,30 +206,47 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 		}
 	}
 
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@Override
 	public long getReleaseId() {
 		return _releaseId;
 	}
 
+	@Override
 	public void setReleaseId(long releaseId) {
 		_releaseId = releaseId;
 	}
 
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
 
+	@Override
 	public void setCreateDate(Date createDate) {
 		_createDate = createDate;
 	}
 
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
 
+	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		_modifiedDate = modifiedDate;
 	}
 
+	@Override
 	public String getServletContextName() {
 		if (_servletContextName == null) {
 			return StringPool.BLANK;
@@ -219,6 +256,7 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 		}
 	}
 
+	@Override
 	public void setServletContextName(String servletContextName) {
 		_columnBitmask |= SERVLETCONTEXTNAME_COLUMN_BITMASK;
 
@@ -233,42 +271,52 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 		return GetterUtil.getString(_originalServletContextName);
 	}
 
+	@Override
 	public int getBuildNumber() {
 		return _buildNumber;
 	}
 
+	@Override
 	public void setBuildNumber(int buildNumber) {
 		_buildNumber = buildNumber;
 	}
 
+	@Override
 	public Date getBuildDate() {
 		return _buildDate;
 	}
 
+	@Override
 	public void setBuildDate(Date buildDate) {
 		_buildDate = buildDate;
 	}
 
+	@Override
 	public boolean getVerified() {
 		return _verified;
 	}
 
+	@Override
 	public boolean isVerified() {
 		return _verified;
 	}
 
+	@Override
 	public void setVerified(boolean verified) {
 		_verified = verified;
 	}
 
+	@Override
 	public int getState() {
 		return _state;
 	}
 
+	@Override
 	public void setState(int state) {
 		_state = state;
 	}
 
+	@Override
 	public String getTestString() {
 		if (_testString == null) {
 			return StringPool.BLANK;
@@ -278,23 +326,13 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 		}
 	}
 
+	@Override
 	public void setTestString(String testString) {
 		_testString = testString;
 	}
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public Release toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Release)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -311,9 +349,20 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 	}
 
 	@Override
+	public Release toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Release)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		ReleaseImpl releaseImpl = new ReleaseImpl();
 
+		releaseImpl.setMvccVersion(getMvccVersion());
 		releaseImpl.setReleaseId(getReleaseId());
 		releaseImpl.setCreateDate(getCreateDate());
 		releaseImpl.setModifiedDate(getModifiedDate());
@@ -329,6 +378,7 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 		return releaseImpl;
 	}
 
+	@Override
 	public int compareTo(Release release) {
 		long primaryKey = release.getPrimaryKey();
 
@@ -345,18 +395,15 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof Release)) {
 			return false;
 		}
 
-		Release release = null;
-
-		try {
-			release = (Release)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		Release release = (Release)obj;
 
 		long primaryKey = release.getPrimaryKey();
 
@@ -374,6 +421,16 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		ReleaseModelImpl releaseModelImpl = this;
 
@@ -385,6 +442,8 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 	@Override
 	public CacheModel<Release> toCacheModel() {
 		ReleaseCacheModel releaseCacheModel = new ReleaseCacheModel();
+
+		releaseCacheModel.mvccVersion = getMvccVersion();
 
 		releaseCacheModel.releaseId = getReleaseId();
 
@@ -442,9 +501,11 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(21);
 
-		sb.append("{releaseId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", releaseId=");
 		sb.append(getReleaseId());
 		sb.append(", createDate=");
 		sb.append(getCreateDate());
@@ -467,13 +528,18 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(31);
+		StringBundler sb = new StringBundler(34);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.Release");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>releaseId</column-name><column-value><![CDATA[");
 		sb.append(getReleaseId());
@@ -517,9 +583,10 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 	}
 
 	private static ClassLoader _classLoader = Release.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			Release.class
 		};
+	private long _mvccVersion;
 	private long _releaseId;
 	private Date _createDate;
 	private Date _modifiedDate;
@@ -531,5 +598,5 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 	private int _state;
 	private String _testString;
 	private long _columnBitmask;
-	private Release _escapedModelProxy;
+	private Release _escapedModel;
 }

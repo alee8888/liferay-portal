@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,7 +17,6 @@ package com.liferay.portal.struts;
 import com.liferay.portal.LayoutPermissionException;
 import com.liferay.portal.PortletActiveException;
 import com.liferay.portal.UserActiveException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
@@ -32,9 +31,9 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.liveusers.LiveUsers;
-import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.Portlet;
@@ -53,7 +52,6 @@ import com.liferay.portal.service.persistence.UserTrackerPathUtil;
 import com.liferay.portal.setup.SetupWizardUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
@@ -126,6 +124,7 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 		_publicPaths.add(_PATH_PORTAL_LICENSE);
 		_publicPaths.add(_PATH_PORTAL_LOGIN);
 		_publicPaths.add(_PATH_PORTAL_RENDER_PORTLET);
+		_publicPaths.add(_PATH_PORTAL_RESILIENCY);
 		_publicPaths.add(_PATH_PORTAL_TCK);
 		_publicPaths.add(_PATH_PORTAL_UPDATE_PASSWORD);
 		_publicPaths.add(_PATH_PORTAL_VERIFY_EMAIL_ADDRESS);
@@ -252,7 +251,7 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 				request, portletId);
 
 		PortletPreferences portletPreferences =
-			PortletPreferencesLocalServiceUtil.getPreferences(
+			PortletPreferencesLocalServiceUtil.getStrictPreferences(
 				portletPreferencesIds);
 
 		PortletConfig portletConfig = PortletConfigFactoryUtil.create(
@@ -389,7 +388,7 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 			portalURL = PortalUtil.getPortalURL(request);
 		}
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(7);
 
 		sb.append(portalURL);
 		sb.append(themeDisplay.getPathMain());
@@ -446,7 +445,7 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 		if ((path != null) &&
 			!path.equals(_PATH_C) &&
 			!path.startsWith(_PATH_COMMON) &&
-			(path.indexOf(_PATH_J_SECURITY_CHECK) == -1) &&
+			!path.contains(_PATH_J_SECURITY_CHECK) &&
 			!path.startsWith(_PATH_PORTAL)) {
 
 			return true;
@@ -569,8 +568,8 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 			themeDisplay.getCompanyId(), session.getId());
 
 		if ((userTracker != null) && !path.equals(_PATH_C) &&
-			(path.indexOf(_PATH_J_SECURITY_CHECK) == -1) &&
-			(path.indexOf(_PATH_PORTAL_PROTECTED) == -1) &&
+			!path.contains(_PATH_J_SECURITY_CHECK) &&
+			!path.contains(_PATH_PORTAL_PROTECTED) &&
 			!_trackerIgnorePaths.contains(path)) {
 
 			String fullPath = null;
@@ -639,7 +638,8 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 			if (themeDisplay.isLifecycleResource() ||
 				themeDisplay.isStateExclusive() ||
 				themeDisplay.isStatePopUp() ||
-				!request.getMethod().equalsIgnoreCase(HttpMethods.GET)) {
+				!StringUtil.equalsIgnoreCase(
+					request.getMethod(), HttpMethods.GET)) {
 
 				saveLastPath = false;
 			}
@@ -648,8 +648,8 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 
 			if (saveLastPath) {
 
-				// Was a last path set by another servlet that dispatched to
-				// the MainServlet? If so, use that last path instead.
+				// Was a last path set by another servlet that dispatched to the
+				// MainServlet? If so, use that last path instead.
 
 				LastPath lastPath = (LastPath)request.getAttribute(
 					WebKeys.LAST_PATH);
@@ -723,38 +723,16 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 
 			// Authenticated users should agree to Terms of Use
 
-			if ((user != null) && !user.isAgreedToTermsOfUse()) {
-				boolean termsOfUseRequired = false;
-
-				try {
-					termsOfUseRequired = PrefsPropsUtil.getBoolean(
-						user.getCompanyId(), PropsKeys.TERMS_OF_USE_REQUIRED);
-				}
-				catch (SystemException se) {
-					termsOfUseRequired = PropsValues.TERMS_OF_USE_REQUIRED;
-				}
-
-				if (termsOfUseRequired) {
-					return _PATH_PORTAL_TERMS_OF_USE;
-				}
+			if ((user != null) && !user.isTermsOfUseComplete()) {
+				return _PATH_PORTAL_TERMS_OF_USE;
 			}
 
 			// Authenticated users should have a verified email address
 
-			boolean emailAddressVerificationRequired = false;
-
-			try {
-				Company company = PortalUtil.getCompany(request);
-
-				emailAddressVerificationRequired = company.isStrangersVerify();
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
-
-			if ((user != null) && !user.isEmailAddressVerified() &&
-				emailAddressVerificationRequired &&
-				!path.equals(_PATH_PORTAL_UPDATE_EMAIL_ADDRESS)) {
+			if ((user != null) && !user.isEmailAddressVerificationComplete()) {
+				if (path.equals(_PATH_PORTAL_UPDATE_EMAIL_ADDRESS)) {
+					return _PATH_PORTAL_UPDATE_EMAIL_ADDRESS;
+				}
 
 				return _PATH_PORTAL_VERIFY_EMAIL_ADDRESS;
 			}
@@ -764,26 +742,24 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 			if ((user != null) && user.isPasswordReset()) {
 				return _PATH_PORTAL_UPDATE_PASSWORD;
 			}
+			else if ((user != null) && !user.isPasswordReset() &&
+					 path.equals(_PATH_PORTAL_UPDATE_PASSWORD)) {
+
+				return null;
+			}
 
 			// Authenticated users must have an email address
 
-			if ((user != null) &&
-				(Validator.isNull(user.getEmailAddress()) ||
-				 (PropsValues.USERS_EMAIL_ADDRESS_REQUIRED &&
-				  Validator.isNull(user.getDisplayEmailAddress())))) {
-
+			if ((user != null) && !user.isEmailAddressComplete()) {
 				return _PATH_PORTAL_UPDATE_EMAIL_ADDRESS;
 			}
 
 			// Authenticated users should have a reminder query
 
-			if ((user != null) &&
-				(Validator.isNull(user.getReminderQueryQuestion()) ||
-				 Validator.isNull(user.getReminderQueryAnswer()))) {
+			if ((user != null) && !user.isDefaultUser() &&
+				!user.isReminderQueryComplete()) {
 
-				if (PropsValues.USERS_REMINDER_QUERIES_ENABLED) {
-					return _PATH_PORTAL_UPDATE_REMINDER_QUERY;
-				}
+				return _PATH_PORTAL_UPDATE_REMINDER_QUERY;
 			}
 		}
 
@@ -918,7 +894,7 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 						themeDisplay.getPermissionChecker();
 
 					if (!PortletPermissionUtil.contains(
-							permissionChecker, layout.getPlid(), portlet,
+							permissionChecker, layout, portlet,
 							ActionKeys.VIEW)) {
 
 						throw new PrincipalException();
@@ -990,6 +966,8 @@ public class PortalRequestProcessor extends TilesRequestProcessor {
 
 	private static final String _PATH_PORTAL_RENDER_PORTLET =
 		"/portal/render_portlet";
+
+	private static final String _PATH_PORTAL_RESILIENCY = "/portal/resiliency";
 
 	private static final String _PATH_PORTAL_SETUP_WIZARD =
 		"/portal/setup_wizard";

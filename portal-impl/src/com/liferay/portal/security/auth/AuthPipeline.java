@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portal.security.auth;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.InstancePool;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -210,10 +211,12 @@ public class AuthPipeline {
 			Map<String, String[]> parameterMap)
 		throws AuthException {
 
+		boolean skipLiferayCheck = false;
+
 		Authenticator[] authenticators = _authenticators.get(key);
 
-		if ((authenticators == null) || (authenticators.length == 0)) {
-			return 1;
+		if (ArrayUtil.isEmpty(authenticators)) {
+			return Authenticator.SUCCESS;
 		}
 
 		for (Authenticator authenticator : authenticators) {
@@ -235,7 +238,10 @@ public class AuthPipeline {
 						companyId, userId, password, headerMap, parameterMap);
 				}
 
-				if (authResult != Authenticator.SUCCESS) {
+				if (authResult == Authenticator.SKIP_LIFERAY_CHECK) {
+					skipLiferayCheck = true;
+				}
+				else if (authResult != Authenticator.SUCCESS) {
 					return authResult;
 				}
 			}
@@ -245,6 +251,10 @@ public class AuthPipeline {
 			catch (Exception e) {
 				throw new AuthException(e);
 			}
+		}
+
+		if (skipLiferayCheck) {
+			return Authenticator.SKIP_LIFERAY_CHECK;
 		}
 
 		return Authenticator.SUCCESS;
@@ -257,7 +267,7 @@ public class AuthPipeline {
 
 		AuthFailure[] authFailures = _authFailures.get(key);
 
-		if ((authFailures == null) || (authFailures.length == 0)) {
+		if (ArrayUtil.isEmpty(authFailures)) {
 			return;
 		}
 

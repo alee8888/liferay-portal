@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.shopping.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link ShoppingCouponLocalService}.
- * </p>
+ * Provides a wrapper for {@link ShoppingCouponLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ShoppingCouponLocalService
+ * @author Brian Wing Shun Chan
+ * @see ShoppingCouponLocalService
  * @generated
  */
+@ProviderType
 public class ShoppingCouponLocalServiceWrapper
 	implements ShoppingCouponLocalService,
 		ServiceWrapper<ShoppingCouponLocalService> {
@@ -40,6 +41,7 @@ public class ShoppingCouponLocalServiceWrapper
 	* @return the shopping coupon that was added
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon addShoppingCoupon(
 		com.liferay.portlet.shopping.model.ShoppingCoupon shoppingCoupon)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -52,6 +54,7 @@ public class ShoppingCouponLocalServiceWrapper
 	* @param couponId the primary key for the new shopping coupon
 	* @return the new shopping coupon
 	*/
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon createShoppingCoupon(
 		long couponId) {
 		return _shoppingCouponLocalService.createShoppingCoupon(couponId);
@@ -65,6 +68,7 @@ public class ShoppingCouponLocalServiceWrapper
 	* @throws PortalException if a shopping coupon with the primary key could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon deleteShoppingCoupon(
 		long couponId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -79,12 +83,14 @@ public class ShoppingCouponLocalServiceWrapper
 	* @return the shopping coupon that was removed
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon deleteShoppingCoupon(
 		com.liferay.portlet.shopping.model.ShoppingCoupon shoppingCoupon)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _shoppingCouponLocalService.deleteShoppingCoupon(shoppingCoupon);
 	}
 
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _shoppingCouponLocalService.dynamicQuery();
 	}
@@ -96,6 +102,7 @@ public class ShoppingCouponLocalServiceWrapper
 	* @return the matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
@@ -107,7 +114,7 @@ public class ShoppingCouponLocalServiceWrapper
 	* Performs a dynamic query on the database and returns a range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.shopping.model.impl.ShoppingCouponModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -116,6 +123,7 @@ public class ShoppingCouponLocalServiceWrapper
 	* @return the range of matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
@@ -127,7 +135,7 @@ public class ShoppingCouponLocalServiceWrapper
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.shopping.model.impl.ShoppingCouponModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -137,6 +145,7 @@ public class ShoppingCouponLocalServiceWrapper
 	* @return the ordered range of matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
@@ -154,12 +163,31 @@ public class ShoppingCouponLocalServiceWrapper
 	* @return the number of rows that match the dynamic query
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _shoppingCouponLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _shoppingCouponLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon fetchShoppingCoupon(
 		long couponId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -174,6 +202,7 @@ public class ShoppingCouponLocalServiceWrapper
 	* @throws PortalException if a shopping coupon with the primary key could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon getShoppingCoupon(
 		long couponId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -181,6 +210,7 @@ public class ShoppingCouponLocalServiceWrapper
 		return _shoppingCouponLocalService.getShoppingCoupon(couponId);
 	}
 
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -192,7 +222,7 @@ public class ShoppingCouponLocalServiceWrapper
 	* Returns a range of all the shopping coupons.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.shopping.model.impl.ShoppingCouponModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of shopping coupons
@@ -200,6 +230,7 @@ public class ShoppingCouponLocalServiceWrapper
 	* @return the range of shopping coupons
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portlet.shopping.model.ShoppingCoupon> getShoppingCoupons(
 		int start, int end)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -212,6 +243,7 @@ public class ShoppingCouponLocalServiceWrapper
 	* @return the number of shopping coupons
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public int getShoppingCouponsCount()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _shoppingCouponLocalService.getShoppingCouponsCount();
@@ -224,6 +256,7 @@ public class ShoppingCouponLocalServiceWrapper
 	* @return the shopping coupon that was updated
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon updateShoppingCoupon(
 		com.liferay.portlet.shopping.model.ShoppingCoupon shoppingCoupon)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -231,26 +264,11 @@ public class ShoppingCouponLocalServiceWrapper
 	}
 
 	/**
-	* Updates the shopping coupon in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param shoppingCoupon the shopping coupon
-	* @param merge whether to merge the shopping coupon with the current session. See {@link com.liferay.portal.service.persistence.BatchSession#update(com.liferay.portal.kernel.dao.orm.Session, com.liferay.portal.model.BaseModel, boolean)} for an explanation.
-	* @return the shopping coupon that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.shopping.model.ShoppingCoupon updateShoppingCoupon(
-		com.liferay.portlet.shopping.model.ShoppingCoupon shoppingCoupon,
-		boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _shoppingCouponLocalService.updateShoppingCoupon(shoppingCoupon,
-			merge);
-	}
-
-	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _shoppingCouponLocalService.getBeanIdentifier();
 	}
@@ -260,10 +278,12 @@ public class ShoppingCouponLocalServiceWrapper
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_shoppingCouponLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon addCoupon(
 		long userId, java.lang.String code, boolean autoCode,
 		java.lang.String name, java.lang.String description,
@@ -284,23 +304,27 @@ public class ShoppingCouponLocalServiceWrapper
 			serviceContext);
 	}
 
+	@Override
 	public void deleteCoupon(long couponId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_shoppingCouponLocalService.deleteCoupon(couponId);
 	}
 
+	@Override
 	public void deleteCoupon(
 		com.liferay.portlet.shopping.model.ShoppingCoupon coupon)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_shoppingCouponLocalService.deleteCoupon(coupon);
 	}
 
+	@Override
 	public void deleteCoupons(long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_shoppingCouponLocalService.deleteCoupons(groupId);
 	}
 
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon getCoupon(
 		long couponId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -308,6 +332,7 @@ public class ShoppingCouponLocalServiceWrapper
 		return _shoppingCouponLocalService.getCoupon(couponId);
 	}
 
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon getCoupon(
 		java.lang.String code)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -315,6 +340,7 @@ public class ShoppingCouponLocalServiceWrapper
 		return _shoppingCouponLocalService.getCoupon(code);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portlet.shopping.model.ShoppingCoupon> search(
 		long groupId, long companyId, java.lang.String code, boolean active,
 		java.lang.String discountType, boolean andOperator, int start, int end)
@@ -323,6 +349,7 @@ public class ShoppingCouponLocalServiceWrapper
 			active, discountType, andOperator, start, end);
 	}
 
+	@Override
 	public int searchCount(long groupId, long companyId, java.lang.String code,
 		boolean active, java.lang.String discountType, boolean andOperator)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -330,6 +357,7 @@ public class ShoppingCouponLocalServiceWrapper
 			code, active, discountType, andOperator);
 	}
 
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon updateCoupon(
 		long userId, long couponId, java.lang.String name,
 		java.lang.String description, int startDateMonth, int startDateDay,
@@ -350,24 +378,28 @@ public class ShoppingCouponLocalServiceWrapper
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ShoppingCouponLocalService getWrappedShoppingCouponLocalService() {
 		return _shoppingCouponLocalService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedShoppingCouponLocalService(
 		ShoppingCouponLocalService shoppingCouponLocalService) {
 		_shoppingCouponLocalService = shoppingCouponLocalService;
 	}
 
+	@Override
 	public ShoppingCouponLocalService getWrappedService() {
 		return _shoppingCouponLocalService;
 	}
 
+	@Override
 	public void setWrappedService(
 		ShoppingCouponLocalService shoppingCouponLocalService) {
 		_shoppingCouponLocalService = shoppingCouponLocalService;

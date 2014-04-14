@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,12 +25,14 @@ import com.liferay.portlet.ratings.service.base.RatingsEntryServiceBaseImpl;
  */
 public class RatingsEntryServiceImpl extends RatingsEntryServiceBaseImpl {
 
+	@Override
 	public void deleteEntry(String className, long classPK)
 		throws PortalException, SystemException {
 
 		ratingsEntryLocalService.deleteEntry(getUserId(), className, classPK);
 	}
 
+	@Override
 	public RatingsEntry updateEntry(
 			String className, long classPK, double score)
 		throws PortalException, SystemException {

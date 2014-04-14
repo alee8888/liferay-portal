@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,34 +19,18 @@ package com.liferay.portal.kernel.template;
  */
 public interface TemplateManager {
 
-	public static final String FREEMARKER = "FREEMARKER";
-
-	public static final String VELOCITY = "VELOCITY";
-
-	public void clearCache();
-
-	public void clearCache(String templateId);
-
 	public void destroy();
 
-	public Template getTemplate(
-		String templateId, String templateContent, String errorTemplateId,
-		String errorTemplateContent, TemplateContextType templateContextType);
+	public void destroy(ClassLoader classLoader);
+
+	public String getName();
 
 	public Template getTemplate(
-		String templateId, String templateContent, String errorTemplateId,
-		TemplateContextType templateContextType);
+		TemplateResource templateResource, boolean restricted);
 
 	public Template getTemplate(
-		String templateId, String templateContent,
-		TemplateContextType templateContextType);
-
-	public Template getTemplate(
-		String templateId, TemplateContextType templateContextType);
-
-	public String getTemplateManagerName();
-
-	public boolean hasTemplate(String templateId);
+		TemplateResource templateResource,
+		TemplateResource errorTemplateResource, boolean restricted);
 
 	public void init() throws TemplateException;
 

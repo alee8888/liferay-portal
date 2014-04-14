@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,24 +16,23 @@ package com.liferay.portlet.journalcontent.util;
 
 import com.liferay.portal.kernel.cache.MultiVMPoolUtil;
 import com.liferay.portal.kernel.cache.PortalCache;
-import com.liferay.portal.kernel.lar.ImportExportThreadLocal;
+import com.liferay.portal.kernel.lar.ExportImportThreadLocal;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.portlet.PortletRequestModel;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.journal.model.JournalArticleDisplay;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portlet.journal.service.permission.JournalArticlePermission;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import javax.portlet.RenderRequest;
 
 import org.apache.commons.lang.time.StopWatch;
 
@@ -42,53 +41,54 @@ import org.apache.commons.lang.time.StopWatch;
  * @author Raymond Augé
  * @author Michael Young
  */
+@DoPrivileged
 public class JournalContentImpl implements JournalContent {
 
+	@Override
 	public void clearCache() {
-		if (ImportExportThreadLocal.isImportInProcess()) {
+		if (ExportImportThreadLocal.isImportInProcess()) {
 			return;
 		}
 
 		portalCache.removeAll();
 	}
 
-	public void clearCache(long groupId, String articleId, String templateId) {
+	@Override
+	public void clearCache(
+		long groupId, String articleId, String ddmTemplateKey) {
+
 		clearCache();
 	}
 
+	@Override
 	public String getContent(
 		long groupId, String articleId, String viewMode, String languageId,
-		String xmlRequest) {
+		PortletRequestModel portletRequestModel) {
 
 		return getContent(
-			groupId, articleId, null, viewMode, languageId, null, xmlRequest);
-	}
-
-	public String getContent(
-		long groupId, String articleId, String templateId, String viewMode,
-		String languageId, String xmlRequest) {
-
-		return getContent(
-			groupId, articleId, templateId, viewMode, languageId, null,
-			xmlRequest);
-	}
-
-	public String getContent(
-		long groupId, String articleId, String templateId, String viewMode,
-		String languageId, ThemeDisplay themeDisplay) {
-
-		return getContent(
-			groupId, articleId, templateId, viewMode, languageId, themeDisplay,
+			groupId, articleId, null, viewMode, languageId, portletRequestModel,
 			null);
 	}
 
+	@Override
 	public String getContent(
-		long groupId, String articleId, String templateId, String viewMode,
-		String languageId, ThemeDisplay themeDisplay, String xmlRequest) {
+		long groupId, String articleId, String ddmTemplateKey, String viewMode,
+		String languageId, PortletRequestModel portletRequestModel) {
+
+		return getContent(
+			groupId, articleId, ddmTemplateKey, viewMode, languageId,
+			portletRequestModel, null);
+	}
+
+	@Override
+	public String getContent(
+		long groupId, String articleId, String ddmTemplateKey, String viewMode,
+		String languageId, PortletRequestModel portletRequestModel,
+		ThemeDisplay themeDisplay) {
 
 		JournalArticleDisplay articleDisplay = getDisplay(
-			groupId, articleId, templateId, viewMode, languageId, themeDisplay,
-			1, xmlRequest);
+			groupId, articleId, ddmTemplateKey, viewMode, languageId, 1,
+			portletRequestModel, themeDisplay);
 
 		if (articleDisplay != null) {
 			return articleDisplay.getContent();
@@ -98,6 +98,17 @@ public class JournalContentImpl implements JournalContent {
 		}
 	}
 
+	@Override
+	public String getContent(
+		long groupId, String articleId, String ddmTemplateKey, String viewMode,
+		String languageId, ThemeDisplay themeDisplay) {
+
+		return getContent(
+			groupId, articleId, ddmTemplateKey, viewMode, languageId,
+			(PortletRequestModel)null, themeDisplay);
+	}
+
+	@Override
 	public String getContent(
 		long groupId, String articleId, String viewMode, String languageId,
 		ThemeDisplay themeDisplay) {
@@ -106,52 +117,59 @@ public class JournalContentImpl implements JournalContent {
 			groupId, articleId, null, viewMode, languageId, themeDisplay);
 	}
 
+	@Override
 	public JournalArticleDisplay getDisplay(
-		long groupId, String articleId, double version, String templateId,
-		String viewMode, String languageId, ThemeDisplay themeDisplay, int page,
-		String xmlRequest) {
+		long groupId, String articleId, double version, String ddmTemplateKey,
+		String viewMode, String languageId, int page,
+		PortletRequestModel portletRequestModel, ThemeDisplay themeDisplay) {
 
-		StopWatch stopWatch = null;
+		StopWatch stopWatch = new StopWatch();
 
-		if (_log.isDebugEnabled()) {
-			stopWatch = new StopWatch();
+		stopWatch.start();
 
-			stopWatch.start();
-		}
-
-		articleId = GetterUtil.getString(articleId).toUpperCase();
-		templateId = GetterUtil.getString(templateId).toUpperCase();
+		articleId = StringUtil.toUpperCase(GetterUtil.getString(articleId));
+		ddmTemplateKey = StringUtil.toUpperCase(
+			GetterUtil.getString(ddmTemplateKey));
 
 		long layoutSetId = 0;
 		boolean secure = false;
 
 		if (themeDisplay != null) {
 			try {
-				Layout layout = themeDisplay.getLayout();
+				if (!JournalArticlePermission.contains(
+						themeDisplay.getPermissionChecker(), groupId, articleId,
+						ActionKeys.VIEW)) {
 
-				LayoutSet layoutSet = layout.getLayoutSet();
-
-				layoutSetId = layoutSet.getLayoutSetId();
+					return null;
+				}
 			}
 			catch (Exception e) {
 			}
+
+			LayoutSet layoutSet = themeDisplay.getLayoutSet();
+
+			layoutSetId = layoutSet.getLayoutSetId();
 
 			secure = themeDisplay.isSecure();
 		}
 
 		String key = encodeKey(
-			groupId, articleId, version, templateId, layoutSetId, viewMode,
+			groupId, articleId, version, ddmTemplateKey, layoutSetId, viewMode,
 			languageId, page, secure);
 
-		JournalArticleDisplay articleDisplay =
-			(JournalArticleDisplay)portalCache.get(key);
+		JournalArticleDisplay articleDisplay = portalCache.get(key);
 
-		boolean lifecycleRender = isLifecycleRender(themeDisplay, xmlRequest);
+		boolean lifecycleRender = false;
+
+		if (portletRequestModel != null) {
+			lifecycleRender = RenderRequest.RENDER_PHASE.equals(
+				portletRequestModel.getLifecycle());
+		}
 
 		if ((articleDisplay == null) || !lifecycleRender) {
 			articleDisplay = getArticleDisplay(
-				groupId, articleId, templateId, viewMode, languageId, page,
-				xmlRequest, themeDisplay);
+				groupId, articleId, ddmTemplateKey, viewMode, languageId, page,
+				portletRequestModel, themeDisplay);
 
 			if ((articleDisplay != null) && articleDisplay.isCacheable() &&
 				lifecycleRender) {
@@ -160,89 +178,82 @@ public class JournalContentImpl implements JournalContent {
 			}
 		}
 
-		try {
-			if (PropsValues.JOURNAL_ARTICLE_VIEW_PERMISSION_CHECK_ENABLED &&
-				(articleDisplay != null) && (themeDisplay != null) &&
-				(!JournalArticlePermission.contains(
-					themeDisplay.getPermissionChecker(), groupId, articleId,
-					ActionKeys.VIEW))) {
-
-				articleDisplay = null;
-			}
-		}
-		catch (Exception e) {
-		}
-
 		if (_log.isDebugEnabled()) {
 			_log.debug(
 				"getDisplay for {" + groupId + ", " + articleId + ", " +
-					templateId + ", " + viewMode + ", " + languageId + ", " +
-						page + "} takes " + stopWatch.getTime() + " ms");
+					ddmTemplateKey + ", " + viewMode + ", " + languageId +
+						", " + page + "} takes " + stopWatch.getTime() + " ms");
 		}
 
 		return articleDisplay;
 	}
 
+	@Override
 	public JournalArticleDisplay getDisplay(
 		long groupId, String articleId, String viewMode, String languageId,
-		String xmlRequest) {
+		int page, ThemeDisplay themeDisplay) {
 
 		return getDisplay(
-			groupId, articleId, null, viewMode, languageId, null, 1,
-			xmlRequest);
+			groupId, articleId, null, viewMode, languageId, page,
+			(PortletRequestModel)null, themeDisplay);
 	}
 
+	@Override
 	public JournalArticleDisplay getDisplay(
-		long groupId, String articleId, String templateId, String viewMode,
-		String languageId, String xmlRequest) {
+		long groupId, String articleId, String viewMode, String languageId,
+		PortletRequestModel portletRequestModel) {
 
 		return getDisplay(
-			groupId, articleId, templateId, viewMode, languageId, null, 1,
-			xmlRequest);
+			groupId, articleId, null, viewMode, languageId, 1,
+			portletRequestModel, null);
 	}
 
+	@Override
 	public JournalArticleDisplay getDisplay(
-		long groupId, String articleId, String templateId, String viewMode,
+		long groupId, String articleId, String ddmTemplateKey, String viewMode,
+		String languageId, int page, PortletRequestModel portletRequestModel,
+		ThemeDisplay themeDisplay) {
+
+		return getDisplay(
+			groupId, articleId, 0, ddmTemplateKey, viewMode, languageId, 1,
+			portletRequestModel, themeDisplay);
+	}
+
+	@Override
+	public JournalArticleDisplay getDisplay(
+		long groupId, String articleId, String ddmTemplateKey, String viewMode,
+		String languageId, PortletRequestModel portletRequestModel) {
+
+		return getDisplay(
+			groupId, articleId, ddmTemplateKey, viewMode, languageId, 1,
+			portletRequestModel, null);
+	}
+
+	@Override
+	public JournalArticleDisplay getDisplay(
+		long groupId, String articleId, String ddmTemplateKey, String viewMode,
 		String languageId, ThemeDisplay themeDisplay) {
 
 		return getDisplay(
-			groupId, articleId, templateId, viewMode, languageId, themeDisplay,
-			1, null);
+			groupId, articleId, ddmTemplateKey, viewMode, languageId, 1,
+			(PortletRequestModel)null, themeDisplay);
 	}
 
-	public JournalArticleDisplay getDisplay(
-		long groupId, String articleId, String templateId, String viewMode,
-		String languageId, ThemeDisplay themeDisplay, int page,
-		String xmlRequest) {
-
-		return getDisplay(
-			groupId, articleId, 0, templateId, viewMode, languageId,
-			themeDisplay, 1, xmlRequest);
-	}
-
+	@Override
 	public JournalArticleDisplay getDisplay(
 		long groupId, String articleId, String viewMode, String languageId,
 		ThemeDisplay themeDisplay) {
 
 		return getDisplay(
-			groupId, articleId, viewMode, languageId, themeDisplay, 1);
-	}
-
-	public JournalArticleDisplay getDisplay(
-		long groupId, String articleId, String viewMode, String languageId,
-		ThemeDisplay themeDisplay, int page) {
-
-		return getDisplay(
-			groupId, articleId, null, viewMode, languageId, themeDisplay, page,
-			null);
+			groupId, articleId, viewMode, languageId, 1, themeDisplay);
 	}
 
 	protected String encodeKey(
-		long groupId, String articleId, double version, String templateId,
+		long groupId, String articleId, double version, String ddmTemplateKey,
 		long layoutSetId, String viewMode, String languageId, int page,
 		boolean secure) {
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(17);
 
 		sb.append(StringUtil.toHexString(groupId));
 		sb.append(ARTICLE_SEPARATOR);
@@ -250,7 +261,7 @@ public class JournalContentImpl implements JournalContent {
 		sb.append(VERSION_SEPARATOR);
 		sb.append(version);
 		sb.append(TEMPLATE_SEPARATOR);
-		sb.append(templateId);
+		sb.append(ddmTemplateKey);
 
 		if (layoutSetId > 0) {
 			sb.append(LAYOUT_SET_SEPARATOR);
@@ -279,20 +290,20 @@ public class JournalContentImpl implements JournalContent {
 	}
 
 	protected JournalArticleDisplay getArticleDisplay(
-		long groupId, String articleId, String templateId, String viewMode,
-		String languageId, int page, String xmlRequest,
+		long groupId, String articleId, String ddmTemplateKey, String viewMode,
+		String languageId, int page, PortletRequestModel portletRequestModel,
 		ThemeDisplay themeDisplay) {
 
 		try {
 			if (_log.isInfoEnabled()) {
 				_log.info(
 					"Get article display {" + groupId + ", " + articleId +
-						", " + templateId + "}");
+						", " + ddmTemplateKey + "}");
 			}
 
 			return JournalArticleLocalServiceUtil.getArticleDisplay(
-				groupId, articleId, templateId, viewMode, languageId, page,
-				xmlRequest, themeDisplay);
+				groupId, articleId, ddmTemplateKey, viewMode, languageId, page,
+				portletRequestModel, themeDisplay);
 		}
 		catch (Exception e) {
 			if (_log.isWarnEnabled()) {
@@ -305,28 +316,10 @@ public class JournalContentImpl implements JournalContent {
 		}
 	}
 
-	protected boolean isLifecycleRender(
-		ThemeDisplay themeDisplay, String xmlRequest) {
-
-		if (themeDisplay != null) {
-			return themeDisplay.isLifecycleRender();
-		}
-		else if (Validator.isNotNull(xmlRequest)) {
-			Matcher matcher = lifecycleRenderPhasePattern.matcher(xmlRequest);
-
-			return matcher.find();
-		}
-		else {
-			return false;
-		}
-	}
-
 	protected static final String CACHE_NAME = JournalContent.class.getName();
 
-	protected static Pattern lifecycleRenderPhasePattern = Pattern.compile(
-		"<lifecycle>\\s*RENDER_PHASE\\s*</lifecycle>");
-	protected static PortalCache portalCache = MultiVMPoolUtil.getCache(
-		CACHE_NAME);
+	protected static PortalCache<String, JournalArticleDisplay> portalCache =
+		MultiVMPoolUtil.getCache(CACHE_NAME);
 
 	private static Log _log = LogFactoryUtil.getLog(JournalContentImpl.class);
 

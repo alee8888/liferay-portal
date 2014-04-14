@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,11 +18,11 @@ import com.liferay.client.soap.portal.model.UserSoap;
 import com.liferay.client.soap.portal.service.ServiceContext;
 import com.liferay.client.soap.portal.service.http.UserServiceSoap;
 import com.liferay.client.soap.portal.service.http.UserServiceSoapServiceLocator;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.EnvironmentExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.util.TestPropsValues;
 
@@ -96,14 +96,13 @@ public class UserServiceSoapTest {
 	}
 
 	protected UserServiceSoap getUserServiceSoap() throws Exception {
-		UserServiceSoapServiceLocator locator =
+		UserServiceSoapServiceLocator userServiceSoapServiceLocator =
 			new UserServiceSoapServiceLocator();
 
-		UserServiceSoap service = locator.getPortal_UserService(
+		return userServiceSoapServiceLocator.getPortal_UserService(
 			TestPropsValues.getSoapURL(
-				locator.getPortal_UserServiceWSDDServiceName()));
-
-		return service;
+				userServiceSoapServiceLocator.
+					getPortal_UserServiceWSDDServiceName()));
 	}
 
 }

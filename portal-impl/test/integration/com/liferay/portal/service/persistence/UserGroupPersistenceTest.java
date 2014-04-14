@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,37 +16,70 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchUserGroupException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.UserGroup;
 import com.liferay.portal.model.impl.UserGroupModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class UserGroupPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (UserGroupPersistence)PortalBeanLocatorUtil.locate(UserGroupPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -82,7 +115,19 @@ public class UserGroupPersistenceTest {
 
 		UserGroup newUserGroup = _persistence.create(pk);
 
+		newUserGroup.setMvccVersion(ServiceTestUtil.nextLong());
+
+		newUserGroup.setUuid(ServiceTestUtil.randomString());
+
 		newUserGroup.setCompanyId(ServiceTestUtil.nextLong());
+
+		newUserGroup.setUserId(ServiceTestUtil.nextLong());
+
+		newUserGroup.setUserName(ServiceTestUtil.randomString());
+
+		newUserGroup.setCreateDate(ServiceTestUtil.nextDate());
+
+		newUserGroup.setModifiedDate(ServiceTestUtil.nextDate());
 
 		newUserGroup.setParentUserGroupId(ServiceTestUtil.nextLong());
 
@@ -92,14 +137,27 @@ public class UserGroupPersistenceTest {
 
 		newUserGroup.setAddedByLDAPImport(ServiceTestUtil.randomBoolean());
 
-		_persistence.update(newUserGroup, false);
+		_persistence.update(newUserGroup);
 
 		UserGroup existingUserGroup = _persistence.findByPrimaryKey(newUserGroup.getPrimaryKey());
 
+		Assert.assertEquals(existingUserGroup.getMvccVersion(),
+			newUserGroup.getMvccVersion());
+		Assert.assertEquals(existingUserGroup.getUuid(), newUserGroup.getUuid());
 		Assert.assertEquals(existingUserGroup.getUserGroupId(),
 			newUserGroup.getUserGroupId());
 		Assert.assertEquals(existingUserGroup.getCompanyId(),
 			newUserGroup.getCompanyId());
+		Assert.assertEquals(existingUserGroup.getUserId(),
+			newUserGroup.getUserId());
+		Assert.assertEquals(existingUserGroup.getUserName(),
+			newUserGroup.getUserName());
+		Assert.assertEquals(Time.getShortTimestamp(
+				existingUserGroup.getCreateDate()),
+			Time.getShortTimestamp(newUserGroup.getCreateDate()));
+		Assert.assertEquals(Time.getShortTimestamp(
+				existingUserGroup.getModifiedDate()),
+			Time.getShortTimestamp(newUserGroup.getModifiedDate()));
 		Assert.assertEquals(existingUserGroup.getParentUserGroupId(),
 			newUserGroup.getParentUserGroupId());
 		Assert.assertEquals(existingUserGroup.getName(), newUserGroup.getName());
@@ -107,6 +165,74 @@ public class UserGroupPersistenceTest {
 			newUserGroup.getDescription());
 		Assert.assertEquals(existingUserGroup.getAddedByLDAPImport(),
 			newUserGroup.getAddedByLDAPImport());
+	}
+
+	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_P() {
+		try {
+			_persistence.countByC_P(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_P(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_N() {
+		try {
+			_persistence.countByC_N(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByC_N(0L, StringPool.NULL);
+
+			_persistence.countByC_N(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -132,6 +258,25 @@ public class UserGroupPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("UserGroup", "mvccVersion",
+			true, "uuid", true, "userGroupId", true, "companyId", true,
+			"userId", true, "userName", true, "createDate", true,
+			"modifiedDate", true, "parentUserGroupId", true, "name", true,
+			"description", true, "addedByLDAPImport", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		UserGroup newUserGroup = addUserGroup();
 
@@ -147,6 +292,26 @@ public class UserGroupPersistenceTest {
 		UserGroup missingUserGroup = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingUserGroup);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new UserGroupActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					UserGroup userGroup = (UserGroup)object;
+
+					Assert.assertNotNull(userGroup);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -245,7 +410,19 @@ public class UserGroupPersistenceTest {
 
 		UserGroup userGroup = _persistence.create(pk);
 
+		userGroup.setMvccVersion(ServiceTestUtil.nextLong());
+
+		userGroup.setUuid(ServiceTestUtil.randomString());
+
 		userGroup.setCompanyId(ServiceTestUtil.nextLong());
+
+		userGroup.setUserId(ServiceTestUtil.nextLong());
+
+		userGroup.setUserName(ServiceTestUtil.randomString());
+
+		userGroup.setCreateDate(ServiceTestUtil.nextDate());
+
+		userGroup.setModifiedDate(ServiceTestUtil.nextDate());
 
 		userGroup.setParentUserGroupId(ServiceTestUtil.nextLong());
 
@@ -255,10 +432,12 @@ public class UserGroupPersistenceTest {
 
 		userGroup.setAddedByLDAPImport(ServiceTestUtil.randomBoolean());
 
-		_persistence.update(userGroup, false);
+		_persistence.update(userGroup);
 
 		return userGroup;
 	}
 
-	private UserGroupPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(UserGroupPersistenceTest.class);
+	private UserGroupPersistence _persistence = (UserGroupPersistence)PortalBeanLocatorUtil.locate(UserGroupPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

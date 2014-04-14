@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,12 +21,14 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.PreloadClassLoader;
+import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.PropsValues;
 
 import java.sql.Connection;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.hibernate.engine.SessionFactoryImplementor;
 
@@ -36,20 +38,22 @@ import org.hibernate.engine.SessionFactoryImplementor;
  */
 public class SessionFactoryImpl implements SessionFactory {
 
-	public static List<PortletSessionFactoryImpl> getPortletSessionFactories() {
-		return portletSessionFactories;
-	}
-
+	@Override
 	public void closeSession(Session session) throws ORMException {
-		if (!PropsValues.SPRING_HIBERNATE_SESSION_DELEGATED) {
+		if ((session != null) &&
+			!PropsValues.SPRING_HIBERNATE_SESSION_DELEGATED) {
+
+			session.flush();
 			session.close();
 		}
 	}
 
-	public void destroy() {
-		portletSessionFactories.clear();
+	@Override
+	public Session getCurrentSession() throws ORMException {
+		return wrapSession(_sessionFactoryImplementor.getCurrentSession());
 	}
 
+	@Override
 	public Dialect getDialect() throws ORMException {
 		return new DialectImpl(_sessionFactoryImplementor.getDialect());
 	}
@@ -62,10 +66,12 @@ public class SessionFactoryImpl implements SessionFactory {
 		return _sessionFactoryImplementor;
 	}
 
+	@Override
 	public Session openNewSession(Connection connection) throws ORMException {
 		return wrapSession(_sessionFactoryImplementor.openSession(connection));
 	}
 
+	@Override
 	public Session openSession() throws ORMException {
 		org.hibernate.Session session = null;
 
@@ -91,13 +97,41 @@ public class SessionFactoryImpl implements SessionFactory {
 	public void setSessionFactoryClassLoader(
 		ClassLoader sessionFactoryClassLoader) {
 
-		_sessionFactoryClassLoader = sessionFactoryClassLoader;
+		ClassLoader portalClassLoader = ClassLoaderUtil.getPortalClassLoader();
+
+		if (sessionFactoryClassLoader == portalClassLoader) {
+			_sessionFactoryClassLoader = sessionFactoryClassLoader;
+		}
+		else {
+			_sessionFactoryClassLoader = new PreloadClassLoader(
+				sessionFactoryClassLoader, getPreloadClassLoaderClasses());
+		}
 	}
 
 	public void setSessionFactoryImplementor(
 		SessionFactoryImplementor sessionFactoryImplementor) {
 
 		_sessionFactoryImplementor = sessionFactoryImplementor;
+	}
+
+	protected Map<String, Class<?>> getPreloadClassLoaderClasses() {
+		try {
+			Map<String, Class<?>> classes = new HashMap<String, Class<?>>();
+
+			for (String className : _PRELOAD_CLASS_NAMES) {
+				ClassLoader portalClassLoader =
+					ClassLoaderUtil.getPortalClassLoader();
+
+				Class<?> clazz = portalClassLoader.loadClass(className);
+
+				classes.put(className, clazz);
+			}
+
+			return classes;
+		}
+		catch (ClassNotFoundException cnfe) {
+			throw new RuntimeException(cnfe);
+		}
 	}
 
 	protected Session wrapSession(org.hibernate.Session session) {
@@ -114,11 +148,11 @@ public class SessionFactoryImpl implements SessionFactory {
 		return liferaySession;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(SessionFactoryImpl.class);
+	private static final String[] _PRELOAD_CLASS_NAMES =
+		PropsValues.
+			SPRING_HIBERNATE_SESSION_FACTORY_PRELOAD_CLASSLOADER_CLASSES;
 
-	protected static final List<PortletSessionFactoryImpl>
-		portletSessionFactories =
-			new CopyOnWriteArrayList<PortletSessionFactoryImpl>();
+	private static Log _log = LogFactoryUtil.getLog(SessionFactoryImpl.class);
 
 	private ClassLoader _sessionFactoryClassLoader;
 	private SessionFactoryImplementor _sessionFactoryImplementor;

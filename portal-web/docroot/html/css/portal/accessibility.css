@@ -1,15 +1,13 @@
-img.label-icon {
-	border-width: 0;
-	float: left;
-}
+img {
+	&.label-icon {
+		border-width: 0;
+		float: left;
+	}
 
-img.icon {
-	border-width: 0;
-	float: absmiddle;
-}
-
-img.avatar {
-	border-width: 0;
+	&.icon {
+		border-width: 0;
+		float: absmiddle;
+	}
 }
 
 label.hidden-label {

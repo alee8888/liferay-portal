@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,22 +21,19 @@ import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.DestinationNames;
-import com.liferay.portal.kernel.messaging.MessageBusException;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.metadata.RawMetadataProcessorUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
-import com.liferay.portal.kernel.util.InstancePool;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileVersion;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.PropsValues;
-import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryMetadataLocalServiceUtil;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
@@ -54,23 +51,28 @@ import java.util.Map;
  * @author Mika Koivisto
  * @author Miguel Pastor
  */
+@DoPrivileged
 public class RawMetadataProcessorImpl
 	implements DLProcessor, RawMetadataProcessor {
 
-	public static RawMetadataProcessorImpl getInstance() {
-		return _instance;
+	@Override
+	public void afterPropertiesSet() {
 	}
 
+	@Override
 	public void cleanUp(FileEntry fileEntry) {
 	}
 
+	@Override
 	public void cleanUp(FileVersion fileVersion) {
 	}
 
+	@Override
 	public void copy(
 		FileVersion sourceFileVersion, FileVersion destinationFileVersion) {
 	}
 
+	@Override
 	public void exportGeneratedFiles(
 			PortletDataContext portletDataContext, FileEntry fileEntry,
 			Element fileEntryElement)
@@ -79,18 +81,21 @@ public class RawMetadataProcessorImpl
 		return;
 	}
 
+	@Override
 	public void generateMetadata(FileVersion fileVersion)
 		throws SystemException {
 
 		long fileEntryMetadataCount =
-			DLFileEntryMetadataLocalServiceUtil.getFileEntryMetadataCount(
-				fileVersion.getFileEntryId(), fileVersion.getFileVersionId());
+			DLFileEntryMetadataLocalServiceUtil.
+				getFileVersionFileEntryMetadatasCount(
+					fileVersion.getFileVersionId());
 
 		if (fileEntryMetadataCount == 0) {
-			_instance.trigger(fileVersion);
+			trigger(fileVersion);
 		}
 	}
 
+	@Override
 	public void importGeneratedFiles(
 			PortletDataContext portletDataContext, FileEntry fileEntry,
 			FileEntry importedFileEntry, Element fileEntryElement)
@@ -99,14 +104,17 @@ public class RawMetadataProcessorImpl
 		return;
 	}
 
+	@Override
 	public boolean isSupported(FileVersion fileVersion) {
 		return true;
 	}
 
+	@Override
 	public boolean isSupported(String mimeType) {
 		return true;
 	}
 
+	@Override
 	public void saveMetadata(FileVersion fileVersion)
 		throws PortalException, SystemException {
 
@@ -133,6 +141,16 @@ public class RawMetadataProcessorImpl
 			try {
 				inputStream = fileVersion.getContentStream(false);
 
+				if (inputStream == null) {
+					if (_log.isWarnEnabled()) {
+						_log.warn(
+							"No metadata is available for file version " +
+								fileVersion.getFileVersionId());
+					}
+
+					return;
+				}
+
 				rawMetadataMap = RawMetadataProcessorUtil.getRawMetadataMap(
 					fileVersion.getExtension(), fileVersion.getMimeType(),
 					inputStream);
@@ -144,8 +162,9 @@ public class RawMetadataProcessorImpl
 
 		List<DDMStructure> ddmStructures =
 			DDMStructureLocalServiceUtil.getClassStructures(
-				PortalUtil.getClassNameId(DLFileEntry.class), QueryUtil.ALL_POS,
-				QueryUtil.ALL_POS);
+				fileVersion.getCompanyId(),
+				PortalUtil.getClassNameId(RawMetadataProcessor.class),
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		ServiceContext serviceContext = new ServiceContext();
 
@@ -169,43 +188,21 @@ public class RawMetadataProcessorImpl
 		}
 	}
 
+	@Override
 	public void trigger(FileVersion fileVersion) {
 		trigger(fileVersion, fileVersion);
 	}
 
+	@Override
 	public void trigger(
 		FileVersion sourceFileVersion, FileVersion destinationFileVersion) {
 
-		if (PropsValues.DL_FILE_ENTRY_PROCESSORS_TRIGGER_SYNCHRONOUSLY) {
-			try {
-				MessageBusUtil.sendSynchronousMessage(
-					DestinationNames.DOCUMENT_LIBRARY_RAW_METADATA_PROCESSOR,
-					destinationFileVersion);
-			}
-			catch (MessageBusException mbe) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(mbe, mbe);
-				}
-			}
-		}
-		else {
-			MessageBusUtil.sendMessage(
-				DestinationNames.DOCUMENT_LIBRARY_RAW_METADATA_PROCESSOR,
-				destinationFileVersion);
-		}
-	}
-
-	private RawMetadataProcessorImpl() {
+		MessageBusUtil.sendMessage(
+			DestinationNames.DOCUMENT_LIBRARY_RAW_METADATA_PROCESSOR,
+			destinationFileVersion);
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(
 		RawMetadataProcessorImpl.class);
-
-	private static RawMetadataProcessorImpl _instance =
-		new RawMetadataProcessorImpl();
-
-	static {
-		InstancePool.put(RawMetadataProcessorImpl.class.getName(), _instance);
-	}
 
 }

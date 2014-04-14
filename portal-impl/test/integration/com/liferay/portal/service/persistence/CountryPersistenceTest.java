@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,34 +19,64 @@ import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Country;
 import com.liferay.portal.model.impl.CountryModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class CountryPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (CountryPersistence)PortalBeanLocatorUtil.locate(CountryPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -82,6 +112,8 @@ public class CountryPersistenceTest {
 
 		Country newCountry = _persistence.create(pk);
 
+		newCountry.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newCountry.setName(ServiceTestUtil.randomString());
 
 		newCountry.setA2(ServiceTestUtil.randomString());
@@ -96,10 +128,12 @@ public class CountryPersistenceTest {
 
 		newCountry.setActive(ServiceTestUtil.randomBoolean());
 
-		_persistence.update(newCountry, false);
+		_persistence.update(newCountry);
 
 		Country existingCountry = _persistence.findByPrimaryKey(newCountry.getPrimaryKey());
 
+		Assert.assertEquals(existingCountry.getMvccVersion(),
+			newCountry.getMvccVersion());
 		Assert.assertEquals(existingCountry.getCountryId(),
 			newCountry.getCountryId());
 		Assert.assertEquals(existingCountry.getName(), newCountry.getName());
@@ -110,6 +144,60 @@ public class CountryPersistenceTest {
 		Assert.assertEquals(existingCountry.getZipRequired(),
 			newCountry.getZipRequired());
 		Assert.assertEquals(existingCountry.getActive(), newCountry.getActive());
+	}
+
+	@Test
+	public void testCountByName() {
+		try {
+			_persistence.countByName(StringPool.BLANK);
+
+			_persistence.countByName(StringPool.NULL);
+
+			_persistence.countByName((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByA2() {
+		try {
+			_persistence.countByA2(StringPool.BLANK);
+
+			_persistence.countByA2(StringPool.NULL);
+
+			_persistence.countByA2((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByA3() {
+		try {
+			_persistence.countByA3(StringPool.BLANK);
+
+			_persistence.countByA3(StringPool.NULL);
+
+			_persistence.countByA3((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByActive() {
+		try {
+			_persistence.countByActive(ServiceTestUtil.randomBoolean());
+
+			_persistence.countByActive(ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -132,6 +220,23 @@ public class CountryPersistenceTest {
 		}
 		catch (NoSuchCountryException nsee) {
 		}
+	}
+
+	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("Country", "mvccVersion",
+			true, "countryId", true, "name", true, "a2", true, "a3", true,
+			"number", true, "idd", true, "zipRequired", true, "active", true);
 	}
 
 	@Test
@@ -251,6 +356,8 @@ public class CountryPersistenceTest {
 
 		Country country = _persistence.create(pk);
 
+		country.setMvccVersion(ServiceTestUtil.nextLong());
+
 		country.setName(ServiceTestUtil.randomString());
 
 		country.setA2(ServiceTestUtil.randomString());
@@ -265,10 +372,12 @@ public class CountryPersistenceTest {
 
 		country.setActive(ServiceTestUtil.randomBoolean());
 
-		_persistence.update(country, false);
+		_persistence.update(country);
 
 		return country;
 	}
 
-	private CountryPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(CountryPersistenceTest.class);
+	private CountryPersistence _persistence = (CountryPersistence)PortalBeanLocatorUtil.locate(CountryPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class PortletServletObjectsFactory implements ServletObjectsFactory {
 
+	@Override
 	public ServletConfig getServletConfig(
 		PortletConfig portletConfig, PortletRequest portletRequest) {
 
@@ -41,6 +42,7 @@ public class PortletServletObjectsFactory implements ServletObjectsFactory {
 		return (ServletConfig)servletConfig;
 	}
 
+	@Override
 	public HttpServletRequest getServletRequest(PortletRequest portletRequest) {
 		Object request = portletRequest.getAttribute(
 			_PORTLET_CONTAINER_SERVLET_REQUEST);
@@ -53,6 +55,7 @@ public class PortletServletObjectsFactory implements ServletObjectsFactory {
 		return (HttpServletRequest)request;
 	}
 
+	@Override
 	public HttpServletResponse getServletResponse(
 		PortletRequest portletRequest, PortletResponse portletResponse) {
 

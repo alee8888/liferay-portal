@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,37 +16,70 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchOrganizationException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.impl.OrganizationModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class OrganizationPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (OrganizationPersistence)PortalBeanLocatorUtil.locate(OrganizationPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -82,7 +115,19 @@ public class OrganizationPersistenceTest {
 
 		Organization newOrganization = _persistence.create(pk);
 
+		newOrganization.setMvccVersion(ServiceTestUtil.nextLong());
+
+		newOrganization.setUuid(ServiceTestUtil.randomString());
+
 		newOrganization.setCompanyId(ServiceTestUtil.nextLong());
+
+		newOrganization.setUserId(ServiceTestUtil.nextLong());
+
+		newOrganization.setUserName(ServiceTestUtil.randomString());
+
+		newOrganization.setCreateDate(ServiceTestUtil.nextDate());
+
+		newOrganization.setModifiedDate(ServiceTestUtil.nextDate());
 
 		newOrganization.setParentOrganizationId(ServiceTestUtil.nextLong());
 
@@ -102,14 +147,30 @@ public class OrganizationPersistenceTest {
 
 		newOrganization.setComments(ServiceTestUtil.randomString());
 
-		_persistence.update(newOrganization, false);
+		newOrganization.setLogoId(ServiceTestUtil.nextLong());
+
+		_persistence.update(newOrganization);
 
 		Organization existingOrganization = _persistence.findByPrimaryKey(newOrganization.getPrimaryKey());
 
+		Assert.assertEquals(existingOrganization.getMvccVersion(),
+			newOrganization.getMvccVersion());
+		Assert.assertEquals(existingOrganization.getUuid(),
+			newOrganization.getUuid());
 		Assert.assertEquals(existingOrganization.getOrganizationId(),
 			newOrganization.getOrganizationId());
 		Assert.assertEquals(existingOrganization.getCompanyId(),
 			newOrganization.getCompanyId());
+		Assert.assertEquals(existingOrganization.getUserId(),
+			newOrganization.getUserId());
+		Assert.assertEquals(existingOrganization.getUserName(),
+			newOrganization.getUserName());
+		Assert.assertEquals(Time.getShortTimestamp(
+				existingOrganization.getCreateDate()),
+			Time.getShortTimestamp(newOrganization.getCreateDate()));
+		Assert.assertEquals(Time.getShortTimestamp(
+				existingOrganization.getModifiedDate()),
+			Time.getShortTimestamp(newOrganization.getModifiedDate()));
 		Assert.assertEquals(existingOrganization.getParentOrganizationId(),
 			newOrganization.getParentOrganizationId());
 		Assert.assertEquals(existingOrganization.getTreePath(),
@@ -128,6 +189,115 @@ public class OrganizationPersistenceTest {
 			newOrganization.getStatusId());
 		Assert.assertEquals(existingOrganization.getComments(),
 			newOrganization.getComments());
+		Assert.assertEquals(existingOrganization.getLogoId(),
+			newOrganization.getLogoId());
+	}
+
+	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByLocations() {
+		try {
+			_persistence.countByLocations(ServiceTestUtil.nextLong());
+
+			_persistence.countByLocations(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_P() {
+		try {
+			_persistence.countByC_P(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_P(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_T() {
+		try {
+			_persistence.countByC_T(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByC_T(0L, StringPool.NULL);
+
+			_persistence.countByC_T(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_N() {
+		try {
+			_persistence.countByC_N(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByC_N(0L, StringPool.NULL);
+
+			_persistence.countByC_N(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByO_C_P() {
+		try {
+			_persistence.countByO_C_P(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+
+			_persistence.countByO_C_P(0L, 0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -154,6 +324,27 @@ public class OrganizationPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("Organization_",
+			"mvccVersion", true, "uuid", true, "organizationId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "parentOrganizationId", true,
+			"treePath", true, "name", true, "type", true, "recursable", true,
+			"regionId", true, "countryId", true, "statusId", true, "comments",
+			true, "logoId", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		Organization newOrganization = addOrganization();
 
@@ -169,6 +360,26 @@ public class OrganizationPersistenceTest {
 		Organization missingOrganization = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingOrganization);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new OrganizationActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					Organization organization = (Organization)object;
+
+					Assert.assertNotNull(organization);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -269,7 +480,19 @@ public class OrganizationPersistenceTest {
 
 		Organization organization = _persistence.create(pk);
 
+		organization.setMvccVersion(ServiceTestUtil.nextLong());
+
+		organization.setUuid(ServiceTestUtil.randomString());
+
 		organization.setCompanyId(ServiceTestUtil.nextLong());
+
+		organization.setUserId(ServiceTestUtil.nextLong());
+
+		organization.setUserName(ServiceTestUtil.randomString());
+
+		organization.setCreateDate(ServiceTestUtil.nextDate());
+
+		organization.setModifiedDate(ServiceTestUtil.nextDate());
 
 		organization.setParentOrganizationId(ServiceTestUtil.nextLong());
 
@@ -289,10 +512,14 @@ public class OrganizationPersistenceTest {
 
 		organization.setComments(ServiceTestUtil.randomString());
 
-		_persistence.update(organization, false);
+		organization.setLogoId(ServiceTestUtil.nextLong());
+
+		_persistence.update(organization);
 
 		return organization;
 	}
 
-	private OrganizationPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(OrganizationPersistenceTest.class);
+	private OrganizationPersistence _persistence = (OrganizationPersistence)PortalBeanLocatorUtil.locate(OrganizationPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

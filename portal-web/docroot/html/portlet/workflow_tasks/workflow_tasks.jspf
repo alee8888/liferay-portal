@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,28 @@
  */
 --%>
 
-<liferay-ui:search-container
-	searchContainer="<%= new WorkflowTaskSearch(renderRequest, portletURL) %>"
->
-	<%@ include file="/html/portlet/workflow_tasks/workflow_search_results.jspf" %>
+<%
+String curParam = SearchContainer.DEFAULT_CUR_PARAM;
 
-	<liferay-ui:search-container-results
-		results="<%= resultsTasks %>"
-		total="<%= totalTasks %>"
-	/>
+if (type.equals("assigned-to-me")) {
+	curParam = "cur1";
+}
+else if (type.equals("assigned-to-my-roles")) {
+	curParam = "cur2";
+}
+%>
+
+<liferay-ui:search-container
+	searchContainer="<%= new WorkflowTaskSearch(renderRequest, curParam, currentURLObj) %>"
+>
+
+	<%
+	boolean allTasks = false;
+	%>
+
+	<liferay-ui:search-container-results>
+		<%@ include file="/html/portlet/workflow_tasks/workflow_search_results.jspf" %>
+	</liferay-ui:search-container-results>
 
 	<liferay-ui:search-container-row
 		className="com.liferay.portal.kernel.workflow.WorkflowTask"
@@ -39,8 +52,6 @@
 
 		Map<String, Serializable> workflowContext = workflowInstance.getWorkflowContext();
 
-		long companyId = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_COMPANY_ID));
-		long groupId = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_GROUP_ID));
 		String className = (String)workflowContext.get(WorkflowConstants.CONTEXT_ENTRY_CLASS_NAME);
 		long classPK = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_ENTRY_CLASS_PK));
 
@@ -85,7 +96,7 @@
 			buffer.append("<span class=\"task-name\" id=\"");
 			buffer.append(workflowTask.getWorkflowTaskId());
 			buffer.append("\">");
-			buffer.append(LanguageUtil.get(pageContext, workflowTask.getName()));
+			buffer.append(LanguageUtil.get(pageContext, HtmlUtil.escape(workflowTask.getName())));
 			buffer.append("</span>");
 			%>
 
@@ -154,7 +165,7 @@
 
 		</liferay-ui:search-container-column-text>
 
-		<c:if test="<%= !allTasks %>">
+		<c:if test='<%= !allTasks && !tabs1.equals("completed") %>'>
 			<liferay-ui:search-container-column-jsp
 				align="right"
 				path="/html/portlet/workflow_tasks/workflow_task_action.jsp"

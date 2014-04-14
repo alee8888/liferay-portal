@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portlet.shopping.util.comparator;
 
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portlet.shopping.model.ShoppingItem;
 
 /**
@@ -62,8 +63,10 @@ public class ItemMinQuantityComparator extends OrderByComparator {
 		}
 
 		if (value == 0) {
-			value = item1.getName().toLowerCase().compareTo(
-				item2.getName().toLowerCase());
+			String name1 = StringUtil.toLowerCase(item1.getName());
+			String name2 = StringUtil.toLowerCase(item2.getName());
+
+			value = name1.compareTo(name2);
 		}
 
 		if (_ascending) {

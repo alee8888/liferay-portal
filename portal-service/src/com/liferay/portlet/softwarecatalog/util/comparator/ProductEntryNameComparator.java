@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portlet.softwarecatalog.util.comparator;
 
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portlet.softwarecatalog.model.SCProductEntry;
 
 /**
@@ -41,8 +42,10 @@ public class ProductEntryNameComparator extends OrderByComparator {
 		SCProductEntry productEntry1 = (SCProductEntry)obj1;
 		SCProductEntry productEntry2 = (SCProductEntry)obj2;
 
-		int value = productEntry1.getName().toLowerCase().compareTo(
-			productEntry2.getName().toLowerCase());
+		String name1 = StringUtil.toLowerCase(productEntry1.getName());
+		String name2 = StringUtil.toLowerCase(productEntry2.getName());
+
+		int value = name1.compareTo(name2);
 
 		if (_ascending) {
 			return value;

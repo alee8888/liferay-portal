@@ -1,5 +1,9 @@
 <#include "../init.ftl">
 
-<div class="separator"></div>
+<#assign style = fieldStructure.style!"">
 
-${fieldStructure.children}
+<@aui["field-wrapper"] data=data label=escape(label)>
+	<div class="separator" style="${escapeAttribute(style)}"></div>
+
+	${fieldStructure.children}
+</@>

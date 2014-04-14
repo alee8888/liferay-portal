@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.theme.ThemeDisplay;
@@ -46,53 +47,74 @@ public class ViewAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
-			PortletPreferences preferences = renderRequest.getPreferences();
+			PortletPreferences portletPreferences =
+				renderRequest.getPreferences();
 
 			ThemeDisplay themeDisplay =
 				(ThemeDisplay)renderRequest.getAttribute(WebKeys.THEME_DISPLAY);
 
-			long nodeId = GetterUtil.getLong(
-				preferences.getValue("nodeId", StringPool.BLANK));
 			String title = ParamUtil.getString(
 				renderRequest, "title",
-				preferences.getValue("title", WikiPageConstants.FRONT_PAGE));
+				portletPreferences.getValue(
+					"title", WikiPageConstants.FRONT_PAGE));
+			double version = ParamUtil.getDouble(renderRequest, "version");
 
-			WikiNode node = WikiNodeServiceUtil.getNode(nodeId);
+			WikiNode node = getNode(renderRequest);
 
 			if (node.getGroupId() != themeDisplay.getScopeGroupId()) {
-				throw new NoSuchNodeException();
+				throw new NoSuchNodeException(
+					"{nodeId=" + node.getNodeId() + "}");
 			}
 
-			WikiPage wikiPage = null;
+			WikiPage page = WikiPageServiceUtil.fetchPage(
+				node.getNodeId(), title, version);
 
-			try {
-				wikiPage = WikiPageServiceUtil.getPage(nodeId, title);
-			}
-			catch (NoSuchPageException nspe) {
-				wikiPage = WikiPageServiceUtil.getPage(
-					nodeId, WikiPageConstants.FRONT_PAGE);
+			if ((page == null) || page.isInTrash()) {
+				page = WikiPageServiceUtil.getPage(
+					node.getNodeId(), WikiPageConstants.FRONT_PAGE);
 			}
 
 			renderRequest.setAttribute(WebKeys.WIKI_NODE, node);
-			renderRequest.setAttribute(WebKeys.WIKI_PAGE, wikiPage);
+			renderRequest.setAttribute(WebKeys.WIKI_PAGE, page);
 
-			return mapping.findForward("portlet.wiki_display.view");
+			return actionMapping.findForward("portlet.wiki_display.view");
 		}
 		catch (NoSuchNodeException nsne) {
-			return mapping.findForward("/portal/portlet_not_setup");
+			return actionMapping.findForward("/portal/portlet_not_setup");
 		}
 		catch (NoSuchPageException nspe) {
-			return mapping.findForward("/portal/portlet_not_setup");
+			return actionMapping.findForward("/portal/portlet_not_setup");
 		}
 		catch (PrincipalException pe) {
-			SessionErrors.add(renderRequest, pe.getClass().getName());
+			SessionErrors.add(renderRequest, pe.getClass());
 
-			return mapping.findForward("portlet.wiki_display.error");
+			return actionMapping.findForward("portlet.wiki_display.error");
+		}
+	}
+
+	protected WikiNode getNode(RenderRequest renderRequest) throws Exception {
+		PortletPreferences portletPreferences = renderRequest.getPreferences();
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		String nodeName = ParamUtil.getString(renderRequest, "nodeName");
+
+		if (Validator.isNotNull(nodeName)) {
+			return WikiNodeServiceUtil.getNode(
+				themeDisplay.getScopeGroupId(), nodeName);
+		}
+		else {
+			long nodeId = GetterUtil.getLong(
+				portletPreferences.getValue("nodeId", StringPool.BLANK));
+
+			return WikiNodeServiceUtil.getNode(nodeId);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,38 +16,70 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchRepositoryException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.model.impl.RepositoryModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class RepositoryPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (RepositoryPersistence)PortalBeanLocatorUtil.locate(RepositoryPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -83,6 +115,8 @@ public class RepositoryPersistenceTest {
 
 		Repository newRepository = _persistence.create(pk);
 
+		newRepository.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newRepository.setUuid(ServiceTestUtil.randomString());
 
 		newRepository.setGroupId(ServiceTestUtil.nextLong());
@@ -109,10 +143,12 @@ public class RepositoryPersistenceTest {
 
 		newRepository.setDlFolderId(ServiceTestUtil.nextLong());
 
-		_persistence.update(newRepository, false);
+		_persistence.update(newRepository);
 
 		Repository existingRepository = _persistence.findByPrimaryKey(newRepository.getPrimaryKey());
 
+		Assert.assertEquals(existingRepository.getMvccVersion(),
+			newRepository.getMvccVersion());
 		Assert.assertEquals(existingRepository.getUuid(),
 			newRepository.getUuid());
 		Assert.assertEquals(existingRepository.getRepositoryId(),
@@ -146,6 +182,77 @@ public class RepositoryPersistenceTest {
 	}
 
 	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUUID_G() {
+		try {
+			_persistence.countByUUID_G(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUUID_G(StringPool.NULL, 0L);
+
+			_persistence.countByUUID_G((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_N_P() {
+		try {
+			_persistence.countByG_N_P(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, StringPool.BLANK);
+
+			_persistence.countByG_N_P(0L, StringPool.NULL, StringPool.NULL);
+
+			_persistence.countByG_N_P(0L, (String)null, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		Repository newRepository = addRepository();
 
@@ -169,6 +276,26 @@ public class RepositoryPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("Repository", "mvccVersion",
+			true, "uuid", true, "repositoryId", true, "groupId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "classNameId", true, "name", true,
+			"description", true, "portletId", true, "typeSettings", true,
+			"dlFolderId", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		Repository newRepository = addRepository();
 
@@ -184,6 +311,26 @@ public class RepositoryPersistenceTest {
 		Repository missingRepository = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingRepository);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new RepositoryActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					Repository repository = (Repository)object;
+
+					Assert.assertNotNull(repository);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -277,12 +424,23 @@ public class RepositoryPersistenceTest {
 				existingRepositoryModelImpl.getOriginalUuid()));
 		Assert.assertEquals(existingRepositoryModelImpl.getGroupId(),
 			existingRepositoryModelImpl.getOriginalGroupId());
+
+		Assert.assertEquals(existingRepositoryModelImpl.getGroupId(),
+			existingRepositoryModelImpl.getOriginalGroupId());
+		Assert.assertTrue(Validator.equals(
+				existingRepositoryModelImpl.getName(),
+				existingRepositoryModelImpl.getOriginalName()));
+		Assert.assertTrue(Validator.equals(
+				existingRepositoryModelImpl.getPortletId(),
+				existingRepositoryModelImpl.getOriginalPortletId()));
 	}
 
 	protected Repository addRepository() throws Exception {
 		long pk = ServiceTestUtil.nextLong();
 
 		Repository repository = _persistence.create(pk);
+
+		repository.setMvccVersion(ServiceTestUtil.nextLong());
 
 		repository.setUuid(ServiceTestUtil.randomString());
 
@@ -310,10 +468,12 @@ public class RepositoryPersistenceTest {
 
 		repository.setDlFolderId(ServiceTestUtil.nextLong());
 
-		_persistence.update(repository, false);
+		_persistence.update(repository);
 
 		return repository;
 	}
 
-	private RepositoryPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(RepositoryPersistenceTest.class);
+	private RepositoryPersistence _persistence = (RepositoryPersistence)PortalBeanLocatorUtil.locate(RepositoryPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

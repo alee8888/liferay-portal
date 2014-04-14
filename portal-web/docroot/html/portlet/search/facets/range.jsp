@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,11 +25,11 @@ int frequencyThreshold = dataJSONObject.getInt("frequencyThreshold");
 JSONArray rangesJSONArray = dataJSONObject.getJSONArray("ranges");
 %>
 
-<div class="<%= cssClass %>" data-facetFieldName="<%= facet.getFieldName() %>" id="<%= randomNamespace %>facet">
-	<aui:input name="<%= facet.getFieldName() %>" type="hidden" value="<%= fieldParam %>" />
+<div class="<%= cssClass %>" data-facetFieldName="<%= HtmlUtil.escapeAttribute(facet.getFieldId()) %>" id="<%= randomNamespace %>facet">
+	<aui:input name="<%= HtmlUtil.escapeAttribute(facet.getFieldId()) %>" type="hidden" value="<%= fieldParam %>" />
 
-	<ul class="lfr-component range">
-		<li class="facet-value default <%= Validator.isNull(fieldParam) ? "current-term" : StringPool.BLANK %>">
+	<ul class="nav nav-pills nav-stacked range">
+		<li class="facet-value default <%= Validator.isNull(fieldParam) ? "active" : StringPool.BLANK %>">
 			<a data-value="" href="javascript:;"><liferay-ui:message key="any-range" /></a>
 		</li>
 
@@ -47,8 +47,8 @@ JSONArray rangesJSONArray = dataJSONObject.getJSONArray("ranges");
 				<aui:script use="liferay-token-list">
 					Liferay.Search.tokenList.add(
 						{
-							clearFields: '<%= UnicodeFormatter.toString(renderResponse.getNamespace() + facet.getFieldName()) %>',
-							text: '<%= UnicodeLanguageUtil.get(pageContext, label) %>'
+							clearFields: '<%= renderResponse.getNamespace() + HtmlUtil.escapeJS(facet.getFieldId()) %>',
+							text: '<%= UnicodeLanguageUtil.get(pageContext, HtmlUtil.escape(label)) %>'
 						}
 					);
 				</aui:script>
@@ -66,8 +66,12 @@ JSONArray rangesJSONArray = dataJSONObject.getJSONArray("ranges");
 			}
 		%>
 
-			<li class="facet-value <%= fieldParam.equals(range) ? "current-term" : StringPool.BLANK %>">
-				<a data-value="<%= HtmlUtil.escapeAttribute(range) %>" href="javascript:;"><liferay-ui:message key="<%= label %>" /></a> <span class="frequency">(<%= frequency %>)</span>
+			<li class="facet-value <%= fieldParam.equals(range) ? "active" : StringPool.BLANK %>">
+				<a data-value="<%= HtmlUtil.escapeAttribute(range) %>" href="javascript:;">
+					<liferay-ui:message key="<%= HtmlUtil.escape(label) %>" />
+
+					<span class="badge badge-info frequency"><%= frequency %></span>
+				</a>
 			</li>
 
 		<%

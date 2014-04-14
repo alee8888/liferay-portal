@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,10 @@
 
 package com.liferay.portal.velocity;
 
-import com.liferay.portal.kernel.template.TemplateException;
-import com.liferay.portal.kernel.templateparser.TemplateContext;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.template.Template;
+import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -47,8 +49,77 @@ import org.apache.velocity.tools.generic.SortTool;
 public class VelocityTemplateContextHelper extends TemplateContextHelper {
 
 	@Override
-	public Map<String, Object> getHelperUtilities() {
-		Map<String, Object> velocityContext = super.getHelperUtilities();
+	public Set<String> getRestrictedVariables() {
+		return SetUtil.fromArray(
+			PropsValues.VELOCITY_ENGINE_RESTRICTED_VARIABLES);
+	}
+
+	@Override
+	public void prepare(Template template, HttpServletRequest request) {
+		super.prepare(template, request);
+
+		// Theme display
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		if (themeDisplay != null) {
+
+			// Init
+
+			template.put(
+				"init",
+				themeDisplay.getPathContext() +
+					TemplateConstants.SERVLET_SEPARATOR +
+						"/html/themes/_unstyled/templates/init.vm");
+		}
+
+		// Theme
+
+		Theme theme = (Theme)request.getAttribute(WebKeys.THEME);
+
+		if ((theme == null) && (themeDisplay != null)) {
+			theme = themeDisplay.getTheme();
+		}
+
+		if (theme != null) {
+
+			// Full css and templates path
+
+			String servletContextName = GetterUtil.getString(
+				theme.getServletContextName());
+
+			template.put(
+				"fullCssPath",
+				servletContextName + theme.getVelocityResourceListener() +
+					theme.getCssPath());
+
+			template.put(
+				"fullTemplatesPath",
+				servletContextName + theme.getVelocityResourceListener() +
+					theme.getTemplatesPath());
+		}
+
+		// Insert custom vm variables
+
+		Map<String, Object> vmVariables =
+			(Map<String, Object>)request.getAttribute(WebKeys.VM_VARIABLES);
+
+		if (vmVariables != null) {
+			for (Map.Entry<String, Object> entry : vmVariables.entrySet()) {
+				String key = entry.getKey();
+				Object value = entry.getValue();
+
+				if (Validator.isNotNull(key)) {
+					template.put(key, value);
+				}
+			}
+		}
+	}
+
+	@Override
+	protected void populateExtraHelperUtilities(
+		Map<String, Object> velocityContext) {
 
 		// Date tool
 
@@ -85,80 +156,16 @@ public class VelocityTemplateContextHelper extends TemplateContextHelper {
 
 		// Permissions
 
-		velocityContext.put(
-			"rolePermission", RolePermissionUtil.getRolePermission());
-
-		return velocityContext;
-	}
-
-	@Override
-	public Set<String> getRestrictedVariables() {
-		return SetUtil.fromArray(
-			PropsValues.JOURNAL_TEMPLATE_VELOCITY_RESTRICTED_VARIABLES);
-	}
-
-	@Override
-	public void prepare(
-			TemplateContext templateContext, HttpServletRequest request)
-		throws TemplateException {
-
-		super.prepare(templateContext, request);
-
-		// Theme display
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		if (themeDisplay != null) {
-			// Init
-
-			templateContext.put(
-				"init",
-				themeDisplay.getPathContext() +
-					VelocityResourceListener.SERVLET_SEPARATOR +
-						"/html/themes/_unstyled/templates/init.vm");
+		try {
+			velocityContext.put(
+				"rolePermission", RolePermissionUtil.getRolePermission());
 		}
-
-		// Theme
-
-		Theme theme = (Theme)request.getAttribute(WebKeys.THEME);
-
-		if ((theme == null) && (themeDisplay != null)) {
-			theme = themeDisplay.getTheme();
-		}
-
-		if (theme != null) {
-			// Full css and templates path
-
-			String servletContextName = GetterUtil.getString(
-				theme.getServletContextName());
-
-			templateContext.put(
-				"fullCssPath",
-				servletContextName + theme.getVelocityResourceListener() +
-					theme.getCssPath());
-
-			templateContext.put(
-				"fullTemplatesPath",
-				servletContextName + theme.getVelocityResourceListener() +
-					theme.getTemplatesPath());
-		}
-
-		// Insert custom vm variables
-
-		Map<String, Object> vmVariables =
-			(Map<String, Object>)request.getAttribute(WebKeys.VM_VARIABLES);
-
-		if (vmVariables != null) {
-			for (Map.Entry<String, Object> entry : vmVariables.entrySet()) {
-				String key = entry.getKey();
-				Object value = entry.getValue();
-
-				if (Validator.isNotNull(key)) {
-					templateContext.put(key, value);
-				}
-			}
+		catch (SecurityException se) {
+			_log.error(se, se);
 		}
 	}
+
+	private static Log _log = LogFactoryUtil.getLog(
+		VelocityTemplateContextHelper.class);
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,41 +15,73 @@
 package com.liferay.portlet.shopping.service.persistence;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.AssertUtils;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.AssertUtils;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
 import com.liferay.portlet.shopping.NoSuchOrderException;
 import com.liferay.portlet.shopping.model.ShoppingOrder;
 import com.liferay.portlet.shopping.model.impl.ShoppingOrderModelImpl;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ShoppingOrderPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (ShoppingOrderPersistence)PortalBeanLocatorUtil.locate(ShoppingOrderPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -185,7 +217,7 @@ public class ShoppingOrderPersistenceTest {
 
 		newShoppingOrder.setSendShippingEmail(ServiceTestUtil.randomBoolean());
 
-		_persistence.update(newShoppingOrder, false);
+		_persistence.update(newShoppingOrder);
 
 		ShoppingOrder existingShoppingOrder = _persistence.findByPrimaryKey(newShoppingOrder.getPrimaryKey());
 
@@ -296,6 +328,61 @@ public class ShoppingOrderPersistenceTest {
 	}
 
 	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByNumber() {
+		try {
+			_persistence.countByNumber(StringPool.BLANK);
+
+			_persistence.countByNumber(StringPool.NULL);
+
+			_persistence.countByNumber((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByPPTxnId() {
+		try {
+			_persistence.countByPPTxnId(StringPool.BLANK);
+
+			_persistence.countByPPTxnId(StringPool.NULL);
+
+			_persistence.countByPPTxnId((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_U_PPPS() {
+		try {
+			_persistence.countByG_U_PPPS(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByG_U_PPPS(0L, 0L, StringPool.NULL);
+
+			_persistence.countByG_U_PPPS(0L, 0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		ShoppingOrder newShoppingOrder = addShoppingOrder();
 
@@ -318,6 +405,50 @@ public class ShoppingOrderPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testFilterFindByGroupId() throws Exception {
+		try {
+			_persistence.filterFindByGroupId(0, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("ShoppingOrder", "orderId",
+			true, "groupId", true, "companyId", true, "userId", true,
+			"userName", true, "createDate", true, "modifiedDate", true,
+			"number", true, "tax", true, "shipping", true, "altShipping", true,
+			"requiresShipping", true, "insure", true, "insurance", true,
+			"couponCodes", true, "couponDiscount", true, "billingFirstName",
+			true, "billingLastName", true, "billingEmailAddress", true,
+			"billingCompany", true, "billingStreet", true, "billingCity", true,
+			"billingState", true, "billingZip", true, "billingCountry", true,
+			"billingPhone", true, "shipToBilling", true, "shippingFirstName",
+			true, "shippingLastName", true, "shippingEmailAddress", true,
+			"shippingCompany", true, "shippingStreet", true, "shippingCity",
+			true, "shippingState", true, "shippingZip", true,
+			"shippingCountry", true, "shippingPhone", true, "ccName", true,
+			"ccType", true, "ccNumber", true, "ccExpMonth", true, "ccExpYear",
+			true, "ccVerNumber", true, "comments", true, "ppTxnId", true,
+			"ppPaymentStatus", true, "ppPaymentGross", true, "ppReceiverEmail",
+			true, "ppPayerEmail", true, "sendOrderEmail", true,
+			"sendShippingEmail", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		ShoppingOrder newShoppingOrder = addShoppingOrder();
 
@@ -333,6 +464,26 @@ public class ShoppingOrderPersistenceTest {
 		ShoppingOrder missingShoppingOrder = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingShoppingOrder);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new ShoppingOrderActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					ShoppingOrder shoppingOrder = (ShoppingOrder)object;
+
+					Assert.assertNotNull(shoppingOrder);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -533,10 +684,12 @@ public class ShoppingOrderPersistenceTest {
 
 		shoppingOrder.setSendShippingEmail(ServiceTestUtil.randomBoolean());
 
-		_persistence.update(shoppingOrder, false);
+		_persistence.update(shoppingOrder);
 
 		return shoppingOrder;
 	}
 
-	private ShoppingOrderPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(ShoppingOrderPersistenceTest.class);
+	private ShoppingOrderPersistence _persistence = (ShoppingOrderPersistence)PortalBeanLocatorUtil.locate(ShoppingOrderPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

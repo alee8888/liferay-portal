@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,38 +16,70 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchUserException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.UserModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class UserPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (UserPersistence)PortalBeanLocatorUtil.locate(UserPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -83,6 +115,8 @@ public class UserPersistenceTest {
 
 		User newUser = _persistence.create(pk);
 
+		newUser.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newUser.setUuid(ServiceTestUtil.randomString());
 
 		newUser.setCompanyId(ServiceTestUtil.nextLong());
@@ -116,6 +150,8 @@ public class UserPersistenceTest {
 		newUser.setEmailAddress(ServiceTestUtil.randomString());
 
 		newUser.setFacebookId(ServiceTestUtil.nextLong());
+
+		newUser.setLdapServerId(ServiceTestUtil.nextLong());
 
 		newUser.setOpenId(ServiceTestUtil.randomString());
 
@@ -159,10 +195,12 @@ public class UserPersistenceTest {
 
 		newUser.setStatus(ServiceTestUtil.nextInt());
 
-		_persistence.update(newUser, false);
+		_persistence.update(newUser);
 
 		User existingUser = _persistence.findByPrimaryKey(newUser.getPrimaryKey());
 
+		Assert.assertEquals(existingUser.getMvccVersion(),
+			newUser.getMvccVersion());
 		Assert.assertEquals(existingUser.getUuid(), newUser.getUuid());
 		Assert.assertEquals(existingUser.getUserId(), newUser.getUserId());
 		Assert.assertEquals(existingUser.getCompanyId(), newUser.getCompanyId());
@@ -195,6 +233,8 @@ public class UserPersistenceTest {
 			newUser.getEmailAddress());
 		Assert.assertEquals(existingUser.getFacebookId(),
 			newUser.getFacebookId());
+		Assert.assertEquals(existingUser.getLdapServerId(),
+			newUser.getLdapServerId());
 		Assert.assertEquals(existingUser.getOpenId(), newUser.getOpenId());
 		Assert.assertEquals(existingUser.getPortraitId(),
 			newUser.getPortraitId());
@@ -234,6 +274,221 @@ public class UserPersistenceTest {
 	}
 
 	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByContactId() {
+		try {
+			_persistence.countByContactId(ServiceTestUtil.nextLong());
+
+			_persistence.countByContactId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByEmailAddress() {
+		try {
+			_persistence.countByEmailAddress(StringPool.BLANK);
+
+			_persistence.countByEmailAddress(StringPool.NULL);
+
+			_persistence.countByEmailAddress((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByPortraitId() {
+		try {
+			_persistence.countByPortraitId(ServiceTestUtil.nextLong());
+
+			_persistence.countByPortraitId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_U() {
+		try {
+			_persistence.countByC_U(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_U(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_CD() {
+		try {
+			_persistence.countByC_CD(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextDate());
+
+			_persistence.countByC_CD(0L, ServiceTestUtil.nextDate());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_MD() {
+		try {
+			_persistence.countByC_MD(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextDate());
+
+			_persistence.countByC_MD(0L, ServiceTestUtil.nextDate());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_DU() {
+		try {
+			_persistence.countByC_DU(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomBoolean());
+
+			_persistence.countByC_DU(0L, ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_SN() {
+		try {
+			_persistence.countByC_SN(ServiceTestUtil.nextLong(),
+				StringPool.BLANK);
+
+			_persistence.countByC_SN(0L, StringPool.NULL);
+
+			_persistence.countByC_SN(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_EA() {
+		try {
+			_persistence.countByC_EA(ServiceTestUtil.nextLong(),
+				StringPool.BLANK);
+
+			_persistence.countByC_EA(0L, StringPool.NULL);
+
+			_persistence.countByC_EA(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_FID() {
+		try {
+			_persistence.countByC_FID(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_FID(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_O() {
+		try {
+			_persistence.countByC_O(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByC_O(0L, StringPool.NULL);
+
+			_persistence.countByC_O(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_S() {
+		try {
+			_persistence.countByC_S(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextInt());
+
+			_persistence.countByC_S(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_CD_MD() {
+		try {
+			_persistence.countByC_CD_MD(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextDate(), ServiceTestUtil.nextDate());
+
+			_persistence.countByC_CD_MD(0L, ServiceTestUtil.nextDate(),
+				ServiceTestUtil.nextDate());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		User newUser = addUser();
 
@@ -256,6 +511,36 @@ public class UserPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("User_", "mvccVersion",
+			true, "uuid", true, "userId", true, "companyId", true,
+			"createDate", true, "modifiedDate", true, "defaultUser", true,
+			"contactId", true, "password", true, "passwordEncrypted", true,
+			"passwordReset", true, "passwordModifiedDate", true, "digest",
+			true, "reminderQueryQuestion", true, "reminderQueryAnswer", true,
+			"graceLoginCount", true, "screenName", true, "emailAddress", true,
+			"facebookId", true, "ldapServerId", true, "openId", true,
+			"portraitId", true, "languageId", true, "timeZoneId", true,
+			"greeting", true, "comments", true, "firstName", true,
+			"middleName", true, "lastName", true, "jobTitle", true,
+			"loginDate", true, "loginIP", true, "lastLoginDate", true,
+			"lastLoginIP", true, "lastFailedLoginDate", true,
+			"failedLoginAttempts", true, "lockout", true, "lockoutDate", true,
+			"agreedToTermsOfUse", true, "emailAddressVerified", true, "status",
+			true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		User newUser = addUser();
 
@@ -271,6 +556,26 @@ public class UserPersistenceTest {
 		User missingUser = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingUser);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new UserActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					User user = (User)object;
+
+					Assert.assertNotNull(user);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -401,6 +706,8 @@ public class UserPersistenceTest {
 
 		User user = _persistence.create(pk);
 
+		user.setMvccVersion(ServiceTestUtil.nextLong());
+
 		user.setUuid(ServiceTestUtil.randomString());
 
 		user.setCompanyId(ServiceTestUtil.nextLong());
@@ -434,6 +741,8 @@ public class UserPersistenceTest {
 		user.setEmailAddress(ServiceTestUtil.randomString());
 
 		user.setFacebookId(ServiceTestUtil.nextLong());
+
+		user.setLdapServerId(ServiceTestUtil.nextLong());
 
 		user.setOpenId(ServiceTestUtil.randomString());
 
@@ -477,10 +786,12 @@ public class UserPersistenceTest {
 
 		user.setStatus(ServiceTestUtil.nextInt());
 
-		_persistence.update(user, false);
+		_persistence.update(user);
 
 		return user;
 	}
 
-	private UserPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(UserPersistenceTest.class);
+	private UserPersistence _persistence = (UserPersistence)PortalBeanLocatorUtil.locate(UserPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

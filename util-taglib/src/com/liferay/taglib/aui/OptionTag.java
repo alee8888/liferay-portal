@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -54,11 +54,13 @@ public class OptionTag extends BaseOptionTag {
 
 		boolean selected = getSelected();
 
-		String selectValue = GetterUtil.getString(
-			(String)request.getAttribute("aui:select:value"));
+		if (getUseModelValue()) {
+			String selectValue = GetterUtil.getString(
+				(String)request.getAttribute("aui:select:value"));
 
-		if (Validator.isNotNull(selectValue)) {
-			selected = selectValue.equals(String.valueOf(value));
+			if (Validator.isNotNull(selectValue)) {
+				selected = selectValue.equals(String.valueOf(value));
+			}
 		}
 
 		setNamespacedAttribute(request, "selected", String.valueOf(selected));

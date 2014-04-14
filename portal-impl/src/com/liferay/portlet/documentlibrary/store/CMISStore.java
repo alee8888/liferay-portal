@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -186,6 +186,7 @@ public class CMISStore extends BaseStore {
 		return document.getContentStream().getStream();
 	}
 
+	@Override
 	public String[] getFileNames(long companyId, long repositoryId) {
 		Folder folder = getRepositoryFolder(companyId, repositoryId);
 
@@ -341,6 +342,7 @@ public class CMISStore extends BaseStore {
 		oldVersioningFolderEntry.deleteTree(true, UnfileObject.DELETE, false);
 	}
 
+	@Override
 	public void updateFile(
 		long companyId, long repositoryId, String fileName,
 		String newFileName) {

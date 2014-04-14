@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,8 +17,6 @@
 <%@ include file="/html/portlet/users_admin/init.jsp" %>
 
 <%
-themeDisplay.setIncludeServiceJs(true);
-
 OrganizationSearch searchContainer = (OrganizationSearch)request.getAttribute("liferay-ui:search:searchContainer");
 
 OrganizationDisplayTerms displayTerms = (OrganizationDisplayTerms)searchContainer.getDisplayTerms();
@@ -37,18 +35,21 @@ if (displayTerms.getParentOrganizationId() > 0) {
 %>
 
 <liferay-ui:search-toggle
+	autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>"
 	buttonLabel="search"
 	displayTerms="<%= displayTerms %>"
 	id="toggle_id_users_admin_organization_search"
 >
 	<aui:fieldset>
-		<aui:input name="<%= displayTerms.NAME %>" size="20" value="<%= displayTerms.getName() %>" />
+		<aui:input inlineField="<%= true %>" name="<%= displayTerms.NAME %>" size="20" value="<%= displayTerms.getName() %>" />
 
-		<aui:input name="<%= displayTerms.STREET %>" size="20" value="<%= displayTerms.getStreet() %>" />
+		<aui:input inlineField="<%= true %>" name="<%= displayTerms.STREET %>" size="20" value="<%= displayTerms.getStreet() %>" />
 
-		<aui:input name="<%= displayTerms.CITY %>" size="20" value="<%= displayTerms.getCity() %>" />
+		<aui:input inlineField="<%= true %>" name="<%= displayTerms.CITY %>" size="20" value="<%= displayTerms.getCity() %>" />
+	</aui:fieldset>
 
-		<aui:select name="<%= displayTerms.TYPE %>">
+	<aui:fieldset>
+		<aui:select inlineField="<%= true %>" name="<%= displayTerms.TYPE %>">
 			<aui:option value=""></aui:option>
 
 			<%
@@ -63,20 +64,15 @@ if (displayTerms.getParentOrganizationId() > 0) {
 
 		</aui:select>
 
-		<aui:select label="country" name="<%= displayTerms.COUNTRY_ID %>"></aui:select>
+		<aui:select inlineField="<%= true %>" label="country" name="<%= displayTerms.COUNTRY_ID %>"></aui:select>
 
-		<aui:select label="region" name="<%= displayTerms.REGION_ID %>"></aui:select>
+		<aui:select inlineField="<%= true %>" label="region" name="<%= displayTerms.REGION_ID %>"></aui:select>
+	</aui:fieldset>
 
-		<aui:input label="postal-code" name="<%= displayTerms.ZIP %>" size="20" value="<%= displayTerms.getZip() %>" />
+	<aui:fieldset>
+		<aui:input inlineField="<%= true %>" label="postal-code" name="<%= displayTerms.ZIP %>" size="20" value="<%= displayTerms.getZip() %>" />
 	</aui:fieldset>
 </liferay-ui:search-toggle>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace /><%= displayTerms.NAME %>);
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace /><%= displayTerms.KEYWORDS %>);
-	</aui:script>
-</c:if>
 
 <aui:script use="liferay-dynamic-select">
 	new Liferay.DynamicSelect(

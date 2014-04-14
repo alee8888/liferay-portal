@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,13 +22,14 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services.
  *
- * @author    Brian Wing Shun Chan
+ * @author Brian Wing Shun Chan
  * @generated
  */
 public class ResourceActionSoap implements Serializable {
 	public static ResourceActionSoap toSoapModel(ResourceAction model) {
 		ResourceActionSoap soapModel = new ResourceActionSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setResourceActionId(model.getResourceActionId());
 		soapModel.setName(model.getName());
 		soapModel.setActionId(model.getActionId());
@@ -85,6 +86,14 @@ public class ResourceActionSoap implements Serializable {
 		setResourceActionId(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public long getResourceActionId() {
 		return _resourceActionId;
 	}
@@ -117,6 +126,7 @@ public class ResourceActionSoap implements Serializable {
 		_bitwiseValue = bitwiseValue;
 	}
 
+	private long _mvccVersion;
 	private long _resourceActionId;
 	private String _name;
 	private String _actionId;

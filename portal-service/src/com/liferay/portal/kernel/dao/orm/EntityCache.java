@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.dao.orm;
 
+import com.liferay.portal.kernel.cache.PortalCache;
+
 import java.io.Serializable;
 
 /**
@@ -23,22 +25,29 @@ public interface EntityCache {
 
 	public void clearCache();
 
-	public void clearCache(String className);
+	public void clearCache(Class<?> clazz);
 
 	public void clearLocalCache();
 
-	public Object getResult(
+	public PortalCache<Serializable, Serializable> getPortalCache(
+		Class<?> clazz);
+
+	public Serializable getResult(
 		boolean entityCacheEnabled, Class<?> clazz, Serializable primaryKey);
 
 	public void invalidate();
 
-	public Object loadResult(
+	public Serializable loadResult(
 		boolean entityCacheEnabled, Class<?> clazz, Serializable primaryKey,
 		SessionFactory sessionFactory);
 
 	public void putResult(
 		boolean entityCacheEnabled, Class<?> clazz, Serializable primaryKey,
-		Object result);
+		Serializable result);
+
+	public void putResult(
+		boolean entityCacheEnabled, Class<?> clazz, Serializable primaryKey,
+		Serializable result, boolean quiet);
 
 	public void removeCache(String className);
 

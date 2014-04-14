@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.persistence.UserGroupGroupRolePK;
@@ -34,7 +36,9 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.UserGroupGroupRoleModelImpl
  * @generated
  */
-public interface UserGroupGroupRoleModel extends BaseModel<UserGroupGroupRole> {
+@ProviderType
+public interface UserGroupGroupRoleModel extends BaseModel<UserGroupGroupRole>,
+	MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -54,6 +58,22 @@ public interface UserGroupGroupRoleModel extends BaseModel<UserGroupGroupRole> {
 	 * @param primaryKey the primary key of this user group group role
 	 */
 	public void setPrimaryKey(UserGroupGroupRolePK primaryKey);
+
+	/**
+	 * Returns the mvcc version of this user group group role.
+	 *
+	 * @return the mvcc version of this user group group role
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this user group group role.
+	 *
+	 * @param mvccVersion the mvcc version of this user group group role
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the user group ID of this user group group role.
@@ -97,35 +117,60 @@ public interface UserGroupGroupRoleModel extends BaseModel<UserGroupGroupRole> {
 	 */
 	public void setRoleId(long roleId);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(UserGroupGroupRole userGroupGroupRole);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<UserGroupGroupRole> toCacheModel();
 
+	@Override
 	public UserGroupGroupRole toEscapedModel();
 
+	@Override
+	public UserGroupGroupRole toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

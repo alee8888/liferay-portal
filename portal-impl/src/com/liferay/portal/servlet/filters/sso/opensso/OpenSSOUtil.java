@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,11 +17,11 @@ package com.liferay.portal.servlet.filters.sso.opensso;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.util.CookieUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +42,7 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * <p>
- * See http://issues.liferay.com/browse/LEP-5943.
+ * See https://issues.liferay.com/browse/LEP-5943.
  * </p>
  *
  * @author Prashant Dighe
@@ -264,7 +264,7 @@ public class OpenSSOUtil {
 
 		String cookieName = _getCookieNames(serviceUrl)[0];
 
-		return CookieUtil.get(request, cookieName);
+		return CookieKeys.getCookie(request, cookieName);
 	}
 
 	private boolean _isAuthenticated(
@@ -278,7 +278,7 @@ public class OpenSSOUtil {
 		String[] cookieNames = _getCookieNames(serviceUrl);
 
 		for (String cookieName : cookieNames) {
-			if (CookieUtil.get(request, cookieName) != null) {
+			if (CookieKeys.getCookie(request, cookieName) != null) {
 				hasCookieNames = true;
 
 				break;
@@ -320,7 +320,7 @@ public class OpenSSOUtil {
 		if (responseCode == HttpURLConnection.HTTP_OK) {
 			String data = StringUtil.read(httpURLConnection.getInputStream());
 
-			if (data.toLowerCase().indexOf("boolean=true") != -1) {
+			if (StringUtil.toLowerCase(data).contains("boolean=true")) {
 				authenticated = true;
 			}
 		}
@@ -358,12 +358,23 @@ public class OpenSSOUtil {
 
 			int responseCode = httpURLConnection.getResponseCode();
 
-			if (responseCode != HttpURLConnection.HTTP_OK) {
+			if (!((responseCode == HttpURLConnection.HTTP_OK) ||
+				 ((responseCode >= HttpURLConnection.HTTP_MULT_CHOICE) &&
+				  (responseCode <= HttpURLConnection.HTTP_NOT_MODIFIED)))) {
+
 				if (_log.isDebugEnabled()) {
-					_log.debug("Attributes response code " + responseCode);
+					_log.debug(
+						"URL " + url + " is invalid with response code " +
+							responseCode);
 				}
 
 				return false;
+			}
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					"URL " + url + " is valid with response code " +
+						responseCode);
 			}
 		}
 		catch (IOException ioe) {
@@ -398,7 +409,7 @@ public class OpenSSOUtil {
 		StringBundler sb = new StringBundler(cookieNames.length * 4);
 
 		for (String cookieName : cookieNames) {
-			String cookieValue = CookieUtil.get(request, cookieName);
+			String cookieValue = CookieKeys.getCookie(request, cookieName);
 
 			sb.append(cookieName);
 			sb.append(StringPool.EQUAL);

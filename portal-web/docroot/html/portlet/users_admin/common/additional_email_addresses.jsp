@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -64,7 +64,7 @@ else {
 
 <h3><liferay-ui:message key="additional-email-addresses" /></h3>
 
-<div class="portlet-msg-info">
+<div class="alert alert-info">
 	<liferay-ui:message key="email-address-and-type-are-required-fields" />
 </div>
 
@@ -86,11 +86,11 @@ else {
 			<div class="row-fields">
 				<aui:input name='<%= "emailAddressId" + emailAddressesIndex %>' type="hidden" value="<%= emailAddress.getEmailAddressId() %>" />
 
-				<aui:input fieldParam='<%= "emailAddressAddress" + emailAddressesIndex %>' id='<%= "emailAddressAddress" + emailAddressesIndex %>' label="email-address" name="address" />
+				<aui:input cssClass="email-field" fieldParam='<%= "emailAddressAddress" + emailAddressesIndex %>' id='<%= "emailAddressAddress" + emailAddressesIndex %>' inlineField="<%= true %>" label="email-address" name="address" width="150px" />
 
-				<aui:select label="type" listType="<%= className + ListTypeConstants.EMAIL_ADDRESS %>" name='<%= "emailAddressTypeId" + emailAddressesIndex %>' />
+				<aui:select inlineField="<%= true %>" label="type" listType="<%= className + ListTypeConstants.EMAIL_ADDRESS %>" name='<%= "emailAddressTypeId" + emailAddressesIndex %>' />
 
-				<aui:input checked="<%= emailAddress.isPrimary() %>" cssClass="primary-ctrl" id='<%= "emailAddressPrimary" + emailAddressesIndex %>' label="primary" name="emailAddressPrimary" type="radio" value="<%= emailAddressesIndex %>" />
+				<aui:input checked="<%= emailAddress.isPrimary() %>" cssClass="primary-ctrl" id='<%= "emailAddressPrimary" + emailAddressesIndex %>' inlineField="<%= true %>" label="primary" name="emailAddressPrimary" type="radio" value="<%= emailAddressesIndex %>" />
 			</div>
 		</div>
 
@@ -108,7 +108,8 @@ else {
 			new Liferay.AutoFields(
 				{
 					contentBox: '#<portlet:namespace />additionalEmailAddresses > fieldset',
-					fieldIndexes: '<portlet:namespace />emailAddressesIndexes'
+					fieldIndexes: '<portlet:namespace />emailAddressesIndexes',
+					namespace: '<portlet:namespace />'
 				}
 			).render();
 		}

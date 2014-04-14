@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,6 +36,7 @@ import java.util.List;
 public class ContactLocalServiceImpl extends ContactLocalServiceBaseImpl {
 
 	@Indexable(type = IndexableType.REINDEX)
+	@Override
 	public Contact addContact(
 			long userId, String className, long classPK, String emailAddress,
 			String firstName, String middleName, String lastName, int prefixId,
@@ -48,7 +49,7 @@ public class ContactLocalServiceImpl extends ContactLocalServiceBaseImpl {
 		User user = userPersistence.findByPrimaryKey(userId);
 		Date birthday = PortalUtil.getDate(
 			birthdayMonth, birthdayDay, birthdayYear,
-			new ContactBirthdayException());
+			ContactBirthdayException.class);
 		Date now = new Date();
 
 		validate(className, classPK);
@@ -84,7 +85,7 @@ public class ContactLocalServiceImpl extends ContactLocalServiceBaseImpl {
 		contact.setYmSn(ymSn);
 		contact.setJobTitle(jobTitle);
 
-		contactPersistence.update(contact, false);
+		contactPersistence.update(contact);
 
 		return contact;
 	}
@@ -136,6 +137,7 @@ public class ContactLocalServiceImpl extends ContactLocalServiceBaseImpl {
 		return contact;
 	}
 
+	@Override
 	public List<Contact> getContacts(
 			long classNameId, long classPK, int start, int end,
 			OrderByComparator orderByComparator)
@@ -145,6 +147,7 @@ public class ContactLocalServiceImpl extends ContactLocalServiceBaseImpl {
 			classNameId, classPK, start, end, orderByComparator);
 	}
 
+	@Override
 	public int getContactsCount(long classNameId, long classPK)
 		throws SystemException {
 
@@ -152,6 +155,7 @@ public class ContactLocalServiceImpl extends ContactLocalServiceBaseImpl {
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
+	@Override
 	public Contact updateContact(
 			long contactId, String emailAddress, String firstName,
 			String middleName, String lastName, int prefixId, int suffixId,
@@ -163,7 +167,7 @@ public class ContactLocalServiceImpl extends ContactLocalServiceBaseImpl {
 
 		Date birthday = PortalUtil.getDate(
 			birthdayMonth, birthdayDay, birthdayYear,
-			new ContactBirthdayException());
+			ContactBirthdayException.class);
 
 		Contact contact = contactPersistence.findByPrimaryKey(contactId);
 
@@ -188,7 +192,7 @@ public class ContactLocalServiceImpl extends ContactLocalServiceBaseImpl {
 		contact.setYmSn(ymSn);
 		contact.setJobTitle(jobTitle);
 
-		contactPersistence.update(contact, false);
+		contactPersistence.update(contact);
 
 		return contact;
 	}

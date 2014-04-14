@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,19 +15,17 @@
 package com.liferay.portlet.journalcontent.action;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.portlet.PortletRequestModel;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.WebKeys;
-import com.liferay.portlet.journal.NoSuchArticleException;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalArticleDisplay;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portlet.journalcontent.util.JournalContentUtil;
-import com.liferay.util.portlet.PortletRequestUtil;
 
 import javax.portlet.PortletConfig;
 import javax.portlet.PortletPreferences;
@@ -46,67 +44,73 @@ public class ViewAction extends WebContentAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
-		PortletPreferences preferences = renderRequest.getPreferences();
+		PortletPreferences portletPreferences = renderRequest.getPreferences();
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		long groupId = ParamUtil.getLong(renderRequest, "groupId");
+		long articleGroupId = ParamUtil.getLong(
+			renderRequest, "articleGroupId");
 
-		if (groupId <= 0) {
-			groupId = GetterUtil.getLong(
-				preferences.getValue("groupId", StringPool.BLANK));
+		if (articleGroupId <= 0) {
+			articleGroupId = GetterUtil.getLong(
+				portletPreferences.getValue(
+					"groupId", String.valueOf(themeDisplay.getScopeGroupId())));
 		}
 
 		String articleId = ParamUtil.getString(renderRequest, "articleId");
-		String templateId = ParamUtil.getString(renderRequest, "templateId");
+		String ddmTemplateKey = null;
 
 		if (Validator.isNull(articleId)) {
 			articleId = GetterUtil.getString(
-				preferences.getValue("articleId", StringPool.BLANK));
-			templateId = GetterUtil.getString(
-				preferences.getValue("templateId", StringPool.BLANK));
+				portletPreferences.getValue("articleId", null));
+			ddmTemplateKey = GetterUtil.getString(
+				portletPreferences.getValue("ddmTemplateKey", null));
 		}
-
-		String viewMode = ParamUtil.getString(renderRequest, "viewMode");
-		String languageId = LanguageUtil.getLanguageId(renderRequest);
-		int page = ParamUtil.getInteger(renderRequest, "page", 1);
-		String xmlRequest = PortletRequestUtil.toXML(
-			renderRequest, renderResponse);
+		else {
+			ddmTemplateKey = ParamUtil.getString(
+				renderRequest, "ddmTemplateKey");
+		}
 
 		JournalArticle article = null;
 		JournalArticleDisplay articleDisplay = null;
 
-		if ((groupId > 0) && Validator.isNotNull(articleId)) {
-			try {
-				article = JournalArticleLocalServiceUtil.getLatestArticle(
-					groupId, articleId, WorkflowConstants.STATUS_APPROVED);
-			}
-			catch (NoSuchArticleException nsae) {
-			}
+		if ((articleGroupId > 0) && Validator.isNotNull(articleId)) {
+			String viewMode = ParamUtil.getString(renderRequest, "viewMode");
+			String languageId = LanguageUtil.getLanguageId(renderRequest);
+			int page = ParamUtil.getInteger(renderRequest, "page", 1);
+
+			article = JournalArticleLocalServiceUtil.fetchLatestArticle(
+				articleGroupId, articleId, WorkflowConstants.STATUS_APPROVED);
 
 			try {
 				if (article == null) {
 					article = JournalArticleLocalServiceUtil.getLatestArticle(
-						groupId, articleId, WorkflowConstants.STATUS_ANY);
+						articleGroupId, articleId,
+						WorkflowConstants.STATUS_ANY);
 				}
 
 				double version = article.getVersion();
 
 				articleDisplay = JournalContentUtil.getDisplay(
-					groupId, articleId, version, templateId, viewMode,
-					languageId, themeDisplay, page, xmlRequest);
+					articleGroupId, articleId, version, ddmTemplateKey,
+					viewMode, languageId, page,
+					new PortletRequestModel(renderRequest, renderResponse),
+					themeDisplay);
 			}
 			catch (Exception e) {
 				renderRequest.removeAttribute(WebKeys.JOURNAL_ARTICLE);
 
 				articleDisplay = JournalContentUtil.getDisplay(
-					groupId, articleId, templateId, viewMode, languageId,
-					themeDisplay, page, xmlRequest);
+					articleGroupId, articleId, ddmTemplateKey, viewMode,
+					languageId, page,
+					new PortletRequestModel(renderRequest, renderResponse),
+					themeDisplay);
 			}
 		}
 
@@ -122,7 +126,7 @@ public class ViewAction extends WebContentAction {
 			renderRequest.removeAttribute(WebKeys.JOURNAL_ARTICLE_DISPLAY);
 		}
 
-		return mapping.findForward("portlet.journal_content.view");
+		return actionMapping.findForward("portlet.journal_content.view");
 	}
 
 }

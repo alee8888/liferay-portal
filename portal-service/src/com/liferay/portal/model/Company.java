@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * The extended model interface for the Company service. Represents a row in the &quot;Company&quot; database table, with each column mapped to a property of this class.
  *
@@ -23,14 +25,13 @@ package com.liferay.portal.model;
  * @see com.liferay.portal.model.impl.CompanyModelImpl
  * @generated
  */
+@ProviderType
 public interface Company extends CompanyModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to {@link com.liferay.portal.model.impl.CompanyImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
-	public int compareTo(com.liferay.portal.model.Company company);
-
 	public com.liferay.portal.model.Account getAccount()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
@@ -52,12 +53,17 @@ public interface Company extends CompanyModel, PersistedModel {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
+	public long getGroupId()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
 	public java.security.Key getKeyObj();
 
 	public java.util.Locale getLocale()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
+	@com.liferay.portal.kernel.bean.AutoEscape()
 	public java.lang.String getName()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
@@ -104,7 +110,7 @@ public interface Company extends CompanyModel, PersistedModel {
 	public boolean isStrangersWithMx()
 		throws com.liferay.portal.kernel.exception.SystemException;
 
-	public void setKey(java.lang.String key);
-
 	public void setKeyObj(java.security.Key keyObj);
+
+	public void setVirtualHostname(java.lang.String virtualHostname);
 }

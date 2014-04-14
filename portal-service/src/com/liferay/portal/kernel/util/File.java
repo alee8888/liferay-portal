@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -53,9 +53,15 @@ public interface File {
 
 	public java.io.File createTempFile(String extension);
 
+	public java.io.File createTempFile(String prefix, String extension);
+
 	public String createTempFileName();
 
 	public String createTempFileName(String extension);
+
+	public String createTempFileName(String prefix, String extension);
+
+	public java.io.File createTempFolder();
 
 	public String decodeSafeFileName(String fileName);
 
@@ -79,6 +85,8 @@ public interface File {
 
 	public String getAbsolutePath(java.io.File file);
 
+	public byte[] getBytes(Class<?> clazz, String fileName) throws IOException;
+
 	public byte[] getBytes(InputStream is) throws IOException;
 
 	public byte[] getBytes(InputStream is, int bufferSize) throws IOException;
@@ -90,6 +98,8 @@ public interface File {
 	public byte[] getBytes(java.io.File file) throws IOException;
 
 	public String getExtension(String fileName);
+
+	public String getMD5Checksum(java.io.File file) throws IOException;
 
 	public String getPath(String fullFileName);
 
@@ -143,7 +153,15 @@ public interface File {
 
 	public void write(java.io.File file, byte[] bytes) throws IOException;
 
+	public void write(java.io.File file, byte[] bytes, boolean append)
+		throws IOException;
+
 	public void write(java.io.File file, byte[] bytes, int offset, int length)
+		throws IOException;
+
+	public void write(
+			java.io.File file, byte[] bytes, int offset, int length,
+			boolean append)
 		throws IOException;
 
 	public void write(java.io.File file, InputStream is) throws IOException;

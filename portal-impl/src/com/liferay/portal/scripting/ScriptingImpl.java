@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,27 +22,17 @@ import com.liferay.portal.kernel.scripting.Scripting;
 import com.liferay.portal.kernel.scripting.ScriptingException;
 import com.liferay.portal.kernel.scripting.ScriptingExecutor;
 import com.liferay.portal.kernel.scripting.UnsupportedLanguageException;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.util.ClassLoaderPool;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 
 import java.io.IOException;
 import java.io.LineNumberReader;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionResponse;
-import javax.portlet.PortletConfig;
-import javax.portlet.PortletContext;
-import javax.portlet.PortletRequest;
-import javax.portlet.PortletResponse;
-import javax.portlet.RenderRequest;
-import javax.portlet.RenderResponse;
-import javax.portlet.ResourceRequest;
-import javax.portlet.ResourceResponse;
 
 import org.apache.commons.lang.time.StopWatch;
 
@@ -53,15 +43,18 @@ import org.python.core.PySyntaxError;
 /**
  * @author Alberto Montero
  * @author Brian Wing Shun Chan
+ * @author Shuyang Zhou
  */
+@DoPrivileged
 public class ScriptingImpl implements Scripting {
 
-	public void addScriptionExecutor(
+	public void addScriptingExecutor(
 		String language, ScriptingExecutor scriptingExecutor) {
 
 		_scriptingExecutors.put(language, scriptingExecutor);
 	}
 
+	@Override
 	public void clearCache(String language) throws ScriptingException {
 		ScriptingExecutor scriptingExecutor = _scriptingExecutors.get(language);
 
@@ -72,9 +65,11 @@ public class ScriptingImpl implements Scripting {
 		scriptingExecutor.clearCache();
 	}
 
+	@Override
 	public Map<String, Object> eval(
 			Set<String> allowedClasses, Map<String, Object> inputObjects,
-			Set<String> outputNames, String language, String script)
+			Set<String> outputNames, String language, String script,
+			String... servletContextNames)
 		throws ScriptingException {
 
 		ScriptingExecutor scriptingExecutor = _scriptingExecutors.get(language);
@@ -83,17 +78,14 @@ public class ScriptingImpl implements Scripting {
 			throw new UnsupportedLanguageException(language);
 		}
 
-		StopWatch stopWatch = null;
+		StopWatch stopWatch = new StopWatch();
 
-		if (_log.isDebugEnabled()) {
-			stopWatch = new StopWatch();
-
-			stopWatch.start();
-		}
+		stopWatch.start();
 
 		try {
 			return scriptingExecutor.eval(
-				allowedClasses, inputObjects, outputNames, script);
+				allowedClasses, inputObjects, outputNames, script,
+				getClassLoaders(servletContextNames));
 		}
 		catch (Exception e) {
 			throw new ScriptingException(getErrorMessage(script, e), e);
@@ -106,56 +98,18 @@ public class ScriptingImpl implements Scripting {
 		}
 	}
 
+	@Override
 	public void exec(
 			Set<String> allowedClasses, Map<String, Object> inputObjects,
-			String language, String script)
+			String language, String script, String... servletContextNames)
 		throws ScriptingException {
 
-		eval(allowedClasses, inputObjects, null, language, script);
+		eval(
+			allowedClasses, inputObjects, null, language, script,
+			servletContextNames);
 	}
 
-	public Map<String, Object> getPortletObjects(
-		PortletConfig portletConfig, PortletContext portletContext,
-		PortletRequest portletRequest, PortletResponse portletResponse) {
-
-		Map<String, Object> objects = new HashMap<String, Object>();
-
-		objects.put("portletConfig", portletConfig);
-		objects.put("portletContext", portletContext);
-		objects.put("preferences", portletRequest.getPreferences());
-
-		if (portletRequest instanceof ActionRequest) {
-			objects.put("actionRequest", portletRequest);
-		}
-		else if (portletRequest instanceof RenderRequest) {
-			objects.put("renderRequest", portletRequest);
-		}
-		else if (portletRequest instanceof ResourceRequest) {
-			objects.put("resourceRequest", portletRequest);
-		}
-		else {
-			objects.put("portletRequest", portletRequest);
-		}
-
-		if (portletResponse instanceof ActionResponse) {
-			objects.put("actionResponse", portletResponse);
-		}
-		else if (portletResponse instanceof RenderResponse) {
-			objects.put("renderResponse", portletResponse);
-		}
-		else if (portletResponse instanceof ResourceResponse) {
-			objects.put("resourceResponse", portletResponse);
-		}
-		else {
-			objects.put("portletResponse", portletResponse);
-		}
-
-		objects.put(
-			"userInfo", portletRequest.getAttribute(PortletRequest.USER_INFO));
-
-		return objects;
-	}
-
+	@Override
 	public Set<String> getSupportedLanguages() {
 		return _scriptingExecutors.keySet();
 	}
@@ -168,6 +122,18 @@ public class ScriptingImpl implements Scripting {
 
 			_scriptingExecutors.put(entry.getKey(), entry.getValue());
 		}
+	}
+
+	protected ClassLoader[] getClassLoaders(String[] servletContextNames) {
+		ClassLoader[] classLoaders =
+			new ClassLoader[servletContextNames.length];
+
+		for (int i = 0; i < servletContextNames.length; i++) {
+			classLoaders[i] = ClassLoaderPool.getClassLoader(
+				servletContextNames[i]);
+		}
+
+		return classLoaders;
 	}
 
 	protected String getErrorMessage(Exception e) {
@@ -196,7 +162,7 @@ public class ScriptingImpl implements Scripting {
 		sb.append(getErrorMessage(e));
 		sb.append(StringPool.NEW_LINE);
 
-		try{
+		try {
 			LineNumberReader lineNumberReader = new LineNumberReader(
 				new UnsyncStringReader(script));
 

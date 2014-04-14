@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.util;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -47,6 +49,11 @@ public class TestPropsValues {
 
 	public static final String COMPANY_WEB_ID;
 
+	public static final boolean DL_FILE_ENTRY_PROCESSORS_TRIGGER_SYNCHRONOUSLY =
+		GetterUtil.getBoolean(
+			TestPropsUtil.get(
+				"dl.file.entry.processors.trigger.synchronously"));
+
 	public static final int JUNIT_DELAY_FACTOR = GetterUtil.getInteger(
 		TestPropsUtil.get("junit.delay.factor"));
 
@@ -55,7 +62,7 @@ public class TestPropsValues {
 	public static final String USER_PASSWORD = TestPropsUtil.get(
 		"user.password");
 
-	public static long getCompanyId() throws Exception {
+	public static long getCompanyId() throws PortalException, SystemException {
 		if (_companyId > 0) {
 			return _companyId;
 		}
@@ -68,7 +75,7 @@ public class TestPropsValues {
 		return _companyId;
 	}
 
-	public static long getGroupId() throws Exception {
+	public static long getGroupId() throws PortalException, SystemException {
 		if (_groupId > 0) {
 			return _groupId;
 		}
@@ -105,13 +112,20 @@ public class TestPropsValues {
 	}
 
 	public static String getLogin() throws Exception {
+		return getLogin(true);
+	}
+
+	public static String getLogin(boolean encodeLogin) throws Exception {
 		String login = null;
 
 		String authType = PropsValues.COMPANY_SECURITY_AUTH_TYPE;
 
 		if (authType.equals(CompanyConstants.AUTH_TYPE_EA)) {
 			login = getUser().getEmailAddress();
-			login = HttpUtil.encodeURL(login);
+
+			if (encodeLogin) {
+				login = HttpUtil.encodeURL(login);
+			}
 		}
 		else if (authType.equals(CompanyConstants.AUTH_TYPE_SN)) {
 			login = getUser().getScreenName();
@@ -124,11 +138,15 @@ public class TestPropsValues {
 	}
 
 	public static long getPlid() throws Exception {
+		return getPlid(getGroupId());
+	}
+
+	public static long getPlid(long groupId) throws Exception {
 		if (_plid > 0) {
 			return _plid;
 		}
 
-		_plid = LayoutLocalServiceUtil.getDefaultPlid(getGroupId());
+		_plid = LayoutLocalServiceUtil.getDefaultPlid(groupId);
 
 		return _plid;
 	}
@@ -153,7 +171,7 @@ public class TestPropsValues {
 
 			url =
 				protocol + login + ":" + password + "@" + host +
-					"/api/secure/axis/" + serviceName;
+					"/api/axis/" + serviceName;
 		}
 		else {
 			url += "/api/axis/" + serviceName;
@@ -168,7 +186,7 @@ public class TestPropsValues {
 		return getSoapURL(login, true, serviceName);
 	}
 
-	public static User getUser() throws Exception {
+	public static User getUser() throws PortalException, SystemException {
 		if (_user == null) {
 			Role role = RoleLocalServiceUtil.getRole(
 				getCompanyId(), RoleConstants.ADMINISTRATOR);
@@ -176,17 +194,23 @@ public class TestPropsValues {
 			List<User> users = UserLocalServiceUtil.getRoleUsers(
 				role.getRoleId(), 0, 2);
 
-			_user = users.get(0);
+			if (!users.isEmpty()) {
+				_user = users.get(0);
 
-			_userId = _user.getUserId();
+				_userId = _user.getUserId();
+			}
 		}
 
 		return _user;
 	}
 
-	public static long getUserId() throws Exception {
+	public static long getUserId() throws PortalException, SystemException {
 		if (_userId == 0) {
-			_userId = getUser().getUserId();
+			User user = getUser();
+
+			if (user != null) {
+				_userId = user.getUserId();
+			}
 		}
 
 		return _userId;

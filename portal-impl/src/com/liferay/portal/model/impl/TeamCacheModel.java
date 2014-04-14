@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,9 +17,13 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.Team;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import java.util.Date;
 
@@ -30,12 +34,25 @@ import java.util.Date;
  * @see Team
  * @generated
  */
-public class TeamCacheModel implements CacheModel<Team>, Serializable {
+public class TeamCacheModel implements CacheModel<Team>, Externalizable,
+	MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(21);
 
-		sb.append("{teamId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", teamId=");
 		sb.append(teamId);
 		sb.append(", companyId=");
 		sb.append(companyId);
@@ -58,9 +75,11 @@ public class TeamCacheModel implements CacheModel<Team>, Serializable {
 		return sb.toString();
 	}
 
+	@Override
 	public Team toEntityModel() {
 		TeamImpl teamImpl = new TeamImpl();
 
+		teamImpl.setMvccVersion(mvccVersion);
 		teamImpl.setTeamId(teamId);
 		teamImpl.setCompanyId(companyId);
 		teamImpl.setUserId(userId);
@@ -107,6 +126,55 @@ public class TeamCacheModel implements CacheModel<Team>, Serializable {
 		return teamImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		teamId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		userId = objectInput.readLong();
+		userName = objectInput.readUTF();
+		createDate = objectInput.readLong();
+		modifiedDate = objectInput.readLong();
+		groupId = objectInput.readLong();
+		name = objectInput.readUTF();
+		description = objectInput.readUTF();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(teamId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(userId);
+
+		if (userName == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(userName);
+		}
+
+		objectOutput.writeLong(createDate);
+		objectOutput.writeLong(modifiedDate);
+		objectOutput.writeLong(groupId);
+
+		if (name == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(name);
+		}
+
+		if (description == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(description);
+		}
+	}
+
+	public long mvccVersion;
 	public long teamId;
 	public long companyId;
 	public long userId;

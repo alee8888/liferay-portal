@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,9 +28,11 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Image;
 import com.liferay.portal.service.ImageLocalServiceUtil;
+import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.util.ImageProcessorUtil;
 import com.liferay.portlet.journal.model.JournalArticle;
+import com.liferay.portlet.journal.model.JournalArticleConstants;
 import com.liferay.portlet.journal.model.JournalFeed;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portlet.journal.util.comparator.ArticleDisplayDateComparator;
@@ -42,6 +44,7 @@ import com.sun.syndication.feed.synd.SyndLink;
 import com.sun.syndication.feed.synd.SyndLinkImpl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +60,7 @@ public class JournalRSSUtil {
 
 		long companyId = feed.getCompanyId();
 		long groupId = feed.getGroupId();
-		long folderId = 0;
+		List<Long> folderIds = Collections.emptyList();
 		String articleId = null;
 		Double version = null;
 		String title = null;
@@ -101,9 +104,11 @@ public class JournalRSSUtil {
 		}
 
 		return JournalArticleLocalServiceUtil.search(
-			companyId, groupId, folderId, 0, articleId, version, title,
-			description, content, type, structureId, templateId, displayDateGT,
-			displayDateLT, status, reviewDate, andOperator, start, end, obc);
+			companyId, groupId, folderIds,
+			JournalArticleConstants.CLASSNAME_ID_DEFAULT, articleId, version,
+			title, description, content, type, structureId, templateId,
+			displayDateGT, displayDateLT, status, reviewDate, andOperator,
+			start, end, obc);
 	}
 
 	public static List<SyndEnclosure> getDLEnclosures(
@@ -162,7 +167,7 @@ public class JournalRSSUtil {
 
 			String uuid = null;
 			long groupId = GetterUtil.getLong(pathArray[2]);
-			long folderId = 0;
+			long folderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
 			String title = null;
 
 			if (pathArray.length == 4) {
@@ -170,7 +175,7 @@ public class JournalRSSUtil {
 			}
 			else if (pathArray.length == 5) {
 				folderId = GetterUtil.getLong(pathArray[3]);
-				title = HttpUtil.decodeURL(pathArray[4], true);
+				title = HttpUtil.decodeURL(pathArray[4]);
 			}
 			else if (pathArray.length > 5) {
 				uuid = pathArray[5];
@@ -243,7 +248,8 @@ public class JournalRSSUtil {
 
 		syndEnclosure.setLength((Long)imageProperties[1]);
 		syndEnclosure.setType(
-			MimeTypesUtil.getContentType("*." + imageProperties[0]));
+			MimeTypesUtil.getExtensionContentType(
+				imageProperties[0].toString()));
 		syndEnclosure.setUrl(portalURL + url);
 
 		syndEnclosures.add(syndEnclosure);
@@ -266,7 +272,8 @@ public class JournalRSSUtil {
 		syndLink.setLength((Long)imageProperties[1]);
 		syndLink.setRel("enclosure");
 		syndLink.setType(
-			MimeTypesUtil.getContentType("*." + imageProperties[0]));
+			MimeTypesUtil.getExtensionContentType(
+				imageProperties[0].toString()));
 
 		syndLinks.add(syndLink);
 

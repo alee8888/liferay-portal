@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
- * <p>
- * This class is a wrapper for {@link VirtualHostLocalService}.
- * </p>
+ * Provides a wrapper for {@link VirtualHostLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       VirtualHostLocalService
+ * @author Brian Wing Shun Chan
+ * @see VirtualHostLocalService
  * @generated
  */
+@ProviderType
 public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	ServiceWrapper<VirtualHostLocalService> {
 	public VirtualHostLocalServiceWrapper(
@@ -37,6 +38,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* @return the virtual host that was added
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.VirtualHost addVirtualHost(
 		com.liferay.portal.model.VirtualHost virtualHost)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -49,6 +51,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* @param virtualHostId the primary key for the new virtual host
 	* @return the new virtual host
 	*/
+	@Override
 	public com.liferay.portal.model.VirtualHost createVirtualHost(
 		long virtualHostId) {
 		return _virtualHostLocalService.createVirtualHost(virtualHostId);
@@ -62,6 +65,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* @throws PortalException if a virtual host with the primary key could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.VirtualHost deleteVirtualHost(
 		long virtualHostId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -76,12 +80,14 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* @return the virtual host that was removed
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.VirtualHost deleteVirtualHost(
 		com.liferay.portal.model.VirtualHost virtualHost)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _virtualHostLocalService.deleteVirtualHost(virtualHost);
 	}
 
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _virtualHostLocalService.dynamicQuery();
 	}
@@ -93,6 +99,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* @return the matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
@@ -104,7 +111,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* Performs a dynamic query on the database and returns a range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.VirtualHostModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -113,6 +120,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* @return the range of matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
@@ -124,7 +132,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.VirtualHostModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -134,6 +142,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* @return the ordered range of matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
@@ -151,12 +160,31 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* @return the number of rows that match the dynamic query
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _virtualHostLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _virtualHostLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
+	@Override
 	public com.liferay.portal.model.VirtualHost fetchVirtualHost(
 		long virtualHostId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -171,6 +199,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* @throws PortalException if a virtual host with the primary key could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.VirtualHost getVirtualHost(
 		long virtualHostId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -178,6 +207,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 		return _virtualHostLocalService.getVirtualHost(virtualHostId);
 	}
 
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -189,7 +219,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* Returns a range of all the virtual hosts.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.VirtualHostModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of virtual hosts
@@ -197,6 +227,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* @return the range of virtual hosts
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portal.model.VirtualHost> getVirtualHosts(
 		int start, int end)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -209,6 +240,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* @return the number of virtual hosts
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public int getVirtualHostsCount()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _virtualHostLocalService.getVirtualHostsCount();
@@ -221,6 +253,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	* @return the virtual host that was updated
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.VirtualHost updateVirtualHost(
 		com.liferay.portal.model.VirtualHost virtualHost)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -228,24 +261,11 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	}
 
 	/**
-	* Updates the virtual host in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param virtualHost the virtual host
-	* @param merge whether to merge the virtual host with the current session. See {@link com.liferay.portal.service.persistence.BatchSession#update(com.liferay.portal.kernel.dao.orm.Session, com.liferay.portal.model.BaseModel, boolean)} for an explanation.
-	* @return the virtual host that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portal.model.VirtualHost updateVirtualHost(
-		com.liferay.portal.model.VirtualHost virtualHost, boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _virtualHostLocalService.updateVirtualHost(virtualHost, merge);
-	}
-
-	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _virtualHostLocalService.getBeanIdentifier();
 	}
@@ -255,22 +275,26 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_virtualHostLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public com.liferay.portal.model.VirtualHost fetchVirtualHost(
 		long companyId, long layoutSetId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _virtualHostLocalService.fetchVirtualHost(companyId, layoutSetId);
 	}
 
+	@Override
 	public com.liferay.portal.model.VirtualHost fetchVirtualHost(
 		java.lang.String hostname)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _virtualHostLocalService.fetchVirtualHost(hostname);
 	}
 
+	@Override
 	public com.liferay.portal.model.VirtualHost getVirtualHost(long companyId,
 		long layoutSetId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -278,6 +302,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 		return _virtualHostLocalService.getVirtualHost(companyId, layoutSetId);
 	}
 
+	@Override
 	public com.liferay.portal.model.VirtualHost getVirtualHost(
 		java.lang.String hostname)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -285,6 +310,7 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 		return _virtualHostLocalService.getVirtualHost(hostname);
 	}
 
+	@Override
 	public com.liferay.portal.model.VirtualHost updateVirtualHost(
 		long companyId, long layoutSetId, java.lang.String hostname)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -293,24 +319,28 @@ public class VirtualHostLocalServiceWrapper implements VirtualHostLocalService,
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public VirtualHostLocalService getWrappedVirtualHostLocalService() {
 		return _virtualHostLocalService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedVirtualHostLocalService(
 		VirtualHostLocalService virtualHostLocalService) {
 		_virtualHostLocalService = virtualHostLocalService;
 	}
 
+	@Override
 	public VirtualHostLocalService getWrappedService() {
 		return _virtualHostLocalService;
 	}
 
+	@Override
 	public void setWrappedService(
 		VirtualHostLocalService virtualHostLocalService) {
 		_virtualHostLocalService = virtualHostLocalService;

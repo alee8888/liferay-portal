@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -216,6 +216,7 @@ public class FileSystemStore extends BaseStore {
 		}
 	}
 
+	@Override
 	public String[] getFileNames(long companyId, long repositoryId) {
 		File repositoryDir = getRepositoryDir(companyId, repositoryId);
 
@@ -297,7 +298,7 @@ public class FileSystemStore extends BaseStore {
 	public void updateFile(
 			long companyId, long repositoryId, long newRepositoryId,
 			String fileName)
-		throws PortalException {
+		throws PortalException, SystemException {
 
 		File fileNameDir = getFileNameDir(companyId, repositoryId, fileName);
 		File newFileNameDir = getFileNameDir(
@@ -309,15 +310,22 @@ public class FileSystemStore extends BaseStore {
 
 		File parentFile = fileNameDir.getParentFile();
 
-		fileNameDir.renameTo(newFileNameDir);
+		boolean renamed = FileUtil.move(fileNameDir, newFileNameDir);
+
+		if (!renamed) {
+			throw new SystemException(
+				"File name directory was not renamed from " +
+					fileNameDir.getPath() + " to " + newFileNameDir.getPath());
+		}
 
 		deleteEmptyAncestors(companyId, repositoryId, parentFile);
 	}
 
+	@Override
 	public void updateFile(
 			long companyId, long repositoryId, String fileName,
 			String newFileName)
-		throws PortalException {
+		throws PortalException, SystemException {
 
 		File fileNameDir = getFileNameDir(companyId, repositoryId, fileName);
 		File newFileNameDir = getFileNameDir(
@@ -329,7 +337,13 @@ public class FileSystemStore extends BaseStore {
 
 		File parentFile = fileNameDir.getParentFile();
 
-		fileNameDir.renameTo(newFileNameDir);
+		boolean renamed = FileUtil.move(fileNameDir, newFileNameDir);
+
+		if (!renamed) {
+			throw new SystemException(
+				"File name directory was not renamed from " +
+					fileNameDir.getPath() + " to " + newFileNameDir.getPath());
+		}
 
 		deleteEmptyAncestors(companyId, repositoryId, parentFile);
 	}
@@ -359,7 +373,7 @@ public class FileSystemStore extends BaseStore {
 	public void updateFileVersion(
 			long companyId, long repositoryId, String fileName,
 			String fromVersionLabel, String toVersionLabel)
-		throws PortalException {
+		throws PortalException, SystemException {
 
 		File fromFileNameVersionFile = getFileNameVersionFile(
 			companyId, repositoryId, fileName, fromVersionLabel);
@@ -371,7 +385,15 @@ public class FileSystemStore extends BaseStore {
 			throw new DuplicateFileException(toFileNameVersionFile.getPath());
 		}
 
-		fromFileNameVersionFile.renameTo(toFileNameVersionFile);
+		boolean renamed = FileUtil.move(
+			fromFileNameVersionFile, toFileNameVersionFile);
+
+		if (!renamed) {
+			throw new SystemException(
+				"File name version file was not renamed from " +
+					fromFileNameVersionFile.getPath() + " to " +
+						toFileNameVersionFile.getPath());
+		}
 	}
 
 	protected void deleteEmptyAncestors(File file) {
@@ -383,23 +405,25 @@ public class FileSystemStore extends BaseStore {
 
 		String[] fileNames = file.list();
 
-		if (fileNames.length == 0) {
-			String fileName = file.getName();
+		if ((fileNames == null) || (fileNames.length > 0)) {
+			return;
+		}
 
-			if ((repositoryId > 0) &&
-				fileName.equals(String.valueOf(repositoryId))) {
+		String fileName = file.getName();
 
-				RepositoryDirKey repositoryDirKey = new RepositoryDirKey(
-					companyId, repositoryId);
+		if ((repositoryId > 0) &&
+			fileName.equals(String.valueOf(repositoryId))) {
 
-				_repositoryDirs.remove(repositoryDirKey);
-			}
+			RepositoryDirKey repositoryDirKey = new RepositoryDirKey(
+				companyId, repositoryId);
 
-			File parentFile = file.getParentFile();
+			_repositoryDirs.remove(repositoryDirKey);
+		}
 
-			if (file.delete() && (parentFile != null)) {
-				deleteEmptyAncestors(companyId, repositoryId, parentFile);
-			}
+		File parentFile = file.getParentFile();
+
+		if (file.delete() && (parentFile != null)) {
+			deleteEmptyAncestors(companyId, repositoryId, parentFile);
 		}
 	}
 

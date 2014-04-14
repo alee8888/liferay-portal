@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
- * <p>
- * This class is a wrapper for {@link ResourcePermissionService}.
- * </p>
+ * Provides a wrapper for {@link ResourcePermissionService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ResourcePermissionService
+ * @author Brian Wing Shun Chan
+ * @see ResourcePermissionService
  * @generated
  */
+@ProviderType
 public class ResourcePermissionServiceWrapper
 	implements ResourcePermissionService,
 		ServiceWrapper<ResourcePermissionService> {
@@ -36,6 +37,7 @@ public class ResourcePermissionServiceWrapper
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _resourcePermissionService.getBeanIdentifier();
 	}
@@ -45,6 +47,7 @@ public class ResourcePermissionServiceWrapper
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_resourcePermissionService.setBeanIdentifier(beanIdentifier);
 	}
@@ -90,6 +93,7 @@ public class ResourcePermissionServiceWrapper
 	and action ID could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public void addResourcePermission(long groupId, long companyId,
 		java.lang.String name, int scope, java.lang.String primKey,
 		long roleId, java.lang.String actionId)
@@ -123,6 +127,7 @@ public class ResourcePermissionServiceWrapper
 	resource action with the name and action ID could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public void removeResourcePermission(long groupId, long companyId,
 		java.lang.String name, int scope, java.lang.String primKey,
 		long roleId, java.lang.String actionId)
@@ -150,6 +155,7 @@ public class ResourcePermissionServiceWrapper
 	resource action with the name and action ID could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public void removeResourcePermissions(long groupId, long companyId,
 		java.lang.String name, int scope, long roleId, java.lang.String actionId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -186,6 +192,7 @@ public class ResourcePermissionServiceWrapper
 	resource action with the name and action ID could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public void setIndividualResourcePermissions(long groupId, long companyId,
 		java.lang.String name, java.lang.String primKey, long roleId,
 		java.lang.String[] actionIds)
@@ -222,6 +229,7 @@ public class ResourcePermissionServiceWrapper
 	resource action with the name and action ID could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public void setIndividualResourcePermissions(long groupId, long companyId,
 		java.lang.String name, java.lang.String primKey,
 		java.util.Map<java.lang.Long, java.lang.String[]> roleIdsToActionIds)
@@ -232,24 +240,28 @@ public class ResourcePermissionServiceWrapper
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ResourcePermissionService getWrappedResourcePermissionService() {
 		return _resourcePermissionService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedResourcePermissionService(
 		ResourcePermissionService resourcePermissionService) {
 		_resourcePermissionService = resourcePermissionService;
 	}
 
+	@Override
 	public ResourcePermissionService getWrappedService() {
 		return _resourcePermissionService;
 	}
 
+	@Override
 	public void setWrappedService(
 		ResourcePermissionService resourcePermissionService) {
 		_resourcePermissionService = resourcePermissionService;

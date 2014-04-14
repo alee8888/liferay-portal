@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -44,7 +44,7 @@ List<LayoutRevision> rootLayoutRevisions = LayoutRevisionLocalServiceUtil.getChi
 				LayoutBranch layoutBranch = rootLayoutRevision.getLayoutBranch();
 			%>
 
-				<aui:option label="<%= layoutBranch.getName() %>" selected="<%= recentLayoutRevision.getLayoutBranchId() == rootLayoutRevision.getLayoutBranchId() %>" value="<%= rootLayoutRevision.getLayoutRevisionId() %>" />
+				<aui:option label="<%= HtmlUtil.escape(layoutBranch.getName()) %>" selected="<%= recentLayoutRevision.getLayoutBranchId() == rootLayoutRevision.getLayoutBranchId() %>" value="<%= rootLayoutRevision.getLayoutRevisionId() %>" />
 
 			<%
 			}
@@ -60,14 +60,14 @@ List<LayoutRevision> rootLayoutRevisions = LayoutRevisionLocalServiceUtil.getChi
 		for (LayoutRevision rootLayoutRevision : rootLayoutRevisions) {
 		%>
 
-			<div class="layout-variation-container <%= (recentLayoutRevision.getLayoutBranchId() == rootLayoutRevision.getLayoutBranchId()) ? StringPool.BLANK : "aui-helper-hidden" %>" id="<portlet:namespace/><%= rootLayoutRevision.getLayoutRevisionId() %>">
+			<div class="layout-variation-container <%= (recentLayoutRevision.getLayoutBranchId() == rootLayoutRevision.getLayoutBranchId()) ? StringPool.BLANK : "hide" %>" id="<portlet:namespace/><%= rootLayoutRevision.getLayoutRevisionId() %>">
 				<c:if test="<%= rootLayoutRevisions.size() > 1 %>">
 
 					<%
 					LayoutBranch layoutBranch = rootLayoutRevision.getLayoutBranch();
 					%>
 
-					<h3 class="layout-variation-name"><liferay-ui:message key="<%= layoutBranch.getName() %>" /></h3>
+					<h3 class="layout-variation-name"><liferay-ui:message key="<%= HtmlUtil.escape(layoutBranch.getName()) %>" /></h3>
 				</c:if>
 
 				<liferay-ui:search-container>
@@ -103,8 +103,8 @@ List<LayoutRevision> rootLayoutRevisions = LayoutRevisionLocalServiceUtil.getChi
 							buffer.append("\" /></div>");
 						}
 
-						buffer.append("<span class=\"aproximate-date\">");
-						buffer.append(LanguageUtil.format(pageContext, "x-ago", LanguageUtil.getTimeDescription(pageContext, timeAgo, true)));
+						buffer.append("<span class=\"approximate-date\">");
+						buffer.append(LanguageUtil.format(pageContext, "x-ago", LanguageUtil.getTimeDescription(pageContext, timeAgo, true), false));
 						buffer.append("</span><span class=\"real-date\">");
 						buffer.append(dateFormatDateTime.format(curLayoutRevision.getCreateDate()));
 						buffer.append("</span>");
@@ -113,47 +113,23 @@ List<LayoutRevision> rootLayoutRevisions = LayoutRevisionLocalServiceUtil.getChi
 						</liferay-ui:search-container-column-text>
 
 						<liferay-ui:search-container-column-text
-							buffer="buffer"
 							name="status"
 						>
 
+							<aui:model-context bean="<%= curLayoutRevision %>" model="<%= LayoutRevision.class %>" />
+
 							<%
-							String statusMessage = null;
-							String additionalText = StringPool.BLANK;
-
-							if (curLayoutRevision.isHead()) {
-								statusMessage = "ready-for-publication";
-							}
-							else {
-								int status = curLayoutRevision.getStatus();
-
-								statusMessage = WorkflowConstants.toLabel(status);
-
-								if (status == WorkflowConstants.STATUS_PENDING) {
-									StringBundler sb = new StringBundler(4);
-
-									try {
-										String workflowStatus = WorkflowInstanceLinkLocalServiceUtil.getState(curLayoutRevision.getCompanyId(), curLayoutRevision.getGroupId(), LayoutRevision.class.getName(), curLayoutRevision.getLayoutRevisionId());
-
-										sb.append(StringPool.SPACE);
-										sb.append(StringPool.OPEN_PARENTHESIS);
-										sb.append(LanguageUtil.get(pageContext, workflowStatus));
-										sb.append(StringPool.CLOSE_PARENTHESIS);
-
-										additionalText = sb.toString();
-									}
-									catch (NoSuchWorkflowInstanceLinkException nswile) {
-									}
-								}
-							}
-
-							buffer.append("<span class=\"taglib-workflow-status\"><span class=\"workflow-status\"><span class=\"workflow-status-");
-							buffer.append(statusMessage);
-							buffer.append("\">");
-							buffer.append(LanguageUtil.get(pageContext, statusMessage));
-							buffer.append(additionalText);
-							buffer.append("</span></span></span>");
+							int status = curLayoutRevision.getStatus();
 							%>
+
+							<c:choose>
+								<c:when test="<%= curLayoutRevision.isHead() %>">
+									<aui:workflow-status showLabel="<%= false %>" status="<%= status %>" statusMessage="ready-for-publication" />
+								</c:when>
+								<c:otherwise>
+									<aui:workflow-status showLabel="<%= false %>" status="<%= status %>" />
+								</c:otherwise>
+							</c:choose>
 
 						</liferay-ui:search-container-column-text>
 
@@ -196,7 +172,7 @@ List<LayoutRevision> rootLayoutRevisions = LayoutRevisionLocalServiceUtil.getChi
 							buffer.append("<a class=\"user-handle\" href=\"");
 							buffer.append(curUser.getDisplayURL(themeDisplay));
 							buffer.append("\">");
-							buffer.append(curUser.getFullName());
+							buffer.append(HtmlUtil.escape(curUser.getFullName()));
 							buffer.append("</a>");
 							%>
 

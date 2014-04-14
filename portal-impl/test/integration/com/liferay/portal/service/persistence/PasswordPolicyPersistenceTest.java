@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,38 +16,70 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchPasswordPolicyException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.PasswordPolicy;
 import com.liferay.portal.model.impl.PasswordPolicyModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class PasswordPolicyPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (PasswordPolicyPersistence)PortalBeanLocatorUtil.locate(PasswordPolicyPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -82,6 +114,10 @@ public class PasswordPolicyPersistenceTest {
 		long pk = ServiceTestUtil.nextLong();
 
 		PasswordPolicy newPasswordPolicy = _persistence.create(pk);
+
+		newPasswordPolicy.setMvccVersion(ServiceTestUtil.nextLong());
+
+		newPasswordPolicy.setUuid(ServiceTestUtil.randomString());
 
 		newPasswordPolicy.setCompanyId(ServiceTestUtil.nextLong());
 
@@ -121,6 +157,8 @@ public class PasswordPolicyPersistenceTest {
 
 		newPasswordPolicy.setMinUpperCase(ServiceTestUtil.nextInt());
 
+		newPasswordPolicy.setRegex(ServiceTestUtil.randomString());
+
 		newPasswordPolicy.setHistory(ServiceTestUtil.randomBoolean());
 
 		newPasswordPolicy.setHistoryCount(ServiceTestUtil.nextInt());
@@ -145,10 +183,14 @@ public class PasswordPolicyPersistenceTest {
 
 		newPasswordPolicy.setResetTicketMaxAge(ServiceTestUtil.nextLong());
 
-		_persistence.update(newPasswordPolicy, false);
+		_persistence.update(newPasswordPolicy);
 
 		PasswordPolicy existingPasswordPolicy = _persistence.findByPrimaryKey(newPasswordPolicy.getPrimaryKey());
 
+		Assert.assertEquals(existingPasswordPolicy.getMvccVersion(),
+			newPasswordPolicy.getMvccVersion());
+		Assert.assertEquals(existingPasswordPolicy.getUuid(),
+			newPasswordPolicy.getUuid());
 		Assert.assertEquals(existingPasswordPolicy.getPasswordPolicyId(),
 			newPasswordPolicy.getPasswordPolicyId());
 		Assert.assertEquals(existingPasswordPolicy.getCompanyId(),
@@ -191,6 +233,8 @@ public class PasswordPolicyPersistenceTest {
 			newPasswordPolicy.getMinSymbols());
 		Assert.assertEquals(existingPasswordPolicy.getMinUpperCase(),
 			newPasswordPolicy.getMinUpperCase());
+		Assert.assertEquals(existingPasswordPolicy.getRegex(),
+			newPasswordPolicy.getRegex());
 		Assert.assertEquals(existingPasswordPolicy.getHistory(),
 			newPasswordPolicy.getHistory());
 		Assert.assertEquals(existingPasswordPolicy.getHistoryCount(),
@@ -218,6 +262,74 @@ public class PasswordPolicyPersistenceTest {
 	}
 
 	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_DP() {
+		try {
+			_persistence.countByC_DP(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.randomBoolean());
+
+			_persistence.countByC_DP(0L, ServiceTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_N() {
+		try {
+			_persistence.countByC_N(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByC_N(0L, StringPool.NULL);
+
+			_persistence.countByC_N(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		PasswordPolicy newPasswordPolicy = addPasswordPolicy();
 
@@ -241,6 +353,33 @@ public class PasswordPolicyPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("PasswordPolicy",
+			"mvccVersion", true, "uuid", true, "passwordPolicyId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "defaultPolicy", true, "name", true,
+			"description", true, "changeable", true, "changeRequired", true,
+			"minAge", true, "checkSyntax", true, "allowDictionaryWords", true,
+			"minAlphanumeric", true, "minLength", true, "minLowerCase", true,
+			"minNumbers", true, "minSymbols", true, "minUpperCase", true,
+			"regex", true, "history", true, "historyCount", true, "expireable",
+			true, "maxAge", true, "warningTime", true, "graceLimit", true,
+			"lockout", true, "maxFailure", true, "lockoutDuration", true,
+			"requireUnlock", true, "resetFailureCount", true,
+			"resetTicketMaxAge", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		PasswordPolicy newPasswordPolicy = addPasswordPolicy();
 
@@ -256,6 +395,26 @@ public class PasswordPolicyPersistenceTest {
 		PasswordPolicy missingPasswordPolicy = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingPasswordPolicy);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new PasswordPolicyActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					PasswordPolicy passwordPolicy = (PasswordPolicy)object;
+
+					Assert.assertNotNull(passwordPolicy);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -361,6 +520,10 @@ public class PasswordPolicyPersistenceTest {
 
 		PasswordPolicy passwordPolicy = _persistence.create(pk);
 
+		passwordPolicy.setMvccVersion(ServiceTestUtil.nextLong());
+
+		passwordPolicy.setUuid(ServiceTestUtil.randomString());
+
 		passwordPolicy.setCompanyId(ServiceTestUtil.nextLong());
 
 		passwordPolicy.setUserId(ServiceTestUtil.nextLong());
@@ -399,6 +562,8 @@ public class PasswordPolicyPersistenceTest {
 
 		passwordPolicy.setMinUpperCase(ServiceTestUtil.nextInt());
 
+		passwordPolicy.setRegex(ServiceTestUtil.randomString());
+
 		passwordPolicy.setHistory(ServiceTestUtil.randomBoolean());
 
 		passwordPolicy.setHistoryCount(ServiceTestUtil.nextInt());
@@ -423,10 +588,12 @@ public class PasswordPolicyPersistenceTest {
 
 		passwordPolicy.setResetTicketMaxAge(ServiceTestUtil.nextLong());
 
-		_persistence.update(passwordPolicy, false);
+		_persistence.update(passwordPolicy);
 
 		return passwordPolicy;
 	}
 
-	private PasswordPolicyPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(PasswordPolicyPersistenceTest.class);
+	private PasswordPolicyPersistence _persistence = (PasswordPolicyPersistence)PortalBeanLocatorUtil.locate(PasswordPolicyPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

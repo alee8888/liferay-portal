@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,9 +17,13 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.PasswordTracker;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import java.util.Date;
 
@@ -31,12 +35,24 @@ import java.util.Date;
  * @generated
  */
 public class PasswordTrackerCacheModel implements CacheModel<PasswordTracker>,
-	Serializable {
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
+		StringBundler sb = new StringBundler(11);
 
-		sb.append("{passwordTrackerId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", passwordTrackerId=");
 		sb.append(passwordTrackerId);
 		sb.append(", userId=");
 		sb.append(userId);
@@ -49,9 +65,11 @@ public class PasswordTrackerCacheModel implements CacheModel<PasswordTracker>,
 		return sb.toString();
 	}
 
+	@Override
 	public PasswordTracker toEntityModel() {
 		PasswordTrackerImpl passwordTrackerImpl = new PasswordTrackerImpl();
 
+		passwordTrackerImpl.setMvccVersion(mvccVersion);
 		passwordTrackerImpl.setPasswordTrackerId(passwordTrackerId);
 		passwordTrackerImpl.setUserId(userId);
 
@@ -74,6 +92,32 @@ public class PasswordTrackerCacheModel implements CacheModel<PasswordTracker>,
 		return passwordTrackerImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		passwordTrackerId = objectInput.readLong();
+		userId = objectInput.readLong();
+		createDate = objectInput.readLong();
+		password = objectInput.readUTF();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(passwordTrackerId);
+		objectOutput.writeLong(userId);
+		objectOutput.writeLong(createDate);
+
+		if (password == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(password);
+		}
+	}
+
+	public long mvccVersion;
 	public long passwordTrackerId;
 	public long userId;
 	public long createDate;

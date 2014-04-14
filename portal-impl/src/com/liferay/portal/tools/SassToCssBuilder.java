@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,20 +14,16 @@
 
 package com.liferay.portal.tools;
 
-import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
-import com.liferay.portal.kernel.io.unsync.UnsyncPrintWriter;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.SystemProperties;
-import com.liferay.portal.kernel.util.UnsyncPrintWriterPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelHintsConstants;
-import com.liferay.portal.scripting.ruby.RubyExecutor;
-import com.liferay.portal.servlet.filters.minifier.MinifierFilter;
+import com.liferay.portal.servlet.filters.dynamiccss.RTLCSSUtil;
+import com.liferay.portal.tools.sass.SassExecutorUtil;
 import com.liferay.portal.util.FastDateFormatFactoryImpl;
 import com.liferay.portal.util.FileImpl;
 import com.liferay.portal.util.PortalImpl;
@@ -37,7 +33,6 @@ import com.liferay.portal.util.PropsImpl;
 import java.io.File;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,23 +40,39 @@ import org.apache.tools.ant.DirectoryScanner;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Raymond Augé
+ * @author Eduardo Lundgren
+ * @author Shuyang Zhou
  */
 public class SassToCssBuilder {
 
 	public static File getCacheFile(String fileName) {
-		fileName = StringUtil.replace(
-			fileName, StringPool.BACK_SLASH, StringPool.SLASH);
-
-		int pos = fileName.lastIndexOf(StringPool.SLASH);
-
-		String cacheFileName =
-			fileName.substring(0, pos + 1) + ".sass-cache/" +
-				fileName.substring(pos + 1);
-
-		return new File(cacheFileName);
+		return getCacheFile(fileName, StringPool.BLANK);
 	}
 
-	public static void main(String[] args) {
+	public static File getCacheFile(String fileName, String suffix) {
+		return new File(getCacheFileName(fileName, suffix));
+	}
+
+	public static String getCacheFileName(String fileName, String suffix) {
+		String cacheFileName = StringUtil.replace(
+			fileName, StringPool.BACK_SLASH, StringPool.SLASH);
+
+		int x = cacheFileName.lastIndexOf(StringPool.SLASH);
+		int y = cacheFileName.lastIndexOf(StringPool.PERIOD);
+
+		return cacheFileName.substring(0, x + 1) + ".sass-cache/" +
+			cacheFileName.substring(x + 1, y) + suffix +
+				cacheFileName.substring(y);
+	}
+
+	public static String getRtlCustomFileName(String fileName) {
+		int pos = fileName.lastIndexOf(StringPool.PERIOD);
+
+		return fileName.substring(0, pos) + "_rtl" + fileName.substring(pos);
+	}
+
+	public static void main(String[] args) throws Exception {
 		Map<String, String> arguments = ArgumentsUtil.parseArguments(args);
 
 		List<String> dirNames = new ArrayList<String>();
@@ -84,12 +95,10 @@ public class SassToCssBuilder {
 			}
 		}
 
-		try {
-			new SassToCssBuilder(dirNames);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+		String docrootDirName = arguments.get("sass.docroot.dir");
+		String portalCommonDirName = arguments.get("sass.portal.common.dir");
+
+		new SassToCssBuilder(dirNames, docrootDirName, portalCommonDirName);
 	}
 
 	public static String parseStaticTokens(String content) {
@@ -109,42 +118,65 @@ public class SassToCssBuilder {
 			});
 	}
 
-	public SassToCssBuilder(List<String> dirNames) throws Exception {
+	public SassToCssBuilder(
+			List<String> dirNames, String docrootDirName,
+			String portalCommonDirName)
+		throws Exception {
+
 		Class<?> clazz = getClass();
 
 		ClassLoader classLoader = clazz.getClassLoader();
 
 		_initUtil(classLoader);
 
-		_rubyScript = StringUtil.read(
-			classLoader,
-			"com/liferay/portal/servlet/filters/dynamiccss/main.rb");
-
-		_tempDir = SystemProperties.get(SystemProperties.TMP_DIR);
+		List<String> fileNames = new ArrayList<String>();
 
 		for (String dirName : dirNames) {
-
-			// Create a new Ruby executor as a workaround for a bug with Ruby
-			// that breaks "ant build-css" when it parses too many CSS files
-
-			_rubyExecutor = new RubyExecutor();
-
-			_parseSassDirectory(dirName);
+			_collectSassFiles(fileNames, dirName, docrootDirName);
 		}
+
+		SassExecutorUtil.init(docrootDirName, portalCommonDirName);
+
+		for (String fileName : fileNames) {
+			SassExecutorUtil.execute(docrootDirName, fileName);
+		}
+
+		SassExecutorUtil.persist();
 	}
 
-	private String _getContent(File file) throws Exception {
-		String content = FileUtil.read(file);
+	private void _collectSassFiles(
+			List<String> fileNames, String dirName, String docrootDirName)
+		throws Exception {
 
-		content = MinifierFilter.aggregateCss(file.getParent(), content);
+		DirectoryScanner directoryScanner = new DirectoryScanner();
 
-		return parseStaticTokens(content);
-	}
+		String basedir = docrootDirName.concat(dirName);
 
-	private String _getCssThemePath(String fileName) {
-		int pos = fileName.lastIndexOf("/css/");
+		directoryScanner.setBasedir(basedir);
 
-		return fileName.substring(0, pos + 4);
+		directoryScanner.setExcludes(
+			new String[] {
+				"**\\_diffs\\**", "**\\.sass-cache*\\**",
+				"**\\.sass_cache_*\\**", "**\\_sass_cache_*\\**",
+				"**\\_styled\\**", "**\\_unstyled\\**"
+			});
+		directoryScanner.setIncludes(new String[] {"**\\*.css"});
+
+		directoryScanner.scan();
+
+		String[] fileNamesArray = directoryScanner.getIncludedFiles();
+
+		if (!_isModified(basedir, fileNamesArray)) {
+			return;
+		}
+
+		for (String fileName : fileNamesArray) {
+			if (fileName.contains("_rtl")) {
+				continue;
+			}
+
+			fileNames.add(_normalizeFileName(dirName, fileName));
+		}
 	}
 
 	private void _initUtil(ClassLoader classLoader) {
@@ -165,85 +197,41 @@ public class SassToCssBuilder {
 		portalUtil.setPortal(new PortalImpl());
 
 		PropsUtil.setProps(new PropsImpl());
+
+		RTLCSSUtil.init();
 	}
 
-	private void _parseSassDirectory(String dirName) throws Exception {
-		DirectoryScanner directoryScanner = new DirectoryScanner();
-
-		directoryScanner.setBasedir(dirName);
-		directoryScanner.setExcludes(
-			new String[] {
-				"**\\_diffs\\**", "**\\.sass-cache*\\**",
-				"**\\.sass_cache_*\\**", "**\\_sass_cache_*\\**",
-				"**\\_styled\\**", "**\\_unstyled\\**"
-			});
-		directoryScanner.setIncludes(new String[] {"**\\*.css"});
-
-		directoryScanner.scan();
-
-		String[] fileNames = directoryScanner.getIncludedFiles();
+	private boolean _isModified(String dirName, String[] fileNames)
+		throws Exception {
 
 		for (String fileName : fileNames) {
-			fileName = StringUtil.replace(
-				dirName + StringPool.SLASH + fileName, StringPool.BACK_SLASH,
-				StringPool.SLASH);
-
-			try {
-				long start = System.currentTimeMillis();
-
-				if (_parseSassFile(fileName)) {
-					long end = System.currentTimeMillis();
-
-					System.out.println(
-						"Parsed " + fileName + " in " + (end - start) + " ms");
-				}
+			if (fileName.contains("_rtl")) {
+				continue;
 			}
-			catch (Exception e) {
-				System.out.println("Unable to parse " + fileName);
 
-				e.printStackTrace();
+			fileName = _normalizeFileName(dirName, fileName);
+
+			File file = new File(fileName);
+			File cacheFile = getCacheFile(fileName);
+
+			if (file.lastModified() != cacheFile.lastModified()) {
+				return true;
 			}
 		}
+
+		return false;
 	}
 
-	private boolean _parseSassFile(String fileName) throws Exception {
-		File file = new File(fileName);
-		File cacheFile = getCacheFile(fileName);
-
-		if (file.lastModified() == cacheFile.lastModified()) {
-			return false;
-		}
-
-		Map<String, Object> inputObjects = new HashMap<String, Object>();
-
-		inputObjects.put("content", _getContent(file));
-		inputObjects.put("cssRealPath", fileName);
-		inputObjects.put("cssThemePath", _getCssThemePath(fileName));
-		inputObjects.put("sassCachePath", _tempDir);
-
-		UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
-			new UnsyncByteArrayOutputStream();
-
-		UnsyncPrintWriter unsyncPrintWriter = UnsyncPrintWriterPool.borrow(
-			unsyncByteArrayOutputStream);
-
-		inputObjects.put("out", unsyncPrintWriter);
-
-		_rubyExecutor.eval(null, inputObjects, null, _rubyScript);
-
-		unsyncPrintWriter.flush();
-
-		String parsedContent = unsyncByteArrayOutputStream.toString();
-
-		FileUtil.write(cacheFile, parsedContent);
-
-		cacheFile.setLastModified(file.lastModified());
-
-		return true;
+	private String _normalizeFileName(String dirName, String fileName) {
+		return StringUtil.replace(
+			dirName + StringPool.SLASH + fileName,
+			new String[] {
+				StringPool.BACK_SLASH, StringPool.DOUBLE_SLASH
+			},
+			new String[] {
+				StringPool.SLASH, StringPool.SLASH
+			}
+		);
 	}
-
-	private RubyExecutor _rubyExecutor;
-	private String _rubyScript;
-	private String _tempDir;
 
 }

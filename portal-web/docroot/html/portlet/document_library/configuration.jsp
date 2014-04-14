@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,151 +23,274 @@ if (portletResource.equals(PortletKeys.DOCUMENT_LIBRARY)) {
 	strutsAction = "/document_library";
 }
 
-String redirect = ParamUtil.getString(request, "redirect");
+dlSettings = DLUtil.getDLSettings(themeDisplay.getSiteGroupId(), request);
+
+String emailFromName = dlSettings.getEmailFromName();
+String emailFromAddress = dlSettings.getEmailFromAddress();
+
+try {
+	Folder rootFolder = DLAppLocalServiceUtil.getFolder(rootFolderId);
+
+	rootFolderName = rootFolder.getName();
+
+	if (rootFolder.getGroupId() != scopeGroupId) {
+		rootFolderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
+		rootFolderName = StringPool.BLANK;
+	}
+}
+catch (NoSuchFolderException nsfe) {
+	rootFolderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
+}
 %>
 
-<liferay-portlet:actionURL portletConfiguration="true" var="configurationURL" />
+<liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL">
+	<liferay-portlet:param name="serviceName" value="<%= DLConstants.SERVICE_NAME %>" />
+	<liferay-portlet:param name="settingsScope" value="group" />
+</liferay-portlet:actionURL>
 
-<aui:form action="<%= configurationURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
+<liferay-portlet:renderURL portletConfiguration="true" var="configurationRenderURL" />
+
+<aui:form action="<%= configurationActionURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveConfiguration();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
-	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
-	<aui:input name="preferences--rootFolderId--" type="hidden" value="<%= rootFolderId %>" />
-	<aui:input name="preferences--displayViews--" type="hidden" />
-	<aui:input name="preferences--entryColumns--" type="hidden" />
+	<aui:input name="redirect" type="hidden" value="<%= configurationRenderURL %>" />
 
-	<liferay-ui:error key="displayViewsInvalid" message="display-style-views-cannot-be-empty" />
-	<liferay-ui:error key="rootFolderIdInvalid" message="please-enter-a-valid-root-folder" />
+	<%
+	String tabs2Names = "display-settings,email-from,document-added-email,document-updated-email";
+	%>
 
-	<liferay-ui:panel-container extended="<%= true %>" id="documentLibrarySettingsPanelContainer" persistState="<%= true %>">
-		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="documentLibraryItemsListingPanel" persistState="<%= true %>" title="display-settings">
+	<liferay-ui:tabs
+		names="<%= tabs2Names %>"
+		refresh="<%= false %>"
+	>
+		<liferay-ui:error key="displayViewsInvalid" message="display-style-views-cannot-be-empty" />
+		<liferay-ui:error key="emailFileEntryAddedBody" message="please-enter-a-valid-body" />
+		<liferay-ui:error key="emailFileEntryAddedSubject" message="please-enter-a-valid-subject" />
+		<liferay-ui:error key="emailFileEntryUpdatedBody" message="please-enter-a-valid-body" />
+		<liferay-ui:error key="emailFileEntryUpdatedSubject" message="please-enter-a-valid-subject" />
+		<liferay-ui:error key="emailFromAddress" message="please-enter-a-valid-email-address" />
+		<liferay-ui:error key="emailFromName" message="please-enter-a-valid-name" />
+		<liferay-ui:error key="rootFolderIdInvalid" message="please-enter-a-valid-root-folder" />
+
+		<liferay-ui:section>
+			<aui:input name="preferences--rootFolderId--" type="hidden" value="<%= rootFolderId %>" />
+			<aui:input name="preferences--displayViews--" type="hidden" />
+			<aui:input name="preferences--entryColumns--" type="hidden" />
+
+			<liferay-ui:panel-container extended="<%= true %>" id="documentLibrarySettingsPanelContainer" persistState="<%= true %>">
+				<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="documentLibraryItemsListingPanel" persistState="<%= true %>" title="display-settings">
+					<aui:fieldset>
+						<aui:field-wrapper label="root-folder">
+							<div class="input-append">
+								<liferay-ui:input-resource id="rootFolderName" url="<%= rootFolderName %>" />
+
+								<aui:button name="selectFolderButton" value="select" />
+
+								<%
+								String taglibRemoveFolder = "Liferay.Util.removeFolderSelection('rootFolderId', 'rootFolderName', '" + renderResponse.getNamespace() + "');";
+								%>
+
+								<aui:button disabled="<%= rootFolderId <= 0 %>" name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
+							</div>
+						</aui:field-wrapper>
+
+						<aui:input label="show-search" name="preferences--showFoldersSearch--" type="checkbox" value="<%= showFoldersSearch %>" />
+
+						<aui:select label="maximum-entries-to-display" name="preferences--entriesPerPage--">
+
+							<%
+							for (int pageDeltaValue : PropsValues.SEARCH_CONTAINER_PAGE_DELTA_VALUES) {
+							%>
+
+								<aui:option label="<%= pageDeltaValue %>" selected="<%= entriesPerPage == pageDeltaValue %>" />
+
+							<%
+							}
+							%>
+
+						</aui:select>
+
+						<aui:input name="preferences--enableRelatedAssets--" type="checkbox" value="<%= enableRelatedAssets %>" />
+
+						<aui:field-wrapper label="display-style-views">
+
+							<%
+							Set<String> availableDisplayViews = SetUtil.fromArray(PropsValues.DL_DISPLAY_VIEWS);
+
+							// Left list
+
+							List leftList = new ArrayList();
+
+							for (String displayView : displayViews) {
+								leftList.add(new KeyValuePair(displayView, LanguageUtil.get(pageContext, displayView)));
+							}
+
+							// Right list
+
+							List rightList = new ArrayList();
+
+							Arrays.sort(displayViews);
+
+							for (String displayView : availableDisplayViews) {
+								if (Arrays.binarySearch(displayViews, displayView) < 0) {
+									rightList.add(new KeyValuePair(displayView, LanguageUtil.get(pageContext, displayView)));
+								}
+							}
+
+							rightList = ListUtil.sort(rightList, new KeyValuePairComparator(false, true));
+							%>
+
+							<liferay-ui:input-move-boxes
+								leftBoxName="currentDisplayViews"
+								leftList="<%= leftList %>"
+								leftReorder="true"
+								leftTitle="current"
+								rightBoxName="availableDisplayViews"
+								rightList="<%= rightList %>"
+								rightTitle="available"
+							/>
+						</aui:field-wrapper>
+					</aui:fieldset>
+				</liferay-ui:panel>
+
+				<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="documentLibraryEntriesListingPanel" persistState="<%= true %>" title="entries-listing-for-list-display-style">
+					<aui:fieldset>
+						<aui:field-wrapper label="show-columns">
+
+							<%
+							Set<String> availableEntryColumns = SetUtil.fromArray(StringUtil.split(allEntryColumns));
+
+							// Left list
+
+							List leftList = new ArrayList();
+
+							for (String entryColumn : entryColumns) {
+								leftList.add(new KeyValuePair(entryColumn, LanguageUtil.get(pageContext, entryColumn)));
+							}
+
+							// Right list
+
+							List rightList = new ArrayList();
+
+							Arrays.sort(entryColumns);
+
+							for (String entryColumn : availableEntryColumns) {
+								if (Arrays.binarySearch(entryColumns, entryColumn) < 0) {
+									rightList.add(new KeyValuePair(entryColumn, LanguageUtil.get(pageContext, entryColumn)));
+								}
+							}
+
+							rightList = ListUtil.sort(rightList, new KeyValuePairComparator(false, true));
+							%>
+
+							<liferay-ui:input-move-boxes
+								leftBoxName="currentEntryColumns"
+								leftList="<%= leftList %>"
+								leftReorder="true"
+								leftTitle="current"
+								rightBoxName="availableEntryColumns"
+								rightList="<%= rightList %>"
+								rightTitle="available"
+							/>
+						</aui:field-wrapper>
+					</aui:fieldset>
+				</liferay-ui:panel>
+
+				<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="documentLibraryDocumentsRatingsPanel" persistState="<%= true %>" title="ratings">
+					<aui:input name="preferences--enableRatings--" type="checkbox" value="<%= enableRatings %>" />
+					<aui:input name="preferences--enableCommentRatings--" type="checkbox" value="<%= enableCommentRatings %>" />
+				</liferay-ui:panel>
+			</liferay-ui:panel-container>
+
+			<liferay-portlet:renderURL portletName="<%= portletResource %>" var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+				<portlet:param name="struts_action" value='<%= strutsAction + "/select_folder" %>' />
+			</liferay-portlet:renderURL>
+
+			<aui:script use="aui-base">
+				A.one('#<portlet:namespace />selectFolderButton').on(
+					'click',
+					function(event) {
+						Liferay.Util.selectEntity(
+							{
+								dialog: {
+									constrain: true,
+									modal: true,
+									width: 600
+								},
+								id: '_<%= HtmlUtil.escapeJS(portletResource) %>_selectFolder',
+								title: '<liferay-ui:message arguments="folder" key="select-x" />',
+								uri: '<%= selectFolderURL.toString() %>'
+							},
+							function(event) {
+								var folderData = {
+									idString: 'rootFolderId',
+									idValue: event.folderid,
+									nameString: 'rootFolderName',
+									nameValue: event.foldername
+								};
+
+								Liferay.Util.selectFolder(folderData, '<portlet:namespace />');
+							}
+						);
+					}
+				);
+			</aui:script>
+		</liferay-ui:section>
+
+		<liferay-ui:section>
 			<aui:fieldset>
-				<aui:field-wrapper label="root-folder">
-					<portlet:renderURL var="viewFolderURL">
-						<portlet:param name="struts_action" value='<%= strutsAction + "/view" %>' />
-						<portlet:param name="folderId" value="<%= String.valueOf(rootFolderId) %>" />
-					</portlet:renderURL>
+				<aui:input cssClass="lfr-input-text-container" label="name" name="preferences--emailFromName--" value="<%= emailFromName %>" />
 
-					<aui:a href="<%= viewFolderURL %>" id="rootFolderName"><%= rootFolderName %></aui:a>
-
-					<aui:button name="openFolderSelectorButton" onClick='<%= renderResponse.getNamespace() + "openFolderSelector();" %>' value="select" />
-
-					<%
-					String taglibRemoveFolder = "Liferay.Util.removeFolderSelection('rootFolderId', 'rootFolderName', '" + renderResponse.getNamespace() + "');";
-					%>
-
-					<aui:button disabled="<%= rootFolderId <= 0 %>" name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
-				</aui:field-wrapper>
-
-				<aui:input label="show-search" name="preferences--showFoldersSearch--" type="checkbox" value="<%= showFoldersSearch %>" />
-
-				<aui:select label="maximum-entries-to-display" name="preferences--entriesPerPage--">
-
-					<%
-					for (int deltaValue : PropsValues.SEARCH_CONTAINER_PAGE_DELTA_VALUES) {
-					%>
-
-						<aui:option label="<%= deltaValue %>" selected="<%= entriesPerPage == deltaValue %>" />
-
-					<%
-					}
-					%>
-
-				</aui:select>
-
-				<aui:field-wrapper label="display-style-views">
-
-					<%
-					Set<String> availableDisplayViews = SetUtil.fromArray(PropsValues.DL_DISPLAY_VIEWS);
-
-					// Left list
-
-					List leftList = new ArrayList();
-
-					for (int i = 0; i < displayViews.length; i++) {
-						String displayView = displayViews[i];
-
-						leftList.add(new KeyValuePair(displayView, LanguageUtil.get(pageContext, displayView)));
-					}
-
-					// Right list
-
-					List rightList = new ArrayList();
-
-					Arrays.sort(displayViews);
-
-					for (String displayView : availableDisplayViews) {
-						if (Arrays.binarySearch(displayViews, displayView) < 0) {
-							rightList.add(new KeyValuePair(displayView, LanguageUtil.get(pageContext, displayView)));
-						}
-					}
-
-					rightList = ListUtil.sort(rightList, new KeyValuePairComparator(false, true));
-					%>
-
-					<liferay-ui:input-move-boxes
-						leftBoxName="currentDisplayViews"
-						leftList="<%= leftList %>"
-						leftReorder="true"
-						leftTitle="current"
-						rightBoxName="availableDisplayViews"
-						rightList="<%= rightList %>"
-						rightTitle="available"
-					/>
-				</aui:field-wrapper>
+				<aui:input cssClass="lfr-input-text-container" label="address" name="preferences--emailFromAddress--" value="<%= emailFromAddress %>" />
 			</aui:fieldset>
-		</liferay-ui:panel>
 
-		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="documentLibraryEntriesListingPanel" persistState="<%= true %>" title="entries-listing">
-			<aui:fieldset>
-				<aui:input name="preferences--enableRelatedAssets--" type="checkbox" value="<%= enableRelatedAssets %>" />
-
-				<aui:field-wrapper label="show-columns">
+			<aui:fieldset cssClass="definition-of-terms" label="definition-of-terms">
+				<dl>
 
 					<%
-					Set<String> availableEntryColumns = SetUtil.fromArray(StringUtil.split(allEntryColumns));
+					Map<String, String> emailDefinitionTerms = DLUtil.getEmailFromDefinitionTerms(renderRequest, emailFromAddress, emailFromName);
 
-					// Left list
-
-					List leftList = new ArrayList();
-
-					for (int i = 0; i < entryColumns.length; i++) {
-						String entryColumn = entryColumns[i];
-
-						leftList.add(new KeyValuePair(entryColumn, LanguageUtil.get(pageContext, entryColumn)));
-					}
-
-					// Right list
-
-					List rightList = new ArrayList();
-
-					Arrays.sort(entryColumns);
-
-					for (String entryColumn : availableEntryColumns) {
-						if (Arrays.binarySearch(entryColumns, entryColumn) < 0) {
-							rightList.add(new KeyValuePair(entryColumn, LanguageUtil.get(pageContext, entryColumn)));
-						}
-					}
-
-					rightList = ListUtil.sort(rightList, new KeyValuePairComparator(false, true));
+					for (Map.Entry<String, String> entry : emailDefinitionTerms.entrySet()) {
 					%>
 
-					<liferay-ui:input-move-boxes
-						leftBoxName="currentEntryColumns"
-						leftList="<%= leftList %>"
-						leftReorder="true"
-						leftTitle="current"
-						rightBoxName="availableEntryColumns"
-						rightList="<%= rightList %>"
-						rightTitle="available"
-					/>
-				</aui:field-wrapper>
-			</aui:fieldset>
-		</liferay-ui:panel>
+						<dt>
+							<%= entry.getKey() %>
+						</dt>
+						<dd>
+							<%= entry.getValue() %>
+						</dd>
 
-		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="documentLibraryDocumentsRatingsPanel" persistState="<%= true %>" title="ratings">
-			<aui:input name="preferences--enableCommentRatings--" type="checkbox" value="<%= enableCommentRatings %>" />
-		</liferay-ui:panel>
-	</liferay-ui:panel-container>
+					<%
+					}
+					%>
+
+				</dl>
+			</aui:fieldset>
+		</liferay-ui:section>
+
+		<%
+		Map<String, String> emailDefinitionTerms = DLUtil.getEmailDefinitionTerms(renderRequest, emailFromAddress, emailFromName);
+		%>
+
+		<liferay-ui:section>
+			<liferay-ui:email-notification-settings
+				emailBody="<%= dlSettings.getEmailFileEntryAddedBodyXml() %>"
+				emailDefinitionTerms="<%= emailDefinitionTerms %>"
+				emailEnabled="<%= dlSettings.getEmailFileEntryAddedEnabled() %>"
+				emailParam="emailFileEntryAdded"
+				emailSubject="<%= dlSettings.getEmailFileEntryAddedSubjectXml() %>"
+			/>
+		</liferay-ui:section>
+
+		<liferay-ui:section>
+			<liferay-ui:email-notification-settings
+				emailBody="<%= dlSettings.getEmailFileEntryUpdatedBodyXml() %>"
+				emailDefinitionTerms="<%= emailDefinitionTerms %>"
+				emailEnabled="<%= dlSettings.getEmailFileEntryUpdatedEnabled() %>"
+				emailParam="emailFileEntryUpdated"
+				emailSubject="<%= dlSettings.getEmailFileEntryUpdatedSubjectXml() %>"
+			/>
+		</liferay-ui:section>
+	</liferay-ui:tabs>
 
 	<aui:button-row>
 		<aui:button type="submit" />
@@ -175,23 +298,6 @@ String redirect = ParamUtil.getString(request, "redirect");
 </aui:form>
 
 <aui:script>
-	function <portlet:namespace />openFolderSelector() {
-		var folderWindow = window.open('<liferay-portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>" portletName="<%= portletResource %>"><portlet:param name="struts_action" value='<%= strutsAction + "/select_folder" %>' /></liferay-portlet:renderURL>', 'folder', 'directories=no,height=640,location=no,menubar=no,resizable=yes,scrollbars=yes,status=no,toolbar=no,width=830');
-
-		folderWindow.focus();
-	}
-
-	function <%= PortalUtil.getPortletNamespace(portletResource) %>selectFolder(rootFolderId, rootFolderName) {
-		var folderData = {
-			idString: 'rootFolderId',
-			idValue: rootFolderId,
-			nameString: 'rootFolderName',
-			nameValue: rootFolderName
-		};
-
-		Liferay.Util.selectFolder(folderData, '<liferay-portlet:renderURL portletName="<%= portletResource %>"><portlet:param name="struts_action" value='<%= strutsAction + "/view" %>' /></liferay-portlet:renderURL>', '<portlet:namespace />');
-	}
-
 	Liferay.provide(
 		window,
 		'<portlet:namespace />saveConfiguration',

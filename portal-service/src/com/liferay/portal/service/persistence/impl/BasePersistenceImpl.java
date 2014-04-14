@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.dao.orm.Dialect;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.ORMException;
 import com.liferay.portal.kernel.dao.orm.OrderFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
@@ -28,10 +29,13 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.NullSafeStringComparator;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.ModelListener;
+import com.liferay.portal.model.ModelWrapper;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextThreadLocal;
 import com.liferay.portal.service.persistence.BasePersistence;
@@ -40,7 +44,10 @@ import java.io.Serializable;
 
 import java.sql.Connection;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -61,23 +68,41 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 
 	public static final String COUNT_COLUMN_NAME = "COUNT_VALUE";
 
+	@Override
 	public void clearCache() {
 	}
 
+	@Override
 	public void clearCache(List<T> model) {
 	}
 
+	@Override
 	public void clearCache(T model) {
 	}
 
+	@Override
 	public void closeSession(Session session) {
 		_sessionFactory.closeSession(session);
 	}
 
+	@Override
 	public long countWithDynamicQuery(DynamicQuery dynamicQuery)
 		throws SystemException {
 
-		dynamicQuery.setProjection(ProjectionFactoryUtil.rowCount());
+		return countWithDynamicQuery(
+			dynamicQuery, ProjectionFactoryUtil.rowCount());
+	}
+
+	@Override
+	public long countWithDynamicQuery(
+			DynamicQuery dynamicQuery, Projection projection)
+		throws SystemException {
+
+		if (projection == null) {
+			projection = ProjectionFactoryUtil.rowCount();
+		}
+
+		dynamicQuery.setProjection(projection);
 
 		List<Long> results = findWithDynamicQuery(dynamicQuery);
 
@@ -89,11 +114,13 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		}
 	}
 
+	@Override
 	@SuppressWarnings("unused")
 	public T fetchByPrimaryKey(Serializable primaryKey) throws SystemException {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	@SuppressWarnings("unused")
 	public T findByPrimaryKey(Serializable primaryKey)
 		throws NoSuchModelException, SystemException {
@@ -101,6 +128,7 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	@SuppressWarnings("rawtypes")
 	public List findWithDynamicQuery(DynamicQuery dynamicQuery)
 		throws SystemException {
@@ -122,6 +150,7 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		}
 	}
 
+	@Override
 	@SuppressWarnings("rawtypes")
 	public List findWithDynamicQuery(
 			DynamicQuery dynamicQuery, int start, int end)
@@ -146,6 +175,7 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		}
 	}
 
+	@Override
 	@SuppressWarnings("rawtypes")
 	public List findWithDynamicQuery(
 			DynamicQuery dynamicQuery, int start, int end,
@@ -157,6 +187,26 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		return findWithDynamicQuery(dynamicQuery, start, end);
 	}
 
+	@Override
+	public void flush() throws SystemException {
+		try {
+			Session session = _sessionFactory.getCurrentSession();
+
+			if (session != null) {
+				session.flush();
+			}
+		}
+		catch (Exception e) {
+			throw processException(e);
+		}
+	}
+
+	@Override
+	public Session getCurrentSession() throws ORMException {
+		return _sessionFactory.getCurrentSession();
+	}
+
+	@Override
 	public DataSource getDataSource() {
 		return _dataSource;
 	}
@@ -165,22 +215,32 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		return _db;
 	}
 
+	@Override
 	public Dialect getDialect() {
 		return _dialect;
 	}
 
+	@Override
 	public ModelListener<T>[] getListeners() {
 		return listeners;
 	}
 
+	@Override
+	public Class<T> getModelClass() {
+		return _modelClass;
+	}
+
+	@Override
 	public Session openNewSession(Connection connection) throws ORMException {
 		return _sessionFactory.openNewSession(connection);
 	}
 
+	@Override
 	public Session openSession() throws ORMException {
 		return _sessionFactory.openSession();
 	}
 
+	@Override
 	public SystemException processException(Exception e) {
 		if (!(e instanceof ORMException)) {
 			_log.error("Caught unexpected exception " + e.getClass().getName());
@@ -193,6 +253,7 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		return new SystemException(e);
 	}
 
+	@Override
 	public void registerListener(ModelListener<T> listener) {
 		List<ModelListener<T>> listenersList = ListUtil.fromArray(listeners);
 
@@ -202,6 +263,7 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 			new ModelListener[listenersList.size()]);
 	}
 
+	@Override
 	@SuppressWarnings("unused")
 	public T remove(Serializable primaryKey)
 		throws NoSuchModelException, SystemException {
@@ -209,7 +271,14 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public T remove(T model) throws SystemException {
+		if (model instanceof ModelWrapper) {
+			ModelWrapper<T> modelWrapper = (ModelWrapper<T>)model;
+
+			model = modelWrapper.getWrappedModel();
+		}
+
 		for (ModelListener<T> listener : listeners) {
 			listener.onBeforeRemove(model);
 		}
@@ -223,6 +292,7 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		return model;
 	}
 
+	@Override
 	public void setDataSource(DataSource dataSource) {
 		_dataSource = dataSource;
 	}
@@ -233,6 +303,7 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		_db = DBFactoryUtil.getDB(_dialect);
 	}
 
+	@Override
 	public void unregisterListener(ModelListener<T> listener) {
 		List<ModelListener<T>> listenersList = ListUtil.fromArray(listeners);
 
@@ -242,7 +313,51 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 			new ModelListener[listenersList.size()]);
 	}
 
+	@Override
+	public T update(T model) throws SystemException {
+		if (model instanceof ModelWrapper) {
+			ModelWrapper<T> modelWrapper = (ModelWrapper<T>)model;
+
+			model = modelWrapper.getWrappedModel();
+		}
+
+		boolean isNew = model.isNew();
+
+		for (ModelListener<T> listener : listeners) {
+			if (isNew) {
+				listener.onBeforeCreate(model);
+			}
+			else {
+				listener.onBeforeUpdate(model);
+			}
+		}
+
+		model = updateImpl(model);
+
+		for (ModelListener<T> listener : listeners) {
+			if (isNew) {
+				listener.onAfterCreate(model);
+			}
+			else {
+				listener.onAfterUpdate(model);
+			}
+		}
+
+		return model;
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #update(BaseModel)}}
+	 */
+	@Deprecated
+	@Override
 	public T update(T model, boolean merge) throws SystemException {
+		if (model instanceof ModelWrapper) {
+			ModelWrapper<T> modelWrapper = (ModelWrapper<T>)model;
+
+			model = modelWrapper.getWrappedModel();
+		}
+
 		boolean isNew = model.isNew();
 
 		for (ModelListener<T> listener : listeners) {
@@ -268,13 +383,26 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		return model;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #update(BaseModel,
+	 *             ServiceContext)}}
+	 */
+	@Deprecated
+	@Override
 	public T update(T model, boolean merge, ServiceContext serviceContext)
+		throws SystemException {
+
+		return update(model, serviceContext);
+	}
+
+	@Override
+	public T update(T model, ServiceContext serviceContext)
 		throws SystemException {
 
 		try {
 			ServiceContextThreadLocal.pushServiceContext(serviceContext);
 
-			update(model, merge);
+			update(model);
 
 			return model;
 		}
@@ -283,9 +411,26 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		}
 	}
 
+	protected static String removeConjunction(String sql) {
+		int pos = sql.indexOf(" AND ");
+
+		if (pos != -1) {
+			sql = sql.substring(0, pos);
+		}
+
+		return sql;
+	}
+
 	protected void appendOrderByComparator(
 		StringBundler query, String entityAlias,
 		OrderByComparator orderByComparator) {
+
+		appendOrderByComparator(query, entityAlias, orderByComparator, false);
+	}
+
+	protected void appendOrderByComparator(
+		StringBundler query, String entityAlias,
+		OrderByComparator orderByComparator, boolean sqlQuery) {
 
 		query.append(ORDER_BY_CLAUSE);
 
@@ -294,6 +439,14 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		for (int i = 0; i < orderByFields.length; i++) {
 			query.append(entityAlias);
 			query.append(orderByFields[i]);
+
+			if (sqlQuery) {
+				Set<String> badColumnNames = getBadColumnNames();
+
+				if (badColumnNames.contains(orderByFields[i])) {
+					query.append(StringPool.UNDERLINE);
+				}
+			}
 
 			if ((i + 1) < orderByFields.length) {
 				if (orderByComparator.isAscending(orderByFields[i])) {
@@ -314,6 +467,16 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		}
 	}
 
+	protected Set<String> getBadColumnNames() {
+		return Collections.emptySet();
+	}
+
+	protected ClassLoader getClassLoader() {
+		Class<?> clazz = getClass();
+
+		return clazz.getClassLoader();
+	}
+
 	/**
 	 * Removes the model instance from the database. {@link #update(BaseModel,
 	 * boolean)} depends on this method to implement the remove operation; it
@@ -327,25 +490,35 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		throw new UnsupportedOperationException();
 	}
 
+	protected void setModelClass(Class<T> modelClass) {
+		_modelClass = modelClass;
+	}
+
 	/**
 	 * Updates the model instance in the database or adds it if it does not yet
 	 * exist. {@link #remove(BaseModel)} depends on this method to implement the
 	 * update operation; it only notifies the model listeners.
 	 *
 	 * @param  model the model instance to update
-	 * @param  merge whether to merge the model instance with the current
-	 *         session. See {@link
-	 *         com.liferay.portal.service.persistence.BatchSession#update(
-	 *         com.liferay.portal.kernel.dao.orm.Session, BaseModel, boolean)}
-	 *         for an explanation.
 	 * @return the model instance that was updated
 	 * @throws SystemException if a system exception occurred
 	 */
-	protected T updateImpl(T model, boolean merge) throws SystemException {
+	protected T updateImpl(T model) throws SystemException {
 		throw new UnsupportedOperationException();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #updateImpl(BaseModel)}
+	 */
+	@Deprecated
+	protected T updateImpl(T model, boolean merge) throws SystemException {
+		return updateImpl(model);
+	}
+
 	protected static final Object[] FINDER_ARGS_EMPTY = new Object[0];
+
+	protected static final Comparator<String> NULL_SAFE_STRING_COMPARATOR =
+		new NullSafeStringComparator();
 
 	protected static final String ORDER_BY_ASC = " ASC";
 
@@ -376,6 +549,7 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 	private DataSource _dataSource;
 	private DB _db;
 	private Dialect _dialect;
+	private Class<T> _modelClass;
 	private SessionFactory _sessionFactory;
 
 }

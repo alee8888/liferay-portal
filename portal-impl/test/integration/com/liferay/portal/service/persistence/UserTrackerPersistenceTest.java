@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,35 +16,67 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchUserTrackerException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.UserTracker;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class UserTrackerPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (UserTrackerPersistence)PortalBeanLocatorUtil.locate(UserTrackerPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -80,6 +112,8 @@ public class UserTrackerPersistenceTest {
 
 		UserTracker newUserTracker = _persistence.create(pk);
 
+		newUserTracker.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newUserTracker.setCompanyId(ServiceTestUtil.nextLong());
 
 		newUserTracker.setUserId(ServiceTestUtil.nextLong());
@@ -94,10 +128,12 @@ public class UserTrackerPersistenceTest {
 
 		newUserTracker.setUserAgent(ServiceTestUtil.randomString());
 
-		_persistence.update(newUserTracker, false);
+		_persistence.update(newUserTracker);
 
 		UserTracker existingUserTracker = _persistence.findByPrimaryKey(newUserTracker.getPrimaryKey());
 
+		Assert.assertEquals(existingUserTracker.getMvccVersion(),
+			newUserTracker.getMvccVersion());
 		Assert.assertEquals(existingUserTracker.getUserTrackerId(),
 			newUserTracker.getUserTrackerId());
 		Assert.assertEquals(existingUserTracker.getCompanyId(),
@@ -115,6 +151,44 @@ public class UserTrackerPersistenceTest {
 			newUserTracker.getRemoteHost());
 		Assert.assertEquals(existingUserTracker.getUserAgent(),
 			newUserTracker.getUserAgent());
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUserId() {
+		try {
+			_persistence.countByUserId(ServiceTestUtil.nextLong());
+
+			_persistence.countByUserId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountBySessionId() {
+		try {
+			_persistence.countBySessionId(StringPool.BLANK);
+
+			_persistence.countBySessionId(StringPool.NULL);
+
+			_persistence.countBySessionId((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -141,6 +215,24 @@ public class UserTrackerPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("UserTracker",
+			"mvccVersion", true, "userTrackerId", true, "companyId", true,
+			"userId", true, "modifiedDate", true, "sessionId", true,
+			"remoteAddr", true, "remoteHost", true, "userAgent", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		UserTracker newUserTracker = addUserTracker();
 
@@ -156,6 +248,26 @@ public class UserTrackerPersistenceTest {
 		UserTracker missingUserTracker = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingUserTracker);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new UserTrackerActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					UserTracker userTracker = (UserTracker)object;
+
+					Assert.assertNotNull(userTracker);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -237,6 +349,8 @@ public class UserTrackerPersistenceTest {
 
 		UserTracker userTracker = _persistence.create(pk);
 
+		userTracker.setMvccVersion(ServiceTestUtil.nextLong());
+
 		userTracker.setCompanyId(ServiceTestUtil.nextLong());
 
 		userTracker.setUserId(ServiceTestUtil.nextLong());
@@ -251,10 +365,12 @@ public class UserTrackerPersistenceTest {
 
 		userTracker.setUserAgent(ServiceTestUtil.randomString());
 
-		_persistence.update(userTracker, false);
+		_persistence.update(userTracker);
 
 		return userTracker;
 	}
 
-	private UserTrackerPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(UserTrackerPersistenceTest.class);
+	private UserTrackerPersistence _persistence = (UserTrackerPersistence)PortalBeanLocatorUtil.locate(UserTrackerPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

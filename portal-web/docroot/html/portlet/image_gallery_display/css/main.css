@@ -1,3 +1,5 @@
+@import "compass";
+
 .lfr-image-gallery-actions {
 	font-size: 11px;
 	text-align: right;
@@ -26,16 +28,17 @@
 		margin: 10px 4px;
 		padding: 5px 15px 0;
 		text-align: center;
+		width: 150px;
 
 		&:hover, &.hover {
 			background-color: #D3E8F1;
 		}
 
 		&.error:hover {
-            background-color: #FDD;
-        }
+			background-color: #FDD;
+		}
 
-        &:hover .image-thumbnail img {
+		&:hover .image-thumbnail img {
 			background-color: #B0D2E1;
 			border-color: #7ABFDD;
 		}
@@ -43,15 +46,15 @@
 		a {
 			color: #5B677D;
 		}
-    }
+	}
 
 	.image-link {
 		text-align: center;
 		text-decoration: none;
- 	}
+	}
 
 	.image-thumbnail {
-       	display: inline-block;
+		display: inline-block;
 		position: relative;
 
 		img {
@@ -83,7 +86,15 @@
 	.image-title {
 		clear: both;
 		display: block;
-		padding: 0 10px;
-		word-wrap: break-word;
+
+		@include ellipsis;
+	}
+}
+
+.firefox {
+	.portlet-image-gallery-display {
+		.audio-node {
+			height: 35px;
+		}
 	}
 }

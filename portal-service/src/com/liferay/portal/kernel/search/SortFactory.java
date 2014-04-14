@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,6 +27,9 @@ public interface SortFactory {
 	public Sort create(String fieldName, int type, boolean reverse);
 
 	public Sort[] getDefaultSorts();
+
+	public Sort getSort(
+		Class<?> clazz, int type, String orderByCol, String orderByType);
 
 	public Sort getSort(Class<?> clazz, String orderByCol, String orderByType);
 

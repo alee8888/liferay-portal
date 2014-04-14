@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -62,7 +62,7 @@ rightList = ListUtil.sort(rightList, new KeyValuePairComparator(false, true));
 
 <br />
 
-<input type="button" value="<liferay-ui:message key="save" />" onClick="<portlet:namespace />saveCurrency();" />
+<input onClick="<portlet:namespace />saveCurrency();" type="button" value="<liferay-ui:message key="save" />" />
 
 </form>
 
@@ -72,6 +72,7 @@ rightList = ListUtil.sort(rightList, new KeyValuePairComparator(false, true));
 		'<portlet:namespace />saveCurrency',
 		function() {
 			document.<portlet:namespace />fm.<portlet:namespace />symbols.value = Liferay.Util.listSelect(document.<portlet:namespace />fm.<portlet:namespace />current_actions);
+
 			submitForm(document.<portlet:namespace />fm);
 		},
 		['liferay-util-list-fields']

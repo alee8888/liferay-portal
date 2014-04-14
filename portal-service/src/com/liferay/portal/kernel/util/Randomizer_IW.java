@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,9 +15,12 @@
 package com.liferay.portal.kernel.util;
 
 /**
- * @author Brian Wing Shun Chan
+ * @author     Brian Wing Shun Chan
+ * @deprecated
  */
+@Deprecated
 public class Randomizer_IW {
+
 	public static Randomizer_IW getInstance() {
 		return _instance;
 	}
@@ -30,4 +33,5 @@ public class Randomizer_IW {
 	}
 
 	private static Randomizer_IW _instance = new Randomizer_IW();
+
 }

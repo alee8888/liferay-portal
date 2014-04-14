@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,36 +16,67 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchResourceBlockPermissionException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.model.ResourceBlockPermission;
 import com.liferay.portal.model.impl.ResourceBlockPermissionModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ResourceBlockPermissionPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (ResourceBlockPermissionPersistence)PortalBeanLocatorUtil.locate(ResourceBlockPermissionPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -81,16 +112,20 @@ public class ResourceBlockPermissionPersistenceTest {
 
 		ResourceBlockPermission newResourceBlockPermission = _persistence.create(pk);
 
+		newResourceBlockPermission.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newResourceBlockPermission.setResourceBlockId(ServiceTestUtil.nextLong());
 
 		newResourceBlockPermission.setRoleId(ServiceTestUtil.nextLong());
 
 		newResourceBlockPermission.setActionIds(ServiceTestUtil.nextLong());
 
-		_persistence.update(newResourceBlockPermission, false);
+		_persistence.update(newResourceBlockPermission);
 
 		ResourceBlockPermission existingResourceBlockPermission = _persistence.findByPrimaryKey(newResourceBlockPermission.getPrimaryKey());
 
+		Assert.assertEquals(existingResourceBlockPermission.getMvccVersion(),
+			newResourceBlockPermission.getMvccVersion());
 		Assert.assertEquals(existingResourceBlockPermission.getResourceBlockPermissionId(),
 			newResourceBlockPermission.getResourceBlockPermissionId());
 		Assert.assertEquals(existingResourceBlockPermission.getResourceBlockId(),
@@ -99,6 +134,43 @@ public class ResourceBlockPermissionPersistenceTest {
 			newResourceBlockPermission.getRoleId());
 		Assert.assertEquals(existingResourceBlockPermission.getActionIds(),
 			newResourceBlockPermission.getActionIds());
+	}
+
+	@Test
+	public void testCountByResourceBlockId() {
+		try {
+			_persistence.countByResourceBlockId(ServiceTestUtil.nextLong());
+
+			_persistence.countByResourceBlockId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByRoleId() {
+		try {
+			_persistence.countByRoleId(ServiceTestUtil.nextLong());
+
+			_persistence.countByRoleId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByR_R() {
+		try {
+			_persistence.countByR_R(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByR_R(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -126,6 +198,23 @@ public class ResourceBlockPermissionPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("ResourceBlockPermission",
+			"mvccVersion", true, "resourceBlockPermissionId", true,
+			"resourceBlockId", true, "roleId", true, "actionIds", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		ResourceBlockPermission newResourceBlockPermission = addResourceBlockPermission();
 
@@ -142,6 +231,26 @@ public class ResourceBlockPermissionPersistenceTest {
 		ResourceBlockPermission missingResourceBlockPermission = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingResourceBlockPermission);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new ResourceBlockPermissionActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					ResourceBlockPermission resourceBlockPermission = (ResourceBlockPermission)object;
+
+					Assert.assertNotNull(resourceBlockPermission);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -248,16 +357,20 @@ public class ResourceBlockPermissionPersistenceTest {
 
 		ResourceBlockPermission resourceBlockPermission = _persistence.create(pk);
 
+		resourceBlockPermission.setMvccVersion(ServiceTestUtil.nextLong());
+
 		resourceBlockPermission.setResourceBlockId(ServiceTestUtil.nextLong());
 
 		resourceBlockPermission.setRoleId(ServiceTestUtil.nextLong());
 
 		resourceBlockPermission.setActionIds(ServiceTestUtil.nextLong());
 
-		_persistence.update(resourceBlockPermission, false);
+		_persistence.update(resourceBlockPermission);
 
 		return resourceBlockPermission;
 	}
 
-	private ResourceBlockPermissionPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(ResourceBlockPermissionPersistenceTest.class);
+	private ResourceBlockPermissionPersistence _persistence = (ResourceBlockPermissionPersistence)PortalBeanLocatorUtil.locate(ResourceBlockPermissionPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

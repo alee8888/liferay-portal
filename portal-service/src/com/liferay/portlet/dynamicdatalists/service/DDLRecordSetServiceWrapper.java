@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.dynamicdatalists.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link DDLRecordSetService}.
- * </p>
+ * Provides a wrapper for {@link DDLRecordSetService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       DDLRecordSetService
+ * @author Brian Wing Shun Chan
+ * @see DDLRecordSetService
  * @generated
  */
+@ProviderType
 public class DDLRecordSetServiceWrapper implements DDLRecordSetService,
 	ServiceWrapper<DDLRecordSetService> {
 	public DDLRecordSetServiceWrapper(DDLRecordSetService ddlRecordSetService) {
@@ -36,6 +37,7 @@ public class DDLRecordSetServiceWrapper implements DDLRecordSetService,
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _ddlRecordSetService.getBeanIdentifier();
 	}
@@ -45,10 +47,12 @@ public class DDLRecordSetServiceWrapper implements DDLRecordSetService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_ddlRecordSetService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public com.liferay.portlet.dynamicdatalists.model.DDLRecordSet addRecordSet(
 		long groupId, long ddmStructureId, java.lang.String recordSetKey,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
@@ -62,12 +66,14 @@ public class DDLRecordSetServiceWrapper implements DDLRecordSetService,
 			serviceContext);
 	}
 
+	@Override
 	public void deleteRecordSet(long recordSetId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_ddlRecordSetService.deleteRecordSet(recordSetId);
 	}
 
+	@Override
 	public com.liferay.portlet.dynamicdatalists.model.DDLRecordSet getRecordSet(
 		long recordSetId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -75,6 +81,44 @@ public class DDLRecordSetServiceWrapper implements DDLRecordSetService,
 		return _ddlRecordSetService.getRecordSet(recordSetId);
 	}
 
+	@Override
+	public java.util.List<com.liferay.portlet.dynamicdatalists.model.DDLRecordSet> search(
+		long companyId, long groupId, java.lang.String keywords, int scope,
+		int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ddlRecordSetService.search(companyId, groupId, keywords, scope,
+			start, end, orderByComparator);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.dynamicdatalists.model.DDLRecordSet> search(
+		long companyId, long groupId, java.lang.String name,
+		java.lang.String description, int scope, boolean andOperator,
+		int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ddlRecordSetService.search(companyId, groupId, name,
+			description, scope, andOperator, start, end, orderByComparator);
+	}
+
+	@Override
+	public int searchCount(long companyId, long groupId,
+		java.lang.String keywords, int scope)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ddlRecordSetService.searchCount(companyId, groupId, keywords,
+			scope);
+	}
+
+	@Override
+	public int searchCount(long companyId, long groupId, java.lang.String name,
+		java.lang.String description, int scope, boolean andOperator)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ddlRecordSetService.searchCount(companyId, groupId, name,
+			description, scope, andOperator);
+	}
+
+	@Override
 	public com.liferay.portlet.dynamicdatalists.model.DDLRecordSet updateMinDisplayRows(
 		long recordSetId, int minDisplayRows,
 		com.liferay.portal.service.ServiceContext serviceContext)
@@ -84,6 +128,7 @@ public class DDLRecordSetServiceWrapper implements DDLRecordSetService,
 			minDisplayRows, serviceContext);
 	}
 
+	@Override
 	public com.liferay.portlet.dynamicdatalists.model.DDLRecordSet updateRecordSet(
 		long recordSetId, long ddmStructureId,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
@@ -97,6 +142,7 @@ public class DDLRecordSetServiceWrapper implements DDLRecordSetService,
 			serviceContext);
 	}
 
+	@Override
 	public com.liferay.portlet.dynamicdatalists.model.DDLRecordSet updateRecordSet(
 		long groupId, long ddmStructureId, java.lang.String recordSetKey,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
@@ -111,24 +157,28 @@ public class DDLRecordSetServiceWrapper implements DDLRecordSetService,
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DDLRecordSetService getWrappedDDLRecordSetService() {
 		return _ddlRecordSetService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDDLRecordSetService(
 		DDLRecordSetService ddlRecordSetService) {
 		_ddlRecordSetService = ddlRecordSetService;
 	}
 
+	@Override
 	public DDLRecordSetService getWrappedService() {
 		return _ddlRecordSetService;
 	}
 
+	@Override
 	public void setWrappedService(DDLRecordSetService ddlRecordSetService) {
 		_ddlRecordSetService = ddlRecordSetService;
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 public class LiferayServletContextProviderWrapper
 	implements org.apache.portals.bridges.common.ServletContextProvider {
 
+	@Override
 	public HttpServletRequest getHttpServletRequest(
 		GenericPortlet portlet, PortletRequest portletRequest) {
 
@@ -39,6 +40,7 @@ public class LiferayServletContextProviderWrapper
 		return provider.getHttpServletRequest(portlet, portletRequest);
 	}
 
+	@Override
 	public HttpServletResponse getHttpServletResponse(
 		GenericPortlet portlet, PortletResponse portletResponse) {
 
@@ -47,6 +49,7 @@ public class LiferayServletContextProviderWrapper
 		return provider.getHttpServletResponse(portlet, portletResponse);
 	}
 
+	@Override
 	public ServletContext getServletContext(GenericPortlet portlet) {
 		ServletContextProvider provider = _getProvider(portlet);
 

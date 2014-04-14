@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,8 +25,8 @@ int roleType = (Integer)request.getAttribute("edit_user_roles.jsp-roleType");
 PortletURL portletURL = (PortletURL)request.getAttribute("edit_user_roles.jsp-portletURL");
 %>
 
-<div class="portlet-section-body results-row" style="border: 1px solid; padding: 5px;">
-	<%= LanguageUtil.format(pageContext, "step-x-of-x", new String[] {"1", "2"}) %>
+<div>
+	<%= LanguageUtil.format(pageContext, "step-x-of-x", new String[] {"1", "2"}, false) %>
 
 	<liferay-ui:message key="choose-a-role" />
 </div>
@@ -81,7 +81,7 @@ for (int i = 0; i < results.size(); i++) {
 
 	// Name
 
-	row.addText(HtmlUtil.escape(curRole.getTitle(locale)), rowURL);
+	row.addText(curRole.getTitle(locale), rowURL);
 
 	// Type
 

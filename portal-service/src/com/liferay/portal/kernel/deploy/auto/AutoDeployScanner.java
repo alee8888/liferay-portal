@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,9 @@
  */
 
 package com.liferay.portal.kernel.deploy.auto;
+
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 /**
  * @author Ivica Cardic
@@ -51,9 +54,18 @@ public class AutoDeployScanner extends Thread {
 			catch (InterruptedException ie) {
 			}
 
-			_autoDeployDir.scanDirectory();
+			try {
+				_autoDeployDir.scanDirectory();
+			}
+			catch (Exception e) {
+				if (_log.isWarnEnabled()) {
+					_log.warn("Unable to scan the auto deploy directory", e);
+				}
+			}
 		}
 	}
+
+	private static Log _log = LogFactoryUtil.getLog(AutoDeployScanner.class);
 
 	private AutoDeployDir _autoDeployDir;
 	private boolean _started = true;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,13 +24,11 @@ import com.liferay.portal.service.http.TunnelUtil;
 import com.liferay.portlet.softwarecatalog.service.SCLicenseServiceUtil;
 
 /**
- * <p>
- * This class provides a HTTP utility for the
+ * Provides the HTTP utility for the
  * {@link com.liferay.portlet.softwarecatalog.service.SCLicenseServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it requires an additional
  * {@link com.liferay.portal.security.auth.HttpPrincipal} parameter.
- * </p>
  *
  * <p>
  * The benefits of using the HTTP utility is that it is fast and allows for
@@ -47,10 +45,10 @@ import com.liferay.portlet.softwarecatalog.service.SCLicenseServiceUtil;
  * The HTTP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SCLicenseServiceSoap
- * @see       com.liferay.portal.security.auth.HttpPrincipal
- * @see       com.liferay.portlet.softwarecatalog.service.SCLicenseServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see SCLicenseServiceSoap
+ * @see com.liferay.portal.security.auth.HttpPrincipal
+ * @see com.liferay.portlet.softwarecatalog.service.SCLicenseServiceUtil
  * @generated
  */
 public class SCLicenseServiceHttp {
@@ -61,7 +59,7 @@ public class SCLicenseServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(SCLicenseServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(SCLicenseServiceUtil.class,
 					"addLicense", _addLicenseParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, name,
@@ -97,7 +95,7 @@ public class SCLicenseServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(SCLicenseServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(SCLicenseServiceUtil.class,
 					"deleteLicense", _deleteLicenseParameterTypes1);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, licenseId);
@@ -129,7 +127,7 @@ public class SCLicenseServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(SCLicenseServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(SCLicenseServiceUtil.class,
 					"getLicense", _getLicenseParameterTypes2);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, licenseId);
@@ -167,7 +165,7 @@ public class SCLicenseServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(SCLicenseServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(SCLicenseServiceUtil.class,
 					"updateLicense", _updateLicenseParameterTypes3);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey,

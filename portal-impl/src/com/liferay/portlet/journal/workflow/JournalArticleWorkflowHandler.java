@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -40,16 +40,17 @@ import java.util.Map;
  */
 public class JournalArticleWorkflowHandler extends BaseWorkflowHandler {
 
-	public static final String CLASS_NAME = JournalArticle.class.getName();
-
+	@Override
 	public String getClassName() {
-		return CLASS_NAME;
+		return JournalArticle.class.getName();
 	}
 
+	@Override
 	public String getType(Locale locale) {
-		return ResourceActionsUtil.getModelResource(locale, CLASS_NAME);
+		return ResourceActionsUtil.getModelResource(locale, getClassName());
 	}
 
+	@Override
 	public JournalArticle updateStatus(
 			int status, Map<String, Serializable> workflowContext)
 		throws PortalException, SystemException {
@@ -70,7 +71,8 @@ public class JournalArticleWorkflowHandler extends BaseWorkflowHandler {
 			serviceContext.getScopeGroupId(), PortletKeys.JOURNAL, null);
 
 		return JournalArticleLocalServiceUtil.updateStatus(
-			userId, article, status, articleURL, serviceContext);
+			userId, article, status, articleURL, workflowContext,
+			serviceContext);
 	}
 
 	@Override

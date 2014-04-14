@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,12 +34,14 @@ long ruleGroupId = BeanParamUtil.getLong(ruleGroup, request, "ruleGroupId");
 String title = StringPool.BLANK;
 
 if (ruleGroup != null) {
-	title = LanguageUtil.format(pageContext, "new-rule-for-x", ruleGroup.getName(locale), false);
+	title = LanguageUtil.format(pageContext, "new-classification-rule-for-x", ruleGroup.getName(locale), false);
 
 	if (rule != null) {
 		title = rule.getName(locale) + " (" + ruleGroup.getName(locale) + ")";
 	}
 }
+
+Collection<String> ruleHandlerTypes = RuleGroupProcessorUtil.getRuleHandlerTypes();
 %>
 
 <liferay-ui:header
@@ -48,41 +50,65 @@ if (ruleGroup != null) {
 	title="<%= title %>"
 />
 
+<c:if test="<%= rule == null %>">
+	<div class="alert alert-info">
+		<liferay-ui:message key="classification-rule-help" />
+	</div>
+</c:if>
+
 <portlet:actionURL var="editRuleURL">
 	<portlet:param name="struts_action" value="/mobile_device_rules/edit_rule" />
-	<portlet:param name="redirect" value="<%= redirect %>" />
 </portlet:actionURL>
 
 <aui:form action="<%= editRuleURL %>" enctype="multipart/form-data" method="post" name="fm">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= (rule == null) ? Constants.ADD : Constants.UPDATE %>" />
+	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="ruleGroupId" type="hidden" value="<%= ruleGroupId %>" />
 	<aui:input name="ruleId" type="hidden" value="<%= ruleId %>" />
 
 	<liferay-ui:error exception="<%= NoSuchRuleException.class %>" message="rule-does-not-exist" />
-	<liferay-ui:error exception="<%= NoSuchRuleGroupException.class %>" message="rule-group-does-not-exist" />
+	<liferay-ui:error exception="<%= NoSuchRuleGroupException.class %>" message="device-family-does-not-exist" />
 	<liferay-ui:error exception="<%= UnknownRuleHandlerException.class %>" message="please-select-a-rule-type" />
 
 	<aui:model-context bean="<%= rule %>" model="<%= MDRRule.class %>" />
+
+	<c:if test='<%= !PluginPackageUtil.isInstalled("wurfl-web") %>'>
+		<div class="alert alert-block">
+			<liferay-ui:message key="there-is-no-device-recognition-provider-installed" />
+		</div>
+	</c:if>
 
 	<aui:fieldset>
 		<aui:input name="name" />
 
 		<aui:input name="description" />
 
-		<aui:select changesContext="<%= true %>" name="type" onChange='<%= renderResponse.getNamespace() + "changeType();" %>'>
-			<aui:option disabled="<%= true %>" label="select-a-type" selected="<%= Validator.isNull(type) %>" />
+		<c:choose>
+			<c:when test="<%= ruleHandlerTypes.size() == 1 %>">
 
-			<%
-			for (String ruleHandlerType : RuleGroupProcessorUtil.getRuleHandlerTypes()) {
-			%>
+				<%
+				String ruleHandlerType = ruleHandlerTypes.iterator().next();
+				%>
 
-				<aui:option label="<%= ruleHandlerType %>" selected="<%= type.equals(ruleHandlerType) %>" />
+				<aui:input name="type" type="hidden" value="<%= ruleHandlerType %>" />
 
-			<%
-			}
-	   		%>
+			</c:when>
+			<c:otherwise>
+				<aui:select changesContext="<%= true %>" name="type" showEmptyOption="<%= true %>">
 
-		</aui:select>
+					<%
+					for (String ruleHandlerType : ruleHandlerTypes) {
+					%>
+
+						<aui:option label="<%= ruleHandlerType %>" selected="<%= type.equals(ruleHandlerType) %>" />
+
+					<%
+					}
+					%>
+
+				</aui:select>
+			</c:otherwise>
+		</c:choose>
 
 		<div id="<%= renderResponse.getNamespace() %>typeSettings">
 			<c:if test="<%= Validator.isNotNull(editorJSP) %>">
@@ -97,38 +123,44 @@ if (ruleGroup != null) {
 	</aui:button-row>
 </aui:form>
 
-<aui:script>
-	Liferay.provide(
-		window,
-		'<portlet:namespace />changeType',
-		function() {
-			var A = AUI();
+<aui:script use="aui-io">
+	var typeNode = A.one('#<portlet:namespace />type');
+	var typeSettings = A.one('#<portlet:namespace />typeSettings');
 
-			var typeNode = A.one('#<portlet:namespace /><%= "type" %>');
+	var loadTypeFields = function() {
+		A.io.request(
+			<portlet:resourceURL var="editorURL">
+				<portlet:param name="struts_action" value="/mobile_device_rules/edit_rule_editor" />
+			</portlet:resourceURL>
 
-			A.io.request(
-				<portlet:resourceURL var="editorURL">
-					<portlet:param name="struts_action" value="/mobile_device_rules/edit_rule_editor" />
-				</portlet:resourceURL>
+			'<%= editorURL.toString() %>',
+			{
+				data: {
+					<portlet:namespace />ruleId: <%= ruleId %>,
+					<portlet:namespace />type: typeNode.val()
+				},
+				on: {
+					success: function(event, id, obj) {
+						var response = this.get('responseData');
 
-				'<%= editorURL.toString() %>',
-				{
-					data: {
-						<%= "ruleId" %>: <%= ruleId %>,
-						<%= "type" %>: (typeNode && typeNode.val())
-					},
-					on: {
-						complete: function <portlet:namespace />displayForm(id, obj) {
-							var typeSettingsNode = A.one('#<portlet:namespace />typeSettings');
-
-							if (typeSettingsNode) {
-								typeSettingsNode.setContent(obj.responseText);
-							}
+						if (typeSettings) {
+							typeSettings.html(response);
 						}
 					}
 				}
+			}
+		);
+	}
+
+	<c:choose>
+		<c:when test="<%= ruleHandlerTypes.size() == 1 %>">
+			loadTypeFields();
+		</c:when>
+		<c:otherwise>
+			typeNode.on(
+				'change',
+				loadTypeFields
 			);
-		},
-		['aui-io']
-	);
+		</c:otherwise>
+	</c:choose>
 </aui:script>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,7 +19,7 @@ import com.liferay.portal.kernel.concurrent.ThreadPoolExecutor;
 import com.liferay.portal.kernel.concurrent.ThreadPoolHandler;
 import com.liferay.portal.kernel.executor.PortalExecutorFactory;
 import com.liferay.portal.kernel.util.NamedThreadFactory;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.util.ClassLoaderUtil;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -68,10 +68,11 @@ public class PortalExecutorFactoryImpl implements PortalExecutorFactory {
 		}
 	}
 
+	@Override
 	public ThreadPoolExecutor createPortalExecutor(String executorName) {
 		ThreadFactory threadFactory = new NamedThreadFactory(
 			executorName, Thread.NORM_PRIORITY,
-			PortalClassLoaderUtil.getClassLoader());
+			ClassLoaderUtil.getPortalClassLoader());
 
 		return new ThreadPoolExecutor(
 			_corePoolSize, _maxPoolSize, _keepAliveTime, _timeUnit,

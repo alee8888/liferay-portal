@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,35 +16,66 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchAccountException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.Account;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class AccountPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (AccountPersistence)PortalBeanLocatorUtil.locate(AccountPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -80,6 +111,8 @@ public class AccountPersistenceTest {
 
 		Account newAccount = _persistence.create(pk);
 
+		newAccount.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newAccount.setCompanyId(ServiceTestUtil.nextLong());
 
 		newAccount.setUserId(ServiceTestUtil.nextLong());
@@ -110,10 +143,12 @@ public class AccountPersistenceTest {
 
 		newAccount.setSize(ServiceTestUtil.randomString());
 
-		_persistence.update(newAccount, false);
+		_persistence.update(newAccount);
 
 		Account existingAccount = _persistence.findByPrimaryKey(newAccount.getPrimaryKey());
 
+		Assert.assertEquals(existingAccount.getMvccVersion(),
+			newAccount.getMvccVersion());
 		Assert.assertEquals(existingAccount.getAccountId(),
 			newAccount.getAccountId());
 		Assert.assertEquals(existingAccount.getCompanyId(),
@@ -169,6 +204,26 @@ public class AccountPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("Account_", "mvccVersion",
+			true, "accountId", true, "companyId", true, "userId", true,
+			"userName", true, "createDate", true, "modifiedDate", true,
+			"parentAccountId", true, "name", true, "legalName", true,
+			"legalId", true, "legalType", true, "sicCode", true,
+			"tickerSymbol", true, "industry", true, "type", true, "size", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		Account newAccount = addAccount();
 
@@ -184,6 +239,26 @@ public class AccountPersistenceTest {
 		Account missingAccount = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingAccount);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new AccountActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					Account account = (Account)object;
+
+					Assert.assertNotNull(account);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -263,6 +338,8 @@ public class AccountPersistenceTest {
 
 		Account account = _persistence.create(pk);
 
+		account.setMvccVersion(ServiceTestUtil.nextLong());
+
 		account.setCompanyId(ServiceTestUtil.nextLong());
 
 		account.setUserId(ServiceTestUtil.nextLong());
@@ -293,10 +370,12 @@ public class AccountPersistenceTest {
 
 		account.setSize(ServiceTestUtil.randomString());
 
-		_persistence.update(account, false);
+		_persistence.update(account);
 
 		return account;
 	}
 
-	private AccountPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(AccountPersistenceTest.class);
+	private AccountPersistence _persistence = (AccountPersistence)PortalBeanLocatorUtil.locate(AccountPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

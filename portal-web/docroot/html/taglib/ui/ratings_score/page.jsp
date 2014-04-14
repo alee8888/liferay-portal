@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,13 +35,13 @@ String scoreString = numberFormat.format(score);
 	</c:when>
 	<c:otherwise>
 		<div class="taglib-ratings score" id="<%= randomNamespace %>averageRating">
-			<div class="aui-helper-clearfix" id="<%= randomNamespace %>averageRatingContent">
+			<div class="helper-clearfix" id="<%= randomNamespace %>averageRatingContent">
 
 				<%
 				for (int i = 1; i <= 5; i++) {
 				%>
 
-					<a class="aui-rating-element <%= (i <= score) ? "aui-rating-element-on" : StringPool.BLANK %>" href="javascript:;"></a>
+					<a class="rating-element <%= (i <= score) ? "rating-element-on" : StringPool.BLANK %>" href="javascript:;"></a>
 
 				<%
 				}

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,124 +16,48 @@
 
 <%@ include file="/html/portal/layout/edit/init.jsp" %>
 
-<div class="aui-helper-hidden" id="<portlet:namespace />copyPortletsFromPage">
+<%
+Boolean showCopyPortlets = ParamUtil.getBoolean(request, "showCopyPortlets");
+Boolean showLayoutTemplates = ParamUtil.getBoolean(request, "showLayoutTemplates", true);
+%>
 
+<div class="<%= showCopyPortlets ? StringPool.BLANK : "hide" %>" id="<portlet:namespace />copyPortletsFromPage">
 	<p>
-		<liferay-ui:message arguments="<%= HtmlUtil.escape(selLayout.getName(locale)) %>" key="the-portlets-in-page-x-will-be-replaced-with-the-portlets-in-the-page-you-select-below" />
+		<c:if test="<%= selLayout != null %>">
+			<liferay-ui:message arguments="<%= HtmlUtil.escape(selLayout.getName(locale)) %>" key="the-applications-in-page-x-will-be-replaced-with-the-ones-in-the-page-you-select-below" translateArguments="<%= false %>" />
+		</c:if>
 	</p>
 
-	<aui:select label="copy-from-page" name="copyLayoutId" showEmptyOption="<%= true %>">
-
-		<%
-		List layoutList = (List)request.getAttribute(WebKeys.LAYOUT_LISTER_LIST);
-
-		for (int i = 0; i < layoutList.size(); i++) {
-
-			// id | parentId | ls | obj id | name | img | depth
-
-			String layoutDesc = (String)layoutList.get(i);
-
-			String[] nodeValues = StringUtil.split(layoutDesc, '|');
-
-			long objId = GetterUtil.getLong(nodeValues[3]);
-			String name = nodeValues[4];
-
-			int depth = 0;
-
-			if (i != 0) {
-				depth = GetterUtil.getInteger(nodeValues[6]);
-			}
-
-			name = HtmlUtil.escape(name);
-
-			for (int j = 0; j < depth; j++) {
-				name = "-&nbsp;" + name;
-			}
-
-			Layout copiableLayout = null;
-
-			try {
-				copiableLayout = LayoutLocalServiceUtil.getLayout(objId);
-			}
-			catch (Exception e) {
-			}
-
-			if (copiableLayout != null) {
-		%>
-
-				<aui:option disabled="<%= selLayout.getPlid() == copiableLayout.getPlid() %>" label="<%= name %>" value="<%= copiableLayout.getLayoutId() %>" />
-
-		<%
-			}
-		}
-		%>
-
-	</aui:select>
+	<liferay-util:include page="/html/portal/layout/edit/portlet_applications.jsp" />
 
 	<aui:button-row>
 		<aui:button name="copySubmitButton" value="copy" />
 	</aui:button-row>
 </div>
 
-<c:if test="<%= LayoutPermissionUtil.contains(permissionChecker, selLayout, ActionKeys.UPDATE) %>">
-	<aui:script use="aui-button-item,aui-dialog">
-		var content = A.one('#<portlet:namespace />copyPortletsFromPage');
+<div class="<%= showLayoutTemplates ? StringPool.BLANK : "hide" %>" id="<portlet:namespace />layoutTemplates">
 
-		var button = new A.ButtonItem(
-			{
-				handler: function(event) {
-					var popUp = new A.Dialog(
-						{
-							align: Liferay.Util.Window.ALIGN_CENTER,
-							bodyContent: content.show(),
-							destroyOnClose: true,
-							modal: true,
-							title: '<%= UnicodeLanguageUtil.get(pageContext, "copy-portlets-from-page") %>',
-							width: 500
-						}
-					).render();
+	<%
+	LayoutTypePortlet selLayoutTypePortlet = null;
 
-					popUp.show();
+	Theme selTheme = layout.getTheme();
 
-					var submitButton = popUp.get('contentBox').one('#<portlet:namespace />copySubmitButton');
+	if (selLayout != null) {
+		selLayoutTypePortlet = (LayoutTypePortlet)selLayout.getLayoutType();
 
-					if (submitButton) {
-						submitButton.on(
-							'click',
-							function(event) {
-								popUp.close();
+		selTheme = selLayout.getTheme();
+	}
 
-								var form = A.one('#<portlet:namespace />fm');
+	String layoutTemplateId = StringPool.BLANK;
 
-								if (form) {
-									form.append(content);
-								}
+	if (selLayoutTypePortlet != null) {
+		layoutTemplateId = selLayoutTypePortlet.getLayoutTemplateId();
+	}
 
-								<portlet:namespace />saveLayout();
-							}
-						);
-					}
-				},
-				icon: 'copy',
-				label: '<%= UnicodeLanguageUtil.get(pageContext, "copy-portlets-from-page") %>'
-			}
-		);
+	String layoutTemplateIdPrefix = StringPool.BLANK;
 
-		var buttonRow = A.one('#<portlet:namespace />layoutToolbar');
+	List<LayoutTemplate> layoutTemplates = LayoutTemplateLocalServiceUtil.getLayoutTemplates(selTheme.getThemeId());
+	%>
 
-		if (buttonRow) {
-			var layoutToolbar = buttonRow.getData('layoutToolbar');
-
-			if (layoutToolbar) {
-				layoutToolbar.add(button);
-			}
-		}
-
-		Liferay.on(
-			'<portlet:namespace />toggleLayoutTypeFields',
-			function(event) {
-				button.toggle(event.type == 'portlet');
-			}
-		);
-	</aui:script>
-</c:if>
+	<%@ include file="/html/portlet/layouts_admin/layout/layout_templates_list.jspf" %>
+</div>

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,7 +17,6 @@
 <%@ include file="/html/portlet/init.jsp" %>
 
 <%@ page import="com.liferay.portal.service.permission.OrganizationPermissionUtil" %><%@
-page import="com.liferay.portal.service.permission.RolePermissionUtil" %><%@
 page import="com.liferay.portal.service.permission.UserGroupPermissionUtil" %><%@
 page import="com.liferay.portlet.announcements.EntryContentException" %><%@
 page import="com.liferay.portlet.announcements.EntryDisplayDateException" %><%@
@@ -35,9 +34,7 @@ page import="com.liferay.portlet.announcements.service.permission.AnnouncementsE
 page import="com.liferay.portlet.announcements.util.AnnouncementsUtil" %>
 
 <%
-int delta = 3;
-
-Format dateFormatDate = FastDateFormatFactoryUtil.getDate(locale, timeZone);
+int pageDelta = GetterUtil.getInteger(portletPreferences.getValue("pageDelta", String.valueOf(SearchContainer.DEFAULT_DELTA)));
 %>
 
 <%@ include file="/html/portlet/announcements/init-ext.jsp" %>

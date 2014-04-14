@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.mobiledevicerules.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link MDRRuleGroupInstanceService}.
- * </p>
+ * Provides a wrapper for {@link MDRRuleGroupInstanceService}.
  *
- * @author    Edward C. Han
- * @see       MDRRuleGroupInstanceService
+ * @author Edward C. Han
+ * @see MDRRuleGroupInstanceService
  * @generated
  */
+@ProviderType
 public class MDRRuleGroupInstanceServiceWrapper
 	implements MDRRuleGroupInstanceService,
 		ServiceWrapper<MDRRuleGroupInstanceService> {
@@ -38,6 +39,7 @@ public class MDRRuleGroupInstanceServiceWrapper
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _mdrRuleGroupInstanceService.getBeanIdentifier();
 	}
@@ -47,10 +49,12 @@ public class MDRRuleGroupInstanceServiceWrapper
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_mdrRuleGroupInstanceService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance addRuleGroupInstance(
 		long groupId, java.lang.String className, long classPK,
 		long ruleGroupId, int priority,
@@ -61,6 +65,7 @@ public class MDRRuleGroupInstanceServiceWrapper
 			className, classPK, ruleGroupId, priority, serviceContext);
 	}
 
+	@Override
 	public com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance addRuleGroupInstance(
 		long groupId, java.lang.String className, long classPK,
 		long ruleGroupId,
@@ -71,12 +76,14 @@ public class MDRRuleGroupInstanceServiceWrapper
 			className, classPK, ruleGroupId, serviceContext);
 	}
 
+	@Override
 	public void deleteRuleGroupInstance(long ruleGroupInstanceId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_mdrRuleGroupInstanceService.deleteRuleGroupInstance(ruleGroupInstanceId);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance> getRuleGroupInstances(
 		java.lang.String className, long classPK, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
@@ -85,6 +92,7 @@ public class MDRRuleGroupInstanceServiceWrapper
 			classPK, start, end, orderByComparator);
 	}
 
+	@Override
 	public int getRuleGroupInstancesCount(java.lang.String className,
 		long classPK)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -92,6 +100,7 @@ public class MDRRuleGroupInstanceServiceWrapper
 			classPK);
 	}
 
+	@Override
 	public com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance updateRuleGroupInstance(
 		long ruleGroupInstanceId, int priority)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -101,24 +110,28 @@ public class MDRRuleGroupInstanceServiceWrapper
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MDRRuleGroupInstanceService getWrappedMDRRuleGroupInstanceService() {
 		return _mdrRuleGroupInstanceService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMDRRuleGroupInstanceService(
 		MDRRuleGroupInstanceService mdrRuleGroupInstanceService) {
 		_mdrRuleGroupInstanceService = mdrRuleGroupInstanceService;
 	}
 
+	@Override
 	public MDRRuleGroupInstanceService getWrappedService() {
 		return _mdrRuleGroupInstanceService;
 	}
 
+	@Override
 	public void setWrappedService(
 		MDRRuleGroupInstanceService mdrRuleGroupInstanceService) {
 		_mdrRuleGroupInstanceService = mdrRuleGroupInstanceService;

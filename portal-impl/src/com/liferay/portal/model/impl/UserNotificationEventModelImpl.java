@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,16 +15,18 @@
 package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserNotificationEvent;
 import com.liferay.portal.model.UserNotificationEventModel;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.service.UserLocalServiceUtil;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
@@ -58,17 +60,20 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 	 */
 	public static final String TABLE_NAME = "UserNotificationEvent";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "uuid_", Types.VARCHAR },
 			{ "userNotificationEventId", Types.BIGINT },
 			{ "companyId", Types.BIGINT },
 			{ "userId", Types.BIGINT },
 			{ "type_", Types.VARCHAR },
 			{ "timestamp", Types.BIGINT },
+			{ "deliveryType", Types.INTEGER },
 			{ "deliverBy", Types.BIGINT },
+			{ "delivered", Types.BOOLEAN },
 			{ "payload", Types.CLOB },
 			{ "archived", Types.BOOLEAN }
 		};
-	public static final String TABLE_SQL_CREATE = "create table UserNotificationEvent (uuid_ VARCHAR(75) null,userNotificationEventId LONG not null primary key,companyId LONG,userId LONG,type_ VARCHAR(75) null,timestamp LONG,deliverBy LONG,payload TEXT null,archived BOOLEAN)";
+	public static final String TABLE_SQL_CREATE = "create table UserNotificationEvent (mvccVersion LONG default 0,uuid_ VARCHAR(75) null,userNotificationEventId LONG not null primary key,companyId LONG,userId LONG,type_ VARCHAR(75) null,timestamp LONG,deliveryType INTEGER,deliverBy LONG,delivered BOOLEAN,payload TEXT null,archived BOOLEAN)";
 	public static final String TABLE_SQL_DROP = "drop table UserNotificationEvent";
 	public static final String ORDER_BY_JPQL = " ORDER BY userNotificationEvent.timestamp DESC";
 	public static final String ORDER_BY_SQL = " ORDER BY UserNotificationEvent.timestamp DESC";
@@ -86,34 +91,42 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 			true);
 	public static long ARCHIVED_COLUMN_BITMASK = 1L;
 	public static long COMPANYID_COLUMN_BITMASK = 2L;
-	public static long USERID_COLUMN_BITMASK = 4L;
-	public static long UUID_COLUMN_BITMASK = 8L;
+	public static long DELIVERED_COLUMN_BITMASK = 4L;
+	public static long USERID_COLUMN_BITMASK = 8L;
+	public static long UUID_COLUMN_BITMASK = 16L;
+	public static long TIMESTAMP_COLUMN_BITMASK = 32L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portal.model.UserNotificationEvent"));
 
 	public UserNotificationEventModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _userNotificationEventId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setUserNotificationEventId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_userNotificationEventId);
+		return _userNotificationEventId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return UserNotificationEvent.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return UserNotificationEvent.class.getName();
 	}
@@ -122,21 +135,33 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("userNotificationEventId", getUserNotificationEventId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
 		attributes.put("type", getType());
 		attributes.put("timestamp", getTimestamp());
+		attributes.put("deliveryType", getDeliveryType());
 		attributes.put("deliverBy", getDeliverBy());
+		attributes.put("delivered", getDelivered());
 		attributes.put("payload", getPayload());
 		attributes.put("archived", getArchived());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -174,10 +199,22 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 			setTimestamp(timestamp);
 		}
 
+		Integer deliveryType = (Integer)attributes.get("deliveryType");
+
+		if (deliveryType != null) {
+			setDeliveryType(deliveryType);
+		}
+
 		Long deliverBy = (Long)attributes.get("deliverBy");
 
 		if (deliverBy != null) {
 			setDeliverBy(deliverBy);
+		}
+
+		Boolean delivered = (Boolean)attributes.get("delivered");
+
+		if (delivered != null) {
+			setDelivered(delivered);
 		}
 
 		String payload = (String)attributes.get("payload");
@@ -193,6 +230,17 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 		}
 	}
 
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -202,6 +250,7 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 		}
 	}
 
+	@Override
 	public void setUuid(String uuid) {
 		if (_originalUuid == null) {
 			_originalUuid = _uuid;
@@ -214,18 +263,22 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 		return GetterUtil.getString(_originalUuid);
 	}
 
+	@Override
 	public long getUserNotificationEventId() {
 		return _userNotificationEventId;
 	}
 
+	@Override
 	public void setUserNotificationEventId(long userNotificationEventId) {
 		_userNotificationEventId = userNotificationEventId;
 	}
 
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_columnBitmask |= COMPANYID_COLUMN_BITMASK;
 
@@ -242,10 +295,12 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 		return _originalCompanyId;
 	}
 
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
 
+	@Override
 	public void setUserId(long userId) {
 		_columnBitmask |= USERID_COLUMN_BITMASK;
 
@@ -258,18 +313,27 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 		_userId = userId;
 	}
 
+	@Override
 	public String getUserUuid() throws SystemException {
-		return PortalUtil.getUserValue(getUserId(), "uuid", _userUuid);
+		try {
+			User user = UserLocalServiceUtil.getUserById(getUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
+		}
 	}
 
+	@Override
 	public void setUserUuid(String userUuid) {
-		_userUuid = userUuid;
 	}
 
 	public long getOriginalUserId() {
 		return _originalUserId;
 	}
 
+	@Override
 	public String getType() {
 		if (_type == null) {
 			return StringPool.BLANK;
@@ -279,28 +343,71 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 		}
 	}
 
+	@Override
 	public void setType(String type) {
 		_type = type;
 	}
 
+	@Override
 	public long getTimestamp() {
 		return _timestamp;
 	}
 
+	@Override
 	public void setTimestamp(long timestamp) {
 		_columnBitmask = -1L;
 
 		_timestamp = timestamp;
 	}
 
+	@Override
+	public int getDeliveryType() {
+		return _deliveryType;
+	}
+
+	@Override
+	public void setDeliveryType(int deliveryType) {
+		_deliveryType = deliveryType;
+	}
+
+	@Override
 	public long getDeliverBy() {
 		return _deliverBy;
 	}
 
+	@Override
 	public void setDeliverBy(long deliverBy) {
 		_deliverBy = deliverBy;
 	}
 
+	@Override
+	public boolean getDelivered() {
+		return _delivered;
+	}
+
+	@Override
+	public boolean isDelivered() {
+		return _delivered;
+	}
+
+	@Override
+	public void setDelivered(boolean delivered) {
+		_columnBitmask |= DELIVERED_COLUMN_BITMASK;
+
+		if (!_setOriginalDelivered) {
+			_setOriginalDelivered = true;
+
+			_originalDelivered = _delivered;
+		}
+
+		_delivered = delivered;
+	}
+
+	public boolean getOriginalDelivered() {
+		return _originalDelivered;
+	}
+
+	@Override
 	public String getPayload() {
 		if (_payload == null) {
 			return StringPool.BLANK;
@@ -310,18 +417,22 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 		}
 	}
 
+	@Override
 	public void setPayload(String payload) {
 		_payload = payload;
 	}
 
+	@Override
 	public boolean getArchived() {
 		return _archived;
 	}
 
+	@Override
 	public boolean isArchived() {
 		return _archived;
 	}
 
+	@Override
 	public void setArchived(boolean archived) {
 		_columnBitmask |= ARCHIVED_COLUMN_BITMASK;
 
@@ -343,17 +454,6 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 	}
 
 	@Override
-	public UserNotificationEvent toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (UserNotificationEvent)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			UserNotificationEvent.class.getName(), getPrimaryKey());
@@ -367,16 +467,29 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 	}
 
 	@Override
+	public UserNotificationEvent toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (UserNotificationEvent)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		UserNotificationEventImpl userNotificationEventImpl = new UserNotificationEventImpl();
 
+		userNotificationEventImpl.setMvccVersion(getMvccVersion());
 		userNotificationEventImpl.setUuid(getUuid());
 		userNotificationEventImpl.setUserNotificationEventId(getUserNotificationEventId());
 		userNotificationEventImpl.setCompanyId(getCompanyId());
 		userNotificationEventImpl.setUserId(getUserId());
 		userNotificationEventImpl.setType(getType());
 		userNotificationEventImpl.setTimestamp(getTimestamp());
+		userNotificationEventImpl.setDeliveryType(getDeliveryType());
 		userNotificationEventImpl.setDeliverBy(getDeliverBy());
+		userNotificationEventImpl.setDelivered(getDelivered());
 		userNotificationEventImpl.setPayload(getPayload());
 		userNotificationEventImpl.setArchived(getArchived());
 
@@ -385,6 +498,7 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 		return userNotificationEventImpl;
 	}
 
+	@Override
 	public int compareTo(UserNotificationEvent userNotificationEvent) {
 		int value = 0;
 
@@ -409,18 +523,15 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof UserNotificationEvent)) {
 			return false;
 		}
 
-		UserNotificationEvent userNotificationEvent = null;
-
-		try {
-			userNotificationEvent = (UserNotificationEvent)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		UserNotificationEvent userNotificationEvent = (UserNotificationEvent)obj;
 
 		long primaryKey = userNotificationEvent.getPrimaryKey();
 
@@ -438,6 +549,16 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		UserNotificationEventModelImpl userNotificationEventModelImpl = this;
 
@@ -451,6 +572,10 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 
 		userNotificationEventModelImpl._setOriginalUserId = false;
 
+		userNotificationEventModelImpl._originalDelivered = userNotificationEventModelImpl._delivered;
+
+		userNotificationEventModelImpl._setOriginalDelivered = false;
+
 		userNotificationEventModelImpl._originalArchived = userNotificationEventModelImpl._archived;
 
 		userNotificationEventModelImpl._setOriginalArchived = false;
@@ -461,6 +586,8 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 	@Override
 	public CacheModel<UserNotificationEvent> toCacheModel() {
 		UserNotificationEventCacheModel userNotificationEventCacheModel = new UserNotificationEventCacheModel();
+
+		userNotificationEventCacheModel.mvccVersion = getMvccVersion();
 
 		userNotificationEventCacheModel.uuid = getUuid();
 
@@ -486,7 +613,11 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 
 		userNotificationEventCacheModel.timestamp = getTimestamp();
 
+		userNotificationEventCacheModel.deliveryType = getDeliveryType();
+
 		userNotificationEventCacheModel.deliverBy = getDeliverBy();
+
+		userNotificationEventCacheModel.delivered = getDelivered();
 
 		userNotificationEventCacheModel.payload = getPayload();
 
@@ -503,9 +634,11 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(25);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", uuid=");
 		sb.append(getUuid());
 		sb.append(", userNotificationEventId=");
 		sb.append(getUserNotificationEventId());
@@ -517,8 +650,12 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 		sb.append(getType());
 		sb.append(", timestamp=");
 		sb.append(getTimestamp());
+		sb.append(", deliveryType=");
+		sb.append(getDeliveryType());
 		sb.append(", deliverBy=");
 		sb.append(getDeliverBy());
+		sb.append(", delivered=");
+		sb.append(getDelivered());
 		sb.append(", payload=");
 		sb.append(getPayload());
 		sb.append(", archived=");
@@ -528,13 +665,18 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(31);
+		StringBundler sb = new StringBundler(40);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.UserNotificationEvent");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>uuid</column-name><column-value><![CDATA[");
 		sb.append(getUuid());
@@ -560,8 +702,16 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 		sb.append(getTimestamp());
 		sb.append("]]></column-value></column>");
 		sb.append(
+			"<column><column-name>deliveryType</column-name><column-value><![CDATA[");
+		sb.append(getDeliveryType());
+		sb.append("]]></column-value></column>");
+		sb.append(
 			"<column><column-name>deliverBy</column-name><column-value><![CDATA[");
 		sb.append(getDeliverBy());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>delivered</column-name><column-value><![CDATA[");
+		sb.append(getDelivered());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>payload</column-name><column-value><![CDATA[");
@@ -578,9 +728,10 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 	}
 
 	private static ClassLoader _classLoader = UserNotificationEvent.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			UserNotificationEvent.class
 		};
+	private long _mvccVersion;
 	private String _uuid;
 	private String _originalUuid;
 	private long _userNotificationEventId;
@@ -588,16 +739,19 @@ public class UserNotificationEventModelImpl extends BaseModelImpl<UserNotificati
 	private long _originalCompanyId;
 	private boolean _setOriginalCompanyId;
 	private long _userId;
-	private String _userUuid;
 	private long _originalUserId;
 	private boolean _setOriginalUserId;
 	private String _type;
 	private long _timestamp;
+	private int _deliveryType;
 	private long _deliverBy;
+	private boolean _delivered;
+	private boolean _originalDelivered;
+	private boolean _setOriginalDelivered;
 	private String _payload;
 	private boolean _archived;
 	private boolean _originalArchived;
 	private boolean _setOriginalArchived;
 	private long _columnBitmask;
-	private UserNotificationEvent _escapedModelProxy;
+	private UserNotificationEvent _escapedModel;
 }

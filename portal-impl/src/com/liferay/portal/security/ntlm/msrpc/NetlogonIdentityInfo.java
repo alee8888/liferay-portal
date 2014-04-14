@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +29,7 @@ public class NetlogonIdentityInfo extends NdrObject {
 		int reservedHigh, String userName, String workstation) {
 
 		_logonDomainName = new UnicodeString(logonDomainName, false);
-		_parameterControl= parameterControl;
+		_parameterControl = parameterControl;
 		_reservedLow = reservedLow;
 		_reservedHigh = reservedHigh;
 		_userName = new UnicodeString(userName, false);

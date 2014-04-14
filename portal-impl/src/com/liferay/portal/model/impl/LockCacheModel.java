@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,8 +18,12 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.Lock;
+import com.liferay.portal.model.MVCCModel;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import java.util.Date;
 
@@ -30,12 +34,25 @@ import java.util.Date;
  * @see Lock
  * @generated
  */
-public class LockCacheModel implements CacheModel<Lock>, Serializable {
+public class LockCacheModel implements CacheModel<Lock>, Externalizable,
+	MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(23);
+		StringBundler sb = new StringBundler(25);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", lockId=");
 		sb.append(lockId);
@@ -62,8 +79,11 @@ public class LockCacheModel implements CacheModel<Lock>, Serializable {
 		return sb.toString();
 	}
 
+	@Override
 	public Lock toEntityModel() {
 		LockImpl lockImpl = new LockImpl();
+
+		lockImpl.setMvccVersion(mvccVersion);
 
 		if (uuid == null) {
 			lockImpl.setUuid(StringPool.BLANK);
@@ -125,6 +145,73 @@ public class LockCacheModel implements CacheModel<Lock>, Serializable {
 		return lockImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		uuid = objectInput.readUTF();
+		lockId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		userId = objectInput.readLong();
+		userName = objectInput.readUTF();
+		createDate = objectInput.readLong();
+		className = objectInput.readUTF();
+		key = objectInput.readUTF();
+		owner = objectInput.readUTF();
+		inheritable = objectInput.readBoolean();
+		expirationDate = objectInput.readLong();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
+		if (uuid == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(uuid);
+		}
+
+		objectOutput.writeLong(lockId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(userId);
+
+		if (userName == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(userName);
+		}
+
+		objectOutput.writeLong(createDate);
+
+		if (className == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(className);
+		}
+
+		if (key == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(key);
+		}
+
+		if (owner == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(owner);
+		}
+
+		objectOutput.writeBoolean(inheritable);
+		objectOutput.writeLong(expirationDate);
+	}
+
+	public long mvccVersion;
 	public String uuid;
 	public long lockId;
 	public long companyId;

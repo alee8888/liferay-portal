@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,8 +21,8 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.model.BaseModel;
+import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.spring.aop.AnnotationChainableMethodAdvice;
-import com.liferay.portal.spring.aop.ServiceBeanAopProxy;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -62,7 +62,23 @@ public class IndexableAdvice
 			return;
 		}
 
-		Indexer indexer = IndexerRegistryUtil.getIndexer(returnType.getName());
+		Object[] arguments = methodInvocation.getArguments();
+
+		ServiceContext serviceContext = null;
+
+		for (int i = arguments.length - 1; i >= 0; i--) {
+			if (arguments[i] instanceof ServiceContext) {
+				serviceContext = (ServiceContext)arguments[i];
+
+				break;
+			}
+		}
+
+		Indexer indexer = null;
+
+		if ((serviceContext == null) || serviceContext.isIndexingEnabled()) {
+			indexer = IndexerRegistryUtil.getIndexer(returnType.getName());
+		}
 
 		if (indexer != null) {
 			if (indexable.type() == IndexableType.DELETE) {
@@ -73,7 +89,8 @@ public class IndexableAdvice
 			}
 		}
 		else {
-			ServiceBeanAopProxy.removeMethodInterceptor(methodInvocation, this);
+			serviceBeanAopCacheManager.removeMethodInterceptor(
+				methodInvocation, this);
 		}
 	}
 
@@ -87,10 +104,12 @@ public class IndexableAdvice
 	private static Indexable _nullIndexable =
 		new Indexable() {
 
+			@Override
 			public Class<? extends Annotation> annotationType() {
 				return Indexable.class;
 			}
 
+			@Override
 			public IndexableType type() {
 				return null;
 			}

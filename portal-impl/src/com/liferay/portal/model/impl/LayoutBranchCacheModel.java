@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,8 +18,12 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.LayoutBranch;
+import com.liferay.portal.model.MVCCModel;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing LayoutBranch in entity cache.
@@ -29,12 +33,24 @@ import java.io.Serializable;
  * @generated
  */
 public class LayoutBranchCacheModel implements CacheModel<LayoutBranch>,
-	Serializable {
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(21);
+		StringBundler sb = new StringBundler(23);
 
-		sb.append("{LayoutBranchId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", LayoutBranchId=");
 		sb.append(LayoutBranchId);
 		sb.append(", groupId=");
 		sb.append(groupId);
@@ -59,9 +75,11 @@ public class LayoutBranchCacheModel implements CacheModel<LayoutBranch>,
 		return sb.toString();
 	}
 
+	@Override
 	public LayoutBranch toEntityModel() {
 		LayoutBranchImpl layoutBranchImpl = new LayoutBranchImpl();
 
+		layoutBranchImpl.setMvccVersion(mvccVersion);
 		layoutBranchImpl.setLayoutBranchId(LayoutBranchId);
 		layoutBranchImpl.setGroupId(groupId);
 		layoutBranchImpl.setCompanyId(companyId);
@@ -98,6 +116,58 @@ public class LayoutBranchCacheModel implements CacheModel<LayoutBranch>,
 		return layoutBranchImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		LayoutBranchId = objectInput.readLong();
+		groupId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		userId = objectInput.readLong();
+		userName = objectInput.readUTF();
+		layoutSetBranchId = objectInput.readLong();
+		plid = objectInput.readLong();
+		name = objectInput.readUTF();
+		description = objectInput.readUTF();
+		master = objectInput.readBoolean();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(LayoutBranchId);
+		objectOutput.writeLong(groupId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(userId);
+
+		if (userName == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(userName);
+		}
+
+		objectOutput.writeLong(layoutSetBranchId);
+		objectOutput.writeLong(plid);
+
+		if (name == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(name);
+		}
+
+		if (description == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(description);
+		}
+
+		objectOutput.writeBoolean(master);
+	}
+
+	public long mvccVersion;
 	public long LayoutBranchId;
 	public long groupId;
 	public long companyId;

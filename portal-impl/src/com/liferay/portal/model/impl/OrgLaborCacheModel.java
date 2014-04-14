@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,9 +16,13 @@ package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.OrgLabor;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing OrgLabor in entity cache.
@@ -27,12 +31,25 @@ import java.io.Serializable;
  * @see OrgLabor
  * @generated
  */
-public class OrgLaborCacheModel implements CacheModel<OrgLabor>, Serializable {
+public class OrgLaborCacheModel implements CacheModel<OrgLabor>, Externalizable,
+	MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(35);
+		StringBundler sb = new StringBundler(37);
 
-		sb.append("{orgLaborId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", orgLaborId=");
 		sb.append(orgLaborId);
 		sb.append(", organizationId=");
 		sb.append(organizationId);
@@ -71,9 +88,11 @@ public class OrgLaborCacheModel implements CacheModel<OrgLabor>, Serializable {
 		return sb.toString();
 	}
 
+	@Override
 	public OrgLabor toEntityModel() {
 		OrgLaborImpl orgLaborImpl = new OrgLaborImpl();
 
+		orgLaborImpl.setMvccVersion(mvccVersion);
 		orgLaborImpl.setOrgLaborId(orgLaborId);
 		orgLaborImpl.setOrganizationId(organizationId);
 		orgLaborImpl.setTypeId(typeId);
@@ -97,6 +116,52 @@ public class OrgLaborCacheModel implements CacheModel<OrgLabor>, Serializable {
 		return orgLaborImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		orgLaborId = objectInput.readLong();
+		organizationId = objectInput.readLong();
+		typeId = objectInput.readInt();
+		sunOpen = objectInput.readInt();
+		sunClose = objectInput.readInt();
+		monOpen = objectInput.readInt();
+		monClose = objectInput.readInt();
+		tueOpen = objectInput.readInt();
+		tueClose = objectInput.readInt();
+		wedOpen = objectInput.readInt();
+		wedClose = objectInput.readInt();
+		thuOpen = objectInput.readInt();
+		thuClose = objectInput.readInt();
+		friOpen = objectInput.readInt();
+		friClose = objectInput.readInt();
+		satOpen = objectInput.readInt();
+		satClose = objectInput.readInt();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(orgLaborId);
+		objectOutput.writeLong(organizationId);
+		objectOutput.writeInt(typeId);
+		objectOutput.writeInt(sunOpen);
+		objectOutput.writeInt(sunClose);
+		objectOutput.writeInt(monOpen);
+		objectOutput.writeInt(monClose);
+		objectOutput.writeInt(tueOpen);
+		objectOutput.writeInt(tueClose);
+		objectOutput.writeInt(wedOpen);
+		objectOutput.writeInt(wedClose);
+		objectOutput.writeInt(thuOpen);
+		objectOutput.writeInt(thuClose);
+		objectOutput.writeInt(friOpen);
+		objectOutput.writeInt(friClose);
+		objectOutput.writeInt(satOpen);
+		objectOutput.writeInt(satClose);
+	}
+
+	public long mvccVersion;
 	public long orgLaborId;
 	public long organizationId;
 	public int typeId;

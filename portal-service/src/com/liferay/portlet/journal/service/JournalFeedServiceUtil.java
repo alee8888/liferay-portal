@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
- * The utility for the journal feed remote service. This utility wraps {@link com.liferay.portlet.journal.service.impl.JournalFeedServiceImpl} and is the primary access point for service operations in application layer code running on a remote server.
- *
- * <p>
- * This is a remote service. Methods of this service are expected to have security checks based on the propagated JAAS credentials because this service can be accessed remotely.
- * </p>
+ * Provides the remote service utility for JournalFeed. This utility wraps
+ * {@link com.liferay.portlet.journal.service.impl.JournalFeedServiceImpl} and is the
+ * primary access point for service operations in application layer code running
+ * on a remote server. Methods of this service are expected to have security
+ * checks based on the propagated JAAS credentials because this service can be
+ * accessed remotely.
  *
  * @author Brian Wing Shun Chan
  * @see JournalFeedService
@@ -30,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.journal.service.impl.JournalFeedServiceImpl
  * @generated
  */
+@ProviderType
 public class JournalFeedServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -74,6 +78,16 @@ public class JournalFeedServiceUtil {
 			contentField, feedType, feedVersion, serviceContext);
 	}
 
+	public static void deleteFeed(long feedId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().deleteFeed(feedId);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #deleteFeed(long, String)}
+	*/
+	@Deprecated
 	public static void deleteFeed(long groupId, long feedId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -86,6 +100,17 @@ public class JournalFeedServiceUtil {
 		getService().deleteFeed(groupId, feedId);
 	}
 
+	public static com.liferay.portlet.journal.model.JournalFeed getFeed(
+		long feedId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getFeed(feedId);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getFeed(long, String)}
+	*/
+	@Deprecated
 	public static com.liferay.portlet.journal.model.JournalFeed getFeed(
 		long groupId, long feedId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -131,8 +156,9 @@ public class JournalFeedServiceUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(JournalFeedService service) {
 	}
 

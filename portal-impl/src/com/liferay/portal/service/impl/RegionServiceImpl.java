@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,6 +30,7 @@ import java.util.List;
  */
 public class RegionServiceImpl extends RegionServiceBaseImpl {
 
+	@Override
 	public Region addRegion(
 			long countryId, String regionCode, String name, boolean active)
 		throws PortalException, SystemException {
@@ -57,41 +58,53 @@ public class RegionServiceImpl extends RegionServiceBaseImpl {
 		region.setName(name);
 		region.setActive(active);
 
-		regionPersistence.update(region, false);
+		regionPersistence.update(region);
 
 		return region;
 	}
 
+	@Override
+	public Region fetchRegion(long regionId) throws SystemException {
+		return regionPersistence.fetchByPrimaryKey(regionId);
+	}
+
+	@Override
 	public Region fetchRegion(long countryId, String regionCode)
 		throws SystemException {
 
 		return regionPersistence.fetchByC_R(countryId, regionCode);
 	}
 
+	@Override
 	public Region getRegion(long regionId)
 		throws PortalException, SystemException {
 
 		return regionPersistence.findByPrimaryKey(regionId);
 	}
 
+	@Override
 	public Region getRegion(long countryId, String regionCode)
 		throws PortalException, SystemException {
 
 		return regionPersistence.findByC_R(countryId, regionCode);
 	}
 
+	@Override
 	public List<Region> getRegions() throws SystemException {
 		return regionPersistence.findAll();
 	}
 
+	@Override
 	public List<Region> getRegions(boolean active) throws SystemException {
 		return regionPersistence.findByActive(active);
 	}
 
+	@Override
 	public List<Region> getRegions(long countryId) throws SystemException {
 		return regionPersistence.findByCountryId(countryId);
 	}
 
+	@Override
 	public List<Region> getRegions(long countryId, boolean active)
 		throws SystemException {
 

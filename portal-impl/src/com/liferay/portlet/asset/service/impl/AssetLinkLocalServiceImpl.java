@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,11 +19,13 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.model.User;
 import com.liferay.portlet.asset.NoSuchLinkException;
+import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.AssetLink;
 import com.liferay.portlet.asset.model.AssetLinkConstants;
 import com.liferay.portlet.asset.service.base.AssetLinkLocalServiceBaseImpl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -57,6 +59,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	 * @throws PortalException if the user could not be found
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public AssetLink addLink(
 			long userId, long entryId1, long entryId2, int type, int weight)
 		throws PortalException, SystemException {
@@ -77,7 +80,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 		link.setType(type);
 		link.setWeight(weight);
 
-		assetLinkPersistence.update(link, false);
+		assetLinkPersistence.update(link);
 
 		if (AssetLinkConstants.isTypeBi(type)) {
 			long linkId2 = counterLocalService.increment();
@@ -93,7 +96,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 			link2.setType(type);
 			link2.setWeight(weight);
 
-			assetLinkPersistence.update(link2, false);
+			assetLinkPersistence.update(link2);
 		}
 
 		return link;
@@ -105,6 +108,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	 * @param  link the asset link
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public void deleteLink(AssetLink link) throws SystemException {
 		if (AssetLinkConstants.isTypeBi(link.getType())) {
 			try {
@@ -125,6 +129,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	 * @throws PortalException if the asset link could not be found
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public void deleteLink(long linkId)
 		throws PortalException, SystemException {
 
@@ -139,6 +144,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	 * @param  entryId the primary key of the asset entry
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public void deleteLinks(long entryId) throws SystemException {
 		for (AssetLink link : assetLinkPersistence.findByE1(entryId)) {
 			deleteLink(link);
@@ -156,6 +162,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	 * @param  entryId2 the primary key of the second asset entry
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public void deleteLinks(long entryId1, long entryId2)
 		throws SystemException {
 
@@ -174,8 +181,27 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	 * @return the asset links whose first entry ID is the given entry ID
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public List<AssetLink> getDirectLinks(long entryId) throws SystemException {
-		return assetLinkFinder.findByE1_V(entryId, true);
+		List<AssetLink> assetLinks = assetLinkPersistence.findByE1(entryId);
+
+		if (!assetLinks.isEmpty()) {
+			List<AssetLink> filteredAssetLinks = new ArrayList<AssetLink>(
+				assetLinks.size());
+
+			for (AssetLink assetLink : assetLinks) {
+				AssetEntry assetEntry = assetEntryPersistence.fetchByPrimaryKey(
+					assetLink.getEntryId2());
+
+				if ((assetEntry != null) && assetEntry.isVisible()) {
+					filteredAssetLinks.add(assetLink);
+				}
+			}
+
+			assetLinks = Collections.unmodifiableList(filteredAssetLinks);
+		}
+
+		return assetLinks;
 	}
 
 	/**
@@ -193,10 +219,30 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	 *         the given entry ID
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public List<AssetLink> getDirectLinks(long entryId, int typeId)
 		throws SystemException {
 
-		return assetLinkFinder.findByE1_T_V(entryId, typeId, true);
+		List<AssetLink> assetLinks = assetLinkPersistence.findByE1_T(
+			entryId, typeId);
+
+		if (!assetLinks.isEmpty()) {
+			List<AssetLink> filteredAssetLinks = new ArrayList<AssetLink>(
+				assetLinks.size());
+
+			for (AssetLink assetLink : assetLinks) {
+				AssetEntry assetEntry = assetEntryPersistence.fetchByPrimaryKey(
+					assetLink.getEntryId2());
+
+				if ((assetEntry != null) && assetEntry.isVisible()) {
+					filteredAssetLinks.add(assetLink);
+				}
+			}
+
+			assetLinks = Collections.unmodifiableList(filteredAssetLinks);
+		}
+
+		return assetLinks;
 	}
 
 	/**
@@ -208,6 +254,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	 *         ID
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public List<AssetLink> getLinks(long entryId) throws SystemException {
 		List<AssetLink> e1Links = assetLinkPersistence.findByE1(entryId);
 		List<AssetLink> e2Links = assetLinkPersistence.findByE2(entryId);
@@ -236,6 +283,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	 *         entry ID is the given entry ID
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public List<AssetLink> getLinks(long entryId, int typeId)
 		throws SystemException {
 
@@ -268,10 +316,30 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	 *         the given entry ID
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public List<AssetLink> getReverseLinks(long entryId, int typeId)
 		throws SystemException {
 
 		return assetLinkPersistence.findByE2_T(entryId, typeId);
+	}
+
+	@Override
+	public AssetLink updateLink(
+			long userId, long entryId1, long entryId2, int typeId, int weight)
+		throws PortalException, SystemException {
+
+		AssetLink assetLink = assetLinkPersistence.fetchByE_E_T(
+			entryId1, entryId2, typeId);
+
+		if (assetLink == null) {
+			return addLink(userId, entryId1, entryId2, typeId, weight);
+		}
+
+		assetLink.setWeight(weight);
+
+		assetLinkPersistence.update(assetLink);
+
+		return assetLink;
 	}
 
 	/**
@@ -300,6 +368,7 @@ public class AssetLinkLocalServiceImpl extends AssetLinkLocalServiceBaseImpl {
 	 * @throws PortalException if the user could not be found
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public void updateLinks(
 			long userId, long entryId, long[] linkEntryIds, int typeId)
 		throws PortalException, SystemException {

@@ -6,16 +6,16 @@
 .social-activity-items {
 	h4 {
 		font-size: 1.1em;
-		margin-bottom: 0px;
+		margin-bottom: 0;
 	}
 
-	.aui-field-choice {
+	.field-choice {
 		display: inline-block;
 	}
 
 	.social-activity-item {
 		cursor: pointer;
-		padding: 6px 0px 6px 3px;
+		padding: 6px 0 6px 3px;
 		position: relative;
 
 		.social-activity-item-content {
@@ -52,21 +52,21 @@
 }
 
 .social-activity-details {
-	.aui-settings-display .aui-settings-display-content {
+	.settings-display .settings-display-content {
 		background-color: #FFF;
 		border: 1px solid #CCC;
-		margin: 0px 15px 5px 0px;
-		padding: 0px 15px;
+		margin: 0 15px 5px 0;
+		padding: 0 15px;
 
-		.aui-settings-field {
+		.settings-field {
 			font-weight: bold;
 			list-style: none;
 
-			.aui-settings-field-content {
+			.settings-field-content {
 				position: relative;
 
 				select {
-					margin: 0px 4px;
+					margin: 0 4px;
 					padding: 3px;
 				}
 			}
@@ -92,7 +92,7 @@
 			min-height: 130px;
 
 			.content-field {
-				border-bottom: 1px solid #ccc;
+				border-bottom: 1px solid #CCC;
 				padding: 8px 0 8px 10px;
 
 				.settings-controls {
@@ -106,7 +106,7 @@
 			}
 		}
 
-		.aui-button-row {
+		.button-row {
 			padding: 5px 0;
 		}
 
@@ -122,11 +122,10 @@
 
 			.settings-actions {
 				display: inline-block;
-				margin: 0px;
+				margin: 0;
 			}
 
 			.settings-header-label {
-				font-weight: bold;
 				padding: 0 5px;
 			}
 
@@ -139,9 +138,8 @@
 		}
 
 		.settings-container-label {
-			border-bottom: 1px solid #ccc;
+			border-bottom: 1px solid #CCC;
 			font-size: 1.2em;
-			font-weight: bold;
 			margin-top: 10px;
 			padding: 0 5px;
 		}

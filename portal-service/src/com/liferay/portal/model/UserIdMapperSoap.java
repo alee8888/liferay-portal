@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,13 +22,14 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services.
  *
- * @author    Brian Wing Shun Chan
+ * @author Brian Wing Shun Chan
  * @generated
  */
 public class UserIdMapperSoap implements Serializable {
 	public static UserIdMapperSoap toSoapModel(UserIdMapper model) {
 		UserIdMapperSoap soapModel = new UserIdMapperSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUserIdMapperId(model.getUserIdMapperId());
 		soapModel.setUserId(model.getUserId());
 		soapModel.setType(model.getType());
@@ -86,6 +87,14 @@ public class UserIdMapperSoap implements Serializable {
 		setUserIdMapperId(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public long getUserIdMapperId() {
 		return _userIdMapperId;
 	}
@@ -126,6 +135,7 @@ public class UserIdMapperSoap implements Serializable {
 		_externalUserId = externalUserId;
 	}
 
+	private long _mvccVersion;
 	private long _userIdMapperId;
 	private long _userId;
 	private String _type;

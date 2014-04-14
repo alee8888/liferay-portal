@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,18 +27,22 @@ public class PortletURLListenerImpl implements PortletURLListener {
 		_portletApp = portletApp;
 	}
 
+	@Override
 	public String getListenerClass() {
 		return _listenerClass;
 	}
 
+	@Override
 	public PortletApp getPortletApp() {
 		return _portletApp;
 	}
 
+	@Override
 	public void setListenerClass(String listenerClass) {
 		_listenerClass = listenerClass;
 	}
 
+	@Override
 	public void setPortletApp(PortletApp portletApp) {
 		_portletApp = portletApp;
 	}

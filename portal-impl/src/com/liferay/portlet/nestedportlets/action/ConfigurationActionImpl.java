@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.portlet.DefaultConfigurationAction;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutTemplate;
@@ -27,10 +28,9 @@ import com.liferay.portal.model.Theme;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.LayoutTemplateLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
-import com.liferay.util.UniqueList;
 
 import java.util.HashSet;
 import java.util.List;
@@ -60,9 +60,7 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 		String portletResource = ParamUtil.getString(
 			actionRequest, "portletResource");
 
-		PortletPreferences preferences =
-			PortletPreferencesFactoryUtil.getPortletSetup(
-				actionRequest, portletResource);
+		PortletPreferences preferences = actionRequest.getPreferences();
 
 		String oldLayoutTemplateId = preferences.getValue(
 			"layoutTemplateId",
@@ -91,8 +89,10 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 		List<String> columnNames = new UniqueList<String>();
 
 		for (String columnId : columnIds) {
-			if (columnId.indexOf(portletId) == -1) {
-				columnNames.add(portletId + StringPool.UNDERLINE + columnId);
+			if (!columnId.contains(portletId)) {
+				columnNames.add(
+					PortalUtil.getPortletNamespace(portletId) +
+						StringPool.UNDERLINE + columnId);
 			}
 		}
 

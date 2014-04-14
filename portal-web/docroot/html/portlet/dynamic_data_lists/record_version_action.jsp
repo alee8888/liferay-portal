@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,7 +21,7 @@ ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_
 
 DDLRecordVersion recordVersion = (DDLRecordVersion)row.getObject();
 
-long detailDDMTemplateId = GetterUtil.getLong((String)row.getParameter("detailDDMTemplateId"));
+long formDDMTemplateId = GetterUtil.getLong((String)row.getParameter("formDDMTemplateId"));
 %>
 
 <liferay-ui:icon-menu>
@@ -30,11 +30,12 @@ long detailDDMTemplateId = GetterUtil.getLong((String)row.getParameter("detailDD
 		<portlet:param name="redirect" value="<%= currentURL %>" />
 		<portlet:param name="recordId" value="<%= String.valueOf(recordVersion.getRecordId()) %>" />
 		<portlet:param name="version" value="<%= recordVersion.getVersion() %>" />
-		<portlet:param name="detailDDMTemplateId" value="<%= String.valueOf(detailDDMTemplateId) %>" />
+		<portlet:param name="formDDMTemplateId" value="<%= String.valueOf(formDDMTemplateId) %>" />
 	</liferay-portlet:renderURL>
 
 	<liferay-ui:icon
 		image="view"
+		message="view[action]"
 		url="<%= viewRecordVersionURL %>"
 	/>
 

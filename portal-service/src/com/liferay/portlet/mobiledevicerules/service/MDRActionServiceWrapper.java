@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.mobiledevicerules.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link MDRActionService}.
- * </p>
+ * Provides a wrapper for {@link MDRActionService}.
  *
- * @author    Edward C. Han
- * @see       MDRActionService
+ * @author Edward C. Han
+ * @see MDRActionService
  * @generated
  */
+@ProviderType
 public class MDRActionServiceWrapper implements MDRActionService,
 	ServiceWrapper<MDRActionService> {
 	public MDRActionServiceWrapper(MDRActionService mdrActionService) {
@@ -36,6 +37,7 @@ public class MDRActionServiceWrapper implements MDRActionService,
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _mdrActionService.getBeanIdentifier();
 	}
@@ -45,10 +47,12 @@ public class MDRActionServiceWrapper implements MDRActionService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_mdrActionService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public com.liferay.portlet.mobiledevicerules.model.MDRAction addAction(
 		long ruleGroupInstanceId,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
@@ -61,6 +65,7 @@ public class MDRActionServiceWrapper implements MDRActionService,
 			descriptionMap, type, typeSettings, serviceContext);
 	}
 
+	@Override
 	public com.liferay.portlet.mobiledevicerules.model.MDRAction addAction(
 		long ruleGroupInstanceId,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
@@ -74,12 +79,14 @@ public class MDRActionServiceWrapper implements MDRActionService,
 			descriptionMap, type, typeSettingsProperties, serviceContext);
 	}
 
+	@Override
 	public void deleteAction(long actionId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_mdrActionService.deleteAction(actionId);
 	}
 
+	@Override
 	public com.liferay.portlet.mobiledevicerules.model.MDRAction fetchAction(
 		long actionId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -87,6 +94,7 @@ public class MDRActionServiceWrapper implements MDRActionService,
 		return _mdrActionService.fetchAction(actionId);
 	}
 
+	@Override
 	public com.liferay.portlet.mobiledevicerules.model.MDRAction getAction(
 		long actionId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -94,6 +102,7 @@ public class MDRActionServiceWrapper implements MDRActionService,
 		return _mdrActionService.getAction(actionId);
 	}
 
+	@Override
 	public com.liferay.portlet.mobiledevicerules.model.MDRAction updateAction(
 		long actionId,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
@@ -106,6 +115,7 @@ public class MDRActionServiceWrapper implements MDRActionService,
 			descriptionMap, type, typeSettings, serviceContext);
 	}
 
+	@Override
 	public com.liferay.portlet.mobiledevicerules.model.MDRAction updateAction(
 		long actionId,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
@@ -120,23 +130,27 @@ public class MDRActionServiceWrapper implements MDRActionService,
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MDRActionService getWrappedMDRActionService() {
 		return _mdrActionService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMDRActionService(MDRActionService mdrActionService) {
 		_mdrActionService = mdrActionService;
 	}
 
+	@Override
 	public MDRActionService getWrappedService() {
 		return _mdrActionService;
 	}
 
+	@Override
 	public void setWrappedService(MDRActionService mdrActionService) {
 		_mdrActionService = mdrActionService;
 	}

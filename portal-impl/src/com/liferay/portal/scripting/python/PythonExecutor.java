@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portal.scripting.python;
 
+import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cache.SingleVMPoolUtil;
 import com.liferay.portal.kernel.scripting.BaseScriptingExecutor;
 import com.liferay.portal.kernel.scripting.ExecutionException;
@@ -36,12 +37,13 @@ public class PythonExecutor extends BaseScriptingExecutor {
 
 	@Override
 	public void clearCache() {
-		SingleVMPoolUtil.clear(_CACHE_NAME);
+		_portalCache.removeAll();
 	}
 
+	@Override
 	public Map<String, Object> eval(
 			Set<String> allowedClasses, Map<String, Object> inputObjects,
-			Set<String> outputNames, String script)
+			Set<String> outputNames, String script, ClassLoader... classLoaders)
 		throws ScriptingException {
 
 		if (allowedClasses != null) {
@@ -77,6 +79,7 @@ public class PythonExecutor extends BaseScriptingExecutor {
 		return outputObjects;
 	}
 
+	@Override
 	public String getLanguage() {
 		return _LANGUAGE;
 	}
@@ -94,13 +97,13 @@ public class PythonExecutor extends BaseScriptingExecutor {
 
 		String key = String.valueOf(script.hashCode());
 
-		PyCode compiledScript = (PyCode)SingleVMPoolUtil.get(_CACHE_NAME, key);
+		PyCode compiledScript = _portalCache.get(key);
 
 		if (compiledScript == null) {
 			compiledScript = Py.compile_flags(
 				script, "<string>", CompileMode.exec, Py.getCompilerFlags());
 
-			SingleVMPoolUtil.put(_CACHE_NAME, key, compiledScript);
+			_portalCache.put(key, compiledScript);
 		}
 
 		return compiledScript;
@@ -111,5 +114,7 @@ public class PythonExecutor extends BaseScriptingExecutor {
 	private static final String _LANGUAGE = "python";
 
 	private volatile boolean _initialized;
+	private PortalCache<String, PyCode> _portalCache =
+		SingleVMPoolUtil.getCache(_CACHE_NAME);
 
 }

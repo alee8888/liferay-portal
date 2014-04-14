@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.mail.Account;
 import com.liferay.portal.kernel.mail.MailMessage;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.util.InfrastructureUtil;
 import com.liferay.portal.kernel.util.MethodHandler;
 import com.liferay.portal.kernel.util.MethodKey;
@@ -45,8 +46,10 @@ import javax.mail.Session;
 /**
  * @author Brian Wing Shun Chan
  */
+@DoPrivileged
 public class MailServiceImpl implements MailService, IdentifiableBean {
 
+	@Override
 	public void addForward(
 		long companyId, long userId, List<Filter> filters,
 		List<String> emailAddresses, boolean leaveCopy) {
@@ -62,6 +65,7 @@ public class MailServiceImpl implements MailService, IdentifiableBean {
 		MessageBusUtil.sendMessage(DestinationNames.MAIL, methodHandler);
 	}
 
+	@Override
 	public void addUser(
 		long companyId, long userId, String password, String firstName,
 		String middleName, String lastName, String emailAddress) {
@@ -77,6 +81,7 @@ public class MailServiceImpl implements MailService, IdentifiableBean {
 		MessageBusUtil.sendMessage(DestinationNames.MAIL, methodHandler);
 	}
 
+	@Override
 	public void addVacationMessage(
 		long companyId, long userId, String emailAddress,
 		String vacationMessage) {
@@ -92,10 +97,12 @@ public class MailServiceImpl implements MailService, IdentifiableBean {
 		MessageBusUtil.sendMessage(DestinationNames.MAIL, methodHandler);
 	}
 
+	@Override
 	public void clearSession() {
 		_session = null;
 	}
 
+	@Override
 	public void deleteEmailAddress(long companyId, long userId) {
 		if (_log.isDebugEnabled()) {
 			_log.debug("deleteEmailAddress");
@@ -107,6 +114,7 @@ public class MailServiceImpl implements MailService, IdentifiableBean {
 		MessageBusUtil.sendMessage(DestinationNames.MAIL, methodHandler);
 	}
 
+	@Override
 	public void deleteUser(long companyId, long userId) {
 		if (_log.isDebugEnabled()) {
 			_log.debug("deleteUser");
@@ -118,10 +126,12 @@ public class MailServiceImpl implements MailService, IdentifiableBean {
 		MessageBusUtil.sendMessage(DestinationNames.MAIL, methodHandler);
 	}
 
+	@Override
 	public String getBeanIdentifier() {
 		return _beanIdentifier;
 	}
 
+	@Override
 	public Session getSession() throws SystemException {
 		if (_session != null) {
 			return _session;
@@ -240,6 +250,7 @@ public class MailServiceImpl implements MailService, IdentifiableBean {
 		return _session;
 	}
 
+	@Override
 	public void sendEmail(MailMessage mailMessage) {
 		if (_log.isDebugEnabled()) {
 			_log.debug("sendEmail");
@@ -248,10 +259,12 @@ public class MailServiceImpl implements MailService, IdentifiableBean {
 		MessageBusUtil.sendMessage(DestinationNames.MAIL, mailMessage);
 	}
 
+	@Override
 	public void setBeanIdentifier(String beanIdentifier) {
 		_beanIdentifier = beanIdentifier;
 	}
 
+	@Override
 	public void updateBlocked(
 		long companyId, long userId, List<String> blocked) {
 
@@ -265,6 +278,7 @@ public class MailServiceImpl implements MailService, IdentifiableBean {
 		MessageBusUtil.sendMessage(DestinationNames.MAIL, methodHandler);
 	}
 
+	@Override
 	public void updateEmailAddress(
 		long companyId, long userId, String emailAddress) {
 
@@ -278,6 +292,7 @@ public class MailServiceImpl implements MailService, IdentifiableBean {
 		MessageBusUtil.sendMessage(DestinationNames.MAIL, methodHandler);
 	}
 
+	@Override
 	public void updatePassword(long companyId, long userId, String password) {
 		if (_log.isDebugEnabled()) {
 			_log.debug("updatePassword");
@@ -292,27 +307,24 @@ public class MailServiceImpl implements MailService, IdentifiableBean {
 	private static Log _log = LogFactoryUtil.getLog(MailServiceImpl.class);
 
 	private static MethodKey _addForwardMethodKey = new MethodKey(
-		Hook.class.getName(), "addForward", long.class, long.class, List.class,
+		Hook.class, "addForward", long.class, long.class, List.class,
 		List.class, boolean.class);
 	private static MethodKey _addUserMethodKey = new MethodKey(
-		Hook.class.getName(), "addUser", long.class, long.class, String.class,
+		Hook.class, "addUser", long.class, long.class, String.class,
 		String.class, String.class, String.class, String.class);
 	private static MethodKey _addVacationMessageMethodKey = new MethodKey(
-		Hook.class.getName(), "addVacationMessage", long.class, long.class,
-		String.class, String.class);
+		Hook.class, "addVacationMessage", long.class, long.class, String.class,
+		String.class);
 	private static MethodKey _deleteEmailAddressMethodKey = new MethodKey(
-		Hook.class.getName(), "deleteEmailAddress", long.class, long.class);
+		Hook.class, "deleteEmailAddress", long.class, long.class);
 	private static MethodKey _deleteUserMethodKey = new MethodKey(
-		Hook.class.getName(), "deleteUser", long.class, long.class);
+		Hook.class, "deleteUser", long.class, long.class);
 	private static MethodKey _updateBlockedMethodKey = new MethodKey(
-		Hook.class.getName(), "updateBlocked", long.class, long.class,
-		List.class);
+		Hook.class, "updateBlocked", long.class, long.class, List.class);
 	private static MethodKey _updateEmailAddressMethodKey = new MethodKey(
-		Hook.class.getName(), "updateEmailAddress", long.class, long.class,
-		String.class);
+		Hook.class, "updateEmailAddress", long.class, long.class, String.class);
 	private static MethodKey _updatePasswordMethodKey = new MethodKey(
-		Hook.class.getName(), "updatePassword", long.class, long.class,
-		String.class);
+		Hook.class, "updatePassword", long.class, long.class, String.class);
 
 	private String _beanIdentifier;
 	private Session _session;

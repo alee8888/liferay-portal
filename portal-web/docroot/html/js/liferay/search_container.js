@@ -34,6 +34,9 @@ AUI.add(
 				},
 
 				constructor: function(config) {
+					var id = config.id;
+
+					config.boundingBox = config.boundingBox || '#' + id;
 					config.contentBox = config.contentBox || '#' + config.id + 'SearchContainer';
 
 					SearchContainer.superclass.constructor.apply(this, arguments);
@@ -158,11 +161,13 @@ AUI.add(
 					addRow: function(arr, id) {
 						var instance = this;
 
-						if (id) {
-							var row = instance._table.one('.' + CSS_TEMPLATE);
+						var row;
 
-							if (row) {
-								row = row.clone();
+						if (id) {
+							var template = instance._table.one('.' + CSS_TEMPLATE);
+
+							if (template) {
+								row = template.clone();
 
 								var cells = row.all('> td');
 
@@ -179,7 +184,7 @@ AUI.add(
 									}
 								);
 
-								instance._table.append(row);
+								template.placeBefore(row);
 
 								row.removeClass(CSS_TEMPLATE);
 
@@ -198,6 +203,8 @@ AUI.add(
 								}
 							);
 						}
+
+						return row;
 					},
 
 					deleteRow: function(obj, id) {
@@ -207,7 +214,7 @@ AUI.add(
 							var row = null;
 
 							instance._table.all('tr').some(
-								function (item, index, collection) {
+								function(item, index, collection) {
 									if (!item.hasClass(CSS_TEMPLATE) && index == obj) {
 										row = item;
 									}
@@ -315,6 +322,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-base', 'event-mouseenter']
+		requires: ['aui-base', 'aui-component', 'event-mouseenter']
 	}
 );

@@ -1,49 +1,46 @@
-<#if (maxWikiNodeCount > 0)>
-	<#list 1..maxWikiNodeCount as wikiNodeCount>
-		<#assign wikiNode = dataFactory.addWikiNode(groupId, firstUserId, "Test Node " + wikiNodeCount, "This is a test node " + wikiNodeCount + ".")>
+<#assign wikiNodeModels = dataFactory.newWikiNodeModels(groupId)>
 
-		insert into WikiNode values ('${portalUUIDUtil.generate()}', ${wikiNode.nodeId}, ${wikiNode.groupId}, ${companyId}, ${wikiNode.userId}, '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '${wikiNode.name}', '${wikiNode.description}', CURRENT_TIMESTAMP);
+<#list wikiNodeModels as wikiNodeModel>
+	insert into WikiNode values ('${wikiNodeModel.uuid}', ${wikiNodeModel.nodeId}, ${wikiNodeModel.groupId}, ${wikiNodeModel.companyId}, ${wikiNodeModel.userId}, '${wikiNodeModel.userName}', '${dataFactory.getDateString(wikiNodeModel.createDate)}', '${dataFactory.getDateString(wikiNodeModel.modifiedDate)}', '${wikiNodeModel.name}', '${wikiNodeModel.description}', '${dataFactory.getDateString(wikiNodeModel.lastPostDate)}', ${wikiNodeModel.status}, ${wikiNodeModel.statusByUserId}, '${wikiNodeModel.statusByUserName}', '${dataFactory.getDateString(wikiNodeModel.statusDate)}');
 
-		<#if (maxWikiPageCount > 0)>
-			<#list 1..maxWikiPageCount as wikiPageCount>
-				<#assign wikiPageCounterIncrement = wikiPageCounter.increment()>
+	<@insertResourcePermissions
+		_entry = wikiNodeModel
+	/>
 
-				<#assign wikiPage = dataFactory.addWikiPage(groupId, firstUserId, wikiNode.nodeId, "Test Page " + wikiPageCount, 1.0, "This is a test page " + wikiPageCount + ".", true)>
+	<#assign wikiPageModels = dataFactory.newWikiPageModels(wikiNodeModel)>
 
-				${sampleSQLBuilder.insertWikiPage(wikiNode, wikiPage)}
+	<#list wikiPageModels as wikiPageModel>
+		insert into WikiPage values ('${wikiPageModel.uuid}', ${wikiPageModel.pageId}, ${wikiPageModel.resourcePrimKey}, ${wikiPageModel.groupId}, ${wikiPageModel.companyId}, ${wikiPageModel.userId}, '${wikiPageModel.userName}', '${dataFactory.getDateString(wikiPageModel.createDate)}', '${dataFactory.getDateString(wikiPageModel.modifiedDate)}', ${wikiPageModel.nodeId}, '${wikiPageModel.title}', ${wikiPageModel.version}, ${wikiPageModel.minorEdit?string}, '${wikiPageModel.content}', '${wikiPageModel.summary}', '${wikiPageModel.format}', ${wikiPageModel.head?string}, '${wikiPageModel.parentTitle}', '${wikiPageModel.redirectTitle}', ${wikiPageModel.status}, ${wikiPageModel.statusByUserId}, '${wikiPageModel.statusByUserName}', ${wikiPageModel.statusDate!'null'});
 
-				<#assign mbCompanyId = 0>
-				<#assign mbGroupId = 0>
-				<#assign mbUserId = wikiPage.userId>
-				<#assign mbCategoryId = 0>
-				<#assign mbThreadId = counter.get()>
+		<@insertResourcePermissions
+			_entry = wikiPageModel
+		/>
 
-				<#assign mbRootMessage = dataFactory.addMBMessage(counter.get(), mbGroupId, mbUserId, dataFactory.wikiPageClassName.classNameId, wikiPage.resourcePrimKey, mbCategoryId, mbThreadId, 0, 0, stringUtil.valueOf(wikiPage.resourcePrimKey), stringUtil.valueOf(wikiPage.resourcePrimKey))>
+		<@insertSubscription
+			_entry = wikiPageModel
+		/>
 
-				${sampleSQLBuilder.insertMBMessage(mbRootMessage)}
+		<#assign wikiPageResourceModel = dataFactory.newWikiPageResourceModel(wikiPageModel)>
 
-				<#assign mbThread = dataFactory.addMBThread(mbThreadId, mbGroupId, companyId, mbCategoryId, mbRootMessage.messageId, maxWikiPageCommentCount, mbUserId)>
+		insert into WikiPageResource values ('${wikiPageResourceModel.uuid}', ${wikiPageResourceModel.resourcePrimKey}, ${wikiPageResourceModel.nodeId}, '${wikiPageResourceModel.title}');
 
-				insert into MBThread values (${mbThread.threadId}, ${mbThread.groupId}, ${mbThread.companyId}, ${mbThread.categoryId}, ${mbThread.rootMessageId}, ${mbThread.rootMessageUserId}, ${mbThread.messageCount}, 0, ${mbThread.lastPostByUserId}, CURRENT_TIMESTAMP, 0, FALSE, 0, ${mbThread.lastPostByUserId}, '', CURRENT_TIMESTAMP);
+		<@insertAssetEntry
+			_entry = wikiPageModel
+			_categoryAndTag = true
+		/>
 
-				<#if (maxWikiPageCommentCount > 0)>
-					<#list 1..maxWikiPageCommentCount as wikiPageComment>
-						<#assign mbMessage = dataFactory.addMBMessage(counter.get(), mbGroupId, mbUserId, dataFactory.wikiPageClassName.classNameId, wikiPage.resourcePrimKey, mbCategoryId, mbThreadId, mbRootMessage.messageId, mbRootMessage.messageId, "N/A", "This is a test comment " + wikiPageComment + ".")>
+		<#assign mbRootMessageId = dataFactory.getCounterNext()>
+		<#assign mbThreadId = dataFactory.getCounterNext()>
 
-						${sampleSQLBuilder.insertMBMessage(mbMessage)}
-					</#list>
-				</#if>
+		<@insertMBDiscussion
+			_classNameId = dataFactory.wikiPageClassNameId
+			_classPK = wikiPageModel.resourcePrimKey
+			_groupId = groupId
+			_maxCommentCount = dataFactory.maxWikiPageCommentCount
+			_mbRootMessageId = mbRootMessageId
+			_mbThreadId = mbThreadId
+		/>
 
-				<#assign mbDiscussion = dataFactory.addMBDiscussion(dataFactory.wikiPageClassName.classNameId, wikiPage.resourcePrimKey, mbThreadId)>
-
-				insert into MBDiscussion values (${mbDiscussion.discussionId}, ${mbDiscussion.classNameId}, ${mbDiscussion.classPK}, ${mbDiscussion.threadId});
-
-				${writerWikiCSV.write(wikiNode.nodeId + "," + wikiNode.name + "," + wikiPage.resourcePrimKey + "," + wikiPage.title + "," + mbMessage.threadId + "," + mbMessage.messageId + ",")}
-
-				<#if (wikiPageCounter.value < (maxGroupCount * maxWikiNodeCount * maxWikiPageCount))>
-					${writerWikiCSV.write("\n")}
-				</#if>
-			</#list>
-		</#if>
+		${wikiCSVWriter.write(wikiNodeModel.nodeId + "," + wikiNodeModel.name + "," + wikiPageModel.resourcePrimKey + "," + wikiPageModel.title + "," + mbThreadId + "," + mbRootMessageId + "\n")}
 	</#list>
-</#if>
+</#list>

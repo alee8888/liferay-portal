@@ -73,6 +73,28 @@
 				DDMStructure.structureId DESC
 		]]>
 	</sql>
+	<sql id="com.liferay.portlet.dynamicdatamapping.service.persistence.DDMTemplateFinder.countByG_C_SC">
+		<![CDATA[
+			SELECT
+				COUNT(DISTINCT templateId) AS COUNT_VALUE
+			FROM
+				DDMTemplate
+			WHERE
+				[$GROUP_ID$]
+				(classNameId = ?) AND
+				(
+					(classPK = 0) OR
+					(classPK IN (
+						SELECT
+							DDMStructure.structureId
+						FROM
+							DDMStructure
+						WHERE
+							(DDMStructure.classNameId = ?)
+					))
+				)
+		]]>
+	</sql>
 	<sql id="com.liferay.portlet.dynamicdatamapping.service.persistence.DDMTemplateFinder.countByC_G_C_C_N_D_T_M_L">
 		<![CDATA[
 			SELECT
@@ -81,9 +103,9 @@
 				DDMTemplate
 			WHERE
 				(companyId = ?) AND
-				(groupId = ?) AND
-				(classNameId = ?) AND
-				(classPK = ?) AND
+				[$GROUP_ID$]
+				[$CLASSNAME_ID$]
+				[$CLASS_PK$]
 				(
 					(lower(name) LIKE ? [$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$]
 					(description LIKE ? [$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$]
@@ -91,6 +113,30 @@
 					(mode_ LIKE ? [$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$]
 					(language LIKE ? [$AND_OR_NULL_CHECK$])
 				)
+		]]>
+	</sql>
+	<sql id="com.liferay.portlet.dynamicdatamapping.service.persistence.DDMTemplateFinder.findByG_C_SC">
+		<![CDATA[
+			SELECT
+				{DDMTemplate.*}
+			FROM
+				DDMTemplate
+			WHERE
+				[$GROUP_ID$]
+				(classNameId = ?) AND
+				(
+					(classPK = 0) OR
+					(classPK IN (
+						SELECT
+							DDMStructure.structureId
+						FROM
+							DDMStructure
+						WHERE
+							(DDMStructure.classNameId = ?)
+					))
+				)
+			ORDER BY
+				DDMTemplate.templateId DESC
 		]]>
 	</sql>
 	<sql id="com.liferay.portlet.dynamicdatamapping.service.persistence.DDMTemplateFinder.findByC_G_C_C_N_D_T_M_L">
@@ -101,9 +147,9 @@
 				DDMTemplate
 			WHERE
 				(companyId = ?) AND
-				(groupId = ?) AND
-				(classNameId = ?) AND
-				(classPK = ?) AND
+				[$GROUP_ID$]
+				[$CLASSNAME_ID$]
+				[$CLASS_PK$]
 				(
 					(lower(name) LIKE ? [$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$]
 					(description LIKE ? [$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$]

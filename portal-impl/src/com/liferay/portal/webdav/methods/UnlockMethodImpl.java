@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
+import com.liferay.portal.kernel.webdav.methods.Method;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,16 +32,17 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class UnlockMethodImpl implements Method {
 
-	public int process(WebDAVRequest webDavRequest) throws WebDAVException {
-		WebDAVStorage storage = webDavRequest.getWebDAVStorage();
+	@Override
+	public int process(WebDAVRequest webDAVRequest) throws WebDAVException {
+		WebDAVStorage storage = webDAVRequest.getWebDAVStorage();
 
-		String token = getToken(webDavRequest.getHttpServletRequest());
+		String token = getToken(webDAVRequest.getHttpServletRequest());
 
 		if (!storage.isSupportsClassTwo()) {
 			return HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 		}
 
-		if (storage.unlockResource(webDavRequest, token)) {
+		if (storage.unlockResource(webDAVRequest, token)) {
 			return HttpServletResponse.SC_NO_CONTENT;
 		}
 		else {

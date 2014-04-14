@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,9 +20,13 @@
 User selUser = (User)request.getAttribute("user.selUser");
 %>
 
+<liferay-ui:error-marker key="errorSection" value="openId" />
+
 <aui:model-context bean="<%= selUser %>" model="<%= User.class %>" />
 
 <h3><liferay-ui:message key="open-id" /></h3>
+
+<liferay-ui:error exception="<%= DuplicateOpenIdException.class %>" message="a-user-with-that-open-id-already-exists" />
 
 <aui:fieldset>
 	<aui:input label="" name="openId" />

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,9 +17,9 @@ package com.liferay.taglib.ui;
 import com.liferay.portal.kernel.servlet.PortalIncludeUtil;
 import com.liferay.portal.kernel.servlet.taglib.BaseBodyTagSupport;
 import com.liferay.portal.kernel.util.IntegerWrapper;
-import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.ServerDetector;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.util.PwdGenerator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
@@ -39,7 +39,6 @@ public class PanelContainerTag extends BaseBodyTagSupport implements BodyTag {
 			"liferay-ui:panel-container:panelCount" + _id);
 
 		if ((panelCount != null) && (panelCount.getValue() == 1)) {
-
 			bodyContent.clearBody();
 
 			return EVAL_BODY_AGAIN;
@@ -82,6 +81,11 @@ public class PanelContainerTag extends BaseBodyTagSupport implements BodyTag {
 		catch (Exception e) {
 			throw new JspException(e);
 		}
+		finally {
+			if (!ServerDetector.isResin()) {
+				cleanUp();
+			}
+		}
 	}
 
 	@Override
@@ -90,7 +94,7 @@ public class PanelContainerTag extends BaseBodyTagSupport implements BodyTag {
 			(HttpServletRequest)pageContext.getRequest();
 
 		if (Validator.isNull(_id)) {
-			_id = PwdGenerator.getPassword(PwdGenerator.KEY3, 4);
+			_id = StringUtil.randomId();
 		}
 
 		request.setAttribute("liferay-ui:panel-container:id", _id);
@@ -140,6 +144,16 @@ public class PanelContainerTag extends BaseBodyTagSupport implements BodyTag {
 		_startPage = startPage;
 	}
 
+	protected void cleanUp() {
+		_accordion = false;
+		_cssClass = null;
+		_endPage = null;
+		_extended = false;
+		_id = null;
+		_persistState = false;
+		_startPage = null;
+	}
+
 	protected String getEndPage() {
 		if (Validator.isNull(_endPage)) {
 			return _END_PAGE;
@@ -165,7 +179,7 @@ public class PanelContainerTag extends BaseBodyTagSupport implements BodyTag {
 		"/html/taglib/ui/panel_container/start.jsp";
 
 	private boolean _accordion;
-	private String _cssClass = StringPool.BLANK;
+	private String _cssClass;
 	private String _endPage;
 	private Boolean _extended;
 	private String _id;

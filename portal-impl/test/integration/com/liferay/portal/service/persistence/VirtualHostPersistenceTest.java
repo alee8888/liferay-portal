@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,37 +16,69 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchVirtualHostException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.VirtualHost;
 import com.liferay.portal.model.impl.VirtualHostModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class VirtualHostPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (VirtualHostPersistence)PortalBeanLocatorUtil.locate(VirtualHostPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -82,16 +114,20 @@ public class VirtualHostPersistenceTest {
 
 		VirtualHost newVirtualHost = _persistence.create(pk);
 
+		newVirtualHost.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newVirtualHost.setCompanyId(ServiceTestUtil.nextLong());
 
 		newVirtualHost.setLayoutSetId(ServiceTestUtil.nextLong());
 
 		newVirtualHost.setHostname(ServiceTestUtil.randomString());
 
-		_persistence.update(newVirtualHost, false);
+		_persistence.update(newVirtualHost);
 
 		VirtualHost existingVirtualHost = _persistence.findByPrimaryKey(newVirtualHost.getPrimaryKey());
 
+		Assert.assertEquals(existingVirtualHost.getMvccVersion(),
+			newVirtualHost.getMvccVersion());
 		Assert.assertEquals(existingVirtualHost.getVirtualHostId(),
 			newVirtualHost.getVirtualHostId());
 		Assert.assertEquals(existingVirtualHost.getCompanyId(),
@@ -100,6 +136,33 @@ public class VirtualHostPersistenceTest {
 			newVirtualHost.getLayoutSetId());
 		Assert.assertEquals(existingVirtualHost.getHostname(),
 			newVirtualHost.getHostname());
+	}
+
+	@Test
+	public void testCountByHostname() {
+		try {
+			_persistence.countByHostname(StringPool.BLANK);
+
+			_persistence.countByHostname(StringPool.NULL);
+
+			_persistence.countByHostname((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_L() {
+		try {
+			_persistence.countByC_L(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByC_L(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -126,6 +189,23 @@ public class VirtualHostPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("VirtualHost",
+			"mvccVersion", true, "virtualHostId", true, "companyId", true,
+			"layoutSetId", true, "hostname", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		VirtualHost newVirtualHost = addVirtualHost();
 
@@ -141,6 +221,26 @@ public class VirtualHostPersistenceTest {
 		VirtualHost missingVirtualHost = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingVirtualHost);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new VirtualHostActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					VirtualHost virtualHost = (VirtualHost)object;
+
+					Assert.assertNotNull(virtualHost);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -244,16 +344,20 @@ public class VirtualHostPersistenceTest {
 
 		VirtualHost virtualHost = _persistence.create(pk);
 
+		virtualHost.setMvccVersion(ServiceTestUtil.nextLong());
+
 		virtualHost.setCompanyId(ServiceTestUtil.nextLong());
 
 		virtualHost.setLayoutSetId(ServiceTestUtil.nextLong());
 
 		virtualHost.setHostname(ServiceTestUtil.randomString());
 
-		_persistence.update(virtualHost, false);
+		_persistence.update(virtualHost);
 
 		return virtualHost;
 	}
 
-	private VirtualHostPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(VirtualHostPersistenceTest.class);
+	private VirtualHostPersistence _persistence = (VirtualHostPersistence)PortalBeanLocatorUtil.locate(VirtualHostPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

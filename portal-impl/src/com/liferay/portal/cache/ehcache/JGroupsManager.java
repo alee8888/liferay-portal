@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -41,7 +41,7 @@ import org.jgroups.View;
 
 /**
  * <p>
- * See http://issues.liferay.com/browse/LPS-11061.
+ * See https://issues.liferay.com/browse/LPS-11061.
  * </p>
  *
  * @author Tina Tian
@@ -74,6 +74,7 @@ public class JGroupsManager implements CacheManagerPeerProvider, CachePeer {
 		_cacheManager = cacheManager;
 	}
 
+	@Override
 	public void dispose() throws CacheException {
 		if (_jChannel != null) {
 			_jChannel.close();
@@ -92,40 +93,49 @@ public class JGroupsManager implements CacheManagerPeerProvider, CachePeer {
 		return view.getMembers();
 	}
 
+	@Override
 	@SuppressWarnings("rawtypes")
 	public List getElements(List list) {
 		return null;
 	}
 
+	@Override
 	public String getGuid() {
 		return null;
 	}
 
+	@Override
 	@SuppressWarnings("rawtypes")
 	public List getKeys() {
 		return null;
 	}
 
+	@Override
 	public String getName() {
 		return null;
 	}
 
+	@Override
 	public Element getQuiet(Serializable serializable) {
 		return null;
 	}
 
+	@Override
 	public String getScheme() {
 		return _SCHEME;
 	}
 
+	@Override
 	public long getTimeForClusterToForm() {
 		return 0;
 	}
 
+	@Override
 	public String getUrl() {
 		return null;
 	}
 
+	@Override
 	public String getUrlBase() {
 		return null;
 	}
@@ -145,9 +155,11 @@ public class JGroupsManager implements CacheManagerPeerProvider, CachePeer {
 		}
 	}
 
+	@Override
 	public void init() {
 	}
 
+	@Override
 	public List<JGroupsManager> listRemoteCachePeers(Ehcache ehcache) {
 		List<JGroupsManager> cachePeers = new ArrayList<JGroupsManager>();
 
@@ -156,16 +168,20 @@ public class JGroupsManager implements CacheManagerPeerProvider, CachePeer {
 		return cachePeers;
 	}
 
+	@Override
 	public void put(Element element) {
 	}
 
+	@Override
 	public void registerPeer(String string) {
 	}
 
+	@Override
 	public boolean remove(Serializable serializable) {
 		return false;
 	}
 
+	@Override
 	public void removeAll() {
 	}
 
@@ -199,11 +215,13 @@ public class JGroupsManager implements CacheManagerPeerProvider, CachePeer {
 		}
 	}
 
+	@Override
 	@SuppressWarnings("rawtypes")
 	public void send(List eventMessages) throws RemoteException {
 		send(null, eventMessages);
 	}
 
+	@Override
 	public void unregisterPeer(String string) {
 	}
 
@@ -230,7 +248,7 @@ public class JGroupsManager implements CacheManagerPeerProvider, CachePeer {
 		else if (event == JGroupEventMessage.PUT) {
 			Element element = jGroupEventMessage.getElement();
 
-			cache.put(new Element(key, element.getValue()), true);
+			cache.put(new Element(key, element.getObjectValue()), true);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.webdav.Status;
 import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
+import com.liferay.portal.kernel.webdav.methods.Method;
 import com.liferay.portal.util.PortalUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,20 +33,21 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class MkcolMethodImpl implements Method {
 
-	public int process(WebDAVRequest webDavRequest) throws WebDAVException {
-		WebDAVStorage storage = webDavRequest.getWebDAVStorage();
-		HttpServletRequest request = webDavRequest.getHttpServletRequest();
-		HttpServletResponse response = webDavRequest.getHttpServletResponse();
-		long groupId = webDavRequest.getGroupId();
+	@Override
+	public int process(WebDAVRequest webDAVRequest) throws WebDAVException {
+		WebDAVStorage storage = webDAVRequest.getWebDAVStorage();
+		HttpServletRequest request = webDAVRequest.getHttpServletRequest();
+		HttpServletResponse response = webDAVRequest.getHttpServletResponse();
+		long groupId = webDAVRequest.getGroupId();
 
 		if (groupId != 0) {
-			Status status = storage.makeCollection(webDavRequest);
+			Status status = storage.makeCollection(webDAVRequest);
 
 			if (Validator.isNotNull(status.getObject())) {
 				response.setHeader(
 					HttpHeaders.LOCATION,
 					PortalUtil.getPortalURL(request) +
-						webDavRequest.getRootPath() + StringPool.SLASH +
+						webDAVRequest.getRootPath() + StringPool.SLASH +
 							status.getObject());
 			}
 

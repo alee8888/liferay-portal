@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.service.persistence;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
@@ -36,6 +38,7 @@ import java.util.List;
  * @see ReleasePersistenceImpl
  * @generated
  */
+@ProviderType
 public class ReleaseUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -60,7 +63,7 @@ public class ReleaseUtil {
 	/**
 	 * @see com.liferay.portal.service.persistence.BasePersistence#countWithDynamicQuery(DynamicQuery)
 	 */
-	public long countWithDynamicQuery(DynamicQuery dynamicQuery)
+	public static long countWithDynamicQuery(DynamicQuery dynamicQuery)
 		throws SystemException {
 		return getPersistence().countWithDynamicQuery(dynamicQuery);
 	}
@@ -94,96 +97,18 @@ public class ReleaseUtil {
 	}
 
 	/**
-	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel, boolean)
+	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel)
 	 */
-	public static Release update(Release release, boolean merge)
+	public static Release update(Release release) throws SystemException {
+		return getPersistence().update(release);
+	}
+
+	/**
+	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel, ServiceContext)
+	 */
+	public static Release update(Release release, ServiceContext serviceContext)
 		throws SystemException {
-		return getPersistence().update(release, merge);
-	}
-
-	/**
-	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel, boolean, ServiceContext)
-	 */
-	public static Release update(Release release, boolean merge,
-		ServiceContext serviceContext) throws SystemException {
-		return getPersistence().update(release, merge, serviceContext);
-	}
-
-	/**
-	* Caches the release in the entity cache if it is enabled.
-	*
-	* @param release the release
-	*/
-	public static void cacheResult(com.liferay.portal.model.Release release) {
-		getPersistence().cacheResult(release);
-	}
-
-	/**
-	* Caches the releases in the entity cache if it is enabled.
-	*
-	* @param releases the releases
-	*/
-	public static void cacheResult(
-		java.util.List<com.liferay.portal.model.Release> releases) {
-		getPersistence().cacheResult(releases);
-	}
-
-	/**
-	* Creates a new release with the primary key. Does not add the release to the database.
-	*
-	* @param releaseId the primary key for the new release
-	* @return the new release
-	*/
-	public static com.liferay.portal.model.Release create(long releaseId) {
-		return getPersistence().create(releaseId);
-	}
-
-	/**
-	* Removes the release with the primary key from the database. Also notifies the appropriate model listeners.
-	*
-	* @param releaseId the primary key of the release
-	* @return the release that was removed
-	* @throws com.liferay.portal.NoSuchReleaseException if a release with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.Release remove(long releaseId)
-		throws com.liferay.portal.NoSuchReleaseException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().remove(releaseId);
-	}
-
-	public static com.liferay.portal.model.Release updateImpl(
-		com.liferay.portal.model.Release release, boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().updateImpl(release, merge);
-	}
-
-	/**
-	* Returns the release with the primary key or throws a {@link com.liferay.portal.NoSuchReleaseException} if it could not be found.
-	*
-	* @param releaseId the primary key of the release
-	* @return the release
-	* @throws com.liferay.portal.NoSuchReleaseException if a release with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.Release findByPrimaryKey(
-		long releaseId)
-		throws com.liferay.portal.NoSuchReleaseException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().findByPrimaryKey(releaseId);
-	}
-
-	/**
-	* Returns the release with the primary key or returns <code>null</code> if it could not be found.
-	*
-	* @param releaseId the primary key of the release
-	* @return the release, or <code>null</code> if a release with the primary key could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.Release fetchByPrimaryKey(
-		long releaseId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().fetchByPrimaryKey(releaseId);
+		return getPersistence().update(release, serviceContext);
 	}
 
 	/**
@@ -231,6 +156,110 @@ public class ReleaseUtil {
 	}
 
 	/**
+	* Removes the release where servletContextName = &#63; from the database.
+	*
+	* @param servletContextName the servlet context name
+	* @return the release that was removed
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.Release removeByServletContextName(
+		java.lang.String servletContextName)
+		throws com.liferay.portal.NoSuchReleaseException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence().removeByServletContextName(servletContextName);
+	}
+
+	/**
+	* Returns the number of releases where servletContextName = &#63;.
+	*
+	* @param servletContextName the servlet context name
+	* @return the number of matching releases
+	* @throws SystemException if a system exception occurred
+	*/
+	public static int countByServletContextName(
+		java.lang.String servletContextName)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence().countByServletContextName(servletContextName);
+	}
+
+	/**
+	* Caches the release in the entity cache if it is enabled.
+	*
+	* @param release the release
+	*/
+	public static void cacheResult(com.liferay.portal.model.Release release) {
+		getPersistence().cacheResult(release);
+	}
+
+	/**
+	* Caches the releases in the entity cache if it is enabled.
+	*
+	* @param releases the releases
+	*/
+	public static void cacheResult(
+		java.util.List<com.liferay.portal.model.Release> releases) {
+		getPersistence().cacheResult(releases);
+	}
+
+	/**
+	* Creates a new release with the primary key. Does not add the release to the database.
+	*
+	* @param releaseId the primary key for the new release
+	* @return the new release
+	*/
+	public static com.liferay.portal.model.Release create(long releaseId) {
+		return getPersistence().create(releaseId);
+	}
+
+	/**
+	* Removes the release with the primary key from the database. Also notifies the appropriate model listeners.
+	*
+	* @param releaseId the primary key of the release
+	* @return the release that was removed
+	* @throws com.liferay.portal.NoSuchReleaseException if a release with the primary key could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.Release remove(long releaseId)
+		throws com.liferay.portal.NoSuchReleaseException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence().remove(releaseId);
+	}
+
+	public static com.liferay.portal.model.Release updateImpl(
+		com.liferay.portal.model.Release release)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence().updateImpl(release);
+	}
+
+	/**
+	* Returns the release with the primary key or throws a {@link com.liferay.portal.NoSuchReleaseException} if it could not be found.
+	*
+	* @param releaseId the primary key of the release
+	* @return the release
+	* @throws com.liferay.portal.NoSuchReleaseException if a release with the primary key could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.Release findByPrimaryKey(
+		long releaseId)
+		throws com.liferay.portal.NoSuchReleaseException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence().findByPrimaryKey(releaseId);
+	}
+
+	/**
+	* Returns the release with the primary key or returns <code>null</code> if it could not be found.
+	*
+	* @param releaseId the primary key of the release
+	* @return the release, or <code>null</code> if a release with the primary key could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.Release fetchByPrimaryKey(
+		long releaseId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getPersistence().fetchByPrimaryKey(releaseId);
+	}
+
+	/**
 	* Returns all the releases.
 	*
 	* @return the releases
@@ -245,7 +274,7 @@ public class ReleaseUtil {
 	* Returns a range of all the releases.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.ReleaseModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of releases
@@ -263,7 +292,7 @@ public class ReleaseUtil {
 	* Returns an ordered range of all the releases.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.ReleaseModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of releases
@@ -280,20 +309,6 @@ public class ReleaseUtil {
 	}
 
 	/**
-	* Removes the release where servletContextName = &#63; from the database.
-	*
-	* @param servletContextName the servlet context name
-	* @return the release that was removed
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.Release removeByServletContextName(
-		java.lang.String servletContextName)
-		throws com.liferay.portal.NoSuchReleaseException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().removeByServletContextName(servletContextName);
-	}
-
-	/**
 	* Removes all the releases from the database.
 	*
 	* @throws SystemException if a system exception occurred
@@ -301,19 +316,6 @@ public class ReleaseUtil {
 	public static void removeAll()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		getPersistence().removeAll();
-	}
-
-	/**
-	* Returns the number of releases where servletContextName = &#63;.
-	*
-	* @param servletContextName the servlet context name
-	* @return the number of matching releases
-	* @throws SystemException if a system exception occurred
-	*/
-	public static int countByServletContextName(
-		java.lang.String servletContextName)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().countByServletContextName(servletContextName);
 	}
 
 	/**
@@ -339,8 +341,9 @@ public class ReleaseUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setPersistence(ReleasePersistence persistence) {
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.ratings.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
@@ -36,6 +38,7 @@ import java.io.Serializable;
  * @see com.liferay.portlet.ratings.model.impl.RatingsStatsModelImpl
  * @generated
  */
+@ProviderType
 public interface RatingsStatsModel extends AttachedModel, BaseModel<RatingsStats> {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -76,6 +79,7 @@ public interface RatingsStatsModel extends AttachedModel, BaseModel<RatingsStats
 	 *
 	 * @return the fully qualified class name of this ratings stats
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -85,6 +89,7 @@ public interface RatingsStatsModel extends AttachedModel, BaseModel<RatingsStats
 	 *
 	 * @return the class name ID of this ratings stats
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -92,6 +97,7 @@ public interface RatingsStatsModel extends AttachedModel, BaseModel<RatingsStats
 	 *
 	 * @param classNameId the class name ID of this ratings stats
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -99,6 +105,7 @@ public interface RatingsStatsModel extends AttachedModel, BaseModel<RatingsStats
 	 *
 	 * @return the class p k of this ratings stats
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -106,6 +113,7 @@ public interface RatingsStatsModel extends AttachedModel, BaseModel<RatingsStats
 	 *
 	 * @param classPK the class p k of this ratings stats
 	 */
+	@Override
 	public void setClassPK(long classPK);
 
 	/**
@@ -150,35 +158,60 @@ public interface RatingsStatsModel extends AttachedModel, BaseModel<RatingsStats
 	 */
 	public void setAverageScore(double averageScore);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(RatingsStats ratingsStats);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<RatingsStats> toCacheModel();
 
+	@Override
 	public RatingsStats toEscapedModel();
 
+	@Override
+	public RatingsStats toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

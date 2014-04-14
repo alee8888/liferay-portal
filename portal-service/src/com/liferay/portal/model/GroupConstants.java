@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,8 @@ package com.liferay.portal.model;
  */
 public class GroupConstants {
 
+	public static final int ANY_PARENT_GROUP_ID = -1;
+
 	public static final String CONTROL_PANEL = "Control Panel";
 
 	public static final String CONTROL_PANEL_FRIENDLY_URL = "/control_panel";
@@ -27,9 +29,17 @@ public class GroupConstants {
 
 	public static final long DEFAULT_LIVE_GROUP_ID = 0;
 
+	public static final int DEFAULT_MEMBERSHIP_RESTRICTION = 0;
+
 	public static final long DEFAULT_PARENT_GROUP_ID = 0;
 
+	public static final String GLOBAL = "Global";
+
+	public static final String GLOBAL_FRIENDLY_URL = "/global";
+
 	public static final String GUEST = "Guest";
+
+	public static final int MEMBERSHIP_RESTRICTION_TO_PARENT_SITE_MEMBERS = 1;
 
 	public static final String[] SYSTEM_GROUPS = {
 		CONTROL_PANEL, GUEST, GroupConstants.USER_PERSONAL_SITE

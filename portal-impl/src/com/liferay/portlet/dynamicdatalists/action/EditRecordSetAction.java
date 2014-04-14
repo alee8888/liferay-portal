@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,7 +24,6 @@ import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.service.WorkflowDefinitionLinkLocalServiceUtil;
 import com.liferay.portal.struts.PortletAction;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.dynamicdatalists.NoSuchRecordSetException;
 import com.liferay.portlet.dynamicdatalists.RecordSetDDMStructureIdException;
 import com.liferay.portlet.dynamicdatalists.RecordSetNameException;
@@ -53,8 +52,9 @@ public class EditRecordSetAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -92,8 +92,9 @@ public class EditRecordSetAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -113,14 +114,15 @@ public class EditRecordSetAction extends PortletAction {
 			if (e instanceof PrincipalException) {
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.dynamic_data_lists.error");
+				return actionMapping.findForward(
+					"portlet.dynamic_data_lists.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(
 				renderRequest, "portlet.dynamic_data_lists.edit_record_set"));
 	}
@@ -174,23 +176,19 @@ public class EditRecordSetAction extends PortletAction {
 			DDLRecordSet.class.getName(), recordSet.getRecordSetId(), 0,
 			workflowDefinition);
 
-		String portletResource = ParamUtil.getString(
-			actionRequest, "portletResource");
+		PortletPreferences portletPreferences = getStrictPortletSetup(
+			actionRequest);
 
-		if (Validator.isNotNull(portletResource)) {
-			PortletPreferences preferences =
-				PortletPreferencesFactoryUtil.getPortletSetup(
-					actionRequest, portletResource);
+		if (portletPreferences != null) {
+			portletPreferences.reset("displayDDMTemplateId");
+			portletPreferences.reset("editable");
+			portletPreferences.reset("formDDMTemplateId");
+			portletPreferences.reset("spreadsheet");
 
-			preferences.reset("detailDDMTemplateId");
-			preferences.reset("editable");
-			preferences.reset("listDDMTemplateId");
-			preferences.reset("spreadsheet");
-
-			preferences.setValue(
+			portletPreferences.setValue(
 				"recordSetId", String.valueOf(recordSet.getRecordSetId()));
 
-			preferences.store();
+			portletPreferences.store();
 		}
 
 		return recordSet;

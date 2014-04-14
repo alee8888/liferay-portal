@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,7 +25,7 @@
 
 	List<String> headerNames = new ArrayList<String>();
 
-	headerNames.add("question");
+	headerNames.add("title");
 	headerNames.add("num-of-votes");
 	headerNames.add("last-vote-date");
 	headerNames.add("expiration-date");
@@ -72,7 +72,7 @@
 			row.addText(LanguageUtil.get(pageContext, "never"), rowURL);
 		}
 		else {
-			row.addText(dateFormatDateTime.format(question.getLastVoteDate()), rowURL);
+			row.addDate(question.getLastVoteDate(), rowURL);
 		}
 
 		// Expiration date
@@ -81,7 +81,7 @@
 			row.addText(LanguageUtil.get(pageContext, "never"), rowURL);
 		}
 		else {
-			row.addText(dateFormatDateTime.format(question.getExpirationDate()), rowURL);
+			row.addDate(question.getExpirationDate(), rowURL);
 		}
 
 		// Action
@@ -106,7 +106,7 @@
 						<portlet:param name="redirect" value="<%= currentURL %>" />
 					</portlet:renderURL>
 
-					<aui:button href="<%= editQuestionURL %>" value="add-question" />
+					<aui:button href="<%= editQuestionURL %>" value="add-poll" />
 				</c:if>
 
 				<c:if test="<%= showPermissionsButton %>">
@@ -115,9 +115,10 @@
 						modelResourceDescription="<%= HtmlUtil.escape(themeDisplay.getScopeGroupName()) %>"
 						resourcePrimKey="<%= String.valueOf(scopeGroupId) %>"
 						var="permissionsURL"
+						windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 					/>
 
-					<aui:button href="<%= permissionsURL %>" value="permissions" />
+					<aui:button href="<%= permissionsURL %>" useDialog="<%= true %>" value="permissions" />
 				</c:if>
 			</aui:button-row>
 		</c:if>

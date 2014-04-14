@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,8 +27,9 @@ public class DefaultSingleDestinationSynchronousMessageSender
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public DefaultSingleDestinationSynchronousMessageSender(
 		String destinationName,
 		SynchronousMessageSender synchronousMessageSender) {
@@ -37,10 +38,12 @@ public class DefaultSingleDestinationSynchronousMessageSender
 		_synchronousMessageSender = synchronousMessageSender;
 	}
 
+	@Override
 	public Object send(Message message) throws MessageBusException {
 		return _synchronousMessageSender.send(_destinationName, message);
 	}
 
+	@Override
 	public Object send(Message message, long timeout)
 		throws MessageBusException {
 
@@ -48,6 +51,7 @@ public class DefaultSingleDestinationSynchronousMessageSender
 			_destinationName, message, timeout);
 	}
 
+	@Override
 	public Object send(Object payload) throws MessageBusException {
 		Message message = new Message();
 
@@ -56,6 +60,7 @@ public class DefaultSingleDestinationSynchronousMessageSender
 		return send(message);
 	}
 
+	@Override
 	public Object send(Object payload, long timeout)
 		throws MessageBusException {
 

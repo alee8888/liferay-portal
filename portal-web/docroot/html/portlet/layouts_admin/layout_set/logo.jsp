@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,79 +36,42 @@ LayoutSet selLayoutSet = ((LayoutSet)request.getAttribute("edit_pages.jsp-selLay
 		if (fileMaxSize == 0) {
 			fileMaxSize = PrefsPropsUtil.getLong(PropsKeys.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE);
 		}
-
-		fileMaxSize /= 1024;
 		%>
 
-		<liferay-ui:message arguments="<%= fileMaxSize %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" />
+		<liferay-ui:message arguments="<%= TextFormatter.formatStorageSize(fileMaxSize, locale) %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
 	</liferay-ui:error>
-
-	<liferay-ui:error exception="<%= ImageTypeException.class %>" message="please-enter-a-file-with-a-valid-file-type" />
-
-	<liferay-ui:error exception="<%= UploadException.class %>" message="an-unexpected-error-occurred-while-uploading-your-file" />
-
-	<aui:input name="useLogo" type="hidden" value="<%= selLayoutSet.isLogo() %>" />
 
 	<p><%= LanguageUtil.get(pageContext, "upload-a-logo-for-the-" + (privateLayout ? "private" : "public") + "-pages-that-will-be-used-instead-of-the-default-enterprise-logo") %></p>
 
-	<aui:input inlineField="<%= true %>" label="" name="logoFileName" type="file" />
-
-	<c:if test="<%= selLayoutSet.getLogo() %>">
-		<liferay-ui:icon
-			cssClass="modify-link"
-			id="deleteLogoLink"
-			image="delete"
-			label="<%= true %>"
-			url="javascript:;"
-		/>
-
-		<%
-		long logoId = selLayoutSet.getLogoId();
-
-		if (logoId == 0) {
-			logoId = selLayoutSet.getLiveLogoId();
-		}
-		%>
-
-		<div class="lfr-change-logo" id="<portlet:namespace />logoContainer">
-			<img alt="<liferay-ui:message key="logo" />" src="<%= themeDisplay.getPathImage() %>/layout_set_logo?img_id=<%= logoId %>&t=<%= WebServerServletTokenUtil.getToken(selLayoutSet.getLogoId()) %>" />
+	<c:if test="<%= liveGroup.isLayoutSetPrototype() %>">
+		<div class="alert alert-block">
+			<liferay-ui:message key="modifying-the-site-template-logo-will-only-affect-sites-that-are-not-yet-created" />
 		</div>
 	</c:if>
+
+	<%
+	String companyLogoURL = themeDisplay.getPathImage() + "/company_logo?img_id=" + company.getLogoId() + "&t=" + WebServerServletTokenUtil.getToken(company.getLogoId());
+	%>
+
+	<liferay-ui:logo-selector
+		currentLogoURL='<%= (selLayoutSet.getLogoId() == 0) ? companyLogoURL : themeDisplay.getPathImage() + "/layout_set_logo?img_id=" + selLayoutSet.getLogoId() + "&t=" + WebServerServletTokenUtil.getToken(selLayoutSet.getLogoId()) %>'
+		defaultLogo="<%= selLayoutSet.getLogoId() == 0 %>"
+		defaultLogoURL="<%= companyLogoURL %>"
+		logoDisplaySelector=".layoutset-logo"
+		tempImageFileName="<%= String.valueOf(selLayoutSet.getLayoutSetId()) %>"
+	/>
 
 	<%
 	Group guestGroup = GroupLocalServiceUtil.getGroup(company.getCompanyId(), GroupConstants.GUEST);
 	%>
 
-	<c:if test="<%= liveGroup.getGroupId() != guestGroup.getGroupId() %>">
+	<%
+	boolean showSiteNameSupported = GetterUtil.getBoolean(selLayoutSet.getTheme().getSetting("show-site-name-supported"), true);
 
-		<%
-		boolean showSiteNameSupported = GetterUtil.getBoolean(selLayoutSet.getTheme().getSetting("show-site-name-supported"), true);
+	boolean showSiteNameDefault = GetterUtil.getBoolean(selLayoutSet.getTheme().getSetting("show-site-name-default"), showSiteNameSupported);
 
-		boolean showSiteNameDefault = GetterUtil.getBoolean(selLayoutSet.getTheme().getSetting("show-site-name-default"), showSiteNameSupported);
+	boolean showSiteName = GetterUtil.getBoolean(selLayoutSet.getSettingsProperty("showSiteName"), showSiteNameDefault);
+	%>
 
-		boolean showSiteName = GetterUtil.getBoolean(selLayoutSet.getSettingsProperty("showSiteName"), showSiteNameDefault);
-		%>
-
-		<aui:input checked="<%= showSiteName %>" disabled="<%= !showSiteNameSupported %>" helpMessage='<%= showSiteNameSupported ? StringPool.BLANK : "the-theme-selected-for-the-site-does-not-support-displaying-the-title" %>' label="show-site-name" name="TypeSettingsProperties--showSiteName--" type="checkbox" />
-	</c:if>
+	<aui:input checked="<%= showSiteName %>" disabled="<%= !showSiteNameSupported %>" helpMessage='<%= showSiteNameSupported ? StringPool.BLANK : "the-theme-selected-for-the-site-does-not-support-displaying-the-title" %>' label="show-site-name" name="TypeSettingsProperties--showSiteName--" type="checkbox" />
 </aui:fieldset>
-
-<aui:script use="aui-base">
-	var deleteLogoLink = A.one('#<portlet:namespace />deleteLogoLink');
-	var useLogoInput = A.one('#<portlet:namespace />useLogo');
-	var logoContainer = A.one('#<portlet:namespace />logoContainer');
-	var logoFileNameInput = A.one('#<portlet:namespace />logoFileName');
-
-	var changeLogo = function(event) {
-		var changeLogo = (event.type == 'change');
-
-		useLogoInput.val(changeLogo);
-		logoContainer.hide();
-	};
-
-	if (deleteLogoLink) {
-		deleteLogoLink.on('click', changeLogo);
-	}
-
-	logoFileNameInput.on('change', changeLogo);
-</aui:script>

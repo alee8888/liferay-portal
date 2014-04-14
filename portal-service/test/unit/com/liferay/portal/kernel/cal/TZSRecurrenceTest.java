@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,19 +20,25 @@ import com.liferay.portal.kernel.util.Time;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import org.junit.Assert;
+import org.junit.Test;
+
 /**
  * @author Angelo Jefferson
  */
 public class TZSRecurrenceTest extends RecurrenceTestCase {
 
+	@Test
 	public void testCompleteTimeZoneWithinTSZRecurrence() {
-		testWithinTSZRecurrence(_timeZone);
+		checkWithinTSZRecurrence(_timeZone);
 	}
 
+	@Test
 	public void testIncompleteTimeZoneWithinTSZRecurrence() {
-		testWithinTSZRecurrence(getIncompleteTimeZone());
+		checkWithinTSZRecurrence(getIncompleteTimeZone());
 	}
 
+	@Test
 	public void testInsideDSTTZSRecurrence() {
 
 		// Event starting inside DST matched by first Sunday of the month
@@ -40,9 +46,9 @@ public class TZSRecurrenceTest extends RecurrenceTestCase {
 		TZSRecurrence firstSunOfMonth = getMonthByDayTSZRecurrence(
 			_insideDSTCalendar, _durationHour, SUNDAY, 1, 1, _timeZone);
 
-		testWithinTSZRecurrence(
+		checkWithinTSZRecurrence(
 			getInsideDSTCalendar(AUGUST, 7), _durationHour, firstSunOfMonth);
-		testWithinTSZRecurrence(
+		checkWithinTSZRecurrence(
 			getInsideDSTCalendar(DECEMBER, 4), _durationHour, firstSunOfMonth);
 
 		// Events starting inside DST matched second day of the month
@@ -51,14 +57,15 @@ public class TZSRecurrenceTest extends RecurrenceTestCase {
 			getMonthByMonthDayTSZRecurrence(
 				_insideDSTCalendar, _durationHour, 2, 1, _timeZone);
 
-		testWithinTSZRecurrence(
+		checkWithinTSZRecurrence(
 			getInsideDSTCalendar(AUGUST, 2), _durationHour,
 			secondDayOfMonthTSZRecurrence);
-		testWithinTSZRecurrence(
+		checkWithinTSZRecurrence(
 			getInsideDSTCalendar(DECEMBER, 2), _durationHour,
 			secondDayOfMonthTSZRecurrence);
 	}
 
+	@Test
 	public void testOutsideDSTTZSRecurrence() {
 
 		// Event starting outside of DST matched by the first Monday of the
@@ -68,10 +75,10 @@ public class TZSRecurrenceTest extends RecurrenceTestCase {
 			getMonthByDayTSZRecurrence(
 				_outsideDSTCalendar, _durationHour, MONDAY, 1, 1, _timeZone);
 
-		testWithinTSZRecurrence(
+		checkWithinTSZRecurrence(
 			getOutsideDSTCalendar(AUGUST, 1), _durationHour,
 			firstMondayOfMonthTSZRecurrence);
-		testWithinTSZRecurrence(
+		checkWithinTSZRecurrence(
 			getOutsideDSTCalendar(DECEMBER, 5), _durationHour,
 			firstMondayOfMonthTSZRecurrence);
 
@@ -81,10 +88,10 @@ public class TZSRecurrenceTest extends RecurrenceTestCase {
 			getMonthByMonthDayTSZRecurrence(
 				_outsideDSTCalendar, _durationHour, 6, 1, _timeZone);
 
-		testWithinTSZRecurrence(
+		checkWithinTSZRecurrence(
 			getOutsideDSTCalendar(AUGUST, 6), _durationHour,
 			sixthDayOfMonthTSZRecurrence);
-		testWithinTSZRecurrence(
+		checkWithinTSZRecurrence(
 			getOutsideDSTCalendar(DECEMBER, 6), _durationHour,
 			sixthDayOfMonthTSZRecurrence);
 	}
@@ -92,7 +99,61 @@ public class TZSRecurrenceTest extends RecurrenceTestCase {
 	protected void assertTZSRecurrenceEquals(
 		boolean expected, TZSRecurrence recurrence, Calendar calendar) {
 
-		assertEquals(expected, recurrence.isInRecurrence(calendar));
+		Assert.assertEquals(expected, recurrence.isInRecurrence(calendar));
+	}
+
+	protected void checkWithinTSZRecurrence(
+		Calendar calendar, Duration duration, TZSRecurrence tszRecurrence) {
+
+		Calendar afterTSZRecurrenceCalendar = Calendar.getInstance();
+
+		afterTSZRecurrenceCalendar.setTimeInMillis(
+			calendar.getTimeInMillis() + duration.getInterval() + Time.MINUTE);
+
+		assertTZSRecurrenceEquals(
+			false, tszRecurrence, afterTSZRecurrenceCalendar);
+
+		Calendar beforeTSZRecurrenceCalendar = Calendar.getInstance();
+
+		beforeTSZRecurrenceCalendar.setTimeInMillis(
+			calendar.getTimeInMillis() - Time.MINUTE);
+
+		assertTZSRecurrenceEquals(
+			false, tszRecurrence, beforeTSZRecurrenceCalendar);
+
+		Calendar endOfTSZRecurrenceCalendar = Calendar.getInstance();
+
+		endOfTSZRecurrenceCalendar.setTimeInMillis(
+			calendar.getTimeInMillis() + duration.getInterval() - Time.MINUTE);
+
+		assertTZSRecurrenceEquals(
+			true, tszRecurrence, endOfTSZRecurrenceCalendar);
+
+		Calendar startOfTSZRecurrenceCalendar = Calendar.getInstance();
+
+		startOfTSZRecurrenceCalendar.setTimeInMillis(
+			calendar.getTimeInMillis() + Time.MINUTE);
+
+		assertTZSRecurrenceEquals(
+			true, tszRecurrence, startOfTSZRecurrenceCalendar);
+	}
+
+	protected void checkWithinTSZRecurrence(TimeZone timeZone) {
+		TZSRecurrence insideDSTTSZRecurrence = getMonthByDayTSZRecurrence(
+			_insideDSTCalendar, _durationHour, SUNDAY, 1, 1, timeZone);
+
+		Calendar insideDSTCalendar = getCalendar(2013, JULY, 7, 4, 0);
+
+		checkWithinTSZRecurrence(
+			insideDSTCalendar, _durationHour, insideDSTTSZRecurrence);
+
+		TZSRecurrence outsideDSTTSZRecurrence = getMonthByDayTSZRecurrence(
+			_outsideDSTCalendar, _durationHour, SUNDAY, 1, 1, timeZone);
+
+		Calendar outsideDSTCalendar = getCalendar(2013, JANUARY, 6, 5, 0);
+
+		checkWithinTSZRecurrence(
+			outsideDSTCalendar, _durationHour, outsideDSTTSZRecurrence);
 	}
 
 	protected TimeZone getIncompleteTimeZone() {
@@ -113,8 +174,8 @@ public class TZSRecurrenceTest extends RecurrenceTestCase {
 	protected Calendar getInsideDSTCalendar(int month, int date) {
 
 		// Returns a candidate calendar for an event that has a start date
-		// inside DST. Set the hour to 4 because it will be midnight in New
-		// York (EST) but 4 am at Greenwich (UTC).
+		// inside DST. Set the hour to 4 because it will be midnight in New York
+		// (EST) but 4 am at Greenwich (UTC).
 
 		return getCalendar(2011, month, date, 4, 0);
 	}
@@ -163,60 +224,6 @@ public class TZSRecurrenceTest extends RecurrenceTestCase {
 		// York (EST) but 5 am at Greenwich (UTC).
 
 		return getCalendar(2011, month, date, 5, 0);
-	}
-
-	protected void testWithinTSZRecurrence(
-		Calendar calendar, Duration duration, TZSRecurrence tszRecurrence) {
-
-		Calendar afterTSZRecurrenceCalendar = Calendar.getInstance();
-
-		afterTSZRecurrenceCalendar.setTimeInMillis(
-			calendar.getTimeInMillis() + duration.getInterval() + Time.MINUTE);
-
-		assertTZSRecurrenceEquals(
-			false, tszRecurrence, afterTSZRecurrenceCalendar);
-
-		Calendar beforeTSZRecurrenceCalendar = Calendar.getInstance();
-
-		beforeTSZRecurrenceCalendar.setTimeInMillis(
-			calendar.getTimeInMillis() - Time.MINUTE);
-
-		assertTZSRecurrenceEquals(
-			false, tszRecurrence, beforeTSZRecurrenceCalendar);
-
-		Calendar endOfTSZRecurrenceCalendar = Calendar.getInstance();
-
-		endOfTSZRecurrenceCalendar.setTimeInMillis(
-			calendar.getTimeInMillis() + duration.getInterval() - Time.MINUTE);
-
-		assertTZSRecurrenceEquals(
-			true, tszRecurrence, endOfTSZRecurrenceCalendar);
-
-		Calendar startOfTSZRecurrenceCalendar = Calendar.getInstance();
-
-		startOfTSZRecurrenceCalendar.setTimeInMillis(
-			calendar.getTimeInMillis() + Time.MINUTE);
-
-		assertTZSRecurrenceEquals(
-			true, tszRecurrence, startOfTSZRecurrenceCalendar);
-	}
-
-	protected void testWithinTSZRecurrence(TimeZone timeZone) {
-		TZSRecurrence insideDSTTSZRecurrence = getMonthByDayTSZRecurrence(
-			_insideDSTCalendar, _durationHour, SUNDAY, 1, 1, timeZone);
-
-		Calendar insideDSTCalendar = getCalendar(2013, JULY, 7, 4, 0);
-
-		testWithinTSZRecurrence(
-			insideDSTCalendar, _durationHour, insideDSTTSZRecurrence);
-
-		TZSRecurrence outsideDSTTSZRecurrence = getMonthByDayTSZRecurrence(
-			_outsideDSTCalendar, _durationHour, SUNDAY, 1, 1, timeZone);
-
-		Calendar outsideDSTCalendar = getCalendar(2013, JANUARY, 6, 5, 0);
-
-		testWithinTSZRecurrence(
-			outsideDSTCalendar, _durationHour, outsideDSTTSZRecurrence);
 	}
 
 	private Duration _durationHour = getDuration(0, 0, 1, 0, 0);

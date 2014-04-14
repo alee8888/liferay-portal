@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,49 +14,115 @@
 
 package com.liferay.portal.cache.memory;
 
+import com.liferay.portal.kernel.cache.CacheManagerListener;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cache.PortalCacheManager;
 
+import java.io.Serializable;
+
 import java.net.URL;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author Brian Wing Shun Chan
  */
-public class MemoryPortalCacheManager implements PortalCacheManager {
+public class MemoryPortalCacheManager<K extends Serializable, V>
+	implements PortalCacheManager<K, V> {
 
 	public void afterPropertiesSet() {
-		_portalCaches = new ConcurrentHashMap<String, PortalCache>(
-			_cacheManagerInitialCapacity);
+		_memoryPortalCaches =
+			new ConcurrentHashMap<String, MemoryPortalCache<K, V>>(
+				_cacheManagerInitialCapacity);
+
+		for (CacheManagerListener cacheManagerListener :
+				_cacheManagerListeners) {
+
+			cacheManagerListener.init();
+		}
 	}
 
+	@Override
 	public void clearAll() {
-		_portalCaches.clear();
+		for (MemoryPortalCache<K, V> memoryPortalCache :
+				_memoryPortalCaches.values()) {
+
+			memoryPortalCache.removeAll();
+		}
 	}
 
-	public PortalCache getCache(String name) {
+	@Override
+	public void destroy() {
+		for (MemoryPortalCache<K, V> memoryPortalCache :
+				_memoryPortalCaches.values()) {
+
+			memoryPortalCache.destroy();
+		}
+
+		for (CacheManagerListener cacheManagerListener :
+				_cacheManagerListeners) {
+
+			cacheManagerListener.dispose();
+		}
+	}
+
+	@Override
+	public PortalCache<K, V> getCache(String name) {
 		return getCache(name, false);
 	}
 
-	public PortalCache getCache(String name, boolean blocking) {
-		PortalCache portalCache = _portalCaches.get(name);
+	@Override
+	public PortalCache<K, V> getCache(String name, boolean blocking) {
+		MemoryPortalCache<K, V> portalCache = _memoryPortalCaches.get(name);
 
 		if (portalCache == null) {
-			portalCache = new MemoryPortalCache(name, _cacheInitialCapacity);
+			portalCache = new MemoryPortalCache<K, V>(
+				name, _cacheInitialCapacity);
 
-			_portalCaches.put(name, portalCache);
+			_memoryPortalCaches.put(name, portalCache);
+
+			for (CacheManagerListener cacheManagerListener :
+					_cacheManagerListeners) {
+
+				cacheManagerListener.notifyCacheAdded(name);
+			}
 		}
 
 		return portalCache;
 	}
 
+	@Override
+	public Set<CacheManagerListener> getCacheManagerListeners() {
+		return new HashSet<CacheManagerListener>(_cacheManagerListeners);
+	}
+
+	@Override
 	public void reconfigureCaches(URL configurationURL) {
 	}
 
+	@Override
+	public boolean registerCacheManagerListener(
+		CacheManagerListener cacheManagerListener) {
+
+		return _cacheManagerListeners.add(cacheManagerListener);
+	}
+
+	@Override
 	public void removeCache(String name) {
-		_portalCaches.remove(name);
+		MemoryPortalCache<K, V> memoryPortalCache = _memoryPortalCaches.remove(
+			name);
+
+		memoryPortalCache.destroy();
+
+		for (CacheManagerListener cacheManagerListener :
+				_cacheManagerListeners) {
+
+			cacheManagerListener.notifyCacheRemoved(name);
+		}
 	}
 
 	public void setCacheInitialCapacity(int cacheInitialCapacity) {
@@ -69,8 +135,22 @@ public class MemoryPortalCacheManager implements PortalCacheManager {
 		_cacheManagerInitialCapacity = cacheManagerInitialCapacity;
 	}
 
+	@Override
+	public boolean unregisterCacheManagerListener(
+		CacheManagerListener cacheManagerListener) {
+
+		return _cacheManagerListeners.remove(cacheManagerListener);
+	}
+
+	@Override
+	public void unregisterCacheManagerListeners() {
+		_cacheManagerListeners.clear();
+	}
+
 	private int _cacheInitialCapacity = 10000;
 	private int _cacheManagerInitialCapacity = 10000;
-	private Map<String, PortalCache> _portalCaches;
+	private Set<CacheManagerListener> _cacheManagerListeners =
+		new CopyOnWriteArraySet<CacheManagerListener>();
+	private Map<String, MemoryPortalCache<K, V>> _memoryPortalCaches;
 
 }

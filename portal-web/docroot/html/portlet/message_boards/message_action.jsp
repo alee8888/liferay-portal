@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -53,32 +53,34 @@ MBThread thread = message.getThread();
 			modelResourceDescription="<%= message.getSubject() %>"
 			resourcePrimKey="<%= String.valueOf(message.getMessageId()) %>"
 			var="permissionsURL"
+			windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 		/>
 
 		<liferay-ui:icon
 			image="permissions"
+			method="get"
 			url="<%= permissionsURL %>"
+			useDialog="<%= true %>"
 		/>
 	</c:if>
 
 	<c:if test="<%= portletName.equals(PortletKeys.MESSAGE_BOARDS) %>">
-		<c:if test="<%= MBMessagePermission.contains(permissionChecker, message, ActionKeys.VIEW) %>">
+		<c:if test="<%= enableRSS && MBMessagePermission.contains(permissionChecker, message, ActionKeys.VIEW) %>">
 
 			<%
-			rssURL.setParameter("p_l_id", String.valueOf(plid));
 			rssURL.setParameter("mbCategoryId", StringPool.BLANK);
 			rssURL.setParameter("threadId", String.valueOf(message.getThreadId()));
 			%>
 
-			<liferay-ui:icon
-				image="rss"
-				method="get"
-				target="_blank"
-				url="<%= rssURL.toString() %>"
+			<liferay-ui:rss
+				delta="<%= rssDelta %>"
+				displayStyle="<%= rssDisplayStyle %>"
+				feedType="<%= rssFeedType %>"
+				resourceURL="<%= rssURL %>"
 			/>
 		</c:if>
 
-		<c:if test="<%= MBMessagePermission.contains(permissionChecker, message, ActionKeys.SUBSCRIBE) %>">
+		<c:if test="<%= MBMessagePermission.contains(permissionChecker, message, ActionKeys.SUBSCRIBE) && (mbSettings.isEmailMessageAddedEnabled() || mbSettings.isEmailMessageUpdatedEnabled()) %>">
 			<c:choose>
 				<c:when test="<%= (threadSubscriptionClassPKs != null) && threadSubscriptionClassPKs.contains(message.getThreadId()) %>">
 					<portlet:actionURL var="unsubscribeURL">
@@ -144,7 +146,7 @@ MBThread thread = message.getThread();
 		</c:choose>
 	</c:if>
 
-	<c:if test="<%= MBCategoryPermission.contains(permissionChecker, message.getGroupId(), message.getCategoryId(), ActionKeys.MOVE_THREAD) %>">
+	<c:if test="<%= MBCategoryPermission.contains(permissionChecker, message.getGroupId(), message.getCategoryId(), ActionKeys.MOVE_THREAD) && !thread.isLocked() %>">
 		<portlet:renderURL var="moveThreadURL">
 			<portlet:param name="struts_action" value="/message_boards/move_thread" />
 			<portlet:param name="redirect" value="<%= currentURL %>" />
@@ -153,8 +155,8 @@ MBThread thread = message.getThread();
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			image="forward"
-			message="move-thread"
+			image="submit"
+			message="move"
 			url="<%= moveThreadURL %>"
 		/>
 	</c:if>
@@ -162,12 +164,13 @@ MBThread thread = message.getThread();
 	<c:if test="<%= MBMessagePermission.contains(permissionChecker, message, ActionKeys.DELETE) && !thread.isLocked() %>">
 		<portlet:actionURL var="deleteURL">
 			<portlet:param name="struts_action" value="/message_boards/delete_thread" />
-			<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.DELETE %>" />
+			<portlet:param name="<%= Constants.CMD %>" value="<%= TrashUtil.isTrashEnabled(themeDisplay.getScopeGroupId()) ? Constants.MOVE_TO_TRASH : Constants.DELETE %>" />
 			<portlet:param name="redirect" value="<%= currentURL %>" />
 			<portlet:param name="threadId" value="<%= String.valueOf(message.getThreadId()) %>" />
 		</portlet:actionURL>
 
 		<liferay-ui:icon-delete
+			trash="<%= TrashUtil.isTrashEnabled(themeDisplay.getScopeGroupId()) %>"
 			url="<%= deleteURL %>"
 		/>
 	</c:if>

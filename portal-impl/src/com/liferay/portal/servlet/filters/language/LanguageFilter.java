@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,13 +18,14 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.language.UnicodeLanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
 import com.liferay.portal.kernel.servlet.PortletServlet;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
-import com.liferay.portal.kernel.servlet.StringServletResponse;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.language.LanguageResources;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.PortletApp;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
@@ -32,6 +33,7 @@ import com.liferay.portlet.PortletConfigFactoryUtil;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,11 +80,12 @@ public class LanguageFilter extends BasePortalFilter {
 			FilterChain filterChain)
 		throws Exception {
 
-		StringServletResponse stringResponse = new StringServletResponse(
-			response);
+		BufferCacheServletResponse bufferCacheServletResponse =
+			new BufferCacheServletResponse(response);
 
 		processFilter(
-			LanguageFilter.class, request, stringResponse, filterChain);
+			LanguageFilter.class, request, bufferCacheServletResponse,
+			filterChain);
 
 		if (_log.isDebugEnabled()) {
 			String completeURL = HttpUtil.getCompleteURL(request);
@@ -90,22 +93,32 @@ public class LanguageFilter extends BasePortalFilter {
 			_log.debug("Translating response " + completeURL);
 		}
 
-		String content = translateResponse(request, stringResponse);
+		String content = bufferCacheServletResponse.getString();
+
+		content = translateResponse(request, content);
 
 		ServletResponseUtil.write(response, content);
 	}
 
 	protected String translateResponse(
-		HttpServletRequest request, StringServletResponse stringResponse) {
+		HttpServletRequest request, String content) {
 
 		String languageId = LanguageUtil.getLanguageId(request);
 		Locale locale = LocaleUtil.fromLanguageId(languageId);
 
-		String content = stringResponse.getString();
-
 		StringBundler sb = new StringBundler();
 
 		Matcher matcher = _pattern.matcher(content);
+
+		ResourceBundle resourceBundle = null;
+
+		if (_portletConfig != null) {
+			resourceBundle = _portletConfig.getResourceBundle(locale);
+		}
+
+		if (resourceBundle == null) {
+			resourceBundle = LanguageResources.getResourceBundle(locale);
+		}
 
 		int x = 0;
 
@@ -117,14 +130,7 @@ public class LanguageFilter extends BasePortalFilter {
 			sb.append(content.substring(x, y));
 			sb.append(StringPool.APOSTROPHE);
 
-			String value = null;
-
-			if (_portletConfig != null) {
-				value = UnicodeLanguageUtil.get(_portletConfig, locale, key);
-			}
-			else {
-				value = UnicodeLanguageUtil.get(locale, key);
-			}
+			String value = UnicodeLanguageUtil.get(resourceBundle, key);
 
 			sb.append(value);
 			sb.append(StringPool.APOSTROPHE);

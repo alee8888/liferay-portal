@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,7 @@
 
 package com.liferay.portal.json.transformer;
 
-import com.liferay.portal.json.JSONIncludesManager;
+import com.liferay.portal.kernel.json.JSONIncludesManagerUtil;
 import com.liferay.portal.kernel.json.JSONTransformer;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -46,11 +46,11 @@ public class FlexjsonObjectJSONTransformer
 
 		String path = _getPath();
 
-		String[] excludes = _jsonIncludesManager.lookupExcludes(type);
+		String[] excludes = JSONIncludesManagerUtil.lookupExcludes(type);
 
 		_exclude(pathExpressions, path, excludes);
 
-		String[] includes = _jsonIncludesManager.lookupIncludes(type);
+		String[] includes = JSONIncludesManagerUtil.lookupIncludes(type);
 
 		_include(pathExpressions, path, includes);
 
@@ -64,9 +64,22 @@ public class FlexjsonObjectJSONTransformer
 			PathExpression pathExpression = new PathExpression(
 				path.concat(name), false);
 
-			if (!pathExpressions.contains(pathExpression)) {
-				pathExpressions.add(pathExpression);
+			for (int i = 0; i < pathExpressions.size(); i++) {
+				PathExpression curPathExpression = pathExpressions.get(i);
+
+				if (pathExpression.equals(curPathExpression) &&
+					curPathExpression.isIncluded()) {
+
+					// Same path expression found, but it was included,
+					// therefore, replace it with the excluded path expression
+
+					pathExpressions.set(i, pathExpression);
+
+					return;
+				}
 			}
+
+			pathExpressions.add(pathExpression);
 		}
 	}
 
@@ -103,8 +116,5 @@ public class FlexjsonObjectJSONTransformer
 			}
 		}
 	}
-
-	private static JSONIncludesManager _jsonIncludesManager =
-		new JSONIncludesManager();
 
 }

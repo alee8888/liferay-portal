@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,40 +15,72 @@
 package com.liferay.portlet.documentlibrary.service.persistence;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.impl.DLFileEntryModelImpl;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class DLFileEntryPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (DLFileEntryPersistence)PortalBeanLocatorUtil.locate(DLFileEntryPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -94,17 +126,19 @@ public class DLFileEntryPersistenceTest {
 
 		newDLFileEntry.setUserName(ServiceTestUtil.randomString());
 
-		newDLFileEntry.setVersionUserId(ServiceTestUtil.nextLong());
-
-		newDLFileEntry.setVersionUserName(ServiceTestUtil.randomString());
-
 		newDLFileEntry.setCreateDate(ServiceTestUtil.nextDate());
 
 		newDLFileEntry.setModifiedDate(ServiceTestUtil.nextDate());
 
+		newDLFileEntry.setClassNameId(ServiceTestUtil.nextLong());
+
+		newDLFileEntry.setClassPK(ServiceTestUtil.nextLong());
+
 		newDLFileEntry.setRepositoryId(ServiceTestUtil.nextLong());
 
 		newDLFileEntry.setFolderId(ServiceTestUtil.nextLong());
+
+		newDLFileEntry.setTreePath(ServiceTestUtil.randomString());
 
 		newDLFileEntry.setName(ServiceTestUtil.randomString());
 
@@ -134,7 +168,9 @@ public class DLFileEntryPersistenceTest {
 
 		newDLFileEntry.setCustom2ImageId(ServiceTestUtil.nextLong());
 
-		_persistence.update(newDLFileEntry, false);
+		newDLFileEntry.setManualCheckInRequired(ServiceTestUtil.randomBoolean());
+
+		_persistence.update(newDLFileEntry);
 
 		DLFileEntry existingDLFileEntry = _persistence.findByPrimaryKey(newDLFileEntry.getPrimaryKey());
 
@@ -150,20 +186,22 @@ public class DLFileEntryPersistenceTest {
 			newDLFileEntry.getUserId());
 		Assert.assertEquals(existingDLFileEntry.getUserName(),
 			newDLFileEntry.getUserName());
-		Assert.assertEquals(existingDLFileEntry.getVersionUserId(),
-			newDLFileEntry.getVersionUserId());
-		Assert.assertEquals(existingDLFileEntry.getVersionUserName(),
-			newDLFileEntry.getVersionUserName());
 		Assert.assertEquals(Time.getShortTimestamp(
 				existingDLFileEntry.getCreateDate()),
 			Time.getShortTimestamp(newDLFileEntry.getCreateDate()));
 		Assert.assertEquals(Time.getShortTimestamp(
 				existingDLFileEntry.getModifiedDate()),
 			Time.getShortTimestamp(newDLFileEntry.getModifiedDate()));
+		Assert.assertEquals(existingDLFileEntry.getClassNameId(),
+			newDLFileEntry.getClassNameId());
+		Assert.assertEquals(existingDLFileEntry.getClassPK(),
+			newDLFileEntry.getClassPK());
 		Assert.assertEquals(existingDLFileEntry.getRepositoryId(),
 			newDLFileEntry.getRepositoryId());
 		Assert.assertEquals(existingDLFileEntry.getFolderId(),
 			newDLFileEntry.getFolderId());
+		Assert.assertEquals(existingDLFileEntry.getTreePath(),
+			newDLFileEntry.getTreePath());
 		Assert.assertEquals(existingDLFileEntry.getName(),
 			newDLFileEntry.getName());
 		Assert.assertEquals(existingDLFileEntry.getExtension(),
@@ -192,6 +230,233 @@ public class DLFileEntryPersistenceTest {
 			newDLFileEntry.getCustom1ImageId());
 		Assert.assertEquals(existingDLFileEntry.getCustom2ImageId(),
 			newDLFileEntry.getCustom2ImageId());
+		Assert.assertEquals(existingDLFileEntry.getManualCheckInRequired(),
+			newDLFileEntry.getManualCheckInRequired());
+	}
+
+	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUUID_G() {
+		try {
+			_persistence.countByUUID_G(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUUID_G(StringPool.NULL, 0L);
+
+			_persistence.countByUUID_G((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByMimeType() {
+		try {
+			_persistence.countByMimeType(StringPool.BLANK);
+
+			_persistence.countByMimeType(StringPool.NULL);
+
+			_persistence.countByMimeType((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByFileEntryTypeId() {
+		try {
+			_persistence.countByFileEntryTypeId(ServiceTestUtil.nextLong());
+
+			_persistence.countByFileEntryTypeId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByF_N() {
+		try {
+			_persistence.countByF_N(ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByF_N(0L, StringPool.NULL);
+
+			_persistence.countByF_N(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_U() {
+		try {
+			_persistence.countByG_U(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByG_U(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_F() {
+		try {
+			_persistence.countByG_F(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByG_F(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_FArrayable() {
+		try {
+			_persistence.countByG_F(ServiceTestUtil.nextLong(),
+				new long[] { ServiceTestUtil.nextLong(), 0L });
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_U_F() {
+		try {
+			_persistence.countByG_U_F(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+
+			_persistence.countByG_U_F(0L, 0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_U_FArrayable() {
+		try {
+			_persistence.countByG_U_F(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(),
+				new long[] { ServiceTestUtil.nextLong(), 0L });
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_F_N() {
+		try {
+			_persistence.countByG_F_N(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByG_F_N(0L, 0L, StringPool.NULL);
+
+			_persistence.countByG_F_N(0L, 0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_F_T() {
+		try {
+			_persistence.countByG_F_T(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByG_F_T(0L, 0L, StringPool.NULL);
+
+			_persistence.countByG_F_T(0L, 0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_F_F() {
+		try {
+			_persistence.countByG_F_F(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+
+			_persistence.countByG_F_F(0L, 0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_F_FArrayable() {
+		try {
+			_persistence.countByG_F_F(ServiceTestUtil.nextLong(),
+				new long[] { ServiceTestUtil.nextLong(), 0L },
+				ServiceTestUtil.nextLong());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -217,6 +482,41 @@ public class DLFileEntryPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testFilterFindByGroupId() throws Exception {
+		try {
+			_persistence.filterFindByGroupId(0, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("DLFileEntry", "uuid", true,
+			"fileEntryId", true, "groupId", true, "companyId", true, "userId",
+			true, "userName", true, "createDate", true, "modifiedDate", true,
+			"classNameId", true, "classPK", true, "repositoryId", true,
+			"folderId", true, "treePath", true, "name", true, "extension",
+			true, "mimeType", true, "title", true, "description", true,
+			"extraSettings", true, "fileEntryTypeId", true, "version", true,
+			"size", true, "readCount", true, "smallImageId", true,
+			"largeImageId", true, "custom1ImageId", true, "custom2ImageId",
+			true, "manualCheckInRequired", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		DLFileEntry newDLFileEntry = addDLFileEntry();
 
@@ -232,6 +532,26 @@ public class DLFileEntryPersistenceTest {
 		DLFileEntry missingDLFileEntry = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingDLFileEntry);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new DLFileEntryActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					DLFileEntry dlFileEntry = (DLFileEntry)object;
+
+					Assert.assertNotNull(dlFileEntry);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -356,17 +676,19 @@ public class DLFileEntryPersistenceTest {
 
 		dlFileEntry.setUserName(ServiceTestUtil.randomString());
 
-		dlFileEntry.setVersionUserId(ServiceTestUtil.nextLong());
-
-		dlFileEntry.setVersionUserName(ServiceTestUtil.randomString());
-
 		dlFileEntry.setCreateDate(ServiceTestUtil.nextDate());
 
 		dlFileEntry.setModifiedDate(ServiceTestUtil.nextDate());
 
+		dlFileEntry.setClassNameId(ServiceTestUtil.nextLong());
+
+		dlFileEntry.setClassPK(ServiceTestUtil.nextLong());
+
 		dlFileEntry.setRepositoryId(ServiceTestUtil.nextLong());
 
 		dlFileEntry.setFolderId(ServiceTestUtil.nextLong());
+
+		dlFileEntry.setTreePath(ServiceTestUtil.randomString());
 
 		dlFileEntry.setName(ServiceTestUtil.randomString());
 
@@ -396,10 +718,14 @@ public class DLFileEntryPersistenceTest {
 
 		dlFileEntry.setCustom2ImageId(ServiceTestUtil.nextLong());
 
-		_persistence.update(dlFileEntry, false);
+		dlFileEntry.setManualCheckInRequired(ServiceTestUtil.randomBoolean());
+
+		_persistence.update(dlFileEntry);
 
 		return dlFileEntry;
 	}
 
-	private DLFileEntryPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(DLFileEntryPersistenceTest.class);
+	private DLFileEntryPersistence _persistence = (DLFileEntryPersistence)PortalBeanLocatorUtil.locate(DLFileEntryPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

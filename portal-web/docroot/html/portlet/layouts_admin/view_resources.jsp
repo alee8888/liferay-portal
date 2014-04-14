@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,12 +36,16 @@ SitesUtil.addPortletBreadcrumbEntries(group, pagesName, redirectURL, request, re
 <c:if test="<%= viewLayout %>">
 	<div id="<portlet:namespace />viewLayout">
 		<c:choose>
-			<c:when test="<%= selPlid > 0 %>">
-				<liferay-util:include page="/html/portlet/layouts_admin/edit_layout.jsp" />
+			<c:when test="<%= (selLayout != null) && LayoutPermissionUtil.contains(permissionChecker, selLayout, ActionKeys.VIEW) %>">
+				<liferay-util:include page="/html/portlet/layouts_admin/edit_layout.jsp">
+					<c:if test="<%= !SitesUtil.isLayoutDeleteable(selLayout) || !SitesUtil.isLayoutUpdateable(selLayout) %>">
+						<liferay-util:param name="showAddAction" value="<%= Boolean.FALSE.toString() %>" />
+					</c:if>
+				</liferay-util:include>
 			</c:when>
-			<c:otherwise>
+			<c:when test="<%= (liveGroupId > 0) && GroupPermissionUtil.contains(permissionChecker, liveGroupId, ActionKeys.VIEW) %>">
 				<liferay-util:include page="/html/portlet/layouts_admin/edit_layout_set.jsp" />
-			</c:otherwise>
+			</c:when>
 		</c:choose>
 	</div>
 </c:if>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +26,8 @@ public class UpgradePortletPreferences
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		updatePortletPreferences();
+		super.doUpgrade();
+
 		upgrade(UpgradeCommunityProperties.class);
 	}
 
@@ -36,8 +37,8 @@ public class UpgradePortletPreferences
 	}
 
 	private static final String[] _CAMEL_CASE_UPGRADE_PORTLET_IDS = {
-		"8", "15", "19", "20", "33", "34", "36", "39_INSTANCE_%",
-		"47_INSTANCE_%", "56_INSTANCE_%", "54_INSTANCE_%", "59_INSTANCE_%",
+		"15", "19", "20", "33", "34", "36", "39_INSTANCE_%", "47_INSTANCE_%",
+		"48_INSTANCE_%", "54_INSTANCE_%", "56_INSTANCE_%", "59_INSTANCE_%",
 		"62_INSTANCE_%", "71_INSTANCE_%", "73_INSTANCE_%", "77",
 		"82_INSTANCE_%", "85_INSTANCE_%", "100", "101_INSTANCE_%",
 		"102_INSTANCE_%", "114", "115", "118_INSTANCE_%", "122_INSTANCE_%"

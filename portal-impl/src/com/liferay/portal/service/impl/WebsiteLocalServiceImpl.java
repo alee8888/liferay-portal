@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,12 +17,14 @@ package com.liferay.portal.service.impl;
 import com.liferay.portal.WebsiteURLException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ListTypeConstants;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.Website;
+import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.WebsiteLocalServiceBaseImpl;
-import com.liferay.portal.util.PortalUtil;
 
 import java.util.Date;
 import java.util.List;
@@ -32,13 +34,30 @@ import java.util.List;
  */
 public class WebsiteLocalServiceImpl extends WebsiteLocalServiceBaseImpl {
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #addWebsite(long, String,
+	 *             long, String, int, boolean, ServiceContext)}
+	 */
+	@Deprecated
+	@Override
 	public Website addWebsite(
 			long userId, String className, long classPK, String url, int typeId,
 			boolean primary)
 		throws PortalException, SystemException {
 
+		return addWebsite(
+			userId, className, classPK, url, typeId, primary,
+			new ServiceContext());
+	}
+
+	@Override
+	public Website addWebsite(
+			long userId, String className, long classPK, String url, int typeId,
+			boolean primary, ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
 		User user = userPersistence.findByPrimaryKey(userId);
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 		Date now = new Date();
 
 		validate(
@@ -48,48 +67,73 @@ public class WebsiteLocalServiceImpl extends WebsiteLocalServiceBaseImpl {
 
 		Website website = websitePersistence.create(websiteId);
 
+		website.setUuid(serviceContext.getUuid());
 		website.setCompanyId(user.getCompanyId());
 		website.setUserId(user.getUserId());
 		website.setUserName(user.getFullName());
 		website.setCreateDate(now);
-		website.setModifiedDate(now);
+		website.setCreateDate(serviceContext.getCreateDate(now));
+		website.setModifiedDate(serviceContext.getModifiedDate(now));
 		website.setClassNameId(classNameId);
 		website.setClassPK(classPK);
 		website.setUrl(url);
 		website.setTypeId(typeId);
 		website.setPrimary(primary);
 
-		websitePersistence.update(website, false);
+		websitePersistence.update(website);
 
 		return website;
 	}
 
+	@Override
+	public Website deleteWebsite(long websiteId)
+		throws PortalException, SystemException {
+
+		Website website = websitePersistence.findByPrimaryKey(websiteId);
+
+		return websiteLocalService.deleteWebsite(website);
+	}
+
+	@Override
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE)
+	public Website deleteWebsite(Website website) throws SystemException {
+		websitePersistence.remove(website);
+
+		return website;
+	}
+
+	@Override
 	public void deleteWebsites(long companyId, String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		List<Website> websites = websitePersistence.findByC_C_C(
 			companyId, classNameId, classPK);
 
 		for (Website website : websites) {
-			deleteWebsite(website);
+			websiteLocalService.deleteWebsite(website);
 		}
 	}
 
+	@Override
 	public List<Website> getWebsites() throws SystemException {
 		return websitePersistence.findAll();
 	}
 
+	@Override
 	public List<Website> getWebsites(
 			long companyId, String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return websitePersistence.findByC_C_C(companyId, classNameId, classPK);
 	}
 
+	@Override
 	public Website updateWebsite(
 			long websiteId, String url, int typeId, boolean primary)
 		throws PortalException, SystemException {
@@ -103,7 +147,7 @@ public class WebsiteLocalServiceImpl extends WebsiteLocalServiceBaseImpl {
 		website.setTypeId(typeId);
 		website.setPrimary(primary);
 
-		websitePersistence.update(website, false);
+		websitePersistence.update(website);
 
 		return website;
 	}
@@ -124,7 +168,7 @@ public class WebsiteLocalServiceImpl extends WebsiteLocalServiceBaseImpl {
 				if ((websiteId <= 0) || (website.getWebsiteId() != websiteId)) {
 					website.setPrimary(false);
 
-					websitePersistence.update(website, false);
+					websitePersistence.update(website);
 				}
 			}
 		}

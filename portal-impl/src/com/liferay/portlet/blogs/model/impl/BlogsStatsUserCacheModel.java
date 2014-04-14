@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,7 +19,10 @@ import com.liferay.portal.model.CacheModel;
 
 import com.liferay.portlet.blogs.model.BlogsStatsUser;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import java.util.Date;
 
@@ -31,7 +34,7 @@ import java.util.Date;
  * @generated
  */
 public class BlogsStatsUserCacheModel implements CacheModel<BlogsStatsUser>,
-	Serializable {
+	Externalizable {
 	@Override
 	public String toString() {
 		StringBundler sb = new StringBundler(19);
@@ -59,6 +62,7 @@ public class BlogsStatsUserCacheModel implements CacheModel<BlogsStatsUser>,
 		return sb.toString();
 	}
 
+	@Override
 	public BlogsStatsUser toEntityModel() {
 		BlogsStatsUserImpl blogsStatsUserImpl = new BlogsStatsUserImpl();
 
@@ -82,6 +86,33 @@ public class BlogsStatsUserCacheModel implements CacheModel<BlogsStatsUser>,
 		blogsStatsUserImpl.resetOriginalValues();
 
 		return blogsStatsUserImpl;
+	}
+
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		statsUserId = objectInput.readLong();
+		groupId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		userId = objectInput.readLong();
+		entryCount = objectInput.readInt();
+		lastPostDate = objectInput.readLong();
+		ratingsTotalEntries = objectInput.readInt();
+		ratingsTotalScore = objectInput.readDouble();
+		ratingsAverageScore = objectInput.readDouble();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(statsUserId);
+		objectOutput.writeLong(groupId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(userId);
+		objectOutput.writeInt(entryCount);
+		objectOutput.writeLong(lastPostDate);
+		objectOutput.writeInt(ratingsTotalEntries);
+		objectOutput.writeDouble(ratingsTotalScore);
+		objectOutput.writeDouble(ratingsAverageScore);
 	}
 
 	public long statsUserId;

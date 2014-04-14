@@ -41,7 +41,6 @@ AUI.add(
 						value: 0
 					},
 					timestamp: {
-						lazyAdd: false,
 						getter: '_getTimestamp',
 						setter: '_setTimestamp',
 						value: 0
@@ -89,6 +88,13 @@ AUI.add(
 						}
 
 						return fnId;
+					},
+
+					resetInterval: function() {
+						var instance = this;
+
+						instance._stopTimer();
+						instance._startTimer();
 					},
 
 					unregisterInterval: function(fnId) {
@@ -394,7 +400,7 @@ AUI.add(
 							instance._extendText = Liferay.Language.get('extend');
 
 							instance._warningText = Liferay.Language.get('warning-your-session-will-expire');
-							instance._warningText = Lang.sub(instance._warningText, ['<span class="countdown-timer">{0}</span>', host.get('warningLength') / 60000]);
+							instance._warningText = Lang.sub(instance._warningText, ['<span class="countdown-timer">{0}</span>', host.get('sessionLength') / 60000]);
 
 							host.on('sessionStateChange', instance._onHostSessionStateChange, instance);
 
@@ -470,7 +476,7 @@ AUI.add(
 								{
 									closeText: instance._extendText,
 									content: instance._warningText,
-									noticeClass: 'aui-helper-hidden',
+									noticeClass: 'popup-alert-notice',
 									onClose: function() {
 										instance._host.extend();
 									},
@@ -514,6 +520,8 @@ AUI.add(
 						banner.html(instance._expiredText);
 
 						banner.replaceClass('popup-alert-notice', 'popup-alert-warning');
+
+						banner.addClass('alert-error');
 
 						banner.show();
 
@@ -576,6 +584,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-io-request', 'aui-task-manager', 'cookie', 'liferay-notice']
+		requires: ['aui-io-request', 'aui-timer', 'cookie', 'liferay-notice']
 	}
 );

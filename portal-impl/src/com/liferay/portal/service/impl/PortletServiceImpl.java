@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,6 +35,7 @@ import java.util.List;
 @JSONWebService(mode = JSONWebServiceMode.MANUAL)
 public class PortletServiceImpl extends PortletServiceBaseImpl {
 
+	@Override
 	public JSONArray getWARPortlets() {
 		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
 
@@ -57,6 +58,7 @@ public class PortletServiceImpl extends PortletServiceBaseImpl {
 		return jsonArray;
 	}
 
+	@Override
 	public Portlet updatePortlet(
 			long companyId, String portletId, String roles, boolean active)
 		throws PortalException, SystemException {

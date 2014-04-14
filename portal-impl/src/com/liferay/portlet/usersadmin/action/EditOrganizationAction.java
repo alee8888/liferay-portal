@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,8 +28,10 @@ import com.liferay.portal.OrganizationParentException;
 import com.liferay.portal.PhoneNumberException;
 import com.liferay.portal.RequiredOrganizationException;
 import com.liferay.portal.WebsiteURLException;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -37,17 +39,23 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Address;
 import com.liferay.portal.model.EmailAddress;
+import com.liferay.portal.model.Group;
 import com.liferay.portal.model.OrgLabor;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.OrganizationConstants;
 import com.liferay.portal.model.Phone;
 import com.liferay.portal.model.Website;
 import com.liferay.portal.security.auth.PrincipalException;
+import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.OrganizationServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
+import com.liferay.portal.service.permission.GroupPermissionUtil;
 import com.liferay.portal.struts.PortletAction;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.WebKeys;
+import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.portlet.sites.util.SitesUtil;
 import com.liferay.portlet.usersadmin.util.UsersAdminUtil;
 
@@ -73,8 +81,9 @@ public class EditOrganizationAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -159,8 +168,9 @@ public class EditOrganizationAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -172,15 +182,15 @@ public class EditOrganizationAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.users_admin.error");
+				return actionMapping.findForward("portlet.users_admin.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(getForward(
-			renderRequest, "portlet.users_admin.edit_organization"));
+		return actionMapping.findForward(
+			getForward(renderRequest, "portlet.users_admin.edit_organization"));
 	}
 
 	protected void deleteOrganizations(ActionRequest actionRequest)
@@ -197,6 +207,9 @@ public class EditOrganizationAction extends PortletAction {
 	protected Organization updateOrganization(ActionRequest actionRequest)
 		throws Exception {
 
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
 		long organizationId = ParamUtil.getLong(
 			actionRequest, "organizationId");
 
@@ -204,12 +217,24 @@ public class EditOrganizationAction extends PortletAction {
 			actionRequest, "parentOrganizationSearchContainerPrimaryKeys",
 			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID);
 		String name = ParamUtil.getString(actionRequest, "name");
-		boolean recursable = ParamUtil.getBoolean(actionRequest, "recursable");
 		int statusId = ParamUtil.getInteger(actionRequest, "statusId");
 		String type = ParamUtil.getString(actionRequest, "type");
 		long regionId = ParamUtil.getLong(actionRequest, "regionId");
 		long countryId = ParamUtil.getLong(actionRequest, "countryId");
 		String comments = ParamUtil.getString(actionRequest, "comments");
+		boolean deleteLogo = ParamUtil.getBoolean(actionRequest, "deleteLogo");
+
+		byte[] logoBytes = null;
+
+		long fileEntryId = ParamUtil.getLong(actionRequest, "fileEntryId");
+
+		if (fileEntryId > 0) {
+			FileEntry fileEntry = DLAppLocalServiceUtil.getFileEntry(
+				fileEntryId);
+
+			logoBytes = FileUtil.getBytes(fileEntry.getContentStream());
+		}
+
 		boolean site = ParamUtil.getBoolean(actionRequest, "site");
 		List<Address> addresses = UsersAdminUtil.getAddresses(actionRequest);
 		List<EmailAddress> emailAddresses = UsersAdminUtil.getEmailAddresses(
@@ -228,26 +253,19 @@ public class EditOrganizationAction extends PortletAction {
 			// Add organization
 
 			organization = OrganizationServiceUtil.addOrganization(
-				parentOrganizationId, name, type, recursable, regionId,
-				countryId, statusId, comments, site, addresses, emailAddresses,
-				orgLabors, phones, websites, serviceContext);
+				parentOrganizationId, name, type, regionId, countryId, statusId,
+				comments, site, addresses, emailAddresses, orgLabors, phones,
+				websites, serviceContext);
 		}
 		else {
 
 			// Update organization
 
 			organization = OrganizationServiceUtil.updateOrganization(
-				organizationId, parentOrganizationId, name, type, recursable,
-				regionId, countryId, statusId, comments, site, addresses,
-				emailAddresses, orgLabors, phones, websites, serviceContext);
-
-			boolean deleteLogo = ParamUtil.getBoolean(
-				actionRequest, "deleteLogo");
-
-			if (deleteLogo) {
-				OrganizationServiceUtil.deleteLogo(
-					organization.getOrganizationId());
-			}
+				organizationId, parentOrganizationId, name, type, regionId,
+				countryId, statusId, comments, !deleteLogo, logoBytes, site,
+				addresses, emailAddresses, orgLabors, phones, websites,
+				serviceContext);
 		}
 
 		// Layout set prototypes
@@ -263,23 +281,31 @@ public class EditOrganizationAction extends PortletAction {
 			actionRequest, "privateLayoutSetPrototypeLinkEnabled",
 			(privateLayoutSetPrototypeId > 0));
 
-		SitesUtil.updateLayoutSetPrototypesLinks(
-			organization.getGroup(), publicLayoutSetPrototypeId,
-			privateLayoutSetPrototypeId, publicLayoutSetPrototypeLinkEnabled,
-			privateLayoutSetPrototypeLinkEnabled);
+		Group organizationGroup = organization.getGroup();
+
+		if (GroupPermissionUtil.contains(
+				themeDisplay.getPermissionChecker(), organizationGroup,
+				ActionKeys.UPDATE)) {
+
+			SitesUtil.updateLayoutSetPrototypesLinks(
+				organizationGroup, publicLayoutSetPrototypeId,
+				privateLayoutSetPrototypeId,
+				publicLayoutSetPrototypeLinkEnabled,
+				privateLayoutSetPrototypeLinkEnabled);
+		}
 
 		// Reminder queries
 
 		String reminderQueries = actionRequest.getParameter("reminderQueries");
 
-		PortletPreferences preferences = organization.getPreferences();
+		PortletPreferences portletPreferences = organization.getPreferences();
 
 		LocalizationUtil.setLocalizedPreferencesValues(
-			actionRequest, preferences, "reminderQueries");
+			actionRequest, portletPreferences, "reminderQueries");
 
-		preferences.setValue("reminderQueries", reminderQueries);
+		portletPreferences.setValue("reminderQueries", reminderQueries);
 
-		preferences.store();
+		portletPreferences.store();
 
 		return organization;
 	}

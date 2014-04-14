@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,7 @@ package com.liferay.portal.service.persistence;
 import com.liferay.portal.NoSuchModelException;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.ORMException;
+import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -91,6 +92,18 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 * @throws SystemException if a system exception occurred
 	 */
 	public long countWithDynamicQuery(DynamicQuery dynamicQuery)
+		throws SystemException;
+
+	/**
+	 * Returns the number of rows that match the dynamic query.
+	 *
+	 * @param  dynamicQuery the dynamic query
+	 * @param  projection the projection to apply to the query
+	 * @return the number of rows that match the dynamic query
+	 * @throws SystemException if a system exception occurred
+	 */
+	public long countWithDynamicQuery(
+			DynamicQuery dynamicQuery, Projection projection)
 		throws SystemException;
 
 	/**
@@ -186,6 +199,10 @@ public interface BasePersistence<T extends BaseModel<T>> {
 			OrderByComparator orderByComparator)
 		throws SystemException;
 
+	public void flush() throws SystemException;
+
+	public Session getCurrentSession() throws ORMException;
+
 	/**
 	 * Returns the data source for this model.
 	 *
@@ -201,6 +218,8 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 * @see    #registerListener(ModelListener)
 	 */
 	public ModelListener<T>[] getListeners();
+
+	public Class<T> getModelClass();
 
 	public Session openSession() throws ORMException;
 
@@ -268,14 +287,24 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 * </p>
 	 *
 	 * @param  model the model instance to update
-	 * @param  merge whether to merge the model instance with the current
-	 *         session. See {@link
-	 *         BatchSession#update(com.liferay.portal.kernel.dao.orm.Session,
-	 *         BaseModel, boolean)} for an explanation.
 	 * @return the model instance that was updated
 	 * @throws SystemException if a system exception occurred
 	 */
+	public T update(T model) throws SystemException;
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #update(BaseModel)}}
+	 */
+	@Deprecated
 	public T update(T model, boolean merge) throws SystemException;
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #update(BaseModel,
+	 *             ServiceContext)}}
+	 */
+	@Deprecated
+	public T update(T model, boolean merge, ServiceContext serviceContext)
+		throws SystemException;
 
 	/**
 	 * Updates the model instance in the database or adds it if it does not yet
@@ -283,15 +312,11 @@ public interface BasePersistence<T extends BaseModel<T>> {
 	 * model listeners.
 	 *
 	 * @param  model the model instance to update
-	 * @param  merge whether to merge the model instance with the current
-	 *         session. See {@link
-	 *         BatchSession#update(com.liferay.portal.kernel.dao.orm.Session,
-	 *         BaseModel, boolean)} for an explanation.
-	 * @param  serviceContext the service context to perform the update in
+	 * @param  serviceContext the service context to be applied
 	 * @return the model instance that was updated
 	 * @throws SystemException if a system exception occurred
 	 */
-	public T update(T model, boolean merge, ServiceContext serviceContext)
+	public T update(T model, ServiceContext serviceContext)
 		throws SystemException;
 
 }

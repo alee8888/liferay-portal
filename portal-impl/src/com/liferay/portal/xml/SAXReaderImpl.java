@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portal.xml;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.xml.Attribute;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.DocumentException;
@@ -27,7 +28,9 @@ import com.liferay.portal.kernel.xml.ProcessingInstruction;
 import com.liferay.portal.kernel.xml.QName;
 import com.liferay.portal.kernel.xml.SAXReader;
 import com.liferay.portal.kernel.xml.Text;
+import com.liferay.portal.kernel.xml.XMLSchema;
 import com.liferay.portal.kernel.xml.XPath;
+import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.EntityResolver;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.util.xml.XMLSafeReader;
@@ -47,11 +50,11 @@ import java.util.Map;
 import org.apache.xerces.parsers.SAXParser;
 
 import org.dom4j.DocumentFactory;
-import org.dom4j.DocumentHelper;
 
 /**
  * @author Brian Wing Shun Chan
  */
+@DoPrivileged
 public class SAXReaderImpl implements SAXReader {
 
 	public static SAXReaderImpl getInstance() {
@@ -182,77 +185,83 @@ public class SAXReaderImpl implements SAXReader {
 		return oldProcessingInstructions;
 	}
 
+	@Override
 	public Attribute createAttribute(
 		Element element, QName qName, String value) {
 
 		ElementImpl elementImpl = (ElementImpl)element;
 		QNameImpl qNameImpl = (QNameImpl)qName;
 
-		DocumentFactory documentFactory = DocumentFactory.getInstance();
-
 		return new AttributeImpl(
-			documentFactory.createAttribute(
+			_documentFactory.createAttribute(
 				elementImpl.getWrappedElement(), qNameImpl.getWrappedQName(),
 				value));
 	}
 
+	@Override
 	public Attribute createAttribute(
 		Element element, String name, String value) {
 
 		ElementImpl elementImpl = (ElementImpl)element;
 
-		DocumentFactory documentFactory = DocumentFactory.getInstance();
-
 		return new AttributeImpl(
-			documentFactory.createAttribute(
+			_documentFactory.createAttribute(
 				elementImpl.getWrappedElement(), name, value));
 	}
 
+	@Override
 	public Document createDocument() {
-		return new DocumentImpl(DocumentHelper.createDocument());
+		return new DocumentImpl(_documentFactory.createDocument());
 	}
 
+	@Override
 	public Document createDocument(Element rootElement) {
 		ElementImpl rootElementImpl = (ElementImpl)rootElement;
 
 		return new DocumentImpl(
-			DocumentHelper.createDocument(rootElementImpl.getWrappedElement()));
+			_documentFactory.createDocument(
+				rootElementImpl.getWrappedElement()));
 	}
 
+	@Override
 	public Document createDocument(String encoding) {
-		DocumentFactory documentFactory = DocumentFactory.getInstance();
-
-		return new DocumentImpl(documentFactory.createDocument(encoding));
+		return new DocumentImpl(_documentFactory.createDocument(encoding));
 	}
 
+	@Override
 	public Element createElement(QName qName) {
 		QNameImpl qNameImpl = (QNameImpl)qName;
 
 		return new ElementImpl(
-			DocumentHelper.createElement(qNameImpl.getWrappedQName()));
+			_documentFactory.createElement(qNameImpl.getWrappedQName()));
 	}
 
+	@Override
 	public Element createElement(String name) {
-		return new ElementImpl(DocumentHelper.createElement(name));
+		return new ElementImpl(_documentFactory.createElement(name));
 	}
 
+	@Override
 	public Entity createEntity(String name, String text) {
-		return new EntityImpl(DocumentHelper.createEntity(name, text));
+		return new EntityImpl(_documentFactory.createEntity(name, text));
 	}
 
+	@Override
 	public Namespace createNamespace(String uri) {
 		return new NamespaceImpl(org.dom4j.Namespace.get(uri));
 	}
 
+	@Override
 	public Namespace createNamespace(String prefix, String uri) {
-		return new NamespaceImpl(DocumentHelper.createNamespace(prefix, uri));
+		return new NamespaceImpl(_documentFactory.createNamespace(prefix, uri));
 	}
 
+	@Override
 	public ProcessingInstruction createProcessingInstruction(
 		String target, Map<String, String> data) {
 
 		org.dom4j.ProcessingInstruction processingInstruction =
-			DocumentHelper.createProcessingInstruction(target, data);
+			_documentFactory.createProcessingInstruction(target, data);
 
 		if (processingInstruction == null) {
 			return null;
@@ -262,11 +271,12 @@ public class SAXReaderImpl implements SAXReader {
 		}
 	}
 
+	@Override
 	public ProcessingInstruction createProcessingInstruction(
 		String target, String data) {
 
 		org.dom4j.ProcessingInstruction processingInstruction =
-			DocumentHelper.createProcessingInstruction(target, data);
+			_documentFactory.createProcessingInstruction(target, data);
 
 		if (processingInstruction == null) {
 			return null;
@@ -276,33 +286,39 @@ public class SAXReaderImpl implements SAXReader {
 		}
 	}
 
+	@Override
 	public QName createQName(String localName) {
-		return new QNameImpl(DocumentHelper.createQName(localName));
+		return new QNameImpl(_documentFactory.createQName(localName));
 	}
 
+	@Override
 	public QName createQName(String localName, Namespace namespace) {
 		NamespaceImpl namespaceImpl = (NamespaceImpl)namespace;
 
 		return new QNameImpl(
-			DocumentHelper.createQName(
+			_documentFactory.createQName(
 				localName, namespaceImpl.getWrappedNamespace()));
 	}
 
+	@Override
 	public Text createText(String text) {
-		return new TextImpl(DocumentHelper.createText(text));
+		return new TextImpl(_documentFactory.createText(text));
 	}
 
+	@Override
 	public XPath createXPath(String xPathExpression) {
 		return createXPath(xPathExpression, null);
 	}
 
+	@Override
 	public XPath createXPath(
 		String xPathExpression, Map<String, String> namespaceContextMap) {
 
 		return new XPathImpl(
-			DocumentHelper.createXPath(xPathExpression), namespaceContextMap);
+			_documentFactory.createXPath(xPathExpression), namespaceContextMap);
 	}
 
+	@Override
 	public XPath createXPath(
 		String xPathExpression, String prefix, String namespace) {
 
@@ -313,20 +329,21 @@ public class SAXReaderImpl implements SAXReader {
 		return createXPath(xPathExpression, namespaceContextMap);
 	}
 
+	@Override
 	public Document read(File file) throws DocumentException {
 		return read(file, false);
 	}
 
+	@Override
 	public Document read(File file, boolean validate) throws DocumentException {
 		ClassLoader classLoader = getClass().getClassLoader();
 
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+		ClassLoader contextClassLoader =
+			ClassLoaderUtil.getContextClassLoader();
 
 		try {
 			if (contextClassLoader != classLoader) {
-				currentThread.setContextClassLoader(classLoader);
+				ClassLoaderUtil.setContextClassLoader(classLoader);
 			}
 
 			org.dom4j.io.SAXReader saxReader = getSAXReader(validate);
@@ -338,27 +355,28 @@ public class SAXReaderImpl implements SAXReader {
 		}
 		finally {
 			if (contextClassLoader != classLoader) {
-				currentThread.setContextClassLoader(contextClassLoader);
+				ClassLoaderUtil.setContextClassLoader(contextClassLoader);
 			}
 		}
 	}
 
+	@Override
 	public Document read(InputStream is) throws DocumentException {
 		return read(is, false);
 	}
 
+	@Override
 	public Document read(InputStream is, boolean validate)
 		throws DocumentException {
 
 		ClassLoader classLoader = getClass().getClassLoader();
 
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+		ClassLoader contextClassLoader =
+			ClassLoaderUtil.getContextClassLoader();
 
 		try {
 			if (contextClassLoader != classLoader) {
-				currentThread.setContextClassLoader(classLoader);
+				ClassLoaderUtil.setContextClassLoader(classLoader);
 			}
 
 			org.dom4j.io.SAXReader saxReader = getSAXReader(validate);
@@ -370,27 +388,28 @@ public class SAXReaderImpl implements SAXReader {
 		}
 		finally {
 			if (contextClassLoader != classLoader) {
-				currentThread.setContextClassLoader(contextClassLoader);
+				ClassLoaderUtil.setContextClassLoader(contextClassLoader);
 			}
 		}
 	}
 
+	@Override
 	public Document read(Reader reader) throws DocumentException {
 		return read(reader, false);
 	}
 
+	@Override
 	public Document read(Reader reader, boolean validate)
 		throws DocumentException {
 
 		ClassLoader classLoader = getClass().getClassLoader();
 
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+		ClassLoader contextClassLoader =
+			ClassLoaderUtil.getContextClassLoader();
 
 		try {
 			if (contextClassLoader != classLoader) {
-				currentThread.setContextClassLoader(classLoader);
+				ClassLoaderUtil.setContextClassLoader(classLoader);
 			}
 
 			org.dom4j.io.SAXReader saxReader = getSAXReader(validate);
@@ -402,35 +421,68 @@ public class SAXReaderImpl implements SAXReader {
 		}
 		finally {
 			if (contextClassLoader != classLoader) {
-				currentThread.setContextClassLoader(contextClassLoader);
+				ClassLoaderUtil.setContextClassLoader(contextClassLoader);
 			}
 		}
 	}
 
+	@Override
 	public Document read(String xml) throws DocumentException {
 		return read(new XMLSafeReader(xml));
 	}
 
+	@Override
 	public Document read(String xml, boolean validate)
 		throws DocumentException {
 
 		return read(new XMLSafeReader(xml), validate);
 	}
 
+	@Override
+	public Document read(String xml, XMLSchema xmlSchema)
+		throws DocumentException {
+
+		ClassLoader classLoader = getClass().getClassLoader();
+
+		ClassLoader contextClassLoader =
+			ClassLoaderUtil.getContextClassLoader();
+
+		try {
+			if (contextClassLoader != classLoader) {
+				ClassLoaderUtil.setContextClassLoader(classLoader);
+			}
+
+			org.dom4j.io.SAXReader saxReader = getSAXReader(xmlSchema);
+
+			Reader reader = new XMLSafeReader(xml);
+
+			return new DocumentImpl(saxReader.read(reader));
+		}
+		catch (org.dom4j.DocumentException de) {
+			throw new DocumentException(de.getMessage(), de);
+		}
+		finally {
+			if (contextClassLoader != classLoader) {
+				ClassLoaderUtil.setContextClassLoader(contextClassLoader);
+			}
+		}
+	}
+
+	@Override
 	public Document read(URL url) throws DocumentException {
 		return read(url, false);
 	}
 
+	@Override
 	public Document read(URL url, boolean validate) throws DocumentException {
 		ClassLoader classLoader = getClass().getClassLoader();
 
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+		ClassLoader contextClassLoader =
+			ClassLoaderUtil.getContextClassLoader();
 
 		try {
 			if (contextClassLoader != classLoader) {
-				currentThread.setContextClassLoader(classLoader);
+				ClassLoaderUtil.setContextClassLoader(classLoader);
 			}
 
 			org.dom4j.io.SAXReader saxReader = getSAXReader(validate);
@@ -442,47 +494,59 @@ public class SAXReaderImpl implements SAXReader {
 		}
 		finally {
 			if (contextClassLoader != classLoader) {
-				currentThread.setContextClassLoader(contextClassLoader);
+				ClassLoaderUtil.setContextClassLoader(contextClassLoader);
 			}
 		}
 	}
 
+	@Override
 	public Document readURL(String url)
 		throws DocumentException, MalformedURLException {
 
 		return read(new URL(url), false);
 	}
 
+	@Override
 	public Document readURL(String url, boolean validate)
 		throws DocumentException, MalformedURLException {
 
 		return read(new URL(url), validate);
 	}
 
+	@Override
 	public List<Node> selectNodes(
 		String xPathFilterExpression, List<Node> nodes) {
 
-		return toNewNodes(
-			DocumentHelper.selectNodes(
-				xPathFilterExpression, toOldNodes(nodes)));
+		org.dom4j.XPath xPath = _documentFactory.createXPath(
+			xPathFilterExpression);
+
+		return toNewNodes(xPath.selectNodes(toOldNodes(nodes)));
 	}
 
+	@Override
 	public List<Node> selectNodes(String xPathFilterExpression, Node node) {
 		NodeImpl nodeImpl = (NodeImpl)node;
 
-		return toNewNodes(
-			DocumentHelper.selectNodes(
-				xPathFilterExpression, nodeImpl.getWrappedNode()));
+		org.dom4j.XPath xPath = _documentFactory.createXPath(
+			xPathFilterExpression);
+
+		return toNewNodes(xPath.selectNodes(nodeImpl.getWrappedNode()));
 	}
 
+	@Override
 	public void sort(List<Node> nodes, String xPathExpression) {
-		DocumentHelper.sort(toOldNodes(nodes), xPathExpression);
+		org.dom4j.XPath xPath = _documentFactory.createXPath(xPathExpression);
+
+		xPath.sort(toOldNodes(nodes));
 	}
 
+	@Override
 	public void sort(
 		List<Node> nodes, String xPathExpression, boolean distinct) {
 
-		DocumentHelper.sort(toOldNodes(nodes), xPathExpression, distinct);
+		org.dom4j.XPath xPath = _documentFactory.createXPath(xPathExpression);
+
+		xPath.sort(toOldNodes(nodes), distinct);
 	}
 
 	protected org.dom4j.io.SAXReader getSAXReader(boolean validate) {
@@ -520,6 +584,35 @@ public class SAXReaderImpl implements SAXReader {
 		return reader;
 	}
 
+	protected org.dom4j.io.SAXReader getSAXReader(XMLSchema xmlSchema) {
+		boolean validate = true;
+
+		if (!PropsValues.XML_VALIDATION_ENABLED) {
+			validate = false;
+		}
+
+		org.dom4j.io.SAXReader saxReader = getSAXReader(validate);
+
+		if ((xmlSchema == null) || (validate == false)) {
+			return saxReader;
+		}
+
+		try {
+			saxReader.setProperty(
+				_PROPERTY_SCHEMA_LANGUAGE, xmlSchema.getSchemaLanguage());
+			saxReader.setProperty(
+				_PROPERTY_SCHEMA_SOURCE, xmlSchema.getSchemaSource());
+		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"XSD validation is disabled because " + e.getMessage());
+			}
+		}
+
+		return saxReader;
+	}
+
 	private static final String _FEATURES_DYNAMIC =
 		"http://apache.org/xml/features/validation/dynamic";
 
@@ -541,8 +634,16 @@ public class SAXReaderImpl implements SAXReader {
 	private static final String _FEATURES_VALIDATION_SCHEMA_FULL_CHECKING =
 		"http://apache.org/xml/features/validation/schema-full-checking";
 
+	private static final String _PROPERTY_SCHEMA_LANGUAGE =
+		"http://java.sun.com/xml/jaxp/properties/schemaLanguage";
+
+	private static final String _PROPERTY_SCHEMA_SOURCE =
+		"http://java.sun.com/xml/jaxp/properties/schemaSource";
+
 	private static Log _log = LogFactoryUtil.getLog(SAXReaderImpl.class);
 
 	private static SAXReaderImpl _instance = new SAXReaderImpl();
+
+	private DocumentFactory _documentFactory = DocumentFactory.getInstance();
 
 }

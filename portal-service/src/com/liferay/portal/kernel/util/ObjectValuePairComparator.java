@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,6 +35,7 @@ public class ObjectValuePairComparator<K, V>
 		_ascending = ascending;
 	}
 
+	@Override
 	public int compare(ObjectValuePair<K, V> ovp1, ObjectValuePair<K, V> ovp2) {
 		if (_byKey) {
 			Comparable<K> key1 = (Comparable<K>)ovp1.getKey();

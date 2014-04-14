@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -79,6 +79,9 @@ public interface LayoutTypePortlet extends LayoutType {
 	public List<Portlet> getAllPortlets()
 		throws PortalException, SystemException;
 
+	public List<Portlet> getAllPortlets(boolean includeSystem)
+		throws PortalException, SystemException;
+
 	public List<Portlet> getAllPortlets(String columnId)
 		throws PortalException, SystemException;
 
@@ -123,8 +126,6 @@ public interface LayoutTypePortlet extends LayoutType {
 	public boolean hasDefaultScopePortletId(long groupId, String portletId)
 		throws PortalException, SystemException;
 
-	public boolean hasLayoutSetPrototypeLayout();
-
 	public boolean hasModeAboutPortletId(String portletId);
 
 	public boolean hasModeConfigPortletId(String portletId);
@@ -146,6 +147,9 @@ public interface LayoutTypePortlet extends LayoutType {
 	public boolean hasPortletId(String portletId)
 		throws PortalException, SystemException;
 
+	public boolean hasPortletId(String portletId, boolean strict)
+		throws PortalException, SystemException;
+
 	public boolean hasStateMax();
 
 	public boolean hasStateMaxPortletId(String portletId);
@@ -157,6 +161,8 @@ public interface LayoutTypePortlet extends LayoutType {
 	public boolean hasStateNormalPortletId(String portletId);
 
 	public boolean hasUpdatePermission();
+
+	public boolean isCacheable() throws PortalException, SystemException;
 
 	public boolean isColumnCustomizable(String columnId);
 
@@ -238,8 +244,6 @@ public interface LayoutTypePortlet extends LayoutType {
 	public void setModePrint(String modePrint);
 
 	public void setPortalPreferences(PortalPreferences portalPreferences);
-
-	public void setPortletIds(String columnId, String portletIds);
 
 	public void setStateMax(String stateMax);
 

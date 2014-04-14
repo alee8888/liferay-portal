@@ -1,86 +1,81 @@
-.lfr-tags-selector-content {
-	width: 100%;
-}
-
-.lfr-tag-selector-input {
-	width: 300px;
-}
-
-.lfr-tag-selector-popup {
-	width: 250px;
-}
+@import "compass";
 
 .lfr-tags-selector-list {
 	border: 0 solid transparent;
 	border-width: 0 1px 1px;
-	height: 265px;
 	margin-bottom: 0.5em;
-	overflow: auto;
+
+	li {
+		&.tree-node .tree-node-content {
+			@include ellipsis;
+		}
+	}
 }
 
-.lfr-tag-selector-popup fieldset {
-	border-width: 0;
-	margin: 0;
-	padding: 0;
+.lfr-tags-selector-content {
+	.toolbar {
+		position: static;
+	}
 }
 
-.lfr-tag-selector-popup label {
-	border-bottom: 1px solid transparent;
-	cursor: pointer;
-	display: block;
-	padding: 2px;
-}
+.lfr-tag-selector-popup {
+	width: 250px;
 
-.lfr-tag-selector-popup ul {
-	margin: 0;
-}
+	fieldset {
+		border-width: 0;
+		margin: 0;
+		padding: 0;
+	}
 
-.lfr-tag-selector-popup li li {
-	list-style: none;
-	margin-left: 1em;
-}
+	label {
+		border-bottom: 1px solid transparent;
+		cursor: pointer;
+		display: block;
 
-.lfr-tag-selector-popup label input {
-	margin-right: 5px;
-	vertical-align: middle;
-}
+		@include ellipsis;
 
-.lfr-tag-selector-popup .lfr-tag-message {
-	display: none;
-}
+		padding: 2px;
 
-.lfr-tag-selector-popup .aui-textfield-content {
-	border-bottom: 1px solid transparent;
-	padding: 5px;
-}
+		input {
+			margin-right: 5px;
+			vertical-align: middle;
+		}
+	}
 
-.lfr-tag-selector-popup .aui-field-input-text {
-	width: 99%;
-}
+	ul {
+		margin: 0;
+	}
 
-.lfr-tag-selector-popup .no-matches {
-	padding: 3px;
-}
+	li li {
+		list-style: none;
+		margin-left: 1em;
+	}
 
-.lfr-tag-selector-popup .no-matches .lfr-tag-message {
-	display: block;
+	.lfr-tag-selector-search, .lfr-tag-selector-input {
+		margin-bottom: 0;
+	}
+
+	.lfr-tag-message {
+		display: none;
+	}
+
+	.no-matches {
+		padding: 3px;
+
+		.lfr-tag-message {
+			display: block;
+		}
+	}
 }
 
 /* Skin */
 
-.lfr-tags-selector-list {
-	border-color: #ccc;
-}
+.lfr-tag-selector-popup {
+	label {
+		border-bottom-color: #EEE;
+	}
 
-.lfr-tag-selector-popup label {
-	border-bottom-color: #ccc;
-}
-
-.lfr-tag-selector-popup .aui-textfield-content {
-	background-color: #D3DADD;
-	border-bottom-color: #AEB8BC;
-}
-
-.lfr-tag-selector-popup .no-matches {
-	color: #999;
+	.no-matches {
+		color: #999;
+	}
 }

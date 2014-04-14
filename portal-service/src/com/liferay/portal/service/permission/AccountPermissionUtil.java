@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portal.service.permission;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.model.Account;
 import com.liferay.portal.security.permission.PermissionChecker;
 
@@ -59,10 +60,15 @@ public class AccountPermissionUtil {
 	}
 
 	public static AccountPermission getAccountPermission() {
+		PortalRuntimePermission.checkGetBeanProperty(
+			AccountPermissionUtil.class);
+
 		return _accountPermission;
 	}
 
 	public void setAccountPermission(AccountPermission accountPermission) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_accountPermission = accountPermission;
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,17 +16,17 @@ package com.liferay.portal.tools;
 
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.NaturalOrderStringComparator;
+import com.liferay.portal.kernel.util.OSDetector;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.xml.Document;
-import com.liferay.portal.kernel.xml.Element;
-import com.liferay.portal.kernel.xml.SAXReaderUtil;
-import com.liferay.portal.util.InitUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.File;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -41,7 +41,7 @@ import org.apache.tools.ant.DirectoryScanner;
 public class PluginsSummaryBuilder {
 
 	public static void main(String[] args) {
-		InitUtil.initWithSpring();
+		ToolDependencies.wireBasic();
 
 		File pluginsDir = new File(System.getProperty("plugins.dir"));
 
@@ -52,6 +52,8 @@ public class PluginsSummaryBuilder {
 		try {
 			_pluginsDir = pluginsDir;
 
+			_latestHASH = _getLatestHASH(pluginsDir);
+
 			_createPluginsSummary();
 		}
 		catch (Exception e) {
@@ -60,10 +62,6 @@ public class PluginsSummaryBuilder {
 	}
 
 	private void _createPluginsSummary() throws Exception {
-		StringBundler sb = new StringBundler();
-
-		sb.append("<plugins-summary>\n");
-
 		DirectoryScanner directoryScanner = new DirectoryScanner();
 
 		directoryScanner.setBasedir(_pluginsDir);
@@ -71,8 +69,7 @@ public class PluginsSummaryBuilder {
 			new String[] {"**\\tmp\\**", "**\\tools\\**"});
 		directoryScanner.setIncludes(
 			new String[] {
-				"**\\liferay-plugin-package.properties",
-				"**\\liferay-plugin-package.xml"
+				"**\\liferay-plugin-package.properties"
 			});
 
 		directoryScanner.scan();
@@ -81,11 +78,19 @@ public class PluginsSummaryBuilder {
 
 		Arrays.sort(fileNames);
 
+		_createPluginsSummary(fileNames);
+	}
+
+	private void _createPluginsSummary(String[] fileNames) throws Exception {
+		StringBundler sb = new StringBundler();
+
+		sb.append("<plugins-summary>\n");
+
 		for (String fileName : fileNames) {
 			fileName = StringUtil.replace(
 				fileName, StringPool.BACK_SLASH, StringPool.SLASH);
 
-			_createPluginSummary(fileName, sb);
+			_createPluginSummary(sb, fileName);
 		}
 
 		for (String author : _distinctAuthors) {
@@ -105,7 +110,7 @@ public class PluginsSummaryBuilder {
 		FileUtil.write(_pluginsDir + "/summary.xml", sb.toString());
 	}
 
-	private void _createPluginSummary(String fileName, StringBundler sb)
+	private void _createPluginSummary(StringBundler sb, String fileName)
 		throws Exception {
 
 		String content = FileUtil.read(fileName);
@@ -124,42 +129,18 @@ public class PluginsSummaryBuilder {
 
 		String artifactId = fileName.substring(x, y);
 
-		String name = StringPool.BLANK;
-		String tags = StringPool.BLANK;
-		String shortDescription = StringPool.BLANK;
-		String longDescription = StringPool.BLANK;
-		String changeLog = StringPool.BLANK;
-		String pageURL = StringPool.BLANK;
-		String author = StringPool.BLANK;
-		String licenses = StringPool.BLANK;
+		Properties properties = PropertiesUtil.load(content);
 
-		if (fileName.endsWith(".properties")) {
-			Properties properties = PropertiesUtil.load(content);
-
-			name = _readProperty(properties, "name");
-			tags = _readProperty(properties, "tags");
-			shortDescription = _readProperty(properties, "short-description");
-			longDescription = _readProperty(properties, "long-description");
-			changeLog = _readProperty(properties, "change-log");
-			pageURL = _readProperty(properties, "page-url");
-			author = _readProperty(properties, "author");
-			licenses = _readProperty(properties, "licenses");
-		}
-		else {
-			Document document = SAXReaderUtil.read(content);
-
-			Element rootElement = document.getRootElement();
-
-			name = rootElement.elementText("name");
-			tags = _readList(rootElement.element("tags"), "tag");
-			shortDescription = rootElement.elementText("short-description");
-			longDescription = GetterUtil.getString(
-				rootElement.elementText("long-description"));
-			changeLog = rootElement.elementText("change-log");
-			pageURL = rootElement.elementText("page-url");
-			author = rootElement.elementText("author");
-			licenses = _readList(rootElement.element("licenses"), "license");
-		}
+		String name = _readProperty(properties, "name");
+		String tags = _readProperty(properties, "tags");
+		String shortDescription = _readProperty(
+			properties, "short-description");
+		String longDescription = _readProperty(properties, "long-description");
+		String changeLog = _readProperty(properties, "change-log");
+		String pageURL = _readProperty(properties, "page-url");
+		String author = _readProperty(properties, "author");
+		String licenses = _readProperty(properties, "licenses");
+		String liferayVersions = _readProperty(properties, "liferay-versions");
 
 		_distinctAuthors.add(author);
 		_distinctLicenses.add(licenses);
@@ -176,44 +157,113 @@ public class PluginsSummaryBuilder {
 		_writeElement(sb, "page-url", pageURL, 2);
 		_writeElement(sb, "author", author, 2);
 		_writeElement(sb, "licenses", licenses, 2);
+		_writeElement(sb, "liferay-versions", liferayVersions, 2);
 
 		sb.append("\t\t<releng>\n");
-		sb.append(_readReleng(fileName));
+		sb.append(_readReleng(fileName, properties));
 		sb.append("\t\t</releng>\n");
 		sb.append("\t</plugin>\n");
 	}
 
-	private String _readList(Element parentElement, String name) {
-		if (parentElement == null) {
-			return StringPool.BLANK;
+	private Set<String> _extractTicketIds(File pluginDir, String range)
+		throws Exception {
+
+		Set<String> ticketIds = new TreeSet<String>(
+			new NaturalOrderStringComparator()
+		);
+
+		Runtime runtime = Runtime.getRuntime();
+
+		String command = "git log " + range + " .";
+
+		if (OSDetector.isWindows()) {
+			command = "cmd /c " + command;
 		}
 
-		List<Element> elements = parentElement.elements(name);
+		Process process = runtime.exec(command, null, pluginDir);
 
-		if (elements.isEmpty()) {
-			return StringPool.BLANK;
+		String content = StringUtil.read(process.getInputStream());
+
+		content = StringUtil.replace(content, "\n", " ");
+
+		for (String ticketIdPrefix : _TICKET_ID_PREFIXES) {
+			int x = 0;
+
+			while (true) {
+				x = content.indexOf(ticketIdPrefix + "-", x);
+
+				if (x == -1) {
+					break;
+				}
+
+				int y = x + ticketIdPrefix.length() + 1;
+
+				while (true) {
+					if ((y + 1) > content.length()) {
+						break;
+					}
+
+					if (Character.isDigit(content.charAt(y))) {
+						y++;
+					}
+					else {
+						break;
+					}
+				}
+
+				String ticketId = content.substring(x, y);
+
+				ticketIds.add(ticketId);
+
+				x = y;
+			}
 		}
 
-		StringBundler sb = new StringBundler(
-			parentElement.elements(name).size() * 2);
+		return ticketIds;
+	}
 
-		for (Element element : elements) {
-			String text = element.getText().trim();
+	private String _getChangeLogEntry(
+		int changeLogVersion, String range, String ticketIdsString) {
 
-			sb.append(text);
-			sb.append(", ");
+		StringBundler sb = new StringBundler(8);
+
+		if (changeLogVersion > 1) {
+			sb.append("\n\n");
 		}
 
-		sb.setIndex(sb.index() - 1);
+		sb.append("#\n");
+		sb.append("# Module Incremental Version ");
+		sb.append(changeLogVersion);
+		sb.append("\n#\n");
+		sb.append(range);
+		sb.append("=");
+		sb.append(ticketIdsString);
 
 		return sb.toString();
+	}
+
+	private String _getLatestHASH(File pluginDir) throws Exception {
+		Runtime runtime = Runtime.getRuntime();
+
+		String command = "git rev-parse HEAD";
+
+		if (OSDetector.isWindows()) {
+			command = "cmd /c " + command;
+		}
+
+		Process process = runtime.exec(command, null, pluginDir);
+
+		return StringUtil.read(process.getInputStream());
 	}
 
 	private String _readProperty(Properties properties, String key) {
 		return GetterUtil.getString(properties.getProperty(key));
 	}
 
-	private String _readReleng(String fileName) throws Exception {
+	private String _readReleng(
+			String fileName, Properties pluginPackageProperties)
+		throws Exception {
+
 		int x = fileName.indexOf("WEB-INF");
 
 		String relativeWebInfDirName = fileName.substring(0, x + 8);
@@ -245,8 +295,8 @@ public class PluginsSummaryBuilder {
 
 		_writeElement(sb, "bundle", relengProperties, 3);
 		_writeElement(sb, "category", relengProperties, 3);
-		_writeElement(sb, "compatibility", relengProperties, 3);
 		_writeElement(sb, "demo-url", relengProperties, 3);
+		_writeElement(sb, "dependent-apps", relengProperties, 3);
 
 		if (FileUtil.exists(fullWebInfDirName + "releng/icons/90x90.png")) {
 			_writeElement(
@@ -256,7 +306,6 @@ public class PluginsSummaryBuilder {
 
 		_writeElement(sb, "labs", relengProperties, 3);
 		_writeElement(sb, "marketplace", relengProperties, 3);
-		_writeElement(sb, "parent-app", relengProperties, 3);
 		_writeElement(sb, "public", relengProperties, 3);
 
 		String fullScreenshotsDirName =
@@ -271,12 +320,14 @@ public class PluginsSummaryBuilder {
 			Arrays.sort(screenshotsFileNames);
 
 			for (String screenshotsFileName : screenshotsFileNames) {
-				if (screenshotsFileName.equals("Thumbs.db")) {
+				if (screenshotsFileName.equals("Thumbs.db") ||
+					screenshotsFileName.endsWith(".png")) {
+
 					FileUtil.delete(
 						fullScreenshotsDirName + screenshotsFileName);
 				}
 
-				if (!screenshotsFileName.endsWith(".png")) {
+				if (!screenshotsFileName.endsWith(".jpg")) {
 					continue;
 				}
 
@@ -286,10 +337,196 @@ public class PluginsSummaryBuilder {
 			}
 		}
 
-		_writeElement(sb, "standalone-app", relengProperties, 3);
+		_writeElement(sb, "support-url", relengProperties, 3);
 		_writeElement(sb, "supported", relengProperties, 3);
 
+		File relengChangeLogFile = new File(
+			fullWebInfDirName + "liferay-releng.changelog");
+
+		if (GetterUtil.getBoolean(
+				relengProperties.getProperty("marketplace"))) {
+
+			_updateRelengChangeLogFile(
+				pluginPackageProperties, relengChangeLogFile, relengProperties);
+		}
+		else {
+			relengChangeLogFile.delete();
+		}
+
 		return sb.toString();
+	}
+
+	private void _updateRelengChangeLogFile(
+			Properties pluginPackageProperties, File relengChangeLogFile,
+			Properties relengProperties)
+		throws Exception {
+
+		StringBundler sb = new StringBundler();
+
+		int changeLogVersion = 0;
+
+		int moduleIncrementalVersion = GetterUtil.getInteger(
+			pluginPackageProperties.getProperty("module-incremental-version"));
+
+		if (!relengChangeLogFile.exists()) {
+			FileUtil.write(relengChangeLogFile, "TEMP=");
+		}
+
+		String relengChangeLogContent = FileUtil.read(relengChangeLogFile);
+
+		List<String> relengChangeLogEntries = new ArrayList<String>();
+
+		String[] relengChangeLogEntriesArray = StringUtil.split(
+			relengChangeLogContent, "\n");
+
+		for (int i = 0; i < relengChangeLogEntriesArray.length; i++) {
+			String relengChangeLogEntry = relengChangeLogEntriesArray[i];
+
+			if (Validator.isNull(relengChangeLogEntry) ||
+				relengChangeLogEntry.startsWith("#")) {
+
+				continue;
+			}
+
+			relengChangeLogEntries.add(relengChangeLogEntry);
+
+			if (((i + 1) == relengChangeLogEntriesArray.length) &&
+				!relengChangeLogEntry.contains("HEAD=") &&
+				!relengChangeLogEntry.contains("TEMP=") &&
+				!relengChangeLogEntry.contains(_latestHASH) &&
+				!relengChangeLogEntries.isEmpty()) {
+
+				int x = relengChangeLogEntry.indexOf("..");
+				int y = relengChangeLogEntry.indexOf("=", x);
+
+				String range =
+					relengChangeLogEntry.substring(x + 2, y) + "^.." +
+						_latestHASH;
+
+				relengChangeLogEntries.add(range);
+
+				continue;
+			}
+		}
+
+		File webInfDir = relengChangeLogFile.getParentFile();
+
+		File docrootDir = webInfDir.getParentFile();
+
+		File pluginDir = docrootDir.getParentFile();
+
+		for (int i = 0; i < relengChangeLogEntries.size(); i++) {
+			String relengChangeLogEntry = relengChangeLogEntries.get(i);
+
+			String[] relengChangeLogEntryParts = StringUtil.split(
+				relengChangeLogEntry, "=");
+
+			String range = relengChangeLogEntryParts[0];
+
+			if (range.equals("TEMP")) {
+				changeLogVersion++;
+
+				sb.append(
+					_getChangeLogEntry(
+						changeLogVersion, range, StringPool.BLANK));
+
+				break;
+			}
+
+			Set<String> ticketIds = _extractTicketIds(pluginDir, range);
+
+			if (range.endsWith("^.." + _latestHASH) && ticketIds.isEmpty() &&
+				(relengChangeLogEntries.size() > 1)) {
+
+				continue;
+			}
+
+			if (ticketIds.isEmpty()) {
+				System.out.println(
+					pluginDir + " does not have changes for range " + range);
+			}
+
+			String[] dependentApps = StringUtil.split(
+				relengProperties.getProperty("dependent-apps"));
+
+			for (String dependentApp : dependentApps) {
+				dependentApp = dependentApp.trim();
+
+				if (dependentApp.equals("resources-impoter-web")) {
+					continue;
+				}
+
+				String dependentAppDirName = null;
+
+				if (dependentApp.endsWith("-hook")) {
+					dependentAppDirName = "hooks";
+				}
+				else if (dependentApp.endsWith("-layouttpl")) {
+					dependentAppDirName = "layouttpl";
+				}
+				else if (dependentApp.endsWith("-portlet")) {
+					dependentAppDirName = "portlets";
+				}
+				else if (dependentApp.endsWith("-theme")) {
+					dependentAppDirName = "themes";
+				}
+				else if (dependentApp.endsWith("-web")) {
+					dependentAppDirName = "webs";
+				}
+
+				File dependentAppDir = new File(
+					_pluginsDir, dependentAppDirName + "/" + dependentApp);
+
+				if (!dependentAppDir.exists()) {
+					throw new RuntimeException(
+						dependentAppDir + " does not exist");
+				}
+
+				ticketIds.addAll(_extractTicketIds(dependentAppDir, range));
+			}
+
+			String ticketIdsString = StringUtil.merge(
+				ticketIds.toArray(new String[ticketIds.size()]), " ");
+
+			changeLogVersion++;
+
+			sb.append(
+				_getChangeLogEntry(changeLogVersion, range, ticketIdsString));
+		}
+
+		File pluginPackagePropertiesFile = new File(
+			webInfDir, "liferay-plugin-package.properties");
+
+		String pluginPackagePropertiesContent = FileUtil.read(
+			pluginPackagePropertiesFile);
+
+		if (!pluginPackagePropertiesContent.contains("long-description")) {
+			int x = pluginPackagePropertiesContent.indexOf("change-log=");
+
+			pluginPackagePropertiesContent =
+				pluginPackagePropertiesContent.substring(0, x) +
+					"long-description=\n" +
+						pluginPackagePropertiesContent.substring(x);
+		}
+
+		if (moduleIncrementalVersion != changeLogVersion) {
+			pluginPackagePropertiesContent = StringUtil.replace(
+				pluginPackagePropertiesContent,
+				"module-incremental-version=" + moduleIncrementalVersion,
+				"module-incremental-version=" + changeLogVersion);
+		}
+
+		FileUtil.write(
+			pluginPackagePropertiesFile, pluginPackagePropertiesContent);
+
+		FileUtil.write(relengChangeLogFile, sb.toString());
+
+		File relengChangeLogMD5File = new File(
+			webInfDir, "liferay-releng.changelog.md5");
+
+		String md5Checksum = FileUtil.getMD5Checksum(relengChangeLogFile);
+
+		FileUtil.write(relengChangeLogMD5File, md5Checksum);
 	}
 
 	private String _updateRelengPropertiesFile(
@@ -300,13 +537,12 @@ public class PluginsSummaryBuilder {
 
 		_writeProperty(sb, relengProperties, "bundle", "false");
 		_writeProperty(sb, relengProperties, "category", "");
-		_writeProperty(sb, relengProperties, "compatibility", "");
 		_writeProperty(sb, relengProperties, "demo-url", "");
+		_writeProperty(sb, relengProperties, "dependent-apps", "");
 		_writeProperty(sb, relengProperties, "labs", "true");
 		_writeProperty(sb, relengProperties, "marketplace", "false");
-		_writeProperty(sb, relengProperties, "parent-app", "");
 		_writeProperty(sb, relengProperties, "public", "true");
-		_writeProperty(sb, relengProperties, "standalone-app", "true");
+		_writeProperty(sb, relengProperties, "support-url", "");
 		_writeProperty(sb, relengProperties, "supported", "false");
 
 		String relengPropertiesContent = sb.toString();
@@ -331,9 +567,9 @@ public class PluginsSummaryBuilder {
 
 		sb.append("<");
 		sb.append(name);
-		sb.append(">");
+		sb.append("><![CDATA[");
 		sb.append(value);
-		sb.append("</");
+		sb.append("]]></");
 		sb.append(name);
 		sb.append(">\n");
 	}
@@ -345,7 +581,7 @@ public class PluginsSummaryBuilder {
 		String value = GetterUtil.getString(
 			properties.getProperty(key), defaultValue);
 
-		if (sb.length() > 0) {
+		if (sb.index() > 0) {
 			sb.append(StringPool.NEW_LINE);
 		}
 
@@ -354,8 +590,11 @@ public class PluginsSummaryBuilder {
 		sb.append(value);
 	}
 
+	private static final String[] _TICKET_ID_PREFIXES = {"LPS", "SOS", "SYNC"};
+
 	private Set<String> _distinctAuthors = new TreeSet<String>();
 	private Set<String> _distinctLicenses = new TreeSet<String>();
+	private String _latestHASH;
 	private File _pluginsDir;
 
 }

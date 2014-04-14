@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -64,6 +64,7 @@ public class SCProductEntryLocalServiceImpl
 	extends SCProductEntryLocalServiceBaseImpl {
 
 	@Indexable(type = IndexableType.REINDEX)
+	@Override
 	public SCProductEntry addProductEntry(
 			long userId, String name, String type, String tags,
 			String shortDescription, String longDescription, String pageURL,
@@ -77,8 +78,8 @@ public class SCProductEntryLocalServiceImpl
 		User user = userPersistence.findByPrimaryKey(userId);
 		long groupId = serviceContext.getScopeGroupId();
 		tags = getTags(tags);
-		repoGroupId = repoGroupId.trim().toLowerCase();
-		repoArtifactId = repoArtifactId.trim().toLowerCase();
+		repoGroupId = StringUtil.toLowerCase(repoGroupId.trim());
+		repoArtifactId = StringUtil.toLowerCase(repoArtifactId.trim());
 		Date now = new Date();
 
 		validate(
@@ -106,7 +107,7 @@ public class SCProductEntryLocalServiceImpl
 		productEntry.setRepoGroupId(repoGroupId);
 		productEntry.setRepoArtifactId(repoArtifactId);
 
-		scProductEntryPersistence.update(productEntry, false);
+		scProductEntryPersistence.update(productEntry);
 
 		// Resources
 
@@ -143,6 +144,7 @@ public class SCProductEntryLocalServiceImpl
 		return productEntry;
 	}
 
+	@Override
 	public void addProductEntryResources(
 			long productEntryId, boolean addGroupPermissions,
 			boolean addGuestPermissions)
@@ -155,6 +157,7 @@ public class SCProductEntryLocalServiceImpl
 			productEntry, addGroupPermissions, addGuestPermissions);
 	}
 
+	@Override
 	public void addProductEntryResources(
 			long productEntryId, String[] groupPermissions,
 			String[] guestPermissions)
@@ -167,6 +170,7 @@ public class SCProductEntryLocalServiceImpl
 			productEntry, groupPermissions, guestPermissions);
 	}
 
+	@Override
 	public void addProductEntryResources(
 			SCProductEntry productEntry, boolean addGroupPermissions,
 			boolean addGuestPermissions)
@@ -179,6 +183,7 @@ public class SCProductEntryLocalServiceImpl
 			addGuestPermissions);
 	}
 
+	@Override
 	public void addProductEntryResources(
 			SCProductEntry productEntry, String[] groupPermissions,
 			String[] guestPermissions)
@@ -191,6 +196,7 @@ public class SCProductEntryLocalServiceImpl
 			guestPermissions);
 	}
 
+	@Override
 	public void deleteProductEntries(long groupId)
 		throws PortalException, SystemException {
 
@@ -203,6 +209,7 @@ public class SCProductEntryLocalServiceImpl
 	}
 
 	@Indexable(type = IndexableType.DELETE)
+	@Override
 	public SCProductEntry deleteProductEntry(long productEntryId)
 		throws PortalException, SystemException {
 
@@ -213,6 +220,7 @@ public class SCProductEntryLocalServiceImpl
 	}
 
 	@Indexable(type = IndexableType.DELETE)
+	@Override
 	public SCProductEntry deleteProductEntry(SCProductEntry productEntry)
 		throws PortalException, SystemException {
 
@@ -256,6 +264,7 @@ public class SCProductEntryLocalServiceImpl
 		return productEntry;
 	}
 
+	@Override
 	public List<SCProductEntry> getCompanyProductEntries(
 			long companyId, int start, int end)
 		throws SystemException {
@@ -263,12 +272,14 @@ public class SCProductEntryLocalServiceImpl
 		return scProductEntryPersistence.findByCompanyId(companyId, start, end);
 	}
 
+	@Override
 	public int getCompanyProductEntriesCount(long companyId)
 		throws SystemException {
 
 		return scProductEntryPersistence.countByCompanyId(companyId);
 	}
 
+	@Override
 	public List<SCProductEntry> getProductEntries(
 			long groupId, int start, int end)
 		throws SystemException {
@@ -276,6 +287,7 @@ public class SCProductEntryLocalServiceImpl
 		return scProductEntryPersistence.findByGroupId(groupId, start, end);
 	}
 
+	@Override
 	public List<SCProductEntry> getProductEntries(
 			long groupId, int start, int end, OrderByComparator obc)
 		throws SystemException {
@@ -284,6 +296,7 @@ public class SCProductEntryLocalServiceImpl
 			groupId, start, end, obc);
 	}
 
+	@Override
 	public List<SCProductEntry> getProductEntries(
 			long groupId, long userId, int start, int end)
 		throws SystemException {
@@ -291,6 +304,7 @@ public class SCProductEntryLocalServiceImpl
 		return scProductEntryPersistence.findByG_U(groupId, userId, start, end);
 	}
 
+	@Override
 	public List<SCProductEntry> getProductEntries(
 			long groupId, long userId, int start, int end,
 			OrderByComparator obc)
@@ -300,22 +314,26 @@ public class SCProductEntryLocalServiceImpl
 			groupId, userId, start, end, obc);
 	}
 
+	@Override
 	public int getProductEntriesCount(long groupId) throws SystemException {
 		return scProductEntryPersistence.countByGroupId(groupId);
 	}
 
+	@Override
 	public int getProductEntriesCount(long groupId, long userId)
 		throws SystemException {
 
 		return scProductEntryPersistence.countByG_U(groupId, userId);
 	}
 
+	@Override
 	public SCProductEntry getProductEntry(long productEntryId)
 		throws PortalException, SystemException {
 
 		return scProductEntryPersistence.findByPrimaryKey(productEntryId);
 	}
 
+	@Override
 	public String getRepositoryXML(
 			long groupId, String baseImageURL, Date oldestDate,
 			int maxNumOfVersions, Properties repoSettings)
@@ -326,6 +344,7 @@ public class SCProductEntryLocalServiceImpl
 			repoSettings);
 	}
 
+	@Override
 	public String getRepositoryXML(
 			long groupId, String version, String baseImageURL, Date oldestDate,
 			int maxNumOfVersions, Properties repoSettings)
@@ -390,6 +409,7 @@ public class SCProductEntryLocalServiceImpl
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
+	@Override
 	public SCProductEntry updateProductEntry(
 			long productEntryId, String name, String type, String tags,
 			String shortDescription, String longDescription, String pageURL,
@@ -400,8 +420,8 @@ public class SCProductEntryLocalServiceImpl
 		// Product entry
 
 		tags = getTags(tags);
-		repoGroupId = repoGroupId.trim().toLowerCase();
-		repoArtifactId = repoArtifactId.trim().toLowerCase();
+		repoGroupId = StringUtil.toLowerCase(repoGroupId.trim());
+		repoArtifactId = StringUtil.toLowerCase(repoArtifactId.trim());
 		Date now = new Date();
 
 		validate(
@@ -422,7 +442,7 @@ public class SCProductEntryLocalServiceImpl
 		productEntry.setRepoGroupId(repoGroupId);
 		productEntry.setRepoArtifactId(repoArtifactId);
 
-		scProductEntryPersistence.update(productEntry, false);
+		scProductEntryPersistence.update(productEntry);
 
 		// Licenses
 
@@ -430,7 +450,7 @@ public class SCProductEntryLocalServiceImpl
 
 		// Product screenshots
 
-		if (thumbnails.size() == 0) {
+		if (thumbnails.isEmpty()) {
 			scProductScreenshotLocalService.deleteProductScreenshots(
 				productEntryId);
 		}
@@ -442,7 +462,7 @@ public class SCProductEntryLocalServiceImpl
 	}
 
 	protected String getTags(String tags) {
-		tags = tags.trim().toLowerCase();
+		tags = StringUtil.toLowerCase(tags.trim());
 
 		return StringUtil.merge(StringUtil.split(tags), ", ");
 	}
@@ -616,7 +636,7 @@ public class SCProductEntryLocalServiceImpl
 					counterLocalService.increment());
 				productScreenshot.setPriority(priority);
 
-				scProductScreenshotPersistence.update(productScreenshot, false);
+				scProductScreenshotPersistence.update(productScreenshot);
 			}
 
 			imageLocalService.updateImage(
@@ -662,7 +682,8 @@ public class SCProductEntryLocalServiceImpl
 		if ((productEntry != null) &&
 			(productEntry.getProductEntryId() != productEntryId)) {
 
-			throw new DuplicateProductEntryModuleIdException();
+			throw new DuplicateProductEntryModuleIdException(
+				"{productEntryId=" + productEntryId + "}");
 		}
 
 		if (licenseIds.length == 0) {

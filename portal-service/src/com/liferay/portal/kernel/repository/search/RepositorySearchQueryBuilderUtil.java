@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,7 @@ package com.liferay.portal.kernel.repository.search;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 
 /**
  * @author Mika Koivisto
@@ -32,11 +33,16 @@ public class RepositorySearchQueryBuilderUtil {
 	public static RepositorySearchQueryBuilder
 		getRepositorySearchQueryBuilder() {
 
+		PortalRuntimePermission.checkGetBeanProperty(
+			RepositorySearchQueryBuilderUtil.class);
+
 		return _repositorySearchQueryBuilder;
 	}
 
 	public void setRepositorySearchQueryBuilder(
 		RepositorySearchQueryBuilder repositorySearchQueryBuilder) {
+
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
 
 		_repositorySearchQueryBuilder = repositorySearchQueryBuilder;
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,18 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
- * The utility for the user group remote service. This utility wraps {@link com.liferay.portal.service.impl.UserGroupServiceImpl} and is the primary access point for service operations in application layer code running on a remote server.
- *
- * <p>
- * This is a remote service. Methods of this service are expected to have security checks based on the propagated JAAS credentials because this service can be accessed remotely.
- * </p>
+ * Provides the remote service utility for UserGroup. This utility wraps
+ * {@link com.liferay.portal.service.impl.UserGroupServiceImpl} and is the
+ * primary access point for service operations in application layer code running
+ * on a remote server. Methods of this service are expected to have security
+ * checks based on the propagated JAAS credentials because this service can be
+ * accessed remotely.
  *
  * @author Brian Wing Shun Chan
  * @see UserGroupService
@@ -30,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.UserGroupServiceImpl
  * @generated
  */
+@ProviderType
 public class UserGroupServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -98,15 +102,44 @@ public class UserGroupServiceUtil {
 	* @param name the user group's name
 	* @param description the user group's description
 	* @return the user group
-	* @throws PortalException if the user group's information was invalid or if
-	the user did not have permission to add the user group
+	* @throws PortalException if the user group's information was invalid
+	or if the user did not have permission to add the user group
 	* @throws SystemException if a system exception occurred
+	* @deprecated As of 6.2.0, replaced by {@link #addUserGroup(String, String,
+	ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.UserGroup addUserGroup(
 		java.lang.String name, java.lang.String description)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().addUserGroup(name, description);
+	}
+
+	/**
+	* Adds a user group.
+	*
+	* <p>
+	* This method handles the creation and bookkeeping of the user group,
+	* including its resources, metadata, and internal data structures.
+	* </p>
+	*
+	* @param name the user group's name
+	* @param description the user group's description
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set expando bridge attributes for the
+	user group.
+	* @return the user group
+	* @throws PortalException if the user group's information was invalid or if
+	the user did not have permission to add the user group
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.UserGroup addUserGroup(
+		java.lang.String name, java.lang.String description,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().addUserGroup(name, description, serviceContext);
 	}
 
 	/**
@@ -162,6 +195,8 @@ public class UserGroupServiceUtil {
 	*
 	* @param userId the primary key of the user
 	* @return the user groups to which the user belongs
+	* @throws PortalException if the current user did not have permission to
+	view the user or any one of the user group members
 	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.UserGroup> getUserUserGroups(
@@ -209,15 +244,43 @@ public class UserGroupServiceUtil {
 	* @param description the the user group's description
 	* @return the user group
 	* @throws PortalException if a user group with the primary key was not
-	found, if the new information was invalid, or if the user did not
-	have permission to update the user group information
+	found, if the new information was invalid, or if the user did
+	not have permission to update the user group information
 	* @throws SystemException if a system exception occurred
+	* @deprecated As of 6.2.0, replaced by {@link #updateUserGroup(long,
+	String, String, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.UserGroup updateUserGroup(
 		long userGroupId, java.lang.String name, java.lang.String description)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().updateUserGroup(userGroupId, name, description);
+	}
+
+	/**
+	* Updates the user group.
+	*
+	* @param userGroupId the primary key of the user group
+	* @param name the user group's name
+	* @param description the the user group's description
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set expando bridge attributes for the
+	user group.
+	* @return the user group
+	* @throws PortalException if a user group with the primary key was not
+	found, if the new information was invalid, or if the user did not
+	have permission to update the user group information
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.UserGroup updateUserGroup(
+		long userGroupId, java.lang.String name, java.lang.String description,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .updateUserGroup(userGroupId, name, description,
+			serviceContext);
 	}
 
 	public static UserGroupService getService() {
@@ -232,8 +295,9 @@ public class UserGroupServiceUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(UserGroupService service) {
 	}
 

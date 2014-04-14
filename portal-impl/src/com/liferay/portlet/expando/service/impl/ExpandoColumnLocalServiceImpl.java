@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,8 +16,9 @@ package com.liferay.portlet.expando.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.expando.ColumnNameException;
 import com.liferay.portlet.expando.ColumnTypeException;
 import com.liferay.portlet.expando.DuplicateColumnNameException;
@@ -33,6 +34,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Raymond Augé
@@ -41,12 +44,14 @@ import java.util.List;
 public class ExpandoColumnLocalServiceImpl
 	extends ExpandoColumnLocalServiceBaseImpl {
 
+	@Override
 	public ExpandoColumn addColumn(long tableId, String name, int type)
 		throws PortalException, SystemException {
 
 		return addColumn(tableId, name, type, null);
 	}
 
+	@Override
 	public ExpandoColumn addColumn(
 			long tableId, String name, int type, Object defaultData)
 		throws PortalException, SystemException {
@@ -67,7 +72,7 @@ public class ExpandoColumnLocalServiceImpl
 		column.setType(type);
 		column.setDefaultData(value.getData());
 
-		expandoColumnPersistence.update(column, false);
+		expandoColumnPersistence.update(column);
 
 		// Resources
 
@@ -78,6 +83,7 @@ public class ExpandoColumnLocalServiceImpl
 		return column;
 	}
 
+	@Override
 	public void deleteColumn(ExpandoColumn column) throws SystemException {
 
 		// Column
@@ -89,6 +95,7 @@ public class ExpandoColumnLocalServiceImpl
 		expandoValueLocalService.deleteColumnValues(column.getColumnId());
 	}
 
+	@Override
 	public void deleteColumn(long columnId)
 		throws PortalException, SystemException {
 
@@ -98,6 +105,7 @@ public class ExpandoColumnLocalServiceImpl
 		deleteColumn(column);
 	}
 
+	@Override
 	public void deleteColumn(
 			long companyId, long classNameId, String tableName, String name)
 		throws PortalException, SystemException {
@@ -108,24 +116,27 @@ public class ExpandoColumnLocalServiceImpl
 		deleteColumn(table.getTableId(), name);
 	}
 
+	@Override
 	public void deleteColumn(long tableId, String name) throws SystemException {
-		List<ExpandoColumn> columns = expandoColumnPersistence.findByT_N(
+		ExpandoColumn column = expandoColumnPersistence.fetchByT_N(
 			tableId, name);
 
-		if (!columns.isEmpty()) {
-			deleteColumn(columns.get(0));
+		if (column != null) {
+			expandoColumnPersistence.remove(column);
 		}
 	}
 
+	@Override
 	public void deleteColumn(
 			long companyId, String className, String tableName, String name)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		deleteColumn(companyId, classNameId, tableName, name);
 	}
 
+	@Override
 	public void deleteColumns(long tableId) throws SystemException {
 		List<ExpandoColumn> columns = expandoColumnPersistence.findByTableId(
 			tableId);
@@ -135,6 +146,7 @@ public class ExpandoColumnLocalServiceImpl
 		}
 	}
 
+	@Override
 	public void deleteColumns(
 			long companyId, long classNameId, String tableName)
 		throws PortalException, SystemException {
@@ -145,21 +157,24 @@ public class ExpandoColumnLocalServiceImpl
 		deleteColumns(table.getTableId());
 	}
 
+	@Override
 	public void deleteColumns(
 			long companyId, String className, String tableName)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		deleteColumns(companyId, classNameId, tableName);
 	}
 
+	@Override
 	public ExpandoColumn getColumn(long columnId)
 		throws PortalException, SystemException {
 
 		return expandoColumnPersistence.findByPrimaryKey(columnId);
 	}
 
+	@Override
 	public ExpandoColumn getColumn(
 			long companyId, long classNameId, String tableName, String name)
 		throws SystemException {
@@ -171,42 +186,32 @@ public class ExpandoColumnLocalServiceImpl
 			return null;
 		}
 
-		List<ExpandoColumn> columns = expandoColumnPersistence.findByT_N(
-			table.getTableId(), name);
-
-		if (!columns.isEmpty()) {
-			return columns.get(0);
-		}
-
-		return null;
+		return expandoColumnPersistence.fetchByT_N(table.getTableId(), name);
 	}
 
+	@Override
 	public ExpandoColumn getColumn(long tableId, String name)
 		throws SystemException {
 
-		List<ExpandoColumn> columns = expandoColumnPersistence.findByT_N(
-			tableId, name);
-
-		if (!columns.isEmpty()) {
-			return columns.get(0);
-		}
-
-		return null;
+		return expandoColumnPersistence.fetchByT_N(tableId, name);
 	}
 
+	@Override
 	public ExpandoColumn getColumn(
 			long companyId, String className, String tableName, String name)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumn(companyId, classNameId, tableName, name);
 	}
 
+	@Override
 	public List<ExpandoColumn> getColumns(long tableId) throws SystemException {
 		return expandoColumnPersistence.findByTableId(tableId);
 	}
 
+	@Override
 	public List<ExpandoColumn> getColumns(
 			long tableId, Collection<String> names)
 		throws SystemException {
@@ -215,6 +220,7 @@ public class ExpandoColumnLocalServiceImpl
 			tableId, names.toArray(new String[names.size()]));
 	}
 
+	@Override
 	public List<ExpandoColumn> getColumns(
 			long companyId, long classNameId, String tableName)
 		throws SystemException {
@@ -229,6 +235,7 @@ public class ExpandoColumnLocalServiceImpl
 		return expandoColumnPersistence.findByTableId(table.getTableId());
 	}
 
+	@Override
 	public List<ExpandoColumn> getColumns(
 			long companyId, long classNameId, String tableName,
 			Collection<String> names)
@@ -245,29 +252,33 @@ public class ExpandoColumnLocalServiceImpl
 			table.getTableId(), names.toArray(new String[names.size()]));
 	}
 
+	@Override
 	public List<ExpandoColumn> getColumns(
 			long companyId, String className, String tableName)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumns(companyId, classNameId, tableName);
 	}
 
+	@Override
 	public List<ExpandoColumn> getColumns(
 			long companyId, String className, String tableName,
 			Collection<String> columnNames)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumns(companyId, classNameId, tableName, columnNames);
 	}
 
+	@Override
 	public int getColumnsCount(long tableId) throws SystemException {
 		return expandoColumnPersistence.countByTableId(tableId);
 	}
 
+	@Override
 	public int getColumnsCount(
 			long companyId, long classNameId, String tableName)
 		throws SystemException {
@@ -282,15 +293,17 @@ public class ExpandoColumnLocalServiceImpl
 		return expandoColumnPersistence.countByTableId(table.getTableId());
 	}
 
+	@Override
 	public int getColumnsCount(
 			long companyId, String className, String tableName)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumnsCount(companyId, classNameId, tableName);
 	}
 
+	@Override
 	public ExpandoColumn getDefaultTableColumn(
 			long companyId, long classNameId, String name)
 		throws SystemException {
@@ -300,17 +313,19 @@ public class ExpandoColumnLocalServiceImpl
 			name);
 	}
 
+	@Override
 	public ExpandoColumn getDefaultTableColumn(
 			long companyId, String className, String name)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumn(
 			companyId, classNameId, ExpandoTableConstants.DEFAULT_TABLE_NAME,
 			name);
 	}
 
+	@Override
 	public List<ExpandoColumn> getDefaultTableColumns(
 			long companyId, long classNameId)
 		throws SystemException {
@@ -325,16 +340,18 @@ public class ExpandoColumnLocalServiceImpl
 		return expandoColumnPersistence.findByTableId(table.getTableId());
 	}
 
+	@Override
 	public List<ExpandoColumn> getDefaultTableColumns(
 			long companyId, String className)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumns(
 			companyId, classNameId, ExpandoTableConstants.DEFAULT_TABLE_NAME);
 	}
 
+	@Override
 	public int getDefaultTableColumnsCount(long companyId, long classNameId)
 		throws SystemException {
 
@@ -348,15 +365,17 @@ public class ExpandoColumnLocalServiceImpl
 		return expandoColumnPersistence.countByTableId(table.getTableId());
 	}
 
+	@Override
 	public int getDefaultTableColumnsCount(long companyId, String className)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumnsCount(
 			companyId, classNameId, ExpandoTableConstants.DEFAULT_TABLE_NAME);
 	}
 
+	@Override
 	public ExpandoColumn updateColumn(long columnId, String name, int type)
 		throws PortalException, SystemException {
 
@@ -364,6 +383,7 @@ public class ExpandoColumnLocalServiceImpl
 			columnId, name, type, null);
 	}
 
+	@Override
 	public ExpandoColumn updateColumn(
 			long columnId, String name, int type, Object defaultData)
 		throws PortalException, SystemException {
@@ -378,11 +398,12 @@ public class ExpandoColumnLocalServiceImpl
 		column.setType(type);
 		column.setDefaultData(value.getData());
 
-		expandoColumnPersistence.update(column, false);
+		expandoColumnPersistence.update(column);
 
 		return column;
 	}
 
+	@Override
 	public ExpandoColumn updateTypeSettings(long columnId, String typeSettings)
 		throws PortalException, SystemException {
 
@@ -391,7 +412,7 @@ public class ExpandoColumnLocalServiceImpl
 
 		column.setTypeSettings(typeSettings);
 
-		expandoColumnPersistence.update(column, false);
+		expandoColumnPersistence.update(column);
 
 		return column;
 	}
@@ -405,15 +426,21 @@ public class ExpandoColumnLocalServiceImpl
 			throw new ColumnNameException();
 		}
 
-		List<ExpandoColumn> columns = expandoColumnPersistence.findByT_N(
+		ExpandoColumn column = expandoColumnPersistence.fetchByT_N(
 			tableId, name);
 
-		if (!columns.isEmpty()) {
-			ExpandoColumn column = columns.get(0);
+		if ((column != null) && (column.getColumnId() != columnId)) {
+			StringBundler sb = new StringBundler(7);
 
-			if (column.getColumnId() != columnId) {
-				throw new DuplicateColumnNameException();
-			}
+			sb.append("{tableId=");
+			sb.append(tableId);
+			sb.append(", columnId=");
+			sb.append(columnId);
+			sb.append(", name=");
+			sb.append(name);
+			sb.append("}");
+
+			throw new DuplicateColumnNameException(sb.toString());
 		}
 
 		if ((type != ExpandoColumnConstants.BOOLEAN) &&
@@ -433,70 +460,82 @@ public class ExpandoColumnLocalServiceImpl
 			(type != ExpandoColumnConstants.SHORT) &&
 			(type != ExpandoColumnConstants.SHORT_ARRAY) &&
 			(type != ExpandoColumnConstants.STRING) &&
-			(type != ExpandoColumnConstants.STRING_ARRAY)) {
+			(type != ExpandoColumnConstants.STRING_ARRAY) &&
+			(type != ExpandoColumnConstants.STRING_ARRAY_LOCALIZED) &&
+			(type != ExpandoColumnConstants.STRING_LOCALIZED)) {
 
 			throw new ColumnTypeException();
 		}
 
 		ExpandoValue value = new ExpandoValueImpl();
 
-		if (defaultData != null) {
-			value.setColumnId(columnId);
+		if (defaultData == null) {
+			return value;
+		}
 
-			if (type == ExpandoColumnConstants.BOOLEAN) {
-				value.setBoolean((Boolean)defaultData);
-			}
-			else if (type == ExpandoColumnConstants.BOOLEAN_ARRAY) {
-				value.setBooleanArray((boolean[])defaultData);
-			}
-			else if (type == ExpandoColumnConstants.DATE) {
-				value.setDate((Date)defaultData);
-			}
-			else if (type == ExpandoColumnConstants.DATE_ARRAY) {
-				value.setDateArray((Date[])defaultData);
-			}
-			else if (type == ExpandoColumnConstants.DOUBLE) {
-				value.setDouble((Double)defaultData);
-			}
-			else if (type == ExpandoColumnConstants.DOUBLE_ARRAY) {
-				value.setDoubleArray((double[])defaultData);
-			}
-			else if (type == ExpandoColumnConstants.FLOAT) {
-				value.setFloat((Float)defaultData);
-			}
-			else if (type == ExpandoColumnConstants.FLOAT_ARRAY) {
-				value.setFloatArray((float[])defaultData);
-			}
-			else if (type == ExpandoColumnConstants.INTEGER) {
-				value.setInteger((Integer)defaultData);
-			}
-			else if (type == ExpandoColumnConstants.INTEGER_ARRAY) {
-				value.setIntegerArray((int[])defaultData);
-			}
-			else if (type == ExpandoColumnConstants.LONG) {
-				value.setLong((Long)defaultData);
-			}
-			else if (type == ExpandoColumnConstants.LONG_ARRAY) {
-				value.setLongArray((long[])defaultData);
-			}
-			else if (type == ExpandoColumnConstants.NUMBER) {
-				value.setNumber((Number)defaultData);
-			}
-			else if (type == ExpandoColumnConstants.NUMBER_ARRAY) {
-				value.setNumberArray((Number[])defaultData);
-			}
-			else if (type == ExpandoColumnConstants.SHORT) {
-				value.setShort((Short)defaultData);
-			}
-			else if (type == ExpandoColumnConstants.SHORT_ARRAY) {
-				value.setShortArray((short[])defaultData);
-			}
-			else if (type == ExpandoColumnConstants.STRING) {
-				value.setString((String)defaultData);
-			}
-			else if (type == ExpandoColumnConstants.STRING_ARRAY) {
-				value.setStringArray((String[])defaultData);
-			}
+		value.setColumnId(columnId);
+
+		if (type == ExpandoColumnConstants.BOOLEAN) {
+			value.setBoolean((Boolean)defaultData);
+		}
+		else if (type == ExpandoColumnConstants.BOOLEAN_ARRAY) {
+			value.setBooleanArray((boolean[])defaultData);
+		}
+		else if (type == ExpandoColumnConstants.DATE) {
+			value.setDate((Date)defaultData);
+		}
+		else if (type == ExpandoColumnConstants.DATE_ARRAY) {
+			value.setDateArray((Date[])defaultData);
+		}
+		else if (type == ExpandoColumnConstants.DOUBLE) {
+			value.setDouble((Double)defaultData);
+		}
+		else if (type == ExpandoColumnConstants.DOUBLE_ARRAY) {
+			value.setDoubleArray((double[])defaultData);
+		}
+		else if (type == ExpandoColumnConstants.FLOAT) {
+			value.setFloat((Float)defaultData);
+		}
+		else if (type == ExpandoColumnConstants.FLOAT_ARRAY) {
+			value.setFloatArray((float[])defaultData);
+		}
+		else if (type == ExpandoColumnConstants.INTEGER) {
+			value.setInteger((Integer)defaultData);
+		}
+		else if (type == ExpandoColumnConstants.INTEGER_ARRAY) {
+			value.setIntegerArray((int[])defaultData);
+		}
+		else if (type == ExpandoColumnConstants.LONG) {
+			value.setLong((Long)defaultData);
+		}
+		else if (type == ExpandoColumnConstants.LONG_ARRAY) {
+			value.setLongArray((long[])defaultData);
+		}
+		else if (type == ExpandoColumnConstants.NUMBER) {
+			value.setNumber((Number)defaultData);
+		}
+		else if (type == ExpandoColumnConstants.NUMBER_ARRAY) {
+			value.setNumberArray((Number[])defaultData);
+		}
+		else if (type == ExpandoColumnConstants.SHORT) {
+			value.setShort((Short)defaultData);
+		}
+		else if (type == ExpandoColumnConstants.SHORT_ARRAY) {
+			value.setShortArray((short[])defaultData);
+		}
+		else if (type == ExpandoColumnConstants.STRING) {
+			value.setString((String)defaultData);
+		}
+		else if (type == ExpandoColumnConstants.STRING_ARRAY) {
+			value.setStringArray((String[])defaultData);
+		}
+		else if (type == ExpandoColumnConstants.STRING_ARRAY_LOCALIZED) {
+			value.setStringArrayMap(
+				(Map<Locale, String[]>)defaultData, LocaleUtil.getDefault());
+		}
+		else if (type == ExpandoColumnConstants.STRING_LOCALIZED) {
+			value.setStringMap(
+				(Map<Locale, String>)defaultData, LocaleUtil.getDefault());
 		}
 
 		return value;

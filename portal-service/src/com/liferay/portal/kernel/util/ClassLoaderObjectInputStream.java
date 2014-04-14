@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,22 +21,26 @@ import java.io.ObjectStreamClass;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Shuyang Zhou
  */
 public class ClassLoaderObjectInputStream extends ObjectInputStream {
 
-	public ClassLoaderObjectInputStream(InputStream is, ClassLoader classLoader)
+	public ClassLoaderObjectInputStream(
+			InputStream inputStream, ClassLoader classLoader)
 		throws IOException {
 
-		super(is);
+		super(inputStream);
 
 		_classLoader = classLoader;
 	}
 
 	@Override
-	protected Class<?> resolveClass(ObjectStreamClass osc)
+	protected Class<?> resolveClass(ObjectStreamClass objectStreamClass)
 		throws ClassNotFoundException {
 
-		return Class.forName(osc.getName(), true, _classLoader);
+		String name = objectStreamClass.getName();
+
+		return ClassResolverUtil.resolve(name, _classLoader);
 	}
 
 	private ClassLoader _classLoader;

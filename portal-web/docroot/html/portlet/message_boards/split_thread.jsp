@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -60,7 +60,7 @@ boolean splitThread = true;
 	long breadcrumbsMessageId = message.getMessageId();
 	%>
 
-	<div class="portlet-msg-info">
+	<div class="alert alert-info">
 		<liferay-ui:message key="click-ok-to-create-a-new-thread-with-the-following-messages" />
 	</div>
 
@@ -80,12 +80,12 @@ boolean splitThread = true;
 
 	<%
 	request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER, treeWalker);
-	request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_SEL_MESSAGE, message);
-	request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_CUR_MESSAGE, message);
 	request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_CATEGORY, category);
-	request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_THREAD, thread);
-	request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_LAST_NODE, Boolean.valueOf(false));
+	request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_CUR_MESSAGE, message);
 	request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_DEPTH, new Integer(0));
+	request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_LAST_NODE, Boolean.valueOf(false));
+	request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_SEL_MESSAGE, message);
+	request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_THREAD, thread);
 	%>
 
 	<liferay-util:include page="/html/portlet/message_boards/view_thread_shortcut.jsp" />
@@ -102,14 +102,21 @@ boolean splitThread = true;
 		<aui:input disabled="<%= thread.isLocked() %>" helpMessage='<%= thread.isLocked() ? LanguageUtil.get(pageContext, "unlock-thread-to-add-an-explanation-post") : StringPool.BLANK %>' label="add-explanation-post-to-the-source-thread" name="addExplanationPost" onClick='<%= renderResponse.getNamespace() + "toggleExplanationPost();" %>' type="checkbox" />
 
 		<div id="<portlet:namespace />explanationPost" style="display: none;">
-			<div class="portlet-msg-info">
+			<div class="alert alert-info">
 				<liferay-ui:message key="the-following-post-will-be-added-in-place-of-the-moved-message" />
 			</div>
 
 			<aui:input model="<%= MBMessage.class %>" name="subject" value='<%= LanguageUtil.get(pageContext, "thread-split") %>' />
 
 			<aui:field-wrapper label="body">
-				<%@ include file="/html/portlet/message_boards/bbcode_editor.jspf" %>
+				<c:choose>
+					<c:when test="<%= message.isFormatBBCode() %>">
+						<%@ include file="/html/portlet/message_boards/bbcode_editor.jspf" %>
+					</c:when>
+					<c:otherwise>
+						<%@ include file="/html/portlet/message_boards/html_editor.jspf" %>
+					</c:otherwise>
+				</c:choose>
 
 				<aui:input name="body" type="hidden" />
 			</aui:field-wrapper>
@@ -126,6 +133,7 @@ boolean splitThread = true;
 <aui:script>
 	function <portlet:namespace />splitThread() {
 		document.<portlet:namespace />fm.<portlet:namespace />body.value = <portlet:namespace />getHTML();
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 

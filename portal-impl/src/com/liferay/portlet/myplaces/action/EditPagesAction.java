@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -49,8 +49,9 @@ public class EditPagesAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String redirect = ParamUtil.getString(actionRequest, "redirect");
@@ -65,7 +66,7 @@ public class EditPagesAction extends PortletAction {
 			groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID,
 			false, 0, 1);
 
-		if (layouts.size() > 0) {
+		if (!layouts.isEmpty()) {
 			layout = layouts.get(0);
 		}
 		else {
@@ -85,31 +86,31 @@ public class EditPagesAction extends PortletAction {
 				description, type, hidden, friendlyURL, serviceContext);
 		}
 
-		if (layout != null) {
-			String tabs1 = "public-pages";
-
-			if (privateLayout) {
-				tabs1 = "private-pages";
-			}
-
-			HttpServletRequest request = PortalUtil.getHttpServletRequest(
-				actionRequest);
-
-			PortletURL portletURL = new PortletURLImpl(
-				request, PortletKeys.LAYOUTS_ADMIN, layout.getPlid(),
-				PortletRequest.RENDER_PHASE);
-
-			portletURL.setWindowState(WindowState.MAXIMIZED);
-			portletURL.setPortletMode(PortletMode.VIEW);
-
-			portletURL.setParameter(
-				"struts_action", "/layouts_admin/edit_layouts");
-			portletURL.setParameter("tabs1", tabs1);
-			portletURL.setParameter("redirect", redirect);
-			portletURL.setParameter("groupId", String.valueOf(groupId));
-
-			actionResponse.sendRedirect(portletURL.toString());
+		if (layout == null) {
+			return;
 		}
+
+		String tabs1 = "public-pages";
+
+		if (privateLayout) {
+			tabs1 = "private-pages";
+		}
+
+		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+			actionRequest);
+
+		PortletURL portletURL = new PortletURLImpl(
+			request, PortletKeys.LAYOUTS_ADMIN, layout.getPlid(),
+			PortletRequest.RENDER_PHASE);
+
+		portletURL.setParameter("struts_action", "/layouts_admin/edit_layouts");
+		portletURL.setParameter("tabs1", tabs1);
+		portletURL.setParameter("redirect", redirect);
+		portletURL.setParameter("groupId", String.valueOf(groupId));
+		portletURL.setPortletMode(PortletMode.VIEW);
+		portletURL.setWindowState(WindowState.MAXIMIZED);
+
+		actionResponse.sendRedirect(portletURL.toString());
 	}
 
 }

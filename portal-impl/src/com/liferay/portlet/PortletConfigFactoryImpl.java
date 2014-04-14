@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,9 @@
 
 package com.liferay.portlet;
 
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.model.Portlet;
+import com.liferay.portal.security.lang.DoPrivilegedUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,12 +29,14 @@ import javax.servlet.ServletContext;
 /**
  * @author Brian Wing Shun Chan
  */
+@DoPrivileged
 public class PortletConfigFactoryImpl implements PortletConfigFactory {
 
 	public PortletConfigFactoryImpl() {
 		_pool = new ConcurrentHashMap<String, Map<String, PortletConfig>>();
 	}
 
+	@Override
 	public PortletConfig create(
 		Portlet portlet, ServletContext servletContext) {
 
@@ -57,13 +61,15 @@ public class PortletConfigFactoryImpl implements PortletConfigFactory {
 			portletConfigs.put(portlet.getPortletId(), portletConfig);
 		}
 
-		return portletConfig;
+		return DoPrivilegedUtil.wrap(portletConfig);
 	}
 
+	@Override
 	public void destroy(Portlet portlet) {
 		_pool.remove(portlet.getRootPortletId());
 	}
 
+	@Override
 	public PortletConfig update(Portlet portlet) {
 		Map<String, PortletConfig> portletConfigs = _pool.get(
 			portlet.getRootPortletId());
@@ -81,7 +87,7 @@ public class PortletConfigFactoryImpl implements PortletConfigFactory {
 
 		portletConfigs.put(portlet.getPortletId(), portletConfig);
 
-		return portletConfig;
+		return DoPrivilegedUtil.wrap(portletConfig);
 	}
 
 	private Map<String, Map<String, PortletConfig>> _pool;

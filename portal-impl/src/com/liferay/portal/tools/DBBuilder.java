@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,7 +18,6 @@ import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.util.InitUtil;
 
 import java.io.IOException;
 
@@ -28,13 +27,14 @@ import java.util.Map;
  * @author Brian Wing Shun Chan
  * @author Charles May
  * @author Alexander Chow
+ * @author Raymond Augé
  */
 public class DBBuilder {
 
 	public static void main(String[] args) {
-		Map<String, String> arguments = ArgumentsUtil.parseArguments(args);
+		ToolDependencies.wireBasic();
 
-		InitUtil.initWithSpring(true);
+		Map<String, String> arguments = ArgumentsUtil.parseArguments(args);
 
 		String databaseName = arguments.get("db.database.name");
 
@@ -52,8 +52,6 @@ public class DBBuilder {
 		String sqlDir = arguments.get("db.sql.dir");
 
 		new DBBuilder(databaseName, databaseTypes, sqlDir);
-
-		System.exit(0);
 	}
 
 	public DBBuilder(
@@ -63,9 +61,14 @@ public class DBBuilder {
 			_databaseName = databaseName;
 			_databaseTypes = databaseTypes;
 
-			_buildSQLFile(sqlDir, "portal");
-			_buildSQLFile(sqlDir, "portal-minimal");
-			_buildSQLFile(sqlDir, "portal-tables");
+			if (!sqlDir.endsWith("/WEB-INF/sql")) {
+				_buildSQLFile(sqlDir, "portal");
+				_buildSQLFile(sqlDir, "portal-tables");
+			}
+			else {
+				_buildSQLFile(sqlDir, "tables");
+			}
+
 			_buildSQLFile(sqlDir, "indexes");
 			_buildSQLFile(sqlDir, "sequences");
 			_buildSQLFile(sqlDir, "update-5.0.1-5.1.0");
@@ -95,9 +98,7 @@ public class DBBuilder {
 	}
 
 	private void _buildCreateFile(String sqlDir) throws IOException {
-		for (int i = 0; i < _databaseTypes.length; i++) {
-			String databaseType = _databaseTypes[i];
-
+		for (String databaseType : _databaseTypes) {
 			if (databaseType.equals(DB.TYPE_HYPERSONIC) ||
 				databaseType.equals(DB.TYPE_INTERBASE) ||
 				databaseType.equals(DB.TYPE_JDATASTORE) ||
@@ -106,14 +107,14 @@ public class DBBuilder {
 				continue;
 			}
 
-			DB db = DBFactoryUtil.getDB(_databaseTypes[i]);
+			DB db = DBFactoryUtil.getDB(databaseType);
 
 			if (db != null) {
 				if (!sqlDir.endsWith("/WEB-INF/sql")) {
 					db.buildCreateFile(sqlDir, _databaseName);
 				}
 				else {
-					db.buildCreateFile(sqlDir, _databaseName, DB.POPULATED);
+					db.buildCreateFile(sqlDir, _databaseName, DB.DEFAULT);
 				}
 			}
 		}
@@ -126,8 +127,8 @@ public class DBBuilder {
 			return;
 		}
 
-		for (int i = 0; i < _databaseTypes.length; i++) {
-			DB db = DBFactoryUtil.getDB(_databaseTypes[i]);
+		for (String _databaseType : _databaseTypes) {
+			DB db = DBFactoryUtil.getDB(_databaseType);
 
 			if (db != null) {
 				db.buildSQLFile(sqlDir, fileName);

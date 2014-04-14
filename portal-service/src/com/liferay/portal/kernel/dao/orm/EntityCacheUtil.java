@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,9 @@
 
 package com.liferay.portal.kernel.dao.orm;
 
+import com.liferay.portal.kernel.cache.PortalCache;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+
 import java.io.Serializable;
 
 /**
@@ -25,8 +28,8 @@ public class EntityCacheUtil {
 		getEntityCache().clearCache();
 	}
 
-	public static void clearCache(String className) {
-		getEntityCache().clearCache(className);
+	public static void clearCache(Class<?> clazz) {
+		getEntityCache().clearCache(clazz);
 	}
 
 	public static void clearLocalCache() {
@@ -34,10 +37,18 @@ public class EntityCacheUtil {
 	}
 
 	public static EntityCache getEntityCache() {
+		PortalRuntimePermission.checkGetBeanProperty(EntityCacheUtil.class);
+
 		return _entityCache;
 	}
 
-	public static Object getResult(
+	public static PortalCache<Serializable, Serializable> getPortalCache(
+		Class<?> clazz) {
+
+		return getEntityCache().getPortalCache(clazz);
+	}
+
+	public static Serializable getResult(
 		boolean entityCacheEnabled, Class<?> clazz, Serializable primaryKey) {
 
 		return getEntityCache().getResult(
@@ -48,7 +59,7 @@ public class EntityCacheUtil {
 		getEntityCache().invalidate();
 	}
 
-	public static Object loadResult(
+	public static Serializable loadResult(
 		boolean entityCacheEnabled, Class<?> clazz, Serializable primaryKey,
 		SessionFactory sessionFactory) {
 
@@ -58,10 +69,18 @@ public class EntityCacheUtil {
 
 	public static void putResult(
 		boolean entityCacheEnabled, Class<?> clazz, Serializable primaryKey,
-		Object result) {
+		Serializable result) {
 
 		getEntityCache().putResult(
 			entityCacheEnabled, clazz, primaryKey, result);
+	}
+
+	public static void putResult(
+		boolean entityCacheEnabled, Class<?> clazz, Serializable primaryKey,
+		Serializable result, boolean quiet) {
+
+		getEntityCache().putResult(
+			entityCacheEnabled, clazz, primaryKey, result, quiet);
 	}
 
 	public static void removeCache(String className) {
@@ -75,6 +94,8 @@ public class EntityCacheUtil {
 	}
 
 	public void setEntityCache(EntityCache entityCache) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_entityCache = entityCache;
 	}
 

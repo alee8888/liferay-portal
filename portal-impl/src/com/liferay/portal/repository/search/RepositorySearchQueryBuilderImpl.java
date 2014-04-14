@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,6 +29,8 @@ import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.TermQuery;
 import com.liferay.portal.kernel.search.TermRangeQuery;
 import com.liferay.portal.kernel.search.WildcardQuery;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
@@ -47,9 +49,11 @@ import org.apache.lucene.queryParser.QueryParser;
 /**
  * @author Mika Koivisto
  */
+@DoPrivileged
 public class RepositorySearchQueryBuilderImpl
 	implements RepositorySearchQueryBuilder {
 
+	@Override
 	public BooleanQuery getFullQuery(SearchContext searchContext)
 		throws SearchException {
 
@@ -104,27 +108,29 @@ public class RepositorySearchQueryBuilderImpl
 
 		long[] folderIds = searchContext.getFolderIds();
 
-		if ((folderIds != null) && (folderIds.length > 0)) {
-			if (folderIds[0] == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-				return;
-			}
-
-			BooleanQuery folderIdsQuery = BooleanQueryFactoryUtil.create(
-				searchContext);
-
-			for (long folderId : folderIds) {
-				try {
-					DLAppServiceUtil.getFolder(folderId);
-				}
-				catch (Exception e) {
-					continue;
-				}
-
-				folderIdsQuery.addTerm(Field.FOLDER_ID, folderId);
-			}
-
-			contextQuery.add(folderIdsQuery, BooleanClauseOccur.MUST);
+		if (ArrayUtil.isEmpty(folderIds)) {
+			return;
 		}
+
+		if (folderIds[0] == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			return;
+		}
+
+		BooleanQuery folderIdsQuery = BooleanQueryFactoryUtil.create(
+			searchContext);
+
+		for (long folderId : folderIds) {
+			try {
+				DLAppServiceUtil.getFolder(folderId);
+			}
+			catch (Exception e) {
+				continue;
+			}
+
+			folderIdsQuery.addTerm(Field.FOLDER_ID, folderId);
+		}
+
+		contextQuery.add(folderIdsQuery, BooleanClauseOccur.MUST);
 	}
 
 	protected void addSearchKeywords(
@@ -373,7 +379,6 @@ public class RepositorySearchQueryBuilderImpl
 				translateQuery(
 					subbooleanQuery, searchContext, booleanClause.getQuery(),
 					booleanClause.getOccur());
-
 			}
 
 			if (conjunctionQuery.hasClauses()) {

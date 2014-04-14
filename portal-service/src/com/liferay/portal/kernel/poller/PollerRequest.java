@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -83,8 +84,10 @@ public class PollerRequest {
 		return _portletId;
 	}
 
-	public String[] getPortletIds() {
-		return _pollerHeader.getPortletIds();
+	public Set<String> getPortletIds() {
+		Map<String, Boolean> portletIdsMap = _pollerHeader.getPortletIdsMap();
+
+		return portletIdsMap.keySet();
 	}
 
 	public HttpServletRequest getRequest() {
@@ -110,7 +113,9 @@ public class PollerRequest {
 	}
 
 	public boolean isInitialRequest() {
-		return _pollerHeader.isInitialRequest();
+		Map<String, Boolean> portletIdsMap = _pollerHeader.getPortletIdsMap();
+
+		return portletIdsMap.get(_portletId);
 	}
 
 	public boolean isReceiveRequest() {

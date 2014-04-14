@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,37 +16,69 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchPluginSettingException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.PluginSetting;
 import com.liferay.portal.model.impl.PluginSettingModelImpl;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class PluginSettingPersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (PluginSettingPersistence)PortalBeanLocatorUtil.locate(PluginSettingPersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -82,6 +114,8 @@ public class PluginSettingPersistenceTest {
 
 		PluginSetting newPluginSetting = _persistence.create(pk);
 
+		newPluginSetting.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newPluginSetting.setCompanyId(ServiceTestUtil.nextLong());
 
 		newPluginSetting.setPluginId(ServiceTestUtil.randomString());
@@ -92,10 +126,12 @@ public class PluginSettingPersistenceTest {
 
 		newPluginSetting.setActive(ServiceTestUtil.randomBoolean());
 
-		_persistence.update(newPluginSetting, false);
+		_persistence.update(newPluginSetting);
 
 		PluginSetting existingPluginSetting = _persistence.findByPrimaryKey(newPluginSetting.getPrimaryKey());
 
+		Assert.assertEquals(existingPluginSetting.getMvccVersion(),
+			newPluginSetting.getMvccVersion());
 		Assert.assertEquals(existingPluginSetting.getPluginSettingId(),
 			newPluginSetting.getPluginSettingId());
 		Assert.assertEquals(existingPluginSetting.getCompanyId(),
@@ -108,6 +144,33 @@ public class PluginSettingPersistenceTest {
 			newPluginSetting.getRoles());
 		Assert.assertEquals(existingPluginSetting.getActive(),
 			newPluginSetting.getActive());
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(ServiceTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_I_T() {
+		try {
+			_persistence.countByC_I_T(ServiceTestUtil.nextLong(),
+				StringPool.BLANK, StringPool.BLANK);
+
+			_persistence.countByC_I_T(0L, StringPool.NULL, StringPool.NULL);
+
+			_persistence.countByC_I_T(0L, (String)null, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -134,6 +197,23 @@ public class PluginSettingPersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("PluginSetting",
+			"mvccVersion", true, "pluginSettingId", true, "companyId", true,
+			"pluginId", true, "pluginType", true, "roles", true, "active", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		PluginSetting newPluginSetting = addPluginSetting();
 
@@ -149,6 +229,26 @@ public class PluginSettingPersistenceTest {
 		PluginSetting missingPluginSetting = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingPluginSetting);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new PluginSettingActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					PluginSetting pluginSetting = (PluginSetting)object;
+
+					Assert.assertNotNull(pluginSetting);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -252,6 +352,8 @@ public class PluginSettingPersistenceTest {
 
 		PluginSetting pluginSetting = _persistence.create(pk);
 
+		pluginSetting.setMvccVersion(ServiceTestUtil.nextLong());
+
 		pluginSetting.setCompanyId(ServiceTestUtil.nextLong());
 
 		pluginSetting.setPluginId(ServiceTestUtil.randomString());
@@ -262,10 +364,12 @@ public class PluginSettingPersistenceTest {
 
 		pluginSetting.setActive(ServiceTestUtil.randomBoolean());
 
-		_persistence.update(pluginSetting, false);
+		_persistence.update(pluginSetting);
 
 		return pluginSetting;
 	}
 
-	private PluginSettingPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(PluginSettingPersistenceTest.class);
+	private PluginSettingPersistence _persistence = (PluginSettingPersistence)PortalBeanLocatorUtil.locate(PluginSettingPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

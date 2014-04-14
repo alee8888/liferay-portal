@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,15 +17,19 @@ package com.liferay.portlet.blogs.action;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
+import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
@@ -48,10 +52,13 @@ import com.liferay.portlet.blogs.NoSuchEntryException;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
 import com.liferay.portlet.blogs.service.BlogsEntryServiceUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
 
 import java.io.InputStream;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -73,13 +80,15 @@ import org.apache.struts.action.ActionMapping;
  * @author Thiago Moreira
  * @author Juan Fernández
  * @author Zsolt Berentey
+ * @author Levente Hudák
  */
 public class EditEntryAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -106,39 +115,43 @@ public class EditEntryAction extends PortletAction {
 			else if (cmd.equals(Constants.UNSUBSCRIBE)) {
 				unsubscribe(actionRequest);
 			}
+			else if (cmd.equals(Constants.UPDATE_CONTENT)) {
+				updateContent(actionRequest, actionResponse);
+
+				return;
+			}
 
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
 			boolean updateRedirect = false;
 
-			if (redirect.contains("/blogs/" + oldUrlTitle + "/maximized")) {
-				oldUrlTitle += "/maximized";
-			}
+			String portletId = HttpUtil.getParameter(redirect, "p_p_id", false);
 
-			if ((entry != null) && Validator.isNotNull(oldUrlTitle) &&
-				(redirect.endsWith("/blogs/" + oldUrlTitle) ||
-				 redirect.contains("/blogs/" + oldUrlTitle + "?") ||
-				 redirect.contains("/blog/" + oldUrlTitle + "?"))) {
+			if (Validator.isNotNull(oldUrlTitle)) {
+				String oldRedirectParam =
+					PortalUtil.getPortletNamespace(portletId) + "redirect";
 
-				int pos = redirect.indexOf("?");
+				String oldRedirect = HttpUtil.getParameter(
+					redirect, oldRedirectParam, false);
 
-				if (pos == -1) {
-					pos = redirect.length();
+				if (Validator.isNotNull(oldRedirect)) {
+					String newRedirect = HttpUtil.decodeURL(oldRedirect);
+
+					newRedirect = StringUtil.replace(
+						newRedirect, oldUrlTitle, entry.getUrlTitle());
+					newRedirect = StringUtil.replace(
+						newRedirect, oldRedirectParam, "redirect");
+
+					redirect = StringUtil.replace(
+						redirect, oldRedirect, newRedirect);
+				}
+				else if (redirect.endsWith("/blogs/" + oldUrlTitle) ||
+						 redirect.contains("/blogs/" + oldUrlTitle + "?") ||
+						 redirect.contains("/blog/" + oldUrlTitle + "?")) {
+
+					redirect = StringUtil.replace(
+						redirect, oldUrlTitle, entry.getUrlTitle());
 				}
 
-				String newRedirect = redirect.substring(
-					0, pos - oldUrlTitle.length());
-
-				newRedirect += entry.getUrlTitle();
-
-				if (oldUrlTitle.indexOf("/maximized") != -1) {
-					newRedirect += "/maximized";
-				}
-
-				if (pos < redirect.length()) {
-					newRedirect += "?" + redirect.substring(pos + 1);
-				}
-
-				redirect = newRedirect;
 				updateRedirect = true;
 			}
 
@@ -178,6 +191,18 @@ public class EditEntryAction extends PortletAction {
 					redirect = PortalUtil.escapeRedirect(redirect);
 
 					if (Validator.isNotNull(redirect)) {
+						if (cmd.equals(Constants.ADD) && (entry != null)) {
+							String namespace = PortalUtil.getPortletNamespace(
+								portletId);
+
+							redirect = HttpUtil.addParameter(
+								redirect, namespace + "className",
+								BlogsEntry.class.getName());
+							redirect = HttpUtil.addParameter(
+								redirect, namespace + "classPK",
+								entry.getEntryId());
+						}
+
 						actionResponse.sendRedirect(redirect);
 					}
 				}
@@ -195,25 +220,34 @@ public class EditEntryAction extends PortletAction {
 					 e instanceof EntryDisplayDateException ||
 					 e instanceof EntrySmallImageNameException ||
 					 e instanceof EntrySmallImageSizeException ||
-					 e instanceof EntryTitleException) {
+					 e instanceof EntryTitleException ||
+					 e instanceof SanitizerException) {
 
 				SessionErrors.add(actionRequest, e.getClass());
 			}
 			else if (e instanceof AssetCategoryException ||
 					 e instanceof AssetTagException) {
 
-				SessionErrors.add(actionRequest, e.getClass().getName(), e);
+				SessionErrors.add(actionRequest, e.getClass(), e);
 			}
 			else {
-				throw e;
+				Throwable cause = e.getCause();
+
+				if (cause instanceof SanitizerException) {
+					SessionErrors.add(actionRequest, SanitizerException.class);
+				}
+				else {
+					throw e;
+				}
 			}
 		}
 	}
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -240,14 +274,14 @@ public class EditEntryAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.blogs.error");
+				return actionMapping.findForward("portlet.blogs.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.blogs.edit_entry"));
 	}
 
@@ -267,13 +301,24 @@ public class EditEntryAction extends PortletAction {
 				ParamUtil.getString(actionRequest, "deleteEntryIds"), 0L);
 		}
 
+		List<TrashedModel> trashedModels = new ArrayList<TrashedModel>();
+
 		for (long deleteEntryId : deleteEntryIds) {
 			if (moveToTrash) {
-				BlogsEntryServiceUtil.moveEntryToTrash(deleteEntryId);
+				BlogsEntry entry = BlogsEntryServiceUtil.moveEntryToTrash(
+					deleteEntryId);
+
+				trashedModels.add(entry);
 			}
 			else {
 				BlogsEntryServiceUtil.deleteEntry(deleteEntryId);
 			}
+		}
+
+		if (moveToTrash && !trashedModels.isEmpty()) {
+			TrashUtil.addTrashSessionMessages(actionRequest, trashedModels);
+
+			hideDefaultSuccessMessage(actionRequest);
 		}
 	}
 
@@ -293,8 +338,6 @@ public class EditEntryAction extends PortletAction {
 			actionRequest, portletConfig.getPortletName(),
 			themeDisplay.getPlid(), PortletRequest.RENDER_PHASE);
 
-		portletURL.setWindowState(actionRequest.getWindowState());
-
 		String portletName = portletConfig.getPortletName();
 
 		if (portletName.equals(PortletKeys.BLOGS_ADMIN)) {
@@ -312,6 +355,7 @@ public class EditEntryAction extends PortletAction {
 		portletURL.setParameter(
 			"entryId", String.valueOf(entry.getEntryId()), false);
 		portletURL.setParameter("preview", String.valueOf(preview), false);
+		portletURL.setWindowState(actionRequest.getWindowState());
 
 		return portletURL.toString();
 	}
@@ -328,6 +372,60 @@ public class EditEntryAction extends PortletAction {
 			WebKeys.THEME_DISPLAY);
 
 		BlogsEntryServiceUtil.unsubscribe(themeDisplay.getScopeGroupId());
+	}
+
+	protected void updateContent(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
+		long entryId = ParamUtil.getLong(actionRequest, "entryId");
+
+		BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(entryId);
+
+		String content = ParamUtil.getString(actionRequest, "content");
+
+		Calendar displayDateCal = CalendarFactoryUtil.getCalendar();
+
+		displayDateCal.setTime(entry.getDisplayDate());
+
+		int displayDateMonth = displayDateCal.get(Calendar.MONTH);
+		int displayDateDay = displayDateCal.get(Calendar.DATE);
+		int displayDateYear = displayDateCal.get(Calendar.YEAR);
+		int displayDateHour = displayDateCal.get(Calendar.HOUR);
+		int displayDateMinute = displayDateCal.get(Calendar.MINUTE);
+
+		if (displayDateCal.get(Calendar.AM_PM) == Calendar.PM) {
+			displayDateHour += 12;
+		}
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			actionRequest);
+
+		serviceContext.setCommand(Constants.UPDATE);
+
+		try {
+			BlogsEntryServiceUtil.updateEntry(
+				entryId, entry.getTitle(), entry.getDescription(), content,
+				displayDateMonth, displayDateDay, displayDateYear,
+				displayDateHour, displayDateMinute, entry.getAllowPingbacks(),
+				entry.getAllowTrackbacks(), null, entry.getSmallImage(),
+				entry.getSmallImageURL(), null, null, serviceContext);
+
+			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+			jsonObject.put("success", Boolean.TRUE);
+
+			writeJSON(actionRequest, actionResponse, jsonObject);
+		}
+		catch (Exception e) {
+			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+			jsonObject.put("success", Boolean.FALSE);
+
+			jsonObject.putException(e);
+
+			writeJSON(actionRequest, actionResponse, jsonObject);
+		}
 	}
 
 	protected Object[] updateEntry(ActionRequest actionRequest)
@@ -380,18 +478,13 @@ public class EditEntryAction extends PortletAction {
 					actionRequest, "smallImageURL");
 
 				if (smallImage && Validator.isNull(smallImageURL)) {
-					boolean attachments = ParamUtil.getBoolean(
-						actionRequest, "attachments");
+					UploadPortletRequest uploadPortletRequest =
+						PortalUtil.getUploadPortletRequest(actionRequest);
 
-					if (attachments) {
-						UploadPortletRequest uploadPortletRequest =
-							PortalUtil.getUploadPortletRequest(actionRequest);
-
-						smallImageFileName = uploadPortletRequest.getFileName(
-							"smallFile");
-						smallImageInputStream =
-							uploadPortletRequest.getFileAsStream("smallFile");
-					}
+					smallImageFileName = uploadPortletRequest.getFileName(
+						"smallFile");
+					smallImageInputStream =
+						uploadPortletRequest.getFileAsStream("smallFile");
 				}
 			}
 

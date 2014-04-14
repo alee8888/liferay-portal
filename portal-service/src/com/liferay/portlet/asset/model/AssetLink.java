@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.asset.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.util.Accessor;
 import com.liferay.portal.model.PersistedModel;
 
@@ -26,6 +28,7 @@ import com.liferay.portal.model.PersistedModel;
  * @see com.liferay.portlet.asset.model.impl.AssetLinkModelImpl
  * @generated
  */
+@ProviderType
 public interface AssetLink extends AssetLinkModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -33,12 +36,14 @@ public interface AssetLink extends AssetLinkModel, PersistedModel {
 	 * Never modify this interface directly. Add methods to {@link com.liferay.portlet.asset.model.impl.AssetLinkImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static final Accessor<AssetLink, Long> LINK_ID_ACCESSOR = new Accessor<AssetLink, Long>() {
+			@Override
 			public Long get(AssetLink assetLink) {
 				return assetLink.getLinkId();
 			}
 		};
 
 	public static final Accessor<AssetLink, Long> ENTRY_ID2_ACCESSOR = new Accessor<AssetLink, Long>() {
+			@Override
 			public Long get(AssetLink assetLink) {
 				return assetLink.getEntryId2();
 			}

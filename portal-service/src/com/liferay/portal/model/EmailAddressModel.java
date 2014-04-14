@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -37,8 +39,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.EmailAddressModelImpl
  * @generated
  */
-public interface EmailAddressModel extends AttachedModel, AuditedModel,
-	BaseModel<EmailAddress> {
+@ProviderType
+public interface EmailAddressModel extends AttachedModel, BaseModel<EmailAddress>,
+	MVCCModel, StagedAuditedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -60,6 +63,39 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	public void setPrimaryKey(long primaryKey);
 
 	/**
+	 * Returns the mvcc version of this email address.
+	 *
+	 * @return the mvcc version of this email address
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this email address.
+	 *
+	 * @param mvccVersion the mvcc version of this email address
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the uuid of this email address.
+	 *
+	 * @return the uuid of this email address
+	 */
+	@AutoEscape
+	@Override
+	public String getUuid();
+
+	/**
+	 * Sets the uuid of this email address.
+	 *
+	 * @param uuid the uuid of this email address
+	 */
+	@Override
+	public void setUuid(String uuid);
+
+	/**
 	 * Returns the email address ID of this email address.
 	 *
 	 * @return the email address ID of this email address
@@ -78,6 +114,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the company ID of this email address
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -85,6 +122,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param companyId the company ID of this email address
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -92,6 +130,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the user ID of this email address
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -99,6 +138,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param userId the user ID of this email address
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
@@ -107,6 +147,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 * @return the user uuid of this email address
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public String getUserUuid() throws SystemException;
 
 	/**
@@ -114,6 +155,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param userUuid the user uuid of this email address
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -122,6 +164,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 * @return the user name of this email address
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -129,6 +172,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param userName the user name of this email address
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -136,6 +180,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the create date of this email address
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -143,6 +188,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param createDate the create date of this email address
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -150,6 +196,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the modified date of this email address
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -157,6 +204,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param modifiedDate the modified date of this email address
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -164,6 +212,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the fully qualified class name of this email address
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -173,6 +222,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the class name ID of this email address
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -180,6 +230,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param classNameId the class name ID of this email address
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -187,6 +238,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the class p k of this email address
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -194,6 +246,7 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param classPK the class p k of this email address
 	 */
+	@Override
 	public void setClassPK(long classPK);
 
 	/**
@@ -246,35 +299,60 @@ public interface EmailAddressModel extends AttachedModel, AuditedModel,
 	 */
 	public void setPrimary(boolean primary);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(EmailAddress emailAddress);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<EmailAddress> toCacheModel();
 
+	@Override
 	public EmailAddress toEscapedModel();
 
+	@Override
+	public EmailAddress toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

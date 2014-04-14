@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,13 +14,9 @@
 
 package com.liferay.portlet.usersadmin.util;
 
-import com.liferay.portal.kernel.dao.orm.DynamicQuery;
-import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
-import com.liferay.portal.kernel.dao.orm.Projection;
-import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
-import com.liferay.portal.kernel.dao.orm.ProjectionList;
-import com.liferay.portal.kernel.dao.orm.Property;
-import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.BaseIndexer;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.BooleanQuery;
@@ -33,7 +29,6 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.Summary;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Contact;
@@ -44,6 +39,7 @@ import com.liferay.portal.security.auth.FullNameGenerator;
 import com.liferay.portal.security.auth.FullNameGeneratorFactory;
 import com.liferay.portal.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
+import com.liferay.portal.service.persistence.UserActionableDynamicQuery;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
 
@@ -55,6 +51,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 
 /**
@@ -69,15 +67,19 @@ public class UserIndexer extends BaseIndexer {
 	public static final String PORTLET_ID = PortletKeys.USERS_ADMIN;
 
 	public UserIndexer() {
+		setDefaultSelectedFieldNames(
+			Field.COMPANY_ID, Field.UID, Field.USER_ID);
 		setIndexerEnabled(PropsValues.USERS_INDEXER_ENABLED);
 		setPermissionAware(true);
 		setStagingAware(false);
 	}
 
+	@Override
 	public String[] getClassNames() {
 		return CLASS_NAMES;
 	}
 
+	@Override
 	public String getPortletId() {
 		return PORTLET_ID;
 	}
@@ -98,27 +100,29 @@ public class UserIndexer extends BaseIndexer {
 		LinkedHashMap<String, Object> params =
 			(LinkedHashMap<String, Object>)searchContext.getAttribute("params");
 
-		if (params != null) {
-			for (Map.Entry<String, Object> entry : params.entrySet()) {
-				String key = entry.getKey();
-				Object value = entry.getValue();
+		if (params == null) {
+			return;
+		}
 
-				if (value == null) {
+		for (Map.Entry<String, Object> entry : params.entrySet()) {
+			String key = entry.getKey();
+			Object value = entry.getValue();
+
+			if (value == null) {
+				continue;
+			}
+
+			Class<?> clazz = value.getClass();
+
+			if (clazz.isArray()) {
+				Object[] values = (Object[])value;
+
+				if (values.length == 0) {
 					continue;
 				}
-
-				Class<?> clazz = value.getClass();
-
-				if (clazz.isArray()) {
-					Object[] values = (Object[])value;
-
-					if (values.length == 0) {
-						continue;
-					}
-				}
-
-				addContextQueryParams(contextQuery, searchContext, key, value);
 			}
+
+			addContextQueryParams(contextQuery, searchContext, key, value);
 		}
 	}
 
@@ -156,7 +160,24 @@ public class UserIndexer extends BaseIndexer {
 			Object value)
 		throws Exception {
 
-		if (key.equals("usersOrgs")) {
+		if (key.equals("usersGroups")) {
+			if (value instanceof Long[]) {
+				Long[] values = (Long[])value;
+
+				BooleanQuery usersGroupsQuery = BooleanQueryFactoryUtil.create(
+					searchContext);
+
+				for (long groupId : values) {
+					usersGroupsQuery.addTerm("groupIds", groupId);
+				}
+
+				contextQuery.add(usersGroupsQuery, BooleanClauseOccur.MUST);
+			}
+			else {
+				contextQuery.addRequiredTerm("groupIds", String.valueOf(value));
+			}
+		}
+		else if (key.equals("usersOrgs")) {
 			if (value instanceof Long[]) {
 				Long[] values = (Long[])value;
 
@@ -191,14 +212,6 @@ public class UserIndexer extends BaseIndexer {
 		}
 	}
 
-	protected void addReindexCriteria(
-		DynamicQuery dynamicQuery, long companyId) {
-
-		Property property = PropertyFactoryUtil.forName("companyId");
-
-		dynamicQuery.add(property.eq(companyId));
-	}
-
 	@Override
 	protected void doDelete(Object obj) throws Exception {
 		User user = (User)obj;
@@ -224,7 +237,9 @@ public class UserIndexer extends BaseIndexer {
 		long[] organizationIds = user.getOrganizationIds();
 
 		document.addKeyword(Field.COMPANY_ID, user.getCompanyId());
+		document.addKeyword(Field.GROUP_ID, user.getGroupIds());
 		document.addDate(Field.MODIFIED_DATE, user.getModifiedDate());
+		document.addKeyword(Field.SCOPE_GROUP_ID, user.getGroupIds());
 		document.addKeyword(Field.STATUS, user.getStatus());
 		document.addKeyword(Field.USER_ID, user.getUserId());
 		document.addKeyword(Field.USER_NAME, user.getFullName());
@@ -277,8 +292,8 @@ public class UserIndexer extends BaseIndexer {
 
 	@Override
 	protected Summary doGetSummary(
-		Document document, Locale locale, String snippet,
-		PortletURL portletURL) {
+		Document document, Locale locale, String snippet, PortletURL portletURL,
+		PortletRequest portletRequest, PortletResponse portletResponse) {
 
 		String firstName = document.get("firstName");
 		String middleName = document.get("middleName");
@@ -418,79 +433,29 @@ public class UserIndexer extends BaseIndexer {
 		return PORTLET_ID;
 	}
 
-	protected void reindexUsers(long companyId) throws Exception {
-		DynamicQuery dynamicQuery = DynamicQueryFactoryUtil.forClass(
-			User.class, PortalClassLoaderUtil.getClassLoader());
+	protected void reindexUsers(long companyId)
+		throws PortalException, SystemException {
 
-		Projection minUserIdProjection = ProjectionFactoryUtil.min("userId");
-		Projection maxUserIdProjection = ProjectionFactoryUtil.max("userId");
+		ActionableDynamicQuery actionableDynamicQuery =
+			new UserActionableDynamicQuery() {
 
-		ProjectionList projectionList = ProjectionFactoryUtil.projectionList();
+			@Override
+			protected void performAction(Object object) throws PortalException {
+				User user = (User)object;
 
-		projectionList.add(minUserIdProjection);
-		projectionList.add(maxUserIdProjection);
+				if (!user.isDefaultUser()) {
+					Document document = getDocument(user);
 
-		dynamicQuery.setProjection(projectionList);
-
-		addReindexCriteria(dynamicQuery, companyId);
-
-		List<Object[]> results = UserLocalServiceUtil.dynamicQuery(
-			dynamicQuery);
-
-		Object[] minAndMaxUserIds = results.get(0);
-
-		if ((minAndMaxUserIds[0] == null) || (minAndMaxUserIds[1] == null)) {
-			return;
-		}
-
-		long minUserId = (Long)minAndMaxUserIds[0];
-		long maxUserId = (Long)minAndMaxUserIds[1];
-
-		long startUserId = minUserId;
-		long endUserId = startUserId + DEFAULT_INTERVAL;
-
-		while (startUserId <= maxUserId) {
-			reindexUsers(companyId, startUserId, endUserId);
-
-			startUserId = endUserId;
-			endUserId += DEFAULT_INTERVAL;
-		}
-	}
-
-	protected void reindexUsers(
-			long companyId, long startUserId, long endUserId)
-		throws Exception {
-
-		DynamicQuery dynamicQuery = DynamicQueryFactoryUtil.forClass(
-			User.class, PortalClassLoaderUtil.getClassLoader());
-
-		Property property = PropertyFactoryUtil.forName("userId");
-
-		dynamicQuery.add(property.ge(startUserId));
-		dynamicQuery.add(property.lt(endUserId));
-
-		addReindexCriteria(dynamicQuery, companyId);
-
-		List<User> users = UserLocalServiceUtil.dynamicQuery(dynamicQuery);
-
-		if (users.isEmpty()) {
-			return;
-		}
-
-		Collection<Document> documents = new ArrayList<Document>(users.size());
-
-		for (User user : users) {
-			if (user.isDefaultUser()) {
-				continue;
+					addDocument(document);
+				}
 			}
 
-			Document document = getDocument(user);
+		};
 
-			documents.add(document);
-		}
+		actionableDynamicQuery.setCompanyId(companyId);
+		actionableDynamicQuery.setSearchEngineId(getSearchEngineId());
 
-		SearchEngineUtil.updateDocuments(
-			getSearchEngineId(), companyId, documents);
+		actionableDynamicQuery.performActions();
 	}
 
 }

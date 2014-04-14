@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.MethodParameter;
 import com.liferay.portal.kernel.util.MethodParametersResolverUtil;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.lang.reflect.Method;
 
@@ -30,10 +31,10 @@ public class JSONWebServiceActionConfig
 	JSONWebServiceActionMapping {
 
 	public JSONWebServiceActionConfig(
-		String servletContextPath, Class<?> actionClass, Method actionMethod,
+		String contextPath, Class<?> actionClass, Method actionMethod,
 		String path, String method) {
 
-		_servletContextPath = servletContextPath;
+		_contextPath = contextPath;
 		_actionClass = actionClass;
 		_actionMethod = actionMethod;
 		_path = path;
@@ -42,7 +43,7 @@ public class JSONWebServiceActionConfig
 		_methodParameters =
 			MethodParametersResolverUtil.resolveMethodParameters(actionMethod);
 
-		_fullPath = _servletContextPath + _path;
+		_fullPath = _contextPath + _path;
 
 		StringBundler sb = new StringBundler(_methodParameters.length * 2 + 4);
 
@@ -58,42 +59,103 @@ public class JSONWebServiceActionConfig
 		_signature = sb.toString();
 	}
 
+	public JSONWebServiceActionConfig(
+		String contextPath, Object actionObject, Class<?> actionClass,
+		Method actionMethod, String path, String method) {
+
+		this(contextPath, actionClass, actionMethod, path, method);
+
+		_actionObject = actionObject;
+
+		try {
+			Class<?> actionObjectClass = actionObject.getClass();
+
+			Method actionObjectClassActionMethod = actionObjectClass.getMethod(
+				actionMethod.getName(), actionMethod.getParameterTypes());
+
+			_actionMethod = actionObjectClassActionMethod;
+		}
+		catch (NoSuchMethodException nsme) {
+			throw new IllegalArgumentException(nsme);
+		}
+	}
+
+	@Override
 	public int compareTo(
 		JSONWebServiceActionConfig jsonWebServiceActionConfig) {
 
 		return _signature.compareTo(jsonWebServiceActionConfig._signature);
 	}
 
+	@Override
+	public boolean equals(Object object) {
+		if (this == object) {
+			return true;
+		}
+
+		if (!(object instanceof JSONWebServiceActionConfig)) {
+			return false;
+		}
+
+		JSONWebServiceActionConfig jsonWebServiceActionConfig =
+			(JSONWebServiceActionConfig)object;
+
+		if (Validator.equals(
+				_signature, jsonWebServiceActionConfig._signature)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
 	public Class<?> getActionClass() {
 		return _actionClass;
 	}
 
+	@Override
 	public Method getActionMethod() {
 		return _actionMethod;
+	}
+
+	@Override
+	public Object getActionObject() {
+		return _actionObject;
+	}
+
+	@Override
+	public String getContextPath() {
+		return _contextPath;
 	}
 
 	public String getFullPath() {
 		return _fullPath;
 	}
 
+	@Override
 	public String getMethod() {
 		return _method;
 	}
 
+	@Override
 	public MethodParameter[] getMethodParameters() {
 		return _methodParameters;
 	}
 
+	@Override
 	public String getPath() {
 		return _path;
 	}
 
-	public String getServletContextPath() {
-		return _servletContextPath;
-	}
-
+	@Override
 	public String getSignature() {
 		return _signature;
+	}
+
+	@Override
+	public int hashCode() {
+		return _signature.hashCode();
 	}
 
 	@Override
@@ -104,6 +166,8 @@ public class JSONWebServiceActionConfig
 		sb.append(_actionClass);
 		sb.append(", actionMethod=");
 		sb.append(_actionMethod);
+		sb.append(", contextPath=");
+		sb.append(_contextPath);
 		sb.append(", fullPath=");
 		sb.append(_fullPath);
 		sb.append(", method=");
@@ -112,8 +176,6 @@ public class JSONWebServiceActionConfig
 		sb.append(_methodParameters);
 		sb.append(", path=");
 		sb.append(_path);
-		sb.append(", servletContextPath=");
-		sb.append(_servletContextPath);
 		sb.append(", signature=");
 		sb.append(_signature);
 		sb.append("}");
@@ -123,11 +185,12 @@ public class JSONWebServiceActionConfig
 
 	private Class<?> _actionClass;
 	private Method _actionMethod;
+	private Object _actionObject;
+	private String _contextPath;
 	private String _fullPath;
 	private String _method;
 	private MethodParameter[] _methodParameters;
 	private String _path;
-	private String _servletContextPath;
 	private String _signature;
 
 }

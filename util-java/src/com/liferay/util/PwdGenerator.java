@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,14 +16,15 @@ package com.liferay.util;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.SecureRandomUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-
-import java.security.SecureRandom;
 
 /**
  * @author Brian Wing Shun Chan
  * @author Amos Fong
+ * @author Shuyang Zhou
  */
 public class PwdGenerator {
 
@@ -34,48 +35,46 @@ public class PwdGenerator {
 	public static final String KEY3 = "abcdefghijklmnopqrstuvwxyz";
 
 	public static String getPassword() {
-		return getPassword(8);
+		return getPassword(8, KEYS);
 	}
 
 	public static String getPassword(int length) {
-		return _getPassword(false, KEY1 + KEY2 + KEY3, length, true);
+		return getPassword(length, KEYS);
+	}
+
+	public static String getPassword(int length, String... keys) {
+		if (keys == null) {
+			throw new IllegalArgumentException("Keys are null");
+		}
+
+		StringBundler fullKeySB = new StringBundler(keys);
+
+		String fullKey = fullKeySB.toString();
+
+		int fullKeyLength = fullKey.length();
+
+		int refreshPeriod = (int) (_MULTIPLIER / Math.log(fullKeyLength));
+
+		long secureLong = 0;
+
+		StringBuilder sb = new StringBuilder(length);
+
+		for (int i = 0; i < length; i++) {
+			if ((i % refreshPeriod) == 0) {
+				secureLong = SecureRandomUtil.nextLong();
+			}
+
+			int pos = Math.abs((int)(secureLong % fullKeyLength));
+
+			secureLong = secureLong / fullKeyLength;
+
+			sb.append(fullKey.charAt(pos));
+		}
+
+		return sb.toString();
 	}
 
 	public static String getPassword(String key, int length) {
-		return getPassword(key, length, true);
-	}
-
-	public static String getPassword(
-		String key, int length, boolean useAllKeys) {
-
-		return _getPassword(false, key, length, useAllKeys);
-	}
-
-	public static String getPinNumber() {
-		return _getPassword(false, KEY1, 4, true);
-	}
-
-	public static String getSecurePassword() {
-		return getSecurePassword(8);
-	}
-
-	public static String getSecurePassword(int length) {
-		return _getPassword(true, KEY1 + KEY2 + KEY3, length, true);
-	}
-
-	public static String getSecurePassword(String key, int length) {
-		return getSecurePassword(key, length, true);
-	}
-
-	public static String getSecurePassword(
-		String key, int length, boolean useAllKeys) {
-
-		return _getPassword(true, key, length, useAllKeys);
-	}
-
-	private static String _getPassword(
-		boolean secure, String key, int length, boolean useAllKeys) {
-
 		int keysCount = 0;
 
 		if (key.contains(KEY1)) {
@@ -98,64 +97,49 @@ public class PwdGenerator {
 			length = keysCount;
 		}
 
-		StringBuilder sb = new StringBuilder(length);
+		while (true) {
+			String password = getPassword(length, key);
 
-		for (int i = 0; i < length; i++) {
-			sb.append(key.charAt((int)(_random(secure) * key.length())));
-		}
+			if (key.contains(KEY1)) {
+				if (Validator.isNull(StringUtil.extractDigits(password))) {
+					continue;
+				}
+			}
 
-		String password = sb.toString();
+			if (key.contains(KEY2)) {
+				if (password.equals(StringUtil.toLowerCase(password))) {
+					continue;
+				}
+			}
 
-		if (!useAllKeys) {
+			if (key.contains(KEY3)) {
+				if (password.equals(StringUtil.toUpperCase(password))) {
+					continue;
+				}
+			}
+
 			return password;
 		}
-
-		boolean invalidPassword = false;
-
-		if (key.contains(KEY1)) {
-			if (Validator.isNull(StringUtil.extractDigits(password))) {
-				invalidPassword = true;
-			}
-		}
-
-		if (key.contains(KEY2)) {
-			if (password.equals(password.toLowerCase())) {
-				invalidPassword = true;
-			}
-		}
-
-		if (key.contains(KEY3)) {
-			if (password.equals(password.toUpperCase())) {
-				invalidPassword = true;
-			}
-		}
-
-		if (invalidPassword) {
-			return _getPassword(secure, key, length, useAllKeys);
-		}
-
-		return password;
 	}
 
-	private static double _random(boolean secure) {
-		try {
-			if (secure) {
-				if (_secureRandom == null) {
-					_secureRandom = new SecureRandom();
-				}
+	public static String getPassword(
+		String key, int length, boolean useAllKeys) {
 
-				return _secureRandom.nextDouble();
-			}
-		}
-		catch (Exception e) {
-			_log.error(e, e);
+		if (useAllKeys) {
+			return getPassword(key, length);
 		}
 
-		return Math.random();
+		return getPassword(length, key);
 	}
+
+	public static String getPinNumber() {
+		return getPassword(4, KEY1);
+	}
+
+	private static final double _MULTIPLIER = Long.SIZE * Math.log(2);
+
+	private static final String[] KEYS = {KEY1, KEY2, KEY3};
 
 	private static Log _log = LogFactoryUtil.getLog(PwdGenerator.class);
-
-	private static SecureRandom _secureRandom;
 
 }

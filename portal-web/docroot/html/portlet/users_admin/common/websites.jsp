@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -64,7 +64,7 @@ else {
 
 <h3><liferay-ui:message key="websites" /></h3>
 
-<div class="portlet-msg-info">
+<div class="alert alert-info">
 	<liferay-ui:message key="url-and-type-are-required-fields.-websites-must-start-with-http-or-https" />
 </div>
 
@@ -86,11 +86,11 @@ else {
 			<div class="row-fields">
 				<aui:input name='<%= "websiteId" + websitesIndex %>' type="hidden" value="<%= website.getWebsiteId() %>" />
 
-				<aui:input fieldParam='<%= "websiteUrl" + websitesIndex %>' id='<%= "websiteUrl" + websitesIndex %>' name="url" />
+				<aui:input cssClass="url-field" fieldParam='<%= "websiteUrl" + websitesIndex %>' id='<%= "websiteUrl" + websitesIndex %>' inlineField="<%= true %>" name="url" />
 
-				<aui:select label="type" listType="<%= className + ListTypeConstants.WEBSITE %>" name='<%= "websiteTypeId" + websitesIndex %>' />
+				<aui:select inlineField="<%= true %>" label="type" listType="<%= className + ListTypeConstants.WEBSITE %>" name='<%= "websiteTypeId" + websitesIndex %>' />
 
-				<aui:input checked="<%= website.isPrimary() %>" cssClass="primary-ctrl" id='<%= "websitePrimary" + websitesIndex %>' label="primary" name="websitePrimary" type="radio" value="<%= websitesIndex %>" />
+				<aui:input checked="<%= website.isPrimary() %>" cssClass="primary-ctrl" id='<%= "websitePrimary" + websitesIndex %>' inlineField="<%= true %>" label="primary" name="websitePrimary" type="radio" value="<%= websitesIndex %>" />
 			</div>
 		</div>
 
@@ -108,7 +108,8 @@ else {
 			new Liferay.AutoFields(
 				{
 					contentBox: '#<portlet:namespace />websites > fieldset',
-					fieldIndexes: '<portlet:namespace />websitesIndexes'
+					fieldIndexes: '<portlet:namespace />websitesIndexes',
+					namespace: '<portlet:namespace />'
 				}
 			).render();
 		}

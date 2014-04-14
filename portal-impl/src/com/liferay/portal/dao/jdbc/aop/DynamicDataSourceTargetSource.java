@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -52,6 +52,7 @@ public class DynamicDataSourceTargetSource implements TargetSource {
 		return operation;
 	}
 
+	@Override
 	public Object getTarget() throws Exception {
 		Operation operationType = getOperation();
 
@@ -62,19 +63,20 @@ public class DynamicDataSourceTargetSource implements TargetSource {
 
 			return _readDataSource;
 		}
-		else {
-			if (_log.isTraceEnabled()) {
-				_log.trace("Returning write data source");
-			}
 
-			return _writeDataSource;
+		if (_log.isTraceEnabled()) {
+			_log.trace("Returning write data source");
 		}
+
+		return _writeDataSource;
 	}
 
+	@Override
 	public Class<DataSource> getTargetClass() {
 		return DataSource.class;
 	}
 
+	@Override
 	public boolean isStatic() {
 		return false;
 	}
@@ -95,6 +97,7 @@ public class DynamicDataSourceTargetSource implements TargetSource {
 		methodStack.push(method);
 	}
 
+	@Override
 	public void releaseTarget(Object target) throws Exception {
 	}
 

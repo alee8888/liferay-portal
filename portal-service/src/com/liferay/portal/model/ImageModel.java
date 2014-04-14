@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
@@ -36,7 +38,8 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.ImageModelImpl
  * @generated
  */
-public interface ImageModel extends BaseModel<Image> {
+@ProviderType
+public interface ImageModel extends BaseModel<Image>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -56,6 +59,22 @@ public interface ImageModel extends BaseModel<Image> {
 	 * @param primaryKey the primary key of this image
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this image.
+	 *
+	 * @return the mvcc version of this image
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this image.
+	 *
+	 * @param mvccVersion the mvcc version of this image
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the image ID of this image.
@@ -84,21 +103,6 @@ public interface ImageModel extends BaseModel<Image> {
 	 * @param modifiedDate the modified date of this image
 	 */
 	public void setModifiedDate(Date modifiedDate);
-
-	/**
-	 * Returns the text of this image.
-	 *
-	 * @return the text of this image
-	 */
-	@AutoEscape
-	public String getText();
-
-	/**
-	 * Sets the text of this image.
-	 *
-	 * @param text the text of this image
-	 */
-	public void setText(String text);
 
 	/**
 	 * Returns the type of this image.
@@ -157,35 +161,60 @@ public interface ImageModel extends BaseModel<Image> {
 	 */
 	public void setSize(int size);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(Image image);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<Image> toCacheModel();
 
+	@Override
 	public Image toEscapedModel();
 
+	@Override
+	public Image toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

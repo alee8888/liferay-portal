@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,6 +28,7 @@ import com.liferay.portlet.asset.model.BaseAssetRenderer;
 import java.util.Locale;
 
 import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
@@ -42,10 +43,12 @@ public class UserAssetRenderer extends BaseAssetRenderer {
 		_user = user;
 	}
 
-	public String getAssetRendererFactoryClassName() {
-		return UserAssetRendererFactory.CLASS_NAME;
+	@Override
+	public String getClassName() {
+		return User.class.getName();
 	}
 
+	@Override
 	public long getClassPK() {
 		return _user.getPrimaryKey();
 	}
@@ -55,14 +58,19 @@ public class UserAssetRenderer extends BaseAssetRenderer {
 		return null;
 	}
 
+	@Override
 	public long getGroupId() {
 		return 0;
 	}
 
-	public String getSummary(Locale locale) {
+	@Override
+	public String getSummary(
+		PortletRequest portletRequest, PortletResponse portletResponse) {
+
 		return _user.getComments();
 	}
 
+	@Override
 	public String getTitle(Locale locale) {
 		return _user.getFullName();
 	}
@@ -94,19 +102,30 @@ public class UserAssetRenderer extends BaseAssetRenderer {
 		LiferayPortletResponse liferayPortletResponse,
 		String noSuchEntryRedirect) {
 
-		return getURLViewInContext(
-			liferayPortletRequest, noSuchEntryRedirect, "/directory/find_user",
-			"p_u_i_d", _user.getUserId());
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)liferayPortletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		try {
+			return _user.getDisplayURL(themeDisplay);
+		}
+		catch (Exception e) {
+		}
+
+		return noSuchEntryRedirect;
 	}
 
+	@Override
 	public long getUserId() {
 		return _user.getUserId();
 	}
 
+	@Override
 	public String getUserName() {
 		return _user.getFullName();
 	}
 
+	@Override
 	public String getUuid() {
 		return _user.getUuid();
 	}
@@ -128,6 +147,7 @@ public class UserAssetRenderer extends BaseAssetRenderer {
 		return false;
 	}
 
+	@Override
 	public String render(
 			RenderRequest renderRequest, RenderResponse renderResponse,
 			String template)

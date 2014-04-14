@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,26 +16,21 @@
 
 <%@ include file="/html/portlet/init.jsp" %>
 
-<%@ page import="com.liferay.portlet.blogs.model.BlogsEntry" %><%@
-page import="com.liferay.portlet.blogs.service.BlogsEntryServiceUtil" %><%@
+<%@ page import="com.liferay.portlet.blogs.service.BlogsEntryServiceUtil" %><%@
 page import="com.liferay.portlet.blogs.service.permission.BlogsEntryPermission" %><%@
-page import="com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil" %>
+page import="com.liferay.util.RSSUtil" %>
 
 <%
-PortletPreferences preferences = renderRequest.getPreferences();
+String selectionMethod = portletPreferences.getValue("selectionMethod", "users");
+long organizationId = GetterUtil.getLong(portletPreferences.getValue("organizationId", "0"));
+String displayStyle = portletPreferences.getValue("displayStyle", "abstract");
+int max = GetterUtil.getInteger(portletPreferences.getValue("max", "20"));
+boolean showTags = GetterUtil.getBoolean(portletPreferences.getValue("showTags", null), true);
 
-String portletResource = ParamUtil.getString(request, "portletResource");
-
-if (Validator.isNotNull(portletResource)) {
-	preferences = PortletPreferencesFactoryUtil.getPortletSetup(request, portletResource);
-}
-
-String selectionMethod = preferences.getValue("selectionMethod", "users");
-long organizationId = GetterUtil.getLong(preferences.getValue("organizationId", "0"));
-String displayStyle = preferences.getValue("displayStyle", "abstract");
-int max = GetterUtil.getInteger(preferences.getValue("max", "20"));
-boolean enableRssSubscription = GetterUtil.getBoolean(preferences.getValue("enableRssSubscription", null), true);
-boolean showTags = GetterUtil.getBoolean(preferences.getValue("showTags", null), true);
+boolean enableRSS = !PortalUtil.isRSSFeedsEnabled() ? false : GetterUtil.getBoolean(portletPreferences.getValue("enableRss", null), true);
+int rssDelta = GetterUtil.getInteger(portletPreferences.getValue("rssDelta", StringPool.BLANK), SearchContainer.DEFAULT_DELTA);
+String rssDisplayStyle = portletPreferences.getValue("rssDisplayStyle", RSSUtil.DISPLAY_STYLE_DEFAULT);
+String rssFeedType = portletPreferences.getValue("rssFeedType", RSSUtil.FEED_TYPE_DEFAULT);
 
 if (organizationId == 0) {
 	Group group = GroupLocalServiceUtil.getGroup(scopeGroupId);

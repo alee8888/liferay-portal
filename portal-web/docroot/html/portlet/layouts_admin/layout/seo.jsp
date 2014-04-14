@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -12,7 +12,7 @@
  * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  */
- --%>
+--%>
 
 <%@ include file="/html/portlet/layouts_admin/init.jsp" %>
 
@@ -30,10 +30,14 @@ if (selLayout != null) {
 
 <aui:model-context bean="<%= selLayout %>" model="<%= Layout.class %>" />
 
-<h3><liferay-ui:message key="meta-tags" /></h3>
+<h3><liferay-ui:message key="seo" /></h3>
+
+<aui:input label="html-title" name="title" />
+
+<h4><liferay-ui:message key="meta-tags" /></h4>
 
 <aui:fieldset>
-	<aui:input name="description" />
+	<aui:input id="descriptionSEO" name="description" />
 
 	<aui:input name="keywords" />
 
@@ -41,42 +45,43 @@ if (selLayout != null) {
 </aui:fieldset>
 
 <c:if test="<%= PortalUtil.isLayoutSitemapable(selLayout) %>">
-	<h3><liferay-ui:message key="robots" /></h3>
+	<h4><liferay-ui:message key="sitemap" /></h4>
 
 	<aui:fieldset>
+		<liferay-ui:error exception="<%= SitemapChangeFrequencyException.class %>" message="please-select-a-valid-change-frequency" />
+		<liferay-ui:error exception="<%= SitemapIncludeException.class %>" message="please-select-a-valid-include-value" />
+		<liferay-ui:error exception="<%= SitemapPagePriorityException.class %>" message="please-enter-a-valid-page-priority" />
 
 		<%
-		boolean include = GetterUtil.getBoolean(layoutTypeSettings.getProperty("sitemap-include"), true);
-		String changeFrequency = layoutTypeSettings.getProperty("sitemap-changefreq", PropsValues.SITES_SITEMAP_DEFAULT_CHANGE_FREQUENCY);
-		String sitemapPriority = layoutTypeSettings.getProperty("sitemap-priority", PropsValues.SITES_SITEMAP_DEFAULT_PRIORITY);
+		boolean sitemapInclude = GetterUtil.getBoolean(layoutTypeSettings.getProperty("sitemap-include"), true);
 		%>
 
 		<aui:select label="include" name="TypeSettingsProperties--sitemap-include--">
-			<aui:option label="yes" selected="<%= include %>" value="1" />
-			<aui:option label="no" selected="<%= !include %>" value="0" />
+			<aui:option label="yes" selected="<%= sitemapInclude %>" value="1" />
+			<aui:option label="no" selected="<%= !sitemapInclude %>" value="0" />
 		</aui:select>
 
-		<aui:input helpMessage="(0.0 - 1.0)" label="page-priority" name="TypeSettingsProperties--sitemap-priority--" size="3" type="text" value="<%= sitemapPriority %>" />
+		<%
+		String sitemapPriority = layoutTypeSettings.getProperty("sitemap-priority", PropsValues.SITES_SITEMAP_DEFAULT_PRIORITY);
+		%>
 
-		<aui:select label="change-frequency" name="TypeSettingsProperties--sitemap-changefreq--">
-			<aui:option label="always" selected='<%= changeFrequency.equals("always") %>' />
-			<aui:option label="hourly" selected='<%= changeFrequency.equals("hourly") %>' />
-			<aui:option label="daily" selected='<%= changeFrequency.equals("daily") %>' />
-			<aui:option label="weekly" selected='<%= changeFrequency.equals("weekly") %>' />
-			<aui:option label="monthly" selected='<%= changeFrequency.equals("monthly") %>' />
-			<aui:option label="yearly" selected='<%= changeFrequency.equals("yearly") %>' />
-			<aui:option label="never" selected='<%= changeFrequency.equals("never") %>' />
+		<aui:input helpMessage="(0.0 - 1.0)" label="page-priority" name="TypeSettingsProperties--sitemap-priority--" size="3" type="text" value="<%= sitemapPriority %>">
+			<aui:validator name="number" />
+			<aui:validator errorMessage="please-enter-a-valid-page-priority" name="range">[0,1]</aui:validator>
+		</aui:input>
+
+		<%
+		String siteMapChangeFrequency = layoutTypeSettings.getProperty("sitemap-changefreq", PropsValues.SITES_SITEMAP_DEFAULT_CHANGE_FREQUENCY);
+		%>
+
+		<aui:select label="change-frequency" name="TypeSettingsProperties--sitemap-changefreq--" value="<%= siteMapChangeFrequency %>">
+			<aui:option label="always" />
+			<aui:option label="hourly" />
+			<aui:option label="daily" />
+			<aui:option label="weekly" />
+			<aui:option label="monthly" />
+			<aui:option label="yearly" />
+			<aui:option label="never" />
 		</aui:select>
 	</aui:fieldset>
 </c:if>
-
-<aui:fieldset>
-
-	<%
-	boolean showAlternateLinks = GetterUtil.getBoolean(layoutTypeSettings.getProperty("show-alternate-links"), true);
-	%>
-
-	<h3><liferay-ui:message key="alternate-links" /></h3>
-
-	<aui:input helpMessage="show-alternate-links-help" label="show-alternate-links" name="TypeSettingsProperties--show-alternate-links--" type="checkbox" value="<%= showAlternateLinks %>" />
-</aui:fieldset>

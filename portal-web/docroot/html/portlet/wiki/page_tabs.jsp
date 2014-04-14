@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -46,7 +46,7 @@ viewPageDetailsURL.setParameter("title", wikiPage.getTitle());
 
 PortletURL viewPageHistoryURL = PortletURLUtil.clone(viewPageDetailsURL, renderResponse);
 
-viewPageHistoryURL.setParameter("struts_action", "/wiki/view_page_history");
+viewPageHistoryURL.setParameter("struts_action", "/wiki/view_page_activities");
 
 PortletURL viewPageIncomingLinksURL = PortletURLUtil.clone(viewPageDetailsURL, renderResponse);
 
@@ -56,9 +56,13 @@ PortletURL viewPageOutgoingLinksURL = PortletURLUtil.clone(viewPageDetailsURL, r
 
 viewPageOutgoingLinksURL.setParameter("struts_action", "/wiki/view_page_outgoing_links");
 
-PortletURL attachmentsURL = PortletURLUtil.clone(viewPageDetailsURL, renderResponse);
+PortletURL viewPageAttachmentsURL = PortletURLUtil.clone(viewPageDetailsURL, renderResponse);
 
-attachmentsURL.setParameter("struts_action", "/wiki/view_page_attachments");
+viewPageAttachmentsURL.setParameter("struts_action", "/wiki/view_page_attachments");
+
+PortletURL viewPageActivitiesURL = PortletURLUtil.clone(viewPageDetailsURL, renderResponse);
+
+viewPageActivitiesURL.setParameter("struts_action", "/wiki/view_page_activities");
 %>
 
 <%@ include file="/html/portlet/wiki/page_name.jspf" %>
@@ -72,7 +76,7 @@ attachmentsURL.setParameter("struts_action", "/wiki/view_page_attachments");
 			url2="<%= viewPageHistoryURL.toString() %>"
 			url3="<%= viewPageIncomingLinksURL.toString() %>"
 			url4="<%= viewPageOutgoingLinksURL.toString() %>"
-			url5="<%= attachmentsURL.toString() %>"
+			url5="<%= viewPageAttachmentsURL.toString() %>"
 		/>
 	</c:when>
 	<c:otherwise>
@@ -82,7 +86,7 @@ attachmentsURL.setParameter("struts_action", "/wiki/view_page_attachments");
 			url1="<%= viewPageHistoryURL.toString() %>"
 			url2="<%= viewPageIncomingLinksURL.toString() %>"
 			url3="<%= viewPageOutgoingLinksURL.toString() %>"
-			url4="<%= attachmentsURL.toString() %>"
+			url4="<%= viewPageAttachmentsURL.toString() %>"
 		/>
 	</c:otherwise>
 </c:choose>

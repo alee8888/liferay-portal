@@ -23,8 +23,6 @@ AUI.add(
 			return (++ A.Env._uidx);
 		};
 
-		var TPL_EDITOR_ELEMENT = '<div id="{name}" name="{name}"></div>';
-
 		var TPL_FIELD_CONTAINER = '<div><li class="structure-field {cssClass}">' +
 				'<span class="journal-article-close"></span>' +
 				'<span class="folder">' +
@@ -33,21 +31,21 @@ AUI.add(
 						'<div class="journal-article-move-handler"></div>' +
 						'<label for="" class="journal-article-field-label"><span>{fieldLabel}</span></label>' +
 						'<div class="journal-article-component-container"></div>' +
-						'<span class="aui-field aui-field-choice journal-article-localized-checkbox">' +
-							'<span class="aui-field-content">' +
-								'<span class="aui-field-element aui-field-label-right">' +
+						'<span class="field field-choice journal-article-localized-checkbox">' +
+							'<span class="field-content">' +
+								'<span class="field-element field-label-right">' +
 									'<input type="hidden" value="false" name="{portletNamespace}{instanceId}localized-checkbox">' +
-									'<input type="checkbox" onclick="Liferay.Util.updateCheckboxValue(this); " name="{portletNamespace}{instanceId}localized-checkboxCheckbox" id="{portletNamespace}{instanceId}localized-checkboxCheckbox" class="aui-field-input aui-field-input-choice"> </span>' +
-									'<label for="{portletNamespace}{instanceId}localized-checkboxCheckbox" class="aui-field-label">{localizedLabelLanguage}</label>' +
+									'<input type="checkbox" onclick="Liferay.Util.updateCheckboxValue(this); " name="{portletNamespace}{instanceId}localized-checkboxCheckbox" id="{portletNamespace}{instanceId}localized-checkboxCheckbox"> </span>' +
+									'<label for="{portletNamespace}{instanceId}localized-checkboxCheckbox">{localizedLabelLanguage}</label>' +
 								'</span>' +
 							'</span>' +
-						'<div class="journal-article-required-message portlet-msg-error">{requiredFieldLanguage}</div>' +
+						'<div class="alert alert-error journal-article-required-message">{requiredFieldLanguage}</div>' +
 						'<div class="journal-article-buttons {articleButtonsRowCSSClass}">' +
-							'<span class="aui-field aui-field-inline aui-field-text journal-article-variable-name">' +
-								'<span class="aui-field-content">' +
-									'<label for="{portletNamespace}{instanceId}variableName" class="aui-field-label">{variableNameLanguage}</label>' +
-									'<span class="aui-field-element ">' +
-										'<input type="text" size="25" value="{variableName}" name="{portletNamespace}variableName" id="{portletNamespace}{instanceId}variableName" class="aui-field-input aui-field-input-text">' +
+							'<span class="field field-inline field-text journal-article-variable-name">' +
+								'<span class="field-content">' +
+									'<label for="{portletNamespace}{instanceId}variableName">{variableNameLanguage}</label>' +
+									'<span class="field-element ">' +
+										'<input type="text" size="25" value="{variableName}" name="{portletNamespace}variableName" id="{portletNamespace}{instanceId}variableName">' +
 									'</span>' +
 								'</span>' +
 							'</span>' +
@@ -64,15 +62,13 @@ AUI.add(
 			'<div class="forbidden-action"></div>' +
 		'</div>';
 
-		var TPL_INSTRUCTIONS_CONTAINER = '<div class="journal-article-instructions-container journal-article-instructions-message portlet-msg-info"></div>';
+		var TPL_INSTRUCTIONS_CONTAINER = '<div class="alert alert-info journal-article-instructions-container journal-article-instructions-message"></div>';
 
 		var TPL_OPTION = '<option></option>';
 
-		var TPL_PLACEHOLDER = '<div class="aui-tree-placeholder aui-tree-sub-placeholder"></div>';
+		var TPL_STRUCTURE_FIELD_INPUT = '<input class="lfr-input-text" type="text" value="" size="40"/>';
 
-		var TPL_STRUCTURE_FIELD_INPUT = '<input class="aui-field-input lfr-input-text" type="text" value="" size="40"/>';
-
-		var TPL_TOOLTIP_IMAGE = '<img align="top" class="journal-article-instructions-container" src="' + themeDisplay.getPathThemeImages() + '/portlet/help.png" />';
+		var TPL_TOOLTIP_IMAGE = '<img align="top" alt="" class="journal-article-instructions-container" src="' + themeDisplay.getPathThemeImages() + '/portlet/help.png" />';
 
 		var fieldsDataSet = new A.DataSet();
 
@@ -82,9 +78,6 @@ AUI.add(
 			instance.articleId = articleId;
 			instance.timers = {};
 			instance.portletNamespace = portletNamespace;
-
-			var structureTreeId = instance._getNamespacedId('#structureTree');
-			var structureTree = A.one(structureTreeId);
 
 			instance._helperId = instance._getNamespacedId('journalArticleHelper', instance.portletNamespace, '');
 
@@ -96,355 +89,11 @@ AUI.add(
 
 			instance.acceptChildren = true;
 
-			var placeholder = A.Node.create(TPL_PLACEHOLDER);
-
-			var fields = A.all(structureTreeId + ' li.structure-field');
-
-			instance.nestedListOptions = {
-				dd: {
-					handles: ['.journal-article-move-handler']
-				},
-				dropCondition: function(event) {
-					var dropNode = event.drop.get('node');
-
-					return instance.canDrop(dropNode);
-				},
-				dropOn: 'span.folder > ul.folder-droppable',
-				helper: instance._helper,
-				placeholder: placeholder,
-				sortCondition: function(event) {
-					var dropNode = event.drop.get('node');
-
-					return dropNode.ancestor(structureTreeId);
-				},
-				sortOn: structureTreeId
-			};
-
-			instance.nestedListEvents = {
-				'drag:start': function(event) {
-					var helper = instance._helper;
-
-					helper.setStyle('height', '100px');
-					helper.setStyle('width', '450px');
-
-					instance.updateTextAreaVisibility('hidden');
-				},
-
-				'drag:end': function(event) {
-					instance._dropField();
-
-					instance.updateTextAreaVisibility('visible');
-				},
-
-				'drag:out': function(event) {
-					if (!instance.acceptChildren) {
-						instance.helperIntersecting();
-						instance.acceptChildren = true;
-					}
-				},
-
-				'drag:over': function(event) {
-					var dropNode = event.drop.get('node');
-
-					instance.acceptChildren = instance.canDrop(dropNode);
-
-					if (instance.acceptChildren) {
-						instance.helperIntersecting();
-					}
-					else {
-						instance.helperNotIntersecting();
-					}
-				}
-			};
-
-			instance.createNestedList(
-				fields.filter(':not(.repeated-field)').filter(':not(.parent-structure-field)'),
-				instance.nestedListOptions,
-				instance.nestedListEvents
-			);
-
-			var journalComponentListId = instance._getNamespacedId('#journalComponentList');
-			var componentFields = A.all(journalComponentListId + ' .component-group .journal-component');
-
-			instance.componentFieldsOptions = {
-				dropCondition: function(event) {
-					var dropNode = event.drop.get('node');
-
-					return instance.canDrop(dropNode);
-				},
-				dropOn: 'span.folder > ul.folder-droppable',
-				helper: instance._helper,
-				placeholder: placeholder,
-				sortCondition: function(event) {
-					var dropNode = event.drop.get('node');
-
-					return dropNode.ancestor(structureTreeId);
-				}
-			};
-
-			instance.componentFieldsEvents = {
-				'drag:start': function(event) {
-					var drag = event.target;
-					var proxy = drag.get('dragNode');
-					var source = drag.get('node');
-					var languageName = source.text();
-					var componentType = instance.getComponentType(source);
-					var className = 'journal-component-' + instance._stripComponentType(componentType);
-					var helper = instance._helper;
-					var helperComponentIcon = instance._helper.all('div.journal-component');
-
-					helper.setStyle('height', '25px');
-					helper.setStyle('width', '200px');
-
-					if (helperComponentIcon) {
-						helperComponentIcon.addClass(className).html(languageName);
-					}
-
-					proxy.addClass('component-dragging');
-
-					instance.updateTextAreaVisibility('hidden');
-
-					instance.clonedSource = source.clone();
-
-					source.placeBefore(instance.clonedSource);
-
-					instance.clonedSource.attr('id', '');
-					instance.clonedSource.guid();
-
-					instance.clonedSource.show().setStyle('visibility', 'visible');
-					instance.clonedSource.removeClass('aui-helper-hidden');
-					instance.clonedSource.addClass('dragging');
-
-					instance.createNestedList(
-						instance.clonedSource,
-						instance.componentFieldsOptions,
-						instance.componentFieldsEvents,
-						true
-					);
-				},
-
-				'drag:end': function(event) {
-					var drag = event.target;
-					var source = drag.get('node');
-					var proxy = drag.get('dragNode');
-
-					var componentType = instance.getComponentType(source);
-					var className = 'journal-component-' + instance._stripComponentType(componentType);
-					var helperComponentIcon = instance._helper.all('div.journal-component');
-
-					proxy.removeClass('component-dragging');
-
-					if (helperComponentIcon) {
-						helperComponentIcon.removeClass(className).empty();
-					}
-
-					var addedComponent = structureTree.one('div.journal-component');
-
-					if (addedComponent) {
-						addedComponent.hide();
-
-						var fieldInstance = instance._fieldInstanceFactory(componentType);
-
-						if (fieldInstance.get('fieldType') == 'text_area') {
-							instance.buildHTMLEditor(fieldInstance);
-						}
-
-						var htmlTemplate = instance._createFieldHTMLTemplate(fieldInstance);
-						var newComponent = A.Node.create(htmlTemplate);
-
-						addedComponent.placeBefore(newComponent);
-						addedComponent.remove();
-
-						var variableName = newComponent.attr('dataName');
-						var randomInstanceId = newComponent.attr('dataInstanceId');
-
-						fieldInstance.set('source', newComponent);
-						fieldInstance.set('variableName', variableName);
-						fieldInstance.set('instanceId', randomInstanceId);
-
-						instance.createNestedList(
-							newComponent,
-							instance.nestedListOptions,
-							instance.nestedListEvents
-						);
-
-						instance._attachEvents();
-
-						var id = newComponent.get('id');
-
-						fieldsDataSet.add(id, fieldInstance);
-
-						instance.repositionEditFieldOptions();
-
-						var variableNameInput = instance.getById(randomInstanceId + 'variableName');
-
-						if (variableNameInput) {
-							Liferay.Util.focusFormField(variableNameInput);
-							variableNameInput.select();
-						}
-					}
-					else {
-						source.remove();
-					}
-
-					instance.updateTextAreaVisibility('visible');
-
-					if (instance.clonedSource) {
-						var journalComponentList = instance.getById('#journalComponentList');
-
-						instance.clonedSource.removeClass('dragging');
-
-						if (journalComponentList.contains(source[0]) &&
-							journalComponentList.contains(instance.clonedSource[0])) {
-
-							source.remove();
-						}
-					}
-				},
-
-				'drag:out': instance.nestedListEvents['drag:out'],
-
-				'drag:over': instance.nestedListEvents['drag:over']
-			};
-
-			instance.createNestedList(
-				componentFields,
-				instance.componentFieldsOptions,
-				instance.componentFieldsEvents,
-				true
-			);
-
-			var fieldLabel = instance.getById('fieldLabel');
-			var editContainerWrapper = instance.getById('#journalArticleEditFieldWrapper');
-
-			if (editContainerWrapper) {
-				editContainerWrapper.show();
-			}
-
-			instance.editContainerContextPanel = new A.OverlayContextPanel(
-				{
-					after: {
-						hide: A.bind(instance.closeEditFieldOptions, instance),
-						show: function() {
-							A.later(
-								0,
-								instance,
-								function() {
-									Liferay.Util.focusFormField(fieldLabel);
-								}
-							);
-						}
-					},
-					align: {
-						points: ['lc', 'rc']
-					},
-					bodyContent: editContainerWrapper,
-					trigger: '.edit-button .aui-button-input'
-				}
-			).render();
-
-			A.OverlayContextManager.remove(instance.editContainerContextPanel);
-
-			instance._initializeTagsSuggestionContent();
-			instance._initializePageLoadFieldInstances();
-			instance._attachEvents();
-			instance._attachEditContainerEvents();
 			instance._attachDelegatedEvents();
-
-			instance._updateOriginalStructureXSD();
+			instance._attachEvents();
 		};
 
 		Journal.prototype = {
-			addStructure: function(groupId, structureId, autoStructureId, name, description, xsd, callback) {
-				var instance = this;
-
-				var parentStructureId = '';
-
-				var addGroupPermissions = true;
-				var addGuestPermissions = true;
-
-				var defaultLocale = instance.getDefaultLocale();
-
-				var serviceParameterTypes = [
-					'long',
-					'java.lang.String',
-					'boolean',
-					'java.lang.String',
-					'java.util.Map<java.util.Locale, java.lang.String>',
-					'java.util.Map<java.util.Locale, java.lang.String>',
-					'java.lang.String',
-					'com.liferay.portal.service.ServiceContext'
-				];
-
-				var nameMap = {};
-
-				nameMap[defaultLocale] = name;
-
-				var descriptionMap = {};
-
-				descriptionMap[defaultLocale] = (Lang.isString(description) && description) ? description : null;
-
-				Liferay.Service.Journal.JournalStructure.addStructure(
-					{
-						groupId: groupId,
-						structureId: structureId,
-						autoStructureId: autoStructureId,
-						parentStructureId: parentStructureId,
-						nameMap: JSON.stringify(nameMap),
-						descriptionMap: JSON.stringify(descriptionMap),
-						xsd: xsd,
-						serviceContext: JSON.stringify(
-							{
-								addGroupPermissions: addGroupPermissions,
-								addGuestPermissions: addGuestPermissions,
-								scopeGroupId: groupId
-							}
-						),
-						serviceParameterTypes: JSON.stringify(serviceParameterTypes)
-					},
-					function(message) {
-						if (Lang.isFunction(callback)) {
-							callback(message);
-						}
-					}
-				);
-			},
-
-			buildHTMLEditor: function(fieldInstance) {
-				var instance = this;
-
-				var instanceId = fieldInstance.get('instanceId');
-				var name = instance.portletNamespace + 'structure_el_' + instanceId + '_content';
-
-				var editorHTML = Lang.sub(
-					TPL_EDITOR_ELEMENT,
-					{
-						id: name,
-						name: name
-					}
-				);
-
-				fieldInstance.set('innerHTML', editorHTML);
-
-				instance._loadEditor(fieldInstance, name);
-
-				return editorHTML;
-			},
-
-			buildHTMLEditorURL: function(fieldInstance) {
-				var instance = this;
-
-				var url = Journal.PROXY.editorURL;
-
-				url = url.replace(/LIFERAY_NAME/, A.guid());
-
-				var editorImpl = Journal.PROXY.editorImpl;
-
-				url = url.replace(/LIFERAY_SKIP_EDITOR/, Liferay.Util.isEditorPresent(editorImpl));
-
-				return url;
-			},
-
 			canDrop: function(source) {
 				var instance = this;
 
@@ -462,312 +111,25 @@ AUI.add(
 				return canDrop;
 			},
 
-			clearMessage: function(selector) {
+			displayTemplateMessage: function() {
 				var instance = this;
 
-				var journalMessage = A.one(selector);
+				var templateMessage = Liferay.Language.get('please-add-a-template-to-render-this-structure');
 
-				var timer = instance.timers[selector];
+				alert(templateMessage);
 
-				if (timer) {
-					timer.cancel();
-				}
-
-				journalMessage.hide();
-			},
-
-			closeEditFieldOptions: function() {
-				var instance = this;
-
-				instance.editContainerContextPanel.hide();
-
-				instance.unselectFields();
-			},
-
-			closeField: function(source) {
-				var instance = this;
-
-				if ((instance._hasParentField(source) || instance._hasFirstLevelFields()) &&
-					confirm(Liferay.Language.get('are-you-sure-you-want-to-delete-this-field-and-all-its-children'))) {
-
-					var fieldInstance = instance.getFieldInstance(source);
-
-					fieldInstance.destroy();
-
-					instance.closeRepeatedSiblings(source);
-					instance.closeEditFieldOptions();
-
-					if (source.inDoc()) {
-						source.remove();
-					}
-				}
-			},
-
-			closeRepeatedSiblings: function(source) {
-				var instance = this;
-
-				var fieldInstance = instance.getFieldInstance(source);
-
-				if (!fieldInstance.get('repeated')) {
-					var repeatedFields = instance.getRepeatedSiblings(fieldInstance);
-
-					if (repeatedFields) {
-						repeatedFields.remove();
-					}
-				}
-			},
-
-			createNestedList: function(nodes, options, events, components) {
-				var instance = this;
-
-				var applyEvents = function(nestedList) {
-					A.each(
-						events,
-						function(item, index, collection) {
-							if (index && Lang.isFunction(item)) {
-								nestedList.on(index, item);
-							}
-						}
-					);
-				};
-
-				var defaults = {
-					dropOn: '.folder'
-				};
-
-				options = A.merge(defaults, options);
-
-				if (!instance._nestedList) {
-					instance._nestedList = new A.NestedList(options);
-
-					applyEvents(instance._nestedList);
-				}
-
-				if (components && !instance._nestedListComponents) {
-					instance._nestedListComponents = new A.NestedList(options);
-
-					applyEvents(instance._nestedListComponents);
-				}
-
-				if (A.instanceOf(nodes, A.Node)) {
-					nodes = A.all(nodes);
-				}
-
-				nodes.each(
-					function(item, index, collection) {
-						var nestedList = instance._nestedList;
-
-						if (components) {
-							nestedList = instance._nestedListComponents;
-						}
-
-						nestedList.add(item);
-					}
+				instance.showMessage(
+					instance.getById('selectTemplateMessage'),
+					'info',
+					templateMessage,
+					30000
 				);
-			},
 
-			disableEditMode: function() {
-				var instance = this;
+				var selectTemplateButton = instance.getById('selectTemplateButton');
 
-				A.getBody().removeClass('portlet-journal-edit-mode');
-
-				var editStructureLinkId = instance._getNamespacedId('editStructureLink');
-				var editStructureLink = A.one(editStructureLinkId);
-				var editStructureButton = instance.getById('editStructureButton');
-				var journalComponentList = instance.getById('#journalComponentList');
-				var saveStructureButton = instance.getById('saveStructureButton');
-
-				instance.closeEditFieldOptions();
-
-				saveStructureButton.ancestor('.aui-button').hide();
-				journalComponentList.hide();
-
-				var structureButtonText = Liferay.Language.get('edit');
-
-				editStructureLink.show();
-
-				editStructureButton.ancestor('.aui-button').hide();
-
-				A.all('input.journal-list-label').attr('disabled', 'disabled');
-
-				if (instance.structureChange()) {
-					var structureMessage = instance.getById('structureMessage');
-
-					instance.showMessage(
-						structureMessage,
-						'alert',
-						null,
-						30000
-					);
+				if (selectTemplateButton) {
+					selectTemplateButton.focus();
 				}
-			},
-
-			disableFields: function() {
-				var instance = this;
-
-				var fieldsContainer = instance.getById('#journalArticleContainer');
-
-				fieldsContainer.all('input:not(:button)').attr('disabled', 'disabled');
-				fieldsContainer.all('textarea, select').attr('disabled', 'disabled');
-			},
-
-			downloadArticleContent: function() {
-				var instance = this;
-
-				var downloadAction = themeDisplay.getPathMain() + '/journal/get_article_content';
-				var auxForm = instance.getPrincipalForm('fm2');
-
-				var articleContent = instance.getArticleContentXML();
-				var xmlInput = instance.getByName(auxForm, 'xml', true);
-
-				if (instance.structureChange()) {
-					if (confirm(Liferay.Language.get('you-should-save-the-structure-first'))) {
-						instance.openSaveStructureDialog();
-					}
-				}
-				else {
-					auxForm.attr('action', downloadAction);
-					auxForm.attr('target', '_self');
-
-					xmlInput.val(articleContent);
-
-					submitForm(auxForm, null, false);
-				}
-			},
-
-			editContainerNormalMode: function() {
-				var instance = this;
-
-				var editContainerWrapper = instance.getById('#journalArticleEditFieldWrapper');
-
-				editContainerWrapper.removeClass('save-mode');
-				instance.editContainerModified = false;
-			},
-
-			editContainerSaveMode: function() {
-				var instance = this;
-
-				var editContainerWrapper = instance.getById('#journalArticleEditFieldWrapper');
-
-				editContainerWrapper.addClass('save-mode');
-				instance.editContainerModified = true;
-			},
-
-			enableEditMode: function() {
-				var instance = this;
-
-				A.getBody().addClass('portlet-journal-edit-mode');
-
-				var editStructureLinkId = instance._getNamespacedId('editStructureLink');
-				var editStructureLink = A.one(editStructureLinkId);
-				var editStructureButton = instance.getById('editStructureButton');
-				var journalComponentList = instance.getById('#journalComponentList');
-				var saveStructureButton = instance.getById('saveStructureButton');
-
-				instance.editContainerNormalMode();
-
-				saveStructureButton.ancestor('.aui-button').show();
-
-				journalComponentList.show();
-
-				var structureTree = instance.getById('#structureTree');
-
-				editStructureLink.hide();
-
-				editStructureButton.ancestor('.aui-button').show();
-
-				structureTree.all('.journal-list-label').attr('disabled', '');
-
-				var structureMessage = instance.getById('structureMessage');
-
-				instance.clearMessage(structureMessage);
-			},
-
-			enableFields: function() {
-				var instance = this;
-
-				var fieldsContainer = instance.getById('#journalArticleContainer');
-
-				fieldsContainer.all('input:not(:button)').attr('disabled', '');
-				fieldsContainer.all('textarea, select').attr('disabled', '');
-			},
-
-			getArticleContentXML: function() {
-				var instance = this;
-
-				var buffer = [];
-				var structureTreeId = instance._getNamespacedId('#structureTree');
-				var sourceRoots = A.all(structureTreeId + ' > li');
-				var hasStructure = instance.hasStructure();
-
-				var content;
-
-				if (!hasStructure) {
-					var item = sourceRoots.item(0);
-
-					if (item) {
-						var fieldInstance = instance.getFieldInstance(item);
-
-						content = fieldInstance.getContent(item);
-					}
-				}
-				else {
-					var attributes = null;
-					var availableLocales = [];
-					var stillLocalized = false;
-					var availableLocalesElements = A.all('[name=' + instance.portletNamespace + 'available_locales]');
-					var defaultLocale = instance.getDefaultLocale();
-
-					instance.getFields().each(
-						function(item, index, collection) {
-							var fieldInstance = instance.getFieldInstance(item);
-							var isLocalized = fieldInstance.get('localized');
-
-							if (isLocalized) {
-								stillLocalized = true;
-							}
-						}
-					);
-
-					if (stillLocalized) {
-						availableLocalesElements.each(
-							function(item, index, collection) {
-								var locale = item.val();
-
-								if (locale) {
-									availableLocales.push(locale);
-								}
-							}
-						);
-
-						attributes = {
-							'available-locales': availableLocales.join(','),
-							'default-locale': defaultLocale
-						};
-					}
-					else {
-						attributes = {
-							'available-locales': defaultLocale,
-							'default-locale': defaultLocale
-						};
-					}
-
-					var root = instance._createDynamicNode('root', attributes);
-
-					buffer.push(root.openTag);
-
-					sourceRoots.each(
-						function(item, index, collection) {
-							instance._appendStructureTypeElementAndMetaData(item, buffer, true);
-						}
-					);
-
-					buffer.push(root.closeTag);
-
-					content = buffer.join('');
-				}
-
-				return content;
 			},
 
 			getById: function(id, namespace) {
@@ -786,12 +148,6 @@ AUI.add(
 				return A.one(currentForm).one('[name=' + inputName + ']');
 			},
 
-			getCloseButtons: function() {
-				var instance = this;
-
-				return A.all('span.journal-article-close');
-			},
-
 			getComponentType: function(source) {
 				return source.attr('dataType');
 			},
@@ -806,20 +162,6 @@ AUI.add(
 				}
 
 				return defaultLocale;
-			},
-
-			getEditButton: function(source) {
-				var instance = this;
-
-				return source.one('.edit-button .aui-button-input');
-			},
-
-			getEditButtons: function() {
-				var instance = this;
-
-				var structureTreeId = instance._getNamespacedId('#structureTree');
-
-				return A.all(structureTreeId + ' div.journal-article-buttons .edit-button .aui-button-input');
 			},
 
 			getFieldInstance: function(source) {
@@ -857,28 +199,6 @@ AUI.add(
 				return groupId;
 			},
 
-			getParentStructureId: function() {
-				var instance = this;
-
-				var parentStructureEl = instance.getById('parentStructureId');
-
-				var parentStructureId;
-
-				if (parentStructureEl) {
-					parentStructureId = parentStructureEl.val();
-				}
-
-				return parentStructureId;
-			},
-
-			getRepeatableButtons: function() {
-				var instance = this;
-
-				var structureTreeId = instance._getNamespacedId('#structureTree');
-
-				return A.all(structureTreeId + ' div.journal-article-buttons .repeatable-button .aui-button-input');
-			},
-
 			getRepeatedSiblings: function(fieldInstance) {
 				var instance = this;
 
@@ -899,7 +219,6 @@ AUI.add(
 					var form = instance.getPrincipalForm();
 
 					var groupId = instance.getByName(form, 'groupId');
-					var structureGroupId = instance.getByName(form, 'structureGroupId');
 					var structureIdInput = instance.getByName(form, 'structureId');
 					var structureNameInput = instance.getByName(form, 'structureName');
 					var structureDescriptionInput = instance.getByName(form, 'structureDescription');
@@ -945,27 +264,32 @@ AUI.add(
 						}
 					};
 
-					instance._saveDialog = new A.Dialog(
+					instance._saveDialog = Liferay.Util.Window.getWindow(
 						{
-							align: Liferay.Util.Window.ALIGN_CENTER,
-							bodyContent: htmlTemplate,
-							buttons: [
-								{
-									handler: saveCallback,
-									label: Liferay.Language.get('save')
-								},
-								{
-									handler: function() {
-										this.close();
-									},
-									label: Liferay.Language.get('cancel')
+							dialog: {
+								bodyContent: htmlTemplate,
+								toolbars: {
+									footer: [
+										{
+											label: Liferay.Language.get('save'),
+											on: {
+												click: saveCallback
+											}
+										},
+										{
+											label: Liferay.Language.get('cancel'),
+											on: {
+												click: function() {
+													instance._saveDialog.hide();
+												}
+											}
+										}
+									]
 								}
-							],
-							modal: true,
-							title: title,
-							width: 550
+							},
+							title: title
 						}
-					).render();
+					);
 
 					instance._saveDialog.fields = {
 						autoGenerateIdMessage: Liferay.Language.get('autogenerate-id'),
@@ -975,7 +299,6 @@ AUI.add(
 						dialogStructureId: instance.getById('saveStructureStructureId'),
 						dialogStructureName: instance.getById('saveStructureStructureName'),
 						idInput: instance.getById('saveStructureStructureId'),
-						loadDefaultStructure: instance.getById('loadDefaultStructure'),
 						messageElement: instance.getById('saveStructureMessage'),
 						saveStructureAutogenerateId: instance.getById('saveStructureAutogenerateId'),
 						saveStructureAutogenerateIdCheckbox: instance.getById('saveStructureAutogenerateIdCheckbox'),
@@ -993,16 +316,12 @@ AUI.add(
 							structureDescriptionInput.val(dialogFields.dialogDescription.val());
 							structureIdInput.val(message.structureId);
 							structureNameInput.val(dialogFields.dialogStructureName.val());
-							storedStructureXSD.val(encodeURIComponent(dialogFields.contentXSD));
+							storedStructureXSD.val(dialogFields.contentXSD);
 
 							dialogFields.dialogStructureGroupId.val(message.structureGroupId);
 							dialogFields.dialogStructureId.val(message.structureId);
-							dialogFields.structureNameLabel.html(dialogFields.dialogStructureName.val());
+							dialogFields.structureNameLabel.html(Liferay.Util.escapeHTML(dialogFields.dialogStructureName.val()));
 							dialogFields.saveStructureAutogenerateIdCheckbox.hide();
-
-							if (dialogFields.loadDefaultStructure) {
-								dialogFields.loadDefaultStructure.show();
-							}
 
 							dialogFields.dialogStructureId.attr('disabled', 'disabled');
 
@@ -1083,43 +402,12 @@ AUI.add(
 				return node.ancestor('li', true);
 			},
 
-			getStructureXSD: function() {
-				var instance = this;
-
-				var buffer = [];
-				var structureTreeId = instance._getNamespacedId('#structureTree');
-				var sourceRoots = A.all(structureTreeId + ' > li.structure-field:not(.repeated-field)').filter(':not(.parent-structure-field)');
-
-				var root = instance._createDynamicNode('root');
-
-				buffer.push(root.openTag);
-
-				A.each(
-					sourceRoots,
-					function(item, index, collection) {
-						instance._appendStructureTypeElementAndMetaData(item, buffer);
-					}
-				);
-
-				buffer.push(root.closeTag);
-
-				return buffer.join('');
-			},
-
-			getTextAreaFields: function() {
-				var instance = this;
-
-				var structureTreeId = instance._getNamespacedId('#structureTree');
-
-				return A.all(structureTreeId + ' li[dataType=text_area] div.journal-article-component-container');
-			},
-
 			getPrincipalFieldElement: function(source) {
 				var instance = this;
 
 				var componentContainer = source.one('div.journal-article-component-container');
 
-				return componentContainer.one('.aui-field-input');
+				return componentContainer.one('input');
 			},
 
 			getPrincipalForm: function(formName) {
@@ -1154,93 +442,6 @@ AUI.add(
 				return templateId && templateId.val();
 			},
 
-			helperIntersecting: function() {
-				var instance = this;
-
-				instance._helper.removeClass('not-intersecting');
-			},
-
-			helperNotIntersecting: function(helper) {
-				var instance = this;
-
-				instance._helper.addClass('not-intersecting');
-			},
-
-			hideEditContainerMessage: function() {
-				var instance = this;
-
-				var selector = instance._getNamespacedId('journalMessage');
-
-				A.one(selector).hide();
-			},
-
-			loadDefaultStructure: function() {
-				var instance = this;
-
-				var form = instance.getPrincipalForm();
-
-				var structureIdInput = instance.getByName(form, 'structureId');
-				var templateIdInput = instance.getByName(form, 'templateId');
-				var contentInput = instance.getByName(form, 'content');
-
-				structureIdInput.val('');
-				templateIdInput.val('');
-				contentInput.val('');
-
-				submitForm(form);
-			},
-
-			loadEditFieldOptions: function(source) {
-				var instance = this;
-
-				var fieldInstance = instance.getFieldInstance(source);
-
-				var check = function(hiddenField, checked) {
-					var id = hiddenField.get('id');
-					var checkbox = A.one('#' + id + 'Checkbox');
-
-					var value = A.DataType.Boolean.parse(checked);
-
-					hiddenField.val(value);
-
-					if (checkbox) {
-						checkbox.set('checked', value);
-					}
-				};
-
-				if (fieldInstance) {
-					var editContainerWrapper = instance.getById('#journalArticleEditFieldWrapper');
-					var displayAsTooltip = instance.getById('displayAsTooltip');
-					var repeatable = instance.getById('repeatable');
-					var fieldType = instance.getById('fieldType');
-					var indexType = instance.getById('indexType');
-					var instructions = instance.getById('instructions');
-					var predefinedValue = instance.getById('predefinedValue');
-					var required = instance.getById('required');
-					var fieldLabel = instance.getById('fieldLabel');
-
-					fieldType.val(fieldInstance.get('fieldType'));
-					indexType.val(fieldInstance.get('indexType'));
-
-					check(displayAsTooltip, fieldInstance.get('displayAsTooltip'));
-					check(repeatable, fieldInstance.get('repeatable'));
-					check(required, fieldInstance.get('required'));
-
-					fieldLabel.val(fieldInstance.get('fieldLabel'));
-					instructions.val(fieldInstance.get('instructions'));
-					predefinedValue.val(fieldInstance.get('predefinedValue'));
-
-					var elements = editContainerWrapper.all('input[type=text], select:not([name$=fieldType]), textarea, input[type=checkbox]');
-
-					if (fieldInstance.get('repeated') || fieldInstance.get('parentStructureId')) {
-						elements.attr('disabled', 'disabled');
-					}
-					else {
-						elements.attr('disabled', '');
-					}
-				}
-			},
-
 			normalizeValue: function(value) {
 				var instance = this;
 
@@ -1256,10 +457,6 @@ AUI.add(
 
 				Liferay.Util.openWindow(
 					{
-						dialog: {
-							align: Liferay.Util.Window.ALIGN_CENTER,
-							width: 680
-						},
 						id: instance.portletNamespace + id,
 						title: title,
 						uri: url
@@ -1282,8 +479,6 @@ AUI.add(
 					function(dialog) {
 						var dialogFields = dialog.fields;
 
-						dialogFields.contentXSD = instance.getStructureXSD();
-
 						dialogFields.dialogStructureName.val(structureNameInput.val());
 						dialogFields.dialogDescription.val(structureDescriptionInput.val());
 						dialogFields.dialogStructureId.attr('disabled', 'disabled').val(dialogFields.autoGenerateIdMessage);
@@ -1300,183 +495,29 @@ AUI.add(
 				);
 			},
 
-			previewArticle: function() {
-				var instance = this;
-
-				var form = instance.getPrincipalForm();
-
-				var auxForm = instance.getPrincipalForm('fm2');
-				var articleContent = instance.getArticleContentXML();
-
-				if (instance.structureChange()) {
-					if (confirm(Liferay.Language.get('you-should-save-the-structure-first'))) {
-						instance.openSaveStructureDialog();
-					}
-				}
-				else if (instance.hasStructure() && !instance.hasTemplate() && !instance.updateStructureDefaultValues()) {
-					var templateMessage = Liferay.Language.get('please-add-a-template-to-render-this-structure');
-
-					alert(templateMessage);
-
-					instance.showMessage(
-						'#selectTemplateMessage',
-						'info',
-						templateMessage,
-						30000
-					);
-
-					instance.getById('selectTemplateButton').focus();
-				}
-				else {
-					var defaultLocale = instance.getDefaultLocale();
-					var typeInput = instance.getByName(form, 'type');
-					var versionInput = instance.getByName(form, 'version');
-					var structureIdInput = instance.getByName(form, 'structureId');
-					var templateIdInput = instance.getByName(form, 'templateId');
-
-					var previewURL = themeDisplay.getPathMain() + '/journal/view_article_content?cmd=preview&groupId=' + instance.getGroupId() + '&articleId=' + instance.articleId + '&version=' + versionInput.val() + '&languageId=' + defaultLocale + '&type=' + typeInput.val() + '&structureId=' + structureIdInput.val() + '&templateId=' + templateIdInput.val();
-
-					auxForm.attr('action', previewURL);
-					auxForm.attr('target', '_blank');
-
-					var titleInput = instance.getByName(form, 'title_' + defaultLocale);
-					var titleAuxFormInput = instance.getByName(auxForm, 'title', true);
-					var xmlAuxFormInput = instance.getByName(auxForm, 'xml', true);
-
-					titleAuxFormInput.val(titleInput.val());
-					xmlAuxFormInput.val(articleContent);
-
-					submitForm(auxForm, null, false);
-				}
-			},
-
-			renderEditFieldOptions: function(source) {
-				var instance = this;
-
-				var editButton = instance.getEditButton(source);
-				var fields = instance.getFields();
-
-				instance.editContainerNormalMode();
-
-				fields.removeClass('selected');
-				source.addClass('selected');
-
-				if (instance._lastEditContainerTrigger != editButton) {
-					instance.editContainerContextPanel.set('trigger', editButton);
-					instance.editContainerContextPanel.show();
-
-					instance._lastEditContainerTrigger = editButton;
-				}
-
-				instance.hideEditContainerMessage();
-				instance.loadEditFieldOptions(source);
-
-				instance.editContainerContextPanel.refreshAlign();
-			},
-
-			repeatField: function(source) {
-				var instance = this;
-
-				var _cloneFieldInstance = function(originalSource, newSource) {
-					var fieldInstance = instance.getFieldInstance(originalSource).clone();
-					var instanceId = generateInstanceId();
-
-					newSource.addClass('repeated-field');
-					newSource.removeClass('yui-dd-drop yui-dd-draggable');
-
-					var newId = newSource.resetId().get('id');
-
-					fieldsDataSet.add(newId, fieldInstance);
-					fieldInstance.set('source', newSource);
-					fieldInstance.set('instanceId', instanceId);
-
-					var fieldType = fieldInstance.get('fieldType');
-
-					if (fieldType == 'text_area') {
-						var html = instance.buildHTMLEditor(fieldInstance);
-
-						var componentContainer = newSource.one('.journal-article-component-container');
-
-						componentContainer.html(html);
-					}
-					else if (fieldType == 'image') {
-						newSource.all('.journal-image-show-hide,.journal-image-preview').remove();
-					}
-
-					return fieldInstance;
-				};
-
-				var newSource = source.clone();
-
-				source.placeAfter(newSource);
-
-				_cloneFieldInstance(source, newSource);
-
-				var children = newSource.all('.structure-field');
-
-				children.each(
-					function(item) {
-						var fieldInstance = _cloneFieldInstance(item, item);
-					}
-				);
-
-				instance._attachEvents();
-			},
-
-			repositionEditFieldOptions: function() {
-				var instance = this;
-
-				var editContainerWrapper = instance.getById('#journalArticleEditFieldWrapper');
-
-				var isVisible = !editContainerWrapper.ancestor('.aui-overlaycontextpanel-hidden');
-
-				if (isVisible) {
-					setTimeout(
-						function() {
-							var lastSelectedField = instance.getSelectedField();
-							instance.renderEditFieldOptions(lastSelectedField);
-						},
-						200
-					);
-				}
-			},
-
 			saveArticle: function(cmd) {
 				var instance = this;
 
 				var form = instance.getPrincipalForm();
 
-				if (instance.structureChange()) {
-					if (confirm(Liferay.Language.get('you-should-save-the-structure-first'))) {
-						instance.openSaveStructureDialog();
-					}
-				}
-				else if (instance.hasStructure() && !instance.hasTemplate() && !instance.updateStructureDefaultValues()) {
-					var templateMessage = Liferay.Language.get('please-add-a-template-to-render-this-structure');
-
-					alert(templateMessage);
-
-					instance.showMessage(
-						'#selectTemplateMessage',
-						'info',
-						templateMessage,
-						30000
-					);
-
-					instance.getById('selectTemplateButton').focus();
+				if (instance.hasStructure() && !instance.hasTemplate() && !instance.updateStructureDefaultValues()) {
+					instance.displayTemplateMessage();
 				}
 				else {
 					if (!cmd) {
 						cmd = instance.articleId ? 'update' : 'add';
 					}
 
-					var cmdInput = instance.getByName(form, 'cmd');
-					var newArticleIdInput = instance.getByName(form, 'newArticleId');
 					var articleIdInput = instance.getByName(form, 'articleId');
+					var classNameIdInput = instance.getByName(form, 'classNameId');
+					var cmdInput = instance.getByName(form, 'cmd');
 					var contentInput = instance.getByName(form, 'content');
+					var newArticleIdInput = instance.getByName(form, 'newArticleId');
 					var workflowActionInput = instance.getByName(form, 'workflowAction');
 
-					var canSubmit = instance.validateRequiredFields();
+					var classNameId = Liferay.Util.toNumber(classNameIdInput.val());
+
+					var canSubmit = classNameId || instance.validateRequiredFields();
 
 					if (canSubmit) {
 						if (cmd == 'publish') {
@@ -1491,67 +532,8 @@ AUI.add(
 							articleIdInput.val(newArticleIdInput.val());
 						}
 
-						var content = instance.getArticleContentXML();
-
-						contentInput.val(content);
-
 						submitForm(form);
 					}
-				}
-			},
-
-			saveEditFieldOptions: function(source) {
-				var instance = this;
-
-				var fieldInstance = instance.getFieldInstance(source);
-
-				if (fieldInstance) {
-					var displayAsTooltip = instance.getById('displayAsTooltip');
-					var displayAsTooltipCheckbox = instance.getById('displayAsTooltipCheckbox');
-					var repeatable = instance.getById('repeatable');
-					var repeatableCheckbox = instance.getById('repeatableCheckbox');
-					var fieldType = instance.getById('fieldType');
-					var indexType = instance.getById('indexType');
-					var instructions = instance.getById('instructions');
-					var predefinedValue = instance.getById('predefinedValue');
-					var required = instance.getById('required');
-					var requiredCheckbox = instance.getById('requiredCheckbox');
-					var fieldLabel = instance.getById('fieldLabel');
-					var localized = source.one('.journal-article-localized');
-
-					var localizedValue = '';
-
-					if (localized) {
-						localizedValue = localized.val();
-					}
-
-					var journalMessage = instance.getById('journalMessage');
-
-					A.each(
-						{
-							displayAsTooltip: displayAsTooltipCheckbox.attr('checked'),
-							fieldType: fieldType.val(),
-							indexType: indexType.val(),
-							instructions: instructions.val(),
-							localizedValue: localizedValue,
-							predefinedValue: predefinedValue.val(),
-							repeatable: repeatableCheckbox.attr('checked'),
-							required: requiredCheckbox.attr('checked')
-						},
-						function(item, index, collection) {
-							fieldInstance.set(index, item);
-						}
-					);
-
-					instance.updateFieldLabelName(fieldInstance, fieldLabel.val());
-
-					instance.showMessage(
-						journalMessage,
-						'success',
-						Liferay.Language.get('your-request-processed-successfully')
-					);
-
-					instance.editContainerNormalMode();
 				}
 			},
 
@@ -1559,12 +541,14 @@ AUI.add(
 				var instance = this;
 
 				var journalMessage = A.one(selector);
-				var className = 'save-structure-message portlet-msg-' + (type || 'success');
+				var className = 'save-structure-message alert alert-' + (type || 'success');
 
 				journalMessage.attr('className', className);
 				journalMessage.show();
 
-				instance.editContainerContextPanel.refreshAlign();
+				if (instance.editContainerContextPanel) {
+					instance.editContainerContextPanel.refreshAlign();
+				}
 
 				if (message) {
 					journalMessage.html(message);
@@ -1576,21 +560,11 @@ AUI.add(
 					function() {
 						journalMessage.hide();
 
-						instance.editContainerContextPanel.refreshAlign();
+						if (instance.editContainerContextPanel) {
+							instance.editContainerContextPanel.refreshAlign();
+						}
 					}
 				);
-			},
-
-			structureChange: function(attribute) {
-				var instance = this;
-
-				var form = instance.getPrincipalForm();
-
-				var storedStructureXSD = instance.getByName(form, 'structureXSD').val();
-
-				var hasChanged = (storedStructureXSD != encodeURIComponent(instance.getStructureXSD()));
-
-				return hasChanged;
 			},
 
 			translateArticle: function() {
@@ -1601,12 +575,6 @@ AUI.add(
 				var cmdInput = instance.getByName(form, 'cmd');
 
 				cmdInput.val('translate');
-
-				var contentInput = instance.getByName(form, 'content');
-
-				var content = instance.getArticleContentXML();
-
-				contentInput.val(content);
 
 				submitForm(form);
 			},
@@ -1621,84 +589,6 @@ AUI.add(
 				}
 			},
 
-			updateFieldLabelName: function(fieldInstance, fieldLabel) {
-				var instance = this;
-
-				var repeatedSiblings = instance.getRepeatedSiblings(fieldInstance);
-
-				repeatedSiblings.each(
-					function(item, index, collection) {
-						var repeatedFieldInstance = instance.getFieldInstance(item);
-
-						repeatedFieldInstance.set('fieldLabel', fieldLabel);
-					}
-				);
-
-				fieldInstance.set('fieldLabel', fieldLabel);
-			},
-
-			updateFieldVariableName: function(fieldInstance, variableName) {
-				var instance = this;
-
-				var repeatedSiblings = instance.getRepeatedSiblings(fieldInstance);
-
-				repeatedSiblings.each(
-					function(item, index, collection) {
-						var repeatedFieldInstance = instance.getFieldInstance(item);
-
-						repeatedFieldInstance.set('variableName', variableName);
-					}
-				);
-
-				fieldInstance.set('variableName', variableName);
-			},
-
-			updateStructure: function(groupId, structureId, parentStructureId, name, description, xsd, callback) {
-				var instance = this;
-
-				var defaultLocale = instance.getDefaultLocale();
-
-				var serviceParameterTypes = [
-					'long',
-					'java.lang.String',
-					'java.lang.String',
-					'java.util.Map<java.util.Locale, java.lang.String>',
-					'java.util.Map<java.util.Locale, java.lang.String>',
-					'java.lang.String',
-					'com.liferay.portal.service.ServiceContext'
-				];
-
-				var nameMap = {};
-
-				nameMap[defaultLocale] = name;
-
-				var descriptionMap = {};
-
-				descriptionMap[defaultLocale] = (Lang.isString(description) && description) ? description : null;
-
-				Liferay.Service.Journal.JournalStructure.updateStructure(
-					{
-						groupId: groupId,
-						structureId: structureId,
-						parentStructureId: parentStructureId || '',
-						nameMap: JSON.stringify(nameMap),
-						descriptionMap: JSON.stringify(descriptionMap),
-						xsd: xsd,
-						serviceContext: JSON.stringify(
-							{
-								scopeGroupId: groupId
-							}
-						),
-						serviceParameterTypes: JSON.stringify(serviceParameterTypes)
-					},
-					function(message) {
-						if (Lang.isFunction(callback)) {
-							callback(message);
-						}
-					}
-				);
-			},
-
 			updateStructureDefaultValues: function() {
 				var instance = this;
 
@@ -1709,25 +599,16 @@ AUI.add(
 				return (classNameId && classNameId.val() > 0);
 			},
 
-			updateTextAreaVisibility: function(visibility) {
-				var instance = this;
-
-				var textAreaFields = instance.getTextAreaFields();
-
-				if (textAreaFields) {
-					textAreaFields.setStyle('visibility', visibility);
-				}
-			},
-
 			validateRequiredFields: function() {
 				var instance = this;
 
 				var canSubmit = true;
+				var firstEmptyField = null;
+
 				var structureTreeId = instance._getNamespacedId('#structureTree');
 				var fields = A.all(structureTreeId + ' li');
 				var requiredFields = fields.filter('[dataRequired=true]');
 				var fieldsConatainer = A.all(structureTreeId + ' li .field-container');
-				var firstEmptyField = null;
 
 				fieldsConatainer.removeClass('required-field');
 
@@ -1799,8 +680,8 @@ AUI.add(
 							'dynamic-element',
 							{
 								'instance-id': instanceId,
-								name: encodeURIComponent(fieldInstance.get('variableName')),
-								type: encodeURIComponent(type),
+								name: Liferay.Util.escapeHTML(fieldInstance.get('variableName')),
+								type: Liferay.Util.escapeHTML(type),
 								'index-type': indexType
 							}
 						);
@@ -1809,8 +690,8 @@ AUI.add(
 						typeElement = instance._createDynamicNode(
 							'dynamic-element',
 							{
-								name: encodeURIComponent(fieldInstance.get('variableName')),
-								type: encodeURIComponent(type),
+								name: Liferay.Util.escapeHTML(fieldInstance.get('variableName')),
+								type: Liferay.Util.escapeHTML(type),
 								'index-type': indexType,
 								repeatable: fieldInstance.get('repeatable')
 							}
@@ -1969,8 +850,8 @@ AUI.add(
 								var typeElementOption = instance._createDynamicNode(
 									'dynamic-element',
 									{
-										name: encodeURIComponent(optionKey),
-										type: encodeURIComponent(optionValue),
+										name: Liferay.Util.escapeHTML(optionKey),
+										type: Liferay.Util.escapeHTML(optionValue),
 										'repeatable': fieldInstance.get('repeatable')
 									}
 								);
@@ -2001,7 +882,7 @@ AUI.add(
 			_attachDelegatedEvents: function() {
 				var instance = this;
 
-				var journalArticleContainerId = instance._getNamespacedId('#journalArticleContainer');
+				var container = instance.getById('journalArticleContainer');
 
 				var addListItem = function(event) {
 					var icon = event.currentTarget;
@@ -2062,8 +943,6 @@ AUI.add(
 					);
 				};
 
-				var container = A.one(journalArticleContainerId);
-
 				container.delegate(
 					'click',
 					function(event) {
@@ -2072,51 +951,10 @@ AUI.add(
 
 						instance._updateLocaleState(source, checkbox);
 					},
-					'.journal-article-localized-checkbox .aui-field-input-choice'
+					'.journal-article-localized-checkbox input'
 				);
 
-				container.delegate(
-					'click',
-					function(event) {
-						var source = instance.getSourceByNode(event.currentTarget);
-
-						instance.repeatField(source);
-					},
-					'.repeatable-field-add'
-				);
-
-				container.delegate(
-					'click',
-					function(event) {
-						var source = instance.getSourceByNode(event.currentTarget);
-
-						instance.closeField(source);
-					},
-					'.repeatable-field-delete'
-				);
-
-				container.delegate(
-					'mouseenter',
-					function(event) {
-						var source = instance.getSourceByNode(event.currentTarget);
-
-						source.addClass('repeatable-border');
-					},
-					'.repeatable-field-image'
-				);
-
-				container.delegate(
-					'mouseleave',
-					function(event) {
-						var source = instance.getSourceByNode(event.currentTarget);
-
-						source.removeClass('repeatable-border');
-					},
-					'.repeatable-field-image'
-				);
-
-				container.delegate('keypress', keyPressAddItem, '.journal-list-key');
-				container.delegate('keypress', keyPressAddItem, '.journal-list-value');
+				container.delegate('keypress', keyPressAddItem, '.journal-list-key, .journal-list-value');
 				container.delegate('click', addListItem, '.journal-add-field');
 				container.delegate('click', removeListItem, '.journal-delete-field');
 
@@ -2129,7 +967,7 @@ AUI.add(
 						var imageWrapper = imagePreview.one('.journal-image-wrapper');
 						var imageDelete = instance.getByName(imagePreview, 'journalImageDelete');
 
-						if (imageDelete.val() == '') {
+						if (imageDelete.val() === '') {
 							imageDelete.val('delete');
 							imageWrapper.hide();
 
@@ -2156,7 +994,7 @@ AUI.add(
 						var showLabel = link.one('.show-label').show();
 						var hideLabel = link.one('.hide-label').show();
 
-						var visible = imagePreviewDiv.hasClass('aui-helper-hidden');
+						var visible = imagePreviewDiv.hasClass('hide');
 
 						if (visible) {
 							showLabel.hide();
@@ -2176,7 +1014,7 @@ AUI.add(
 					'click',
 					function(event) {
 						var button = event.currentTarget;
-						var input = button.ancestor('.journal-article-component-container').one('.aui-field-input');
+						var input = button.ancestor('.journal-article-component-container').one('input');
 						var selectUrl = button.attr('data-documentlibraryUrl');
 
 						window[instance.portletNamespace + 'selectDocumentLibrary'] = function(url) {
@@ -2185,7 +1023,7 @@ AUI.add(
 
 						instance.openPopupWindow(selectUrl, Liferay.Language.get('javax.portlet.title.20'), 'selectDocumentLibrary');
 					},
-					'.journal-documentlibrary-button .aui-button-input'
+					'.journal-documentlibrary-button'
 				);
 
 				container.delegate(
@@ -2198,7 +1036,7 @@ AUI.add(
 						if (fieldInstance) {
 							var instructions = fieldInstance.get('instructions');
 
-							Liferay.Portal.ToolTip.show(this, instructions);
+							Liferay.Portal.ToolTip.show(this, Liferay.Util.escapeHTML(instructions));
 						}
 					},
 					'img.journal-article-instructions-container'
@@ -2206,172 +1044,20 @@ AUI.add(
 
 				var variableNameSelector = '[name="' + instance.portletNamespace + 'variableName"]';
 
-				container.delegate('keypress', A.bind(instance._onKeypressVariableName, instance), variableNameSelector);
-				container.delegate('keyup', A.bind(instance._onKeyupVariableName, instance), variableNameSelector);
-			},
+				container.delegate('keypress', A.bind('_onKeypressVariableName', instance), variableNameSelector);
+				container.delegate('keyup', A.bind('_onKeyupVariableName', instance), variableNameSelector);
 
-			_attachEditContainerEvents: function(attribute) {
-				var instance = this;
-
-				var editContainerWrapper = instance.getById('#journalArticleEditFieldWrapper');
-
-				if (editContainerWrapper) {
-					var editContainerCheckboxes = editContainerWrapper.all('input[type=checkbox]');
-					var editContainerInputs = editContainerWrapper.all('input[type=text],select');
-					var editContainerTextareas = editContainerWrapper.all('textarea');
-					var editFieldCancelButton = editContainerWrapper.one('.cancel-button .aui-button-input');
-					var editFieldCloseButton = editContainerWrapper.one('.close-button .aui-button-input');
-					var editFieldSaveButton = editContainerWrapper.one('.save-button .aui-button-input');
-					var wrapper = instance.getById('journalArticleWrapper');
-
-					editContainerCheckboxes.detach('click');
-					editContainerInputs.detach('change');
-					editContainerInputs.detach('keypress');
-					editContainerTextareas.detach('change');
-					editContainerTextareas.detach('keypress');
-					editFieldCancelButton.detach('click');
-					editFieldCloseButton.detach('click');
-					editFieldSaveButton.detach('click');
-
-					var editContainerSaveMode = instance.editContainerSaveMode;
-
-					editContainerCheckboxes.on('click', editContainerSaveMode, instance);
-					editContainerInputs.on('change', editContainerSaveMode, instance);
-					editContainerInputs.on('keypress', editContainerSaveMode, instance);
-					editContainerTextareas.on('change', editContainerSaveMode, instance);
-					editContainerTextareas.on('keypress', editContainerSaveMode, instance);
-
-					editFieldSaveButton.on(
-						'click',
-						function() {
-							var source = instance.getSelectedField();
-
-							instance.saveEditFieldOptions(source);
-						}
-					);
-
-					var closeEditField = instance.closeEditFieldOptions;
-
-					editFieldCancelButton.on('click', closeEditField, instance);
-					editFieldCloseButton.on('click', closeEditField, instance);
-				}
+				instance._attachDelegatedEvents = Lang.emptyFn;
 			},
 
 			_attachEvents: function() {
 				var instance = this;
 
-				var closeButtons = instance.getCloseButtons();
-				var editButtons = instance.getEditButtons();
-				var repeatableButtons = instance.getRepeatableButtons();
-				var downloadArticleContentButton = instance.getById('downloadArticleContentButton');
-				var fieldsContainer = instance.getById('journalArticleContainer');
-				var previewArticleButton = instance.getById('previewArticleButton');
+				var changeStructureButton = instance.getById('changeStructureButton');
+				var editStructureLink = instance.getById('editStructureLink');
 				var publishButton = instance.getById('publishButton');
 				var saveButton = instance.getById('saveButton');
 				var translateButton = instance.getById('translateButton');
-
-				var containerInputs = fieldsContainer.all('.journal-article-component-container .aui-field-input');
-
-				closeButtons.detach('click');
-				containerInputs.detach('change');
-				editButtons.detach('click');
-				repeatableButtons.detach('click');
-
-				if (publishButton) {
-					publishButton.detach('click');
-				}
-
-				if (saveButton) {
-					saveButton.detach('click');
-				}
-
-				if (translateButton) {
-					translateButton.detach('click');
-				}
-
-				editButtons.on(
-					'click',
-					function(event) {
-						var source = instance.getSourceByNode(event.currentTarget);
-
-						instance.renderEditFieldOptions(source);
-					}
-				);
-
-				repeatableButtons.on(
-					'click',
-					function(event) {
-						var source = instance.getSourceByNode(event.currentTarget);
-
-						instance.repeatField(source);
-					}
-				);
-
-				closeButtons.on(
-					'click',
-					function(event) {
-						var source = instance.getSourceByNode(event.currentTarget);
-
-						instance.closeField(source);
-					}
-				);
-
-				if (saveButton) {
-					saveButton.on(
-						'click',
-						function() {
-							instance.saveArticle();
-						}
-					);
-				}
-
-				if (publishButton) {
-					publishButton.on(
-						'click',
-						function() {
-							instance.saveArticle('publish');
-						}
-					);
-				}
-
-				if (translateButton) {
-					translateButton.on(
-						'click',
-						function() {
-							instance.translateArticle();
-						}
-					);
-				}
-
-				if (downloadArticleContentButton) {
-					downloadArticleContentButton.detach('click');
-
-					downloadArticleContentButton.on(
-						'click',
-						function() {
-							instance.downloadArticleContent();
-						}
-					);
-				}
-
-				if (previewArticleButton) {
-					previewArticleButton.detach('click');
-
-					previewArticleButton.on(
-						'click',
-						function() {
-							instance.previewArticle();
-						}
-					);
-				}
-
-				var changeStructureButton = instance.getById('changeStructureButton');
-				var editStructureLinkId = instance._getNamespacedId('editStructureLink');
-				var editStructureLink = A.one(editStructureLinkId);
-				var editStructureButton = instance.getById('editStructureButton');
-				var loadDefaultStructureButton = instance.getById('loadDefaultStructure');
-				var saveStructureButton = instance.getById('saveStructureButton');
-				var saveStructureTriggers = A.one('.journal-save-structure-trigger');
 
 				if (changeStructureButton) {
 					changeStructureButton.detach('click');
@@ -2388,56 +1074,6 @@ AUI.add(
 					);
 				}
 
-				if (loadDefaultStructureButton) {
-					loadDefaultStructureButton.detach('click');
-
-					loadDefaultStructureButton.on(
-						'click',
-						function() {
-							instance.loadDefaultStructure();
-						}
-					);
-				}
-
-				if (saveStructureButton) {
-					saveStructureButton.detach('click');
-
-					saveStructureButton.on(
-						'click',
-						function() {
-							instance.openSaveStructureDialog();
-						}
-					);
-				}
-
-				if (saveStructureTriggers) {
-					saveStructureTriggers.detach('click');
-
-					saveStructureTriggers.on(
-						'click',
-						function(event) {
-							event.preventDefault();
-
-							saveStructureButton.simulate('click');
-						}
-					);
-				}
-
-				var body = A.getBody();
-
-				if (editStructureButton) {
-					editStructureButton.detach('click');
-
-					editStructureButton.on(
-						'click',
-						function(event) {
-							Liferay.reset('controlPanelSidebarHidden');
-
-							instance.disableEditMode();
-						}
-					);
-				}
-
 				if (editStructureLink) {
 					editStructureLink.detach('click');
 
@@ -2445,6 +1081,8 @@ AUI.add(
 						'click',
 						function(event) {
 							Liferay.set('controlPanelSidebarHidden', true);
+
+							instance._attachEditContainerEvents();
 
 							instance.enableEditMode();
 						}
@@ -2456,13 +1094,12 @@ AUI.add(
 				var instance = this;
 
 				var attrs = [];
-				var typeElement = [];
 
 				if (!nodeName) {
 					nodeName = 'dynamic-element';
 				}
 
-				var typeElementModel = ['<', nodeName, (attributeMap ? ' ' : ''), , '>', ,'</', nodeName, '>'];
+				var typeElementModel = ['<', nodeName, (attributeMap ? ' ' : ''), '', '>', '','</', nodeName, '>'];
 
 				A.each(
 					attributeMap || {},
@@ -2474,71 +1111,13 @@ AUI.add(
 				);
 
 				typeElementModel[3] = attrs.join('').replace(/[\s]+$/g, '');
-				typeElement = typeElementModel.join('').replace(/></, '>><<').replace(/ +>/, '>').split(/></);
+
+				var typeElement = typeElementModel.join('').replace(/></, '>><<').replace(/ +>/, '>').split(/></);
 
 				return {
 					closeTag: typeElement[1],
 					openTag: typeElement[0]
 				};
-			},
-
-			_createFieldHTMLTemplate: function(field) {
-				var instance = this;
-
-				var fieldContainer = field.getFieldContainer();
-				var fieldElementContainer = field.getFieldElementContainer();
-				var innerHTML = field.get('innerHTML');
-				var type = field.get('fieldType');
-
-				fieldElementContainer.html(innerHTML);
-
-				return fieldContainer.html();
-			},
-
-			_dropField: function() {
-				var instance = this;
-
-				instance.repositionEditFieldOptions();
-			},
-
-			_fieldInstanceFactory: function(options) {
-				var instance = this;
-
-				var type;
-
-				if (Lang.isString(options)) {
-					type = options;
-					options = null;
-				}
-				else {
-					type = options.fieldType;
-				}
-
-				options = options || {};
-
-				var model = {
-					'boolean': Journal.FieldModel.Boolean,
-					'document_library': Journal.FieldModel.DocumentLibrary,
-					'image': Journal.FieldModel.Image,
-					'link_to_layout': Journal.FieldModel.LinkToPage,
-					'list': Journal.FieldModel.List,
-					'multi-list': Journal.FieldModel.MultiList,
-					'selection_break': Journal.FieldModel.SelectionBreak,
-					'text': Journal.FieldModel.Text,
-					'text_area': Journal.FieldModel.TextArea,
-					'text_box': Journal.FieldModel.TextBox
-				};
-
-				options = A.merge(model[type], options);
-
-				var fieldInstance = new Journal.StructureField(
-					options,
-					instance.portletNamespace
-				).render();
-
-				fieldInstance.get('fieldLabel');
-
-				return fieldInstance;
 			},
 
 			_getNamespacedId: function(id, namespace, prefix) {
@@ -2555,201 +1134,6 @@ AUI.add(
 				id = id.replace(/^#/, '');
 
 				return prefix + namespace + id;
-			},
-
-			_hasFirstLevelFields: function() {
-				var instance = this;
-
-				var firstLevelFields = A.all(instance._getNamespacedId('#structureTree') + '> li');
-
-				return (firstLevelFields && firstLevelFields.size() > 1);
-			},
-
-			_hasParentField: function(source) {
-				var instance = this;
-
-				var fieldInstance = instance.getFieldInstance(source);
-
-				var id = source.get('id');
-
-				var node = A.one('#' + id);
-
-				return node && node.ancestor().hasClass('folder-droppable');
-			},
-
-			_initializePageLoadFieldInstances: function() {
-				var instance = this;
-
-				var fields = instance.getFields();
-
-				fields.each(
-					function(item, index, collection) {
-						var fieldInstance = instance.getFieldInstance(item);
-
-						if (!fieldInstance) {
-							var componentName = item.attr('dataName');
-							var componentType = item.attr('dataType');
-							var displayAsTooltip = item.attr('dataDisplayAsTooltip');
-							var fieldLabel = item.attr('dataLabel');
-							var indexType = item.attr('dataIndexType');
-							var instanceId = item.attr('dataInstanceId');
-							var instructions = item.attr('dataInstructions');
-							var localized = item.one('.journal-article-localized');
-							var parentValue = item.attr('dataParentStructureId');
-							var predefinedValue = item.attr('dataPredefinedValue');
-							var repeatable = item.attr('dataRepeatable');
-							var required = item.attr('dataRequired');
-
-							var localizedValue;
-
-							if (localized) {
-								localizedValue = localized.val();
-							}
-
-							var isLocalized = (String(localizedValue) != 'false');
-
-							fieldInstance = instance._fieldInstanceFactory(
-								{
-									displayAsTooltip: displayAsTooltip,
-									fieldLabel: fieldLabel,
-									instanceId: instanceId,
-									instructions: instructions,
-									localized: isLocalized,
-									localizedValue: localizedValue,
-									parentStructureId: parentValue,
-									predefinedValue: predefinedValue,
-									repeatable: repeatable,
-									required: required,
-									source: item,
-									fieldType: componentType,
-									indexType: indexType,
-									variableName: componentName
-								}
-							);
-						}
-
-						var id = item.get('id');
-
-						fieldsDataSet.add(id, fieldInstance);
-					}
-				);
-			},
-
-			_initializeTagsSuggestionContent: function() {
-				var instance = this;
-
-				window[instance.portletNamespace + 'getSuggestionsContent'] = function() {
-					var content = [];
-
-					instance.getFields().each(
-						function(item, index, collection) {
-							var fieldInstance = instance.getFieldInstance(item);
-							var fieldContent = fieldInstance.getContent(item);
-
-							content.push(fieldContent);
-						}
-					);
-
-					return content.join(' ');
-				};
-			},
-
-			_loadEditor: function(fieldInstance, editorId) {
-				var instance = this;
-
-				var url = instance.buildHTMLEditorURL(fieldInstance);
-
-				A.io.request(
-					url,
-					{
-						method: 'GET',
-						on: {
-							success: function(event, id, obj) {
-								var response = this.get('responseData');
-
-								var editorNode = A.one('#' + editorId);
-
-								editorNode.plug(A.Plugin.ParseContent);
-
-								editorNode.setContent(response);
-							}
-						}
-					}
-				);
-			},
-
-			_onKeyupVariableName: function(event) {
-				var instance = this;
-
-				var variableNameInput = event.currentTarget;
-				var source = instance.getSourceByNode(variableNameInput);
-				var fieldInstance = instance.getFieldInstance(source);
-
-				if (fieldInstance) {
-					var variableNameValue = variableNameInput.val();
-
-					instance.updateFieldVariableName(fieldInstance, variableNameValue);
-				}
-			},
-
-			_onKeypressVariableName: function(event) {
-				var instance = this;
-
-				if (!event.isKeyInSet('BACKSPACE', 'DELETE', 'LEFT', 'RIGHT')) {
-					var regex = /^[\w_-]$/;
-					var typed = String.fromCharCode(event.keyCode);
-
-					if (!regex.test(typed)) {
-						event.halt();
-					}
-				}
-			},
-
-			_stripComponentType: function(type) {
-				return type.toLowerCase().replace(/[^a-z]+/g, '');
-			},
-
-			_translateErrorMessage: function(exception) {
-				var errorText = '';
-
-				if (exception.indexOf('StructureXsdException') > -1) {
-					errorText = Liferay.Language.get('please-enter-a-valid-xsd');
-				}
-				else if (exception.indexOf('DuplicateStructureElementException') > -1) {
-					errorText = Liferay.Language.get('please-enter-unique-structure-field-names-(including-field-names-inherited-from-the-parent-structure)');
-				}
-				else if (exception.indexOf('DuplicateStructureIdException') > -1) {
-					errorText = Liferay.Language.get('please-enter-a-unique-id');
-				}
-				else if (exception.indexOf('StructureDescriptionException') > -1) {
-					errorText = Liferay.Language.get('please-enter-a-valid-description');
-				}
-				else if (exception.indexOf('StructureIdException') > -1) {
-					errorText = Liferay.Language.get('please-enter-a-valid-id');
-				}
-				else if (exception.indexOf('StructureInheritanceException') > -1) {
-					errorText = Liferay.Language.get('this-structure-is-already-within-the-inheritance-path-of-the-selected-parent-please-select-another-parent-structure');
-				}
-				else if (exception.indexOf('StructureNameException') > -1) {
-					errorText = Liferay.Language.get('please-enter-a-valid-name');
-				}
-				else if (exception.indexOf('NoSuchStructureException') > -1) {
-					errorText = Liferay.Language.get('please-enter-a-valid-id');
-				}
-				else if (exception.indexOf('ArticleContentException') > -1) {
-					errorText = Liferay.Language.get('please-enter-valid-content');
-				}
-				else if (exception.indexOf('ArticleIdException') > -1) {
-					errorText = Liferay.Language.get('please-enter-a-valid-id');
-				}
-				else if (exception.indexOf('ArticleTitleException') > -1) {
-					errorText = Liferay.Language.get('please-enter-a-valid-name');
-				}
-				else if (exception.indexOf('DuplicateArticleIdException') > -1) {
-					errorText = Liferay.Language.get('please-enter-a-unique-id');
-				}
-
-				return errorText;
 			},
 
 			_updateLocaleState: function(source, checkbox) {
@@ -2784,22 +1168,10 @@ AUI.add(
 				fieldInstance.set('localized', checkbox.get('checked'));
 
 				fieldInstance.setInstanceId(fieldInstance.get('instanceId'));
-			},
-
-			_updateOriginalStructureXSD: function() {
-				var instance = this;
-
-				var form = instance.getPrincipalForm();
-
-				var currentXSD = encodeURIComponent(instance.getStructureXSD());
-
-				var structureXSDInput = instance.getByName(form, 'structureXSD');
-
-				if (structureXSDInput) {
-					structureXSDInput.val(currentXSD);
-				}
 			}
 		};
+
+		A.augment(Journal, A.EventTarget);
 
 		var StructureField = A.Component.create(
 			{
@@ -3096,7 +1468,7 @@ AUI.add(
 					},
 
 					createInstructionsContainer: function(value) {
-						return A.Node.create(TPL_INSTRUCTIONS_CONTAINER).html(value);
+						return A.Node.create(TPL_INSTRUCTIONS_CONTAINER).html(Liferay.Util.escapeHTML(value));
 					},
 
 					createTooltipImage: function() {
@@ -3139,7 +1511,7 @@ AUI.add(
 						var type = instance.get('fieldType');
 						var componentContainer = source.one('div.journal-article-component-container');
 
-						var principalElement = componentContainer.one('.aui-field-input');
+						var principalElement = componentContainer.one('input');
 
 						if (type == 'boolean') {
 							content = principalElement.attr('checked');
@@ -3183,7 +1555,7 @@ AUI.add(
 									content = imageInputValue;
 								}
 								else {
-									var imageContent = instance.getByName(componentContainer, 'journalImageContent');
+									var imageContent = componentContainer.one('.journal-image-preview input.journal-image-preview-content');
 
 									if (imageContent) {
 										content = imageContent.val();
@@ -3228,7 +1600,7 @@ AUI.add(
 							var articleButtonsRowCSSClass = '';
 
 							if (!optionsEditable) {
-								articleButtonsRowCSSClass = 'aui-helper-hidden';
+								articleButtonsRowCSSClass = 'hide';
 							}
 
 							var repeatableButtonTemplate = instance.getById('repeatableButtonTemplate');
@@ -3275,16 +1647,6 @@ AUI.add(
 						}
 
 						return instance.fieldContainer;
-					},
-
-					getFieldElementContainer: function() {
-						var instance = this;
-
-						if (!instance.fieldElementContainer) {
-							instance.fieldElementContainer = instance.getFieldContainer().one('div.journal-article-component-container');
-						}
-
-						return instance.fieldElementContainer;
 					},
 
 					getFieldInstance: function() {
@@ -3352,9 +1714,11 @@ AUI.add(
 							value = instance.get('variableName');
 						}
 
-						fieldLabel.one('span').html(value);
+						if (fieldLabel) {
+							fieldLabel.one('span').html(Liferay.Util.escapeHTML(value));
 
-						instance.setAttribute('fieldLabel', value);
+							instance.setAttribute('fieldLabel', value);
+						}
 
 						return value;
 					},
@@ -3415,7 +1779,9 @@ AUI.add(
 										requiredMessage.placeAfter(instructionsMessage);
 									}
 									else {
-										label.append(fieldInstance.createTooltipImage());
+										if (label) {
+											label.append(fieldInstance.createTooltipImage());
+										}
 									}
 								}
 							}
@@ -3466,15 +1832,18 @@ AUI.add(
 						var instance = this;
 
 						var fieldLabel = instance.getFieldLabelElement();
-						var input = fieldLabel.get('parentNode').one('.journal-article-component-container .aui-field-input');
 
-						if (input) {
-							input.attr('id', value);
+						if (fieldLabel) {
+							var input = fieldLabel.get('parentNode').one('.journal-article-component-container input');
 
-							fieldLabel.setAttribute('for', value);
+							if (input) {
+								input.attr('id', value);
+
+								fieldLabel.setAttribute('for', value);
+							}
+
+							instance.setAttribute('name', value);
 						}
-
-						instance.setAttribute('name', value);
 
 						return value;
 					},
@@ -3493,25 +1862,6 @@ AUI.add(
 						}
 
 						return value;
-					},
-
-					_uiSetOptionsEditable: function(val) {
-						var instance = this;
-
-						var source = instance.get('source');
-
-						if (source) {
-							var journalArticleButtons = source.one('.journal-article-buttons');
-
-							if (journalArticleButtons) {
-								if (val) {
-									journalArticleButtons.show();
-								}
-								else {
-									journalArticleButtons.hide();
-								}
-							}
-						}
 					},
 
 					_getNamespacedId: Journal.prototype._getNamespacedId,
@@ -3556,12 +1906,12 @@ AUI.add(
 		registerFieldModel('List', 'list', 'ListField', true);
 		registerFieldModel('MultiList', 'multi-list', 'MultiListField', true);
 		registerFieldModel('LinkToPage', 'link_to_layout', 'LinkToPageField', true);
-		registerFieldModel('SelectionBreak', 'selection_break', 'SelectionBreakField', true);
+		registerFieldModel('SelectionBreak', 'selection_break', 'SelectionBreakField', false);
 
 		Liferay.Portlet.Journal = Journal;
 	},
 	'',
 	{
-		requires: ['aui-base', 'aui-data-set', 'aui-datatype', 'aui-dialog', 'aui-dialog-iframe', 'aui-io-request', 'aui-nested-list', 'aui-overlay-context-panel', 'json']
+		requires: ['aui-base', 'aui-data-set-deprecated', 'aui-datatype', 'aui-dialog-iframe-deprecated', 'aui-io-request', 'aui-nested-list', 'aui-overlay-context-panel-deprecated', 'json', 'liferay-util-window']
 	}
 );

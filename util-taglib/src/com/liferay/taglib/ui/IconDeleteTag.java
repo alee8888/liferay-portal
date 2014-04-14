@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -42,9 +42,16 @@ public class IconDeleteTag extends IconTag {
 			return _PAGE;
 		}
 
-		setImage("delete");
+		if (Validator.isNull(getImage())) {
+			if (_trash) {
+				setImage("trash");
+			}
+			else {
+				setImage("delete");
+			}
+		}
 
-		if (_trash) {
+		if (_trash && Validator.isNull(getMessage())) {
 			setMessage("move-to-the-recycle-bin");
 		}
 
@@ -73,29 +80,29 @@ public class IconDeleteTag extends IconTag {
 			url = "submitForm(document.hrefFm, '".concat(url).concat("');");
 		}
 
-		StringBundler sb = new StringBundler(5);
+		if (!_trash) {
+			StringBundler sb = new StringBundler(5);
 
-		sb.append("javascript:if (confirm('");
+			sb.append("javascript:if (confirm('");
 
-		if (Validator.isNotNull(_confirmation)) {
-			sb.append(UnicodeLanguageUtil.get(pageContext, _confirmation));
-		}
-		else {
-			String confirmation = "are-you-sure-you-want-to-delete-this";
+			if (Validator.isNotNull(_confirmation)) {
+				sb.append(UnicodeLanguageUtil.get(pageContext, _confirmation));
+			}
+			else {
+				String confirmation = "are-you-sure-you-want-to-delete-this";
 
-			if (_trash) {
-				confirmation =
-					"are-you-sure-you-want-to-move-this-to-the-recycle-bin";
+				sb.append(UnicodeLanguageUtil.get(pageContext, confirmation));
 			}
 
-			sb.append(UnicodeLanguageUtil.get(pageContext, confirmation));
+			sb.append("')) { ");
+			sb.append(url);
+			sb.append(" } else { self.focus(); }");
+
+			url = sb.toString();
 		}
-
-		sb.append("')) { ");
-		sb.append(url);
-		sb.append(" } else { self.focus(); }");
-
-		url = sb.toString();
+		else {
+			url = "javascript:".concat(url);
+		}
 
 		setUrl(url);
 

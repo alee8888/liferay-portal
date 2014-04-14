@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -96,7 +96,7 @@ catch (Exception e) {
 
 			<c:if test="<%= (feedImage != null) && showFeedImage %>">
 				<div class="feed-image-<%= feedImageAlignment %>">
-					<aui:a href="<%= feedImageLink %>" target="_new" title="<%= feedImage.getTitle() %>"><img alt="<%= feedImage.getDescription() %>" src="<%= feedImageURL %>" /></aui:a>
+					<aui:a href="<%= feedImageLink %>" target="_new" title="<%= feedImage.getTitle() %>"><img alt="<%= HtmlUtil.escapeAttribute(feedImage.getDescription()) %>" src="<%= feedImageURL %>" /></aui:a>
 				</div>
 			</c:if>
 
@@ -127,7 +127,7 @@ catch (Exception e) {
 						contents.add(content);
 					}
 
-					List <SyndEnclosure> enclosures = (List<SyndEnclosure>)entry.getEnclosures();
+					List<SyndEnclosure> enclosures = (List<SyndEnclosure>)entry.getEnclosures();
 
 					String enclosureLink = StringPool.BLANK;
 					String enclosureLinkTitle = entry.getTitle();
@@ -151,11 +151,11 @@ catch (Exception e) {
 				%>
 
 					<div class="feed-entry">
-						<img alt="<%= (windowState.equals(WindowState.MAXIMIZED) || (j < expandedEntriesPerFeed)) ? LanguageUtil.get(pageContext, "collapse") : LanguageUtil.get(pageContext, "expande") %>" class="<portlet:namespace />entry-expander feed-entry-expander" src='<%= themeDisplay.getPathThemeImage() %>/arrows/01_<%= (windowState.equals(WindowState.MAXIMIZED) || (j < expandedEntriesPerFeed)) ? "minus" : "plus" %>.png' />
+						<img alt="<%= (windowState.equals(WindowState.MAXIMIZED) || (j < expandedEntriesPerFeed)) ? LanguageUtil.get(pageContext, "collapse") : LanguageUtil.get(pageContext, "expand") %>" class="<portlet:namespace />entry-expander feed-entry-expander" src='<%= themeDisplay.getPathThemeImage() %>/arrows/01_<%= (windowState.equals(WindowState.MAXIMIZED) || (j < expandedEntriesPerFeed)) ? "minus" : "plus" %>.png' />
 
 						<span class="feed-entry-title"><aui:a href="<%= entryLink %>" target="_new"><%= HtmlUtil.escape(entry.getTitle()) %></aui:a></span>
 
-						<div class="feed-entry-content <%= (windowState.equals(WindowState.MAXIMIZED) || (j < expandedEntriesPerFeed)) ? "" : "aui-helper-hidden" %>">
+						<div class="feed-entry-content <%= (windowState.equals(WindowState.MAXIMIZED) || (j < expandedEntriesPerFeed)) ? "" : "hide" %>">
 							<c:if test="<%= entry.getPublishedDate() != null %>">
 								<div class="feed-date">
 									<%= dateFormatDateTime.format(entry.getPublishedDate()) %>
@@ -185,9 +185,18 @@ catch (Exception e) {
 											"src=\"" + baseURL + "/",
 											"href=\"" + baseURL + "/"
 										});
+
+									String sanitizedValue = null;
+
+									try {
+										sanitizedValue = SanitizerUtil.sanitize(company.getCompanyId(), scopeGroupId, user.getUserId(), null, 0, ContentTypes.TEXT_HTML, Sanitizer.MODE_XSS, value, null);
+									}
+									catch (SanitizerException se) {
+										sanitizedValue = StringPool.BLANK;
+									}
 							%>
 
-									<%= SanitizerUtil.sanitize(company.getCompanyId(), scopeGroupId, user.getUserId(), null, 0, ContentTypes.TEXT_HTML, Sanitizer.MODE_XSS, value, null) %>
+									<%= sanitizedValue %>
 
 							<%
 								}
@@ -212,7 +221,7 @@ catch (Exception e) {
 		</div>
 	</c:when>
 	<c:otherwise>
-		<div class="portlet-msg-error">
+		<div class="alert alert-error">
 			<%= LanguageUtil.format(pageContext, "cannot-be-found", HtmlUtil.escape(urls[i]), false) %>
 		</div>
 	</c:otherwise>

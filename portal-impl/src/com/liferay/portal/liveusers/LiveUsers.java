@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -81,6 +81,10 @@ public class LiveUsers {
 	public static int getSessionUsersCount(long companyId) {
 		return getSessionUsers(companyId).size();
 	}
+
+	// PLACEHOLDER 01
+	// PLACEHOLDER 02
+	// PLACEHOLDER 03
 
 	public static UserTracker getUserTracker(long companyId, String sessionId) {
 		return _instance._getUserTracker(companyId, sessionId);
@@ -403,25 +407,27 @@ public class LiveUsers {
 
 		List<UserTracker> userTrackers = _getUserTrackers(companyId, userId);
 
-		if (userTrackers != null) {
-			String sessionId = userTracker.getSessionId();
+		if (userTrackers == null) {
+			return;
+		}
 
-			Iterator<UserTracker> itr = userTrackers.iterator();
+		String sessionId = userTracker.getSessionId();
 
-			while (itr.hasNext()) {
-				UserTracker curUserTracker = itr.next();
+		Iterator<UserTracker> itr = userTrackers.iterator();
 
-				if (sessionId.equals(curUserTracker.getSessionId())) {
-					itr.remove();
-				}
+		while (itr.hasNext()) {
+			UserTracker curUserTracker = itr.next();
+
+			if (sessionId.equals(curUserTracker.getSessionId())) {
+				itr.remove();
 			}
+		}
 
-			if (userTrackers.size() == 0) {
-				Map<Long, List<UserTracker>> userTrackersMap =
-					_getUserTrackersMap(companyId);
+		if (userTrackers.isEmpty()) {
+			Map<Long, List<UserTracker>> userTrackersMap = _getUserTrackersMap(
+				companyId);
 
-				userTrackersMap.remove(userId);
-			}
+			userTrackersMap.remove(userId);
 		}
 	}
 
@@ -437,6 +443,16 @@ public class LiveUsers {
 		Map<String, UserTracker> sessionUsers = _getSessionUsers(companyId);
 
 		UserTracker userTracker = sessionUsers.get(sessionId);
+
+		// PLACEHOLDER 04
+		// PLACEHOLDER 05
+		// PLACEHOLDER 06
+		// PLACEHOLDER 07
+		// PLACEHOLDER 08
+		// PLACEHOLDER 09
+		// PLACEHOLDER 10
+		// PLACEHOLDER 11
+		// PLACEHOLDER 12
 
 		if ((userTracker == null) &&
 			PropsValues.SESSION_TRACKER_MEMORY_ENABLED) {
@@ -472,6 +488,20 @@ public class LiveUsers {
 		Map<String, UserTracker> sessionUsers = _getSessionUsers(companyId);
 
 		UserTracker userTracker = sessionUsers.remove(sessionId);
+
+		// PLACEHOLDER 13
+		// PLACEHOLDER 14
+		// PLACEHOLDER 15
+		// PLACEHOLDER 16
+		// PLACEHOLDER 17
+		// PLACEHOLDER 18
+		// PLACEHOLDER 19
+		// PLACEHOLDER 20
+		// PLACEHOLDER 21
+		// PLACEHOLDER 22
+		// PLACEHOLDER 23
+		// PLACEHOLDER 24
+		// PLACEHOLDER 25
 
 		if (userTracker == null) {
 			return;
@@ -536,6 +566,8 @@ public class LiveUsers {
 	private static Log _log = LogFactoryUtil.getLog(LiveUsers.class);
 
 	private static LiveUsers _instance = new LiveUsers();
+
+	// PLACEHOLDER 26
 
 	private Map<String, Map<Long, Map<Long, Set<String>>>> _clusterUsers =
 		new ConcurrentHashMap<String, Map<Long, Map<Long, Set<String>>>>();

@@ -7,15 +7,16 @@ update AssetEntry set classUuid = (select uuid_ from JournalArticleResource wher
 
 alter table BlogsEntry add description STRING null;
 alter table BlogsEntry add smallImage BOOLEAN;
-alter table BlogsEntry add smallImageId VARCHAR(75) null;
+alter table BlogsEntry add smallImageId LONG;
 alter table BlogsEntry add smallImageURL STRING null;
 
 alter table BookmarksEntry add resourceBlockId LONG;
-alter table BookmarksEntry add description VARCHAR(75) null;
+alter table BookmarksEntry add description STRING null;
 
 COMMIT_TRANSACTION;
 
 update BookmarksEntry set description = comments;
+
 alter table BookmarksEntry drop column comments;
 
 alter table BookmarksFolder add resourceBlockId LONG;
@@ -267,6 +268,9 @@ update JournalArticle set classPK = 0;
 
 drop index IX_FAD05595 on Layout;
 
+alter table Layout drop column layoutPrototypeId;
+alter table Layout drop column dlFolderId;
+
 alter table Layout add createDate DATE null;
 alter table Layout add modifiedDate DATE null;
 alter table Layout add keywords STRING null;
@@ -274,13 +278,11 @@ alter table Layout add robots STRING null;
 alter table Layout add layoutPrototypeUuid VARCHAR(75) null;
 alter table Layout add layoutPrototypeLinkEnabled BOOLEAN null;
 alter table Layout add sourcePrototypeLayoutUuid VARCHAR(75) null;
-alter table Layout drop column layoutPrototypeId;
-alter table Layout drop column dlFolderId;
+
+COMMIT_TRANSACTION;
 
 update Layout set createDate = CURRENT_TIMESTAMP;
 update Layout set modifiedDate = CURRENT_TIMESTAMP;
-
-COMMIT_TRANSACTION;
 
 create table LayoutBranch (
 	LayoutBranchId LONG not null primary key,
@@ -331,11 +333,12 @@ create table LayoutRevision (
 	statusDate DATE null
 );
 
+alter table LayoutSet drop column layoutSetPrototypeId;
+
 alter table LayoutSet add createDate DATE null;
 alter table LayoutSet add modifiedDate DATE null;
 alter table LayoutSet add layoutSetPrototypeUuid VARCHAR(75) null;
 alter table LayoutSet add layoutSetPrototypeLinkEnabled BOOLEAN null;
-alter table LayoutSet drop column layoutSetPrototypeId;
 
 COMMIT_TRANSACTION;
 
@@ -449,9 +452,10 @@ create table MDRRuleGroupInstance (
 	priority INTEGER
 );
 
-alter table Organization_ add treePath STRING null;
 alter table Organization_ drop column leftOrganizationId;
 alter table Organization_ drop column rightOrganizationId;
+
+alter table Organization_ add treePath STRING null;
 
 alter table PollsVote add companyId LONG;
 alter table PollsVote add userName VARCHAR(75) null;
@@ -498,6 +502,9 @@ create table ResourceBlockPermission (
 	roleId LONG,
 	actionIds LONG
 );
+
+drop index IX_8D83D0CE on ResourcePermission;
+drop index IX_4A1F4402 on ResourcePermission;
 
 create table ResourceTypePermission (
 	resourceTypePermissionId LONG not null primary key,
@@ -556,6 +563,7 @@ create table SocialActivitySetting (
 );
 
 update Role_ set name = 'Site Administrator' where name = 'Community Administrator';
+update Role_ set name = 'Site Content Reviewer' where name = 'Community Content Reviewer';
 update Role_ set name = 'Site Member' where name = 'Community Member';
 update Role_ set name = 'Site Owner' where name = 'Community Owner';
 update Role_ set name = 'Organization User' where name = 'Organization Member';
@@ -577,6 +585,11 @@ alter table UserNotificationEvent add archived BOOLEAN;
 
 alter table WorkflowDefinitionLink add classPK LONG;
 alter table WorkflowDefinitionLink add typePK LONG;
+
+COMMIT_TRANSACTION;
+
+update WorkflowDefinitionLink set classPK = 0;
+update WorkflowDefinitionLink set typePK = 0;
 
 drop table QUARTZ_BLOB_TRIGGERS;
 drop table QUARTZ_CALENDARS;
@@ -675,7 +688,7 @@ create table QUARTZ_SIMPLE_TRIGGERS (
 	primary key (SCHED_NAME, TRIGGER_NAME, TRIGGER_GROUP)
 );
 
-CREATE TABLE QUARTZ_SIMPROP_TRIGGERS (
+create table QUARTZ_SIMPROP_TRIGGERS (
 	SCHED_NAME VARCHAR(120) not null,
 	TRIGGER_NAME VARCHAR(200) not null,
 	TRIGGER_GROUP VARCHAR(200) not null,

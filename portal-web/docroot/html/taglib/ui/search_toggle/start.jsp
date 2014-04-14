@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,36 +16,43 @@
 
 <%@ include file="/html/taglib/ui/search_toggle/init.jsp" %>
 
+<%
+boolean advancedSearch = displayTerms.isAdvancedSearch();
+%>
+
 <div class="taglib-search-toggle">
-	<aui:input id="<%= id + displayTerms.ADVANCED_SEARCH %>" name="<%= displayTerms.ADVANCED_SEARCH %>" type="hidden" value='<%= clickValue.equals("basic") ? false : true %>' />
+	<div class="form-search">
+		<div class="input-append" id="<%= id %>simple">
+			<div class="advanced-search">
+				<label class="hidden-label" for="<%= id + displayTerms.KEYWORDS %>"><liferay-ui:message key="keywords" /></label>
 
-	<div class="<%= basicFormCssClass %>" id="<%= id %>basic">
-		<c:choose>
-			<c:when test="<%= Validator.isNotNull(buttonLabel) %>">
-				<span class="aui-search-bar">
-					<aui:input id="<%= id + displayTerms.KEYWORDS %>" inlineField="<%= true %>" label="" name="<%= displayTerms.KEYWORDS %>" size="30" value="<%= displayTerms.getKeywords() %>" />
+				<input class="search-query span9" <%= advancedSearch ? "disabled" : StringPool.BLANK %> id="<%= id + displayTerms.KEYWORDS %>" name="<portlet:namespace /><%= displayTerms.KEYWORDS %>" placeholder="<liferay-ui:message key="keywords" />" type="text" value="<%= HtmlUtil.escapeAttribute(displayTerms.getKeywords()) %>" />
 
-					<aui:button type="submit" value="<%= buttonLabel %>" />
-				</span>
+				<button class="btn" type="submit">
+					<%= LanguageUtil.get(pageContext, buttonLabel, "search") %>
+				</button>
 
-				<div class="<%= id %>toggle-link">
-					<aui:a href="javascript:;" tabindex="-1"><liferay-ui:message key="advanced" /> &raquo;</aui:a>
-				</div>
-			</c:when>
-			<c:otherwise>
-				<aui:input id="<%= id + displayTerms.KEYWORDS %>" label="search" name="<%= displayTerms.KEYWORDS %>" size="30" value="<%= displayTerms.getKeywords() %>" />
-
-				&nbsp;<aui:a href="javascript:;" tabindex="-1"><liferay-ui:message key="advanced" /> &raquo;</aui:a>
-			</c:otherwise>
-		</c:choose>
+				<a class="toggle-advanced" href="javascript:;" id="<%= id %>toggleAdvanced">
+					<i class="icon-search"></i>
+					<i class="caret"></i>
+				</a>
+			</div>
+		</div>
 	</div>
+</div>
 
-	<div class="<%= advancedFormCssClass %>" id="<%= id %>advanced">
-		<liferay-util:buffer var="andOperator">
-			<aui:select cssClass="inline-control" inlineField="<%= true %>" label="" name="<%= displayTerms.AND_OPERATOR %>">
-				<aui:option label="all" selected="<%= displayTerms.isAndOperator() %>" value="1" />
-				<aui:option label="any" selected="<%= !displayTerms.isAndOperator() %>" value="0" />
-			</aui:select>
-		</liferay-util:buffer>
+<div class="taglib-search-toggle-advanced-wrapper">
+	<div class="taglib-search-toggle-advanced <%= advancedSearch ? "toggler-content-expanded" : "toggler-content-collapsed" %>" id="<%= id %>advanced">
+		<input id="<%= id + displayTerms.ADVANCED_SEARCH %>" name="<portlet:namespace /><%= displayTerms.ADVANCED_SEARCH %>" type="hidden" value="<%= advancedSearch %>" />
 
-		<liferay-ui:message arguments="<%= andOperator %>" key="match-x-of-the-following-fields" />
+		<div id="<%= id %>advancedContent">
+			<aui:button cssClass="close pull-right" name="closeAdvancedSearch" value="&times;" />
+
+			<liferay-util:buffer var="andOperator">
+				<aui:select cssClass="inline-control" inlineField="<%= true %>" label="" name="<%= displayTerms.AND_OPERATOR %>">
+					<aui:option label="all" selected="<%= displayTerms.isAndOperator() %>" value="1" />
+					<aui:option label="any" selected="<%= !displayTerms.isAndOperator() %>" value="0" />
+				</aui:select>
+			</liferay-util:buffer>
+
+			<liferay-ui:message arguments="<%= andOperator %>" key="match-x-of-the-following-fields" translateArguments="<%= false %>" />

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.kernel.bean;
+
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -38,6 +40,8 @@ public class BeanPropertiesUtil {
 	}
 
 	public static BeanProperties getBeanProperties() {
+		PortalRuntimePermission.checkGetBeanProperty(BeanPropertiesUtil.class);
+
 		return _beanProperties;
 	}
 
@@ -244,6 +248,8 @@ public class BeanPropertiesUtil {
 	}
 
 	public void setBeanProperties(BeanProperties beanProperties) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_beanProperties = beanProperties;
 	}
 

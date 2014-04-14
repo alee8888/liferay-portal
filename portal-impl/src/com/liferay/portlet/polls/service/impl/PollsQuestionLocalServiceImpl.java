@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,9 +16,11 @@ package com.liferay.portlet.polls.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ResourceConstants;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
@@ -42,6 +44,7 @@ import java.util.Map;
 public class PollsQuestionLocalServiceImpl
 	extends PollsQuestionLocalServiceBaseImpl {
 
+	@Override
 	public PollsQuestion addQuestion(
 			long userId, Map<Locale, String> titleMap,
 			Map<Locale, String> descriptionMap, int expirationDateMonth,
@@ -62,7 +65,7 @@ public class PollsQuestionLocalServiceImpl
 			expirationDate = PortalUtil.getDate(
 				expirationDateMonth, expirationDateDay, expirationDateYear,
 				expirationDateHour, expirationDateMinute, user.getTimeZone(),
-				new QuestionExpirationDateException());
+				QuestionExpirationDateException.class);
 		}
 
 		Date now = new Date();
@@ -84,7 +87,7 @@ public class PollsQuestionLocalServiceImpl
 		question.setDescriptionMap(descriptionMap);
 		question.setExpirationDate(expirationDate);
 
-		pollsQuestionPersistence.update(question, false);
+		pollsQuestionPersistence.update(question);
 
 		// Resources
 
@@ -106,14 +109,15 @@ public class PollsQuestionLocalServiceImpl
 		if (choices != null) {
 			for (PollsChoice choice : choices) {
 				pollsChoiceLocalService.addChoice(
-					questionId, choice.getName(), choice.getDescription(),
-					new ServiceContext());
+					userId, questionId, choice.getName(),
+					choice.getDescription(), serviceContext);
 			}
 		}
 
 		return question;
 	}
 
+	@Override
 	public void addQuestionResources(
 			long questionId, boolean addGroupPermissions,
 			boolean addGuestPermissions)
@@ -126,6 +130,7 @@ public class PollsQuestionLocalServiceImpl
 			question, addGroupPermissions, addGuestPermissions);
 	}
 
+	@Override
 	public void addQuestionResources(
 			long questionId, String[] groupPermissions,
 			String[] guestPermissions)
@@ -137,6 +142,7 @@ public class PollsQuestionLocalServiceImpl
 		addQuestionResources(question, groupPermissions, guestPermissions);
 	}
 
+	@Override
 	public void addQuestionResources(
 			PollsQuestion question, boolean addGroupPermissions,
 			boolean addGuestPermissions)
@@ -149,6 +155,7 @@ public class PollsQuestionLocalServiceImpl
 			addGuestPermissions);
 	}
 
+	@Override
 	public void addQuestionResources(
 			PollsQuestion question, String[] groupPermissions,
 			String[] guestPermissions)
@@ -160,15 +167,20 @@ public class PollsQuestionLocalServiceImpl
 			question.getQuestionId(), groupPermissions, guestPermissions);
 	}
 
+	@Override
 	public void deleteQuestion(long questionId)
 		throws PortalException, SystemException {
 
 		PollsQuestion question = pollsQuestionPersistence.findByPrimaryKey(
 			questionId);
 
-		deleteQuestion(question);
+		pollsQuestionLocalService.deleteQuestion(question);
 	}
 
+	@Override
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE)
 	public void deleteQuestion(PollsQuestion question)
 		throws PortalException, SystemException {
 
@@ -191,38 +203,44 @@ public class PollsQuestionLocalServiceImpl
 		pollsVotePersistence.removeByQuestionId(question.getQuestionId());
 	}
 
+	@Override
 	public void deleteQuestions(long groupId)
 		throws PortalException, SystemException {
 
 		for (PollsQuestion question :
 				pollsQuestionPersistence.findByGroupId(groupId)) {
 
-			deleteQuestion(question);
+			pollsQuestionLocalService.deleteQuestion(question);
 		}
 	}
 
+	@Override
 	public PollsQuestion getQuestion(long questionId)
 		throws PortalException, SystemException {
 
 		return pollsQuestionPersistence.findByPrimaryKey(questionId);
 	}
 
+	@Override
 	public List<PollsQuestion> getQuestions(long groupId)
 		throws SystemException {
 
 		return pollsQuestionPersistence.findByGroupId(groupId);
 	}
 
+	@Override
 	public List<PollsQuestion> getQuestions(long groupId, int start, int end)
 		throws SystemException {
 
 		return pollsQuestionPersistence.findByGroupId(groupId, start, end);
 	}
 
+	@Override
 	public int getQuestionsCount(long groupId) throws SystemException {
 		return pollsQuestionPersistence.countByGroupId(groupId);
 	}
 
+	@Override
 	public PollsQuestion updateQuestion(
 			long userId, long questionId, Map<Locale, String> titleMap,
 			Map<Locale, String> descriptionMap, int expirationDateMonth,
@@ -242,7 +260,7 @@ public class PollsQuestionLocalServiceImpl
 			expirationDate = PortalUtil.getDate(
 				expirationDateMonth, expirationDateDay, expirationDateYear,
 				expirationDateHour, expirationDateMinute, user.getTimeZone(),
-				new QuestionExpirationDateException());
+				QuestionExpirationDateException.class);
 		}
 
 		validate(titleMap, descriptionMap, choices);
@@ -255,35 +273,36 @@ public class PollsQuestionLocalServiceImpl
 		question.setDescriptionMap(descriptionMap);
 		question.setExpirationDate(expirationDate);
 
-		pollsQuestionPersistence.update(question, false);
+		pollsQuestionPersistence.update(question);
 
 		// Choices
 
-		if (choices != null) {
-			int oldChoicesCount = pollsChoicePersistence.countByQuestionId(
-				questionId);
+		if (choices == null) {
+			return question;
+		}
 
-			if (oldChoicesCount > choices.size()) {
-				throw new QuestionChoiceException();
+		int oldChoicesCount = pollsChoicePersistence.countByQuestionId(
+			questionId);
+
+		if (oldChoicesCount > choices.size()) {
+			throw new QuestionChoiceException();
+		}
+
+		for (PollsChoice choice : choices) {
+			String choiceName = choice.getName();
+			String choiceDescription = choice.getDescription();
+
+			choice = pollsChoicePersistence.fetchByQ_N(questionId, choiceName);
+
+			if (choice == null) {
+				pollsChoiceLocalService.addChoice(
+					userId, questionId, choiceName, choiceDescription,
+					new ServiceContext());
 			}
-
-			for (PollsChoice choice : choices) {
-				String choiceName = choice.getName();
-				String choiceDescription = choice.getDescription();
-
-				choice = pollsChoicePersistence.fetchByQ_N(
-					questionId, choiceName);
-
-				if (choice == null) {
-					pollsChoiceLocalService.addChoice(
-						questionId, choiceName, choiceDescription,
-						new ServiceContext());
-				}
-				else {
-					pollsChoiceLocalService.updateChoice(
-						choice.getChoiceId(), questionId, choiceName,
-						choiceDescription);
-				}
+			else {
+				pollsChoiceLocalService.updateChoice(
+					choice.getChoiceId(), questionId, choiceName,
+					choiceDescription, new ServiceContext());
 			}
 		}
 
@@ -295,7 +314,7 @@ public class PollsQuestionLocalServiceImpl
 			List<PollsChoice> choices)
 		throws PortalException {
 
-		Locale locale = LocaleUtil.getDefault();
+		Locale locale = LocaleUtil.getSiteDefault();
 
 		String title = titleMap.get(locale);
 

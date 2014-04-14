@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portal.security.permission;
 
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -35,6 +36,7 @@ import java.util.Set;
  * @author Raymond Augé
  * @author Connor McKay
  */
+@DoPrivileged
 public class InlineSQLHelperImpl implements InlineSQLHelper {
 
 	public static final String FILTER_BY_RESOURCE_BLOCK_ID =
@@ -43,13 +45,18 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 	public static final String FILTER_BY_RESOURCE_BLOCK_ID_OWNER =
 		InlineSQLHelper.class.getName() + ".filterByResourceBlockIdOwner";
 
+	public static final String FIND_BY_RESOURCE_BLOCK_ID =
+		InlineSQLHelper.class.getName() + ".findByResourceBlockId";
+
 	public static final String JOIN_RESOURCE_PERMISSION =
 		InlineSQLHelper.class.getName() + ".joinResourcePermission";
 
+	@Override
 	public boolean isEnabled() {
 		return isEnabled(0);
 	}
 
+	@Override
 	public boolean isEnabled(long groupId) {
 		if (!PropsValues.PERMISSIONS_INLINE_SQL_CHECK_ENABLED) {
 			return false;
@@ -78,6 +85,7 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 		return true;
 	}
 
+	@Override
 	public boolean isEnabled(long[] groupIds) {
 		if (!PropsValues.PERMISSIONS_INLINE_SQL_CHECK_ENABLED) {
 			return false;
@@ -92,6 +100,7 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 		return false;
 	}
 
+	@Override
 	public String replacePermissionCheck(
 		String sql, String className, String classPKField) {
 
@@ -99,6 +108,7 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 			sql, className, classPKField, null, new long[] {0}, null);
 	}
 
+	@Override
 	public String replacePermissionCheck(
 		String sql, String className, String classPKField, long groupId) {
 
@@ -106,6 +116,7 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 			sql, className, classPKField, null, new long[] {groupId}, null);
 	}
 
+	@Override
 	public String replacePermissionCheck(
 		String sql, String className, String classPKField, long groupId,
 		String bridgeJoin) {
@@ -115,6 +126,7 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 			bridgeJoin);
 	}
 
+	@Override
 	public String replacePermissionCheck(
 		String sql, String className, String classPKField, long[] groupIds) {
 
@@ -122,6 +134,7 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 			sql, className, classPKField, null, groupIds, null);
 	}
 
+	@Override
 	public String replacePermissionCheck(
 		String sql, String className, String classPKField, long[] groupIds,
 		String bridgeJoin) {
@@ -130,6 +143,7 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 			sql, className, classPKField, null, groupIds, bridgeJoin);
 	}
 
+	@Override
 	public String replacePermissionCheck(
 		String sql, String className, String classPKField, String userIdField) {
 
@@ -137,6 +151,7 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 			sql, className, classPKField, userIdField, new long[] {0}, null);
 	}
 
+	@Override
 	public String replacePermissionCheck(
 		String sql, String className, String classPKField, String userIdField,
 		long groupId) {
@@ -146,6 +161,7 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 			null);
 	}
 
+	@Override
 	public String replacePermissionCheck(
 		String sql, String className, String classPKField, String userIdField,
 		long groupId, String bridgeJoin) {
@@ -155,6 +171,7 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 			bridgeJoin);
 	}
 
+	@Override
 	public String replacePermissionCheck(
 		String sql, String className, String classPKField, String userIdField,
 		long[] groupIds) {
@@ -163,9 +180,29 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 			sql, className, classPKField, userIdField, groupIds, null);
 	}
 
+	@Override
 	public String replacePermissionCheck(
 		String sql, String className, String classPKField, String userIdField,
 		long[] groupIds, String bridgeJoin) {
+
+		return replacePermissionCheck(
+			sql, className, classPKField, userIdField, null, groupIds,
+			bridgeJoin);
+	}
+
+	@Override
+	public String replacePermissionCheck(
+		String sql, String className, String classPKField, String userIdField,
+		String bridgeJoin) {
+
+		return replacePermissionCheck(
+			sql, className, classPKField, userIdField, 0, bridgeJoin);
+	}
+
+	@Override
+	public String replacePermissionCheck(
+		String sql, String className, String classPKField, String userIdField,
+		String groupIdField, long[] groupIds, String bridgeJoin) {
 
 		if (!isEnabled(groupIds)) {
 			return sql;
@@ -186,17 +223,9 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 		}
 		else {
 			return replacePermissionCheckJoin(
-				sql, className, classPKField, userIdField, groupIds,
-				bridgeJoin);
+				sql, className, classPKField, userIdField, groupIdField,
+				groupIds, bridgeJoin);
 		}
-	}
-
-	public String replacePermissionCheck(
-		String sql, String className, String classPKField, String userIdField,
-		String bridgeJoin) {
-
-		return replacePermissionCheck(
-			sql, className, classPKField, userIdField, 0, bridgeJoin);
 	}
 
 	protected Set<Long> getOwnerResourceBlockIds(
@@ -210,10 +239,34 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 		for (long groupId : groupIds) {
 			resourceBlockIds.addAll(
 				permissionChecker.getOwnerResourceBlockIds(
-				companyId, groupId, className, ActionKeys.VIEW));
+					companyId, groupId, className, ActionKeys.VIEW));
 		}
 
 		return resourceBlockIds;
+	}
+
+	protected String getOwnerResourceBlockIdsSQL(
+		PermissionChecker permissionChecker, long checkGroupId,
+		String className, Set<Long> ownerResourceBlockIds) {
+
+		if (ownerResourceBlockIds.size() <
+				PropsValues.
+					PERMISSIONS_INLINE_SQL_RESOURCE_BLOCK_QUERY_THRESHHOLD) {
+
+			return StringUtil.merge(ownerResourceBlockIds);
+		}
+
+		return StringUtil.replace(
+			CustomSQLUtil.get(FIND_BY_RESOURCE_BLOCK_ID),
+			new String[] {
+				"[$COMPANY_ID$]", "[$GROUP_ID$]", "[$RESOURCE_BLOCK_NAME$]",
+				"[$ROLE_ID$]"
+			},
+			new String[] {
+				String.valueOf(permissionChecker.getCompanyId()),
+				String.valueOf(checkGroupId), className,
+				StringUtil.valueOf(permissionChecker.getOwnerRoleId())
+			});
 	}
 
 	protected Set<Long> getResourceBlockIds(
@@ -227,8 +280,8 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 		for (long groupId : groupIds) {
 			resourceBlockIds.addAll(
 				permissionChecker.getResourceBlockIds(
-				companyId, groupId, permissionChecker.getUserId(), className,
-				ActionKeys.VIEW));
+					companyId, groupId, permissionChecker.getUserId(),
+					className, ActionKeys.VIEW));
 		}
 
 		return resourceBlockIds;
@@ -249,17 +302,59 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 	}
 
 	protected long[] getRoleIds(long[] groupIds) {
-		long[] roleIds = PermissionChecker.DEFAULT_ROLE_IDS;
+		Set<Long> roleIds = new HashSet<Long>();
 
 		for (long groupId : groupIds) {
 			for (long roleId : getRoleIds(groupId)) {
-				if (!ArrayUtil.contains(roleIds, roleId)) {
-					roleIds = ArrayUtil.append(roleIds, roleId);
-				}
+				roleIds.add(roleId);
 			}
 		}
 
-		return roleIds;
+		return ArrayUtil.toLongArray(roleIds);
+	}
+
+	protected String getRoleIdsOrOwnerIdSQL(
+		PermissionChecker permissionChecker, long[] groupIds,
+		String userIdField) {
+
+		StringBundler sb = new StringBundler();
+
+		sb.append(StringPool.OPEN_PARENTHESIS);
+
+		sb.append("ResourcePermission.roleId IN (");
+
+		long[] roleIds = getRoleIds(groupIds);
+
+		if (roleIds.length == 0) {
+			roleIds = _NO_ROLE_IDS;
+		}
+
+		sb.append(StringUtil.merge(roleIds));
+
+		sb.append(StringPool.CLOSE_PARENTHESIS);
+
+		if (permissionChecker.isSignedIn()) {
+			sb.append(" OR ");
+
+			long userId = permissionChecker.getUserId();
+
+			if (Validator.isNotNull(userIdField)) {
+				sb.append(StringPool.OPEN_PARENTHESIS);
+				sb.append(userIdField);
+				sb.append(" = ");
+				sb.append(userId);
+				sb.append(StringPool.CLOSE_PARENTHESIS);
+			}
+			else {
+				sb.append("(ResourcePermission.ownerId = ");
+				sb.append(userId);
+				sb.append(StringPool.CLOSE_PARENTHESIS);
+			}
+		}
+
+		sb.append(StringPool.CLOSE_PARENTHESIS);
+
+		return sb.toString();
 	}
 
 	protected long getUserId() {
@@ -275,6 +370,30 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 		return userId;
 	}
 
+	protected String getUserResourceBlockIdsSQL(
+		PermissionChecker permissionChecker, long checkGroupId, long[] roleIds,
+		String className, Set<Long> userResourceBlockIds) {
+
+		if (userResourceBlockIds.size() <
+				PropsValues.
+					PERMISSIONS_INLINE_SQL_RESOURCE_BLOCK_QUERY_THRESHHOLD) {
+
+			return StringUtil.merge(userResourceBlockIds);
+		}
+
+		return StringUtil.replace(
+			CustomSQLUtil.get(FIND_BY_RESOURCE_BLOCK_ID),
+			new String[] {
+				"[$COMPANY_ID$]", "[$GROUP_ID$]", "[$RESOURCE_BLOCK_NAME$]",
+				"[$ROLE_ID$]"
+			},
+			new String[] {
+				String.valueOf(permissionChecker.getCompanyId()),
+				String.valueOf(checkGroupId), className,
+				StringUtil.merge(roleIds)
+			});
+	}
+
 	protected String replacePermissionCheckBlocks(
 		String sql, String className, String classPKField, String userIdField,
 		long[] groupIds, String bridgeJoin) {
@@ -288,8 +407,6 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 			checkGroupId = groupIds[0];
 		}
 
-		long companyId = permissionChecker.getCompanyId();
-
 		long[] roleIds = permissionChecker.getRoleIds(
 			getUserId(), checkGroupId);
 
@@ -297,7 +414,8 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 			for (long roleId : roleIds) {
 				if (ResourceTypePermissionLocalServiceUtil.
 						hasCompanyScopePermission(
-							companyId, className, roleId, ActionKeys.VIEW)) {
+							permissionChecker.getCompanyId(), className, roleId,
+							ActionKeys.VIEW)) {
 
 					return sql;
 				}
@@ -307,7 +425,7 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 		}
 
 		Set<Long> userResourceBlockIds = getResourceBlockIds(
-			companyId, groupIds, className);
+			permissionChecker.getCompanyId(), groupIds, className);
 
 		String permissionWhere = StringPool.BLANK;
 
@@ -316,7 +434,7 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 		}
 
 		Set<Long> ownerResourceBlockIds = getOwnerResourceBlockIds(
-			companyId, groupIds, className);
+			permissionChecker.getCompanyId(), groupIds, className);
 
 		// If a user has regular access to a resource block, it isn't necessary
 		// to check owner permissions on it as well.
@@ -326,26 +444,32 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 		// A SQL syntax error occurs if there is not at least one resource block
 		// ID.
 
-		if (userResourceBlockIds.size() == 0) {
+		if (ownerResourceBlockIds.isEmpty()) {
+			ownerResourceBlockIds.add(_NO_RESOURCE_BLOCKS_ID);
+		}
+
+		if (userResourceBlockIds.isEmpty()) {
 			userResourceBlockIds.add(_NO_RESOURCE_BLOCKS_ID);
 		}
 
-		if (Validator.isNotNull(userIdField) &&
-			ownerResourceBlockIds.size() > 0) {
-
+		if (Validator.isNotNull(userIdField)) {
 			permissionWhere = permissionWhere.concat(
 				CustomSQLUtil.get(FILTER_BY_RESOURCE_BLOCK_ID_OWNER));
 
 			permissionWhere = StringUtil.replace(
 				permissionWhere,
 				new String[] {
-					"[$OWNER_RESOURCE_BLOCK_IDS$]", "[$USER_ID$]",
-					"[$USER_ID_FIELD$]", "[$USER_RESOURCE_BLOCK_IDS$]"
+					"[$OWNER_RESOURCE_BLOCK_ID$]", "[$USER_ID$]",
+					"[$USER_ID_FIELD$]", "[$USER_RESOURCE_BLOCK_ID$]"
 				},
 				new String[] {
-					StringUtil.merge(ownerResourceBlockIds),
+					getOwnerResourceBlockIdsSQL(
+						permissionChecker, checkGroupId, className,
+						ownerResourceBlockIds),
 					String.valueOf(permissionChecker.getUserId()), userIdField,
-					StringUtil.merge(userResourceBlockIds)
+					getUserResourceBlockIdsSQL(
+						permissionChecker, checkGroupId, roleIds, className,
+						userResourceBlockIds)
 				});
 		}
 		else {
@@ -353,8 +477,10 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 				CustomSQLUtil.get(FILTER_BY_RESOURCE_BLOCK_ID));
 
 			permissionWhere = StringUtil.replace(
-				permissionWhere, "[$USER_RESOURCE_BLOCK_IDS$]",
-				StringUtil.merge(userResourceBlockIds));
+				permissionWhere, "[$USER_RESOURCE_BLOCK_ID$]",
+				getUserResourceBlockIdsSQL(
+					permissionChecker, checkGroupId, roleIds, className,
+					userResourceBlockIds));
 		}
 
 		int pos = sql.indexOf(_WHERE_CLAUSE);
@@ -389,7 +515,7 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 
 	protected String replacePermissionCheckJoin(
 		String sql, String className, String classPKField, String userIdField,
-		long[] groupIds, String bridgeJoin) {
+		String groupIdField, long[] groupIds, String bridgeJoin) {
 
 		if (Validator.isNull(classPKField)) {
 			throw new IllegalArgumentException("classPKField is null");
@@ -420,14 +546,9 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 
 		StringBundler sb = new StringBundler();
 
-		sb.append("((InlineSQLResourcePermission.scope = ");
-		sb.append(ResourceConstants.SCOPE_INDIVIDUAL);
-		sb.append(" AND ");
-		sb.append("InlineSQLResourcePermission.primKey = CAST_TEXT(");
+		sb.append("(((InlineSQLResourcePermission.primKey = CAST_TEXT(");
 		sb.append(classPKField);
-		sb.append(") AND (");
-
-		long userId = getUserId();
+		sb.append(")) AND ((");
 
 		boolean hasPreviousViewableGroup = false;
 
@@ -445,79 +566,65 @@ public class InlineSQLHelperImpl implements InlineSQLHelper {
 
 				hasPreviousViewableGroup = true;
 
-				sb.append("(");
-				sb.append(
-					classPKField.substring(
-						0, classPKField.lastIndexOf(CharPool.PERIOD)));
-				sb.append(".groupId = ");
+				sb.append(StringPool.OPEN_PARENTHESIS);
+
+				if (Validator.isNull(groupIdField)) {
+					sb.append(
+						classPKField.substring(
+							0, classPKField.lastIndexOf(CharPool.PERIOD)));
+					sb.append(".groupId = ");
+				}
+				else {
+					sb.append(groupIdField);
+					sb.append(" = ");
+				}
+
 				sb.append(groupId);
-				sb.append(")");
-
-				long[] roleIds = getRoleIds(groupId);
-
-				if (roleIds.length == 0) {
-					roleIds = _NO_ROLE_IDS;
-				}
-
-				sb.append(" AND (");
-
-				for (int i = 0; i < roleIds.length; i++) {
-					if (i > 0) {
-						sb.append(" OR ");
-					}
-
-					sb.append("InlineSQLResourcePermission.roleId = ");
-					sb.append(roleIds[i]);
-				}
-
-				if (permissionChecker.isSignedIn()) {
-					sb.append(" OR ");
-
-					if (Validator.isNotNull(userIdField)) {
-						sb.append("(");
-						sb.append(userIdField);
-						sb.append(" = ");
-						sb.append(userId);
-						sb.append(")");
-					}
-					else {
-						sb.append("(InlineSQLResourcePermission.ownerId = ");
-						sb.append(userId);
-						sb.append(")");
-					}
-				}
-
-				sb.append(")");
+				sb.append(StringPool.CLOSE_PARENTHESIS);
 			}
 			else {
 				viewableGroupIds.add(groupId);
 			}
 		}
 
-		sb.append(")");
+		sb.append(StringPool.CLOSE_PARENTHESIS);
 
 		if (!viewableGroupIds.isEmpty()) {
 			for (Long viewableGroupId : viewableGroupIds) {
 				sb.append(" OR (");
-				sb.append(
-					classPKField.substring(
-						0, classPKField.lastIndexOf(CharPool.PERIOD)));
-				sb.append(".groupId = ");
+
+				if (Validator.isNull(groupIdField)) {
+					sb.append(
+						classPKField.substring(
+							0, classPKField.lastIndexOf(CharPool.PERIOD)));
+					sb.append(".groupId = ");
+				}
+				else {
+					sb.append(groupIdField);
+					sb.append(" = ");
+				}
+
 				sb.append(viewableGroupId);
-				sb.append(")");
+				sb.append(StringPool.CLOSE_PARENTHESIS);
 			}
 		}
 
-		sb.append("))");
+		sb.append(")))");
+
+		String roleIdsOrOwnerIdSQL = getRoleIdsOrOwnerIdSQL(
+			permissionChecker, groupIds, userIdField);
+
+		int scope = ResourceConstants.SCOPE_INDIVIDUAL;
 
 		permissionJoin = StringUtil.replace(
 			permissionJoin,
 			new String[] {
-				"[$CLASS_NAME$]", "[$COMPANY_ID$]", "[$PRIM_KEYS$]"
+				"[$CLASS_NAME$]", "[$COMPANY_ID$]", "[$PRIM_KEYS$]",
+				"[$RESOURCE_SCOPE_INDIVIDUAL$]", "[$ROLE_IDS_OR_OWNER_ID$]"
 			},
 			new String[] {
 				className, String.valueOf(permissionChecker.getCompanyId()),
-				sb.toString()
+				sb.toString(), String.valueOf(scope), roleIdsOrOwnerIdSQL
 			});
 
 		int pos = sql.indexOf(_WHERE_CLAUSE);

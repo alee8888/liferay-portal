@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,7 +21,7 @@ AssetSearch searchContainer = (AssetSearch)request.getAttribute("liferay-ui:sear
 
 AssetDisplayTerms displayTerms = (AssetDisplayTerms)searchContainer.getDisplayTerms();
 
-long groupId = ParamUtil.getLong(request, "groupId");
+long[] selectedGroupIds = StringUtil.split(ParamUtil.getString(request, "selectedGroupIds"), 0L);
 %>
 
 <liferay-ui:search-toggle
@@ -30,32 +30,24 @@ long groupId = ParamUtil.getLong(request, "groupId");
 	id="toggle_id_asset_search"
 >
 	<aui:fieldset>
-		<aui:input name="<%= displayTerms.TITLE %>" size="20" type="text" value="<%= displayTerms.getTitle() %>" />
+		<aui:input inlineField="<%= true %>" name="<%= displayTerms.TITLE %>" size="20" type="text" value="<%= displayTerms.getTitle() %>" />
 
-		<aui:input name="<%= displayTerms.DESCRIPTION %>" size="20" type="text" value="<%= displayTerms.getDescription() %>" />
+		<aui:input inlineField="<%= true %>" name="<%= displayTerms.DESCRIPTION %>" size="20" type="text" value="<%= displayTerms.getDescription() %>" />
 
-		<aui:input name="<%= displayTerms.USER_NAME %>" size="20" type="text" value="<%= displayTerms.getUserName() %>" />
+		<aui:input inlineField="<%= true %>" name="<%= displayTerms.USER_NAME %>" size="20" type="text" value="<%= displayTerms.getUserName() %>" />
+	</aui:fieldset>
 
-		<aui:select label="my-sites" name="<%= displayTerms.GROUP_ID %>" showEmptyOption="<%= false %>">
+	<aui:fieldset>
+		<aui:select inlineField="<%= true %>" label="my-sites" name="<%= displayTerms.GROUP_ID %>">
 
 			<%
-			if (groupId > 0) {
+			for (long groupId : selectedGroupIds) {
 				Group group = GroupLocalServiceUtil.getGroup(groupId);
 			%>
 
-				<aui:option label="<%= group.getDescriptiveName(locale) %>" selected="true" value="<%= groupId %>" />
+				<aui:option label="<%= HtmlUtil.escape(group.getDescriptiveName(locale)) %>" selected="<%= displayTerms.getGroupId() == groupId %>" value="<%= groupId %>" />
 
 			<%
-			}
-			else {
-				for (long curGroupId : groupIds) {
-					Group group = GroupLocalServiceUtil.getGroup(curGroupId);
-				%>
-
-					<aui:option label="<%= group.getDescriptiveName(locale) %>" selected="<%= displayTerms.getGroupId() == curGroupId %>" value="<%= curGroupId %>" />
-
-				<%
-				}
 			}
 			%>
 

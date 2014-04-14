@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,6 +26,7 @@ import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.LayoutSetBranchServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.layoutsadmin.action.EditLayoutsAction;
 
@@ -50,8 +51,9 @@ public class EditLayoutSetBranchAction extends EditLayoutsAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		try {
@@ -68,7 +70,7 @@ public class EditLayoutSetBranchAction extends EditLayoutsAction {
 				updateLayoutSetBranch(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteLayoutSetBranch(actionRequest, portletConfig);
+				deleteLayoutSetBranch(actionRequest);
 			}
 			else if (cmd.equals("merge_layout_set_branch")) {
 				mergeLayoutSetBranch(actionRequest);
@@ -77,7 +79,7 @@ public class EditLayoutSetBranchAction extends EditLayoutsAction {
 			if (SessionErrors.isEmpty(actionRequest)) {
 				SessionMessages.add(
 					actionRequest,
-					portletConfig.getPortletName() +
+					PortalUtil.getPortletId(actionRequest) +
 						SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
 					PortletKeys.STAGING_BAR);
 
@@ -87,7 +89,7 @@ public class EditLayoutSetBranchAction extends EditLayoutsAction {
 
 				SessionMessages.add(
 					actionRequest,
-					portletConfig.getPortletName() +
+					PortalUtil.getPortletId(actionRequest) +
 						SessionMessages.KEY_SUFFIX_REFRESH_PORTLET_DATA,
 					data);
 			}
@@ -96,7 +98,7 @@ public class EditLayoutSetBranchAction extends EditLayoutsAction {
 		}
 		catch (Exception e) {
 			if (e instanceof LayoutSetBranchNameException) {
-				SessionErrors.add(actionRequest, e.getClass().getName(), e);
+				SessionErrors.add(actionRequest, e.getClass(), e);
 
 				sendRedirect(actionRequest, actionResponse);
 			}
@@ -115,8 +117,9 @@ public class EditLayoutSetBranchAction extends EditLayoutsAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -126,7 +129,7 @@ public class EditLayoutSetBranchAction extends EditLayoutsAction {
 			SessionErrors.add(
 				renderRequest, PrincipalException.class.getName());
 
-			return mapping.findForward("portlet.staging_bar.error");
+			return actionMapping.findForward("portlet.staging_bar.error");
 		}
 
 		try {
@@ -138,20 +141,19 @@ public class EditLayoutSetBranchAction extends EditLayoutsAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.staging_bar.error");
+				return actionMapping.findForward("portlet.staging_bar.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(
 				renderRequest, "portlet.staging_bar.edit_layout_set_branch"));
 	}
 
-	protected void deleteLayoutSetBranch(
-			ActionRequest actionRequest, PortletConfig portletConfig)
+	protected void deleteLayoutSetBranch(ActionRequest actionRequest)
 		throws Exception {
 
 		long layoutSetBranchId = ParamUtil.getLong(
@@ -163,7 +165,7 @@ public class EditLayoutSetBranchAction extends EditLayoutsAction {
 		if (layoutSetBranchId == currentLayoutBranchId) {
 			SessionMessages.add(
 				actionRequest,
-				portletConfig.getPortletName() +
+				PortalUtil.getPortletId(actionRequest) +
 					SessionMessages.KEY_SUFFIX_PORTLET_NOT_AJAXABLE);
 		}
 

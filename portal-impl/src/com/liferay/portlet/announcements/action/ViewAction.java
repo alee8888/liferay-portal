@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,8 +15,6 @@
 package com.liferay.portlet.announcements.action;
 
 import com.liferay.portal.struts.PortletAction;
-import com.liferay.portal.util.PortletKeys;
-import com.liferay.portal.util.WebKeys;
 
 import javax.portlet.PortletConfig;
 import javax.portlet.RenderRequest;
@@ -34,17 +32,12 @@ public class ViewAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
-		String portletName = portletConfig.getPortletName();
-
-		if (portletName.equals(PortletKeys.ALERTS)) {
-			renderRequest.setAttribute(WebKeys.PORTLET_DECORATE, Boolean.FALSE);
-		}
-
-		return mapping.findForward("portlet.announcements.view");
+		return actionMapping.findForward("portlet.announcements.view");
 	}
 
 }

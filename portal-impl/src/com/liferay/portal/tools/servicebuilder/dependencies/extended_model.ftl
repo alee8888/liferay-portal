@@ -1,8 +1,11 @@
 package ${packagePath}.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.util.Accessor;
 import com.liferay.portal.model.PermissionedModel;
 import com.liferay.portal.model.PersistedModel;
+import com.liferay.portal.model.TreeModel;
 
 /**
  * The extended model interface for the ${entity.name} service. Represents a row in the &quot;${entity.table}&quot; database table, with each column mapped to a property of this class.
@@ -13,14 +16,27 @@ import com.liferay.portal.model.PersistedModel;
  * @see ${packagePath}.model.impl.${entity.name}ModelImpl
  * @generated
  */
+
+<#if pluginName == "">
+	@ProviderType
+</#if>
+
 public interface ${entity.name} extends
 	${entity.name}Model
+
+	<#assign overrideColumnNames = []>
 
 	<#if entity.hasLocalService() && entity.hasColumns()>
 		<#if entity.isPermissionedModel()>
 			, PermissionedModel
 		<#else>
 			, PersistedModel
+		</#if>
+
+		<#if entity.isTreeModel()>
+			, TreeModel
+
+			<#assign overrideColumnNames = overrideColumnNames + ["buildTreePath", "updateTreePath"]>
 		</#if>
 	</#if>
 
@@ -35,6 +51,7 @@ public interface ${entity.name} extends
 	<#if entity.hasUuidAccessor()>
 		public static final Accessor<${entity.name}, String> UUID_ACCESSOR = new Accessor<${entity.name}, String>() {
 
+			@Override
 			public String get(${entity.name} ${entity.varName}) {
 				return ${entity.varName}.getUuid();
 			}
@@ -46,6 +63,7 @@ public interface ${entity.name} extends
 		<#if column.isAccessor()>
 			public static final Accessor<${entity.name}, ${serviceBuilder.getPrimitiveObj(column.type)}> ${textFormatter.format(textFormatter.format(column.name, 7), 0)}_ACCESSOR = new Accessor<${entity.name}, ${serviceBuilder.getPrimitiveObj(column.type)}>() {
 
+				@Override
 				public ${serviceBuilder.getPrimitiveObj(column.type)} get(${entity.name} ${entity.varName}) {
 					return ${entity.varName}.get${column.methodName}();
 				}
@@ -58,17 +76,29 @@ public interface ${entity.name} extends
 		<#if !method.isConstructor() && !method.isStatic() && method.isPublic()>
 			${serviceBuilder.getJavadocComment(method)}
 
+			<#assign parameters = method.parameters>
+
 			<#assign annotations = method.annotations>
 
 			<#list annotations as annotation>
 				<#if annotation.type.javaClass.name != "Override">
 					${annotation.toString()}
+				<#else>
+					<#if (method.name == "equals") && (parameters?size == 1)>
+						<#assign firstParameter = parameters?first>
+
+						<#if serviceBuilder.getTypeGenericsName(firstParameter.type) == "java.lang.Object">
+							@Override
+						</#if>
+					</#if>
 				</#if>
 			</#list>
 
-			public ${serviceBuilder.getTypeGenericsName(method.returns)} ${method.name} (
+			<#if overrideColumnNames?seq_index_of(method.name) != -1>
+				@Override
+			</#if>
 
-			<#assign parameters = method.parameters>
+			public ${serviceBuilder.getTypeGenericsName(method.returns)} ${method.name} (
 
 			<#list parameters as parameter>
 				${serviceBuilder.getTypeGenericsName(parameter.type)} ${parameter.name}

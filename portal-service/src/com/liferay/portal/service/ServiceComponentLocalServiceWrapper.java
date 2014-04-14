@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
- * <p>
- * This class is a wrapper for {@link ServiceComponentLocalService}.
- * </p>
+ * Provides a wrapper for {@link ServiceComponentLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ServiceComponentLocalService
+ * @author Brian Wing Shun Chan
+ * @see ServiceComponentLocalService
  * @generated
  */
+@ProviderType
 public class ServiceComponentLocalServiceWrapper
 	implements ServiceComponentLocalService,
 		ServiceWrapper<ServiceComponentLocalService> {
@@ -38,6 +39,7 @@ public class ServiceComponentLocalServiceWrapper
 	* @return the service component that was added
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.ServiceComponent addServiceComponent(
 		com.liferay.portal.model.ServiceComponent serviceComponent)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -50,6 +52,7 @@ public class ServiceComponentLocalServiceWrapper
 	* @param serviceComponentId the primary key for the new service component
 	* @return the new service component
 	*/
+	@Override
 	public com.liferay.portal.model.ServiceComponent createServiceComponent(
 		long serviceComponentId) {
 		return _serviceComponentLocalService.createServiceComponent(serviceComponentId);
@@ -63,6 +66,7 @@ public class ServiceComponentLocalServiceWrapper
 	* @throws PortalException if a service component with the primary key could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.ServiceComponent deleteServiceComponent(
 		long serviceComponentId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -77,12 +81,14 @@ public class ServiceComponentLocalServiceWrapper
 	* @return the service component that was removed
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.ServiceComponent deleteServiceComponent(
 		com.liferay.portal.model.ServiceComponent serviceComponent)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _serviceComponentLocalService.deleteServiceComponent(serviceComponent);
 	}
 
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _serviceComponentLocalService.dynamicQuery();
 	}
@@ -94,6 +100,7 @@ public class ServiceComponentLocalServiceWrapper
 	* @return the matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
@@ -105,7 +112,7 @@ public class ServiceComponentLocalServiceWrapper
 	* Performs a dynamic query on the database and returns a range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.ServiceComponentModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -114,6 +121,7 @@ public class ServiceComponentLocalServiceWrapper
 	* @return the range of matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
@@ -126,7 +134,7 @@ public class ServiceComponentLocalServiceWrapper
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.ServiceComponentModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -136,6 +144,7 @@ public class ServiceComponentLocalServiceWrapper
 	* @return the ordered range of matching rows
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
@@ -153,12 +162,31 @@ public class ServiceComponentLocalServiceWrapper
 	* @return the number of rows that match the dynamic query
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _serviceComponentLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _serviceComponentLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
+	@Override
 	public com.liferay.portal.model.ServiceComponent fetchServiceComponent(
 		long serviceComponentId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -173,6 +201,7 @@ public class ServiceComponentLocalServiceWrapper
 	* @throws PortalException if a service component with the primary key could not be found
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.ServiceComponent getServiceComponent(
 		long serviceComponentId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -180,6 +209,7 @@ public class ServiceComponentLocalServiceWrapper
 		return _serviceComponentLocalService.getServiceComponent(serviceComponentId);
 	}
 
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -191,7 +221,7 @@ public class ServiceComponentLocalServiceWrapper
 	* Returns a range of all the service components.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.ServiceComponentModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of service components
@@ -199,6 +229,7 @@ public class ServiceComponentLocalServiceWrapper
 	* @return the range of service components
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portal.model.ServiceComponent> getServiceComponents(
 		int start, int end)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -211,6 +242,7 @@ public class ServiceComponentLocalServiceWrapper
 	* @return the number of service components
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public int getServiceComponentsCount()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _serviceComponentLocalService.getServiceComponentsCount();
@@ -223,6 +255,7 @@ public class ServiceComponentLocalServiceWrapper
 	* @return the service component that was updated
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portal.model.ServiceComponent updateServiceComponent(
 		com.liferay.portal.model.ServiceComponent serviceComponent)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -230,26 +263,11 @@ public class ServiceComponentLocalServiceWrapper
 	}
 
 	/**
-	* Updates the service component in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param serviceComponent the service component
-	* @param merge whether to merge the service component with the current session. See {@link com.liferay.portal.service.persistence.BatchSession#update(com.liferay.portal.kernel.dao.orm.Session, com.liferay.portal.model.BaseModel, boolean)} for an explanation.
-	* @return the service component that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portal.model.ServiceComponent updateServiceComponent(
-		com.liferay.portal.model.ServiceComponent serviceComponent,
-		boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _serviceComponentLocalService.updateServiceComponent(serviceComponent,
-			merge);
-	}
-
-	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _serviceComponentLocalService.getBeanIdentifier();
 	}
@@ -259,10 +277,12 @@ public class ServiceComponentLocalServiceWrapper
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_serviceComponentLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public void destroyServiceComponent(
 		javax.servlet.ServletContext servletContext,
 		java.lang.ClassLoader classLoader)
@@ -271,6 +291,7 @@ public class ServiceComponentLocalServiceWrapper
 			classLoader);
 	}
 
+	@Override
 	public com.liferay.portal.model.ServiceComponent initServiceComponent(
 		javax.servlet.ServletContext servletContext,
 		java.lang.ClassLoader classLoader, java.lang.String buildNamespace,
@@ -282,6 +303,7 @@ public class ServiceComponentLocalServiceWrapper
 			buildAutoUpgrade);
 	}
 
+	@Override
 	public void upgradeDB(java.lang.ClassLoader classLoader,
 		java.lang.String buildNamespace, long buildNumber,
 		boolean buildAutoUpgrade,
@@ -293,30 +315,35 @@ public class ServiceComponentLocalServiceWrapper
 			sequencesSQL, indexesSQL);
 	}
 
+	@Override
 	public void verifyDB()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_serviceComponentLocalService.verifyDB();
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ServiceComponentLocalService getWrappedServiceComponentLocalService() {
 		return _serviceComponentLocalService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedServiceComponentLocalService(
 		ServiceComponentLocalService serviceComponentLocalService) {
 		_serviceComponentLocalService = serviceComponentLocalService;
 	}
 
+	@Override
 	public ServiceComponentLocalService getWrappedService() {
 		return _serviceComponentLocalService;
 	}
 
+	@Override
 	public void setWrappedService(
 		ServiceComponentLocalService serviceComponentLocalService) {
 		_serviceComponentLocalService = serviceComponentLocalService;

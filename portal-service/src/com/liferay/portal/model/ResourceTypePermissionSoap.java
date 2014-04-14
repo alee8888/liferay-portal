@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services.
  *
- * @author    Brian Wing Shun Chan
+ * @author Brian Wing Shun Chan
  * @generated
  */
 public class ResourceTypePermissionSoap implements Serializable {
@@ -30,6 +30,7 @@ public class ResourceTypePermissionSoap implements Serializable {
 		ResourceTypePermission model) {
 		ResourceTypePermissionSoap soapModel = new ResourceTypePermissionSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setResourceTypePermissionId(model.getResourceTypePermissionId());
 		soapModel.setCompanyId(model.getCompanyId());
 		soapModel.setGroupId(model.getGroupId());
@@ -91,6 +92,14 @@ public class ResourceTypePermissionSoap implements Serializable {
 		setResourceTypePermissionId(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public long getResourceTypePermissionId() {
 		return _resourceTypePermissionId;
 	}
@@ -139,6 +148,7 @@ public class ResourceTypePermissionSoap implements Serializable {
 		_actionIds = actionIds;
 	}
 
+	private long _mvccVersion;
 	private long _resourceTypePermissionId;
 	private long _companyId;
 	private long _groupId;

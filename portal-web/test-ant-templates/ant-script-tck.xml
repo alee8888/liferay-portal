@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-
-<project name="portal-test-${test.ant.script.command}" basedir="../../." default="test" xmlns:antelope="antlib:ise.antelope.tasks">
-	<import file="../../build-test-tck.xml" />
-
-	<target name="test-${test.ant.script.command}-tomcat-mysql-firefox">
-		<antcall target="run-${test.ant.script.command}-tomcat" />
-	</target>
-</project>

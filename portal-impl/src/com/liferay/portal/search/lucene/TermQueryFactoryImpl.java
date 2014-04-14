@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,10 +22,12 @@ import com.liferay.portal.kernel.search.TermQueryFactory;
  */
 public class TermQueryFactoryImpl implements TermQueryFactory {
 
+	@Override
 	public TermQuery create(String field, long value) {
 		return new TermQueryImpl(field, value);
 	}
 
+	@Override
 	public TermQuery create(String field, String value) {
 		return new TermQueryImpl(field, value);
 	}

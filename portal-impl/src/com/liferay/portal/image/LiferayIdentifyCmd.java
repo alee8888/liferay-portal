@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,21 +17,21 @@ package com.liferay.portal.image;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import jodd.util.StringPool;
-
 import org.im4java.core.IdentifyCmd;
-import org.im4java.process.ArrayListOutputConsumer;
+import org.im4java.process.ProcessTask;
 
 /**
  * @author Alexander Chow
+ * @author Ivica Cardic
  */
 public class LiferayIdentifyCmd extends IdentifyCmd {
 
-	public static String[] run(
+	public ProcessTask getProcessTask(
 			String globalSearchPath, List<String> resourceLimits,
 			List<String> commandArguments)
 		throws Exception {
@@ -55,21 +55,7 @@ public class LiferayIdentifyCmd extends IdentifyCmd {
 			_log.info("Excecuting command '" + sb.toString() + "'");
 		}
 
-		ArrayListOutputConsumer arrayListOutputConsumer =
-			new ArrayListOutputConsumer();
-
-		_instance.setOutputConsumer(arrayListOutputConsumer);
-
-		_instance.run(arguments);
-
-		List<String> output = arrayListOutputConsumer.getOutput();
-
-		if (output != null) {
-			return output.toArray(new String[0]);
-		}
-		else {
-			return new String[0];
-		}
+		return getProcessTask(arguments);
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(LiferayIdentifyCmd.class);

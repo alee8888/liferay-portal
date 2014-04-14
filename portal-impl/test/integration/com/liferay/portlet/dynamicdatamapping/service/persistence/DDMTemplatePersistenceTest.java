@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,40 +15,72 @@
 package com.liferay.portlet.dynamicdatamapping.service.persistence;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
 
 import com.liferay.portlet.dynamicdatamapping.NoSuchTemplateException;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
 import com.liferay.portlet.dynamicdatamapping.model.impl.DDMTemplateModelImpl;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class DDMTemplatePersistenceTest {
-	@Before
-	public void setUp() throws Exception {
-		_persistence = (DDMTemplatePersistence)PortalBeanLocatorUtil.locate(DDMTemplatePersistence.class.getName());
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
 	}
 
 	@Test
@@ -116,7 +148,15 @@ public class DDMTemplatePersistenceTest {
 
 		newDDMTemplate.setScript(ServiceTestUtil.randomString());
 
-		_persistence.update(newDDMTemplate, false);
+		newDDMTemplate.setCacheable(ServiceTestUtil.randomBoolean());
+
+		newDDMTemplate.setSmallImage(ServiceTestUtil.randomBoolean());
+
+		newDDMTemplate.setSmallImageId(ServiceTestUtil.nextLong());
+
+		newDDMTemplate.setSmallImageURL(ServiceTestUtil.randomString());
+
+		_persistence.update(newDDMTemplate);
 
 		DDMTemplate existingDDMTemplate = _persistence.findByPrimaryKey(newDDMTemplate.getPrimaryKey());
 
@@ -156,6 +196,249 @@ public class DDMTemplatePersistenceTest {
 			newDDMTemplate.getLanguage());
 		Assert.assertEquals(existingDDMTemplate.getScript(),
 			newDDMTemplate.getScript());
+		Assert.assertEquals(existingDDMTemplate.getCacheable(),
+			newDDMTemplate.getCacheable());
+		Assert.assertEquals(existingDDMTemplate.getSmallImage(),
+			newDDMTemplate.getSmallImage());
+		Assert.assertEquals(existingDDMTemplate.getSmallImageId(),
+			newDDMTemplate.getSmallImageId());
+		Assert.assertEquals(existingDDMTemplate.getSmallImageURL(),
+			newDDMTemplate.getSmallImageURL());
+	}
+
+	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUUID_G() {
+		try {
+			_persistence.countByUUID_G(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUUID_G(StringPool.NULL, 0L);
+
+			_persistence.countByUUID_G((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(ServiceTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByClassPK() {
+		try {
+			_persistence.countByClassPK(ServiceTestUtil.nextLong());
+
+			_persistence.countByClassPK(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByTemplateKey() {
+		try {
+			_persistence.countByTemplateKey(StringPool.BLANK);
+
+			_persistence.countByTemplateKey(StringPool.NULL);
+
+			_persistence.countByTemplateKey((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByType() {
+		try {
+			_persistence.countByType(StringPool.BLANK);
+
+			_persistence.countByType(StringPool.NULL);
+
+			_persistence.countByType((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByLanguage() {
+		try {
+			_persistence.countByLanguage(StringPool.BLANK);
+
+			_persistence.countByLanguage(StringPool.NULL);
+
+			_persistence.countByLanguage((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountBySmallImageId() {
+		try {
+			_persistence.countBySmallImageId(ServiceTestUtil.nextLong());
+
+			_persistence.countBySmallImageId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_C() {
+		try {
+			_persistence.countByG_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByG_C(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_CPK() {
+		try {
+			_persistence.countByG_CPK(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong());
+
+			_persistence.countByG_CPK(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_CPKArrayable() {
+		try {
+			_persistence.countByG_CPK(new long[] { ServiceTestUtil.nextLong(), 0L },
+				ServiceTestUtil.nextLong());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_C_C() {
+		try {
+			_persistence.countByG_C_C(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong());
+
+			_persistence.countByG_C_C(0L, 0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_C_T() {
+		try {
+			_persistence.countByG_C_T(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByG_C_T(0L, 0L, StringPool.NULL);
+
+			_persistence.countByG_C_T(0L, 0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_C_T() {
+		try {
+			_persistence.countByC_C_T(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByC_C_T(0L, 0L, StringPool.NULL);
+
+			_persistence.countByC_C_T(0L, 0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_C_C_T() {
+		try {
+			_persistence.countByG_C_C_T(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong(),
+				StringPool.BLANK);
+
+			_persistence.countByG_C_C_T(0L, 0L, 0L, StringPool.NULL);
+
+			_persistence.countByG_C_C_T(0L, 0L, 0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_C_C_T_M() {
+		try {
+			_persistence.countByG_C_C_T_M(ServiceTestUtil.nextLong(),
+				ServiceTestUtil.nextLong(), ServiceTestUtil.nextLong(),
+				StringPool.BLANK, StringPool.BLANK);
+
+			_persistence.countByG_C_C_T_M(0L, 0L, 0L, StringPool.NULL,
+				StringPool.NULL);
+
+			_persistence.countByG_C_C_T_M(0L, 0L, 0L, (String)null, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -181,6 +464,38 @@ public class DDMTemplatePersistenceTest {
 	}
 
 	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testFilterFindByGroupId() throws Exception {
+		try {
+			_persistence.filterFindByGroupId(0, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("DDMTemplate", "uuid", true,
+			"templateId", true, "groupId", true, "companyId", true, "userId",
+			true, "userName", true, "createDate", true, "modifiedDate", true,
+			"classNameId", true, "classPK", true, "templateKey", true, "name",
+			true, "description", true, "type", true, "mode", true, "language",
+			true, "script", true, "cacheable", true, "smallImage", true,
+			"smallImageId", true, "smallImageURL", true);
+	}
+
+	@Test
 	public void testFetchByPrimaryKeyExisting() throws Exception {
 		DDMTemplate newDDMTemplate = addDDMTemplate();
 
@@ -196,6 +511,26 @@ public class DDMTemplatePersistenceTest {
 		DDMTemplate missingDDMTemplate = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingDDMTemplate);
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = new DDMTemplateActionableDynamicQuery() {
+				@Override
+				protected void performAction(Object object) {
+					DDMTemplate ddmTemplate = (DDMTemplate)object;
+
+					Assert.assertNotNull(ddmTemplate);
+
+					count.increment();
+				}
+			};
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -288,8 +623,13 @@ public class DDMTemplatePersistenceTest {
 		Assert.assertEquals(existingDDMTemplateModelImpl.getGroupId(),
 			existingDDMTemplateModelImpl.getOriginalGroupId());
 
+		Assert.assertEquals(existingDDMTemplateModelImpl.getSmallImageId(),
+			existingDDMTemplateModelImpl.getOriginalSmallImageId());
+
 		Assert.assertEquals(existingDDMTemplateModelImpl.getGroupId(),
 			existingDDMTemplateModelImpl.getOriginalGroupId());
+		Assert.assertEquals(existingDDMTemplateModelImpl.getClassNameId(),
+			existingDDMTemplateModelImpl.getOriginalClassNameId());
 		Assert.assertTrue(Validator.equals(
 				existingDDMTemplateModelImpl.getTemplateKey(),
 				existingDDMTemplateModelImpl.getOriginalTemplateKey()));
@@ -332,10 +672,20 @@ public class DDMTemplatePersistenceTest {
 
 		ddmTemplate.setScript(ServiceTestUtil.randomString());
 
-		_persistence.update(ddmTemplate, false);
+		ddmTemplate.setCacheable(ServiceTestUtil.randomBoolean());
+
+		ddmTemplate.setSmallImage(ServiceTestUtil.randomBoolean());
+
+		ddmTemplate.setSmallImageId(ServiceTestUtil.nextLong());
+
+		ddmTemplate.setSmallImageURL(ServiceTestUtil.randomString());
+
+		_persistence.update(ddmTemplate);
 
 		return ddmTemplate;
 	}
 
-	private DDMTemplatePersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(DDMTemplatePersistenceTest.class);
+	private DDMTemplatePersistence _persistence = (DDMTemplatePersistence)PortalBeanLocatorUtil.locate(DDMTemplatePersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

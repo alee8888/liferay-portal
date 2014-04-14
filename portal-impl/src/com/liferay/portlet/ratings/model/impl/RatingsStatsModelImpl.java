@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -68,6 +68,8 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 		};
 	public static final String TABLE_SQL_CREATE = "create table RatingsStats (statsId LONG not null primary key,classNameId LONG,classPK LONG,totalEntries INTEGER,totalScore DOUBLE,averageScore DOUBLE)";
 	public static final String TABLE_SQL_DROP = "drop table RatingsStats";
+	public static final String ORDER_BY_JPQL = " ORDER BY ratingsStats.statsId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY RatingsStats.statsId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -82,32 +84,39 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 			true);
 	public static long CLASSNAMEID_COLUMN_BITMASK = 1L;
 	public static long CLASSPK_COLUMN_BITMASK = 2L;
+	public static long STATSID_COLUMN_BITMASK = 4L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.ratings.model.RatingsStats"));
 
 	public RatingsStatsModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _statsId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setStatsId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_statsId);
+		return _statsId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return RatingsStats.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return RatingsStats.class.getName();
 	}
@@ -122,6 +131,9 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 		attributes.put("totalEntries", getTotalEntries());
 		attributes.put("totalScore", getTotalScore());
 		attributes.put("averageScore", getAverageScore());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -165,14 +177,17 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 		}
 	}
 
+	@Override
 	public long getStatsId() {
 		return _statsId;
 	}
 
+	@Override
 	public void setStatsId(long statsId) {
 		_statsId = statsId;
 	}
 
+	@Override
 	public String getClassName() {
 		if (getClassNameId() <= 0) {
 			return StringPool.BLANK;
@@ -181,6 +196,7 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 		return PortalUtil.getClassName(getClassNameId());
 	}
 
+	@Override
 	public void setClassName(String className) {
 		long classNameId = 0;
 
@@ -191,10 +207,12 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 		setClassNameId(classNameId);
 	}
 
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
 
+	@Override
 	public void setClassNameId(long classNameId) {
 		_columnBitmask |= CLASSNAMEID_COLUMN_BITMASK;
 
@@ -211,10 +229,12 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 		return _originalClassNameId;
 	}
 
+	@Override
 	public long getClassPK() {
 		return _classPK;
 	}
 
+	@Override
 	public void setClassPK(long classPK) {
 		_columnBitmask |= CLASSPK_COLUMN_BITMASK;
 
@@ -231,43 +251,38 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 		return _originalClassPK;
 	}
 
+	@Override
 	public int getTotalEntries() {
 		return _totalEntries;
 	}
 
+	@Override
 	public void setTotalEntries(int totalEntries) {
 		_totalEntries = totalEntries;
 	}
 
+	@Override
 	public double getTotalScore() {
 		return _totalScore;
 	}
 
+	@Override
 	public void setTotalScore(double totalScore) {
 		_totalScore = totalScore;
 	}
 
+	@Override
 	public double getAverageScore() {
 		return _averageScore;
 	}
 
+	@Override
 	public void setAverageScore(double averageScore) {
 		_averageScore = averageScore;
 	}
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public RatingsStats toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (RatingsStats)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -281,6 +296,16 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public RatingsStats toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (RatingsStats)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -299,6 +324,7 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 		return ratingsStatsImpl;
 	}
 
+	@Override
 	public int compareTo(RatingsStats ratingsStats) {
 		long primaryKey = ratingsStats.getPrimaryKey();
 
@@ -315,18 +341,15 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof RatingsStats)) {
 			return false;
 		}
 
-		RatingsStats ratingsStats = null;
-
-		try {
-			ratingsStats = (RatingsStats)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		RatingsStats ratingsStats = (RatingsStats)obj;
 
 		long primaryKey = ratingsStats.getPrimaryKey();
 
@@ -341,6 +364,16 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -398,6 +431,7 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(22);
 
@@ -436,7 +470,7 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 	}
 
 	private static ClassLoader _classLoader = RatingsStats.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			RatingsStats.class
 		};
 	private long _statsId;
@@ -450,5 +484,5 @@ public class RatingsStatsModelImpl extends BaseModelImpl<RatingsStats>
 	private double _totalScore;
 	private double _averageScore;
 	private long _columnBitmask;
-	private RatingsStats _escapedModelProxy;
+	private RatingsStats _escapedModel;
 }

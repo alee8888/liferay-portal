@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,22 +28,27 @@ public class OAuthRequestImpl implements OAuthRequest {
 		_oAuthRequest = oAuthRequest;
 	}
 
+	@Override
 	public void addBodyParameter(String key, String value) {
 		_oAuthRequest.addBodyParameter(key, value);
 	}
 
+	@Override
 	public String getURL() {
 		return _oAuthRequest.getUrl();
 	}
 
+	@Override
 	public Verb getVerb() {
 		return VerbTranslator.translate(_oAuthRequest.getVerb());
 	}
 
+	@Override
 	public Object getWrappedOAuthRequest() {
 		return _oAuthRequest;
 	}
 
+	@Override
 	public OAuthResponse send() throws OAuthException {
 		try {
 			return new OAuthResponseImpl(_oAuthRequest.send());

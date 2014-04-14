@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.util;
 
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,9 +25,12 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * @author Brian Wing Shun Chan
- * @author Shuyang Zhou
+ * @author     Brian Wing Shun Chan
+ * @author     Shuyang Zhou
+ * @deprecated As of 6.2.0, replaced by {@link
+ *             com.liferay.portal.kernel.util.CookieKeys}
  */
+@Deprecated
 public class CookieUtil {
 
 	public static String get(HttpServletRequest request, String name) {
@@ -39,7 +43,7 @@ public class CookieUtil {
 		Map<String, Cookie> cookieMap = _getCookieMap(request);
 
 		if (toUpperCase) {
-			name = name.toUpperCase();
+			name = StringUtil.toUpperCase(name);
 		}
 
 		Cookie cookie = cookieMap.get(name);
@@ -74,7 +78,7 @@ public class CookieUtil {
 			for (Cookie cookie : cookies) {
 				String cookieName = GetterUtil.getString(cookie.getName());
 
-				cookieName = cookieName.toUpperCase();
+				cookieName = StringUtil.toUpperCase(cookieName);
 
 				cookieMap.put(cookieName, cookie);
 			}

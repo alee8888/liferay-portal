@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,9 +21,12 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.theme.ThemeDisplay;
 
+import java.util.Date;
 import java.util.Locale;
 
+import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
@@ -39,19 +42,52 @@ public interface AssetRenderer {
 
 	public static final String TEMPLATE_FULL_CONTENT = "full_content";
 
-	public String getAssetRendererFactoryClassName();
+	public String getAddToPagePortletId() throws Exception;
 
+	public int getAssetRendererType();
+
+	public String[] getAvailableLanguageIds() throws Exception;
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getAvailableLanguageIds}
+	 */
+	@Deprecated
 	public String[] getAvailableLocales() throws Exception;
+
+	public String getClassName();
 
 	public long getClassPK();
 
 	public String getDiscussionPath();
 
+	public Date getDisplayDate();
+
 	public long getGroupId();
 
 	public String getIconPath(PortletRequest portletRequest);
 
+	public String getNewName(String oldName, String token);
+
+	public String getPreviewPath(
+			PortletRequest portletRequest, PortletResponse portletResponse)
+		throws Exception;
+
+	public String getSearchSummary(Locale locale);
+
+	public String getSummary();
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #getSummary(PortletRequest,
+	 *             PortletResponse)}
+	 */
+	@Deprecated
 	public String getSummary(Locale locale);
+
+	public String getSummary(
+		PortletRequest portletRequest, PortletResponse portletResponse);
+
+	public String getThumbnailPath(PortletRequest portletRequest)
+		throws Exception;
 
 	public String getTitle(Locale locale);
 
@@ -62,9 +98,18 @@ public interface AssetRenderer {
 			LiferayPortletResponse liferayPortletResponse)
 		throws Exception;
 
+	public PortletURL getURLEdit(
+			LiferayPortletRequest liferayPortletRequest,
+			LiferayPortletResponse liferayPortletResponse,
+			WindowState windowState, PortletURL redirectURL)
+		throws Exception;
+
 	public PortletURL getURLExport(
 			LiferayPortletRequest liferayPortletRequest,
 			LiferayPortletResponse liferayPortletResponse)
+		throws Exception;
+
+	public String getURLImagePreview(PortletRequest portletRequest)
 		throws Exception;
 
 	public String getUrlTitle();
@@ -72,6 +117,11 @@ public interface AssetRenderer {
 	public PortletURL getURLView(
 			LiferayPortletResponse liferayPortletResponse,
 			WindowState windowState)
+		throws Exception;
+
+	public PortletURL getURLViewDiffs(
+			LiferayPortletRequest liferayPortletRequest,
+			LiferayPortletResponse liferayPortletResponse)
 		throws Exception;
 
 	public String getURLViewInContext(
@@ -107,6 +157,11 @@ public interface AssetRenderer {
 	public String render(
 			RenderRequest renderRequest, RenderResponse renderResponse,
 			String template)
+		throws Exception;
+
+	public void setAddToPagePreferences(
+			PortletPreferences preferences, String portletId,
+			ThemeDisplay themeDisplay)
 		throws Exception;
 
 }

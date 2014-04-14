@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -40,16 +40,19 @@ public class IconMinimizeTag extends IconTag {
 		setCssClass("portlet-minimize portlet-minimize-icon");
 
 		String image = null;
+		String message = null;
 
 		if (portletDisplay.isStateMin()) {
-			image = "restore";
+			image = "resize-vertical";
+			message = "restore";
 		}
 		else {
-			image = "minimize";
+			image = "minus";
+			message = "minimize";
 		}
 
-		setImage("../portlet/".concat(image));
-		setMessage(image);
+		setImage("../aui/".concat(image));
+		setMessage(message);
 
 		String onClick =
 			"Liferay.Portlet.minimize('#p_p_id_".concat(

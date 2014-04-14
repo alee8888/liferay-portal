@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -32,6 +32,14 @@ import javax.portlet.PortletPreferences;
  * @author Brian Wing Shun Chan
  */
 public class PortletSetupUtil {
+
+	public static JSONObject cssToJSONObject(PortletPreferences portletSetup)
+		throws Exception {
+
+		String css = portletSetup.getValue("portletSetupCss", StringPool.BLANK);
+
+		return _toJSONObject(portletSetup, css);
+	}
 
 	public static JSONObject cssToJSONObject(
 			PortletPreferences portletSetup, String css)
@@ -101,8 +109,8 @@ public class PortletSetupUtil {
 
 		boolean useCustomTitle = GetterUtil.getBoolean(
 			portletSetup.getValue("portletSetupUseCustomTitle", null));
-		boolean showBorders = GetterUtil.getBoolean(
-			portletSetup.getValue("portletSetupShowBorders", null), true);
+		String showBorders = GetterUtil.getString(
+			portletSetup.getValue("portletSetupShowBorders", null));
 		String linkToLayoutUuid = GetterUtil.getString(
 			portletSetup.getValue("portletSetupLinkToLayoutUuid", null));
 

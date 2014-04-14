@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,26 +30,31 @@ public class JSONSerializerImpl implements JSONSerializer {
 		_jsonSerializer = new flexjson.JSONSerializer();
 	}
 
+	@Override
 	public JSONSerializerImpl exclude(String... fields) {
 		_jsonSerializer.exclude(fields);
 
 		return this;
 	}
 
+	@Override
 	public JSONSerializerImpl include(String... fields) {
 		_jsonSerializer.include(fields);
 
 		return this;
 	}
 
+	@Override
 	public String serialize(Object target) {
 		return _jsonSerializer.serialize(target);
 	}
 
+	@Override
 	public String serializeDeep(Object target) {
 		return _jsonSerializer.deepSerialize(target);
 	}
 
+	@Override
 	public JSONSerializerImpl transform(
 		JSONTransformer jsonTransformer, Class<?>... types) {
 
@@ -67,6 +72,7 @@ public class JSONSerializerImpl implements JSONSerializer {
 		return this;
 	}
 
+	@Override
 	public JSONSerializerImpl transform(
 		JSONTransformer jsonTransformer, String... fields) {
 

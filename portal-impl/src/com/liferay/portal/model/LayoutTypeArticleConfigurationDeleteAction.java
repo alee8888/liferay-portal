@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,7 +21,6 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
-import com.liferay.portlet.journal.NoSuchContentSearchException;
 import com.liferay.portlet.journal.service.JournalContentSearchLocalServiceUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -54,13 +53,9 @@ public class LayoutTypeArticleConfigurationDeleteAction extends Action {
 				return;
 			}
 
-			try {
-				JournalContentSearchLocalServiceUtil.deleteArticleContentSearch(
-					layout.getGroupId(), layout.isPrivateLayout(),
-					layout.getLayoutId(), StringPool.BLANK, articleId);
-			}
-			catch (NoSuchContentSearchException nscse) {
-			}
+			JournalContentSearchLocalServiceUtil.deleteArticleContentSearch(
+				layout.getGroupId(), layout.isPrivateLayout(),
+				layout.getLayoutId(), StringPool.BLANK, articleId);
 		}
 		catch (Exception e) {
 			throw new ActionException(e);

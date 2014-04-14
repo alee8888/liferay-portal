@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,8 +18,12 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.Company;
+import com.liferay.portal.model.MVCCModel;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing Company in entity cache.
@@ -28,12 +32,25 @@ import java.io.Serializable;
  * @see Company
  * @generated
  */
-public class CompanyCacheModel implements CacheModel<Company>, Serializable {
+public class CompanyCacheModel implements CacheModel<Company>, Externalizable,
+	MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(21);
+		StringBundler sb = new StringBundler(23);
 
-		sb.append("{companyId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", companyId=");
 		sb.append(companyId);
 		sb.append(", accountId=");
 		sb.append(accountId);
@@ -58,9 +75,11 @@ public class CompanyCacheModel implements CacheModel<Company>, Serializable {
 		return sb.toString();
 	}
 
+	@Override
 	public Company toEntityModel() {
 		CompanyImpl companyImpl = new CompanyImpl();
 
+		companyImpl.setMvccVersion(mvccVersion);
 		companyImpl.setCompanyId(companyId);
 		companyImpl.setAccountId(accountId);
 
@@ -101,9 +120,75 @@ public class CompanyCacheModel implements CacheModel<Company>, Serializable {
 
 		companyImpl.setKeyObj(_keyObj);
 
+		companyImpl.setVirtualHostname(_virtualHostname);
+
 		return companyImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput)
+		throws ClassNotFoundException, IOException {
+		mvccVersion = objectInput.readLong();
+		companyId = objectInput.readLong();
+		accountId = objectInput.readLong();
+		webId = objectInput.readUTF();
+		key = objectInput.readUTF();
+		mx = objectInput.readUTF();
+		homeURL = objectInput.readUTF();
+		logoId = objectInput.readLong();
+		system = objectInput.readBoolean();
+		maxUsers = objectInput.readInt();
+		active = objectInput.readBoolean();
+
+		_keyObj = (java.security.Key)objectInput.readObject();
+		_virtualHostname = (java.lang.String)objectInput.readObject();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(accountId);
+
+		if (webId == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(webId);
+		}
+
+		if (key == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(key);
+		}
+
+		if (mx == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(mx);
+		}
+
+		if (homeURL == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(homeURL);
+		}
+
+		objectOutput.writeLong(logoId);
+		objectOutput.writeBoolean(system);
+		objectOutput.writeInt(maxUsers);
+		objectOutput.writeBoolean(active);
+
+		objectOutput.writeObject(_keyObj);
+		objectOutput.writeObject(_virtualHostname);
+	}
+
+	public long mvccVersion;
 	public long companyId;
 	public long accountId;
 	public String webId;
@@ -115,4 +200,5 @@ public class CompanyCacheModel implements CacheModel<Company>, Serializable {
 	public int maxUsers;
 	public boolean active;
 	public java.security.Key _keyObj;
+	public java.lang.String _virtualHostname;
 }

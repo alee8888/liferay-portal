@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,18 +16,24 @@ package com.liferay.portlet.messageboards.asset;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
+import com.liferay.portal.kernel.portlet.LiferayPortletURL;
+import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.asset.model.AssetRenderer;
 import com.liferay.portlet.messageboards.model.MBDiscussion;
 import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
+
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletURL;
+import javax.portlet.WindowState;
+import javax.portlet.WindowStateException;
 
 /**
  * @author Jorge Ferrer
  */
 public class MBDiscussionAssetRendererFactory
 	extends MBMessageAssetRendererFactory {
-
-	public static final String CLASS_NAME = MBDiscussion.class.getName();
 
 	public static final String TYPE = "discussion";
 
@@ -37,17 +43,40 @@ public class MBDiscussionAssetRendererFactory
 
 		MBMessage message = MBMessageLocalServiceUtil.getMessage(classPK);
 
-		return new MBDiscussionAssetRenderer(message);
+		MBDiscussionAssetRenderer mbDiscussionAssetRenderer =
+			new MBDiscussionAssetRenderer(message);
+
+		mbDiscussionAssetRenderer.setAssetRendererType(type);
+
+		return mbDiscussionAssetRenderer;
 	}
 
 	@Override
 	public String getClassName() {
-		return CLASS_NAME;
+		return MBDiscussion.class.getName();
 	}
 
 	@Override
 	public String getType() {
 		return TYPE;
+	}
+
+	@Override
+	public PortletURL getURLView(
+		LiferayPortletResponse liferayPortletResponse,
+		WindowState windowState) {
+
+		LiferayPortletURL liferayPortletURL =
+			liferayPortletResponse.createLiferayPortletURL(
+				PortletKeys.MESSAGE_BOARDS, PortletRequest.RENDER_PHASE);
+
+		try {
+			liferayPortletURL.setWindowState(windowState);
+		}
+		catch (WindowStateException wse) {
+		}
+
+		return liferayPortletURL;
 	}
 
 	@Override

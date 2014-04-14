@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,23 +25,19 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.SetUtil;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.model.Address;
 import com.liferay.portal.model.Group;
-import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.OrganizationConstants;
 import com.liferay.portal.service.AddressLocalServiceUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
-import com.liferay.portal.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.service.PortalPreferencesLocalServiceUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.util.UniqueList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,21 +91,14 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 	public OrganizationImpl() {
 	}
 
-	public String buildTreePath() throws PortalException, SystemException {
-		StringBundler sb = new StringBundler();
-
-		buildTreePath(sb, this);
-
-		return sb.toString();
-	}
-
+	@Override
 	public Address getAddress() {
 		Address address = null;
 
 		try {
 			List<Address> addresses = getAddresses();
 
-			if (addresses.size() > 0) {
+			if (!addresses.isEmpty()) {
 				address = addresses.get(0);
 			}
 		}
@@ -124,11 +113,13 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 		return address;
 	}
 
+	@Override
 	public List<Address> getAddresses() throws SystemException {
 		return AddressLocalServiceUtil.getAddresses(
 			getCompanyId(), Organization.class.getName(), getOrganizationId());
 	}
 
+	@Override
 	public List<Organization> getAncestors()
 		throws PortalException, SystemException {
 
@@ -136,24 +127,21 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 
 		Organization organization = this;
 
-		while (true) {
-			if (!organization.isRoot()) {
-				organization = organization.getParentOrganization();
+		while (!organization.isRoot()) {
+			organization = organization.getParentOrganization();
 
-				ancestors.add(organization);
-			}
-			else {
-				break;
-			}
+			ancestors.add(organization);
 		}
 
 		return ancestors;
 	}
 
+	@Override
 	public String[] getChildrenTypes() {
 		return getChildrenTypes(getType());
 	}
 
+	@Override
 	public List<Organization> getDescendants() throws SystemException {
 		List<Organization> descendants = new UniqueList<Organization>();
 
@@ -165,6 +153,7 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 		return descendants;
 	}
 
+	@Override
 	public Group getGroup() {
 		if (getOrganizationId() > 0) {
 			try {
@@ -179,38 +168,14 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 		return new GroupImpl();
 	}
 
+	@Override
 	public long getGroupId() {
 		Group group = getGroup();
 
 		return group.getGroupId();
 	}
 
-	public long getLogoId() {
-		long logoId = 0;
-
-		try {
-			Group group = getGroup();
-
-			LayoutSet publicLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
-				group.getGroupId(), false);
-
-			logoId = publicLayoutSet.getLogoId();
-
-			if (logoId == 0) {
-				LayoutSet privateLayoutSet =
-					LayoutSetLocalServiceUtil.getLayoutSet(
-						group.getGroupId(), true);
-
-				logoId = privateLayoutSet.getLogoId();
-			}
-		}
-		catch (Exception e) {
-			_log.error(e);
-		}
-
-		return logoId;
-	}
-
+	@Override
 	public Organization getParentOrganization()
 		throws PortalException, SystemException {
 
@@ -224,15 +189,16 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 			getParentOrganizationId());
 	}
 
+	@Override
 	public PortletPreferences getPreferences() throws SystemException {
-		long companyId = getCompanyId();
 		long ownerId = getOrganizationId();
 		int ownerType = PortletKeys.PREFS_OWNER_TYPE_ORGANIZATION;
 
 		return PortalPreferencesLocalServiceUtil.getPreferences(
-			companyId, ownerId, ownerType);
+			ownerId, ownerType);
 	}
 
+	@Override
 	public int getPrivateLayoutsPageCount() {
 		try {
 			Group group = getGroup();
@@ -251,6 +217,7 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 		return 0;
 	}
 
+	@Override
 	public int getPublicLayoutsPageCount() {
 		try {
 			Group group = getGroup();
@@ -269,12 +236,14 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 		return 0;
 	}
 
+	@Override
 	public Set<String> getReminderQueryQuestions(Locale locale)
 		throws SystemException {
 
 		return getReminderQueryQuestions(LanguageUtil.getLanguageId(locale));
 	}
 
+	@Override
 	public Set<String> getReminderQueryQuestions(String languageId)
 		throws SystemException {
 
@@ -287,18 +256,19 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 		return SetUtil.fromArray(questions);
 	}
 
+	@Override
 	public List<Organization> getSuborganizations() throws SystemException {
-		return OrganizationLocalServiceUtil.search(
-			getCompanyId(), getOrganizationId(), null, null, null, null, null,
-			0, getSuborganizationsSize());
+		return OrganizationLocalServiceUtil.getSuborganizations(
+			getCompanyId(), getOrganizationId());
 	}
 
+	@Override
 	public int getSuborganizationsSize() throws SystemException {
-		return OrganizationLocalServiceUtil.searchCount(
-			getCompanyId(), getOrganizationId(), null, null, null, null, null,
-			null, null, null, true);
+		return OrganizationLocalServiceUtil.getSuborganizationsCount(
+			getCompanyId(), getOrganizationId());
 	}
 
+	@Override
 	public int getTypeOrder() {
 		String[] types = PropsValues.ORGANIZATIONS_TYPES;
 
@@ -313,6 +283,7 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 		return 0;
 	}
 
+	@Override
 	public boolean hasPrivateLayouts() {
 		if (getPrivateLayoutsPageCount() > 0) {
 			return true;
@@ -322,6 +293,7 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 		}
 	}
 
+	@Override
 	public boolean hasPublicLayouts() {
 		if (getPublicLayoutsPageCount() > 0) {
 			return true;
@@ -331,6 +303,7 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 		}
 	}
 
+	@Override
 	public boolean hasSuborganizations() throws SystemException {
 		if (getSuborganizationsSize() > 0) {
 			return true;
@@ -340,35 +313,22 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 		}
 	}
 
+	@Override
 	public boolean isParentable() {
 		return isParentable(getType());
 	}
 
+	@Override
 	public boolean isRoot() {
 		if (getParentOrganizationId() ==
 				OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID) {
 
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
-	protected void buildTreePath(StringBundler sb, Organization organization)
-		throws PortalException, SystemException {
-
-		if (organization == null) {
-			sb.append(StringPool.SLASH);
-		}
-		else {
-			buildTreePath(sb, organization.getParentOrganization());
-
-			sb.append(organization.getOrganizationId());
-			sb.append(StringPool.SLASH);
-		}
-	}
-
-	private static Log _log = LogFactoryUtil.getLog(Organization.class);
+	private static Log _log = LogFactoryUtil.getLog(OrganizationImpl.class);
 
 }

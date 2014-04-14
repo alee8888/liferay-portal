@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE resource-action-mapping PUBLIC "-//Liferay//DTD Resource Action Mapping 6.1.0//EN" "http://www.liferay.com/dtd/liferay-resource-action-mapping_6_1_0.dtd">
+<!DOCTYPE resource-action-mapping PUBLIC "-//Liferay//DTD Resource Action Mapping 7.0.0//EN" "http://www.liferay.com/dtd/liferay-resource-action-mapping_7_0_0.dtd">
 
 <resource-action-mapping>
 	<portlet-resource>
@@ -31,7 +31,6 @@
 			<guest-defaults />
 			<guest-unsupported>
 				<action-key>CONFIGURATION</action-key>
-				<action-key>VIEW</action-key>
 			</guest-unsupported>
 		</permissions>
 	</portlet-resource>
@@ -40,6 +39,7 @@
 		<permissions>
 			<supports>
 				<action-key>ADD_COMMUNITY</action-key>
+				<action-key>ADD_GENERAL_ANNOUNCEMENTS</action-key>
 				<action-key>ADD_LAYOUT_PROTOTYPE</action-key>
 				<action-key>ADD_LAYOUT_SET_PROTOTYPE</action-key>
 				<action-key>ADD_LICENSE</action-key>
@@ -317,14 +317,65 @@
 			</guest-unsupported>
 		</permissions>
 	</portlet-resource>
+	<portlet-resource>
+		<portlet-name>186</portlet-name>
+		<permissions>
+			<supports>
+				<action-key>ADD_TO_PAGE</action-key>
+				<action-key>CONFIGURATION</action-key>
+				<action-key>VIEW</action-key>
+			</supports>
+			<site-member-defaults />
+			<guest-defaults />
+			<guest-unsupported>
+				<action-key>CONFIGURATION</action-key>
+				<action-key>VIEW</action-key>
+			</guest-unsupported>
+		</permissions>
+	</portlet-resource>
+	<portlet-resource>
+		<portlet-name>187</portlet-name>
+		<permissions>
+			<supports>
+				<action-key>ADD_TO_PAGE</action-key>
+				<action-key>CONFIGURATION</action-key>
+				<action-key>VIEW</action-key>
+			</supports>
+			<site-member-defaults />
+			<guest-defaults />
+			<guest-unsupported>
+				<action-key>CONFIGURATION</action-key>
+			</guest-unsupported>
+		</permissions>
+	</portlet-resource>
+	<portlet-resource>
+		<portlet-name>188</portlet-name>
+		<permissions>
+			<supports>
+				<action-key>ADD_TO_PAGE</action-key>
+				<action-key>CONFIGURATION</action-key>
+				<action-key>VIEW</action-key>
+			</supports>
+			<site-member-defaults />
+			<guest-defaults />
+			<guest-unsupported>
+				<action-key>CONFIGURATION</action-key>
+				<action-key>VIEW</action-key>
+			</guest-unsupported>
+		</permissions>
+	</portlet-resource>
 	<model-resource>
 		<model-name>com.liferay.portal.model.Group</model-name>
 		<portlet-ref>
-			<portlet-name>125</portlet-name>
 			<portlet-name>134</portlet-name>
+			<portlet-name>156</portlet-name>
+			<portlet-name>165</portlet-name>
+			<portlet-name>174</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
+				<action-key>ADD_COMMUNITY</action-key>
 				<action-key>ADD_LAYOUT</action-key>
 				<action-key>ADD_LAYOUT_BRANCH</action-key>
 				<action-key>ADD_LAYOUT_SET_BRANCH</action-key>
@@ -341,16 +392,19 @@
 				<action-key>MANAGE_SUBGROUPS</action-key>
 				<action-key>MANAGE_TEAMS</action-key>
 				<action-key>PERMISSIONS</action-key>
+				<action-key>PREVIEW_IN_DEVICE</action-key>
 				<action-key>PUBLISH_STAGING</action-key>
 				<action-key>PUBLISH_TO_REMOTE</action-key>
 				<action-key>UPDATE</action-key>
 				<action-key>VIEW</action-key>
 				<action-key>VIEW_MEMBERS</action-key>
+				<action-key>VIEW_SITE_ADMINISTRATION</action-key>
 				<action-key>VIEW_STAGING</action-key>
 			</supports>
 			<site-member-defaults />
 			<guest-defaults />
 			<guest-unsupported>
+				<action-key>ADD_COMMUNITY</action-key>
 				<action-key>ADD_LAYOUT</action-key>
 				<action-key>ADD_LAYOUT_BRANCH</action-key>
 				<action-key>ADD_LAYOUT_SET_BRANCH</action-key>
@@ -366,6 +420,7 @@
 				<action-key>MANAGE_SUBGROUPS</action-key>
 				<action-key>MANAGE_TEAMS</action-key>
 				<action-key>PERMISSIONS</action-key>
+				<action-key>PREVIEW_IN_DEVICE</action-key>
 				<action-key>PUBLISH_STAGING</action-key>
 				<action-key>PUBLISH_TO_REMOTE</action-key>
 				<action-key>UPDATE</action-key>
@@ -378,9 +433,9 @@
 	<model-resource>
 		<model-name>com.liferay.portal.model.LayoutBranch</model-name>
 		<portlet-ref>
-			<portlet-name>125</portlet-name>
-			<portlet-name>134</portlet-name>
+			<portlet-name>156</portlet-name>
 		</portlet-ref>
+		<weight>3</weight>
 		<permissions>
 			<supports>
 				<action-key>DELETE</action-key>
@@ -399,9 +454,9 @@
 	<model-resource>
 		<model-name>com.liferay.portal.model.LayoutSetBranch</model-name>
 		<portlet-ref>
-			<portlet-name>125</portlet-name>
-			<portlet-name>134</portlet-name>
+			<portlet-name>156</portlet-name>
 		</portlet-ref>
+		<weight>4</weight>
 		<permissions>
 			<supports>
 				<action-key>DELETE</action-key>
@@ -424,6 +479,7 @@
 		<portlet-ref>
 			<portlet-name>146</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>DELETE</action-key>
@@ -447,6 +503,7 @@
 		<portlet-ref>
 			<portlet-name>149</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>DELETE</action-key>
@@ -470,8 +527,10 @@
 		<portlet-ref>
 			<portlet-name>125</portlet-name>
 		</portlet-ref>
+		<weight>2</weight>
 		<permissions>
 			<supports>
+				<action-key>ADD_ORGANIZATION</action-key>
 				<action-key>ASSIGN_MEMBERS</action-key>
 				<action-key>ASSIGN_USER_ROLES</action-key>
 				<action-key>DELETE</action-key>
@@ -481,10 +540,12 @@
 				<action-key>PERMISSIONS</action-key>
 				<action-key>UPDATE</action-key>
 				<action-key>VIEW</action-key>
+				<action-key>VIEW_MEMBERS</action-key>
 			</supports>
 			<site-member-defaults />
 			<guest-defaults />
 			<guest-unsupported>
+				<action-key>ADD_ORGANIZATION</action-key>
 				<action-key>ASSIGN_MEMBERS</action-key>
 				<action-key>ASSIGN_USER_ROLES</action-key>
 				<action-key>DELETE</action-key>
@@ -494,6 +555,7 @@
 				<action-key>PERMISSIONS</action-key>
 				<action-key>UPDATE</action-key>
 				<action-key>VIEW</action-key>
+				<action-key>VIEW_MEMBERS</action-key>
 			</guest-unsupported>
 		</permissions>
 	</model-resource>
@@ -502,6 +564,7 @@
 		<portlet-ref>
 			<portlet-name>129</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>ASSIGN_MEMBERS</action-key>
@@ -526,6 +589,7 @@
 		<portlet-ref>
 			<portlet-name>128</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>ASSIGN_MEMBERS</action-key>
@@ -554,6 +618,7 @@
 		<portlet-ref>
 			<portlet-name>125</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>DELETE</action-key>
@@ -576,8 +641,9 @@
 	<model-resource>
 		<model-name>com.liferay.portal.model.UserGroup</model-name>
 		<portlet-ref>
-			<portlet-name>125</portlet-name>
+			<portlet-name>127</portlet-name>
 		</portlet-ref>
+		<weight>1</weight>
 		<permissions>
 			<supports>
 				<action-key>ASSIGN_MEMBERS</action-key>

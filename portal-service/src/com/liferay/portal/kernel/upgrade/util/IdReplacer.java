@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -110,8 +110,8 @@ public class IdReplacer {
 			else {
 				sb.append(s.substring(pos, x + begin.length()));
 
-				Long oldValue = new Long(GetterUtil.getLong(
-					s.substring(x + begin.length(), y)));
+				Long oldValue = new Long(
+					GetterUtil.getLong(s.substring(x + begin.length(), y)));
 
 				Long newValue = null;
 

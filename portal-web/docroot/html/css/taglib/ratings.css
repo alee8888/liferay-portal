@@ -1,45 +1,66 @@
-.taglib-ratings.stars {
-	overflow: hidden;
-	padding-top: 10px;
+@import "mixins";
+
+.taglib-ratings {
+	&.stars {
+		margin: 1.5em 0 0;
+		overflow: hidden;
+
+		.liferay-rating-score {
+			padding-left: 15px;
+		}
+
+		.liferay-rating-vote, .liferay-rating-score {
+			float: left;
+		}
+	}
+
+	.rating-content {
+		display: block;
+	}
+
+	&.score {
+		white-space: nowrap;
+	}
+
+	&.thumbs {
+		float: left;
+		margin: 10px 0;
+
+		.thumbrating {
+			height: 20px;
+
+			.rating-label {
+				display: inline-block;
+				padding: 0 5px;
+			}
+
+			@include respond-to(phone, tablet) {
+				a {
+					font-size: 1.5em;
+				}
+			}
+		}
+	}
+
+	.rating-element {
+		padding-right: 4px;
+	}
+
+	.rating-input-container .rating-input {
+		margin-left: 1px;
+	}
 }
 
-.taglib-ratings.stars .liferay-rating-score {
-	padding-left: 15px;
-}
-
-.taglib-ratings .aui-rating-content {
-	display: block;
-}
-
-.taglib-ratings.stars .liferay-rating-vote, .taglib-ratings.stars .liferay-rating-score {
-	float: left;
-}
-
-.ie6 .taglib-ratings .aui-rating-content {
-	display: inline;
-}
-
-.ie6 .taglib-ratings.stars {
-	display: inline-block;
-}
-
-.taglib-ratings.score {
-	white-space: nowrap;
-}
-
-.taglib-ratings.thumbs .aui-thumbrating {
-	height: 20px;
-}
-
-.taglib-ratings.thumbs .aui-thumbrating .aui-rating-label-element {
-	padding: 0 5px;
-}
-
-.taglib-ratings.thumbs {
-	float: left;
-	margin: 0;
-}
-
-.js .taglib-ratings .liferay-rating-vote .aui-field {
+.js .taglib-ratings .liferay-rating-vote .rating-input-container {
 	display: none;
+}
+
+.ie6 .taglib-ratings {
+	.rating-content {
+		display: inline;
+	}
+
+	&.stars {
+		display: inline-block;
+	}
 }

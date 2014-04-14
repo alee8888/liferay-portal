@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,8 +24,14 @@ public class UnorderedListNode extends BaseListNode {
 	public UnorderedListNode() {
 	}
 
-	public UnorderedListNode(CollectionNode collectionNode) {
-		super(collectionNode);
+	public UnorderedListNode(BaseParentableNode baseParentableNode) {
+		super(baseParentableNode, null);
+	}
+
+	public UnorderedListNode(
+		BaseParentableNode baseParentableNode, CollectionNode collectionNode) {
+
+		super(baseParentableNode, collectionNode);
 	}
 
 	public UnorderedListNode(int tokenType) {

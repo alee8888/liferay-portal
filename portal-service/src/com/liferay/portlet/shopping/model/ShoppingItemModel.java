@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.shopping.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -40,6 +42,7 @@ import java.util.Date;
  * @see com.liferay.portlet.shopping.model.impl.ShoppingItemModelImpl
  * @generated
  */
+@ProviderType
 public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -80,6 +83,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 *
 	 * @return the group ID of this shopping item
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -87,6 +91,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 *
 	 * @param groupId the group ID of this shopping item
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -94,6 +99,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 *
 	 * @return the company ID of this shopping item
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -101,6 +107,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 *
 	 * @param companyId the company ID of this shopping item
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -108,6 +115,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 *
 	 * @return the user ID of this shopping item
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -115,6 +123,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 *
 	 * @param userId the user ID of this shopping item
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
@@ -123,6 +132,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 * @return the user uuid of this shopping item
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public String getUserUuid() throws SystemException;
 
 	/**
@@ -130,6 +140,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 *
 	 * @param userUuid the user uuid of this shopping item
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -138,6 +149,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 * @return the user name of this shopping item
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -145,6 +157,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 *
 	 * @param userName the user name of this shopping item
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -152,6 +165,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 *
 	 * @return the create date of this shopping item
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -159,6 +173,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 *
 	 * @param createDate the create date of this shopping item
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -166,6 +181,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 *
 	 * @return the modified date of this shopping item
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -173,6 +189,7 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 *
 	 * @param modifiedDate the modified date of this shopping item
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -624,35 +641,60 @@ public interface ShoppingItemModel extends BaseModel<ShoppingItem>, GroupedModel
 	 */
 	public void setLargeImageURL(String largeImageURL);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(ShoppingItem shoppingItem);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<ShoppingItem> toCacheModel();
 
+	@Override
 	public ShoppingItem toEscapedModel();
 
+	@Override
+	public ShoppingItem toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

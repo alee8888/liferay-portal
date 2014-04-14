@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,7 +21,7 @@ boolean showListed = GetterUtil.getBoolean((String)request.getAttribute("liferay
 String targetPortletId = (String)request.getAttribute("liferay-ui:journal-content-search:targetPortletId");
 String type = (String)request.getAttribute("liferay-ui:journal-content-search:type");
 
-String defaultKeywords = LanguageUtil.get(pageContext, "search") + "...";
+String defaultKeywords = LanguageUtil.get(pageContext, "search") + StringPool.TRIPLE_PERIOD;
 String unicodeDefaultKeywords = UnicodeFormatter.toString(defaultKeywords);
 
 String keywords = ParamUtil.getString(request, namespace + "keywords", defaultKeywords);
@@ -37,9 +37,6 @@ else {
 	portletURL = new PortletURLImpl(request, PortletKeys.JOURNAL_CONTENT_SEARCH, plid, PortletRequest.RENDER_PHASE);
 }
 
-portletURL.setWindowState(WindowState.MAXIMIZED);
-portletURL.setPortletMode(PortletMode.VIEW);
-
 portletURL.setParameter("struts_action", "/journal_content_search/search");
 portletURL.setParameter("showListed", String.valueOf(showListed));
 
@@ -50,9 +47,12 @@ if (Validator.isNotNull(targetPortletId)) {
 if (Validator.isNotNull(type)) {
 	portletURL.setParameter("type", type);
 }
+
+portletURL.setPortletMode(PortletMode.VIEW);
+portletURL.setWindowState(WindowState.MAXIMIZED);
 %>
 
-<form action="<%= HtmlUtil.escape(portletURL.toString()) %>" class="aui-form" method="post" name="<%= namespace %>fm" onSubmit="submitForm(this); return false;">
+<form action="<%= HtmlUtil.escape(portletURL.toString()) %>" class="form" method="post" name="<%= namespace %>fm" onSubmit="submitForm(this); return false;">
 
 <%
 String taglibOnBlur = "if (this.value == '') { this.value = '" + unicodeDefaultKeywords + "'; }";
@@ -61,4 +61,4 @@ String taglibOnFocus = "if (this.value == '" + unicodeDefaultKeywords + "') { th
 
 <aui:input cssClass="lfr-search-keywords" inlineField="<%= true %>" label="" name="keywords" onBlur="<%= taglibOnBlur %>" onFocus="<%= taglibOnFocus %>" size="30" title="search-web-content" type="text" value="<%= HtmlUtil.escape(keywords) %>" />
 
-<aui:input alt="search" cssClass="lfr-search-button" inlineField="<%= true %>" label="" name="search" src='<%= themeDisplay.getPathThemeImages() + "/common/search.png" %>' type="image" />
+<aui:input cssClass="lfr-search-button" inlineField="<%= true %>" name="search" src='<%= themeDisplay.getPathThemeImages() + "/common/search.png" %>' type="image" />

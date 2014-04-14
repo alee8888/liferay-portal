@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.Website;
 import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.WebsiteServiceBaseImpl;
 import com.liferay.portal.service.permission.CommonPermissionUtil;
 
@@ -29,6 +30,12 @@ import java.util.List;
  */
 public class WebsiteServiceImpl extends WebsiteServiceBaseImpl {
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #addWebsite(String, long,
+	 *             String, int, boolean, ServiceContext)}
+	 */
+	@Deprecated
+	@Override
 	public Website addWebsite(
 			String className, long classPK, String url, int typeId,
 			boolean primary)
@@ -41,6 +48,21 @@ public class WebsiteServiceImpl extends WebsiteServiceBaseImpl {
 			getUserId(), className, classPK, url, typeId, primary);
 	}
 
+	@Override
+	public Website addWebsite(
+			String className, long classPK, String url, int typeId,
+			boolean primary, ServiceContext serviceContext)
+		throws PortalException, SystemException {
+
+		CommonPermissionUtil.check(
+			getPermissionChecker(), className, classPK, ActionKeys.UPDATE);
+
+		return websiteLocalService.addWebsite(
+			getUserId(), className, classPK, url, typeId, primary,
+			serviceContext);
+	}
+
+	@Override
 	public void deleteWebsite(long websiteId)
 		throws PortalException, SystemException {
 
@@ -50,9 +72,10 @@ public class WebsiteServiceImpl extends WebsiteServiceBaseImpl {
 			getPermissionChecker(), website.getClassNameId(),
 			website.getClassPK(), ActionKeys.UPDATE);
 
-		websiteLocalService.deleteWebsite(websiteId);
+		websiteLocalService.deleteWebsite(website);
 	}
 
+	@Override
 	public Website getWebsite(long websiteId)
 		throws PortalException, SystemException {
 
@@ -65,6 +88,7 @@ public class WebsiteServiceImpl extends WebsiteServiceBaseImpl {
 		return website;
 	}
 
+	@Override
 	public List<Website> getWebsites(String className, long classPK)
 		throws PortalException, SystemException {
 
@@ -77,6 +101,7 @@ public class WebsiteServiceImpl extends WebsiteServiceBaseImpl {
 			user.getCompanyId(), className, classPK);
 	}
 
+	@Override
 	public Website updateWebsite(
 			long websiteId, String url, int typeId, boolean primary)
 		throws PortalException, SystemException {

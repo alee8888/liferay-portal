@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -45,6 +45,9 @@ public interface JavaConstants {
 		"javax.portlet.short-title";
 
 	public static final String JAVAX_PORTLET_TITLE = "javax.portlet.title";
+
+	public static final String JAVAX_SERVLET_CONTEXT_TEMPDIR =
+		"javax.servlet.context.tempdir";
 
 	public static final String JAVAX_SERVLET_ERROR_EXCEPTION =
 		"javax.servlet.error.exception";

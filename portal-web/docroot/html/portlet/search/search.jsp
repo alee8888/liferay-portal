@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,8 +34,6 @@ else {
 
 long groupId = ParamUtil.getLong(request, "groupId");
 
-Group group = themeDisplay.getScopeGroup();
-
 String keywords = ParamUtil.getString(request, "keywords");
 
 String format = ParamUtil.getString(request, "format");
@@ -50,31 +48,24 @@ portletURL.setParameter("keywords", keywords);
 portletURL.setParameter("format", format);
 
 request.setAttribute("search.jsp-portletURL", portletURL);
+request.setAttribute("search.jsp-returnToFullPageURL", portletDisplay.getURLBack());
 %>
 
 <liferay-portlet:renderURL varImpl="searchURL">
 	<portlet:param name="struts_action" value="/search/search" />
 </liferay-portlet:renderURL>
 
-<aui:form action="<%= searchURL %>" method="get" name="fm" onSubmit='<%= "event.preventDefault();" %>'>
+<aui:form action="<%= searchURL %>" method="get" name="fm" onSubmit="event.preventDefault();">
 	<liferay-portlet:renderURLParams varImpl="searchURL" />
+	<aui:input name="<%= SearchContainer.DEFAULT_CUR_PARAM %>" type="hidden" value="<%= ParamUtil.getInteger(request, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_CUR) %>" />
 	<aui:input name="format" type="hidden" value="<%= format %>" />
 
-	<aui:fieldset>
-		<aui:input inlineField="<%= true %>" label="" name="keywords" size="30" value="<%= HtmlUtil.escape(keywords) %>" />
+	<aui:fieldset id="searchContainer">
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" hideLabel="<%= true %>" inlineField="<%= true %>" label="search" name="keywords" size="30" value="<%= HtmlUtil.escape(keywords) %>" />
 
-		<aui:select inlineField="<%= true %>" label="" name="groupId">
-			<aui:option label="everything" selected="<%= groupId == 0 %>" value="0" />
-			<aui:option label='<%= "this-" + (group.isOrganization() ? "organization" : "site") %>' selected="<%= groupId != 0 %>" value="<%= group.getGroupId() %>" />
-		</aui:select>
+		<aui:input inlineField="<%= true %>" name="search" src='<%= themeDisplay.getPathThemeImages() + "/common/search.png" %>' title="search" type="image" />
 
-		<aui:button align="absmiddle" border="0" name="search" onClick='<%= renderResponse.getNamespace() + "search();" %>' src='<%= themeDisplay.getPathThemeImages() + "/common/search.png" %>' title="search" type="image" />
-
-		<portlet:renderURL copyCurrentRenderParameters="<%= false %>" var="clearSearchURL">
-			<portlet:param name="groupId" value="0" />
-		</portlet:renderURL>
-
-		<aui:button align="absmiddle" border="0" href="<%= clearSearchURL %>" name="clear-search" src='<%= themeDisplay.getPathThemeImages() + "/common/close.png" %>' title="clear-search" type="image" />
+		<aui:input inlineField="<%= true %>" name="clearSearch" src='<%= themeDisplay.getPathThemeImages() + "/common/close.png" %>' title="clear-search" type="image" />
 	</aui:fieldset>
 
 	<div class="lfr-token-list" id="<portlet:namespace />searchTokens">
@@ -128,10 +119,29 @@ request.setAttribute("search.jsp-portletURL", portletURL);
 </aui:form>
 
 <aui:script use="aui-base">
-	var pageLinks = A.one('.portlet-search .result .page-links');
+	A.on(
+		'click',
+		function(event) {
+			var targetId = event.target.get('id');
 
-	if (pageLinks) {
-		pageLinks.delegate(
+			if (targetId === '<portlet:namespace />search') {
+				<portlet:namespace />search();
+			}
+			else if (targetId === '<portlet:namespace />clearSearch') {
+				<portlet:renderURL copyCurrentRenderParameters="<%= false %>" var="clearSearchURL">
+					<portlet:param name="groupId" value="0" />
+				</portlet:renderURL>
+
+				window.location.href = '<%= clearSearchURL %>';
+			}
+		},
+		'#<portlet:namespace />searchContainer'
+	);
+
+	var searchContainer = A.one('.portlet-search .result .lfr-search-container');
+
+	if (searchContainer) {
+		searchContainer.delegate(
 			'click',
 			function(event) {
 				document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value = 1;
@@ -140,40 +150,42 @@ request.setAttribute("search.jsp-portletURL", portletURL);
 
 				event.preventDefault();
 			},
-			'a.first'
+			'.page-links a.first'
 		);
 
-		pageLinks.delegate(
+		searchContainer.delegate(
 			'click',
 			function(event) {
-				submitForm(document.<portlet:namespace />fm);
-
-				event.preventDefault();
-			},
-			'a.previous'
-		);
-
-		pageLinks.delegate(
-			'click',
-			function(event) {
-				document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value = parseInt(document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value) + 2;
+				document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value = parseInt(document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value) - 1;
 
 				submitForm(document.<portlet:namespace />fm);
 
 				event.preventDefault();
 			},
-			'a.next'
+			'.page-links a.previous'
+		);
+
+		searchContainer.delegate(
+			'click',
+			function(event) {
+				document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value = parseInt(document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value) + 1;
+
+				submitForm(document.<portlet:namespace />fm);
+
+				event.preventDefault();
+			},
+			'.page-links a.next'
 		);
 	}
 
-	var resultsGrid = A.one('.portlet-search .result .results-grid');
+	var resultsGrid = A.one('.portlet-search .result .searchcontainer-content');
 
 	if (resultsGrid) {
 		resultsGrid.delegate(
 			'click',
 			function(event) {
 				var handle = event.currentTarget;
-				var rowTD = handle.ancestor('.results-row td');
+				var rowTD = handle.ancestor('.table-cell');
 
 				var documentFields = rowTD.one('.asset-entry .asset-entry-fields');
 
@@ -186,7 +198,7 @@ request.setAttribute("search.jsp-portletURL", portletURL);
 					handle.text('[+]');
 				}
 			},
-			'.results-row td .asset-entry .toggle-details'
+			'.table-cell .asset-entry .toggle-details'
 		);
 	}
 
@@ -203,6 +215,8 @@ request.setAttribute("search.jsp-portletURL", portletURL);
 		window,
 		'<portlet:namespace />search',
 		function() {
+			document.<portlet:namespace />fm.<portlet:namespace /><%= SearchContainer.DEFAULT_CUR_PARAM %>.value = 1;
+
 			var keywords = document.<portlet:namespace />fm.<portlet:namespace />keywords.value;
 
 			keywords = keywords.replace(/^\s+|\s+$/, '');
@@ -213,10 +227,6 @@ request.setAttribute("search.jsp-portletURL", portletURL);
 		},
 		['aui-base']
 	);
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />keywords);
-	</c:if>
 </aui:script>
 
 <%

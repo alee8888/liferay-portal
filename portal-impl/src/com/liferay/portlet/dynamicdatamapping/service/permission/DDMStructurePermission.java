@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,8 @@ package com.liferay.portlet.dynamicdatamapping.service.permission;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
@@ -37,6 +39,19 @@ public class DDMStructurePermission {
 	}
 
 	public static void check(
+			PermissionChecker permissionChecker, long groupId, long classNameId,
+			String structureKey, String actionId)
+		throws PortalException, SystemException {
+
+		if (!contains(
+				permissionChecker, groupId, classNameId, structureKey,
+				actionId)) {
+
+			throw new PrincipalException();
+		}
+	}
+
+	public static void check(
 			PermissionChecker permissionChecker, long structureId,
 			String actionId)
 		throws PortalException, SystemException {
@@ -46,19 +61,27 @@ public class DDMStructurePermission {
 		}
 	}
 
-	public static void check(
-			PermissionChecker permissionChecker, long groupId,
-			String structureKey, String actionId)
-		throws PortalException, SystemException {
+	public static boolean contains(
+		PermissionChecker permissionChecker, DDMStructure structure,
+		String actionId) {
 
-		if (!contains(permissionChecker, groupId, structureKey, actionId)) {
-			throw new PrincipalException();
-		}
+		return contains(permissionChecker, structure, null, actionId);
 	}
 
 	public static boolean contains(
 		PermissionChecker permissionChecker, DDMStructure structure,
-		String actionId) {
+		String portletId, String actionId) {
+
+		if (Validator.isNotNull(portletId)) {
+			Boolean hasPermission = StagingPermissionUtil.hasPermission(
+				permissionChecker, structure.getGroupId(),
+				DDMStructure.class.getName(), structure.getStructureId(),
+				portletId, actionId);
+
+			if (hasPermission != null) {
+				return hasPermission.booleanValue();
+			}
+		}
 
 		if (permissionChecker.hasOwnerPermission(
 				structure.getCompanyId(), DDMStructure.class.getName(),
@@ -73,25 +96,33 @@ public class DDMStructurePermission {
 	}
 
 	public static boolean contains(
-			PermissionChecker permissionChecker, long structureId,
-			String actionId)
+			PermissionChecker permissionChecker, long groupId, long classNameId,
+			String structureKey, String actionId)
 		throws PortalException, SystemException {
 
 		DDMStructure structure = DDMStructureLocalServiceUtil.getStructure(
-			structureId);
+			groupId, classNameId, structureKey);
 
 		return contains(permissionChecker, structure, actionId);
 	}
 
 	public static boolean contains(
-			PermissionChecker permissionChecker, long groupId,
-			String structureKey, String actionId)
+			PermissionChecker permissionChecker, long structureId,
+			String actionId)
+		throws PortalException, SystemException {
+
+		return contains(permissionChecker, structureId, null, actionId);
+	}
+
+	public static boolean contains(
+			PermissionChecker permissionChecker, long structureId,
+			String portletId, String actionId)
 		throws PortalException, SystemException {
 
 		DDMStructure structure = DDMStructureLocalServiceUtil.getStructure(
-			groupId, structureKey);
+			structureId);
 
-		return contains(permissionChecker, structure, actionId);
+		return contains(permissionChecker, structure, portletId, actionId);
 	}
 
 }

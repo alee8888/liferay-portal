@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,21 +14,12 @@
 
 package com.liferay.portal.spring.transaction;
 
-import com.liferay.portal.cache.transactional.TransactionalPortalCacheHelper;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-
 import java.lang.reflect.Method;
-
-import java.util.List;
-import java.util.concurrent.Callable;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionAttributeSource;
 
@@ -37,6 +28,11 @@ import org.springframework.transaction.interceptor.TransactionAttributeSource;
  */
 public class TransactionInterceptor implements MethodInterceptor {
 
+	public TransactionAttributeSource getTransactionAttributeSource() {
+		return transactionAttributeSource;
+	}
+
+	@Override
 	public Object invoke(MethodInvocation methodInvocation) throws Throwable {
 		Method method = methodInvocation.getMethod();
 
@@ -56,40 +52,14 @@ public class TransactionInterceptor implements MethodInterceptor {
 			return methodInvocation.proceed();
 		}
 
-		TransactionStatus transactionStatus =
-			_platformTransactionManager.getTransaction(transactionAttribute);
-
-		if (transactionStatus.isNewTransaction()) {
-			TransactionalPortalCacheHelper.begin();
-
-			TransactionCommitCallbackUtil.pushCallbackList();
-		}
-
-		Object returnValue = null;
-
-		try {
-			returnValue = methodInvocation.proceed();
-		}
-		catch (Throwable throwable) {
-			processThrowable(
-				throwable, transactionAttribute, transactionStatus);
-		}
-
-		_platformTransactionManager.commit(transactionStatus);
-
-		if (transactionStatus.isNewTransaction()) {
-			TransactionalPortalCacheHelper.commit();
-
-			invokeCallbacks();
-		}
-
-		return returnValue;
+		return transactionExecutor.execute(
+			platformTransactionManager, transactionAttribute, methodInvocation);
 	}
 
 	public void setPlatformTransactionManager(
 		PlatformTransactionManager platformTransactionManager) {
 
-		_platformTransactionManager = platformTransactionManager;
+		this.platformTransactionManager = platformTransactionManager;
 	}
 
 	public void setTransactionAttributeSource(
@@ -98,122 +68,25 @@ public class TransactionInterceptor implements MethodInterceptor {
 		this.transactionAttributeSource = transactionAttributeSource;
 	}
 
+	public void setTransactionExecutor(
+		TransactionExecutor transactionExecutor) {
+
+		this.transactionExecutor = transactionExecutor;
+	}
+
 	/**
-	 * @deprecated {@link
+	 * @deprecated As of 6.1.0, replaced by {@link
 	 *             #setPlatformTransactionManager(PlatformTransactionManager)}
 	 */
+	@Deprecated
 	public void setTransactionManager(
 		PlatformTransactionManager platformTransactionManager) {
 
-		_platformTransactionManager = platformTransactionManager;
+		setPlatformTransactionManager(platformTransactionManager);
 	}
 
-	protected void invokeCallbacks() {
-		List<Callable<?>> callables =
-			TransactionCommitCallbackUtil.popCallbackList();
-
-		for (Callable<?> callable : callables) {
-			try {
-				callable.call();
-			}
-			catch (Exception e) {
-				_log.error("Failed to execute transaction commit callback", e);
-			}
-		}
-	}
-
-	protected void processThrowable(
-			Throwable throwable, TransactionAttribute transactionAttribute,
-			TransactionStatus transactionStatus)
-		throws Throwable {
-
-		if (transactionAttribute.rollbackOn(throwable)) {
-			try {
-				_platformTransactionManager.rollback(transactionStatus);
-			}
-			catch (TransactionSystemException tse) {
-				_log.error(
-					"Application exception overridden by rollback exception",
-					tse);
-
-				throw tse;
-			}
-			catch (RuntimeException re) {
-				_log.error(
-					"Application exception overridden by rollback exception",
-					re);
-
-				throw re;
-			}
-			catch (Error e) {
-				_log.error(
-					"Application exception overridden by rollback error", e);
-
-				throw e;
-			}
-			finally {
-				if (transactionStatus.isNewTransaction()) {
-					TransactionalPortalCacheHelper.rollback();
-
-					TransactionCommitCallbackUtil.popCallbackList();
-				}
-			}
-		}
-		else {
-			boolean hasError = false;
-
-			try {
-				_platformTransactionManager.commit(transactionStatus);
-			}
-			catch (TransactionSystemException tse) {
-				_log.error(
-					"Application exception overridden by commit exception",
-					tse);
-
-				hasError = true;
-
-				throw tse;
-			}
-			catch (RuntimeException re) {
-				_log.error(
-					"Application exception overridden by commit exception", re);
-
-				hasError = true;
-
-				throw re;
-			}
-			catch (Error e) {
-				_log.error(
-					"Application exception overridden by commit error", e);
-
-				hasError = true;
-
-				throw e;
-			}
-			finally {
-				if (transactionStatus.isNewTransaction()) {
-					if (hasError) {
-						TransactionalPortalCacheHelper.rollback();
-
-						TransactionCommitCallbackUtil.popCallbackList();
-					}
-					else {
-						TransactionalPortalCacheHelper.commit();
-
-						invokeCallbacks();
-					}
-				}
-			}
-		}
-
-		throw throwable;
-	}
-
+	protected PlatformTransactionManager platformTransactionManager;
 	protected TransactionAttributeSource transactionAttributeSource;
-
-	private static Log _log = LogFactoryUtil.getLog(
-		TransactionInterceptor.class);
-
-	private PlatformTransactionManager _platformTransactionManager;
+	protected TransactionExecutor transactionExecutor;
 
 }

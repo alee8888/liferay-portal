@@ -1,5 +1,7 @@
 package ${packagePath}.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import ${packagePath}.model.${entity.name};
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
@@ -25,6 +27,11 @@ import java.util.List;
  * @see ${entity.name}PersistenceImpl
  * @generated
  */
+
+<#if pluginName == "">
+	@ProviderType
+</#if>
+
 public class ${entity.name}Util {
 
 	/*
@@ -50,7 +57,7 @@ public class ${entity.name}Util {
 	/**
 	 * @see com.liferay.portal.service.persistence.BasePersistence#countWithDynamicQuery(DynamicQuery)
 	 */
-	public long countWithDynamicQuery(DynamicQuery dynamicQuery) throws SystemException {
+	public static long countWithDynamicQuery(DynamicQuery dynamicQuery) throws SystemException {
 		return getPersistence().countWithDynamicQuery(dynamicQuery);
 	}
 
@@ -76,22 +83,27 @@ public class ${entity.name}Util {
 	}
 
 	/**
-	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel, boolean)
+	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel)
 	 */
-	public static ${entity.name} update(${entity.name} ${entity.varName}, boolean merge) throws SystemException {
-		return getPersistence().update(${entity.varName}, merge);
+	public static ${entity.name} update(${entity.name} ${entity.varName}) throws SystemException {
+		return getPersistence().update(${entity.varName});
 	}
 
 	/**
-	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel, boolean, ServiceContext)
+	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel, ServiceContext)
 	 */
-	public static ${entity.name} update(${entity.name} ${entity.varName}, boolean merge, ServiceContext serviceContext) throws SystemException {
-		return getPersistence().update(${entity.varName}, merge, serviceContext);
+	public static ${entity.name} update(${entity.name} ${entity.varName}, ServiceContext serviceContext) throws SystemException {
+		return getPersistence().update(${entity.varName}, serviceContext);
 	}
 
 	<#list methods as method>
 		<#if !method.isConstructor() && method.isPublic() && serviceBuilder.isCustomMethod(method) && !serviceBuilder.isBasePersistenceMethod(method)>
 			${serviceBuilder.getJavadocComment(method)}
+
+			<#if serviceBuilder.hasAnnotation(method, "Deprecated")>
+				@Deprecated
+			</#if>
+
 			public static ${serviceBuilder.getTypeGenericsName(method.returns)} ${method.name} (
 
 			<#list method.parameters as parameter>
@@ -151,8 +163,9 @@ public class ${entity.name}Util {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setPersistence(${entity.name}Persistence persistence) {
 	}
 

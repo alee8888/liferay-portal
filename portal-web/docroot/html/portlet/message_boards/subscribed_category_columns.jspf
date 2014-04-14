@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,24 +14,15 @@
  */
 --%>
 
-<liferay-ui:search-container-column-text
-	buffer="buffer"
-	name="category"
->
+<liferay-ui:search-container-column-text name="category">
 
-	<%
-	buffer.append("<a href=\"");
-	buffer.append(rowURL);
-	buffer.append("\">");
-	buffer.append("<strong>");
-	buffer.append(curCategory.getName());
-	buffer.append("</strong>");
+<%
+StringBundler sb = new StringBundler();
 
-	if (Validator.isNotNull(curCategory.getDescription())) {
-		buffer.append("<br />");
-		buffer.append(curCategory.getDescription());
-	}
-	%>
+_buildCategoryBreadcrumb(request, curCategory, sb);
+%>
+
+<%= sb.toString() %>
 
 </liferay-ui:search-container-column-text>
 
@@ -54,3 +45,65 @@
 />
 
 <%@ include file="/html/portlet/message_boards/subscribed_category_columns_action.jspf" %>
+
+<%!
+private void _buildCategoryBreadcrumb(HttpServletRequest request, MBCategory category, StringBundler sb) throws Exception {
+	ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(WebKeys.THEME_DISPLAY);
+
+	List<MBCategory> ancestorCategories = category.getAncestors();
+
+	Collections.reverse(ancestorCategories);
+
+	sb.append("<ul class=\"breadcrumb\">");
+
+	for (int i = 0; i < ancestorCategories.size(); i++) {
+		MBCategory ancestorCategory = ancestorCategories.get(i);
+
+		PortletURL portletURL = PortletURLFactoryUtil.create(request, PortletKeys.MESSAGE_BOARDS, themeDisplay.getPlid(), PortletRequest.RENDER_PHASE);
+
+		portletURL.setParameter("struts_action", "/message_boards/view");
+		portletURL.setParameter("mbCategoryId", String.valueOf(ancestorCategory.getCategoryId()));
+
+		String cssClass = StringPool.BLANK;
+
+		if (i == 0) {
+			cssClass = "first";
+		}
+
+		sb.append("<li");
+		sb.append(" class=\"");
+		sb.append(cssClass);
+		sb.append("\">");
+		sb.append("<a href=\"");
+		sb.append(portletURL.toString());
+		sb.append("\">");
+		sb.append(HtmlUtil.escape(ancestorCategory.getName()));
+		sb.append("</a>");
+		sb.append("<span class=\"divider\">/</span>");
+		sb.append("</li>");
+	}
+
+	PortletURL portletURL = PortletURLFactoryUtil.create(request, PortletKeys.MESSAGE_BOARDS, themeDisplay.getPlid(), PortletRequest.RENDER_PHASE);
+
+	portletURL.setParameter("struts_action", "/message_boards/view");
+	portletURL.setParameter("mbCategoryId", String.valueOf(category.getCategoryId()));
+
+	sb.append("<li class=\"active last\">");
+	sb.append("<strong>");
+	sb.append("<a href=\"");
+	sb.append(portletURL.toString());
+	sb.append("\">");
+	sb.append(category.getName());
+	sb.append("</strong>");
+	sb.append("</a>");
+
+	if (Validator.isNotNull(category.getDescription())) {
+		sb.append("<p>");
+		sb.append(category.getDescription());
+		sb.append("</p>");
+	}
+
+	sb.append("</li>");
+	sb.append("</ul>");
+}
+%>

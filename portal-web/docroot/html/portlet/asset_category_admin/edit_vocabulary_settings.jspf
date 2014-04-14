@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,15 +15,17 @@
 --%>
 
 <%
-PortletPreferences preferences = renderRequest.getPreferences();
+List<AssetRendererFactory> availableAssetFactories = ListUtil.filter(
+	AssetRendererFactoryRegistryUtil.getAssetRendererFactories(company.getCompanyId()),
+	new PredicateFilter() {
 
-List<Long> availableClassNameIds = new ArrayList<Long>();
+		public boolean filter(Object object) {
+			AssetRendererFactory assetRendererFactory = (AssetRendererFactory)object;
 
-for (AssetRendererFactory assetRendererFactory : AssetRendererFactoryRegistryUtil.getAssetRendererFactories()) {
-	if (assetRendererFactory.isCategorizable()) {
-		availableClassNameIds.add(assetRendererFactory.getClassNameId());
-	}
-}
+			return assetRendererFactory.isCategorizable();
+		}
+
+	});
 
 boolean required = false;
 
@@ -41,11 +43,11 @@ if (vocabulary != null) {
 	}
 }
 
-if ((selectedClassNameIds == null) || (selectedClassNameIds.length == 0)) {
+if (ArrayUtil.isEmpty(selectedClassNameIds)) {
 	selectedClassNameIds = new long[] {0};
 }
 
-if ((requiredClassNameIds == null) || (requiredClassNameIds.length == 0)) {
+if (ArrayUtil.isEmpty(requiredClassNameIds)) {
 	requiredClassNameIds = new long[] {0};
 }
 %>
@@ -68,10 +70,10 @@ if ((requiredClassNameIds == null) || (requiredClassNameIds.length == 0)) {
 						<aui:option label="all-asset-types" selected="<%= true %>" value="<%= AssetCategoryConstants.ALL_CLASS_NAME_IDS %>" />
 
 						<%
-						for (long availableClassNameId : availableClassNameIds) {
+						for (AssetRendererFactory assetRendererFactory : availableAssetFactories) {
 						%>
 
-							<aui:option label="<%= ResourceActionsUtil.getModelResource(locale, PortalUtil.getClassName(availableClassNameId)) %>" selected="<%= false %>" value="<%= availableClassNameId %>" />
+							<aui:option label="<%= ResourceActionsUtil.getModelResource(locale, assetRendererFactory.getClassName()) %>" selected="<%= false %>" value="<%= assetRendererFactory.getClassNameId() %>" />
 
 						<%
 						}
@@ -102,17 +104,15 @@ if ((requiredClassNameIds == null) || (requiredClassNameIds.length == 0)) {
 							<aui:option label="all-asset-types" value="<%= AssetCategoryConstants.ALL_CLASS_NAME_IDS %>" />
 
 							<%
-							for (int i = 0; i < availableClassNameIds.size(); i++) {
-								long availableClassNameId = availableClassNameIds.get(i);
-
+							for (AssetRendererFactory assetRendererFactory : availableAssetFactories) {
 								boolean selected = false;
 
-								if (availableClassNameId == selectedClassNameIds[index]) {
+								if (assetRendererFactory.getClassNameId() == selectedClassNameIds[index]) {
 									selected = true;
 								}
 							%>
 
-								<aui:option label="<%= ResourceActionsUtil.getModelResource(locale, PortalUtil.getClassName(availableClassNameId)) %>" selected="<%= selected %>" value="<%= availableClassNameId %>" />
+								<aui:option label="<%= ResourceActionsUtil.getModelResource(locale, assetRendererFactory.getClassName()) %>" selected="<%= selected %>" value="<%= assetRendererFactory.getClassNameId() %>" />
 
 							<%
 							}
@@ -139,7 +139,8 @@ if ((requiredClassNameIds == null) || (requiredClassNameIds.length == 0)) {
 	var autoFields = new Liferay.AutoFields(
 		{
 			contentBox: '#<portlet:namespace />extraFields',
-			fieldIndexes: '<portlet:namespace />indexes'
+			fieldIndexes: '<portlet:namespace />indexes',
+			namespace: '<portlet:namespace />'
 		}
 	).render();
 

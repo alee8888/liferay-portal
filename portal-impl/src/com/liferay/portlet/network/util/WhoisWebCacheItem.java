@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -40,6 +40,7 @@ public class WhoisWebCacheItem implements WebCacheItem {
 		_domain = domain;
 	}
 
+	@Override
 	public Object convert(String key) throws WebCacheException {
 		Whois whois = null;
 
@@ -79,6 +80,7 @@ public class WhoisWebCacheItem implements WebCacheItem {
 		return whois;
 	}
 
+	@Override
 	public long getRefreshTime() {
 		return _REFRESH_TIME;
 	}

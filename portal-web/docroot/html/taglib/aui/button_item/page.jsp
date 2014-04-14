@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,15 +18,15 @@
 
 <c:if test="<%= useMarkup %>">
 	<c:if test="<%= !hasBoundingBox %>">
-		<button class="aui-buttonitem aui-buttonitem-content aui-component aui-state-default aui-widget <%= (iconTypeClass != null) ? iconTypeClass : StringPool.BLANK %> <%= cssClass %>" id="<%= uniqueId %>BoundingBox" type="button">
+		<button class="buttonitem buttonitem-content component widget <%= (iconTypeClass != null) ? iconTypeClass : StringPool.BLANK %> <%= cssClass %>" id="<%= uniqueId %>BoundingBox" type="button">
 	</c:if>
 
 	<c:if test="<%= Validator.isNotNull(icon) %>">
-		<span class="aui-buttonitem-icon aui-icon aui-icon-<%= icon %>"></span>
+		<span class="buttonitem-icon icon icon-<%= icon %>"></span>
 	</c:if>
 
 	<c:if test="<%= Validator.isNotNull(label) %>">
-		<span class="aui-buttonitem-label">
+		<span class="buttonitem-label">
 			<%= label %>
 		</span>
 	</c:if>

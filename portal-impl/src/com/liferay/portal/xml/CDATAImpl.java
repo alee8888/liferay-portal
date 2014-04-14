@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,6 +35,14 @@ public class CDATAImpl extends NodeImpl implements CDATA {
 
 	@Override
 	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof CDATAImpl)) {
+			return false;
+		}
+
 		org.dom4j.CDATA cdata = ((CDATAImpl)obj).getWrappedCDATA();
 
 		return _cdata.equals(cdata);

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,8 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
 import com.liferay.portal.kernel.workflow.permission.WorkflowPermissionUtil;
 import com.liferay.portal.security.auth.PrincipalException;
+import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.security.permission.BaseModelPermissionChecker;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.blogs.model.BlogsEntry;
@@ -27,7 +29,7 @@ import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
 /**
  * @author Brian Wing Shun Chan
  */
-public class BlogsEntryPermission {
+public class BlogsEntryPermission implements BaseModelPermissionChecker {
 
 	public static void check(
 			PermissionChecker permissionChecker, BlogsEntry entry,
@@ -60,7 +62,14 @@ public class BlogsEntryPermission {
 			return hasPermission.booleanValue();
 		}
 
-		if (entry.isPending()) {
+		if (entry.isDraft() || entry.isScheduled()) {
+			if (actionId.equals(ActionKeys.VIEW) &&
+				!contains(permissionChecker, entry, ActionKeys.UPDATE)) {
+
+				return false;
+			}
+		}
+		else if (entry.isPending()) {
 			hasPermission = WorkflowPermissionUtil.hasPermission(
 				permissionChecker, entry.getGroupId(),
 				BlogsEntry.class.getName(), entry.getEntryId(), actionId);
@@ -89,6 +98,15 @@ public class BlogsEntryPermission {
 		BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(entryId);
 
 		return contains(permissionChecker, entry, actionId);
+	}
+
+	@Override
+	public void checkBaseModel(
+			PermissionChecker permissionChecker, long groupId, long primaryKey,
+			String actionId)
+		throws PortalException, SystemException {
+
+		check(permissionChecker, primaryKey, actionId);
 	}
 
 }

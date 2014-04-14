@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,6 +25,8 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.UserGroup;
 import com.liferay.portal.security.auth.PrincipalException;
+import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.service.UserGroupServiceUtil;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.util.PortalUtil;
@@ -47,8 +49,9 @@ public class EditUserGroupAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -93,8 +96,9 @@ public class EditUserGroupAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -106,15 +110,17 @@ public class EditUserGroupAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.user_groups_admin.error");
+				return actionMapping.findForward(
+					"portlet.user_groups_admin.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(getForward(
-			renderRequest, "portlet.user_groups_admin.edit_user_group"));
+		return actionMapping.findForward(
+			getForward(
+				renderRequest, "portlet.user_groups_admin.edit_user_group"));
 	}
 
 	protected void deleteUserGroups(ActionRequest actionRequest)
@@ -136,20 +142,24 @@ public class EditUserGroupAction extends PortletAction {
 		String name = ParamUtil.getString(actionRequest, "name");
 		String description = ParamUtil.getString(actionRequest, "description");
 
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			UserGroup.class.getName(), actionRequest);
+
 		UserGroup userGroup = null;
 
 		if (userGroupId <= 0) {
 
 			// Add user group
 
-			userGroup = UserGroupServiceUtil.addUserGroup(name, description);
+			userGroup = UserGroupServiceUtil.addUserGroup(
+				name, description, serviceContext);
 		}
 		else {
 
 			// Update user group
 
 			userGroup = UserGroupServiceUtil.updateUserGroup(
-				userGroupId, name, description);
+				userGroupId, name, description, serviceContext);
 		}
 
 		// Layout set prototypes
@@ -163,10 +173,15 @@ public class EditUserGroupAction extends PortletAction {
 		boolean privateLayoutSetPrototypeLinkEnabled = ParamUtil.getBoolean(
 			actionRequest, "privateLayoutSetPrototypeLinkEnabled");
 
-		SitesUtil.updateLayoutSetPrototypesLinks(
-			userGroup.getGroup(), publicLayoutSetPrototypeId,
-			privateLayoutSetPrototypeId, publicLayoutSetPrototypeLinkEnabled,
-			privateLayoutSetPrototypeLinkEnabled);
+		if ((privateLayoutSetPrototypeId > 0) ||
+			(publicLayoutSetPrototypeId > 0)) {
+
+			SitesUtil.updateLayoutSetPrototypesLinks(
+				userGroup.getGroup(), publicLayoutSetPrototypeId,
+				privateLayoutSetPrototypeId,
+				publicLayoutSetPrototypeLinkEnabled,
+				privateLayoutSetPrototypeLinkEnabled);
+		}
 	}
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,7 +24,7 @@ public class DLFileEntryNameUpgradeColumnImpl extends BaseUpgradeColumnImpl {
 
 	public static String getNewName(String name) throws Exception {
 		if (name.startsWith("DLFE-")) {
-			name = name.substring("DLFE-".length());
+			name = name.substring(5);
 		}
 
 		name = FileUtil.stripExtension(name);
@@ -36,6 +36,7 @@ public class DLFileEntryNameUpgradeColumnImpl extends BaseUpgradeColumnImpl {
 		super(name);
 	}
 
+	@Override
 	public Object getNewValue(Object oldValue) throws Exception {
 		String name = (String)oldValue;
 

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,9 +14,7 @@
  */
 --%>
 
-<%@ include file="/html/taglib/init.jsp" %>
-
-<%@ page import="com.liferay.taglib.ui.LanguageTag" %>
+<%@ include file="/html/taglib/ui/language/init.jsp" %>
 
 <%
 String formName = (String)request.getAttribute("liferay-ui:language:formName");
@@ -35,19 +33,20 @@ if (Validator.isNull(formAction)) {
 		liferayPortletURL = new PortletURLImpl(request, PortletKeys.LANGUAGE, plid, PortletRequest.ACTION_PHASE);
 	}
 
-	liferayPortletURL.setWindowState(WindowState.NORMAL);
-	liferayPortletURL.setPortletMode(PortletMode.VIEW);
 	liferayPortletURL.setAnchor(false);
-
 	liferayPortletURL.setParameter("struts_action", "/language/view");
 	liferayPortletURL.setParameter("redirect", currentURL);
+	liferayPortletURL.setPortletMode(PortletMode.VIEW);
+	liferayPortletURL.setWindowState(WindowState.NORMAL);
 
 	formAction = liferayPortletURL.toString();
 }
 
-String name = (String)request.getAttribute("liferay-ui:language:name");
-Locale[] locales = (Locale[])request.getAttribute("liferay-ui:language:locales");
+boolean displayCurrentLocale = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:language:displayCurrentLocale"), true);
 int displayStyle = GetterUtil.getInteger((String)request.getAttribute("liferay-ui:language:displayStyle"));
+String languageId = GetterUtil.getString((String)request.getAttribute("liferay-ui:language:languageId"), LocaleUtil.toLanguageId(locale));
+Locale[] locales = (Locale[])request.getAttribute("liferay-ui:language:locales");
+String name = (String)request.getAttribute("liferay-ui:language:name");
 
 Map langCounts = new HashMap();
 
@@ -64,7 +63,7 @@ for (int i = 0; i < locales.length; i++) {
 	langCounts.put(locales[i].getLanguage(), count);
 }
 
-Set duplicateLanguages = new HashSet();
+Set<String> duplicateLanguages = new HashSet<String>();
 
 for (int i = 0; i < locales.length; i++) {
 	Integer count = (Integer)langCounts.get(locales[i].getLanguage());
@@ -82,14 +81,9 @@ for (int i = 0; i < locales.length; i++) {
 
 				<%
 				for (int i = 0; i < locales.length; i++) {
-					String label = locales[i].getDisplayName(locales[i]);
-
-					if (LanguageUtil.isBetaLocale(locales[i])) {
-						label = label + " - Beta";
-					}
 				%>
 
-					<aui:option cssClass="taglib-language-option" label="<%= label %>" lang="<%= LocaleUtil.toW3cLanguageId(locales[i]) %>" selected="<%= (locale.getLanguage().equals(locales[i].getLanguage()) && locale.getCountry().equals(locales[i].getCountry())) %>" value="<%= LocaleUtil.toLanguageId(locales[i]) %>" />
+					<aui:option cssClass="taglib-language-option" label="<%= LocaleUtil.getLongDisplayName(locales[i], duplicateLanguages) %>" lang="<%= LocaleUtil.toW3cLanguageId(locales[i]) %>" selected="<%= (locale.getLanguage().equals(locales[i].getLanguage()) && locale.getCountry().equals(locales[i].getCountry())) %>" value="<%= LocaleUtil.toLanguageId(locales[i]) %>" />
 
 				<%
 				}
@@ -116,47 +110,51 @@ for (int i = 0; i < locales.length; i++) {
 
 		<%
 		for (int i = 0; i < locales.length; i++) {
-			String language = locales[i].getDisplayLanguage(locales[i]);
-			String country = locales[i].getDisplayCountry(locales[i]);
+			String currentLanguageId = LocaleUtil.toLanguageId(locales[i]);
+
+			if (!displayCurrentLocale && languageId.equals(currentLanguageId)) {
+				continue;
+			}
+
+			String cssClassName = "taglib-language-list-text";
+
+			if ((i + 1) == locales.length) {
+				cssClassName += " last";
+			}
+
+			String localeDisplayName = null;
 
 			if (displayStyle == LanguageTag.LIST_SHORT_TEXT) {
-				if (language.length() > 3) {
-					language = locales[i].getLanguage().toUpperCase();
-				}
-
-				country = locales[i].getCountry().toUpperCase();
+				localeDisplayName = LocaleUtil.getShortDisplayName(locales[i], duplicateLanguages);
+			}
+			else {
+				localeDisplayName = LocaleUtil.getLongDisplayName(locales[i], duplicateLanguages);
 			}
 		%>
 
 			<c:choose>
 				<c:when test="<%= (displayStyle == LanguageTag.LIST_LONG_TEXT) || (displayStyle == LanguageTag.LIST_SHORT_TEXT) %>">
-					<a class="taglib-language-list-text <%= ((i + 1) < locales.length) ? StringPool.BLANK : "last" %>" href="<%= formAction %>&<%= name %>=<%= locales[i].getLanguage() + "_" + locales[i].getCountry() %>" lang="<%= LocaleUtil.toW3cLanguageId(locales[i]) %>">
-						<%= language %>
-
-						<c:if test="<%= duplicateLanguages.contains(locales[i].getLanguage()) %>">
-							(<%= country %>)
-						</c:if>
-
-						<c:if test="<%= LanguageUtil.isBetaLocale(locales[i]) %>">
-							[Beta]
-						</c:if>
-					</a>
+					<c:choose>
+						<c:when test="<%= languageId.equals(currentLanguageId) %>">
+							<span class="<%= cssClassName %>" lang="<%= LocaleUtil.toW3cLanguageId(locales[i]) %>"><%= localeDisplayName %></span>
+						</c:when>
+						<c:otherwise>
+							<aui:a cssClass="<%= cssClassName %>" href="<%= HttpUtil.addParameter(formAction, namespace + name, currentLanguageId) %>" lang="<%= LocaleUtil.toW3cLanguageId(locales[i]) %>"><%= localeDisplayName %></aui:a>
+						</c:otherwise>
+					</c:choose>
 				</c:when>
 				<c:otherwise>
 
 					<%
-					String message = locales[i].getDisplayName(locales[i]);
-
-					if (LanguageUtil.isBetaLocale(locales[i])) {
-						message = message + " - Beta";
-					}
+					boolean currentLanguage = languageId.equals(currentLanguageId);
 					%>
 
 					<liferay-ui:icon
-						image='<%= "../language/" + LocaleUtil.toLanguageId(locales[i]) %>'
+						cssClass='<%= currentLanguage ? "current-language" : "" %>'
+						image='<%= "../language/" + currentLanguageId %>'
 						lang="<%= LocaleUtil.toW3cLanguageId(locales[i]) %>"
-						message="<%= message %>"
-						url='<%= formAction + "&" + name + "=" + LocaleUtil.toLanguageId(locales[i]) %>'
+						message="<%= LocaleUtil.getLongDisplayName(locales[i], duplicateLanguages) %>"
+						url="<%= currentLanguage ? null : HttpUtil.setParameter(formAction, namespace + name, currentLanguageId) %>"
 					/>
 				</c:otherwise>
 			</c:choose>

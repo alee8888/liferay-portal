@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,12 +17,20 @@ package com.liferay.portal.audit;
 import com.liferay.portal.kernel.audit.AuditMessage;
 import com.liferay.portal.kernel.audit.AuditRouter;
 import com.liferay.portal.kernel.messaging.proxy.BaseProxyBean;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 
 /**
  * @author Michael C. Han
  */
+@DoPrivileged
 public class AuditRouterProxyBean extends BaseProxyBean implements AuditRouter {
 
+	@Override
+	public boolean isDeployed() {
+		return false;
+	}
+
+	@Override
 	public void route(AuditMessage auditMessage) {
 		throw new UnsupportedOperationException();
 	}

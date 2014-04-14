@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -247,5 +247,28 @@ public interface InlineSQLHelper {
 	public String replacePermissionCheck(
 		String sql, String className, String classPKField, String userIdField,
 		String bridgeJoin);
+
+	/**
+	 * Modifies the SQL query to only match resources that the user has
+	 * permission to view.
+	 *
+	 * @param  sql the SQL query
+	 * @param  className the fully qualified class name of the resources matched
+	 *         by the query
+	 * @param  classPKField the name of the column containing the resource's
+	 *         primary key
+	 * @param  userIdField the name of the column containing  the resource
+	 *         owner's primary key (optionally <code>null</code>)
+	 * @param  groupIdField the name of the column containing the resource's
+	 *         group ID (optionally <code>null</code>)
+	 * @param  groupIds the primary keys of the groups containing the resources
+	 *         (optionally <code>null</code>)
+	 * @param  bridgeJoin an additional join clause to insert before the
+	 *         permission join (optionally <code>null</code>)
+	 * @return the modified SQL query
+	 */
+	public String replacePermissionCheck(
+		String sql, String className, String classPKField, String userIdField,
+		String groupIdField, long[] groupIds, String bridgeJoin);
 
 }

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -100,7 +100,7 @@ String toolbarSet = (String)request.getAttribute("liferay-ui:input-editor:toolba
 				delete FCKeditorAPI.__Instances['<%= name %>'];
 			}
 
-			delete window['<%= name %>'];
+			window['<%= name %>'] = null;
 		},
 
 		focus: function() {
@@ -183,7 +183,10 @@ String toolbarSet = (String)request.getAttribute("liferay-ui:input-editor:toolba
 			}
 			%>
 
+			window['<%= name %>'].instanceReady = true;
 		},
+
+		instanceReady: false,
 
 		<%
 		if (Validator.isNotNull(onChangeMethod)) {
@@ -193,7 +196,7 @@ String toolbarSet = (String)request.getAttribute("liferay-ui:input-editor:toolba
 				var dirty = FCKeditorAPI.GetInstance('<%= name %>').IsDirty();
 
 				if (dirty) {
-					<%= HtmlUtil.escape(onChangeMethod) %>(window['<%= name %>'].getText());
+					<%= HtmlUtil.escapeJS(onChangeMethod) %>(window['<%= name %>'].getText());
 
 					FCKeditorAPI.GetInstance('<%= name %>').ResetIsDirty();
 				}
@@ -211,6 +214,6 @@ String toolbarSet = (String)request.getAttribute("liferay-ui:input-editor:toolba
 	window['<%= name %>'].initFckArea();
 </aui:script>
 
-<div class="<%= cssClass %>">
+<div class="<%= HtmlUtil.escapeAttribute(cssClass) %>">
 	<textarea id="<%= name %>" name="<%= name %>" style="display: none;"></textarea>
 </div>

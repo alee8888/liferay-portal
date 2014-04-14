@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,6 +25,20 @@ String entryClassName = document.get(Field.ENTRY_CLASS_NAME);
 
 AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(entryClassName);
 
+AssetRenderer assetRenderer = null;
+
+if (assetRendererFactory != null) {
+	long classPK = GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK));
+
+	long resourcePrimKey = GetterUtil.getLong(document.get(Field.ROOT_ENTRY_CLASS_PK));
+
+	if (resourcePrimKey > 0) {
+		classPK = resourcePrimKey;
+	}
+
+	assetRenderer = assetRendererFactory.getAssetRenderer(classPK);
+}
+
 String[] queryTerms = (String[])request.getAttribute("search.jsp-queryTerms");
 
 PortletURL portletURL = (PortletURL)request.getAttribute("search.jsp-portletURL");
@@ -38,8 +52,8 @@ PortletURL portletURL = (PortletURL)request.getAttribute("search.jsp-portletURL"
 	<span class="toggle-details">[+]</span>
 
 	<span class="asset-entry-title">
-		<c:if test="<%= assetRendererFactory != null %>">
-			<img alt="" src="<%= assetRendererFactory.getIconPath(renderRequest) %>" />
+		<c:if test="<%= assetRenderer != null %>">
+			<img alt="" src="<%= assetRenderer.getIconPath(renderRequest) %>" />
 		</c:if>
 
 		<%
@@ -54,7 +68,7 @@ PortletURL portletURL = (PortletURL)request.getAttribute("search.jsp-portletURL"
 		}
 		%>
 
-		<%= name %>
+		<%= HtmlUtil.escape(name) %>
 	</span>
 
 	<%
@@ -143,7 +157,7 @@ PortletURL portletURL = (PortletURL)request.getAttribute("search.jsp-portletURL"
 		</div>
 	</c:if>
 
-	<table class="lfr-table asset-entry-fields aui-helper-hidden">
+	<table class="lfr-table asset-entry-fields hide">
 		<thead>
 			<tr>
 				<th class="key">

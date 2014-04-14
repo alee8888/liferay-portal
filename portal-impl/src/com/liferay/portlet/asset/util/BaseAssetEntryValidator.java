@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,7 +23,7 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.model.Group;
-import com.liferay.portal.service.ClassNameServiceUtil;
+import com.liferay.portal.service.ClassNameLocalServiceUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.asset.AssetCategoryException;
@@ -42,6 +42,7 @@ import java.util.List;
  */
 public class BaseAssetEntryValidator implements AssetEntryValidator {
 
+	@Override
 	public void validate(
 			long groupId, String className, long[] categoryIds,
 			String[] entryNames)
@@ -68,7 +69,7 @@ public class BaseAssetEntryValidator implements AssetEntryValidator {
 			}
 		}
 
-		long classNameId = ClassNameServiceUtil.getClassNameId(className);
+		long classNameId = ClassNameLocalServiceUtil.getClassNameId(className);
 
 		for (AssetVocabulary vocabulary : vocabularies) {
 			validate(classNameId, categoryIds, vocabulary);

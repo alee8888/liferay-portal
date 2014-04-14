@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,7 +20,10 @@ import com.liferay.portal.model.CacheModel;
 
 import com.liferay.portlet.documentlibrary.model.DLContent;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing DLContent in entity cache.
@@ -29,7 +32,8 @@ import java.io.Serializable;
  * @see DLContent
  * @generated
  */
-public class DLContentCacheModel implements CacheModel<DLContent>, Serializable {
+public class DLContentCacheModel implements CacheModel<DLContent>,
+	Externalizable {
 	@Override
 	public String toString() {
 		StringBundler sb = new StringBundler(15);
@@ -53,6 +57,7 @@ public class DLContentCacheModel implements CacheModel<DLContent>, Serializable 
 		return sb.toString();
 	}
 
+	@Override
 	public DLContent toEntityModel() {
 		DLContentImpl dlContentImpl = new DLContentImpl();
 
@@ -80,6 +85,42 @@ public class DLContentCacheModel implements CacheModel<DLContent>, Serializable 
 		dlContentImpl.resetOriginalValues();
 
 		return dlContentImpl;
+	}
+
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		contentId = objectInput.readLong();
+		groupId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		repositoryId = objectInput.readLong();
+		path = objectInput.readUTF();
+		version = objectInput.readUTF();
+		size = objectInput.readLong();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(contentId);
+		objectOutput.writeLong(groupId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(repositoryId);
+
+		if (path == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(path);
+		}
+
+		if (version == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(version);
+		}
+
+		objectOutput.writeLong(size);
 	}
 
 	public long contentId;

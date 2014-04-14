@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -61,6 +61,7 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	 */
 	public static final String TABLE_NAME = "Country";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "countryId", Types.BIGINT },
 			{ "name", Types.VARCHAR },
 			{ "a2", Types.VARCHAR },
@@ -70,7 +71,7 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 			{ "zipRequired", Types.BOOLEAN },
 			{ "active_", Types.BOOLEAN }
 		};
-	public static final String TABLE_SQL_CREATE = "create table Country (countryId LONG not null primary key,name VARCHAR(75) null,a2 VARCHAR(75) null,a3 VARCHAR(75) null,number_ VARCHAR(75) null,idd_ VARCHAR(75) null,zipRequired BOOLEAN,active_ BOOLEAN)";
+	public static final String TABLE_SQL_CREATE = "create table Country (mvccVersion LONG default 0,countryId LONG not null primary key,name VARCHAR(75) null,a2 VARCHAR(75) null,a3 VARCHAR(75) null,number_ VARCHAR(75) null,idd_ VARCHAR(75) null,zipRequired BOOLEAN,active_ BOOLEAN)";
 	public static final String TABLE_SQL_DROP = "drop table Country";
 	public static final String ORDER_BY_JPQL = " ORDER BY country.name ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY Country.name ASC";
@@ -98,8 +99,13 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	 * @return the normal model instance
 	 */
 	public static Country toModel(CountrySoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		Country model = new CountryImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setCountryId(soapModel.getCountryId());
 		model.setName(soapModel.getName());
 		model.setA2(soapModel.getA2());
@@ -119,6 +125,10 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	 * @return the normal model instances
 	 */
 	public static List<Country> toModels(CountrySoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<Country> models = new ArrayList<Country>(soapModels.length);
 
 		for (CountrySoap soapModel : soapModels) {
@@ -134,26 +144,32 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	public CountryModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _countryId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setCountryId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_countryId);
+		return _countryId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return Country.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return Country.class.getName();
 	}
@@ -162,6 +178,7 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("countryId", getCountryId());
 		attributes.put("name", getName());
 		attributes.put("a2", getA2());
@@ -171,11 +188,20 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 		attributes.put("zipRequired", getZipRequired());
 		attributes.put("active", getActive());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long countryId = (Long)attributes.get("countryId");
 
 		if (countryId != null) {
@@ -226,15 +252,29 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	}
 
 	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
 	public long getCountryId() {
 		return _countryId;
 	}
 
+	@Override
 	public void setCountryId(long countryId) {
 		_countryId = countryId;
 	}
 
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -244,6 +284,7 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 		}
 	}
 
+	@Override
 	public void setName(String name) {
 		_columnBitmask = -1L;
 
@@ -259,6 +300,7 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	}
 
 	@JSON
+	@Override
 	public String getA2() {
 		if (_a2 == null) {
 			return StringPool.BLANK;
@@ -268,6 +310,7 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 		}
 	}
 
+	@Override
 	public void setA2(String a2) {
 		_columnBitmask |= A2_COLUMN_BITMASK;
 
@@ -283,6 +326,7 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	}
 
 	@JSON
+	@Override
 	public String getA3() {
 		if (_a3 == null) {
 			return StringPool.BLANK;
@@ -292,6 +336,7 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 		}
 	}
 
+	@Override
 	public void setA3(String a3) {
 		_columnBitmask |= A3_COLUMN_BITMASK;
 
@@ -307,6 +352,7 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	}
 
 	@JSON
+	@Override
 	public String getNumber() {
 		if (_number == null) {
 			return StringPool.BLANK;
@@ -316,11 +362,13 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 		}
 	}
 
+	@Override
 	public void setNumber(String number) {
 		_number = number;
 	}
 
 	@JSON
+	@Override
 	public String getIdd() {
 		if (_idd == null) {
 			return StringPool.BLANK;
@@ -330,32 +378,39 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 		}
 	}
 
+	@Override
 	public void setIdd(String idd) {
 		_idd = idd;
 	}
 
 	@JSON
+	@Override
 	public boolean getZipRequired() {
 		return _zipRequired;
 	}
 
+	@Override
 	public boolean isZipRequired() {
 		return _zipRequired;
 	}
 
+	@Override
 	public void setZipRequired(boolean zipRequired) {
 		_zipRequired = zipRequired;
 	}
 
 	@JSON
+	@Override
 	public boolean getActive() {
 		return _active;
 	}
 
+	@Override
 	public boolean isActive() {
 		return _active;
 	}
 
+	@Override
 	public void setActive(boolean active) {
 		_columnBitmask |= ACTIVE_COLUMN_BITMASK;
 
@@ -377,17 +432,6 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	}
 
 	@Override
-	public Country toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Country)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
 			Country.class.getName(), getPrimaryKey());
@@ -401,9 +445,20 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	}
 
 	@Override
+	public Country toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Country)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		CountryImpl countryImpl = new CountryImpl();
 
+		countryImpl.setMvccVersion(getMvccVersion());
 		countryImpl.setCountryId(getCountryId());
 		countryImpl.setName(getName());
 		countryImpl.setA2(getA2());
@@ -418,6 +473,7 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 		return countryImpl;
 	}
 
+	@Override
 	public int compareTo(Country country) {
 		int value = 0;
 
@@ -432,18 +488,15 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof Country)) {
 			return false;
 		}
 
-		Country country = null;
-
-		try {
-			country = (Country)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		Country country = (Country)obj;
 
 		long primaryKey = country.getPrimaryKey();
 
@@ -458,6 +511,16 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -480,6 +543,8 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	@Override
 	public CacheModel<Country> toCacheModel() {
 		CountryCacheModel countryCacheModel = new CountryCacheModel();
+
+		countryCacheModel.mvccVersion = getMvccVersion();
 
 		countryCacheModel.countryId = getCountryId();
 
@@ -532,9 +597,11 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(17);
+		StringBundler sb = new StringBundler(19);
 
-		sb.append("{countryId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", countryId=");
 		sb.append(getCountryId());
 		sb.append(", name=");
 		sb.append(getName());
@@ -555,13 +622,18 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(28);
+		StringBundler sb = new StringBundler(31);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.Country");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>countryId</column-name><column-value><![CDATA[");
 		sb.append(getCountryId());
@@ -601,9 +673,10 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	}
 
 	private static ClassLoader _classLoader = Country.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			Country.class
 		};
+	private long _mvccVersion;
 	private long _countryId;
 	private String _name;
 	private String _originalName;
@@ -618,5 +691,5 @@ public class CountryModelImpl extends BaseModelImpl<Country>
 	private boolean _originalActive;
 	private boolean _setOriginalActive;
 	private long _columnBitmask;
-	private Country _escapedModelProxy;
+	private Country _escapedModel;
 }

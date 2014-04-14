@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portal.events;
 
+import com.liferay.portal.deploy.RequiredPluginsUtil;
 import com.liferay.portal.im.AIMConnector;
 import com.liferay.portal.im.ICQConnector;
 import com.liferay.portal.im.MSNConnector;
@@ -33,8 +34,10 @@ import com.liferay.portal.kernel.javadoc.JavadocManagerUtil;
 import com.liferay.portal.kernel.log.Jdk14LogFactoryImpl;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.scheduler.SchedulerEngineUtil;
+import com.liferay.portal.kernel.resiliency.mpi.MPIHelperUtil;
+import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
+import com.liferay.portal.kernel.template.TemplateResourceLoaderUtil;
 import com.liferay.portal.kernel.util.CentralizedThreadLocal;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -54,6 +57,10 @@ public class GlobalShutdownAction extends SimpleAction {
 
 	@Override
 	public void run(String[] ids) {
+
+		// Portal Resiliency
+
+		MPIHelperUtil.shutdown();
 
 		// Auto deploy
 
@@ -139,6 +146,10 @@ public class GlobalShutdownAction extends SimpleAction {
 
 		DocumentConversionUtil.disconnect();
 
+		// Plugins
+
+		RequiredPluginsUtil.stopCheckingRequiredPlugins();
+
 		// Thread local registry
 
 		ThirdPartyThreadLocalRegistry.resetThreadLocals();
@@ -182,7 +193,7 @@ public class GlobalShutdownAction extends SimpleAction {
 		// Scheduler engine
 
 		try {
-			SchedulerEngineUtil.shutdown();
+			SchedulerEngineHelperUtil.shutdown();
 		}
 		catch (Exception e) {
 		}
@@ -200,6 +211,14 @@ public class GlobalShutdownAction extends SimpleAction {
 
 		try {
 			TemplateManagerUtil.destroy();
+		}
+		catch (Exception e) {
+		}
+
+		// Template resource loader
+
+		try {
+			TemplateResourceLoaderUtil.destroy();
 		}
 		catch (Exception e) {
 		}

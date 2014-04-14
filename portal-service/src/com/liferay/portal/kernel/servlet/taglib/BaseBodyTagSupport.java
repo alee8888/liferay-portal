@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.BodyContentWrapper;
 import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -30,7 +29,7 @@ import javax.servlet.jsp.tagext.BodyTag;
 
 /**
  * <p>
- * See http://issues.liferay.com/browse/LPS-13878.
+ * See https://issues.liferay.com/browse/LPS-13878.
  * </p>
  *
  * @author Shuyang Zhou
@@ -71,21 +70,24 @@ public class BaseBodyTagSupport extends TagSupport {
 
 			return bodyContentWrapper.getStringBundler();
 		}
-		else {
-			if (ServerDetector.isTomcat() && _log.isWarnEnabled()) {
-				_log.warn(
-					"BodyContent is not BodyContentWrapper. Check " +
-						"JspFactorySwapper.");
-			}
 
-			String bodyContentString = bodyContent.getString();
-
-			if (bodyContentString == null) {
-				bodyContentString = StringPool.BLANK;
-			}
-
-			return new StringBundler(bodyContentString);
+		if (bodyContent == null) {
+			return new StringBundler();
 		}
+
+		if (ServerDetector.isTomcat() && _log.isWarnEnabled()) {
+			_log.warn(
+				"BodyContent is not BodyContentWrapper. Check " +
+					"JspFactorySwapper.");
+		}
+
+		String bodyContentString = bodyContent.getString();
+
+		if (bodyContentString == null) {
+			return new StringBundler();
+		}
+
+		return new StringBundler(bodyContentString);
 	}
 
 	@Override

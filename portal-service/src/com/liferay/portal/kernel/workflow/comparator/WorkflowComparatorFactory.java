@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,11 +14,14 @@
 
 package com.liferay.portal.kernel.workflow.comparator;
 
+import com.liferay.portal.kernel.messaging.proxy.MessagingProxy;
+import com.liferay.portal.kernel.messaging.proxy.ProxyMode;
 import com.liferay.portal.kernel.util.OrderByComparator;
 
 /**
  * @author Michael C. Han
  */
+@MessagingProxy(mode = ProxyMode.SYNC)
 public interface WorkflowComparatorFactory {
 
 	public OrderByComparator getDefinitionNameComparator(boolean ascending);

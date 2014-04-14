@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,21 +19,20 @@
 <%@ page import="com.liferay.portal.CompanyMxException" %><%@
 page import="com.liferay.portal.CompanyVirtualHostException" %><%@
 page import="com.liferay.portal.CompanyWebIdException" %><%@
+page import="com.liferay.portal.RequiredCompanyException" %><%@
 page import="com.liferay.portal.captcha.recaptcha.ReCaptchaImpl" %><%@
 page import="com.liferay.portal.convert.ConvertProcess" %><%@
 page import="com.liferay.portal.dao.shard.ManualShardSelector" %><%@
 page import="com.liferay.portal.kernel.dao.shard.ShardUtil" %><%@
 page import="com.liferay.portal.kernel.image.ImageMagickUtil" %><%@
-page import="com.liferay.portal.kernel.plugin.PluginPackage" %><%@
 page import="com.liferay.portal.kernel.scripting.ScriptingUtil" %><%@
 page import="com.liferay.portal.kernel.util.InstancePool" %><%@
 page import="com.liferay.portal.kernel.util.OSDetector" %><%@
 page import="com.liferay.portal.kernel.xuggler.XugglerUtil" %><%@
+page import="com.liferay.portal.upload.LiferayFileUpload" %><%@
 page import="com.liferay.portal.util.PortalInstances" %><%@
-page import="com.liferay.portlet.documentlibrary.model.DLFileEntry" %><%@
 page import="com.liferay.portlet.documentlibrary.model.DLFileVersion" %><%@
 page import="com.liferay.portlet.documentlibrary.service.DLFileEntryLocalServiceUtil" %><%@
-page import="com.liferay.portlet.expando.model.ExpandoBridge" %><%@
 page import="com.liferay.portlet.expando.model.ExpandoColumnConstants" %>
 
 <%@ page import="org.apache.log4j.Level" %><%@
@@ -43,7 +42,7 @@ page import="org.apache.log4j.Logger" %>
 <%
 boolean showShardSelector = false;
 
-if (PropsValues.SHARD_SELECTOR.equals(ManualShardSelector.class.getName()) && ShardUtil.getAvailableShardNames().length > 1) {
+if (PropsValues.SHARD_SELECTOR.equals(ManualShardSelector.class.getName()) && (ShardUtil.getAvailableShardNames().length > 1)) {
 	showShardSelector = true;
 }
 %>

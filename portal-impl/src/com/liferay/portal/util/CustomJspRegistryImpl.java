@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portal.util;
 
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -26,12 +27,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Ryan Park
  * @author Brian Wing Shun Chan
  */
+@DoPrivileged
 public class CustomJspRegistryImpl implements CustomJspRegistry {
 
 	public CustomJspRegistryImpl() {
 		_servletContextNames = new ConcurrentHashMap<String, String>();
 	}
 
+	@Override
 	public String getCustomJspFileName(
 		String servletContextName, String fileName) {
 
@@ -52,20 +55,24 @@ public class CustomJspRegistryImpl implements CustomJspRegistry {
 		return sb.toString();
 	}
 
+	@Override
 	public String getDisplayName(String servletContextName) {
 		return _servletContextNames.get(servletContextName);
 	}
 
+	@Override
 	public Set<String> getServletContextNames() {
 		return _servletContextNames.keySet();
 	}
 
+	@Override
 	public void registerServletContextName(
 		String servletContextName, String displayName) {
 
 		_servletContextNames.put(servletContextName, displayName);
 	}
 
+	@Override
 	public void unregisterServletContextName(String servletContextName) {
 		_servletContextNames.remove(servletContextName);
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,9 +16,13 @@ package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.UserGroupRole;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing UserGroupRole in entity cache.
@@ -28,12 +32,24 @@ import java.io.Serializable;
  * @generated
  */
 public class UserGroupRoleCacheModel implements CacheModel<UserGroupRole>,
-	Serializable {
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(7);
+		StringBundler sb = new StringBundler(9);
 
-		sb.append("{userId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", userId=");
 		sb.append(userId);
 		sb.append(", groupId=");
 		sb.append(groupId);
@@ -44,9 +60,11 @@ public class UserGroupRoleCacheModel implements CacheModel<UserGroupRole>,
 		return sb.toString();
 	}
 
+	@Override
 	public UserGroupRole toEntityModel() {
 		UserGroupRoleImpl userGroupRoleImpl = new UserGroupRoleImpl();
 
+		userGroupRoleImpl.setMvccVersion(mvccVersion);
 		userGroupRoleImpl.setUserId(userId);
 		userGroupRoleImpl.setGroupId(groupId);
 		userGroupRoleImpl.setRoleId(roleId);
@@ -56,6 +74,24 @@ public class UserGroupRoleCacheModel implements CacheModel<UserGroupRole>,
 		return userGroupRoleImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		userId = objectInput.readLong();
+		groupId = objectInput.readLong();
+		roleId = objectInput.readLong();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(userId);
+		objectOutput.writeLong(groupId);
+		objectOutput.writeLong(roleId);
+	}
+
+	public long mvccVersion;
 	public long userId;
 	public long groupId;
 	public long roleId;

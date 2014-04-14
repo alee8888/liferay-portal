@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -56,6 +56,7 @@ public interface Route {
 	 * parameter to remove the .jsp extension of the current page from the URL.
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * &lt;route&gt;
@@ -64,6 +65,7 @@ public interface Route {
 	 * &lt;/route&gt;
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param name the name of the generated parameter
 	 * @param pattern the pattern string of the generated parameter
@@ -107,6 +109,7 @@ public interface Route {
 	 * definition could look like the following:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * &lt;route&gt;
@@ -115,6 +118,7 @@ public interface Route {
 	 * &lt;/route&gt;
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * <p>
 	 * Since the jspPage is specified with a implicit-parameter, this route will
@@ -122,7 +126,6 @@ public interface Route {
 	 * "view_profile.jsp". Likewise, when a URL in this format is recognized,
 	 * the jspPage will automatically be set to "view_profile.jsp".
 	 * </p>
-	 *
 	 *
 	 * @param name the name of the implicit parameter
 	 * @param value the value of the implicit parameter

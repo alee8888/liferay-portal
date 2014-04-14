@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,12 +14,14 @@
 
 package com.liferay.portlet.mobiledevicerules.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.StagedGroupedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -41,8 +43,9 @@ import java.util.Date;
  * @see com.liferay.portlet.mobiledevicerules.model.impl.MDRRuleGroupInstanceModelImpl
  * @generated
  */
+@ProviderType
 public interface MDRRuleGroupInstanceModel extends AttachedModel,
-	BaseModel<MDRRuleGroupInstance>, GroupedModel {
+	BaseModel<MDRRuleGroupInstance>, StagedGroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -69,6 +72,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 * @return the uuid of this m d r rule group instance
 	 */
 	@AutoEscape
+	@Override
 	public String getUuid();
 
 	/**
@@ -76,6 +80,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @param uuid the uuid of this m d r rule group instance
 	 */
+	@Override
 	public void setUuid(String uuid);
 
 	/**
@@ -97,6 +102,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @return the group ID of this m d r rule group instance
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -104,6 +110,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @param groupId the group ID of this m d r rule group instance
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -111,6 +118,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @return the company ID of this m d r rule group instance
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -118,6 +126,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @param companyId the company ID of this m d r rule group instance
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -125,6 +134,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @return the user ID of this m d r rule group instance
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -132,6 +142,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @param userId the user ID of this m d r rule group instance
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
@@ -140,6 +151,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 * @return the user uuid of this m d r rule group instance
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public String getUserUuid() throws SystemException;
 
 	/**
@@ -147,6 +159,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @param userUuid the user uuid of this m d r rule group instance
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -155,6 +168,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 * @return the user name of this m d r rule group instance
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -162,6 +176,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @param userName the user name of this m d r rule group instance
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -169,6 +184,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @return the create date of this m d r rule group instance
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -176,6 +192,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @param createDate the create date of this m d r rule group instance
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -183,6 +200,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @return the modified date of this m d r rule group instance
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -190,6 +208,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @param modifiedDate the modified date of this m d r rule group instance
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -197,6 +216,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @return the fully qualified class name of this m d r rule group instance
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -206,6 +226,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @return the class name ID of this m d r rule group instance
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -213,6 +234,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @param classNameId the class name ID of this m d r rule group instance
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -220,6 +242,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @return the class p k of this m d r rule group instance
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -227,6 +250,7 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 *
 	 * @param classPK the class p k of this m d r rule group instance
 	 */
+	@Override
 	public void setClassPK(long classPK);
 
 	/**
@@ -257,35 +281,60 @@ public interface MDRRuleGroupInstanceModel extends AttachedModel,
 	 */
 	public void setPriority(int priority);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(MDRRuleGroupInstance mdrRuleGroupInstance);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<MDRRuleGroupInstance> toCacheModel();
 
+	@Override
 	public MDRRuleGroupInstance toEscapedModel();
 
+	@Override
+	public MDRRuleGroupInstance toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

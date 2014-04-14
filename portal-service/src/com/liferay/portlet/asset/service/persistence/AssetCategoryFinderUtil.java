@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,23 +14,20 @@
 
 package com.liferay.portlet.asset.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public class AssetCategoryFinderUtil {
 	public static int countByG_C_N(long groupId, long classNameId,
 		java.lang.String name)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getFinder().countByG_C_N(groupId, classNameId, name);
-	}
-
-	public static int countByG_N_V(long groupId, java.lang.String name,
-		long vocabularyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().countByG_N_V(groupId, name, vocabularyId);
 	}
 
 	public static int countByG_N_P(long groupId, java.lang.String name,
@@ -39,25 +36,10 @@ public class AssetCategoryFinderUtil {
 		return getFinder().countByG_N_P(groupId, name, categoryProperties);
 	}
 
-	public static int filterCountByG_N_V(long groupId, java.lang.String name,
-		long vocabularyId)
+	public static java.util.List<java.lang.Long> findByG_L(
+		java.lang.Long parentCategoryId)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().filterCountByG_N_V(groupId, name, vocabularyId);
-	}
-
-	public static java.util.List<com.liferay.portlet.asset.model.AssetCategory> filterFindByG_N_V(
-		long groupId, java.lang.String name, long vocabularyId, int start,
-		int end, com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder()
-				   .filterFindByG_N_V(groupId, name, vocabularyId, start, end,
-			obc);
-	}
-
-	public static java.util.List<com.liferay.portlet.asset.model.AssetCategory> findByEntryId(
-		long entryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().findByEntryId(entryId);
+		return getFinder().findByG_L(parentCategoryId);
 	}
 
 	public static com.liferay.portlet.asset.model.AssetCategory findByG_N(
@@ -65,20 +47,6 @@ public class AssetCategoryFinderUtil {
 		throws com.liferay.portal.kernel.exception.SystemException,
 			com.liferay.portlet.asset.NoSuchCategoryException {
 		return getFinder().findByG_N(groupId, name);
-	}
-
-	public static java.util.List<com.liferay.portlet.asset.model.AssetCategory> findByC_C(
-		long classNameId, long classPK)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().findByC_C(classNameId, classPK);
-	}
-
-	public static java.util.List<com.liferay.portlet.asset.model.AssetCategory> findByG_N_V(
-		long groupId, java.lang.String name, long vocabularyId, int start,
-		int end, com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder()
-				   .findByG_N_V(groupId, name, vocabularyId, start, end, obc);
 	}
 
 	public static java.util.List<com.liferay.portlet.asset.model.AssetCategory> findByG_N_P(

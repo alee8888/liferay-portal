@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,10 +18,13 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.license.LicenseInfo;
+import com.liferay.portal.util.PortalUtil;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,38 +35,47 @@ import java.util.Set;
 /**
  * @author Amos Fong
  */
+@DoPrivileged
 public class DefaultLicenseManagerImpl
 	implements com.liferay.portal.license.util.LicenseManager {
 
+	@Override
 	public void checkLicense(String productId) {
 	}
 
+	@Override
 	public List<Map<String, String>> getClusterLicenseProperties(
 		String clusterNodeId) {
 
 		return null;
 	}
 
+	@Override
 	public String getHostName() {
-		return LicenseUtil.getHostName();
+		return PortalUtil.getComputerName();
 	}
 
+	@Override
 	public Set<String> getIpAddresses() {
 		return LicenseUtil.getIpAddresses();
 	}
 
+	@Override
 	public LicenseInfo getLicenseInfo(String productId) {
 		return null;
 	}
 
+	@Override
 	public List<Map<String, String>> getLicenseProperties() {
 		return null;
 	}
 
+	@Override
 	public Map<String, String> getLicenseProperties(String productId) {
 		return null;
 	}
 
+	@Override
 	public int getLicenseState(Map<String, String> licenseProperties) {
 		String productId = licenseProperties.get("productId");
 
@@ -76,7 +88,8 @@ public class DefaultLicenseManagerImpl
 
 			byte[] serverIdBytes = LicenseUtil.getServerIdBytes();
 
-			jsonObject.put("cmd", "GET_LICENSE_STATE");
+			jsonObject.put(Constants.CMD, "GET_LICENSE_STATE");
+
 			jsonObject.put("hostName", getHostName());
 			jsonObject.put("ipAddresses", StringUtil.merge(getIpAddresses()));
 			jsonObject.put("macAddresses", StringUtil.merge(getMacAddresses()));
@@ -125,6 +138,7 @@ public class DefaultLicenseManagerImpl
 		return 0;
 	}
 
+	@Override
 	public int getLicenseState(String productId) {
 		Map<String, String> licenseProperties = new HashMap<String, String>();
 
@@ -133,10 +147,12 @@ public class DefaultLicenseManagerImpl
 		return getLicenseState(licenseProperties);
 	}
 
+	@Override
 	public Set<String> getMacAddresses() {
 		return LicenseUtil.getMacAddresses();
 	}
 
+	@Override
 	public void registerLicense(JSONObject jsonObject) throws Exception {
 		String serverId = jsonObject.getString("serverId");
 
@@ -151,7 +167,7 @@ public class DefaultLicenseManagerImpl
 		byte[] bytes = new byte[serverIdArray.length];
 
 		for (int i = 0; i < bytes.length; i++) {
-		   bytes[i] = Byte.valueOf(serverIdArray[i].trim());
+			bytes[i] = Byte.valueOf(serverIdArray[i].trim());
 		}
 
 		LicenseUtil.writeServerProperties(bytes);

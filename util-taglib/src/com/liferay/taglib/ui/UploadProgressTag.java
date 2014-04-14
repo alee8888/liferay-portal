@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -61,16 +61,14 @@ public class UploadProgressTag extends IncludeTag {
 
 	@Override
 	protected void setAttributes(HttpServletRequest request) {
-		request.setAttribute("liferay-ui:upload-progress:id", _id);
-		request.setAttribute("liferay-ui:upload-progress:height", _height);
-		request.setAttribute("liferay-ui:upload-progress:message", _message);
-		request.setAttribute("liferay-ui:upload-progress:redirect", _redirect);
-		request.setAttribute(
-			"liferay-ui:upload-progress:updatePeriod", _updatePeriod);
+		request.setAttribute("liferay-ui:progress:id", _id);
+		request.setAttribute("liferay-ui:progress:height", _height);
+		request.setAttribute("liferay-ui:progress:message", _message);
+		request.setAttribute("liferay-ui:progress:redirect", _redirect);
+		request.setAttribute("liferay-ui:progress:updatePeriod", _updatePeriod);
 	}
 
-	private static final String _PAGE =
-		"/html/taglib/ui/upload_progress/page.jsp";
+	private static final String _PAGE = "/html/taglib/ui/progress/page.jsp";
 
 	private Integer _height;
 	private String _id;

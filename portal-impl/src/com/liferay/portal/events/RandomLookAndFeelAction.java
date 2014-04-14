@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,9 +18,9 @@ import com.liferay.portal.kernel.events.Action;
 import com.liferay.portal.kernel.events.ActionException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.RandomUtil;
 import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Randomizer;
 import com.liferay.portal.model.ColorScheme;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.Theme;
@@ -72,21 +72,19 @@ public class RandomLookAndFeelAction extends Action {
 				return;
 			}
 
-			Randomizer randomizer = Randomizer.getInstance();
-
 			boolean wapTheme = BrowserSnifferUtil.isWap(request);
 
-			List<Theme> themes = ThemeLocalServiceUtil.getThemes(
+			List<Theme> themes = ThemeLocalServiceUtil.getPageThemes(
 				themeDisplay.getCompanyId(), themeDisplay.getScopeGroupId(),
 				themeDisplay.getUserId(), wapTheme);
 
-			if (themes.size() > 0) {
-				Theme theme = themes.get(randomizer.nextInt(themes.size()));
+			if (!themes.isEmpty()) {
+				Theme theme = themes.get(RandomUtil.nextInt(themes.size()));
 
 				List<ColorScheme> colorSchemes = theme.getColorSchemes();
 
 				ColorScheme colorScheme = colorSchemes.get(
-					randomizer.nextInt(colorSchemes.size()));
+					RandomUtil.nextInt(colorSchemes.size()));
 
 				LayoutServiceUtil.updateLookAndFeel(
 					layout.getGroupId(), layout.isPrivateLayout(),

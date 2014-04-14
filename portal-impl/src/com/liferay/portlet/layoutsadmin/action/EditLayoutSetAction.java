@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,20 +17,23 @@ package com.liferay.portlet.layoutsadmin.action;
 import com.liferay.portal.ImageTypeException;
 import com.liferay.portal.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.io.ByteArrayFileInputStream;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.upload.UploadException;
-import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropertiesParamUtil;
-import com.liferay.portal.kernel.util.StreamUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.LayoutSet;
+import com.liferay.portal.model.ThemeSetting;
+import com.liferay.portal.model.impl.ThemeSettingImpl;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.GroupServiceUtil;
@@ -40,9 +43,9 @@ import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.documentlibrary.FileSizeException;
+import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 
-import java.io.File;
-import java.io.InputStream;
+import java.util.Map;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -62,8 +65,9 @@ public class EditLayoutSetAction extends EditLayoutsAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		try {
@@ -80,18 +84,22 @@ public class EditLayoutSetAction extends EditLayoutsAction {
 				updateLayoutSet(actionRequest, actionResponse);
 			}
 
+			String redirect = ParamUtil.getString(actionRequest, "redirect");
 			String closeRedirect = ParamUtil.getString(
 				actionRequest, "closeRedirect");
 
 			if (Validator.isNotNull(closeRedirect)) {
+				redirect = HttpUtil.setParameter(
+					redirect, "closeRedirect", closeRedirect);
+
 				SessionMessages.add(
 					actionRequest,
-					portletConfig.getPortletName() +
+					PortalUtil.getPortletId(actionRequest) +
 						SessionMessages.KEY_SUFFIX_CLOSE_REDIRECT,
 					closeRedirect);
 			}
 
-			sendRedirect(actionRequest, actionResponse);
+			sendRedirect(actionRequest, actionResponse, redirect);
 		}
 		catch (Exception e) {
 			if (e instanceof PrincipalException ||
@@ -115,8 +123,9 @@ public class EditLayoutSetAction extends EditLayoutsAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -126,7 +135,7 @@ public class EditLayoutSetAction extends EditLayoutsAction {
 			SessionErrors.add(
 				renderRequest, PrincipalException.class.getName());
 
-			return mapping.findForward("portlet.layouts_admin.error");
+			return actionMapping.findForward("portlet.layouts_admin.error");
 		}
 
 		try {
@@ -138,15 +147,38 @@ public class EditLayoutSetAction extends EditLayoutsAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.layouts_admin.error");
+				return actionMapping.findForward("portlet.layouts_admin.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.layouts_admin.edit_layouts"));
+	}
+
+	@Override
+	protected void setThemeSettingProperties(
+		ActionRequest actionRequest, UnicodeProperties typeSettingsProperties,
+		Map<String, ThemeSetting> themeSettings, String device,
+		String deviceThemeId) {
+
+		for (String key : themeSettings.keySet()) {
+			ThemeSetting themeSetting = themeSettings.get(key);
+
+			String property =
+				device + "ThemeSettingsProperties--" + key +
+					StringPool.DOUBLE_DASH;
+
+			String value = ParamUtil.getString(
+				actionRequest, property, themeSetting.getValue());
+
+			if (!value.equals(themeSetting.getValue())) {
+				typeSettingsProperties.setProperty(
+					ThemeSettingImpl.namespaceProperty(device, key), value);
+			}
+		}
 	}
 
 	protected void updateLayoutSet(
@@ -167,14 +199,11 @@ public class EditLayoutSetAction extends EditLayoutsAction {
 		LayoutSet layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
 			layoutSetId);
 
-		updateLogo(
-			actionRequest, liveGroupId, stagingGroupId, privateLayout,
-			layoutSet.isLogo());
+		updateLogo(actionRequest, liveGroupId, stagingGroupId, privateLayout);
 
 		updateLookAndFeel(
 			actionRequest, themeDisplay.getCompanyId(), liveGroupId,
-			stagingGroupId, privateLayout, layoutSet.getThemeId(),
-			layoutSet.getSettingsProperties());
+			stagingGroupId, privateLayout, layoutSet.getSettingsProperties());
 
 		updateMergePages(actionRequest, liveGroupId);
 
@@ -185,48 +214,35 @@ public class EditLayoutSetAction extends EditLayoutsAction {
 
 	protected void updateLogo(
 			ActionRequest actionRequest, long liveGroupId, long stagingGroupId,
-			boolean privateLayout, boolean hasLogo)
+			boolean privateLayout)
 		throws Exception {
 
-		UploadPortletRequest uploadPortletRequest =
-			PortalUtil.getUploadPortletRequest(actionRequest);
+		boolean deleteLogo = ParamUtil.getBoolean(actionRequest, "deleteLogo");
 
-		boolean useLogo = ParamUtil.getBoolean(actionRequest, "useLogo");
+		byte[] logoBytes = null;
 
-		InputStream inputStream = null;
+		long fileEntryId = ParamUtil.getLong(actionRequest, "fileEntryId");
 
-		try {
-			File file = uploadPortletRequest.getFile("logoFileName");
+		if (fileEntryId > 0) {
+			FileEntry fileEntry = DLAppLocalServiceUtil.getFileEntry(
+				fileEntryId);
 
-			if (useLogo && !file.exists()) {
-				if (hasLogo) {
-					return;
-				}
-
-				throw new UploadException("No logo uploaded for use");
-			}
-
-			if ((file != null) && file.exists()) {
-				inputStream = new ByteArrayFileInputStream(file, 1024);
-			}
-
-			long groupId = liveGroupId;
-
-			if (stagingGroupId > 0) {
-				groupId = stagingGroupId;
-			}
-
-			LayoutSetServiceUtil.updateLogo(
-				groupId, privateLayout, useLogo, inputStream, false);
+			logoBytes = FileUtil.getBytes(fileEntry.getContentStream());
 		}
-		finally {
-			StreamUtil.cleanUp(inputStream);
+
+		long groupId = liveGroupId;
+
+		if (stagingGroupId > 0) {
+			groupId = stagingGroupId;
 		}
+
+		LayoutSetServiceUtil.updateLogo(
+			groupId, privateLayout, !deleteLogo, logoBytes);
 	}
 
 	protected void updateLookAndFeel(
 			ActionRequest actionRequest, long companyId, long liveGroupId,
-			long stagingGroupId, boolean privateLayout, String oldThemeId,
+			long stagingGroupId, boolean privateLayout,
 			UnicodeProperties typeSettingsProperties)
 		throws Exception {
 
@@ -234,20 +250,22 @@ public class EditLayoutSetAction extends EditLayoutsAction {
 			ParamUtil.getString(actionRequest, "devices"));
 
 		for (String device : devices) {
-			String themeId = ParamUtil.getString(
+			String deviceThemeId = ParamUtil.getString(
 				actionRequest, device + "ThemeId");
-			String colorSchemeId = ParamUtil.getString(
+			String deviceColorSchemeId = ParamUtil.getString(
 				actionRequest, device + "ColorSchemeId");
-			String css = ParamUtil.getString(actionRequest, device + "Css");
-			boolean wapTheme = device.equals("wap");
+			String deviceCss = ParamUtil.getString(
+				actionRequest, device + "Css");
+			boolean deviceWapTheme = device.equals("wap");
 
-			if (Validator.isNotNull(themeId)) {
-				colorSchemeId = getColorSchemeId(
-					companyId, themeId, colorSchemeId, wapTheme);
+			if (Validator.isNotNull(deviceThemeId)) {
+				deviceColorSchemeId = getColorSchemeId(
+					companyId, deviceThemeId, deviceColorSchemeId,
+					deviceWapTheme);
 
-				getThemeSettingsProperties(
+				updateThemeSettingsProperties(
 					actionRequest, companyId, typeSettingsProperties, device,
-					themeId, wapTheme);
+					deviceThemeId, deviceWapTheme);
 			}
 
 			long groupId = liveGroupId;
@@ -257,7 +275,8 @@ public class EditLayoutSetAction extends EditLayoutsAction {
 			}
 
 			LayoutSetServiceUtil.updateLookAndFeel(
-				groupId, privateLayout, themeId, colorSchemeId, css, wapTheme);
+				groupId, privateLayout, deviceThemeId, deviceColorSchemeId,
+				deviceCss, deviceWapTheme);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -60,6 +60,7 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 	 */
 	public static final String TABLE_NAME = "OrgLabor";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "orgLaborId", Types.BIGINT },
 			{ "organizationId", Types.BIGINT },
 			{ "typeId", Types.INTEGER },
@@ -78,7 +79,7 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 			{ "satOpen", Types.INTEGER },
 			{ "satClose", Types.INTEGER }
 		};
-	public static final String TABLE_SQL_CREATE = "create table OrgLabor (orgLaborId LONG not null primary key,organizationId LONG,typeId INTEGER,sunOpen INTEGER,sunClose INTEGER,monOpen INTEGER,monClose INTEGER,tueOpen INTEGER,tueClose INTEGER,wedOpen INTEGER,wedClose INTEGER,thuOpen INTEGER,thuClose INTEGER,friOpen INTEGER,friClose INTEGER,satOpen INTEGER,satClose INTEGER)";
+	public static final String TABLE_SQL_CREATE = "create table OrgLabor (mvccVersion LONG default 0,orgLaborId LONG not null primary key,organizationId LONG,typeId INTEGER,sunOpen INTEGER,sunClose INTEGER,monOpen INTEGER,monClose INTEGER,tueOpen INTEGER,tueClose INTEGER,wedOpen INTEGER,wedClose INTEGER,thuOpen INTEGER,thuClose INTEGER,friOpen INTEGER,friClose INTEGER,satOpen INTEGER,satClose INTEGER)";
 	public static final String TABLE_SQL_DROP = "drop table OrgLabor";
 	public static final String ORDER_BY_JPQL = " ORDER BY orgLabor.organizationId ASC, orgLabor.typeId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY OrgLabor.organizationId ASC, OrgLabor.typeId ASC";
@@ -95,6 +96,7 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 				"value.object.column.bitmask.enabled.com.liferay.portal.model.OrgLabor"),
 			true);
 	public static long ORGANIZATIONID_COLUMN_BITMASK = 1L;
+	public static long TYPEID_COLUMN_BITMASK = 2L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -103,8 +105,13 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 	 * @return the normal model instance
 	 */
 	public static OrgLabor toModel(OrgLaborSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		OrgLabor model = new OrgLaborImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setOrgLaborId(soapModel.getOrgLaborId());
 		model.setOrganizationId(soapModel.getOrganizationId());
 		model.setTypeId(soapModel.getTypeId());
@@ -133,6 +140,10 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 	 * @return the normal model instances
 	 */
 	public static List<OrgLabor> toModels(OrgLaborSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<OrgLabor> models = new ArrayList<OrgLabor>(soapModels.length);
 
 		for (OrgLaborSoap soapModel : soapModels) {
@@ -148,26 +159,32 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 	public OrgLaborModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _orgLaborId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setOrgLaborId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_orgLaborId);
+		return _orgLaborId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return OrgLabor.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return OrgLabor.class.getName();
 	}
@@ -176,6 +193,7 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("orgLaborId", getOrgLaborId());
 		attributes.put("organizationId", getOrganizationId());
 		attributes.put("typeId", getTypeId());
@@ -194,11 +212,20 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 		attributes.put("satOpen", getSatOpen());
 		attributes.put("satClose", getSatClose());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long orgLaborId = (Long)attributes.get("orgLaborId");
 
 		if (orgLaborId != null) {
@@ -303,19 +330,34 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 	}
 
 	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
 	public long getOrgLaborId() {
 		return _orgLaborId;
 	}
 
+	@Override
 	public void setOrgLaborId(long orgLaborId) {
 		_orgLaborId = orgLaborId;
 	}
 
 	@JSON
+	@Override
 	public long getOrganizationId() {
 		return _organizationId;
 	}
 
+	@Override
 	public void setOrganizationId(long organizationId) {
 		_columnBitmask = -1L;
 
@@ -333,10 +375,12 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 	}
 
 	@JSON
+	@Override
 	public int getTypeId() {
 		return _typeId;
 	}
 
+	@Override
 	public void setTypeId(int typeId) {
 		_columnBitmask = -1L;
 
@@ -344,144 +388,161 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 	}
 
 	@JSON
+	@Override
 	public int getSunOpen() {
 		return _sunOpen;
 	}
 
+	@Override
 	public void setSunOpen(int sunOpen) {
 		_sunOpen = sunOpen;
 	}
 
 	@JSON
+	@Override
 	public int getSunClose() {
 		return _sunClose;
 	}
 
+	@Override
 	public void setSunClose(int sunClose) {
 		_sunClose = sunClose;
 	}
 
 	@JSON
+	@Override
 	public int getMonOpen() {
 		return _monOpen;
 	}
 
+	@Override
 	public void setMonOpen(int monOpen) {
 		_monOpen = monOpen;
 	}
 
 	@JSON
+	@Override
 	public int getMonClose() {
 		return _monClose;
 	}
 
+	@Override
 	public void setMonClose(int monClose) {
 		_monClose = monClose;
 	}
 
 	@JSON
+	@Override
 	public int getTueOpen() {
 		return _tueOpen;
 	}
 
+	@Override
 	public void setTueOpen(int tueOpen) {
 		_tueOpen = tueOpen;
 	}
 
 	@JSON
+	@Override
 	public int getTueClose() {
 		return _tueClose;
 	}
 
+	@Override
 	public void setTueClose(int tueClose) {
 		_tueClose = tueClose;
 	}
 
 	@JSON
+	@Override
 	public int getWedOpen() {
 		return _wedOpen;
 	}
 
+	@Override
 	public void setWedOpen(int wedOpen) {
 		_wedOpen = wedOpen;
 	}
 
 	@JSON
+	@Override
 	public int getWedClose() {
 		return _wedClose;
 	}
 
+	@Override
 	public void setWedClose(int wedClose) {
 		_wedClose = wedClose;
 	}
 
 	@JSON
+	@Override
 	public int getThuOpen() {
 		return _thuOpen;
 	}
 
+	@Override
 	public void setThuOpen(int thuOpen) {
 		_thuOpen = thuOpen;
 	}
 
 	@JSON
+	@Override
 	public int getThuClose() {
 		return _thuClose;
 	}
 
+	@Override
 	public void setThuClose(int thuClose) {
 		_thuClose = thuClose;
 	}
 
 	@JSON
+	@Override
 	public int getFriOpen() {
 		return _friOpen;
 	}
 
+	@Override
 	public void setFriOpen(int friOpen) {
 		_friOpen = friOpen;
 	}
 
 	@JSON
+	@Override
 	public int getFriClose() {
 		return _friClose;
 	}
 
+	@Override
 	public void setFriClose(int friClose) {
 		_friClose = friClose;
 	}
 
 	@JSON
+	@Override
 	public int getSatOpen() {
 		return _satOpen;
 	}
 
+	@Override
 	public void setSatOpen(int satOpen) {
 		_satOpen = satOpen;
 	}
 
 	@JSON
+	@Override
 	public int getSatClose() {
 		return _satClose;
 	}
 
+	@Override
 	public void setSatClose(int satClose) {
 		_satClose = satClose;
 	}
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public OrgLabor toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (OrgLabor)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -498,9 +559,20 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 	}
 
 	@Override
+	public OrgLabor toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (OrgLabor)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		OrgLaborImpl orgLaborImpl = new OrgLaborImpl();
 
+		orgLaborImpl.setMvccVersion(getMvccVersion());
 		orgLaborImpl.setOrgLaborId(getOrgLaborId());
 		orgLaborImpl.setOrganizationId(getOrganizationId());
 		orgLaborImpl.setTypeId(getTypeId());
@@ -524,6 +596,7 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 		return orgLaborImpl;
 	}
 
+	@Override
 	public int compareTo(OrgLabor orgLabor) {
 		int value = 0;
 
@@ -560,18 +633,15 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof OrgLabor)) {
 			return false;
 		}
 
-		OrgLabor orgLabor = null;
-
-		try {
-			orgLabor = (OrgLabor)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		OrgLabor orgLabor = (OrgLabor)obj;
 
 		long primaryKey = orgLabor.getPrimaryKey();
 
@@ -589,6 +659,16 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		OrgLaborModelImpl orgLaborModelImpl = this;
 
@@ -602,6 +682,8 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 	@Override
 	public CacheModel<OrgLabor> toCacheModel() {
 		OrgLaborCacheModel orgLaborCacheModel = new OrgLaborCacheModel();
+
+		orgLaborCacheModel.mvccVersion = getMvccVersion();
 
 		orgLaborCacheModel.orgLaborId = getOrgLaborId();
 
@@ -642,9 +724,11 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(35);
+		StringBundler sb = new StringBundler(37);
 
-		sb.append("{orgLaborId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", orgLaborId=");
 		sb.append(getOrgLaborId());
 		sb.append(", organizationId=");
 		sb.append(getOrganizationId());
@@ -683,13 +767,18 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(55);
+		StringBundler sb = new StringBundler(58);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.OrgLabor");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>orgLaborId</column-name><column-value><![CDATA[");
 		sb.append(getOrgLaborId());
@@ -765,9 +854,10 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 	}
 
 	private static ClassLoader _classLoader = OrgLabor.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			OrgLabor.class
 		};
+	private long _mvccVersion;
 	private long _orgLaborId;
 	private long _organizationId;
 	private long _originalOrganizationId;
@@ -788,5 +878,5 @@ public class OrgLaborModelImpl extends BaseModelImpl<OrgLabor>
 	private int _satOpen;
 	private int _satClose;
 	private long _columnBitmask;
-	private OrgLabor _escapedModelProxy;
+	private OrgLabor _escapedModel;
 }

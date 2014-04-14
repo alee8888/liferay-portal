@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,49 +17,111 @@
 <%@ include file="/html/portlet/journal/init.jsp" %>
 
 <%
-String originalRedirect = ParamUtil.getString(request, "originalRedirect");
+String referringPortletResource = ParamUtil.getString(request, "referringPortletResource");
 
 JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_ARTICLE);
 
 long classNameId = BeanParamUtil.getLong(article, request, "classNameId");
-
-String structureId = BeanParamUtil.getString(article, request, "structureId");
-
-String deleteButtonLabel = "delete-this-version";
-
-if ((article != null) && article.isDraft()) {
-	deleteButtonLabel = "discard-draft";
-}
 %>
 
 <div class="article-toolbar" id="<portlet:namespace />articleToolbar"></div>
 
-<aui:script use="aui-toolbar,aui-dialog-iframe,liferay-util-window">
+<aui:script use="aui-toolbar,aui-dialog-iframe-deprecated,aui-tooltip,liferay-util-window">
 	var permissionPopUp = null;
 
-	var toolbarChildren = [];
+	var toolbarButtonGroup = [];
 
-	<c:if test="<%= (article != null) && Validator.isNotNull(structureId) && (classNameId == 0) %>">
-		toolbarChildren.push(
+	<c:if test="<%= classNameId == JournalArticleConstants.CLASSNAME_ID_DEFAULT %>">
+		<liferay-portlet:renderURL plid="<%= JournalUtil.getPreviewPlid(article, themeDisplay) %>" var="previewArticleContentURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+			<portlet:param name="struts_action" value="/journal/preview_article_content" />
+			<portlet:param name="groupId" value="<%= String.valueOf(article.getGroupId()) %>" />
+			<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
+			<portlet:param name="version" value="<%= String.valueOf(article.getVersion()) %>" />
+		</liferay-portlet:renderURL>
+
+		var form = A.one(document.<portlet:namespace />fm1);
+
+		var formChanged = false;
+
+		var hasUnsavedChanges = function() {
+			var unsavedChanges = formChanged;
+
+			if (!unsavedChanges && typeof CKEDITOR !== 'undefined') {
+				A.Object.some(
+					CKEDITOR.instances,
+					function(item, index, collection) {
+						var parentForm = A.one('#' + item.element.getId()).ancestor('form');
+
+						if (parentForm.compareTo(form)) {
+							unsavedChanges = item.checkDirty();
+
+							return unsavedChanges;
+						}
+					}
+				);
+			}
+
+			return unsavedChanges;
+		};
+
+		var previewArticleContentURL = '<%= previewArticleContentURL %>';
+
+		form.delegate(
+			'change',
+			function(event) {
+				formChanged = true;
+			},
+			':input'
+		);
+
+		toolbarButtonGroup.push(
 			{
-				icon: 'preview',
-				id: '<portlet:namespace />previewArticleButton',
-				label: '<%= UnicodeLanguageUtil.get(pageContext, "preview") %>'
+				icon: 'icon-search',
+				id: '<portlet:namespace/>basicPreviewButton',
+				label: '<%= UnicodeLanguageUtil.get(pageContext, "basic-preview") %>',
+				on: {
+					click: function(event) {
+						event.domEvent.preventDefault();
+
+						if (!hasUnsavedChanges()) {
+							Liferay.fire(
+								'previewArticle',
+								{
+									title: '<%= HtmlUtil.escape(article.getTitle(locale)) %>',
+									uri: '<%= HtmlUtil.escape(previewArticleContentURL.toString()) %>'
+								}
+							);
+						}
+						else if (confirm('<liferay-ui:message key="in-order-to-preview-your-changes,-the-web-content-will-be-saved-as-a-draft" />')) {
+							var hasStructure = window.<portlet:namespace />journalPortlet.hasStructure();
+							var hasTemplate = window.<portlet:namespace />journalPortlet.hasTemplate();
+							var updateStructureDefaultValues = window.<portlet:namespace />journalPortlet.updateStructureDefaultValues();
+
+							if (hasStructure && !hasTemplate && !updateStructureDefaultValues) {
+								window.<portlet:namespace />journalPortlet.displayTemplateMessage();
+							}
+							else {
+								form.one('#<portlet:namespace /><%= Constants.CMD %>').val('<%= Constants.PREVIEW %>');
+
+								submitForm(form);
+							}
+						}
+					},
+					render: function(event) {
+						new A.Tooltip(
+							{
+								trigger: '#<portlet:namespace/>basicPreviewButton',
+								zIndex: Liferay.zIndex.TOOLTIP
+							}
+						).render();
+					}
+				},
+				title: '<liferay-ui:message key="this-preview-won't-include-the-theme-context" />'
 			}
 		);
 	</c:if>
 
-	<c:if test="<%= (article != null) && Validator.isNotNull(structureId) %>">
-		toolbarChildren.push(
-			{
-				icon: 'download',
-				id: '<portlet:namespace />downloadArticleContentButton',
-				label: '<%= UnicodeLanguageUtil.get(pageContext, "download") %>'
-			}
-		);
-	</c:if>
-
-	<c:if test="<%= (article != null) && JournalArticlePermission.contains(permissionChecker, article, ActionKeys.PERMISSIONS) %>">
+	<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.PERMISSIONS) %>">
 		<liferay-security:permissionsURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 			modelResource="<%= JournalArticle.class.getName() %>"
 			modelResourceDescription="<%= article.getTitle(locale) %>"
@@ -67,86 +129,60 @@ if ((article != null) && article.isDraft()) {
 			var="permissionsURL"
 		/>
 
-		toolbarChildren.push(
+		toolbarButtonGroup.push(
 			{
-				handler: function(event) {
-					if (!permissionPopUp) {
-						permissionPopUp = Liferay.Util.openWindow(
-							{
-								dialog: {
-									align: Liferay.Util.Window.ALIGN_CENTER,
-									cssClass: 'portlet-asset-categories-admin-dialog permissions-change',
-									width: 700
-								},
-								id: '<portlet:namespace />articlePermissions',
-								title: '<%= UnicodeLanguageUtil.get(pageContext, "permissions") %>',
-								uri: '<%= permissionsURL %>'
-							}
-						);
+				icon: 'icon-lock',
+				label: '<%= UnicodeLanguageUtil.get(pageContext, "permissions") %>',
+				on: {
+					click: function(event) {
+						if (!permissionPopUp) {
+							permissionPopUp = Liferay.Util.openWindow(
+								{
+									dialog: {
+										cssClass: 'portlet-asset-categories-admin-dialog permissions-change'
+									},
+									id: '<portlet:namespace />articlePermissions',
+									title: '<%= UnicodeLanguageUtil.get(pageContext, "permissions") %>',
+									uri: '<%= permissionsURL %>'
+								}
+							);
+						}
+						else {
+							permissionPopUp.iframe.node.get('contentWindow.location').reload(true);
+						}
+
+						event.domEvent.preventDefault();
 					}
-					else {
-						permissionPopUp.iframe.node.get('contentWindow.location').reload(true);
-					}
-
-					permissionPopUp.show();
-					permissionPopUp.centered();
-
-				},
-				icon: 'permissions',
-				label: '<%= UnicodeLanguageUtil.get(pageContext, "permissions") %>'
+				}
 			}
 		);
 	</c:if>
 
-	<c:if test="<%= (article != null) && !article.isExpired() && JournalArticlePermission.contains(permissionChecker, article, ActionKeys.EXPIRE) && !article.isApproved() %>">
-		toolbarChildren.push(
-			{
-				handler: function() {
-					<portlet:namespace />expireArticle();
-				},
-				icon: 'expire',
-				label: '<%= UnicodeLanguageUtil.get(pageContext, "expire-this-version") %>'
-			}
-		);
-	</c:if>
+	<portlet:renderURL var="viewHistoryURL">
+		<portlet:param name="struts_action" value="/journal/view_article_history" />
+		<portlet:param name="redirect" value="<%= currentURL %>" />
+		<portlet:param name="referringPortletResource" value="<%= referringPortletResource %>" />
+		<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
+	</portlet:renderURL>
 
-	<c:if test="<%= (article != null) && JournalArticlePermission.contains(permissionChecker, article, ActionKeys.DELETE) && !article.isApproved() && !article.isDraft() %>">
-		toolbarChildren.push(
-			{
-				handler: function() {
-					<portlet:namespace />deleteArticle();
-				},
-				icon: 'delete',
-				label: '<liferay-ui:message key="<%= deleteButtonLabel %>" />'
-			}
-		);
-	</c:if>
-
-	<c:if test="<%= article != null %>">
-		<portlet:renderURL var="viewHistoryURL">
-			<portlet:param name="struts_action" value="/journal/view_article_history" />
-			<portlet:param name="redirect" value="<%= currentURL %>" />
-			<portlet:param name="originalRedirect" value="<%= originalRedirect %>" />
-			<portlet:param name="groupId" value="<%= String.valueOf(article.getGroupId()) %>" />
-			<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
-		</portlet:renderURL>
-
-		toolbarChildren.push(
-			{
-				handler: function (event) {
+	toolbarButtonGroup.push(
+		{
+			icon: 'icon-time',
+			label: '<%= UnicodeLanguageUtil.get(pageContext, "view-history") %>',
+			on: {
+				click: function(event) {
 					window.location = '<%= viewHistoryURL %>';
-				},
-				icon: 'history',
-				label: '<%= UnicodeLanguageUtil.get(pageContext, "view-history") %>'
+
+					event.domEvent.preventDefault();
+				}
 			}
-		);
-	</c:if>
+		}
+	);
 
 	new A.Toolbar(
 		{
-			activeState: false,
 			boundingBox: '#<portlet:namespace />articleToolbar',
-			children: toolbarChildren
+			children: [toolbarButtonGroup]
 		}
 	).render();
 </aui:script>

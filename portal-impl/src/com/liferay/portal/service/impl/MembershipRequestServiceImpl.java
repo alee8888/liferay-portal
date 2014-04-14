@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,6 +28,7 @@ import com.liferay.portal.service.permission.GroupPermissionUtil;
 public class MembershipRequestServiceImpl
 	extends MembershipRequestServiceBaseImpl {
 
+	@Override
 	public MembershipRequest addMembershipRequest(
 			long groupId, String comments, ServiceContext serviceContext)
 		throws PortalException, SystemException {
@@ -36,6 +37,7 @@ public class MembershipRequestServiceImpl
 			getUserId(), groupId, comments, serviceContext);
 	}
 
+	@Override
 	public void deleteMembershipRequests(long groupId, int statusId)
 		throws PortalException, SystemException {
 
@@ -46,6 +48,7 @@ public class MembershipRequestServiceImpl
 			groupId, statusId);
 	}
 
+	@Override
 	public MembershipRequest getMembershipRequest(long membershipRequestId)
 		throws PortalException, SystemException {
 
@@ -53,6 +56,7 @@ public class MembershipRequestServiceImpl
 			membershipRequestId);
 	}
 
+	@Override
 	public void updateStatus(
 			long membershipRequestId, String reviewComments, int statusId,
 			ServiceContext serviceContext)

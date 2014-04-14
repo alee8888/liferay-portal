@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,13 +36,16 @@ else {
 Group group = (Group)request.getAttribute(WebKeys.GROUP);
 %>
 
-<liferay-ui:success key="membership_reply_sent" message="your-reply-will-be-sent-to-the-user-by-email" />
+<liferay-ui:success key="membershipReplySent" message="your-reply-will-be-sent-to-the-user-by-email" />
 
-<liferay-ui:header
-	backURL="<%= redirect %>"
-	localizeTitle="<%= false %>"
-	title='<%= group.getDescriptiveName(locale) + StringPool.COLON + StringPool.SPACE + LanguageUtil.get(pageContext, "manage-memberships") %>'
-/>
+<c:if test="<%= !layout.isTypeControlPanel() %>">
+	<liferay-ui:header
+		backURL="<%= redirect %>"
+		escapeXml="<%= false %>"
+		localizeTitle="<%= false %>"
+		title='<%= HtmlUtil.escape(group.getDescriptiveName(locale)) + StringPool.COLON + StringPool.SPACE + LanguageUtil.get(pageContext, "manage-memberships") %>'
+	/>
+</c:if>
 
 <liferay-util:include page="/html/portlet/sites_admin/edit_site_assignments_toolbar.jsp">
 	<liferay-util:param name="toolbarItem" value="view-membership-requests" />
@@ -79,11 +82,13 @@ SearchContainer searchContainer = new SearchContainer(renderRequest, null, null,
 
 searchContainer.setHeaderNames(headerNames);
 
-List results = MembershipRequestLocalServiceUtil.search(group.getGroupId(), statusId, searchContainer.getStart(), searchContainer.getEnd());
-
 int total = MembershipRequestLocalServiceUtil.searchCount(group.getGroupId(), statusId);
 
 searchContainer.setTotal(total);
+
+List results = MembershipRequestLocalServiceUtil.search(group.getGroupId(), statusId, searchContainer.getStart(), searchContainer.getEnd());
+
+searchContainer.setResults(results);
 
 List resultRows = searchContainer.getResultRows();
 
@@ -98,7 +103,7 @@ for (int i = 0; i < results.size(); i++) {
 
 	// Date
 
-	row.addText(dateFormatDate.format(membershipRequest.getCreateDate()));
+	row.addDate(membershipRequest.getCreateDate());
 
 	// User
 
@@ -107,13 +112,13 @@ for (int i = 0; i < results.size(); i++) {
 	sb.append(HtmlUtil.escape(user2.getFullName()));
 	sb.append(" (");
 	sb.append(user2.getEmailAddress());
-	sb.append(")");
+	sb.append(StringPool.CLOSE_PARENTHESIS);
 
 	row.addText(sb.toString());
 
 	// Comments
 
-	row.addText(membershipRequest.getComments());
+	row.addText(HtmlUtil.escape(membershipRequest.getComments()));
 
 	if (!tabs1.equals("pending")) {
 
@@ -136,7 +141,7 @@ for (int i = 0; i < results.size(); i++) {
 
 		// Reply comments
 
-		row.addText(membershipRequest.getReplyComments());
+		row.addText(HtmlUtil.escape(membershipRequest.getReplyComments()));
 	}
 
 	// Actions

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.util.mail;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
@@ -22,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.mail.Address;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
 import org.apache.commons.validator.EmailValidator;
@@ -96,24 +99,54 @@ public class InternetAddressUtil {
 	}
 
 	public static String toString(Address[] addresses) {
-		if ((addresses == null) || (addresses.length == 0)) {
+		if (ArrayUtil.isEmpty(addresses)) {
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler(addresses.length * 3 - 2);
+		StringBundler sb = new StringBundler(addresses.length * 2 - 1);
 
-		if (addresses != null) {
-			for (int i = 0; i < addresses.length; i++) {
-				sb.append(toString(addresses[i]));
-
-				if (i < (addresses.length - 1)) {
-					sb.append(StringPool.COMMA);
-					sb.append(StringPool.NBSP);
-				}
-			}
+		for (int i = 0; i < (addresses.length - 1); i++) {
+			sb.append(toString(addresses[i]));
+			sb.append(StringPool.COMMA);
 		}
 
+		sb.append(toString(addresses[addresses.length - 1]));
+
 		return sb.toString();
+	}
+
+	public static void validateAddress(Address address)
+		throws AddressException {
+
+		if (address == null) {
+			throw new AddressException("Email address is null");
+		}
+
+		String addressString = address.toString();
+
+		for (char c : addressString.toCharArray()) {
+			if ((c == CharPool.NEW_LINE) || (c == CharPool.RETURN)) {
+				StringBundler sb = new StringBundler(3);
+
+				sb.append("Email address ");
+				sb.append(addressString);
+				sb.append(" is invalid because it contains line breaks");
+
+				throw new AddressException(sb.toString());
+			}
+		}
+	}
+
+	public static void validateAddresses(Address[] addresses)
+		throws AddressException {
+
+		if (addresses == null) {
+			throw new AddressException();
+		}
+
+		for (Address internetAddress : addresses) {
+			validateAddress(internetAddress);
+		}
 	}
 
 }

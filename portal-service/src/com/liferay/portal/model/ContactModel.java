@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -37,8 +39,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.ContactModelImpl
  * @generated
  */
+@ProviderType
 public interface ContactModel extends AttachedModel, AuditedModel,
-	BaseModel<Contact> {
+	BaseModel<Contact>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -60,6 +63,22 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	public void setPrimaryKey(long primaryKey);
 
 	/**
+	 * Returns the mvcc version of this contact.
+	 *
+	 * @return the mvcc version of this contact
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this contact.
+	 *
+	 * @param mvccVersion the mvcc version of this contact
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
 	 * Returns the contact ID of this contact.
 	 *
 	 * @return the contact ID of this contact
@@ -78,6 +97,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the company ID of this contact
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -85,6 +105,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param companyId the company ID of this contact
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -92,6 +113,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the user ID of this contact
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -99,6 +121,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param userId the user ID of this contact
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
@@ -107,6 +130,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 * @return the user uuid of this contact
 	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public String getUserUuid() throws SystemException;
 
 	/**
@@ -114,6 +138,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param userUuid the user uuid of this contact
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -122,6 +147,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 * @return the user name of this contact
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -129,6 +155,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param userName the user name of this contact
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -136,6 +163,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the create date of this contact
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -143,6 +171,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param createDate the create date of this contact
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -150,6 +179,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the modified date of this contact
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -157,6 +187,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param modifiedDate the modified date of this contact
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -164,6 +195,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the fully qualified class name of this contact
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -173,6 +205,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the class name ID of this contact
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -180,6 +213,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param classNameId the class name ID of this contact
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -187,6 +221,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @return the class p k of this contact
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -194,6 +229,7 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 *
 	 * @param classPK the class p k of this contact
 	 */
+	@Override
 	public void setClassPK(long classPK);
 
 	/**
@@ -572,35 +608,60 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 */
 	public void setHoursOfOperation(String hoursOfOperation);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(Contact contact);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<Contact> toCacheModel();
 
+	@Override
 	public Contact toEscapedModel();
 
+	@Override
+	public Contact toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

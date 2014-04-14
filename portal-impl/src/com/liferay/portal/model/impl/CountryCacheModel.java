@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,8 +18,12 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.Country;
+import com.liferay.portal.model.MVCCModel;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing Country in entity cache.
@@ -28,12 +32,25 @@ import java.io.Serializable;
  * @see Country
  * @generated
  */
-public class CountryCacheModel implements CacheModel<Country>, Serializable {
+public class CountryCacheModel implements CacheModel<Country>, Externalizable,
+	MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(17);
+		StringBundler sb = new StringBundler(19);
 
-		sb.append("{countryId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", countryId=");
 		sb.append(countryId);
 		sb.append(", name=");
 		sb.append(name);
@@ -54,9 +71,11 @@ public class CountryCacheModel implements CacheModel<Country>, Serializable {
 		return sb.toString();
 	}
 
+	@Override
 	public Country toEntityModel() {
 		CountryImpl countryImpl = new CountryImpl();
 
+		countryImpl.setMvccVersion(mvccVersion);
 		countryImpl.setCountryId(countryId);
 
 		if (name == null) {
@@ -102,6 +121,65 @@ public class CountryCacheModel implements CacheModel<Country>, Serializable {
 		return countryImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		countryId = objectInput.readLong();
+		name = objectInput.readUTF();
+		a2 = objectInput.readUTF();
+		a3 = objectInput.readUTF();
+		number = objectInput.readUTF();
+		idd = objectInput.readUTF();
+		zipRequired = objectInput.readBoolean();
+		active = objectInput.readBoolean();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(countryId);
+
+		if (name == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(name);
+		}
+
+		if (a2 == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(a2);
+		}
+
+		if (a3 == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(a3);
+		}
+
+		if (number == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(number);
+		}
+
+		if (idd == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(idd);
+		}
+
+		objectOutput.writeBoolean(zipRequired);
+		objectOutput.writeBoolean(active);
+	}
+
+	public long mvccVersion;
 	public long countryId;
 	public String name;
 	public String a2;

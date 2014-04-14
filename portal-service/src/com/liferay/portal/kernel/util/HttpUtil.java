@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,9 @@
  */
 
 package com.liferay.portal.kernel.util;
+
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+import com.liferay.portal.kernel.security.pacl.permission.PortalSocketPermission;
 
 import java.io.IOException;
 
@@ -63,8 +66,16 @@ public class HttpUtil {
 		return getHttp().decodeURL(url);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #decodeURL(String)}
+	 */
+	@Deprecated
 	public static String decodeURL(String url, boolean unescapeSpaces) {
 		return getHttp().decodeURL(url, unescapeSpaces);
+	}
+
+	public static String encodeParameters(String url) {
+		return getHttp().encodeParameters(url);
 	}
 
 	public static String encodePath(String path) {
@@ -102,6 +113,8 @@ public class HttpUtil {
 	}
 
 	public static Http getHttp() {
+		PortalRuntimePermission.checkGetBeanProperty(HttpUtil.class);
+
 		return _http;
 	}
 
@@ -175,6 +188,10 @@ public class HttpUtil {
 		return getHttp().isProxyHost(host);
 	}
 
+	public static boolean isSecure(String url) {
+		return getHttp().isSecure(url);
+	}
+
 	public static Map<String, String[]> parameterMapFromString(
 		String queryString) {
 
@@ -205,6 +222,10 @@ public class HttpUtil {
 		return getHttp().protocolize(url, request);
 	}
 
+	public static String protocolize(String url, int port, boolean secure) {
+		return getHttp().protocolize(url, port, secure);
+	}
+
 	public static String protocolize(String url, RenderRequest renderRequest) {
 		return getHttp().protocolize(url, renderRequest);
 	}
@@ -217,8 +238,16 @@ public class HttpUtil {
 		return getHttp().removeParameter(url, name);
 	}
 
+	public static String removePathParameters(String uri) {
+		return getHttp().removePathParameters(uri);
+	}
+
 	public static String removeProtocol(String url) {
 		return getHttp().removeProtocol(url);
+	}
+
+	public static String sanitizeHeader(String header) {
+		return getHttp().sanitizeHeader(header);
 	}
 
 	public static String setParameter(String url, String name, boolean value) {
@@ -245,32 +274,48 @@ public class HttpUtil {
 		return getHttp().setParameter(url, name, value);
 	}
 
+	public static String shortenURL(String url, int count) {
+		return getHttp().shortenURL(url, count);
+	}
+
 	public static byte[] URLtoByteArray(Http.Options options)
 		throws IOException {
+
+		PortalSocketPermission.checkConnect(options);
 
 		return getHttp().URLtoByteArray(options);
 	}
 
 	public static byte[] URLtoByteArray(String location) throws IOException {
+		PortalSocketPermission.checkConnect(location);
+
 		return getHttp().URLtoByteArray(location);
 	}
 
 	public static byte[] URLtoByteArray(String location, boolean post)
 		throws IOException {
 
+		PortalSocketPermission.checkConnect(location);
+
 		return getHttp().URLtoByteArray(location, post);
 	}
 
 	public static String URLtoString(Http.Options options) throws IOException {
+		PortalSocketPermission.checkConnect(options);
+
 		return getHttp().URLtoString(options);
 	}
 
 	public static String URLtoString(String location) throws IOException {
+		PortalSocketPermission.checkConnect(location);
+
 		return getHttp().URLtoString(location);
 	}
 
 	public static String URLtoString(String location, boolean post)
 		throws IOException {
+
+		PortalSocketPermission.checkConnect(location);
 
 		return getHttp().URLtoString(location, post);
 	}
@@ -287,10 +332,14 @@ public class HttpUtil {
 	 * @throws IOException if an IO Exception occurred
 	 */
 	public static String URLtoString(URL url) throws IOException {
+		PortalSocketPermission.checkConnect(url);
+
 		return getHttp().URLtoString(url);
 	}
 
 	public void setHttp(Http http) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_http = http;
 	}
 

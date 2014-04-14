@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,46 +35,39 @@ import java.util.Map;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Tina Tian
  */
 public class ContentTransformerListener extends BaseTransformerListener {
 
 	@Override
-	public String onOutput(String s) {
-		if (_log.isDebugEnabled()) {
-			_log.debug("onOutput");
-		}
+	public String onScript(
+		String script, Document document, String languageId,
+		Map<String, String> tokens) {
 
-		return s;
-	}
-
-	@Override
-	public String onScript(String s) {
 		if (_log.isDebugEnabled()) {
 			_log.debug("onScript");
 		}
 
-		s = injectEditInPlace(_xml, s);
-
-		return s;
+		return injectEditInPlace(script, document);
 	}
 
 	@Override
-	public String onXml(String s) {
+	public Document onXml(
+		Document document, String languageId, Map<String, String> tokens) {
+
 		if (_log.isDebugEnabled()) {
 			_log.debug("onXml");
 		}
 
-		_xml = replace(s);
+		replace(document, tokens);
 
-		return _xml;
+		return document;
 	}
 
-	protected String getDynamicContent(String xml, String elementName) {
+	protected String getDynamicContent(Document document, String elementName) {
 		String content = null;
 
 		try {
-			Document document = SAXReaderUtil.read(xml);
-
 			Element rootElement = document.getRootElement();
 
 			for (Element element : rootElement.elements()) {
@@ -95,10 +88,12 @@ public class ContentTransformerListener extends BaseTransformerListener {
 		return GetterUtil.getString(content);
 	}
 
-	protected String injectEditInPlace(String xml, String script) {
-		try {
-			Document document = SAXReaderUtil.read(xml);
+	protected String injectEditInPlace(String script, Document document) {
+		if (!script.contains("$editInPlace(")) {
+			return script;
+		}
 
+		try {
 			List<Node> nodes = document.selectNodes("//dynamic-element");
 
 			for (Node node : nodes) {
@@ -120,24 +115,37 @@ public class ContentTransformerListener extends BaseTransformerListener {
 			}
 		}
 		catch (Exception e) {
-			_log.warn(e.getMessage());
+			if (_log.isWarnEnabled()) {
+				_log.warn(e.getMessage());
+			}
 		}
 
 		return script;
 	}
 
-	protected void replace(Element root) throws Exception {
-		Map<String, String> tokens = getTokens();
+	protected void replace(Document document, Map<String, String> tokens) {
+		try {
+			Element rootElement = document.getRootElement();
 
-		long groupId = GetterUtil.getLong(tokens.get("group_id"));
+			long articleGroupId = GetterUtil.getLong(
+				tokens.get("article_group_id"));
 
+			replace(rootElement, articleGroupId);
+		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(e.getMessage());
+			}
+		}
+	}
+
+	protected void replace(Element root, long articleGroupId) throws Exception {
 		for (Element el : root.elements()) {
 			Element dynamicContent = el.element("dynamic-content");
 
 			if (dynamicContent != null) {
 				String text = dynamicContent.getText();
 
-				text = HtmlUtil.escape(text);
 				text = HtmlUtil.stripComments(text);
 				text = HtmlUtil.stripHtml(text);
 				text = text.trim();
@@ -157,12 +165,12 @@ public class ContentTransformerListener extends BaseTransformerListener {
 
 						JournalArticle article =
 							JournalArticleLocalServiceUtil.getArticle(
-								groupId, articleId);
+								articleGroupId, articleId);
 
 						dynamicContent.clearContent();
 						dynamicContent.addCDATA(
 							getDynamicContent(
-								article.getContent(), elementName));
+								article.getDocument(), elementName));
 					}
 				}
 
@@ -173,19 +181,9 @@ public class ContentTransformerListener extends BaseTransformerListener {
 
 					dynamicContent.setText("@cdn_host@@root_path@" + text);
 				}
-				else {
-					String type = GetterUtil.getString(
-						el.attributeValue("type"));
-
-					if (type.equals("text_box")) {
-						text = text.replaceAll("\\n", "<br />");
-					}
-
-					dynamicContent.setText(text);
-				}
 			}
 
-			replace(el);
+			replace(el, articleGroupId);
 		}
 	}
 
@@ -195,18 +193,18 @@ public class ContentTransformerListener extends BaseTransformerListener {
 	 *
 	 * @return the processed string
 	 */
-	protected String replace(String xml) {
+	protected String replace(String xml, Map<String, String> tokens) {
 		try {
 			Document document = SAXReaderUtil.read(xml);
 
-			Element rootElement = document.getRootElement();
-
-			replace(rootElement);
+			replace(document, tokens);
 
 			xml = DDMXMLUtil.formatXML(document);
 		}
 		catch (Exception e) {
-			_log.warn(e.getMessage());
+			if (_log.isWarnEnabled()) {
+				_log.warn(e.getMessage());
+			}
 		}
 
 		return xml;
@@ -227,7 +225,5 @@ public class ContentTransformerListener extends BaseTransformerListener {
 
 	private static Log _log = LogFactoryUtil.getLog(
 		ContentTransformerListener.class);
-
-	private String _xml;
 
 }

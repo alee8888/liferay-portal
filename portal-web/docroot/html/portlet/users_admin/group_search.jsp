@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,32 +18,19 @@
 
 <%
 GroupSearch searchContainer = (GroupSearch)request.getAttribute("liferay-ui:search:searchContainer");
-boolean showAddButton = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:search:showAddButton"));
 
 GroupDisplayTerms displayTerms = (GroupDisplayTerms)searchContainer.getDisplayTerms();
 %>
 
-<span class="aui-search-bar lfr-display-terms-search">
-	<aui:input inlineField="<%= true %>" label="" name="<%= displayTerms.NAME %>" size="30" type="text" value="<%= displayTerms.getName() %>" />
+<liferay-ui:search-toggle
+	autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>"
+	buttonLabel="search"
+	displayTerms="<%= displayTerms %>"
+	id="toggle_id_users_admin_group_search"
+>
+	<aui:fieldset>
+		<aui:input inlineField="<%= true %>" name="<%= displayTerms.NAME %>" size="30" value="<%= displayTerms.getName() %>" />
 
-	<aui:button type="submit" value="search" />
-</span>
-
-<br />
-
-<div>
-	<c:if test="<%= showAddButton && PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_COMMUNITY) %>">
-		<aui:button onClick='<%= renderResponse.getNamespace() + "addGroup();" %>' value="add-site" />
-	</c:if>
-</div>
-
-<aui:script>
-	function <portlet:namespace />addGroup() {
-		document.<portlet:namespace />fm.method = 'post';
-		submitForm(document.<portlet:namespace />fm, '<portlet:renderURL><portlet:param name="struts_action" value="/sites_admin/edit_site" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:renderURL>');
-	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace /><%= displayTerms.NAME %>);
-	</c:if>
-</aui:script>
+		<aui:input inlineField="<%= true %>" name="<%= displayTerms.DESCRIPTION %>" size="30" value="<%= displayTerms.getDescription() %>" />
+	</aui:fieldset>
+</liferay-ui:search-toggle>

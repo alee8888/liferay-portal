@@ -1,8 +1,10 @@
+@import "compass";
+
 .portlet-blogs-aggregator {
 	.abstract {
 		clear: both;
-		margin-top: 1.5em;
 		margin-bottom: 1.5em;
+		margin-top: 1.5em;
 	}
 
 	.comments {
@@ -49,8 +51,10 @@
 
 	.entry-title {
 		display: block;
+
+		@include ellipsis;
+
 		font-size: 1.2em;
-		font-weight: bold;
 		margin-bottom: 0.2em;
 	}
 

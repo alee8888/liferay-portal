@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,6 +31,7 @@ public class ModelResourceComparator
 		_locale = locale;
 	}
 
+	@Override
 	public int compare(String resource1, String resource2) {
 		resource1 = ResourceActionsUtil.getModelResource(_locale, resource1);
 		resource2 = ResourceActionsUtil.getModelResource(_locale, resource2);

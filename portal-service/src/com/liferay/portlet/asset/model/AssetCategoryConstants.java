@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,5 +22,7 @@ public class AssetCategoryConstants {
 	public static final long ALL_CLASS_NAME_IDS = 0;
 
 	public static final long DEFAULT_PARENT_CATEGORY_ID = 0;
+
+	public static final String PROPERTY_KEY_VALUE_SEPARATOR = "_KEY_VALUE_";
 
 }

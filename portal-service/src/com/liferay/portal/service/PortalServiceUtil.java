@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,18 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
- * The utility for the portal remote service. This utility wraps {@link com.liferay.portal.service.impl.PortalServiceImpl} and is the primary access point for service operations in application layer code running on a remote server.
- *
- * <p>
- * This is a remote service. Methods of this service are expected to have security checks based on the propagated JAAS credentials because this service can be accessed remotely.
- * </p>
+ * Provides the remote service utility for Portal. This utility wraps
+ * {@link com.liferay.portal.service.impl.PortalServiceImpl} and is the
+ * primary access point for service operations in application layer code running
+ * on a remote server. Methods of this service are expected to have security
+ * checks based on the propagated JAAS credentials because this service can be
+ * accessed remotely.
  *
  * @author Brian Wing Shun Chan
  * @see PortalService
@@ -30,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.PortalServiceImpl
  * @generated
  */
+@ProviderType
 public class PortalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -96,15 +100,19 @@ public class PortalServiceUtil {
 			.testAddClassNameAndTestTransactionPortletBar_Success(transactionPortletBarText);
 	}
 
-	public static void testCounterIncrement_Rollback()
+	public static void testAutoSyncHibernateSessionStateOnTxCreation()
 		throws com.liferay.portal.kernel.exception.SystemException {
-		getService().testCounterIncrement_Rollback();
+		getService().testAutoSyncHibernateSessionStateOnTxCreation();
 	}
 
 	public static void testDeleteClassName()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		getService().testDeleteClassName();
+	}
+
+	public static int testGetBuildNumber() {
+		return getService().testGetBuildNumber();
 	}
 
 	public static void testGetUserId() {
@@ -128,8 +136,9 @@ public class PortalServiceUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(PortalService service) {
 	}
 

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -45,7 +45,7 @@ if (!rankingNamesList.isEmpty()) {
 
 	if (displayAdditionalActivityCounters) {
 		for (int displayActivityCounterNameIndex : displayActivityCounterNameIndexes) {
-			selectedNamesList.add(PrefsParamUtil.getString(preferences, request, "displayActivityCounterName" + displayActivityCounterNameIndex));
+			selectedNamesList.add(PrefsParamUtil.getString(portletPreferences, request, "displayActivityCounterName" + displayActivityCounterNameIndex));
 		}
 	}
 
@@ -71,7 +71,7 @@ if (!rankingNamesList.isEmpty()) {
 		resultRows.add(row);
 	}
 
-	String rankingNamesMessage = LanguageUtil.format(pageContext, rankingNames[0], StringPool.BLANK);
+	String rankingNamesMessage = LanguageUtil.format(pageContext, rankingNames[0], StringPool.BLANK, false);
 
 	for (int i = 1; i < rankingNames.length; i++) {
 		rankingNamesMessage = LanguageUtil.format(pageContext, "x-and-y", new Object[] {rankingNamesMessage, rankingNames[i]});
@@ -81,7 +81,7 @@ if (!rankingNamesList.isEmpty()) {
 	<c:if test="<%= showHeaderText %>">
 		<div class="top-users">
 			<c:if test="<%= total > 0 %>">
-				<liferay-ui:message arguments="<%= total %>" key="top-users-out-of-x" /> <%= LanguageUtil.format(pageContext, "ranking-is-based-on-x", rankingNamesMessage) %><br />
+				<liferay-ui:message arguments="<%= total %>" key="top-users-out-of-x" translateArguments="<%= false %>" /> <%= LanguageUtil.format(pageContext, "ranking-is-based-on-x", rankingNamesMessage, false) %><br />
 			</c:if>
 		</div>
 	</c:if>
@@ -98,7 +98,7 @@ if (!rankingNamesList.isEmpty()) {
 		</div>
 	</c:if>
 
-	<aui:script use="aui-io-plugin">
+	<aui:script use="aui-io-plugin-deprecated">
 		var searchTopUsers = A.one('#<portlet:namespace />searchTopUsers');
 
 		if (searchTopUsers) {
@@ -130,7 +130,7 @@ if (!rankingNamesList.isEmpty()) {
 else {
 %>
 
-	<div class="portlet-configuration portlet-msg-info">
+	<div class="alert alert-info portlet-configuration">
 		<a href="<%= portletDisplay.getURLConfiguration() %>" onClick="<%= portletDisplay.getURLConfigurationJS() %>">
 			<liferay-ui:message key="please-configure-this-portlet-and-select-at-least-one-ranking-criteria" />
 		</a>

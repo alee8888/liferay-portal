@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,11 +14,17 @@
 
 package com.liferay.portlet.asset.model.impl;
 
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portlet.asset.model.AssetCategory;
+import com.liferay.portlet.asset.service.AssetCategoryLocalServiceUtil;
+
+import java.util.List;
 
 /**
  * @author Brian Wing Shun Chan
@@ -27,6 +33,12 @@ import com.liferay.portal.kernel.util.Validator;
 public class AssetVocabularyImpl extends AssetVocabularyBaseImpl {
 
 	public AssetVocabularyImpl() {
+	}
+
+	@Override
+	public List<AssetCategory> getCategories() throws SystemException {
+		return AssetCategoryLocalServiceUtil.getVocabularyCategories(
+			getVocabularyId(), QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
 	@Override
@@ -39,6 +51,7 @@ public class AssetVocabularyImpl extends AssetVocabularyBaseImpl {
 		}
 	}
 
+	@Override
 	public UnicodeProperties getSettingsProperties() {
 		if (_settingsProperties == null) {
 			_settingsProperties = new UnicodeProperties(true);
@@ -71,8 +84,9 @@ public class AssetVocabularyImpl extends AssetVocabularyBaseImpl {
 		return value;
 	}
 
+	@Override
 	public boolean isMultiValued() {
-		if (Validator.isNull(_settingsProperties)) {
+		if (_settingsProperties == null) {
 			_settingsProperties = getSettingsProperties();
 		}
 
@@ -80,8 +94,9 @@ public class AssetVocabularyImpl extends AssetVocabularyBaseImpl {
 			_settingsProperties.getProperty("multiValued"), true);
 	}
 
+	@Override
 	public boolean isRequired(long classNameId) {
-		if (Validator.isNull(_settingsProperties)) {
+		if (_settingsProperties == null) {
 			_settingsProperties = getSettingsProperties();
 		}
 
@@ -98,6 +113,7 @@ public class AssetVocabularyImpl extends AssetVocabularyBaseImpl {
 		super.setSettings(settings);
 	}
 
+	@Override
 	public void setSettingsProperties(UnicodeProperties settingsProperties) {
 		_settingsProperties = settingsProperties;
 

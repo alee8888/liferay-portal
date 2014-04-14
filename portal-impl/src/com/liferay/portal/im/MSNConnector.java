@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -47,25 +47,29 @@ public class MSNConnector {
 	}
 
 	private void _connect() {
-		if (!_msn.isLoggedIn()) {
-			_msn.login();
+		if (_msn.isLoggedIn()) {
+			return;
+		}
 
-			// Spend 5 seconds to attempt to login
+		_msn.login();
 
-			for (int i = 0; i < 50 && !_msn.isLoggedIn(); i++) {
-				try {
-					Thread.sleep(100);
-				}
-				catch (InterruptedException ie) {
+		// Spend 5 seconds to attempt to login
+
+		for (int i = 0; i < 50 && !_msn.isLoggedIn(); i++) {
+			try {
+				Thread.sleep(100);
+			}
+			catch (InterruptedException ie) {
+				if (_log.isWarnEnabled()) {
 					_log.warn(ie);
-
-					break;
 				}
-			}
 
-			if (!_msn.isLoggedIn()) {
-				_log.error("Unable to connect as " + _login);
+				break;
 			}
+		}
+
+		if (!_msn.isLoggedIn()) {
+			_log.error("Unable to connect as " + _login);
 		}
 	}
 
@@ -76,7 +80,11 @@ public class MSNConnector {
 			}
 		}
 		catch (Exception e) {
-			_log.warn(e);
+			if (_log.isWarnEnabled()) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(e);
+				}
+			}
 		}
 	}
 
@@ -91,7 +99,9 @@ public class MSNConnector {
 			_msn.doCallWait(to);
 		}
 		catch (Exception e) {
-			_log.warn(e);
+			if (_log.isWarnEnabled()) {
+				_log.warn(e);
+			}
 		}
 	}
 

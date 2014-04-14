@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,14 +23,16 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portal.service.http.WebsiteServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portal.service.http.WebsiteServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portal.service.http.WebsiteServiceSoap
  * @generated
  */
 public class WebsiteSoap implements Serializable {
 	public static WebsiteSoap toSoapModel(Website model) {
 		WebsiteSoap soapModel = new WebsiteSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
+		soapModel.setUuid(model.getUuid());
 		soapModel.setWebsiteId(model.getWebsiteId());
 		soapModel.setCompanyId(model.getCompanyId());
 		soapModel.setUserId(model.getUserId());
@@ -92,6 +94,22 @@ public class WebsiteSoap implements Serializable {
 
 	public void setPrimaryKey(long pk) {
 		setWebsiteId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	public String getUuid() {
+		return _uuid;
+	}
+
+	public void setUuid(String uuid) {
+		_uuid = uuid;
 	}
 
 	public long getWebsiteId() {
@@ -186,6 +204,8 @@ public class WebsiteSoap implements Serializable {
 		_primary = primary;
 	}
 
+	private long _mvccVersion;
+	private String _uuid;
 	private long _websiteId;
 	private long _companyId;
 	private long _userId;

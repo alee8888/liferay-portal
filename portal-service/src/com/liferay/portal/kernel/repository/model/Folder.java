@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,6 +31,7 @@ public interface Folder extends RepositoryModel<Folder> {
 
 		new Accessor<Folder, Long>() {
 
+			@Override
 			public Long get(Folder folder) {
 				return folder.getFolderId();
 			}
@@ -41,21 +42,28 @@ public interface Folder extends RepositoryModel<Folder> {
 			PermissionChecker permissionChecker, String actionId)
 		throws PortalException, SystemException;
 
+	public List<Long> getAncestorFolderIds()
+		throws PortalException, SystemException;
+
 	public List<Folder> getAncestors()
 		throws PortalException, SystemException;
 
+	@Override
 	public long getCompanyId();
 
+	@Override
 	public Date getCreateDate();
 
 	public String getDescription();
 
 	public long getFolderId();
 
+	@Override
 	public long getGroupId();
 
 	public Date getLastPostDate();
 
+	@Override
 	public Date getModifiedDate();
 
 	public String getName();
@@ -66,12 +74,16 @@ public interface Folder extends RepositoryModel<Folder> {
 
 	public long getRepositoryId();
 
+	@Override
 	public long getUserId();
 
+	@Override
 	public String getUserName();
 
+	@Override
 	public String getUserUuid() throws SystemException;
 
+	@Override
 	public String getUuid();
 
 	public boolean hasInheritableLock();
@@ -95,5 +107,7 @@ public interface Folder extends RepositoryModel<Folder> {
 	public boolean isSupportsShortcuts();
 
 	public boolean isSupportsSocial();
+
+	public boolean isSupportsSubscribing();
 
 }

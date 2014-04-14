@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -70,6 +70,7 @@ if (workflowEnabled) {
 	<liferay-ui:error exception="<%= DuplicateFileException.class %>" message="please-enter-a-unique-folder-name" />
 	<liferay-ui:error exception="<%= DuplicateFolderNameException.class %>" message="please-enter-a-unique-folder-name" />
 	<liferay-ui:error exception="<%= FolderNameException.class %>" message="please-enter-a-valid-name" />
+	<liferay-ui:error exception="<%= RequiredFileEntryTypeException.class %>" message="please-select-a-document-type" />
 
 	<aui:model-context bean="<%= folder %>" model="<%= DLFolder.class %>" />
 
@@ -92,16 +93,11 @@ if (workflowEnabled) {
 
 			<c:if test="<%= folder != null %>">
 				<aui:field-wrapper label="parent-folder">
-					<portlet:renderURL var="viewFolderURL">
-						<portlet:param name="struts_action" value="/document_library/view" />
-						<portlet:param name="folderId" value="<%= String.valueOf(parentFolderId) %>" />
-					</portlet:renderURL>
-
-					<aui:a href="<%= viewFolderURL %>" id="parentFolderName"><%= parentFolderName %></aui:a>
+					<liferay-ui:input-resource url="<%= parentFolderName %>" />
 				</aui:field-wrapper>
 			</c:if>
 
-			<aui:input name="name" />
+			<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="name" />
 
 			<c:if test="<%= (parentFolder == null) || parentFolder.isSupportsMetadata() %>">
 				<aui:input name="description" />
@@ -130,7 +126,7 @@ if (workflowEnabled) {
 				defaultFileEntryTypeId = dlFolder.getDefaultFileEntryTypeId();
 			}
 
-			List<DLFileEntryType> fileEntryTypes = DLFileEntryTypeLocalServiceUtil.getFolderFileEntryTypes(DLUtil.getGroupIds(themeDisplay), folderId, false);
+			List<DLFileEntryType> fileEntryTypes = DLFileEntryTypeLocalServiceUtil.getFolderFileEntryTypes(PortalUtil.getCurrentAndAncestorSiteGroupIds(scopeGroupId), folderId, false);
 
 			String headerNames = null;
 
@@ -151,7 +147,7 @@ if (workflowEnabled) {
 
 				<div id="<portlet:namespace />overrideParentSettings">
 					<c:if test="<%= workflowEnabled %>">
-						<div class='<%= (rootFolder || fileEntryTypes.isEmpty()) ? StringPool.BLANK : "aui-helper-hidden" %>' id="<portlet:namespace />defaultWorkflow">
+						<div class='<%= (rootFolder || fileEntryTypes.isEmpty()) ? StringPool.BLANK : "hide" %>' id="<portlet:namespace />defaultWorkflow">
 							<aui:select label="default-workflow-for-all-document-types" name='<%= "workflowDefinition" + DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_ALL %>'>
 
 								<aui:option label="no-workflow" value="" />
@@ -173,7 +169,7 @@ if (workflowEnabled) {
 									}
 								%>
 
-									<aui:option label='<%= workflowDefinition.getName() + " (" + LanguageUtil.format(locale, "version-x", workflowDefinition.getVersion()) + ")" %>' selected="<%= selected %>" value="<%= workflowDefinition.getName() + StringPool.AT + workflowDefinition.getVersion() %>" />
+									<aui:option label='<%= workflowDefinition.getName() + " (" + LanguageUtil.format(locale, "version-x", workflowDefinition.getVersion(), false) + ")" %>' selected="<%= selected %>" value="<%= workflowDefinition.getName() + StringPool.AT + workflowDefinition.getVersion() %>" />
 
 								<%
 								}
@@ -186,10 +182,10 @@ if (workflowEnabled) {
 					<c:if test="<%= !rootFolder %>">
 						<liferay-ui:search-container
 							headerNames="<%= headerNames %>"
+							total="<%= fileEntryTypes.size() %>"
 						>
 							<liferay-ui:search-container-results
 								results="<%= fileEntryTypes %>"
-								total="<%= fileEntryTypes.size() %>"
 							/>
 
 							<liferay-ui:search-container-row
@@ -200,12 +196,12 @@ if (workflowEnabled) {
 							>
 								<liferay-ui:search-container-column-text
 									name="name"
-									value="<%= dlFileEntryType.getName() %>"
+									value="<%= dlFileEntryType.getName(locale) %>"
 								/>
 
 								<c:if test="<%= workflowEnabled %>">
 									<liferay-ui:search-container-column-text name="workflow">
-										<aui:select label="" name='<%= "workflowDefinition" + dlFileEntryType.getFileEntryTypeId() %>'>
+										<aui:select hideLabel="<%= true %>" label="workflow-definition" name='<%= "workflowDefinition" + dlFileEntryType.getFileEntryTypeId() %>'>
 
 											<aui:option label="no-workflow" value="" />
 
@@ -226,7 +222,7 @@ if (workflowEnabled) {
 												}
 											%>
 
-												<aui:option label='<%= workflowDefinition.getName() + " (" + LanguageUtil.format(locale, "version-x", workflowDefinition.getVersion()) + ")" %>' selected='<%= selected %>' value="<%= workflowDefinition.getName() + StringPool.AT + workflowDefinition.getVersion() %>" />
+												<aui:option label='<%= workflowDefinition.getName() + " (" + LanguageUtil.format(locale, "version-x", workflowDefinition.getVersion(), false) + ")" %>' selected="<%= selected %>" value="<%= workflowDefinition.getName() + StringPool.AT + workflowDefinition.getVersion() %>" />
 
 											<%
 											}
@@ -246,19 +242,20 @@ if (workflowEnabled) {
 
 						<liferay-ui:icon
 							cssClass="modify-link select-file-entry-type"
-							image="add"
+							iconCssClass="icon-search"
 							label="<%= true %>"
+							linkCssClass="btn"
 							message="select-document-type"
 							url='<%= "javascript:" + renderResponse.getNamespace() + "openFileEntryTypeSelector();" %>'
 						/>
 
-						<aui:select cssClass='<%= !fileEntryTypes.isEmpty() ? "default-document-type" : "default-document-type aui-helper-hidden" %>' helpMessage="default-document-type-help" label="default-document-type" name="defaultFileEntryTypeId">
+						<aui:select cssClass='<%= !fileEntryTypes.isEmpty() ? "default-document-type" : "default-document-type hide" %>' helpMessage="default-document-type-help" label="default-document-type" name="defaultFileEntryTypeId">
 
 							<%
 							for (DLFileEntryType fileEntryType : fileEntryTypes) {
 							%>
 
-								<aui:option id='<%= renderResponse.getNamespace() + "defaultFileEntryTypeId-" + fileEntryType.getFileEntryTypeId() %>' label="<%= fileEntryType.getName() %>" selected="<%= (fileEntryType.getFileEntryTypeId() == defaultFileEntryTypeId) %>" value="<%= fileEntryType.getFileEntryTypeId() %>" />
+								<aui:option id='<%= renderResponse.getNamespace() + "defaultFileEntryTypeId-" + fileEntryType.getFileEntryTypeId() %>' label="<%= HtmlUtil.escape(fileEntryType.getName(locale)) %>" selected="<%= (fileEntryType.getFileEntryTypeId() == defaultFileEntryTypeId) %>" value="<%= fileEntryType.getFileEntryTypeId() %>" />
 
 							<%
 							}
@@ -286,18 +283,43 @@ if (workflowEnabled) {
 	</aui:fieldset>
 </aui:form>
 
+<liferay-util:buffer var="workflowDefinitionsBuffer">
+	<c:if test="<%= workflowEnabled %>">
+		<aui:select hideLabel="<%= true %>" label="workflow-definition" name="LIFERAY_WORKFLOW_DEFINITION_FILE_ENTRY_TYPE">
+			<aui:option label="no-workflow" value="" />
+
+			<%
+			for (WorkflowDefinition workflowDefinition : workflowDefinitions) {
+			%>
+
+				<aui:option label='<%= workflowDefinition.getName() + " (" + LanguageUtil.format(locale, "version-x", workflowDefinition.getVersion(), false) + ")" %>' selected="<% selected %>" value="<%= workflowDefinition.getName() + StringPool.AT + workflowDefinition.getVersion() %>" />
+
+			<%
+			}
+			%>
+
+		</aui:select>
+	</c:if>
+</liferay-util:buffer>
+
 <aui:script>
 	var documentTypesChanged = false;
 
 	function <portlet:namespace />openFileEntryTypeSelector() {
-		Liferay.Util.openWindow(
+		Liferay.Util.selectEntity(
 			{
 				dialog: {
-					width: 680
+					constrain: true,
+					modal: true,
+					width: 1024
 				},
-				id: '<portlet:namespace />fileEntryTypeSeclector',
+				eventName: '<portlet:namespace />selectFileEntryType',
+				id: '<portlet:namespace />fileEntryTypeSelector',
 				title: '<%= UnicodeLanguageUtil.get(pageContext, "document-types") %>',
-				uri: '<portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="struts_action" value="/document_library/select_file_entry_type" /><portlet:param name="groupId" value="<%= String.valueOf(scopeGroupId) %>" /><portlet:param name="includeBasicFileEntryType" value="1" /></portlet:renderURL>'
+				uri: '<portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="struts_action" value="/document_library/select_restricted_file_entry_type" /><portlet:param name="includeBasicFileEntryType" value="<%= Boolean.TRUE.toString() %>" /></portlet:renderURL>'
+			},
+			function(event) {
+				<portlet:namespace />selectFileEntryType(event.fileentrytypeid, event.fileentrytypename);
 			}
 		);
 	}
@@ -321,7 +343,7 @@ if (workflowEnabled) {
 	Liferay.provide(
 		window,
 		'<portlet:namespace />selectFileEntryType',
-		function(fileEntryTypeId, fileEntryTypeName, dialog) {
+		function(fileEntryTypeId, fileEntryTypeName) {
 			var A = AUI();
 
 			var searchContainer = Liferay.SearchContainer.get('<portlet:namespace />dlFileEntryTypesSearchContainer');
@@ -333,22 +355,6 @@ if (workflowEnabled) {
 					var defaultWorkflow = A.one('#<portlet:namespace />defaultWorkflow');
 
 					defaultWorkflow.hide();
-
-					<liferay-util:buffer var="workflowDefinitionsBuffer">
-						<aui:select label="" name="LIFERAY_WORKFLOW_DEFINITION_FILE_ENTRY_TYPE"><aui:option label="no-workflow" value="" />
-
-						<%
-						for (WorkflowDefinition workflowDefinition : workflowDefinitions) {
-						%>
-
-							<aui:option label='<%= workflowDefinition.getName() + " (" + LanguageUtil.format(locale, "version-x", workflowDefinition.getVersion()) + ")" %>' selected='<% selected %>' value="<%= workflowDefinition.getName() + StringPool.AT + workflowDefinition.getVersion() %>" />
-
-						<%
-						}
-						%>
-
-						</aui:select>
-					</liferay-util:buffer>
 
 					var workflowDefinitions = '<%= UnicodeFormatter.toString(workflowDefinitionsBuffer) %>';
 
@@ -376,10 +382,6 @@ if (workflowEnabled) {
 			option.show();
 
 			select.append(option);
-
-			if (dialog) {
-				dialog.close();
-			}
 		},
 		['liferay-search-container']
 	);

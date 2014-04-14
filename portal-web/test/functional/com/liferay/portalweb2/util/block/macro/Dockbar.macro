@@ -1,0 +1,19 @@
+<definition>
+	<command name="showEditField">
+		<if>
+			<condition action="Dockbar#isElementNotPresent" locator1="//div[@id='_145_${fieldLabel}Content']" value1="${fieldName}" />
+			<then>
+				<execute action="Dockbar#assertClick" locator-key1="EDIT_${fieldKey}" value1="${fieldName}" />
+			</then>
+		</if>
+
+		<execute action="Dockbar#assertElementPresent" locator1="//div[@id='_145_${fieldLabel}Content']" />
+	</command>
+
+	<command name="viewAddTabsWithNoAddPagePermission">
+		<execute action="Dockbar#click" locator-key1="ADD" value1="Add" />
+		<execute action="Dockbar#assertTextEquals" locator-key1="ADD_CONTENT_LINK" value1="Content" />
+		<execute action="Dockbar#assertTextEquals" locator-key1="ADD_APPLICATION_LINK" value1="Applications" />
+		<execute action="Dockbar#assertElementNotPresent" locator-key1="ADD_PAGE_LINK" value1="Page" />
+	</command>
+</definition>

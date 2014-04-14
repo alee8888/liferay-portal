@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.servlet.PluginContextListener;
 import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.PortalLifecycle;
 import com.liferay.portal.kernel.util.PortalLifecycleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
@@ -173,35 +174,65 @@ public class InvokerFilterHelper {
 		return invokerFilterChain;
 	}
 
+	protected Filter getFilter(
+		ServletContext servletContext, String filterClassName,
+		FilterConfig filterConfig) {
+
+		ClassLoader pluginClassLoader = getPluginClassLoader(servletContext);
+
+		Thread currentThread = Thread.currentThread();
+
+		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+
+		try {
+			if (contextClassLoader != pluginClassLoader) {
+				currentThread.setContextClassLoader(pluginClassLoader);
+			}
+
+			Filter filter = (Filter)InstanceFactory.newInstance(
+				pluginClassLoader, filterClassName);
+
+			filter.init(filterConfig);
+
+			return filter;
+		}
+		catch (Exception e) {
+			_log.error("Unable to initialize filter " + filterClassName, e);
+		}
+		finally {
+			if (contextClassLoader != pluginClassLoader) {
+				currentThread.setContextClassLoader(contextClassLoader);
+			}
+		}
+
+		return null;
+	}
+
+	protected ClassLoader getPluginClassLoader(ServletContext servletContext) {
+		ClassLoader classLoader = (ClassLoader)servletContext.getAttribute(
+			PluginContextListener.PLUGIN_CLASS_LOADER);
+
+		if (classLoader != null) {
+			return classLoader;
+		}
+
+		Thread currentThread = Thread.currentThread();
+
+		return currentThread.getContextClassLoader();
+	}
+
 	protected void initFilter(
 			ServletContext servletContext, String filterName,
 			String filterClassName, Map<String, String> initParameterMap)
 		throws Exception {
 
-		ClassLoader contextClassLoader =
-			(ClassLoader)servletContext.getAttribute(
-				PluginContextListener.PLUGIN_CLASS_LOADER);
-
-		if (contextClassLoader == null) {
-			Thread currentThread = Thread.currentThread();
-
-			contextClassLoader = currentThread.getContextClassLoader();
-		}
-
 		FilterConfig filterConfig = new InvokerFilterConfig(
 			servletContext, filterName, initParameterMap);
 
-		Filter filter = null;
+		Filter filter = getFilter(
+			servletContext, filterClassName, filterConfig);
 
-		try {
-			filter = (Filter)InstanceFactory.newInstance(
-				contextClassLoader, filterClassName);
-
-			filter.init(filterConfig);
-		}
-		catch (Exception e) {
-			_log.error("Unable to initialize filter " + filterClassName, e);
-
+		if (filter == null) {
 			return;
 		}
 
@@ -314,8 +345,8 @@ public class InvokerFilterHelper {
 				"dispatcher");
 
 			for (Element dispatcherElement : dispatcherElements) {
-				String dispatcher =
-					dispatcherElement.getTextTrim().toUpperCase();
+				String dispatcher = StringUtil.toUpperCase(
+					dispatcherElement.getTextTrim());
 
 				dispatchers.add(dispatcher);
 			}
@@ -324,7 +355,7 @@ public class InvokerFilterHelper {
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(InvokerFilter.class);
+	private static Log _log = LogFactoryUtil.getLog(InvokerFilterHelper.class);
 
 	private Map<String, FilterConfig> _filterConfigs =
 		new HashMap<String, FilterConfig>();

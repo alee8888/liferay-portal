@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,13 +22,14 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services.
  *
- * @author    Brian Wing Shun Chan
+ * @author Brian Wing Shun Chan
  * @generated
  */
 public class PortalPreferencesSoap implements Serializable {
 	public static PortalPreferencesSoap toSoapModel(PortalPreferences model) {
 		PortalPreferencesSoap soapModel = new PortalPreferencesSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setPortalPreferencesId(model.getPortalPreferencesId());
 		soapModel.setOwnerId(model.getOwnerId());
 		soapModel.setOwnerType(model.getOwnerType());
@@ -88,6 +89,14 @@ public class PortalPreferencesSoap implements Serializable {
 		setPortalPreferencesId(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public long getPortalPreferencesId() {
 		return _portalPreferencesId;
 	}
@@ -120,6 +129,7 @@ public class PortalPreferencesSoap implements Serializable {
 		_preferences = preferences;
 	}
 
+	private long _mvccVersion;
 	private long _portalPreferencesId;
 	private long _ownerId;
 	private int _ownerType;

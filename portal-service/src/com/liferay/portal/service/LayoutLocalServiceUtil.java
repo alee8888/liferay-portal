@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,18 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
- * The utility for the layout local service. This utility wraps {@link com.liferay.portal.service.impl.LayoutLocalServiceImpl} and is the primary access point for service operations in application layer code running on the local server.
- *
- * <p>
- * This is a local service. Methods of this service will not have security checks based on the propagated JAAS credentials because this service can only be accessed from within the same VM.
- * </p>
+ * Provides the local service utility for Layout. This utility wraps
+ * {@link com.liferay.portal.service.impl.LayoutLocalServiceImpl} and is the
+ * primary access point for service operations in application layer code running
+ * on the local server. Methods of this service will not have security checks
+ * based on the propagated JAAS credentials because this service can only be
+ * accessed from within the same VM.
  *
  * @author Brian Wing Shun Chan
  * @see LayoutLocalService
@@ -30,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.LayoutLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class LayoutLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -109,7 +113,7 @@ public class LayoutLocalServiceUtil {
 	* Performs a dynamic query on the database and returns a range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.LayoutModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -129,7 +133,7 @@ public class LayoutLocalServiceUtil {
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.LayoutModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -162,9 +166,54 @@ public class LayoutLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	public static com.liferay.portal.model.Layout fetchLayout(long plid)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().fetchLayout(plid);
+	}
+
+	/**
+	* Returns the layout with the matching UUID and company.
+	*
+	* @param uuid the layout's UUID
+	* @param companyId the primary key of the company
+	* @return the matching layout, or <code>null</code> if a matching layout could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.Layout fetchLayoutByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchLayoutByUuidAndCompanyId(uuid, companyId);
+	}
+
+	/**
+	* Returns the layout matching the UUID, group, and privacy.
+	*
+	* @param uuid the layout's UUID
+	* @param groupId the primary key of the group
+	* @param privateLayout whether the layout is private to the group
+	* @return the matching layout, or <code>null</code> if a matching layout could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.Layout fetchLayoutByUuidAndGroupId(
+		java.lang.String uuid, long groupId, boolean privateLayout)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .fetchLayoutByUuidAndGroupId(uuid, groupId, privateLayout);
 	}
 
 	/**
@@ -189,26 +238,44 @@ public class LayoutLocalServiceUtil {
 	}
 
 	/**
-	* Returns the layout with the UUID in the group.
+	* Returns the layout with the matching UUID and company.
 	*
-	* @param uuid the UUID of layout
-	* @param groupId the group id of the layout
-	* @return the layout
-	* @throws PortalException if a layout with the UUID in the group could not be found
+	* @param uuid the layout's UUID
+	* @param companyId the primary key of the company
+	* @return the matching layout
+	* @throws PortalException if a matching layout could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.Layout getLayoutByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getLayoutByUuidAndCompanyId(uuid, companyId);
+	}
+
+	/**
+	* Returns the layout matching the UUID, group, and privacy.
+	*
+	* @param uuid the layout's UUID
+	* @param groupId the primary key of the group
+	* @param privateLayout whether the layout is private to the group
+	* @return the matching layout
+	* @throws PortalException if a matching layout could not be found
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Layout getLayoutByUuidAndGroupId(
-		java.lang.String uuid, long groupId)
+		java.lang.String uuid, long groupId, boolean privateLayout)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		return getService().getLayoutByUuidAndGroupId(uuid, groupId);
+		return getService()
+				   .getLayoutByUuidAndGroupId(uuid, groupId, privateLayout);
 	}
 
 	/**
 	* Returns a range of all the layouts.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.LayoutModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of layouts
@@ -247,20 +314,6 @@ public class LayoutLocalServiceUtil {
 	}
 
 	/**
-	* Updates the layout in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param layout the layout
-	* @param merge whether to merge the layout with the current session. See {@link com.liferay.portal.service.persistence.BatchSession#update(com.liferay.portal.kernel.dao.orm.Session, com.liferay.portal.model.BaseModel, boolean)} for an explanation.
-	* @return the layout that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.Layout updateLayout(
-		com.liferay.portal.model.Layout layout, boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().updateLayout(layout, merge);
-	}
-
-	/**
 	* Returns the Spring bean ID for this bean.
 	*
 	* @return the Spring bean ID for this bean
@@ -276,6 +329,84 @@ public class LayoutLocalServiceUtil {
 	*/
 	public static void setBeanIdentifier(java.lang.String beanIdentifier) {
 		getService().setBeanIdentifier(beanIdentifier);
+	}
+
+	/**
+	* Adds a layout.
+	*
+	* <p>
+	* This method handles the creation of the layout including its resources,
+	* metadata, and internal data structures. It is not necessary to make
+	* subsequent calls to any methods to setup default groups, resources, ...
+	* etc.
+	* </p>
+	*
+	* @param userId the primary key of the user
+	* @param groupId the primary key of the group
+	* @param privateLayout whether the layout is private to the group
+	* @param parentLayoutId the primary key of the parent layout
+	(optionally {@link
+	com.liferay.portal.model.LayoutConstants#DEFAULT_PARENT_LAYOUT_ID})
+	* @param nameMap the layout's locales and localized names
+	* @param titleMap the layout's locales and localized titles
+	* @param descriptionMap the layout's locales and localized
+	descriptions
+	* @param keywordsMap the layout's locales and localized keywords
+	* @param robotsMap the layout's locales and localized robots
+	* @param type the layout's type (optionally {@link
+	com.liferay.portal.model.LayoutConstants#TYPE_PORTLET}). The
+	possible types can be found in {@link
+	com.liferay.portal.model.LayoutConstants}.
+	* @param hidden whether the layout is hidden
+	* @param friendlyURL the layout's friendly URL (optionally {@link
+	com.liferay.portal.util.PropsValues#DEFAULT_USER_PRIVATE_LAYOUT_FRIENDLY_URL}
+	or {@link
+	com.liferay.portal.util.PropsValues#DEFAULT_USER_PUBLIC_LAYOUT_FRIENDLY_URL}).
+	The default values can be overridden in
+	<code>portal-ext.properties</code> by specifying new values
+	for the corresponding properties defined in {@link
+	com.liferay.portal.util.PropsValues}. To see how the URL is
+	normalized when accessed, see {@link
+	com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil#normalize(
+	String)}.
+	* @param serviceContext the service context to be applied. Must set
+	the UUID for the layout. Can set the creation date,
+	modification date and the expando bridge attributes for the
+	layout. For layouts that belong to a layout set prototype, an
+	attribute named <code>layoutUpdateable</code> can be set to
+	specify whether site administrators can modify this page
+	within their site. For layouts that are created from a layout
+	prototype, attributes named <code>layoutPrototypeUuid</code>
+	and <code>layoutPrototypeLinkedEnabled</code> can be
+	specified to provide the unique identifier of the source
+	prototype and a boolean to determine whether a link to it
+	should be enabled to activate propagation of changes made to
+	the linked page in the prototype.
+	* @return the layout
+	* @throws PortalException if a group or user with the primary key could
+	not be found, if layout values were invalid, or if a portal
+	exception occurred
+	* @throws SystemException if a system exception occurred
+	* @deprecated As of 6.2.0, replaced by {@link #addLayout(long, long,
+	boolean, long, Map, Map, Map, Map, Map, String, String,
+	boolean, Map, ServiceContext)}
+	*/
+	@Deprecated
+	public static com.liferay.portal.model.Layout addLayout(long userId,
+		long groupId, boolean privateLayout, long parentLayoutId,
+		java.util.Map<java.util.Locale, java.lang.String> nameMap,
+		java.util.Map<java.util.Locale, java.lang.String> titleMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		java.util.Map<java.util.Locale, java.lang.String> keywordsMap,
+		java.util.Map<java.util.Locale, java.lang.String> robotsMap,
+		java.lang.String type, boolean hidden, java.lang.String friendlyURL,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .addLayout(userId, groupId, privateLayout, parentLayoutId,
+			nameMap, titleMap, descriptionMap, keywordsMap, robotsMap, type,
+			hidden, friendlyURL, serviceContext);
 	}
 
 	/**
@@ -303,33 +434,31 @@ public class LayoutLocalServiceUtil {
 	com.liferay.portal.model.LayoutConstants#TYPE_PORTLET}). The
 	possible types can be found in {@link
 	com.liferay.portal.model.LayoutConstants}.
+	* @param typeSettings the settings to load the unicode properties object.
+	See {@link com.liferay.portal.kernel.util.UnicodeProperties
+	#fastLoad(String)}.
 	* @param hidden whether the layout is hidden
-	* @param friendlyURL the layout's friendly URL (optionally {@link
-	com.liferay.portal.util.PropsValues#DEFAULT_USER_PRIVATE_LAYOUT_FRIENDLY_URL}
-	or {@link
-	com.liferay.portal.util.PropsValues#DEFAULT_USER_PUBLIC_LAYOUT_FRIENDLY_URL}).
-	The default values can be overridden in
-	<code>portal-ext.properties</code> by specifying new values for
-	the corresponding properties defined in {@link
-	com.liferay.portal.util.PropsValues}. To see how the URL is
-	normalized when accessed see {@link
+	* @param friendlyURLMap the layout's locales and localized friendly URLs.
+	To see how the URL is normalized when accessed, see {@link
 	com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil#normalize(
 	String)}.
-	* @param serviceContext the service context. Must set the universally
-	unique identifier (UUID) for the layout. Can set the creation
-	date, modification date and the expando bridge attributes for the
-	layout. For layouts that belong to a layout set prototype, an
-	attribute named 'layoutUpdateable' can be set to specify whether
-	site administrators can modify this page within their site. For
+	* @param serviceContext the service context to be applied. Must set the
+	UUID for the layout. Can set the creation date, modification
+	date, and expando bridge attributes for the layout. For layouts
+	that belong to a layout set prototype, an attribute named
+	<code>layoutUpdateable</code> can be set to specify whether site
+	administrators can modify this page within their site. For
 	layouts that are created from a layout prototype, attributes
-	named 'layoutPrototypeUuid' and 'layoutPrototypeLinkedEnabled'
-	can be specified to provide the unique identifier of the source
-	prototype and a boolean to determined whether a link to it should
-	be enabled to activate propagation of changes made to the linked
-	page in the prototype.
+	named <code>layoutPrototypeUuid</code> and
+	<code>layoutPrototypeLinkedEnabled</code> can be specified to
+	provide the unique identifier of the source prototype and a
+	boolean to determine whether a link to it should be enabled to
+	activate propagation of changes made to the linked page in the
+	prototype.
 	* @return the layout
 	* @throws PortalException if a group or user with the primary key could not
-	be found, or if layout values were invalid
+	be found, if layout values were invalid, or if a portal exception
+	occurred
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Layout addLayout(long userId,
@@ -339,18 +468,20 @@ public class LayoutLocalServiceUtil {
 		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
 		java.util.Map<java.util.Locale, java.lang.String> keywordsMap,
 		java.util.Map<java.util.Locale, java.lang.String> robotsMap,
-		java.lang.String type, boolean hidden, java.lang.String friendlyURL,
+		java.lang.String type, java.lang.String typeSettings, boolean hidden,
+		java.util.Map<java.util.Locale, java.lang.String> friendlyURLMap,
 		com.liferay.portal.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService()
 				   .addLayout(userId, groupId, privateLayout, parentLayoutId,
 			nameMap, titleMap, descriptionMap, keywordsMap, robotsMap, type,
-			hidden, friendlyURL, serviceContext);
+			typeSettings, hidden, friendlyURLMap, serviceContext);
 	}
 
 	/**
-	* Adds a layout.
+	* Adds a layout with single entry maps for name, title, and description to
+	* the default locale.
 	*
 	* <p>
 	* This method handles the creation of the layout including its resources,
@@ -390,18 +521,18 @@ public class LayoutLocalServiceUtil {
 	<code>portal-ext.properties</code> by specifying new values for
 	the corresponding properties defined in {@link
 	com.liferay.portal.util.PropsValues}. To see how the URL is
-	normalized when accessed see {@link
+	normalized when accessed, see {@link
 	com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil#normalize(
 	String)}.
-	* @param serviceContext the service context. Must set the universally
-	unique identifier (UUID) for the layout. Can set the creation
-	date and modification date for the layout. For layouts that
-	belong to a layout set prototype, an attribute named
-	'layoutUpdateable' can be set to specify whether site
-	administrators can modify this page within their site.
+	* @param serviceContext the service context to be applied. Must set the
+	UUID for the layout. Can set the creation date and modification
+	date for the layout. For layouts that belong to a layout set
+	prototype, an attribute named <code>layoutUpdateable</code> can
+	be set to specify whether site administrators can modify this
+	page within their site.
 	* @return the layout
 	* @throws PortalException if a group or user with the primary key could not
-	be found
+	be found, or if a portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Layout addLayout(long userId,
@@ -423,7 +554,7 @@ public class LayoutLocalServiceUtil {
 	* @param layout the layout
 	* @param updateLayoutSet whether the layout set's page counter needs to be
 	updated
-	* @param serviceContext the service context
+	* @param serviceContext the service context to be applied
 	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
@@ -442,7 +573,7 @@ public class LayoutLocalServiceUtil {
 	* @param groupId the primary key of the group
 	* @param privateLayout whether the layout is private to the group
 	* @param layoutId the primary key of the layout
-	* @param serviceContext the service context
+	* @param serviceContext the service context to be applied
 	* @throws PortalException if a matching layout could not be found , or if
 	some other portal exception occurred
 	* @throws SystemException if a system exception occurred
@@ -460,7 +591,7 @@ public class LayoutLocalServiceUtil {
 	* layouts, and associated resources.
 	*
 	* @param plid the primary key of the layout
-	* @param serviceContext the service context
+	* @param serviceContext the service context to be applied
 	* @throws PortalException if a layout with the primary key could not be
 	found , or if some other portal exception occurred
 	* @throws SystemException if a system exception occurred
@@ -478,7 +609,10 @@ public class LayoutLocalServiceUtil {
 	*
 	* @param groupId the primary key of the group
 	* @param privateLayout whether the layout is private to the group
-	* @param serviceContext the service context
+	* @param serviceContext the service context to be applied. The parent
+	layout set's page count will be updated by default, unless an
+	attribute named <code>updatePageCount</code> is set to
+	<code>false</code>.
 	* @throws PortalException if a group with the primary key could not be
 	found or if a layout set for the group and privacy could not be
 	found
@@ -574,6 +708,19 @@ public class LayoutLocalServiceUtil {
 			parameterMap, startDate, endDate);
 	}
 
+	public static long exportLayoutsAsFileInBackground(long userId,
+		java.lang.String taskName, long groupId, boolean privateLayout,
+		long[] layoutIds,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.util.Date startDate, java.util.Date endDate,
+		java.lang.String fileName)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .exportLayoutsAsFileInBackground(userId, taskName, groupId,
+			privateLayout, layoutIds, parameterMap, startDate, endDate, fileName);
+	}
+
 	/**
 	* Exports the portlet information (categories, permissions, ... etc.) as a
 	* byte array.
@@ -600,6 +747,17 @@ public class LayoutLocalServiceUtil {
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService()
 				   .exportPortletInfo(plid, groupId, portletId, parameterMap,
+			startDate, endDate);
+	}
+
+	public static byte[] exportPortletInfo(long companyId,
+		java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.util.Date startDate, java.util.Date endDate)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .exportPortletInfo(companyId, portletId, parameterMap,
 			startDate, endDate);
 	}
 
@@ -632,6 +790,42 @@ public class LayoutLocalServiceUtil {
 			parameterMap, startDate, endDate);
 	}
 
+	public static java.io.File exportPortletInfoAsFile(long companyId,
+		java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.util.Date startDate, java.util.Date endDate)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .exportPortletInfoAsFile(companyId, portletId, parameterMap,
+			startDate, endDate);
+	}
+
+	public static long exportPortletInfoAsFileInBackground(long userId,
+		java.lang.String taskName, long plid, long groupId,
+		java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.util.Date startDate, java.util.Date endDate,
+		java.lang.String fileName)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .exportPortletInfoAsFileInBackground(userId, taskName, plid,
+			groupId, portletId, parameterMap, startDate, endDate, fileName);
+	}
+
+	public static long exportPortletInfoAsFileInBackground(long userId,
+		java.lang.String taskName, java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.util.Date startDate, java.util.Date endDate,
+		java.lang.String fileName)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .exportPortletInfoAsFileInBackground(userId, taskName,
+			portletId, parameterMap, startDate, endDate, fileName);
+	}
+
 	public static com.liferay.portal.model.Layout fetchFirstLayout(
 		long groupId, boolean privateLayout, long parentLayoutId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -639,20 +833,17 @@ public class LayoutLocalServiceUtil {
 				   .fetchFirstLayout(groupId, privateLayout, parentLayoutId);
 	}
 
-	/**
-	* Returns the layout matching the universally unique identifier and group
-	* ID
-	*
-	* @param uuid the universally unique identifier of the scope layout
-	* @param groupId the primary key of the group
-	* @return the layout, or <code>null</code> if a matching layout could not
-	be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.Layout fetchLayoutByUuidAndGroupId(
-		java.lang.String uuid, long groupId)
+	public static com.liferay.portal.model.Layout fetchLayout(long groupId,
+		boolean privateLayout, long layoutId)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().fetchLayoutByUuidAndGroupId(uuid, groupId);
+		return getService().fetchLayout(groupId, privateLayout, layoutId);
+	}
+
+	public static com.liferay.portal.model.Layout fetchLayoutByFriendlyURL(
+		long groupId, boolean privateLayout, java.lang.String friendlyURL)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .fetchLayoutByFriendlyURL(groupId, privateLayout, friendlyURL);
 	}
 
 	/**
@@ -828,8 +1019,7 @@ public class LayoutLocalServiceUtil {
 	* @param groupId the primary key of the group
 	* @param privateLayout whether the layout is private to the group
 	* @param layoutIds the primary keys of the layouts
-	* @return the matching layouts, or <code>null</code> if no matches were
-	found
+	* @return the matching layouts, or an empty list if no matches were found
 	* @throws PortalException if a group or layout with the primary key could
 	not be found
 	* @throws SystemException if a system exception occurred
@@ -878,6 +1068,12 @@ public class LayoutLocalServiceUtil {
 			preferencesValue);
 	}
 
+	public static java.util.List<com.liferay.portal.model.Layout> getLayoutsByLayoutPrototypeUuid(
+		java.lang.String layoutPrototypeUuid)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getLayoutsByLayoutPrototypeUuid(layoutPrototypeUuid);
+	}
+
 	public static int getLayoutsByLayoutPrototypeUuidCount(
 		java.lang.String layoutPrototypeUuid)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -892,11 +1088,33 @@ public class LayoutLocalServiceUtil {
 		return getService().getLayoutsCount(group, privateLayout);
 	}
 
+	public static int getLayoutsCount(com.liferay.portal.model.Group group,
+		boolean privateLayout, boolean includeUserGroups)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getLayoutsCount(group, privateLayout, includeUserGroups);
+	}
+
+	public static int getLayoutsCount(com.liferay.portal.model.Group group,
+		boolean privateLayout, long parentLayoutId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getLayoutsCount(group, privateLayout, parentLayoutId);
+	}
+
 	public static int getLayoutsCount(com.liferay.portal.model.User user,
 		boolean privateLayout)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getLayoutsCount(user, privateLayout);
+	}
+
+	public static int getLayoutsCount(com.liferay.portal.model.User user,
+		boolean privateLayout, boolean includeUserGroups)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getLayoutsCount(user, privateLayout, includeUserGroups);
 	}
 
 	/**
@@ -913,6 +1131,18 @@ public class LayoutLocalServiceUtil {
 	}
 
 	/**
+	* Returns all the layouts without resource permissions
+	*
+	* @param roleId the primary key of the role
+	* @return all the layouts without resource permissions
+	* @throws SystemException if a system exception occurred
+	*/
+	public static java.util.List<com.liferay.portal.model.Layout> getNoPermissionLayouts(
+		long roleId) throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getNoPermissionLayouts(roleId);
+	}
+
+	/**
 	* Returns all the layouts whose friendly URLs are <code>null</code>
 	*
 	* @return all the layouts whose friendly URLs are <code>null</code>
@@ -921,6 +1151,13 @@ public class LayoutLocalServiceUtil {
 	public static java.util.List<com.liferay.portal.model.Layout> getNullFriendlyURLLayouts()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().getNullFriendlyURLLayouts();
+	}
+
+	public static com.liferay.portal.model.Layout getParentLayout(
+		com.liferay.portal.model.Layout layout)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getParentLayout(layout);
 	}
 
 	/**
@@ -942,6 +1179,13 @@ public class LayoutLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().hasLayouts(group, privateLayout);
+	}
+
+	public static boolean hasLayouts(com.liferay.portal.model.Group group,
+		boolean privateLayout, boolean includeUserGroups)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().hasLayouts(group, privateLayout, includeUserGroups);
 	}
 
 	/**
@@ -968,14 +1212,29 @@ public class LayoutLocalServiceUtil {
 		return getService().hasLayouts(user, privateLayout);
 	}
 
+	public static boolean hasLayouts(com.liferay.portal.model.User user,
+		boolean privateLayout, boolean includeUserGroups)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().hasLayouts(user, privateLayout, includeUserGroups);
+	}
+
 	public static boolean hasLayoutSetPrototypeLayout(
-		java.lang.String layoutSetPrototypeUuid, java.lang.String layoutUuid,
-		long companyId)
+		long layoutSetPrototypeId, java.lang.String layoutUuid)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .hasLayoutSetPrototypeLayout(layoutSetPrototypeId, layoutUuid);
+	}
+
+	public static boolean hasLayoutSetPrototypeLayout(
+		java.lang.String layoutSetPrototypeUuid, long companyId,
+		java.lang.String layoutUuid)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService()
 				   .hasLayoutSetPrototypeLayout(layoutSetPrototypeUuid,
-			layoutUuid, companyId);
+			companyId, layoutUuid);
 	}
 
 	/**
@@ -1056,6 +1315,28 @@ public class LayoutLocalServiceUtil {
 			.importLayouts(userId, groupId, privateLayout, parameterMap, is);
 	}
 
+	public static long importLayoutsInBackground(long userId,
+		java.lang.String taskName, long groupId, boolean privateLayout,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.File file)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .importLayoutsInBackground(userId, taskName, groupId,
+			privateLayout, parameterMap, file);
+	}
+
+	public static long importLayoutsInBackground(long userId,
+		java.lang.String taskName, long groupId, boolean privateLayout,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.InputStream is)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .importLayoutsInBackground(userId, taskName, groupId,
+			privateLayout, parameterMap, is);
+	}
+
 	/**
 	* Imports the portlet information (categories, permissions, ... etc.) from
 	* the file.
@@ -1112,6 +1393,70 @@ public class LayoutLocalServiceUtil {
 			is);
 	}
 
+	public static void importPortletInfo(long userId,
+		java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.File file)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().importPortletInfo(userId, portletId, parameterMap, file);
+	}
+
+	public static void importPortletInfo(long userId,
+		java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.InputStream is)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().importPortletInfo(userId, portletId, parameterMap, is);
+	}
+
+	public static long importPortletInfoInBackground(long userId,
+		java.lang.String taskName, long plid, long groupId,
+		java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.File file)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .importPortletInfoInBackground(userId, taskName, plid,
+			groupId, portletId, parameterMap, file);
+	}
+
+	public static long importPortletInfoInBackground(long userId,
+		java.lang.String taskName, long plid, long groupId,
+		java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.InputStream is)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .importPortletInfoInBackground(userId, taskName, plid,
+			groupId, portletId, parameterMap, is);
+	}
+
+	public static long importPortletInfoInBackground(long userId,
+		java.lang.String taskName, java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.File file)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .importPortletInfoInBackground(userId, taskName, portletId,
+			parameterMap, file);
+	}
+
+	public static long importPortletInfoInBackground(long userId,
+		java.lang.String taskName, java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.InputStream is)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .importPortletInfoInBackground(userId, taskName, portletId,
+			parameterMap, is);
+	}
+
 	/**
 	* Sets the layouts for the group, replacing and prioritizing all layouts of
 	* the parent layout.
@@ -1120,7 +1465,7 @@ public class LayoutLocalServiceUtil {
 	* @param privateLayout whether the layout is private to the group
 	* @param parentLayoutId the primary key of the parent layout
 	* @param layoutIds the primary keys of the layouts
-	* @param serviceContext the service context
+	* @param serviceContext the service context to be applied
 	* @throws PortalException if a group or layout with the primary key could
 	not be found, if no layouts were specified, if the first layout
 	was not page-able, if the first layout was hidden, or if some
@@ -1137,21 +1482,37 @@ public class LayoutLocalServiceUtil {
 			serviceContext);
 	}
 
+	public static void updateAsset(long userId,
+		com.liferay.portal.model.Layout layout, long[] assetCategoryIds,
+		java.lang.String[] assetTagNames)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().updateAsset(userId, layout, assetCategoryIds, assetTagNames);
+	}
+
 	/**
 	* Updates the friendly URL of the layout.
 	*
 	* @param plid the primary key of the layout
 	* @param friendlyURL the friendly URL to be assigned
+	* @param languageId the primary key of the language
 	* @return the updated layout
 	* @throws PortalException if a group or layout with the primary key could
 	not be found
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Layout updateFriendlyURL(long plid,
-		java.lang.String friendlyURL)
+		java.lang.String friendlyURL, java.lang.String languageId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		return getService().updateFriendlyURL(plid, friendlyURL);
+		return getService().updateFriendlyURL(plid, friendlyURL, languageId);
+	}
+
+	public static com.liferay.portal.model.Layout updateIconImage(long plid,
+		byte[] bytes)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().updateIconImage(plid, bytes);
 	}
 
 	/**
@@ -1174,34 +1535,103 @@ public class LayoutLocalServiceUtil {
 	* @param type the layout's new type (optionally {@link
 	com.liferay.portal.model.LayoutConstants#TYPE_PORTLET})
 	* @param hidden whether the layout is hidden
+	* @param friendlyURLMap the layout's locales and localized friendly URLs.
+	To see how the URL is normalized when accessed, see {@link
+	com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil#normalize(
+	String)}.
+	* @param iconImage whether the icon image will be updated
+	* @param iconBytes the byte array of the layout's new icon image
+	* @param serviceContext the service context to be applied. Can set the
+	modification date and expando bridge attributes for the layout.
+	For layouts that are linked to a layout prototype, attributes
+	named <code>layoutPrototypeUuid</code> and
+	<code>layoutPrototypeLinkedEnabled</code> can be specified to
+	provide the unique identifier of the source prototype and a
+	boolean to determine whether a link to it should be enabled to
+	activate propagation of changes made to the linked page in the
+	prototype.
+	* @return the updated layout
+	* @throws PortalException if a group or layout with the primary key could
+	not be found, if a unique friendly URL could not be generated, if
+	a valid parent layout ID to use could not be found, if the layout
+	parameters were invalid, or if a portal exception occurred
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.Layout updateLayout(long groupId,
+		boolean privateLayout, long layoutId, long parentLayoutId,
+		java.util.Map<java.util.Locale, java.lang.String> nameMap,
+		java.util.Map<java.util.Locale, java.lang.String> titleMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		java.util.Map<java.util.Locale, java.lang.String> keywordsMap,
+		java.util.Map<java.util.Locale, java.lang.String> robotsMap,
+		java.lang.String type, boolean hidden,
+		java.util.Map<java.util.Locale, java.lang.String> friendlyURLMap,
+		boolean iconImage, byte[] iconBytes,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .updateLayout(groupId, privateLayout, layoutId,
+			parentLayoutId, nameMap, titleMap, descriptionMap, keywordsMap,
+			robotsMap, type, hidden, friendlyURLMap, iconImage, iconBytes,
+			serviceContext);
+	}
+
+	/**
+	* Updates the layout.
+	*
+	* @param groupId the primary key of the group
+	* @param privateLayout whether the layout is private to the group
+	* @param layoutId the primary key of the layout
+	* @param parentLayoutId the primary key of the layout's new parent
+	layout
+	* @param nameMap the locales and localized names to merge (optionally
+	<code>null</code>)
+	* @param titleMap the locales and localized titles to merge
+	(optionally <code>null</code>)
+	* @param descriptionMap the locales and localized descriptions to
+	merge (optionally <code>null</code>)
+	* @param keywordsMap the locales and localized keywords to merge
+	(optionally <code>null</code>)
+	* @param robotsMap the locales and localized robots to merge
+	(optionally <code>null</code>)
+	* @param type the layout's new type (optionally {@link
+	com.liferay.portal.model.LayoutConstants#TYPE_PORTLET})
+	* @param hidden whether the layout is hidden
 	* @param friendlyURL the layout's new friendly URL (optionally {@link
 	com.liferay.portal.util.PropsValues#DEFAULT_USER_PRIVATE_LAYOUT_FRIENDLY_URL}
 	or {@link
 	com.liferay.portal.util.PropsValues#DEFAULT_USER_PRIVATE_LAYOUT_FRIENDLY_URL}).
 	The default values can be overridden in
-	<code>portal-ext.properties</code> by specifying new values for
-	the corresponding properties defined in {@link
+	<code>portal-ext.properties</code> by specifying new values
+	for the corresponding properties defined in {@link
 	com.liferay.portal.util.PropsValues}. To see how the URL is
-	normalized when accessed see {@link
+	normalized when accessed, see {@link
 	com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil#normalize(
 	String)}.
 	* @param iconImage whether the icon image will be updated
 	* @param iconBytes the byte array of the layout's new icon image
-	* @param serviceContext the service context. Can set the modification date
-	and expando bridge attributes for the layout. For layouts that
-	are linked to a layout prototype, attributes named
-	'layoutPrototypeUuid' and 'layoutPrototypeLinkedEnabled' can be
-	specified to provide the unique identifier of the source
-	prototype and a boolean to determined whether a link to it should
-	be enabled to activate propagation of changes made to the linked
-	page in the prototype.
+	* @param serviceContext the service context to be applied. Can set the
+	modification date and expando bridge attributes for the
+	layout. For layouts that are linked to a layout prototype,
+	attributes named <code>layoutPrototypeUuid</code> and
+	<code>layoutPrototypeLinkedEnabled</code> can be specified to
+	provide the unique identifier of the source prototype and a
+	boolean to determine whether a link to it should be enabled
+	to activate propagation of changes made to the linked page in
+	the prototype.
 	* @return the updated layout
-	* @throws PortalException if a group or layout with the primary key could
-	not be found, if a unique friendly URL could not be generated, if
-	a valid parent layout ID to use could not be found, or if the
-	layout parameters were invalid
+	* @throws PortalException if a group or layout with the primary key
+	could not be found, if a unique friendly URL could not be
+	generated, if a valid parent layout ID to use could not be
+	found, if the layout parameters were invalid, or if a portal
+	exception occurred
 	* @throws SystemException if a system exception occurred
+	* @deprecated As of 6.2.0, replaced by {@link #updateLayout(long, boolean,
+	long, long, Map, Map, Map, Map, Map, String, boolean, Map,
+	Boolean, byte[], ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.Layout updateLayout(long groupId,
 		boolean privateLayout, long layoutId, long parentLayoutId,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
@@ -1231,7 +1661,8 @@ public class LayoutLocalServiceUtil {
 	See {@link com.liferay.portal.kernel.util.UnicodeProperties
 	#fastLoad(String)}.
 	* @return the updated layout
-	* @throws PortalException if a matching layout could not be found
+	* @throws PortalException if a matching layout could not be found or if a
+	portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Layout updateLayout(long groupId,
@@ -1394,11 +1825,13 @@ public class LayoutLocalServiceUtil {
 	* @param layout the layout to be updated
 	* @param priority the layout's new priority
 	* @return the updated layout
+	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.Layout updatePriority(
 		com.liferay.portal.model.Layout layout, int priority)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return getService().updatePriority(layout, priority);
 	}
 
@@ -1423,6 +1856,30 @@ public class LayoutLocalServiceUtil {
 	}
 
 	/**
+	* Updates the priority of the layout matching the group, layout ID, and
+	* privacy, setting the layout's priority based on the priorities of the
+	* next and previous layouts.
+	*
+	* @param groupId the primary key of the group
+	* @param privateLayout whether the layout is private to the group
+	* @param layoutId the primary key of the layout
+	* @param nextLayoutId the primary key of the next layout
+	* @param previousLayoutId the primary key of the previous layout
+	* @return the updated layout
+	* @throws PortalException if a matching layout could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.Layout updatePriority(long groupId,
+		boolean privateLayout, long layoutId, long nextLayoutId,
+		long previousLayoutId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .updatePriority(groupId, privateLayout, layoutId,
+			nextLayoutId, previousLayoutId);
+	}
+
+	/**
 	* Updates the priority of the layout matching the primary key.
 	*
 	* @param plid the primary key of the layout
@@ -1439,6 +1896,10 @@ public class LayoutLocalServiceUtil {
 		return getService().updatePriority(plid, priority);
 	}
 
+	/**
+	* @deprecated As of 6.2.0, with no direct replacement
+	*/
+	@Deprecated
 	public static void updateScopedPortletNames(long groupId,
 		boolean privateLayout, long layoutId,
 		java.util.Map<java.util.Locale, java.lang.String> nameMap,
@@ -1452,18 +1913,19 @@ public class LayoutLocalServiceUtil {
 
 	/**
 	* Updates the names of the portlets within scope of the group, the scope of
-	* the layout's universally unique identifier, and the privacy.
+	* the layout's UUID, and the privacy.
 	*
 	* @param groupId the primary key of the group
 	* @param privateLayout whether the layout is private to the group
-	* @param layoutId the primary key of the layout whose universally unique
-	identifier to match
+	* @param layoutId the primary key of the layout whose UUID to match
 	* @param name the new name for the portlets
 	* @param languageId the primary key of the language
 	* @throws PortalException if a matching layout could not be found
 	* @throws SystemException if a system exception occurred
 	* @see com.liferay.portlet.portletconfiguration.action.EditScopeAction
+	* @deprecated As of 6.2.0, with no direct replacement
 	*/
+	@Deprecated
 	public static void updateScopedPortletNames(long groupId,
 		boolean privateLayout, long layoutId, java.lang.String name,
 		java.lang.String languageId)
@@ -1472,6 +1934,50 @@ public class LayoutLocalServiceUtil {
 		getService()
 			.updateScopedPortletNames(groupId, privateLayout, layoutId, name,
 			languageId);
+	}
+
+	public static com.liferay.portal.kernel.lar.MissingReferences validateImportLayoutsFile(
+		long userId, long groupId, boolean privateLayout,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.File file)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .validateImportLayoutsFile(userId, groupId, privateLayout,
+			parameterMap, file);
+	}
+
+	public static com.liferay.portal.kernel.lar.MissingReferences validateImportLayoutsFile(
+		long userId, long groupId, boolean privateLayout,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.InputStream inputStream)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .validateImportLayoutsFile(userId, groupId, privateLayout,
+			parameterMap, inputStream);
+	}
+
+	public static com.liferay.portal.kernel.lar.MissingReferences validateImportPortletInfo(
+		long userId, long plid, long groupId, java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.File file)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .validateImportPortletInfo(userId, plid, groupId, portletId,
+			parameterMap, file);
+	}
+
+	public static com.liferay.portal.kernel.lar.MissingReferences validateImportPortletInfo(
+		long userId, long plid, long groupId, java.lang.String portletId,
+		java.util.Map<java.lang.String, java.lang.String[]> parameterMap,
+		java.io.InputStream inputStream)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .validateImportPortletInfo(userId, plid, groupId, portletId,
+			parameterMap, inputStream);
 	}
 
 	public static LayoutLocalService getService() {
@@ -1486,8 +1992,9 @@ public class LayoutLocalServiceUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(LayoutLocalService service) {
 	}
 

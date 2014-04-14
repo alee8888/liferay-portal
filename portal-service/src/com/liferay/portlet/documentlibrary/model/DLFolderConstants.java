@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,16 +35,16 @@ public class DLFolderConstants {
 	}
 
 	/**
-	 * Determine the data repository ID from the group ID and folder ID. The
-	 * folder ID may be zero, implying that it is the root folder for the given
-	 * group.
+	 * Determine the data repository ID from the repository ID and folder ID.
+	 * The folder ID may be zero, implying that it is the root folder for the
+	 * given repository.
 	 */
-	public static long getDataRepositoryId(long groupId, long folderId) {
+	public static long getDataRepositoryId(long repositoryId, long folderId) {
 		if (folderId != DEFAULT_PARENT_FOLDER_ID) {
 			return folderId;
 		}
 		else {
-			return groupId;
+			return repositoryId;
 		}
 	}
 

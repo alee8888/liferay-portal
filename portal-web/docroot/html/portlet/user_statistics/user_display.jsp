@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -63,7 +63,7 @@ activityCounters.remove(SocialActivityCounterConstants.NAME_PARTICIPATION);
 		</div>
 
 		<div class="contribution-score">
-			<span class="statistics-label"><liferay-ui:message key='contribution-score' />:</span> <%= contributionActivityCounter.getCurrentValue() %>
+			<span class="statistics-label"><liferay-ui:message key="contribution-score" />:</span> <%= contributionActivityCounter.getCurrentValue() %>
 
 			<c:if test="<%= showTotals %>">
 				<span>(<liferay-ui:message key="total" />: <%= contributionActivityCounter.getTotalValue() %>)</span>
@@ -71,7 +71,7 @@ activityCounters.remove(SocialActivityCounterConstants.NAME_PARTICIPATION);
 		</div>
 
 		<div class="participation-score">
-			<span class="statistics-label"><liferay-ui:message key='participation-score' />:</span> <%= participationActivityCounter.getCurrentValue() %>
+			<span class="statistics-label"><liferay-ui:message key="participation-score" />:</span> <%= participationActivityCounter.getCurrentValue() %>
 
 			<c:if test="<%= showTotals %>">
 				<span>(<liferay-ui:message key="total" />: <%= participationActivityCounter.getTotalValue() %>)</span>
@@ -91,7 +91,7 @@ activityCounters.remove(SocialActivityCounterConstants.NAME_PARTICIPATION);
 	%>
 
 		<div class="social-counter-<%= activityCounter.getName() %>">
-			<span class="statistics-label"><liferay-ui:message key='<%= "social.counter." + activityCounter.getName() %>' />:</span> <%= activityCounter.getCurrentValue() %>
+			<span class="statistics-label"><liferay-ui:message key='<%= "user.statistics." + activityCounter.getName() %>' />:</span> <%= activityCounter.getCurrentValue() %>
 
 			<c:if test="<%= showTotals %>">
 				<span>(<liferay-ui:message key="total" />: <%= activityCounter.getTotalValue() %>)</span>

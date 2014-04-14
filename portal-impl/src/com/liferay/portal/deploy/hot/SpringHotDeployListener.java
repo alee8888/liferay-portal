@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,9 +17,8 @@ package com.liferay.portal.deploy.hot;
 import com.liferay.portal.kernel.deploy.hot.BaseHotDeployListener;
 import com.liferay.portal.kernel.deploy.hot.HotDeployEvent;
 import com.liferay.portal.kernel.deploy.hot.HotDeployException;
-import com.liferay.portal.kernel.portlet.PortletClassLoaderUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.spring.context.PortletContextLoaderListener;
+import com.liferay.portal.util.ClassLoaderUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +33,7 @@ import org.springframework.web.context.ContextLoaderListener;
  */
 public class SpringHotDeployListener extends BaseHotDeployListener {
 
+	@Override
 	public void invokeDeploy(HotDeployEvent hotDeployEvent)
 		throws HotDeployException {
 
@@ -42,10 +42,14 @@ public class SpringHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error initializing Spring for ", t);
+				hotDeployEvent,
+				"Error initializing Spring for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
+	@Override
 	public void invokeUndeploy(HotDeployEvent hotDeployEvent)
 		throws HotDeployException {
 
@@ -54,7 +58,10 @@ public class SpringHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error uninitializing Spring for ", t);
+				hotDeployEvent,
+				"Error uninitializing Spring for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -68,26 +75,18 @@ public class SpringHotDeployListener extends BaseHotDeployListener {
 		ContextLoaderListener contextLoaderListener =
 			new PortletContextLoaderListener();
 
-		PortletClassLoaderUtil.setClassLoader(
-			hotDeployEvent.getContextClassLoader());
-		PortletClassLoaderUtil.setServletContextName(servletContextName);
-
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+		ClassLoader contextClassLoader =
+			ClassLoaderUtil.getContextClassLoader();
 
 		try {
-			currentThread.setContextClassLoader(
-				PortalClassLoaderUtil.getClassLoader());
+			ClassLoaderUtil.setContextClassLoader(
+				ClassLoaderUtil.getPortalClassLoader());
 
 			contextLoaderListener.contextInitialized(
 				new ServletContextEvent(servletContext));
 		}
 		finally {
-			PortletClassLoaderUtil.setClassLoader(null);
-			PortletClassLoaderUtil.setServletContextName(null);
-
-			currentThread.setContextClassLoader(contextClassLoader);
+			ClassLoaderUtil.setContextClassLoader(contextClassLoader);
 		}
 
 		_contextLoaderListeners.put(servletContextName, contextLoaderListener);
@@ -107,26 +106,18 @@ public class SpringHotDeployListener extends BaseHotDeployListener {
 			return;
 		}
 
-		PortletClassLoaderUtil.setClassLoader(
-			hotDeployEvent.getContextClassLoader());
-		PortletClassLoaderUtil.setServletContextName(servletContextName);
-
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+		ClassLoader contextClassLoader =
+			ClassLoaderUtil.getContextClassLoader();
 
 		try {
-			currentThread.setContextClassLoader(
-				PortalClassLoaderUtil.getClassLoader());
+			ClassLoaderUtil.setContextClassLoader(
+				ClassLoaderUtil.getPortalClassLoader());
 
 			contextLoaderListener.contextDestroyed(
 				new ServletContextEvent(servletContext));
 		}
 		finally {
-			PortletClassLoaderUtil.setClassLoader(null);
-			PortletClassLoaderUtil.setServletContextName(null);
-
-			currentThread.setContextClassLoader(contextClassLoader);
+			ClassLoaderUtil.setContextClassLoader(contextClassLoader);
 		}
 	}
 

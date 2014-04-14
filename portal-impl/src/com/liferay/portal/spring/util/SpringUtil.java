@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,11 +18,10 @@ import com.liferay.portal.bean.BeanLocatorImpl;
 import com.liferay.portal.kernel.bean.BeanLocator;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.spring.context.ArrayApplicationContext;
+import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.PropsUtil;
-import com.liferay.portal.util.PropsValues;
 
 import java.util.List;
 
@@ -42,22 +41,27 @@ import org.springframework.context.support.AbstractApplicationContext;
 public class SpringUtil {
 
 	public static void loadContext() {
+		_loadContext(PropsUtil.getArray(PropsKeys.SPRING_CONFIGS));
+	}
+
+	public static void loadContext(List<String> extraConfigLocations) {
 		List<String> configLocations = ListUtil.fromArray(
 			PropsUtil.getArray(PropsKeys.SPRING_CONFIGS));
 
-		if (PropsValues.PERSISTENCE_PROVIDER.equalsIgnoreCase("jpa")) {
-			configLocations.remove("META-INF/hibernate-spring.xml");
-		}
-		else {
-			configLocations.remove("META-INF/jpa-spring.xml");
+		if (extraConfigLocations != null) {
+			configLocations.addAll(extraConfigLocations);
 		}
 
+		_loadContext(
+			configLocations.toArray(new String[configLocations.size()]));
+	}
+
+	private static void _loadContext(String[] configLocations) {
 		AbstractApplicationContext applicationContext =
-			new ArrayApplicationContext(
-				configLocations.toArray(new String[configLocations.size()]));
+			new ArrayApplicationContext(configLocations);
 
 		BeanLocator beanLocator = new BeanLocatorImpl(
-			PortalClassLoaderUtil.getClassLoader(), applicationContext);
+			ClassLoaderUtil.getPortalClassLoader(), applicationContext);
 
 		PortalBeanLocatorUtil.setBeanLocator(beanLocator);
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,6 +21,7 @@ import com.liferay.portal.CompanyMaxUsersException;
 import com.liferay.portal.ContactFirstNameException;
 import com.liferay.portal.ContactFullNameException;
 import com.liferay.portal.ContactLastNameException;
+import com.liferay.portal.DuplicateOpenIdException;
 import com.liferay.portal.DuplicateUserEmailAddressException;
 import com.liferay.portal.DuplicateUserScreenNameException;
 import com.liferay.portal.EmailAddressException;
@@ -30,7 +31,6 @@ import com.liferay.portal.NoSuchLayoutException;
 import com.liferay.portal.NoSuchListTypeException;
 import com.liferay.portal.NoSuchOrganizationException;
 import com.liferay.portal.NoSuchRegionException;
-import com.liferay.portal.NoSuchUserException;
 import com.liferay.portal.OrganizationParentException;
 import com.liferay.portal.PhoneNumberException;
 import com.liferay.portal.RequiredFieldException;
@@ -50,6 +50,7 @@ import com.liferay.portal.kernel.captcha.CaptchaUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -69,6 +70,7 @@ import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.login.util.LoginUtil;
+import com.liferay.util.PwdGenerator;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -95,8 +97,9 @@ public class CreateAccountAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -132,23 +135,16 @@ public class CreateAccountAction extends PortletAction {
 				String emailAddress = ParamUtil.getString(
 					actionRequest, "emailAddress");
 
-				try {
-					User user = UserLocalServiceUtil.getUserByEmailAddress(
-						themeDisplay.getCompanyId(), emailAddress);
+				User user = UserLocalServiceUtil.fetchUserByEmailAddress(
+					themeDisplay.getCompanyId(), emailAddress);
 
-					if (user.getStatus() !=
-							WorkflowConstants.STATUS_INCOMPLETE) {
+				if ((user == null) ||
+					(user.getStatus() != WorkflowConstants.STATUS_INCOMPLETE)) {
 
-						SessionErrors.add(
-							actionRequest, e.getClass().getName(), e);
-					}
-					else {
-						setForward(
-							actionRequest, "portlet.login.update_account");
-					}
+					SessionErrors.add(actionRequest, e.getClass(), e);
 				}
-				catch (NoSuchUserException nsue) {
-					SessionErrors.add(actionRequest, e.getClass().getName(), e);
+				else {
+					setForward(actionRequest, "portlet.login.update_account");
 				}
 			}
 			else if (e instanceof AddressCityException ||
@@ -160,6 +156,7 @@ public class CreateAccountAction extends PortletAction {
 					 e instanceof ContactFirstNameException ||
 					 e instanceof ContactFullNameException ||
 					 e instanceof ContactLastNameException ||
+					 e instanceof DuplicateOpenIdException ||
 					 e instanceof EmailAddressException ||
 					 e instanceof GroupFriendlyURLException ||
 					 e instanceof NoSuchCountryException ||
@@ -180,7 +177,7 @@ public class CreateAccountAction extends PortletAction {
 					 e instanceof UserSmsException ||
 					 e instanceof WebsiteURLException) {
 
-				SessionErrors.add(actionRequest, e.getClass().getName(), e);
+				SessionErrors.add(actionRequest, e.getClass(), e);
 			}
 			else {
 				throw e;
@@ -206,8 +203,9 @@ public class CreateAccountAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
@@ -216,12 +214,12 @@ public class CreateAccountAction extends PortletAction {
 		Company company = themeDisplay.getCompany();
 
 		if (!company.isStrangers()) {
-			return mapping.findForward("portlet.login.login");
+			return actionMapping.findForward("portlet.login.login");
 		}
 
 		renderResponse.setTitle(themeDisplay.translate("create-account"));
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.login.create_account"));
 	}
 
@@ -306,14 +304,14 @@ public class CreateAccountAction extends PortletAction {
 
 			if (user.getStatus() == WorkflowConstants.STATUS_APPROVED) {
 				SessionMessages.add(
-					request, "user_added", user.getEmailAddress());
+					request, "userAdded", user.getEmailAddress());
 				SessionMessages.add(
-					request, "user_added_password",
+					request, "userAddedPassword",
 					user.getPasswordUnencrypted());
 			}
 			else {
 				SessionMessages.add(
-					request, "user_pending", user.getEmailAddress());
+					request, "userPending", user.getEmailAddress());
 			}
 		}
 
@@ -321,10 +319,12 @@ public class CreateAccountAction extends PortletAction {
 
 		String login = null;
 
-		if (company.getAuthType().equals(CompanyConstants.AUTH_TYPE_ID)) {
+		String authType = company.getAuthType();
+
+		if (authType.equals(CompanyConstants.AUTH_TYPE_ID)) {
 			login = String.valueOf(user.getUserId());
 		}
-		else if (company.getAuthType().equals(CompanyConstants.AUTH_TYPE_SN)) {
+		else if (authType.equals(CompanyConstants.AUTH_TYPE_SN)) {
 			login = user.getScreenName();
 		}
 		else {
@@ -357,6 +357,10 @@ public class CreateAccountAction extends PortletAction {
 
 		User anonymousUser = UserLocalServiceUtil.getUserByEmailAddress(
 			themeDisplay.getCompanyId(), emailAddress);
+
+		if (anonymousUser.getStatus() != WorkflowConstants.STATUS_INCOMPLETE) {
+			throw new PrincipalException();
+		}
 
 		UserLocalServiceUtil.deleteUser(anonymousUser.getUserId());
 
@@ -409,7 +413,17 @@ public class CreateAccountAction extends PortletAction {
 		String screenName = ParamUtil.getString(actionRequest, "screenName");
 		String emailAddress = ParamUtil.getString(
 			actionRequest, "emailAddress");
-		long facebookId = ParamUtil.getLong(actionRequest, "facebookId");
+
+		HttpSession session = request.getSession();
+
+		long facebookId = GetterUtil.getLong(
+			session.getAttribute(WebKeys.FACEBOOK_INCOMPLETE_USER_ID));
+
+		if (facebookId > 0) {
+			password1 = PwdGenerator.getPassword();
+			password2 = password1;
+		}
+
 		String openId = ParamUtil.getString(actionRequest, "openId");
 		String firstName = ParamUtil.getString(actionRequest, "firstName");
 		String middleName = ParamUtil.getString(actionRequest, "middleName");
@@ -435,16 +449,50 @@ public class CreateAccountAction extends PortletAction {
 			suffixId, male, birthdayMonth, birthdayDay, birthdayYear, jobTitle,
 			sendEmail, updateUserInformation, serviceContext);
 
+		if (facebookId > 0) {
+			UserLocalServiceUtil.updateLastLogin(
+				user.getUserId(), user.getLoginIP());
+
+			UserLocalServiceUtil.updatePasswordReset(user.getUserId(), false);
+
+			UserLocalServiceUtil.updateEmailAddressVerified(
+				user.getUserId(), true);
+
+			session.removeAttribute(WebKeys.FACEBOOK_INCOMPLETE_USER_ID);
+
+			Company company = themeDisplay.getCompany();
+
+			// Send redirect
+
+			String login = null;
+
+			String authType = company.getAuthType();
+
+			if (authType.equals(CompanyConstants.AUTH_TYPE_ID)) {
+				login = String.valueOf(user.getUserId());
+			}
+			else if (authType.equals(CompanyConstants.AUTH_TYPE_SN)) {
+				login = user.getScreenName();
+			}
+			else {
+				login = user.getEmailAddress();
+			}
+
+			sendRedirect(
+				actionRequest, actionResponse, themeDisplay, login, password1);
+
+			return;
+		}
+
 		// Session messages
 
 		if (user.getStatus() == WorkflowConstants.STATUS_APPROVED) {
-			SessionMessages.add(request, "user_added", user.getEmailAddress());
+			SessionMessages.add(request, "userAdded", user.getEmailAddress());
 			SessionMessages.add(
-				request, "user_added_password", user.getPasswordUnencrypted());
+				request, "userAddedPassword", user.getPasswordUnencrypted());
 		}
 		else {
-			SessionMessages.add(
-				request, "user_pending", user.getEmailAddress());
+			SessionMessages.add(request, "userPending", user.getEmailAddress());
 		}
 
 		// Send redirect
@@ -453,10 +501,12 @@ public class CreateAccountAction extends PortletAction {
 
 		Company company = themeDisplay.getCompany();
 
-		if (company.getAuthType().equals(CompanyConstants.AUTH_TYPE_ID)) {
+		String authType = company.getAuthType();
+
+		if (authType.equals(CompanyConstants.AUTH_TYPE_ID)) {
 			login = String.valueOf(user.getUserId());
 		}
-		else if (company.getAuthType().equals(CompanyConstants.AUTH_TYPE_SN)) {
+		else if (authType.equals(CompanyConstants.AUTH_TYPE_SN)) {
 			login = user.getScreenName();
 		}
 		else {

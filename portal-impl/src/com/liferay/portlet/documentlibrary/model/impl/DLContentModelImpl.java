@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -95,26 +95,32 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 	public DLContentModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _contentId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setContentId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_contentId);
+		return _contentId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return DLContent.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return DLContent.class.getName();
 	}
@@ -131,6 +137,9 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		attributes.put("version", getVersion());
 		attributes.put("data", getData());
 		attributes.put("size", getSize());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -186,26 +195,32 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		}
 	}
 
+	@Override
 	public long getContentId() {
 		return _contentId;
 	}
 
+	@Override
 	public void setContentId(long contentId) {
 		_contentId = contentId;
 	}
 
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
 
+	@Override
 	public void setGroupId(long groupId) {
 		_groupId = groupId;
 	}
 
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_columnBitmask |= COMPANYID_COLUMN_BITMASK;
 
@@ -222,10 +237,12 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		return _originalCompanyId;
 	}
 
+	@Override
 	public long getRepositoryId() {
 		return _repositoryId;
 	}
 
+	@Override
 	public void setRepositoryId(long repositoryId) {
 		_columnBitmask |= REPOSITORYID_COLUMN_BITMASK;
 
@@ -242,6 +259,7 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		return _originalRepositoryId;
 	}
 
+	@Override
 	public String getPath() {
 		if (_path == null) {
 			return StringPool.BLANK;
@@ -251,6 +269,7 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		}
 	}
 
+	@Override
 	public void setPath(String path) {
 		_columnBitmask |= PATH_COLUMN_BITMASK;
 
@@ -265,6 +284,7 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		return GetterUtil.getString(_originalPath);
 	}
 
+	@Override
 	public String getVersion() {
 		if (_version == null) {
 			return StringPool.BLANK;
@@ -274,6 +294,7 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		}
 	}
 
+	@Override
 	public void setVersion(String version) {
 		_columnBitmask = -1L;
 
@@ -288,6 +309,7 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		return GetterUtil.getString(_originalVersion);
 	}
 
+	@Override
 	public Blob getData() {
 		if (_dataBlobModel == null) {
 			try {
@@ -306,6 +328,7 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		return blob;
 	}
 
+	@Override
 	public void setData(Blob data) {
 		if (_dataBlobModel == null) {
 			_dataBlobModel = new DLContentDataBlobModel(getPrimaryKey(), data);
@@ -315,27 +338,18 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		}
 	}
 
+	@Override
 	public long getSize() {
 		return _size;
 	}
 
+	@Override
 	public void setSize(long size) {
 		_size = size;
 	}
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public DLContent toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (DLContent)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -349,6 +363,16 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public DLContent toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (DLContent)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -368,6 +392,7 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		return dlContentImpl;
 	}
 
+	@Override
 	public int compareTo(DLContent dlContent) {
 		int value = 0;
 
@@ -384,18 +409,15 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DLContent)) {
 			return false;
 		}
 
-		DLContent dlContent = null;
-
-		try {
-			dlContent = (DLContent)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		DLContent dlContent = (DLContent)obj;
 
 		long primaryKey = dlContent.getPrimaryKey();
 
@@ -410,6 +432,16 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -489,6 +521,7 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(28);
 
@@ -531,7 +564,7 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 	}
 
 	private static ClassLoader _classLoader = DLContent.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			DLContent.class
 		};
 	private long _contentId;
@@ -549,5 +582,5 @@ public class DLContentModelImpl extends BaseModelImpl<DLContent>
 	private DLContentDataBlobModel _dataBlobModel;
 	private long _size;
 	private long _columnBitmask;
-	private DLContent _escapedModelProxy;
+	private DLContent _escapedModel;
 }

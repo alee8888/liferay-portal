@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,10 +17,12 @@ package com.liferay.portal.spring.context;
 import com.liferay.portal.bean.BeanLocatorImpl;
 import com.liferay.portal.kernel.bean.BeanLocator;
 import com.liferay.portal.kernel.bean.PortletBeanLocatorUtil;
+import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletClassLoaderUtil;
 import com.liferay.portal.kernel.util.MethodCache;
+import com.liferay.portal.util.PropsValues;
 
 import java.lang.reflect.Method;
 
@@ -28,7 +30,9 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.web.context.ContextLoader;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -36,7 +40,6 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 /**
  * @author Brian Wing Shun Chan
  * @see    PortletApplicationContext
- * @see    PortletContextLoader
  */
 public class PortletContextLoaderListener extends ContextLoaderListener {
 
@@ -67,6 +70,20 @@ public class PortletContextLoaderListener extends ContextLoaderListener {
 		}
 
 		super.contextDestroyed(servletContextEvent);
+
+		Object parentApplicationContext = servletContext.getAttribute(
+			_PARENT_APPLICATION_CONTEXT_KEY);
+
+		if (parentApplicationContext instanceof
+				ConfigurableApplicationContext) {
+
+			servletContext.removeAttribute(_PARENT_APPLICATION_CONTEXT_KEY);
+
+			ConfigurableApplicationContext configurableApplicationContext =
+				(ConfigurableApplicationContext)parentApplicationContext;
+
+			configurableApplicationContext.close();
+		}
 	}
 
 	@Override
@@ -81,17 +98,20 @@ public class PortletContextLoaderListener extends ContextLoaderListener {
 		servletContext.removeAttribute(
 			WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 
+		ClassLoader classLoader = PortletClassLoaderUtil.getClassLoader();
+
 		super.contextInitialized(servletContextEvent);
 
 		PortletBeanFactoryCleaner.readBeans();
 
-		ClassLoader classLoader = PortletClassLoaderUtil.getClassLoader();
-
 		ApplicationContext applicationContext =
 			WebApplicationContextUtils.getWebApplicationContext(servletContext);
 
-		BeanLocator beanLocator = new BeanLocatorImpl(
+		BeanLocatorImpl beanLocatorImpl = new BeanLocatorImpl(
 			classLoader, applicationContext);
+
+		beanLocatorImpl.setPACLServletContextName(
+			servletContext.getServletContextName());
 
 		try {
 			Class<?> beanLocatorUtilClass = Class.forName(
@@ -102,10 +122,10 @@ public class PortletContextLoaderListener extends ContextLoaderListener {
 				"setBeanLocator", new Class[] {BeanLocator.class});
 
 			setBeanLocatorMethod.invoke(
-				beanLocatorUtilClass, new Object[] {beanLocator});
+				beanLocatorUtilClass, new Object[] {beanLocatorImpl});
 
 			PortletBeanLocatorUtil.setBeanLocator(
-				servletContext.getServletContextName(), beanLocator);
+				servletContext.getServletContextName(), beanLocatorImpl);
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -123,9 +143,52 @@ public class PortletContextLoaderListener extends ContextLoaderListener {
 	}
 
 	@Override
-	protected ContextLoader createContextLoader() {
-		return new PortletContextLoader();
+	protected void customizeContext(
+		ServletContext servletContext,
+		ConfigurableWebApplicationContext configurableWebApplicationContext) {
+
+		String configLocation = servletContext.getInitParameter(
+			_PORTAL_CONFIG_LOCATION_PARAM);
+
+		configurableWebApplicationContext.setConfigLocation(configLocation);
+
+		configurableWebApplicationContext.addBeanFactoryPostProcessor(
+			new PortletBeanFactoryPostProcessor());
 	}
+
+	@Override
+	protected Class<?> determineContextClass(ServletContext servletContext) {
+		return PortletApplicationContext.class;
+	}
+
+	@Override
+	protected ApplicationContext loadParentContext(
+		ServletContext servletContext) {
+
+		try {
+			ConfigurationFactoryUtil.getConfiguration(
+				PortletClassLoaderUtil.getClassLoader(), "service");
+		}
+		catch (Exception e) {
+			return null;
+		}
+
+		ApplicationContext applicationContext =
+			new ClassPathXmlApplicationContext(
+				PropsValues.SPRING_PORTLET_CONFIGS, true);
+
+		servletContext.setAttribute(
+			_PARENT_APPLICATION_CONTEXT_KEY, applicationContext);
+
+		return applicationContext;
+	}
+
+	private static final String _PARENT_APPLICATION_CONTEXT_KEY =
+		PortletContextLoaderListener.class.getName() +
+			"#parentApplicationContext";
+
+	private static final String _PORTAL_CONFIG_LOCATION_PARAM =
+		"portalContextConfigLocation";
 
 	private static Log _log = LogFactoryUtil.getLog(
 		PortletContextLoaderListener.class);

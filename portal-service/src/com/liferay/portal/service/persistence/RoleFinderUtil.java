@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,12 +14,15 @@
 
 package com.liferay.portal.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public class RoleFinderUtil {
 	public static int countByR_U(long roleId, long userId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -105,6 +108,13 @@ public class RoleFinderUtil {
 		long userId, long[] groupIds)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getFinder().findByU_G(userId, groupIds);
+	}
+
+	public static java.util.List<com.liferay.portal.model.Role> findByR_N_A(
+		long resourceBlockId, java.lang.String className,
+		java.lang.String actionId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getFinder().findByR_N_A(resourceBlockId, className, actionId);
 	}
 
 	public static java.util.List<com.liferay.portal.model.Role> findByC_N_D_T(

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,9 +17,11 @@ package com.liferay.portlet.socialactivity.action;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.comparator.ModelResourceComparator;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.theme.ThemeDisplay;
@@ -28,7 +30,6 @@ import com.liferay.portlet.social.model.SocialActivityCounterConstants;
 import com.liferay.portlet.social.model.SocialActivityCounterDefinition;
 import com.liferay.portlet.social.model.SocialActivityDefinition;
 import com.liferay.portlet.social.model.SocialActivitySetting;
-import com.liferay.portlet.social.service.SocialActivitySettingLocalServiceUtil;
 import com.liferay.portlet.social.service.SocialActivitySettingServiceUtil;
 import com.liferay.portlet.social.util.SocialConfigurationUtil;
 
@@ -51,39 +52,76 @@ import org.apache.struts.action.ActionMapping;
 
 /**
  * @author Zsolt Szabó
+ * @author Zsolt Berentey
  */
 public class ViewAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
-		if (cmd.equals(Constants.UPDATE)) {
-			updateActivitySettings(actionRequest);
-		}
+		try {
+			if (cmd.equals(Constants.UPDATE)) {
+				updateActivitySettings(actionRequest);
+			}
 
-		sendRedirect(actionRequest, actionResponse);
+			sendRedirect(actionRequest, actionResponse);
+		}
+		catch (Exception e) {
+			if (e instanceof PrincipalException) {
+				SessionErrors.add(actionRequest, e.getClass());
+			}
+			else {
+				throw e;
+			}
+		}
 	}
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
+		try {
+			renderRequest.setAttribute(
+				WebKeys.SOCIAL_ACTIVITY_SETTINGS_MAP,
+				getActivitySettingsMap(themeDisplay));
+		}
+		catch (Exception e) {
+			if (e instanceof PrincipalException) {
+				SessionErrors.add(renderRequest, e.getClass());
+
+				return actionMapping.findForward(
+					"portlet.social_activity.error");
+			}
+			else {
+				throw e;
+			}
+		}
+
+		return actionMapping.findForward("portlet.social_activity.view");
+	}
+
+	protected Map<String, Boolean> getActivitySettingsMap(
+			ThemeDisplay themeDisplay)
+		throws Exception {
+
 		Map<String, Boolean> activitySettingsMap =
 			new LinkedHashMap<String, Boolean>();
 
 		List<SocialActivitySetting> activitySettings =
-			SocialActivitySettingLocalServiceUtil.getActivitySettings(
-				themeDisplay.getScopeGroupIdOrLiveGroupId());
+			SocialActivitySettingServiceUtil.getActivitySettings(
+				themeDisplay.getSiteGroupIdOrLiveGroupId());
 
 		String[] modelNames = SocialConfigurationUtil.getActivityModelNames();
 
@@ -93,7 +131,19 @@ public class ViewAction extends PortletAction {
 		Arrays.sort(modelNames, comparator);
 
 		for (String modelName : modelNames) {
-			activitySettingsMap.put(modelName, false);
+			List<SocialActivityDefinition> activityDefinitions =
+				SocialActivitySettingServiceUtil.getActivityDefinitions(
+					themeDisplay.getScopeGroupId(), modelName);
+
+			for (SocialActivityDefinition activityDefinition :
+					activityDefinitions) {
+
+				if (activityDefinition.isCountersEnabled()) {
+					activitySettingsMap.put(modelName, false);
+
+					break;
+				}
+			}
 		}
 
 		for (SocialActivitySetting activitySetting : activitySettings) {
@@ -109,10 +159,7 @@ public class ViewAction extends PortletAction {
 			}
 		}
 
-		renderRequest.setAttribute(
-			WebKeys.SOCIAL_ACTIVITY_SETTINGS_MAP, activitySettingsMap);
-
-		return mapping.findForward("portlet.social_activity.view");
+		return activitySettingsMap;
 	}
 
 	protected SocialActivityCounterDefinition updateActivityCounterDefinition(
@@ -189,8 +236,8 @@ public class ViewAction extends PortletAction {
 			int activityType = actionJSONObject.getInt("activityType");
 
 			SocialActivityDefinition activityDefinition =
-				SocialActivitySettingLocalServiceUtil.getActivityDefinition(
-					themeDisplay.getScopeGroupIdOrLiveGroupId(), modelName,
+				SocialActivitySettingServiceUtil.getActivityDefinition(
+					themeDisplay.getSiteGroupIdOrLiveGroupId(), modelName,
 					activityType);
 
 			if (activityDefinition == null) {
@@ -216,7 +263,7 @@ public class ViewAction extends PortletAction {
 					SocialActivityCounterConstants.NAME_POPULARITY));
 
 			SocialActivitySettingServiceUtil.updateActivitySettings(
-				themeDisplay.getScopeGroupIdOrLiveGroupId(), modelName,
+				themeDisplay.getSiteGroupIdOrLiveGroupId(), modelName,
 				activityType, activityCounterDefinitions);
 		}
 	}

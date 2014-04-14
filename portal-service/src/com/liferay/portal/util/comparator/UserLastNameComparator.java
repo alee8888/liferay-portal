@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -45,14 +45,23 @@ public class UserLastNameComparator extends OrderByComparator {
 		User user1 = (User)obj1;
 		User user2 = (User)obj2;
 
-		int value = user1.getLastName().compareTo(user2.getLastName());
+		String lastName1 = user1.getLastName();
+		String lastName2 = user2.getLastName();
+
+		int value = lastName1.compareTo(lastName2);
 
 		if (value == 0) {
-			value = user1.getFirstName().compareTo(user2.getFirstName());
+			String firstName1 = user1.getFirstName();
+			String firstName2 = user2.getFirstName();
+
+			value = firstName1.compareTo(firstName2);
 		}
 
 		if (value == 0) {
-			value = user1.getMiddleName().compareTo(user2.getMiddleName());
+			String middleName1 = user1.getMiddleName();
+			String middleName2 = user2.getMiddleName();
+
+			value = middleName1.compareTo(middleName2);
 		}
 
 		if (_ascending) {

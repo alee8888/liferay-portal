@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,18 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
- * The utility for the user remote service. This utility wraps {@link com.liferay.portal.service.impl.UserServiceImpl} and is the primary access point for service operations in application layer code running on a remote server.
- *
- * <p>
- * This is a remote service. Methods of this service are expected to have security checks based on the propagated JAAS credentials because this service can be accessed remotely.
- * </p>
+ * Provides the remote service utility for User. This utility wraps
+ * {@link com.liferay.portal.service.impl.UserServiceImpl} and is the
+ * primary access point for service operations in application layer code running
+ * on a remote server. Methods of this service are expected to have security
+ * checks based on the propagated JAAS credentials because this service can be
+ * accessed remotely.
  *
  * @author Brian Wing Shun Chan
  * @see UserService
@@ -30,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.UserServiceImpl
  * @generated
  */
+@ProviderType
 public class UserServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -60,10 +64,12 @@ public class UserServiceUtil {
 	*
 	* @param groupId the primary key of the group
 	* @param userIds the primary keys of the users
-	* @param serviceContext the service context (optionally <code>null</code>)
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>)
 	* @throws PortalException if a group or user with the primary key could not
-	be found, or if the user did not have permission to assign group
-	members
+	be found, if the user did not have permission to assign group
+	members, or if the operation was not allowed by the membership
+	policy
 	* @throws SystemException if a system exception occurred
 	*/
 	public static void addGroupUsers(long groupId, long[] userIds,
@@ -80,8 +86,9 @@ public class UserServiceUtil {
 	* @param userIds the primary keys of the users
 	* @throws PortalException if an organization or user with the primary key
 	could not be found, if the user did not have permission to assign
-	organization members, or if current user did not have an
-	organization in common with a given user
+	organization members, if current user did not have an
+	organization in common with a given user, or if the operation was
+	not allowed by the membership policy
 	* @throws SystemException if a system exception occurred
 	*/
 	public static void addOrganizationUsers(long organizationId, long[] userIds)
@@ -113,8 +120,9 @@ public class UserServiceUtil {
 	* @param roleId the primary key of the role
 	* @param userIds the primary keys of the users
 	* @throws PortalException if a role or user with the primary key could not
-	be found or if the user did not have permission to assign role
-	members
+	be found, if the user did not have permission to assign role
+	members, or if the operation was not allowed by the membership
+	policy
 	* @throws SystemException if a system exception occurred
 	*/
 	public static void addRoleUsers(long roleId, long[] userIds)
@@ -178,12 +186,13 @@ public class UserServiceUtil {
 	* @param userGroupIds the primary keys of the user's user groups
 	* @param sendEmail whether to send the user an email notification about
 	their new account
-	* @param serviceContext the user's service context (optionally
-	<code>null</code>). Can set the universally unique identifier
-	(with the <code>uuid</code> attribute), asset category IDs, asset
-	tag names, and expando bridge attributes for the user.
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set the UUID (with the <code>uuid</code>
+	attribute), asset category IDs, asset tag names, and expando
+	bridge attributes for the user.
 	* @return the new user
 	* @throws PortalException if the user's information was invalid, if the
+	operation was not allowed by the membership policy, if the
 	creator did not have permission to add users, or if the email
 	address was reserved
 	* @throws SystemException if a system exception occurred
@@ -253,14 +262,15 @@ public class UserServiceUtil {
 	* @param announcementsDelivers the announcements deliveries
 	* @param sendEmail whether to send the user an email notification about
 	their new account
-	* @param serviceContext the user's service context (optionally
-	<code>null</code>). Can set the universally unique identifier
-	(with the <code>uuid</code> attribute), asset category IDs, asset
-	tag names, and expando bridge attributes for the user.
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set the UUID (with the <code>uuid</code>
+	attribute), asset category IDs, asset tag names, and expando
+	bridge attributes for the user.
 	* @return the new user
 	* @throws PortalException if the user's information was invalid, if the
 	creator did not have permission to add users, if the email
-	address was reserved, or some other portal exception occurred
+	address was reserved, if the operation was not allowed by the
+	membership policy, or if some other portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.User addUser(long companyId,
@@ -297,8 +307,9 @@ public class UserServiceUtil {
 	* @param userGroupId the primary key of the user group
 	* @param userIds the primary keys of the users
 	* @throws PortalException if a user group or user with the primary could
-	could not be found, or if the current user did not have
-	permission to assign group members
+	could not be found, if the current user did not have permission
+	to assign group members, or if the operation was not allowed by
+	the membership policy
 	* @throws SystemException if a system exception occurred
 	*/
 	public static void addUserGroupUsers(long userGroupId, long[] userIds)
@@ -346,12 +357,13 @@ public class UserServiceUtil {
 	* @param userGroupIds the primary keys of the user's user groups
 	* @param sendEmail whether to send the user an email notification about
 	their new account
-	* @param serviceContext the user's service context (optionally
-	<code>null</code>). Can set the universally unique identifier
-	(with the <code>uuid</code> attribute), asset category IDs, asset
-	tag names, and expando bridge attributes for the user.
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set the UUID (with the <code>uuid</code>
+	attribute), asset category IDs, asset tag names, and expando
+	bridge attributes for the user.
 	* @return the new user
 	* @throws PortalException if the user's information was invalid, if the
+	operation was not allowed by the membership policy, if the
 	creator did not have permission to add users, or if the email
 	address was reserved
 	* @throws SystemException if a system exception occurred
@@ -422,14 +434,15 @@ public class UserServiceUtil {
 	* @param announcementsDelivers the announcements deliveries
 	* @param sendEmail whether to send the user an email notification about
 	their new account
-	* @param serviceContext the user's service context (optionally
-	<code>null</code>). Can set the universally unique identifier
-	(with the <code>uuid</code> attribute), asset category IDs, asset
-	tag names, and expando bridge attributes for the user.
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set the UUID (with the <code>uuid</code>
+	attribute), asset category IDs, asset tag names, and expando
+	bridge attributes for the user.
 	* @return the new user
 	* @throws PortalException if the user's information was invalid, if the
+	operation was not allowed by the membership policy, if the
 	creator did not have permission to add users, if the email
-	address was reserved, or some other portal exception occurred
+	address was reserved, or if some other portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.User addUserWithWorkflow(
@@ -506,6 +519,19 @@ public class UserServiceUtil {
 		getService().deleteUser(userId);
 	}
 
+	public static java.util.List<com.liferay.portal.model.User> getCompanyUsers(
+		long companyId, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getCompanyUsers(companyId, start, end);
+	}
+
+	public static int getCompanyUsersCount(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getCompanyUsersCount(companyId);
+	}
+
 	/**
 	* Returns the primary keys of all the users belonging to the group.
 	*
@@ -522,6 +548,22 @@ public class UserServiceUtil {
 	}
 
 	/**
+	* Returns all the users belonging to the group.
+	*
+	* @param groupId the primary key of the group
+	* @return the users belonging to the group
+	* @throws PortalException if the current user did not have permission to
+	view group assignments
+	* @throws SystemException if a system exception occurred
+	*/
+	public static java.util.List<com.liferay.portal.model.User> getGroupUsers(
+		long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getGroupUsers(groupId);
+	}
+
+	/**
 	* Returns the primary keys of all the users belonging to the organization.
 	*
 	* @param organizationId the primary key of the organization
@@ -534,6 +576,22 @@ public class UserServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getOrganizationUserIds(organizationId);
+	}
+
+	/**
+	* Returns all the users belonging to the organization.
+	*
+	* @param organizationId the primary key of the organization
+	* @return users belonging to the organization
+	* @throws PortalException if the current user did not have permission to
+	view organization assignments
+	* @throws SystemException if a system exception occurred
+	*/
+	public static java.util.List<com.liferay.portal.model.User> getOrganizationUsers(
+		long organizationId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getOrganizationUsers(organizationId);
 	}
 
 	/**
@@ -591,7 +649,7 @@ public class UserServiceUtil {
 	* @param screenName the user's screen name
 	* @return the user with the screen name
 	* @throws PortalException if a user with the screen name could not be found
-	or if the current user did not have permission to veiw the user
+	or if the current user did not have permission to view the user
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.User getUserByScreenName(
@@ -599,6 +657,13 @@ public class UserServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getUserByScreenName(companyId, screenName);
+	}
+
+	public static java.util.List<com.liferay.portal.model.User> getUserGroupUsers(
+		long userGroupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getUserGroupUsers(userGroupId);
 	}
 
 	/**
@@ -641,6 +706,8 @@ public class UserServiceUtil {
 	* @param userId the primary key of the user
 	* @return <code>true</code> if the user is a member of the group;
 	<code>false</code> otherwise
+	* @throws PortalException if the current user did not have permission to
+	view the user or group members
 	* @throws SystemException if a system exception occurred
 	*/
 	public static boolean hasGroupUser(long groupId, long userId)
@@ -656,6 +723,8 @@ public class UserServiceUtil {
 	* @param userId the primary key of the user
 	* @return <code>true</code> if the user is a member of the role;
 	<code>false</code> otherwise
+	* @throws PortalException if the current user did not have permission to
+	view the user or role members
 	* @throws SystemException if a system exception occurred
 	*/
 	public static boolean hasRoleUser(long roleId, long userId)
@@ -693,7 +762,8 @@ public class UserServiceUtil {
 	* @param roleId the primary key of the role
 	* @param userIds the primary keys of the users
 	* @throws PortalException if the current user did not have permission to
-	assign role members
+	assign role members or if the operation was not allowed by the
+	membership policy
 	* @throws SystemException if a system exception occurred
 	*/
 	public static void setRoleUsers(long roleId, long[] userIds)
@@ -719,13 +789,30 @@ public class UserServiceUtil {
 	}
 
 	/**
+	* Removes the users from the teams of a group.
+	*
+	* @param groupId the primary key of the group
+	* @param userIds the primary keys of the users
+	* @throws PortalException if the current user did not have permission to
+	modify user group assignments
+	* @throws SystemException if a system exception occurred
+	*/
+	public static void unsetGroupTeamsUsers(long groupId, long[] userIds)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().unsetGroupTeamsUsers(groupId, userIds);
+	}
+
+	/**
 	* Removes the users from the group.
 	*
 	* @param groupId the primary key of the group
 	* @param userIds the primary keys of the users
-	* @param serviceContext the service context (optionally <code>null</code>)
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>)
 	* @throws PortalException if the current user did not have permission to
-	modify group assignments
+	modify group assignments or if the operation was not allowed by
+	the membership policy
 	* @throws SystemException if a system exception occurred
 	*/
 	public static void unsetGroupUsers(long groupId, long[] userIds,
@@ -741,7 +828,8 @@ public class UserServiceUtil {
 	* @param organizationId the primary key of the organization
 	* @param userIds the primary keys of the users
 	* @throws PortalException if the current user did not have permission to
-	modify organization assignments
+	modify organization assignments or if the operation was not
+	allowed by the membership policy
 	* @throws SystemException if a system exception occurred
 	*/
 	public static void unsetOrganizationUsers(long organizationId,
@@ -773,7 +861,8 @@ public class UserServiceUtil {
 	* @param roleId the primary key of the role
 	* @param userIds the primary keys of the users
 	* @throws PortalException if the current user did not have permission to
-	modify role assignments
+	modify role assignments or if the operation was not allowed by
+	the membership policy
 	* @throws SystemException if a system exception occurred
 	*/
 	public static void unsetRoleUsers(long roleId, long[] userIds)
@@ -803,7 +892,8 @@ public class UserServiceUtil {
 	* @param userGroupId the primary key of the user group
 	* @param userIds the primary keys of the users
 	* @throws PortalException if the current user did not have permission to
-	modify user group assignments
+	modify user group assignments or if the operation was not allowed
+	by the membership policy
 	* @throws SystemException if a system exception occurred
 	*/
 	public static void unsetUserGroupUsers(long userGroupId, long[] userIds)
@@ -836,9 +926,9 @@ public class UserServiceUtil {
 	* @param password the user's password
 	* @param emailAddress1 the user's new email address
 	* @param emailAddress2 the user's new email address confirmation
-	* @param serviceContext the service context. Must set the portal URL, main
-	path, primary key of the layout, remote address, remote host, and
-	agent for the user.
+	* @param serviceContext the service context to be applied. Must set the
+	portal URL, main path, primary key of the layout, remote address,
+	remote host, and agent for the user.
 	* @return the user
 	* @throws PortalException if a user with the primary key could not be found
 	or if the current user did not have permission to update the user
@@ -886,7 +976,7 @@ public class UserServiceUtil {
 	* @param updateUserInformation whether to update the user's information
 	* @param sendEmail whether to send the user an email notification about
 	their new account
-	* @param serviceContext the user's service context (optionally
+	* @param serviceContext the service context to be applied (optionally
 	<code>null</code>). Can set the expando bridge attributes for the
 	user.
 	* @return the user
@@ -955,8 +1045,8 @@ public class UserServiceUtil {
 	*
 	* @param userId the primary key of the user
 	* @param organizationIds the primary keys of the organizations
-	* @param serviceContext the service context. Must set whether user
-	indexing is enabled.
+	* @param serviceContext the service context to be applied. Must set
+	whether user indexing is enabled.
 	* @throws PortalException if a user with the primary key could not be found
 	or if the current user did not have permission to update the user
 	* @throws SystemException if a system exception occurred
@@ -1053,16 +1143,44 @@ public class UserServiceUtil {
 	* @return the user
 	* @throws PortalException if a user with the primary key could not be
 	found, if the current user was updating her own status to
-	anything but {@link WorkflowConstants.STATUS_APPROVED}, or if the
-	current user did not have permission to update the user's
-	workflow status.
+	anything but {@link
+	com.liferay.portal.kernel.workflow.WorkflowConstants#STATUS_APPROVED},
+	or if the current user did not have permission to update the
+	user's workflow status.
 	* @throws SystemException if a system exception occurred
+	* @deprecated As of 7.0.0, replaced by {@link #updateStatus(long, int,
+	ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.User updateStatus(long userId,
 		int status)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().updateStatus(userId, status);
+	}
+
+	/**
+	* Updates the user's workflow status.
+	*
+	* @param userId the primary key of the user
+	* @param status the user's new workflow status
+	* @param serviceContext the service context to be applied. You can specify
+	an unencrypted custom password (used by an LDAP listener) for the
+	user via attribute <code>passwordUnencrypted</code>.
+	* @return the user
+	* @throws PortalException if a user with the primary key could not be
+	found, if the current user was updating her own status to
+	anything but {@link
+	com.liferay.portal.kernel.workflow.WorkflowConstants#STATUS_APPROVED},
+	or if the current user did not have permission to update the
+	user's workflow status.
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.User updateStatus(long userId,
+		int status, com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().updateStatus(userId, status, serviceContext);
 	}
 
 	/**
@@ -1082,6 +1200,8 @@ public class UserServiceUtil {
 	* @param emailAddress the user's new email address
 	* @param facebookId the user's new Facebook ID
 	* @param openId the user's new OpenID
+	* @param portrait whether to update the user's portrait image
+	* @param portraitBytes the new portrait image data
 	* @param languageId the user's new language ID
 	* @param timeZoneId the user's new time zone ID
 	* @param greeting the user's new greeting
@@ -1117,16 +1237,132 @@ public class UserServiceUtil {
 	* @param phones the user's phone numbers
 	* @param websites the user's websites
 	* @param announcementsDelivers the announcements deliveries
-	* @param serviceContext the user's service context (optionally
-	<code>null</code>). Can set the universally unique identifier
-	(with the <code>uuid</code> attribute), asset category IDs, asset
-	tag names, and expando bridge attributes for the user.
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set the UUID (with the <code>uuid</code>
+	attribute), asset category IDs, asset tag names, and expando
+	bridge attributes for the user.
 	* @return the user
 	* @throws PortalException if a user with the primary key could not be
-	found, if the new information was invalid, or if the current user
-	did not have permission to update the user
+	found, if the new information was invalid, if the current user
+	did not have permission to update the user, or if the operation
+	was not allowed by the membership policy
 	* @throws SystemException if a system exception occurred
 	*/
+	public static com.liferay.portal.model.User updateUser(long userId,
+		java.lang.String oldPassword, java.lang.String newPassword1,
+		java.lang.String newPassword2, boolean passwordReset,
+		java.lang.String reminderQueryQuestion,
+		java.lang.String reminderQueryAnswer, java.lang.String screenName,
+		java.lang.String emailAddress, long facebookId,
+		java.lang.String openId, boolean portrait, byte[] portraitBytes,
+		java.lang.String languageId, java.lang.String timeZoneId,
+		java.lang.String greeting, java.lang.String comments,
+		java.lang.String firstName, java.lang.String middleName,
+		java.lang.String lastName, int prefixId, int suffixId, boolean male,
+		int birthdayMonth, int birthdayDay, int birthdayYear,
+		java.lang.String smsSn, java.lang.String aimSn,
+		java.lang.String facebookSn, java.lang.String icqSn,
+		java.lang.String jabberSn, java.lang.String msnSn,
+		java.lang.String mySpaceSn, java.lang.String skypeSn,
+		java.lang.String twitterSn, java.lang.String ymSn,
+		java.lang.String jobTitle, long[] groupIds, long[] organizationIds,
+		long[] roleIds,
+		java.util.List<com.liferay.portal.model.UserGroupRole> userGroupRoles,
+		long[] userGroupIds,
+		java.util.List<com.liferay.portal.model.Address> addresses,
+		java.util.List<com.liferay.portal.model.EmailAddress> emailAddresses,
+		java.util.List<com.liferay.portal.model.Phone> phones,
+		java.util.List<com.liferay.portal.model.Website> websites,
+		java.util.List<com.liferay.portlet.announcements.model.AnnouncementsDelivery> announcementsDelivers,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .updateUser(userId, oldPassword, newPassword1, newPassword2,
+			passwordReset, reminderQueryQuestion, reminderQueryAnswer,
+			screenName, emailAddress, facebookId, openId, portrait,
+			portraitBytes, languageId, timeZoneId, greeting, comments,
+			firstName, middleName, lastName, prefixId, suffixId, male,
+			birthdayMonth, birthdayDay, birthdayYear, smsSn, aimSn, facebookSn,
+			icqSn, jabberSn, msnSn, mySpaceSn, skypeSn, twitterSn, ymSn,
+			jobTitle, groupIds, organizationIds, roleIds, userGroupRoles,
+			userGroupIds, addresses, emailAddresses, phones, websites,
+			announcementsDelivers, serviceContext);
+	}
+
+	/**
+	* Updates the user with additional parameters.
+	*
+	* @param userId the primary key of the user
+	* @param oldPassword the user's old password
+	* @param newPassword1 the user's new password (optionally
+	<code>null</code>)
+	* @param newPassword2 the user's new password confirmation (optionally
+	<code>null</code>)
+	* @param passwordReset whether the user should be asked to reset their
+	password the next time they login
+	* @param reminderQueryQuestion the user's new password reset question
+	* @param reminderQueryAnswer the user's new password reset answer
+	* @param screenName the user's new screen name
+	* @param emailAddress the user's new email address
+	* @param facebookId the user's new Facebook ID
+	* @param openId the user's new OpenID
+	* @param languageId the user's new language ID
+	* @param timeZoneId the user's new time zone ID
+	* @param greeting the user's new greeting
+	* @param comments the user's new comments
+	* @param firstName the user's new first name
+	* @param middleName the user's new middle name
+	* @param lastName the user's new last name
+	* @param prefixId the user's new name prefix ID
+	* @param suffixId the user's new name suffix ID
+	* @param male whether user is male
+	* @param birthdayMonth the user's new birthday month (0-based, meaning
+	0 for January)
+	* @param birthdayDay the user's new birthday day
+	* @param birthdayYear the user's birthday year
+	* @param smsSn the user's new SMS screen name
+	* @param aimSn the user's new AIM screen name
+	* @param facebookSn the user's new Facebook screen name
+	* @param icqSn the user's new ICQ screen name
+	* @param jabberSn the user's new Jabber screen name
+	* @param msnSn the user's new MSN screen name
+	* @param mySpaceSn the user's new MySpace screen name
+	* @param skypeSn the user's new Skype screen name
+	* @param twitterSn the user's new Twitter screen name
+	* @param ymSn the user's new Yahoo! Messenger screen name
+	* @param jobTitle the user's new job title
+	* @param groupIds the primary keys of the user's groups
+	* @param organizationIds the primary keys of the user's organizations
+	* @param roleIds the primary keys of the user's roles
+	* @param userGroupRoles the user user's group roles
+	* @param userGroupIds the primary keys of the user's user groups
+	* @param addresses the user's addresses
+	* @param emailAddresses the user's email addresses
+	* @param phones the user's phone numbers
+	* @param websites the user's websites
+	* @param announcementsDelivers the announcements deliveries
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set the UUID (with the
+	<code>uuid</code> attribute), asset category IDs, asset tag
+	names, and expando bridge attributes for the user.
+	* @return the user
+	* @throws PortalException if a user with the primary key could not be
+	found, if the new information was invalid, if the current
+	user did not have permission to update the user, or if the
+	operation was not allowed by the membership policy
+	* @throws SystemException if a system exception occurred
+	* @deprecated As of 7.0.0, replaced by {@link #updateUser(long, String,
+	String, String, boolean, String, String, String, String,
+	long, String, String, String, String, String, String, String,
+	String, int, int, boolean, int, int, int, String, String,
+	String, String, String, String, String, String, String,
+	String, String, long[], long[], long[], java.util.List,
+	long[], java.util.List, java.util.List, java.util.List,
+	java.util.List, java.util.List, boolean, byte[],
+	com.liferay.portal.service.ServiceContext)}
+	*/
+	@Deprecated
 	public static com.liferay.portal.model.User updateUser(long userId,
 		java.lang.String oldPassword, java.lang.String newPassword1,
 		java.lang.String newPassword2, boolean passwordReset,
@@ -1214,14 +1450,15 @@ public class UserServiceUtil {
 	* @param roleIds the primary keys of the user's roles
 	* @param userGroupRoles the user user's group roles
 	* @param userGroupIds the primary keys of the user's user groups
-	* @param serviceContext the user's service context (optionally
-	<code>null</code>). Can set the universally unique identifier
-	(with the <code>uuid</code> attribute), asset category IDs, asset
-	tag names, and expando bridge attributes for the user.
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set the UUID (with the <code>uuid</code>
+	attribute), asset category IDs, asset tag names, and expando
+	bridge attributes for the user.
 	* @return the user
 	* @throws PortalException if a user with the primary key could not be
-	found, if the new information was invalid, or if the current user
-	did not have permission to update the user
+	found, if the new information was invalid, if the current user
+	did not have permission to update the user, or if the operation
+	was not allowed by the membership policy
 	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.User updateUser(long userId,
@@ -1270,8 +1507,9 @@ public class UserServiceUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(UserService service) {
 	}
 

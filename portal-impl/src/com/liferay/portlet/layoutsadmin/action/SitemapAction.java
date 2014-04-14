@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,12 +21,18 @@ import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.LayoutSet;
+import com.liferay.portal.model.VirtualHost;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutSetLocalServiceUtil;
+import com.liferay.portal.service.VirtualHostLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.layoutsadmin.util.SitemapUtil;
 
@@ -45,8 +51,8 @@ public class SitemapAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		try {
@@ -72,7 +78,30 @@ public class SitemapAction extends Action {
 			else {
 				String host = PortalUtil.getHost(request);
 
-				layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(host);
+				host = StringUtil.toLowerCase(host);
+				host = host.trim();
+
+				VirtualHost virtualHost =
+					VirtualHostLocalServiceUtil.getVirtualHost(host);
+
+				if (virtualHost.getLayoutSetId() != 0) {
+					layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
+						virtualHost.getLayoutSetId());
+				}
+				else {
+					String groupName =
+						PropsValues.VIRTUAL_HOSTS_DEFAULT_SITE_NAME;
+
+					if (Validator.isNull(groupName)) {
+						groupName = GroupConstants.GUEST;
+					}
+
+					Group group = GroupLocalServiceUtil.getGroup(
+						themeDisplay.getCompanyId(), groupName);
+
+					layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
+						group.getGroupId(), false);
+				}
 			}
 
 			String sitemap = SitemapUtil.getSitemap(

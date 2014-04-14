@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -77,8 +77,9 @@ public class ClassLoaderProxy {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public Object invoke(String methodName, Object[] args) throws Throwable {
 		Thread currentThread = Thread.currentThread();
 
@@ -98,10 +99,9 @@ public class ClassLoaderProxy {
 					arg.getClass().getName(), true, _classLoader);
 
 				if (ClassUtil.isSubclass(argClass, PrimitiveWrapper.class)) {
-					MethodKey methodKey = new MethodKey(
-						argClass.getName(), "getValue");
+					MethodKey methodKey = new MethodKey(argClass, "getValue");
 
-					Method method = MethodCache.get(methodKey);
+					Method method = methodKey.getMethod();
 
 					args[i] = method.invoke(arg, (Object[])null);
 
@@ -219,8 +219,11 @@ public class ClassLoaderProxy {
 			return methodHandler.invoke(_obj);
 		}
 		catch (NoSuchMethodException nsme) {
-			String name = methodHandler.getMethodName();
-			Class<?>[] parameterTypes = methodHandler.getArgumentsClasses();
+			MethodKey methodKey = methodHandler.getMethodKey();
+
+			String name = methodKey.getMethodName();
+
+			Class<?>[] parameterTypes = methodKey.getParameterTypes();
 
 			Class<?> clazz = Class.forName(_className, true, _classLoader);
 

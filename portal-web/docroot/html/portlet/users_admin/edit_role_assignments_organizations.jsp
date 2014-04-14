@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -38,17 +38,18 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_role_assignments.
 <liferay-ui:search-container
 	rowChecker="<%= new OrganizationRoleChecker(renderResponse, role) %>"
 	searchContainer="<%= new OrganizationSearch(renderRequest, portletURL) %>"
+	var="organizationSearchContainer"
 >
 	<liferay-ui:search-form
 		page="/html/portlet/users_admin/organization_search.jsp"
 	/>
 
 	<%
-	OrganizationSearchTerms searchTerms = (OrganizationSearchTerms)searchContainer.getSearchTerms();
+	OrganizationSearchTerms searchTerms = (OrganizationSearchTerms)organizationSearchContainer.getSearchTerms();
 
 	long parentOrganizationId = OrganizationConstants.ANY_PARENT_ORGANIZATION_ID;
 
-	LinkedHashMap organizationParams = new LinkedHashMap();
+	LinkedHashMap<String, Object> organizationParams = new LinkedHashMap<String, Object>();
 
 	if (tabs3.equals("current")) {
 		organizationParams.put("organizationsRoles", new Long(role.getRoleId()));
@@ -121,8 +122,6 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_role_assignments.
 	%>
 
 	<aui:button onClick="<%= taglibOnClick %>" value="update-associations" />
-
-	<br /><br />
 
 	<liferay-ui:search-iterator />
 </liferay-ui:search-container>

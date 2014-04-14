@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,13 +24,11 @@ import com.liferay.portal.service.http.TunnelUtil;
 import com.liferay.portlet.shopping.service.ShoppingCouponServiceUtil;
 
 /**
- * <p>
- * This class provides a HTTP utility for the
+ * Provides the HTTP utility for the
  * {@link com.liferay.portlet.shopping.service.ShoppingCouponServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it requires an additional
  * {@link com.liferay.portal.security.auth.HttpPrincipal} parameter.
- * </p>
  *
  * <p>
  * The benefits of using the HTTP utility is that it is fast and allows for
@@ -47,10 +45,10 @@ import com.liferay.portlet.shopping.service.ShoppingCouponServiceUtil;
  * The HTTP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ShoppingCouponServiceSoap
- * @see       com.liferay.portal.security.auth.HttpPrincipal
- * @see       com.liferay.portlet.shopping.service.ShoppingCouponServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see ShoppingCouponServiceSoap
+ * @see com.liferay.portal.security.auth.HttpPrincipal
+ * @see com.liferay.portlet.shopping.service.ShoppingCouponServiceUtil
  * @generated
  */
 public class ShoppingCouponServiceHttp {
@@ -67,7 +65,7 @@ public class ShoppingCouponServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class,
 					"addCoupon", _addCouponParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, code,
@@ -108,7 +106,7 @@ public class ShoppingCouponServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class,
 					"deleteCoupon", _deleteCouponParameterTypes1);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
@@ -141,7 +139,7 @@ public class ShoppingCouponServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class,
 					"getCoupon", _getCouponParameterTypes2);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
@@ -180,7 +178,7 @@ public class ShoppingCouponServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class,
 					"search", _searchParameterTypes3);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
@@ -225,7 +223,7 @@ public class ShoppingCouponServiceHttp {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		try {
-			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(ShoppingCouponServiceUtil.class,
 					"updateCoupon", _updateCouponParameterTypes4);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey,

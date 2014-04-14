@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,22 +14,29 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
- * The utility for the journal structure remote service. This utility wraps {@link com.liferay.portlet.journal.service.impl.JournalStructureServiceImpl} and is the primary access point for service operations in application layer code running on a remote server.
- *
- * <p>
- * This is a remote service. Methods of this service are expected to have security checks based on the propagated JAAS credentials because this service can be accessed remotely.
- * </p>
+ * Provides the remote service utility for JournalStructure. This utility wraps
+ * {@link com.liferay.portlet.journal.service.impl.JournalStructureServiceImpl} and is the
+ * primary access point for service operations in application layer code running
+ * on a remote server. Methods of this service are expected to have security
+ * checks based on the propagated JAAS credentials because this service can be
+ * accessed remotely.
  *
  * @author Brian Wing Shun Chan
  * @see JournalStructureService
  * @see com.liferay.portlet.journal.service.base.JournalStructureServiceBaseImpl
  * @see com.liferay.portlet.journal.service.impl.JournalStructureServiceImpl
+ * @deprecated As of 6.2.0, since Web Content Administration now uses the
+Dynamic Data Mapping framework to handle templates
  * @generated
  */
+@Deprecated
+@ProviderType
 public class JournalStructureServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -93,10 +100,25 @@ public class JournalStructureServiceUtil {
 		return getService().getStructure(groupId, structureId);
 	}
 
+	public static com.liferay.portlet.journal.model.JournalStructure getStructure(
+		long groupId, java.lang.String structureId,
+		boolean includeGlobalStructures)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getStructure(groupId, structureId, includeGlobalStructures);
+	}
+
 	public static java.util.List<com.liferay.portlet.journal.model.JournalStructure> getStructures(
 		long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().getStructures(groupId);
+	}
+
+	public static java.util.List<com.liferay.portlet.journal.model.JournalStructure> getStructures(
+		long[] groupIds)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getStructures(groupIds);
 	}
 
 	public static java.util.List<com.liferay.portlet.journal.model.JournalStructure> search(
@@ -159,8 +181,9 @@ public class JournalStructureServiceUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(JournalStructureService service) {
 	}
 

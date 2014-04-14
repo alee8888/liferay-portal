@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +26,13 @@ public class SocialActivityConstants {
 
 	public static final int TYPE_ADD_VOTE = 10004;
 
+	public static final int TYPE_DELETE = 10000;
+
+	public static final int TYPE_MOVE_ATTACHMENT_TO_TRASH = 10009;
+
 	public static final int TYPE_MOVE_TO_TRASH = 10007;
+
+	public static final int TYPE_RESTORE_ATTACHMENT_FROM_TRASH = 10010;
 
 	public static final int TYPE_RESTORE_FROM_TRASH = 10008;
 
@@ -34,6 +40,10 @@ public class SocialActivityConstants {
 
 	public static final int TYPE_UNSUBSCRIBE = 10003;
 
+	/**
+	 * @see com.liferay.portlet.social.service.impl.SocialActivityLocalServiceImpl#isLogActivity(
+	 *      SocialActivity)
+	 */
 	public static final int TYPE_VIEW = 10001;
 
 }

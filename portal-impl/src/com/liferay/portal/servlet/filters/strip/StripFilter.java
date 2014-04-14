@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,27 +16,28 @@ package com.liferay.portal.servlet.filters.strip;
 
 import com.liferay.portal.kernel.cache.key.CacheKeyGenerator;
 import com.liferay.portal.kernel.cache.key.CacheKeyGeneratorUtil;
-import com.liferay.portal.kernel.concurrent.ConcurrentLRUCache;
+import com.liferay.portal.kernel.concurrent.ConcurrentLFUCache;
 import com.liferay.portal.kernel.io.OutputStreamWriter;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.scripting.ScriptingException;
+import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
-import com.liferay.portal.kernel.servlet.StringServletResponse;
 import com.liferay.portal.kernel.util.CharPool;
-import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.KMPSearch;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.minifier.MinifierUtil;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
 import com.liferay.portal.servlet.filters.dynamiccss.DynamicCSSUtil;
-import com.liferay.portal.util.MinifierUtil;
 import com.liferay.portal.util.PropsValues;
 
 import java.io.Writer;
@@ -45,9 +46,12 @@ import java.nio.CharBuffer;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -63,7 +67,7 @@ public class StripFilter extends BasePortalFilter {
 
 	public StripFilter() {
 		if (PropsValues.MINIFIER_INLINE_CONTENT_CACHE_SIZE > 0) {
-			_minifierCache = new ConcurrentLRUCache<String, String>(
+			_minifierCache = new ConcurrentLFUCache<String, String>(
 				PropsValues.MINIFIER_INLINE_CONTENT_CACHE_SIZE);
 		}
 	}
@@ -75,6 +79,8 @@ public class StripFilter extends BasePortalFilter {
 		for (String ignorePath : PropsValues.STRIP_IGNORE_PATHS) {
 			_ignorePaths.add(ignorePath);
 		}
+
+		_servletContext = filterConfig.getServletContext();
 	}
 
 	@Override
@@ -110,6 +116,29 @@ public class StripFilter extends BasePortalFilter {
 		charBuffer.position(position);
 
 		return content;
+	}
+
+	protected boolean hasLanguageAttribute(
+		CharBuffer charBuffer, int startPos, int length) {
+
+		if (!PropsValues.STRIP_JS_LANGUAGE_ATTRIBUTE_SUPPORT_ENABLED) {
+			return false;
+		}
+
+		if (KMPSearch.search(
+				charBuffer, startPos, length, _MARKER_LANGUAGE,
+				_MARKER_LANGUAGE_NEXTS) == -1) {
+
+			return false;
+		}
+
+		Matcher matcher = _javaScriptPattern.matcher(charBuffer);
+
+		if (matcher.find()) {
+			return true;
+		}
+
+		return false;
 	}
 
 	protected boolean hasMarker(CharBuffer charBuffer, char[] marker) {
@@ -185,6 +214,26 @@ public class StripFilter extends BasePortalFilter {
 		}
 	}
 
+	protected boolean isStripContentType(String contentType) {
+		for (String stripContentType : PropsValues.STRIP_MIME_TYPES) {
+			if (stripContentType.endsWith(StringPool.STAR)) {
+				stripContentType = stripContentType.substring(
+					0, stripContentType.length() - 1);
+
+				if (contentType.startsWith(stripContentType)) {
+					return true;
+				}
+			}
+			else {
+				if (contentType.equals(stripContentType)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	protected void outputCloseTag(
 			CharBuffer charBuffer, Writer writer, String closeTag)
 		throws Exception {
@@ -246,7 +295,8 @@ public class StripFilter extends BasePortalFilter {
 				if (PropsValues.STRIP_CSS_SASS_ENABLED) {
 					try {
 						content = DynamicCSSUtil.parseSass(
-							request, key, content);
+							_servletContext, request, request.getRequestURI(),
+							content);
 					}
 					catch (ScriptingException se) {
 						_log.error("Unable to parse SASS on CSS " + key, se);
@@ -283,7 +333,7 @@ public class StripFilter extends BasePortalFilter {
 			}
 		}
 
-		if (!Validator.isNull(minifiedContent)) {
+		if (Validator.isNotNull(minifiedContent)) {
 			writer.write(minifiedContent);
 		}
 
@@ -304,13 +354,17 @@ public class StripFilter extends BasePortalFilter {
 
 		request.setAttribute(SKIP_FILTER, Boolean.TRUE);
 
-		StringServletResponse stringResponse = new StringServletResponse(
-			response);
+		BufferCacheServletResponse bufferCacheServletResponse =
+			new BufferCacheServletResponse(response);
 
-		processFilter(StripFilter.class, request, stringResponse, filterChain);
+		processFilter(
+			StripFilter.class, request, bufferCacheServletResponse,
+			filterChain);
 
 		String contentType = GetterUtil.getString(
-			stringResponse.getContentType()).toLowerCase();
+			bufferCacheServletResponse.getContentType());
+
+		contentType = StringUtil.toLowerCase(contentType);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Stripping content of type " + contentType);
@@ -318,11 +372,12 @@ public class StripFilter extends BasePortalFilter {
 
 		response.setContentType(contentType);
 
-		if (contentType.startsWith(ContentTypes.TEXT_HTML) &&
-			(stringResponse.getStatus() == HttpServletResponse.SC_OK)) {
+		if (isStripContentType(contentType) &&
+			(bufferCacheServletResponse.getStatus() ==
+				HttpServletResponse.SC_OK)) {
 
-			CharBuffer oldCharBuffer = CharBuffer.wrap(
-				stringResponse.getString());
+			CharBuffer oldCharBuffer =
+				bufferCacheServletResponse.getCharBuffer();
 
 			boolean ensureContentLength = ParamUtil.getBoolean(
 				request, _ENSURE_CONTENT_LENGTH);
@@ -339,12 +394,12 @@ public class StripFilter extends BasePortalFilter {
 
 				unsyncByteArrayOutputStream.writeTo(response.getOutputStream());
 			}
-			else {
+			else if (!response.isCommitted()) {
 				strip(request, response, oldCharBuffer, response.getWriter());
 			}
 		}
 		else {
-			ServletResponseUtil.write(response, stringResponse);
+			ServletResponseUtil.write(response, bufferCacheServletResponse);
 		}
 	}
 
@@ -375,7 +430,8 @@ public class StripFilter extends BasePortalFilter {
 	}
 
 	protected void processJavaScript(
-			CharBuffer charBuffer, Writer writer, char[] openTag)
+			String resourceName, CharBuffer charBuffer, Writer writer,
+			char[] openTag)
 		throws Exception {
 
 		int endPos = openTag.length + 1;
@@ -402,10 +458,17 @@ public class StripFilter extends BasePortalFilter {
 							_MARKER_TYPE_JAVASCRIPT,
 							_MARKER_TYPE_JAVASCRIPT_NEXTS) == -1)) {
 
-						// Open script tag has attribute other than
-						// type="text/javascript". Skip stripping.
+						// We have just determined that this is an open script
+						// tag that does not have the attribute
+						// type="text/javascript". Now check to see if it has
+						// the attribute language="JavaScript". If it does not,
+						// then we skip stripping.
 
-						return;
+						if (!hasLanguageAttribute(
+								charBuffer, startPos, length)) {
+
+							return;
+						}
 					}
 
 					// Open script tag has no attribute or has attribute
@@ -470,7 +533,8 @@ public class StripFilter extends BasePortalFilter {
 			minifiedContent = _minifierCache.get(key);
 
 			if (minifiedContent == null) {
-				minifiedContent = MinifierUtil.minifyJavaScript(content);
+				minifiedContent = MinifierUtil.minifyJavaScript(
+					resourceName, content);
 
 				boolean skipCache = false;
 
@@ -491,10 +555,8 @@ public class StripFilter extends BasePortalFilter {
 			}
 		}
 
-		if (!Validator.isNull(minifiedContent)) {
-			writer.write(_CDATA_OPEN);
+		if (Validator.isNotNull(minifiedContent)) {
 			writer.write(minifiedContent);
-			writer.write(_CDATA_CLOSE);
 		}
 
 		outputCloseTag(charBuffer, writer, _MARKER_SCRIPT_CLOSE);
@@ -610,7 +672,11 @@ public class StripFilter extends BasePortalFilter {
 					continue;
 				}
 				else if (hasMarker(charBuffer, _MARKER_SCRIPT_OPEN)) {
-					processJavaScript(charBuffer, writer, _MARKER_SCRIPT_OPEN);
+					StringBuffer requestURL = request.getRequestURL();
+
+					processJavaScript(
+						requestURL.toString(), charBuffer, writer,
+						_MARKER_SCRIPT_OPEN);
 
 					continue;
 				}
@@ -630,10 +696,6 @@ public class StripFilter extends BasePortalFilter {
 		writer.flush();
 	}
 
-	private static final String _CDATA_CLOSE = "/*]]>*/";
-
-	private static final String _CDATA_OPEN = "/*<![CDATA[*/";
-
 	private static final String _ENSURE_CONTENT_LENGTH = "ensureContentLength";
 
 	private static final String _MARKER_INPUT_CLOSE = "/>";
@@ -642,6 +704,11 @@ public class StripFilter extends BasePortalFilter {
 		KMPSearch.generateNexts(_MARKER_INPUT_CLOSE);
 
 	private static final char[] _MARKER_INPUT_OPEN = "input".toCharArray();
+
+	private static final String _MARKER_LANGUAGE = "language=";
+
+	private static final int[] _MARKER_LANGUAGE_NEXTS = KMPSearch.generateNexts(
+		_MARKER_LANGUAGE);
 
 	private static final String _MARKER_PRE_CLOSE = "/pre>";
 
@@ -683,7 +750,11 @@ public class StripFilter extends BasePortalFilter {
 
 	private static Log _log = LogFactoryUtil.getLog(StripFilter.class);
 
+	private static Pattern _javaScriptPattern = Pattern.compile(
+		"[Jj][aA][vV][aA][sS][cC][rR][iI][pP][tT]");
+
 	private Set<String> _ignorePaths = new HashSet<String>();
-	private ConcurrentLRUCache<String, String> _minifierCache;
+	private ConcurrentLFUCache<String, String> _minifierCache;
+	private ServletContext _servletContext;
 
 }

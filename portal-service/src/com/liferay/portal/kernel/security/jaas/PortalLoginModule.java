@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -42,14 +42,17 @@ public class PortalLoginModule implements LoginModule {
 		}
 	}
 
+	@Override
 	public boolean abort() throws LoginException {
 		return _loginModule.abort();
 	}
 
+	@Override
 	public boolean commit() throws LoginException {
 		return _loginModule.commit();
 	}
 
+	@Override
 	public void initialize(
 		Subject subject, CallbackHandler callbackHandler,
 		Map<String, ?> sharedState, Map<String, ?> options) {
@@ -57,10 +60,12 @@ public class PortalLoginModule implements LoginModule {
 		_loginModule.initialize(subject, callbackHandler, sharedState, options);
 	}
 
+	@Override
 	public boolean login() throws LoginException {
 		return _loginModule.login();
 	}
 
+	@Override
 	public boolean logout() throws LoginException {
 		return _loginModule.logout();
 	}

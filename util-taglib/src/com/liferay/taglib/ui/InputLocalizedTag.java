@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,12 @@
 
 package com.liferay.taglib.ui;
 
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelHintsConstants;
 import com.liferay.taglib.util.IncludeTag;
+
+import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -23,6 +27,22 @@ import javax.servlet.http.HttpServletRequest;
  * @author Julio Camarero
  */
 public class InputLocalizedTag extends IncludeTag {
+
+	public Locale[] getAvailableLocales() {
+		return _availableLocales;
+	}
+
+	public void setAutoFocus(boolean autoFocus) {
+		_autoFocus = autoFocus;
+	}
+
+	public void setAutoSize(boolean autoSize) {
+		_autoSize = autoSize;
+	}
+
+	public void setAvailableLocales(Locale[] availableLocales) {
+		_availableLocales = availableLocales;
+	}
 
 	public void setCssClass(String cssClass) {
 		_cssClass = cssClass;
@@ -34,6 +54,18 @@ public class InputLocalizedTag extends IncludeTag {
 
 	public void setDisabled(boolean disabled) {
 		_disabled = disabled;
+	}
+
+	public void setDisplayWidth(String displayWidth) {
+		_displayWidth = displayWidth;
+	}
+
+	public void setFieldPrefix(String fieldPrefix) {
+		_fieldPrefix = fieldPrefix;
+	}
+
+	public void setFieldPrefixSeparator(String fieldPrefixSeparator) {
+		_fieldPrefixSeparator = fieldPrefixSeparator;
 	}
 
 	public void setFormName(String formName) {
@@ -70,8 +102,13 @@ public class InputLocalizedTag extends IncludeTag {
 
 	@Override
 	protected void cleanUp() {
+		_autoFocus = false;
+		_autoSize = false;
 		_cssClass = null;
 		_disabled = false;
+		_displayWidth = ModelHintsConstants.TEXT_DISPLAY_WIDTH;
+		_fieldPrefix = null;
+		_fieldPrefixSeparator = null;
 		_formName = null;
 		_id = null;
 		_ignoreRequestValue = false;
@@ -89,6 +126,12 @@ public class InputLocalizedTag extends IncludeTag {
 
 	@Override
 	protected void setAttributes(HttpServletRequest request) {
+		Locale[] availableLocales = _availableLocales;
+
+		if (availableLocales == null) {
+			availableLocales = LanguageUtil.getAvailableLocales();
+		}
+
 		String formName = _formName;
 
 		if (Validator.isNull(formName)) {
@@ -101,14 +144,27 @@ public class InputLocalizedTag extends IncludeTag {
 			id = _name;
 		}
 
+		request.setAttribute(
+			"liferay-ui:input-localized:autoFocus", String.valueOf(_autoFocus));
+		request.setAttribute(
+			"liferay-ui:input-localized:autoSize", String.valueOf(_autoSize));
+		request.setAttribute(
+			"liferay-ui:input-localized:availableLocales", availableLocales);
 		request.setAttribute("liferay-ui:input-localized:cssClass", _cssClass);
 		request.setAttribute(
 			"liferay-ui:input-localized:defaultLanguageId", _defaultLanguageId);
+		request.setAttribute(
+			"liferay-ui:input-localized:displayWidth", _displayWidth);
 		request.setAttribute(
 			"liferay-ui:input-localized:disabled", String.valueOf(_disabled));
 		request.setAttribute(
 			"liferay-ui:input-localized:dynamicAttributes",
 			getDynamicAttributes());
+		request.setAttribute(
+			"liferay-ui:input-localized:fieldPrefix", _fieldPrefix);
+		request.setAttribute(
+			"liferay-ui:input-localized:fieldPrefixSeparator",
+			_fieldPrefixSeparator);
 		request.setAttribute("liferay-ui:input-localized:formName", formName);
 		request.setAttribute("liferay-ui:input-localized:id", id);
 		request.setAttribute(
@@ -126,9 +182,15 @@ public class InputLocalizedTag extends IncludeTag {
 	private static final String _PAGE =
 		"/html/taglib/ui/input_localized/page.jsp";
 
+	private boolean _autoFocus;
+	private boolean _autoSize;
+	private Locale[] _availableLocales;
 	private String _cssClass;
 	private String _defaultLanguageId;
 	private boolean _disabled;
+	private String _displayWidth = ModelHintsConstants.TEXT_DISPLAY_WIDTH;
+	private String _fieldPrefix;
+	private String _fieldPrefixSeparator;
 	private String _formName;
 	private String _id;
 	private boolean _ignoreRequestValue;

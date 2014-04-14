@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,14 +19,9 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.IPDetector;
-import com.liferay.portal.kernel.util.OSDetector;
 import com.liferay.portal.kernel.util.SocketUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PropsValues;
-
-import java.io.IOException;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -38,6 +33,8 @@ import java.util.List;
 import org.jgroups.JChannel;
 import org.jgroups.Receiver;
 import org.jgroups.View;
+import org.jgroups.stack.Protocol;
+import org.jgroups.stack.ProtocolStack;
 
 /**
  * @author Shuyang Zhou
@@ -50,28 +47,14 @@ public abstract class ClusterBase {
 		}
 
 		if (!_initialized) {
-			if (OSDetector.isUnix() && IPDetector.isSupportsV6() &&
-				!IPDetector.isPrefersV4() && _log.isWarnEnabled()) {
-
-				StringBundler sb = new StringBundler(4);
-
-				sb.append(
-					"You are on an Unix server with IPv6 enabled. JGroups ");
-				sb.append("may not work with IPv6. If you see a multicast ");
-				sb.append("error, try adding java.net.preferIPv4Stack=true ");
-				sb.append("as a JVM startup parameter.");
-
-				_log.warn(sb.toString());
-			}
-
 			initSystemProperties();
 
 			try {
 				initBindAddress();
 			}
-			catch (IOException ioe) {
+			catch (Exception e) {
 				if (_log.isWarnEnabled()) {
-					_log.warn("Failed to initialize outgoing IP address", ioe);
+					_log.warn("Failed to initialize outgoing IP address", e);
 				}
 			}
 
@@ -136,7 +119,15 @@ public abstract class ClusterBase {
 		return addresses;
 	}
 
-	protected void initBindAddress() throws IOException {
+	protected InetAddress getBindInetAddress(JChannel jChannel) {
+		ProtocolStack protocolStack = jChannel.getProtocolStack();
+
+		Protocol protocol = protocolStack.getBottomProtocol();
+
+		return (InetAddress)protocol.getValue("bind_addr");
+	}
+
+	protected void initBindAddress() throws Exception {
 		String autodetectAddress = PropsValues.CLUSTER_LINK_AUTODETECT_ADDRESS;
 
 		if (Validator.isNull(autodetectAddress)) {
@@ -162,18 +153,18 @@ public abstract class ClusterBase {
 
 		SocketUtil.BindInfo bindInfo = SocketUtil.getBindInfo(host, port);
 
-		bindInetAddress = bindInfo.getInetAddress();
+		InetAddress inetAddress = bindInfo.getInetAddress();
+
 		NetworkInterface networkInterface = bindInfo.getNetworkInterface();
 
-		System.setProperty(
-			"jgroups.bind_addr", bindInetAddress.getHostAddress());
+		System.setProperty("jgroups.bind_addr", inetAddress.getHostAddress());
 		System.setProperty(
 			"jgroups.bind_interface", networkInterface.getName());
 
 		if (_log.isInfoEnabled()) {
 			_log.info(
 				"Setting JGroups outgoing IP address to " +
-					bindInetAddress.getHostAddress() + " and interface to " +
+					inetAddress.getHostAddress() + " and interface to " +
 						networkInterface.getName());
 		}
 	}
@@ -202,8 +193,6 @@ public abstract class ClusterBase {
 			}
 		}
 	}
-
-	protected InetAddress bindInetAddress;
 
 	private static Log _log = LogFactoryUtil.getLog(ClusterBase.class);
 

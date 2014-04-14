@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,13 +22,13 @@ import com.liferay.portal.parsers.creole.visitor.ASTVisitor;
 public class HeadingNode
 	extends BaseParentableNode implements Comparable<HeadingNode> {
 
-	public HeadingNode(int level) {
-		_level = level;
-	}
-
 	public HeadingNode(CollectionNode collectionNode, int level) {
 		super(collectionNode);
 
+		_level = level;
+	}
+
+	public HeadingNode(int level) {
 		_level = level;
 	}
 
@@ -37,6 +37,7 @@ public class HeadingNode
 		astVisitor.visit(this);
 	}
 
+	@Override
 	public int compareTo(HeadingNode headingNode) {
 		if (_level < headingNode.getLevel()) {
 			return -1;
