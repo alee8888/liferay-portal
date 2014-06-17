@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,37 +16,29 @@
 
 <%@ include file="/html/portlet/init.jsp" %>
 
-<%@ page import="com.liferay.portlet.asset.NoSuchVocabularyException" %><%@
-page import="com.liferay.portlet.asset.model.AssetVocabulary" %><%@
-page import="com.liferay.portlet.asset.service.AssetVocabularyLocalServiceUtil" %><%@
-page import="com.liferay.portlet.asset.service.AssetVocabularyServiceUtil" %>
+<%@ page import="com.liferay.portlet.asset.NoSuchVocabularyException" %>
 
 <%
-PortletPreferences preferences = renderRequest.getPreferences();
+List<AssetVocabulary> assetVocabularies = AssetVocabularyServiceUtil.getGroupVocabularies(PortalUtil.getCurrentAndAncestorSiteGroupIds(scopeGroupId));
 
-String portletResource = ParamUtil.getString(request, "portletResource");
+long[] availableAssetVocabularyIds = new long[assetVocabularies.size()];
 
-if (Validator.isNotNull(portletResource)) {
-	preferences = PortletPreferencesFactoryUtil.getPortletSetup(request, portletResource);
+for (int i = 0; i < assetVocabularies.size(); i++) {
+	AssetVocabulary assetVocabulary = assetVocabularies.get(i);
+
+	availableAssetVocabularyIds[i] = assetVocabulary.getVocabularyId();
 }
 
-List<AssetVocabulary> vocabularies = AssetVocabularyServiceUtil.getGroupsVocabularies(new long[] {scopeGroupId, themeDisplay.getCompanyGroupId()});
-
-long[] availableAssetVocabularyIds = new long[vocabularies.size()];
-
-for (int i = 0; i < vocabularies.size(); i++) {
-	AssetVocabulary vocabulary = vocabularies.get(i);
-
-	availableAssetVocabularyIds[i] = vocabulary.getVocabularyId();
-}
-
-boolean allAssetVocabularies = GetterUtil.getBoolean(preferences.getValue("allAssetVocabularies", Boolean.TRUE.toString()));
+boolean allAssetVocabularies = GetterUtil.getBoolean(portletPreferences.getValue("allAssetVocabularies", Boolean.TRUE.toString()));
 
 long[] assetVocabularyIds = availableAssetVocabularyIds;
 
-if (!allAssetVocabularies && preferences.getValues("assetVocabularyIds", null) != null) {
-	assetVocabularyIds = StringUtil.split(preferences.getValue("assetVocabularyIds", null), 0L);
+if (!allAssetVocabularies && (portletPreferences.getValues("assetVocabularyIds", null) != null)) {
+	assetVocabularyIds = StringUtil.split(portletPreferences.getValue("assetVocabularyIds", null), 0L);
 }
+
+String displayStyle = portletPreferences.getValue("displayStyle", StringPool.BLANK);
+long displayStyleGroupId = GetterUtil.getLong(portletPreferences.getValue("displayStyleGroupId", null), themeDisplay.getScopeGroupId());
 %>
 
 <%@ include file="/html/portlet/asset_categories_navigation/init-ext.jsp" %>

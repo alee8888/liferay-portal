@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,11 @@
 
 package com.liferay.portal.model.impl;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSON;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -27,7 +30,10 @@ import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutModel;
 import com.liferay.portal.model.LayoutSoap;
+import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.UserLocalServiceUtil;
+import com.liferay.portal.util.PortalUtil;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
@@ -42,6 +48,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * The base model implementation for the Layout service. Represents a row in the &quot;Layout&quot; database table, with each column mapped to a property of this class.
@@ -66,10 +74,13 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	 */
 	public static final String TABLE_NAME = "Layout";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "uuid_", Types.VARCHAR },
 			{ "plid", Types.BIGINT },
 			{ "groupId", Types.BIGINT },
 			{ "companyId", Types.BIGINT },
+			{ "userId", Types.BIGINT },
+			{ "userName", Types.VARCHAR },
 			{ "createDate", Types.TIMESTAMP },
 			{ "modifiedDate", Types.TIMESTAMP },
 			{ "privateLayout", Types.BOOLEAN },
@@ -84,19 +95,18 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 			{ "typeSettings", Types.CLOB },
 			{ "hidden_", Types.BOOLEAN },
 			{ "friendlyURL", Types.VARCHAR },
-			{ "iconImage", Types.BOOLEAN },
 			{ "iconImageId", Types.BIGINT },
 			{ "themeId", Types.VARCHAR },
 			{ "colorSchemeId", Types.VARCHAR },
 			{ "wapThemeId", Types.VARCHAR },
 			{ "wapColorSchemeId", Types.VARCHAR },
-			{ "css", Types.VARCHAR },
+			{ "css", Types.CLOB },
 			{ "priority", Types.INTEGER },
 			{ "layoutPrototypeUuid", Types.VARCHAR },
 			{ "layoutPrototypeLinkEnabled", Types.BOOLEAN },
 			{ "sourcePrototypeLayoutUuid", Types.VARCHAR }
 		};
-	public static final String TABLE_SQL_CREATE = "create table Layout (uuid_ VARCHAR(75) null,plid LONG not null primary key,groupId LONG,companyId LONG,createDate DATE null,modifiedDate DATE null,privateLayout BOOLEAN,layoutId LONG,parentLayoutId LONG,name STRING null,title STRING null,description STRING null,keywords STRING null,robots STRING null,type_ VARCHAR(75) null,typeSettings TEXT null,hidden_ BOOLEAN,friendlyURL VARCHAR(255) null,iconImage BOOLEAN,iconImageId LONG,themeId VARCHAR(75) null,colorSchemeId VARCHAR(75) null,wapThemeId VARCHAR(75) null,wapColorSchemeId VARCHAR(75) null,css STRING null,priority INTEGER,layoutPrototypeUuid VARCHAR(75) null,layoutPrototypeLinkEnabled BOOLEAN,sourcePrototypeLayoutUuid VARCHAR(75) null)";
+	public static final String TABLE_SQL_CREATE = "create table Layout (mvccVersion LONG default 0,uuid_ VARCHAR(75) null,plid LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,privateLayout BOOLEAN,layoutId LONG,parentLayoutId LONG,name STRING null,title STRING null,description STRING null,keywords STRING null,robots STRING null,type_ VARCHAR(75) null,typeSettings TEXT null,hidden_ BOOLEAN,friendlyURL VARCHAR(255) null,iconImageId LONG,themeId VARCHAR(75) null,colorSchemeId VARCHAR(75) null,wapThemeId VARCHAR(75) null,wapColorSchemeId VARCHAR(75) null,css TEXT null,priority INTEGER,layoutPrototypeUuid VARCHAR(75) null,layoutPrototypeLinkEnabled BOOLEAN,sourcePrototypeLayoutUuid VARCHAR(75) null)";
 	public static final String TABLE_SQL_DROP = "drop table Layout";
 	public static final String ORDER_BY_JPQL = " ORDER BY layout.parentLayoutId ASC, layout.priority ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY Layout.parentLayoutId ASC, Layout.priority ASC";
@@ -123,6 +133,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	public static long SOURCEPROTOTYPELAYOUTUUID_COLUMN_BITMASK = 256L;
 	public static long TYPE_COLUMN_BITMASK = 512L;
 	public static long UUID_COLUMN_BITMASK = 1024L;
+	public static long PRIORITY_COLUMN_BITMASK = 2048L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -131,12 +142,19 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	 * @return the normal model instance
 	 */
 	public static Layout toModel(LayoutSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		Layout model = new LayoutImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setUuid(soapModel.getUuid());
 		model.setPlid(soapModel.getPlid());
 		model.setGroupId(soapModel.getGroupId());
 		model.setCompanyId(soapModel.getCompanyId());
+		model.setUserId(soapModel.getUserId());
+		model.setUserName(soapModel.getUserName());
 		model.setCreateDate(soapModel.getCreateDate());
 		model.setModifiedDate(soapModel.getModifiedDate());
 		model.setPrivateLayout(soapModel.getPrivateLayout());
@@ -151,7 +169,6 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		model.setTypeSettings(soapModel.getTypeSettings());
 		model.setHidden(soapModel.getHidden());
 		model.setFriendlyURL(soapModel.getFriendlyURL());
-		model.setIconImage(soapModel.getIconImage());
 		model.setIconImageId(soapModel.getIconImageId());
 		model.setThemeId(soapModel.getThemeId());
 		model.setColorSchemeId(soapModel.getColorSchemeId());
@@ -173,6 +190,10 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	 * @return the normal model instances
 	 */
 	public static List<Layout> toModels(LayoutSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<Layout> models = new ArrayList<Layout>(soapModels.length);
 
 		for (LayoutSoap soapModel : soapModels) {
@@ -188,26 +209,32 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	public LayoutModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _plid;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setPlid(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_plid);
+		return _plid;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return Layout.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return Layout.class.getName();
 	}
@@ -216,10 +243,13 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("plid", getPlid());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
+		attributes.put("userId", getUserId());
+		attributes.put("userName", getUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("privateLayout", getPrivateLayout());
@@ -234,7 +264,6 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		attributes.put("typeSettings", getTypeSettings());
 		attributes.put("hidden", getHidden());
 		attributes.put("friendlyURL", getFriendlyURL());
-		attributes.put("iconImage", getIconImage());
 		attributes.put("iconImageId", getIconImageId());
 		attributes.put("themeId", getThemeId());
 		attributes.put("colorSchemeId", getColorSchemeId());
@@ -248,11 +277,20 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		attributes.put("sourcePrototypeLayoutUuid",
 			getSourcePrototypeLayoutUuid());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -275,6 +313,18 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 
 		if (companyId != null) {
 			setCompanyId(companyId);
+		}
+
+		Long userId = (Long)attributes.get("userId");
+
+		if (userId != null) {
+			setUserId(userId);
+		}
+
+		String userName = (String)attributes.get("userName");
+
+		if (userName != null) {
+			setUserName(userName);
 		}
 
 		Date createDate = (Date)attributes.get("createDate");
@@ -361,12 +411,6 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 			setFriendlyURL(friendlyURL);
 		}
 
-		Boolean iconImage = (Boolean)attributes.get("iconImage");
-
-		if (iconImage != null) {
-			setIconImage(iconImage);
-		}
-
 		Long iconImageId = (Long)attributes.get("iconImageId");
 
 		if (iconImageId != null) {
@@ -432,6 +476,18 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -441,6 +497,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setUuid(String uuid) {
 		if (_originalUuid == null) {
 			_originalUuid = _uuid;
@@ -454,19 +511,23 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public long getPlid() {
 		return _plid;
 	}
 
+	@Override
 	public void setPlid(long plid) {
 		_plid = plid;
 	}
 
 	@JSON
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
 
+	@Override
 	public void setGroupId(long groupId) {
 		_columnBitmask |= GROUPID_COLUMN_BITMASK;
 
@@ -484,10 +545,12 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_columnBitmask |= COMPANYID_COLUMN_BITMASK;
 
@@ -505,32 +568,82 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
+	public long getUserId() {
+		return _userId;
+	}
+
+	@Override
+	public void setUserId(long userId) {
+		_userId = userId;
+	}
+
+	@Override
+	public String getUserUuid() {
+		try {
+			User user = UserLocalServiceUtil.getUserById(getUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
+		}
+	}
+
+	@Override
+	public void setUserUuid(String userUuid) {
+	}
+
+	@JSON
+	@Override
+	public String getUserName() {
+		if (_userName == null) {
+			return StringPool.BLANK;
+		}
+		else {
+			return _userName;
+		}
+	}
+
+	@Override
+	public void setUserName(String userName) {
+		_userName = userName;
+	}
+
+	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
 
+	@Override
 	public void setCreateDate(Date createDate) {
 		_createDate = createDate;
 	}
 
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
 
+	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		_modifiedDate = modifiedDate;
 	}
 
 	@JSON
+	@Override
 	public boolean getPrivateLayout() {
 		return _privateLayout;
 	}
 
+	@Override
 	public boolean isPrivateLayout() {
 		return _privateLayout;
 	}
 
+	@Override
 	public void setPrivateLayout(boolean privateLayout) {
 		_columnBitmask |= PRIVATELAYOUT_COLUMN_BITMASK;
 
@@ -548,10 +661,12 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public long getLayoutId() {
 		return _layoutId;
 	}
 
+	@Override
 	public void setLayoutId(long layoutId) {
 		_columnBitmask |= LAYOUTID_COLUMN_BITMASK;
 
@@ -569,10 +684,12 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public long getParentLayoutId() {
 		return _parentLayoutId;
 	}
 
+	@Override
 	public void setParentLayoutId(long parentLayoutId) {
 		_columnBitmask = -1L;
 
@@ -590,6 +707,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -599,50 +717,60 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public String getName(Locale locale) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 
 		return getName(languageId);
 	}
 
+	@Override
 	public String getName(Locale locale, boolean useDefault) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 
 		return getName(languageId, useDefault);
 	}
 
+	@Override
 	public String getName(String languageId) {
 		return LocalizationUtil.getLocalization(getName(), languageId);
 	}
 
+	@Override
 	public String getName(String languageId, boolean useDefault) {
 		return LocalizationUtil.getLocalization(getName(), languageId,
 			useDefault);
 	}
 
+	@Override
 	public String getNameCurrentLanguageId() {
 		return _nameCurrentLanguageId;
 	}
 
 	@JSON
+	@Override
 	public String getNameCurrentValue() {
 		Locale locale = getLocale(_nameCurrentLanguageId);
 
 		return getName(locale);
 	}
 
+	@Override
 	public Map<Locale, String> getNameMap() {
 		return LocalizationUtil.getLocalizationMap(getName());
 	}
 
+	@Override
 	public void setName(String name) {
 		_name = name;
 	}
 
+	@Override
 	public void setName(String name, Locale locale) {
-		setName(name, locale, LocaleUtil.getDefault());
+		setName(name, locale, LocaleUtil.getSiteDefault());
 	}
 
+	@Override
 	public void setName(String name, Locale locale, Locale defaultLocale) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 		String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
@@ -657,14 +785,17 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setNameCurrentLanguageId(String languageId) {
 		_nameCurrentLanguageId = languageId;
 	}
 
+	@Override
 	public void setNameMap(Map<Locale, String> nameMap) {
-		setNameMap(nameMap, LocaleUtil.getDefault());
+		setNameMap(nameMap, LocaleUtil.getSiteDefault());
 	}
 
+	@Override
 	public void setNameMap(Map<Locale, String> nameMap, Locale defaultLocale) {
 		if (nameMap == null) {
 			return;
@@ -675,6 +806,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public String getTitle() {
 		if (_title == null) {
 			return StringPool.BLANK;
@@ -684,50 +816,60 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public String getTitle(Locale locale) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 
 		return getTitle(languageId);
 	}
 
+	@Override
 	public String getTitle(Locale locale, boolean useDefault) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 
 		return getTitle(languageId, useDefault);
 	}
 
+	@Override
 	public String getTitle(String languageId) {
 		return LocalizationUtil.getLocalization(getTitle(), languageId);
 	}
 
+	@Override
 	public String getTitle(String languageId, boolean useDefault) {
 		return LocalizationUtil.getLocalization(getTitle(), languageId,
 			useDefault);
 	}
 
+	@Override
 	public String getTitleCurrentLanguageId() {
 		return _titleCurrentLanguageId;
 	}
 
 	@JSON
+	@Override
 	public String getTitleCurrentValue() {
 		Locale locale = getLocale(_titleCurrentLanguageId);
 
 		return getTitle(locale);
 	}
 
+	@Override
 	public Map<Locale, String> getTitleMap() {
 		return LocalizationUtil.getLocalizationMap(getTitle());
 	}
 
+	@Override
 	public void setTitle(String title) {
 		_title = title;
 	}
 
+	@Override
 	public void setTitle(String title, Locale locale) {
-		setTitle(title, locale, LocaleUtil.getDefault());
+		setTitle(title, locale, LocaleUtil.getSiteDefault());
 	}
 
+	@Override
 	public void setTitle(String title, Locale locale, Locale defaultLocale) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 		String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
@@ -742,14 +884,17 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setTitleCurrentLanguageId(String languageId) {
 		_titleCurrentLanguageId = languageId;
 	}
 
+	@Override
 	public void setTitleMap(Map<Locale, String> titleMap) {
-		setTitleMap(titleMap, LocaleUtil.getDefault());
+		setTitleMap(titleMap, LocaleUtil.getSiteDefault());
 	}
 
+	@Override
 	public void setTitleMap(Map<Locale, String> titleMap, Locale defaultLocale) {
 		if (titleMap == null) {
 			return;
@@ -760,6 +905,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public String getDescription() {
 		if (_description == null) {
 			return StringPool.BLANK;
@@ -769,50 +915,60 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public String getDescription(Locale locale) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 
 		return getDescription(languageId);
 	}
 
+	@Override
 	public String getDescription(Locale locale, boolean useDefault) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 
 		return getDescription(languageId, useDefault);
 	}
 
+	@Override
 	public String getDescription(String languageId) {
 		return LocalizationUtil.getLocalization(getDescription(), languageId);
 	}
 
+	@Override
 	public String getDescription(String languageId, boolean useDefault) {
 		return LocalizationUtil.getLocalization(getDescription(), languageId,
 			useDefault);
 	}
 
+	@Override
 	public String getDescriptionCurrentLanguageId() {
 		return _descriptionCurrentLanguageId;
 	}
 
 	@JSON
+	@Override
 	public String getDescriptionCurrentValue() {
 		Locale locale = getLocale(_descriptionCurrentLanguageId);
 
 		return getDescription(locale);
 	}
 
+	@Override
 	public Map<Locale, String> getDescriptionMap() {
 		return LocalizationUtil.getLocalizationMap(getDescription());
 	}
 
+	@Override
 	public void setDescription(String description) {
 		_description = description;
 	}
 
+	@Override
 	public void setDescription(String description, Locale locale) {
-		setDescription(description, locale, LocaleUtil.getDefault());
+		setDescription(description, locale, LocaleUtil.getSiteDefault());
 	}
 
+	@Override
 	public void setDescription(String description, Locale locale,
 		Locale defaultLocale) {
 		String languageId = LocaleUtil.toLanguageId(locale);
@@ -829,14 +985,17 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setDescriptionCurrentLanguageId(String languageId) {
 		_descriptionCurrentLanguageId = languageId;
 	}
 
+	@Override
 	public void setDescriptionMap(Map<Locale, String> descriptionMap) {
-		setDescriptionMap(descriptionMap, LocaleUtil.getDefault());
+		setDescriptionMap(descriptionMap, LocaleUtil.getSiteDefault());
 	}
 
+	@Override
 	public void setDescriptionMap(Map<Locale, String> descriptionMap,
 		Locale defaultLocale) {
 		if (descriptionMap == null) {
@@ -849,6 +1008,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public String getKeywords() {
 		if (_keywords == null) {
 			return StringPool.BLANK;
@@ -858,50 +1018,60 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public String getKeywords(Locale locale) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 
 		return getKeywords(languageId);
 	}
 
+	@Override
 	public String getKeywords(Locale locale, boolean useDefault) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 
 		return getKeywords(languageId, useDefault);
 	}
 
+	@Override
 	public String getKeywords(String languageId) {
 		return LocalizationUtil.getLocalization(getKeywords(), languageId);
 	}
 
+	@Override
 	public String getKeywords(String languageId, boolean useDefault) {
 		return LocalizationUtil.getLocalization(getKeywords(), languageId,
 			useDefault);
 	}
 
+	@Override
 	public String getKeywordsCurrentLanguageId() {
 		return _keywordsCurrentLanguageId;
 	}
 
 	@JSON
+	@Override
 	public String getKeywordsCurrentValue() {
 		Locale locale = getLocale(_keywordsCurrentLanguageId);
 
 		return getKeywords(locale);
 	}
 
+	@Override
 	public Map<Locale, String> getKeywordsMap() {
 		return LocalizationUtil.getLocalizationMap(getKeywords());
 	}
 
+	@Override
 	public void setKeywords(String keywords) {
 		_keywords = keywords;
 	}
 
+	@Override
 	public void setKeywords(String keywords, Locale locale) {
-		setKeywords(keywords, locale, LocaleUtil.getDefault());
+		setKeywords(keywords, locale, LocaleUtil.getSiteDefault());
 	}
 
+	@Override
 	public void setKeywords(String keywords, Locale locale, Locale defaultLocale) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 		String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
@@ -916,14 +1086,17 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setKeywordsCurrentLanguageId(String languageId) {
 		_keywordsCurrentLanguageId = languageId;
 	}
 
+	@Override
 	public void setKeywordsMap(Map<Locale, String> keywordsMap) {
-		setKeywordsMap(keywordsMap, LocaleUtil.getDefault());
+		setKeywordsMap(keywordsMap, LocaleUtil.getSiteDefault());
 	}
 
+	@Override
 	public void setKeywordsMap(Map<Locale, String> keywordsMap,
 		Locale defaultLocale) {
 		if (keywordsMap == null) {
@@ -936,6 +1109,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public String getRobots() {
 		if (_robots == null) {
 			return StringPool.BLANK;
@@ -945,50 +1119,60 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public String getRobots(Locale locale) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 
 		return getRobots(languageId);
 	}
 
+	@Override
 	public String getRobots(Locale locale, boolean useDefault) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 
 		return getRobots(languageId, useDefault);
 	}
 
+	@Override
 	public String getRobots(String languageId) {
 		return LocalizationUtil.getLocalization(getRobots(), languageId);
 	}
 
+	@Override
 	public String getRobots(String languageId, boolean useDefault) {
 		return LocalizationUtil.getLocalization(getRobots(), languageId,
 			useDefault);
 	}
 
+	@Override
 	public String getRobotsCurrentLanguageId() {
 		return _robotsCurrentLanguageId;
 	}
 
 	@JSON
+	@Override
 	public String getRobotsCurrentValue() {
 		Locale locale = getLocale(_robotsCurrentLanguageId);
 
 		return getRobots(locale);
 	}
 
+	@Override
 	public Map<Locale, String> getRobotsMap() {
 		return LocalizationUtil.getLocalizationMap(getRobots());
 	}
 
+	@Override
 	public void setRobots(String robots) {
 		_robots = robots;
 	}
 
+	@Override
 	public void setRobots(String robots, Locale locale) {
-		setRobots(robots, locale, LocaleUtil.getDefault());
+		setRobots(robots, locale, LocaleUtil.getSiteDefault());
 	}
 
+	@Override
 	public void setRobots(String robots, Locale locale, Locale defaultLocale) {
 		String languageId = LocaleUtil.toLanguageId(locale);
 		String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
@@ -1003,14 +1187,17 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setRobotsCurrentLanguageId(String languageId) {
 		_robotsCurrentLanguageId = languageId;
 	}
 
+	@Override
 	public void setRobotsMap(Map<Locale, String> robotsMap) {
-		setRobotsMap(robotsMap, LocaleUtil.getDefault());
+		setRobotsMap(robotsMap, LocaleUtil.getSiteDefault());
 	}
 
+	@Override
 	public void setRobotsMap(Map<Locale, String> robotsMap, Locale defaultLocale) {
 		if (robotsMap == null) {
 			return;
@@ -1021,6 +1208,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public String getType() {
 		if (_type == null) {
 			return StringPool.BLANK;
@@ -1030,6 +1218,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setType(String type) {
 		_columnBitmask |= TYPE_COLUMN_BITMASK;
 
@@ -1045,6 +1234,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public String getTypeSettings() {
 		if (_typeSettings == null) {
 			return StringPool.BLANK;
@@ -1054,24 +1244,29 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setTypeSettings(String typeSettings) {
 		_typeSettings = typeSettings;
 	}
 
 	@JSON
+	@Override
 	public boolean getHidden() {
 		return _hidden;
 	}
 
+	@Override
 	public boolean isHidden() {
 		return _hidden;
 	}
 
+	@Override
 	public void setHidden(boolean hidden) {
 		_hidden = hidden;
 	}
 
 	@JSON
+	@Override
 	public String getFriendlyURL() {
 		if (_friendlyURL == null) {
 			return StringPool.BLANK;
@@ -1081,6 +1276,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setFriendlyURL(String friendlyURL) {
 		_columnBitmask |= FRIENDLYURL_COLUMN_BITMASK;
 
@@ -1096,23 +1292,12 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
-	public boolean getIconImage() {
-		return _iconImage;
-	}
-
-	public boolean isIconImage() {
-		return _iconImage;
-	}
-
-	public void setIconImage(boolean iconImage) {
-		_iconImage = iconImage;
-	}
-
-	@JSON
+	@Override
 	public long getIconImageId() {
 		return _iconImageId;
 	}
 
+	@Override
 	public void setIconImageId(long iconImageId) {
 		_columnBitmask |= ICONIMAGEID_COLUMN_BITMASK;
 
@@ -1130,6 +1315,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public String getThemeId() {
 		if (_themeId == null) {
 			return StringPool.BLANK;
@@ -1139,11 +1325,13 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setThemeId(String themeId) {
 		_themeId = themeId;
 	}
 
 	@JSON
+	@Override
 	public String getColorSchemeId() {
 		if (_colorSchemeId == null) {
 			return StringPool.BLANK;
@@ -1153,11 +1341,13 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setColorSchemeId(String colorSchemeId) {
 		_colorSchemeId = colorSchemeId;
 	}
 
 	@JSON
+	@Override
 	public String getWapThemeId() {
 		if (_wapThemeId == null) {
 			return StringPool.BLANK;
@@ -1167,11 +1357,13 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setWapThemeId(String wapThemeId) {
 		_wapThemeId = wapThemeId;
 	}
 
 	@JSON
+	@Override
 	public String getWapColorSchemeId() {
 		if (_wapColorSchemeId == null) {
 			return StringPool.BLANK;
@@ -1181,11 +1373,13 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setWapColorSchemeId(String wapColorSchemeId) {
 		_wapColorSchemeId = wapColorSchemeId;
 	}
 
 	@JSON
+	@Override
 	public String getCss() {
 		if (_css == null) {
 			return StringPool.BLANK;
@@ -1195,15 +1389,18 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setCss(String css) {
 		_css = css;
 	}
 
 	@JSON
+	@Override
 	public int getPriority() {
 		return _priority;
 	}
 
+	@Override
 	public void setPriority(int priority) {
 		_columnBitmask = -1L;
 
@@ -1211,6 +1408,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public String getLayoutPrototypeUuid() {
 		if (_layoutPrototypeUuid == null) {
 			return StringPool.BLANK;
@@ -1220,6 +1418,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setLayoutPrototypeUuid(String layoutPrototypeUuid) {
 		_columnBitmask |= LAYOUTPROTOTYPEUUID_COLUMN_BITMASK;
 
@@ -1235,20 +1434,24 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@JSON
+	@Override
 	public boolean getLayoutPrototypeLinkEnabled() {
 		return _layoutPrototypeLinkEnabled;
 	}
 
+	@Override
 	public boolean isLayoutPrototypeLinkEnabled() {
 		return _layoutPrototypeLinkEnabled;
 	}
 
+	@Override
 	public void setLayoutPrototypeLinkEnabled(
 		boolean layoutPrototypeLinkEnabled) {
 		_layoutPrototypeLinkEnabled = layoutPrototypeLinkEnabled;
 	}
 
 	@JSON
+	@Override
 	public String getSourcePrototypeLayoutUuid() {
 		if (_sourcePrototypeLayoutUuid == null) {
 			return StringPool.BLANK;
@@ -1258,6 +1461,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		}
 	}
 
+	@Override
 	public void setSourcePrototypeLayoutUuid(String sourcePrototypeLayoutUuid) {
 		_columnBitmask |= SOURCEPROTOTYPELAYOUTUUID_COLUMN_BITMASK;
 
@@ -1272,19 +1476,14 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		return GetterUtil.getString(_originalSourcePrototypeLayoutUuid);
 	}
 
-	public long getColumnBitmask() {
-		return _columnBitmask;
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(PortalUtil.getClassNameId(
+				Layout.class.getName()));
 	}
 
-	@Override
-	public Layout toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Layout)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -1301,13 +1500,168 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	@Override
+	public String[] getAvailableLanguageIds() {
+		Set<String> availableLanguageIds = new TreeSet<String>();
+
+		Map<Locale, String> nameMap = getNameMap();
+
+		for (Map.Entry<Locale, String> entry : nameMap.entrySet()) {
+			Locale locale = entry.getKey();
+			String value = entry.getValue();
+
+			if (Validator.isNotNull(value)) {
+				availableLanguageIds.add(LocaleUtil.toLanguageId(locale));
+			}
+		}
+
+		Map<Locale, String> titleMap = getTitleMap();
+
+		for (Map.Entry<Locale, String> entry : titleMap.entrySet()) {
+			Locale locale = entry.getKey();
+			String value = entry.getValue();
+
+			if (Validator.isNotNull(value)) {
+				availableLanguageIds.add(LocaleUtil.toLanguageId(locale));
+			}
+		}
+
+		Map<Locale, String> descriptionMap = getDescriptionMap();
+
+		for (Map.Entry<Locale, String> entry : descriptionMap.entrySet()) {
+			Locale locale = entry.getKey();
+			String value = entry.getValue();
+
+			if (Validator.isNotNull(value)) {
+				availableLanguageIds.add(LocaleUtil.toLanguageId(locale));
+			}
+		}
+
+		Map<Locale, String> keywordsMap = getKeywordsMap();
+
+		for (Map.Entry<Locale, String> entry : keywordsMap.entrySet()) {
+			Locale locale = entry.getKey();
+			String value = entry.getValue();
+
+			if (Validator.isNotNull(value)) {
+				availableLanguageIds.add(LocaleUtil.toLanguageId(locale));
+			}
+		}
+
+		Map<Locale, String> robotsMap = getRobotsMap();
+
+		for (Map.Entry<Locale, String> entry : robotsMap.entrySet()) {
+			Locale locale = entry.getKey();
+			String value = entry.getValue();
+
+			if (Validator.isNotNull(value)) {
+				availableLanguageIds.add(LocaleUtil.toLanguageId(locale));
+			}
+		}
+
+		return availableLanguageIds.toArray(new String[availableLanguageIds.size()]);
+	}
+
+	@Override
+	public String getDefaultLanguageId() {
+		String xml = getName();
+
+		if (xml == null) {
+			return StringPool.BLANK;
+		}
+
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
+
+		return LocalizationUtil.getDefaultLanguageId(xml, defaultLocale);
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport() throws LocaleException {
+		Locale defaultLocale = LocaleUtil.fromLanguageId(getDefaultLanguageId());
+
+		Locale[] availableLocales = LocaleUtil.fromLanguageIds(getAvailableLanguageIds());
+
+		Locale defaultImportLocale = LocalizationUtil.getDefaultImportLocale(Layout.class.getName(),
+				getPrimaryKey(), defaultLocale, availableLocales);
+
+		prepareLocalizedFieldsForImport(defaultImportLocale);
+	}
+
+	@Override
+	@SuppressWarnings("unused")
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException {
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
+
+		String modelDefaultLanguageId = getDefaultLanguageId();
+
+		String name = getName(defaultLocale);
+
+		if (Validator.isNull(name)) {
+			setName(getName(modelDefaultLanguageId), defaultLocale);
+		}
+		else {
+			setName(getName(defaultLocale), defaultLocale, defaultLocale);
+		}
+
+		String title = getTitle(defaultLocale);
+
+		if (Validator.isNull(title)) {
+			setTitle(getTitle(modelDefaultLanguageId), defaultLocale);
+		}
+		else {
+			setTitle(getTitle(defaultLocale), defaultLocale, defaultLocale);
+		}
+
+		String description = getDescription(defaultLocale);
+
+		if (Validator.isNull(description)) {
+			setDescription(getDescription(modelDefaultLanguageId), defaultLocale);
+		}
+		else {
+			setDescription(getDescription(defaultLocale), defaultLocale,
+				defaultLocale);
+		}
+
+		String keywords = getKeywords(defaultLocale);
+
+		if (Validator.isNull(keywords)) {
+			setKeywords(getKeywords(modelDefaultLanguageId), defaultLocale);
+		}
+		else {
+			setKeywords(getKeywords(defaultLocale), defaultLocale, defaultLocale);
+		}
+
+		String robots = getRobots(defaultLocale);
+
+		if (Validator.isNull(robots)) {
+			setRobots(getRobots(modelDefaultLanguageId), defaultLocale);
+		}
+		else {
+			setRobots(getRobots(defaultLocale), defaultLocale, defaultLocale);
+		}
+	}
+
+	@Override
+	public Layout toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Layout)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		LayoutImpl layoutImpl = new LayoutImpl();
 
+		layoutImpl.setMvccVersion(getMvccVersion());
 		layoutImpl.setUuid(getUuid());
 		layoutImpl.setPlid(getPlid());
 		layoutImpl.setGroupId(getGroupId());
 		layoutImpl.setCompanyId(getCompanyId());
+		layoutImpl.setUserId(getUserId());
+		layoutImpl.setUserName(getUserName());
 		layoutImpl.setCreateDate(getCreateDate());
 		layoutImpl.setModifiedDate(getModifiedDate());
 		layoutImpl.setPrivateLayout(getPrivateLayout());
@@ -1322,7 +1676,6 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		layoutImpl.setTypeSettings(getTypeSettings());
 		layoutImpl.setHidden(getHidden());
 		layoutImpl.setFriendlyURL(getFriendlyURL());
-		layoutImpl.setIconImage(getIconImage());
 		layoutImpl.setIconImageId(getIconImageId());
 		layoutImpl.setThemeId(getThemeId());
 		layoutImpl.setColorSchemeId(getColorSchemeId());
@@ -1339,6 +1692,7 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		return layoutImpl;
 	}
 
+	@Override
 	public int compareTo(Layout layout) {
 		int value = 0;
 
@@ -1375,18 +1729,15 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof Layout)) {
 			return false;
 		}
 
-		Layout layout = null;
-
-		try {
-			layout = (Layout)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		Layout layout = (Layout)obj;
 
 		long primaryKey = layout.getPrimaryKey();
 
@@ -1401,6 +1752,16 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -1448,6 +1809,8 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	public CacheModel<Layout> toCacheModel() {
 		LayoutCacheModel layoutCacheModel = new LayoutCacheModel();
 
+		layoutCacheModel.mvccVersion = getMvccVersion();
+
 		layoutCacheModel.uuid = getUuid();
 
 		String uuid = layoutCacheModel.uuid;
@@ -1461,6 +1824,16 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		layoutCacheModel.groupId = getGroupId();
 
 		layoutCacheModel.companyId = getCompanyId();
+
+		layoutCacheModel.userId = getUserId();
+
+		layoutCacheModel.userName = getUserName();
+
+		String userName = layoutCacheModel.userName;
+
+		if ((userName != null) && (userName.length() == 0)) {
+			layoutCacheModel.userName = null;
+		}
 
 		Date createDate = getCreateDate();
 
@@ -1552,8 +1925,6 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 			layoutCacheModel.friendlyURL = null;
 		}
 
-		layoutCacheModel.iconImage = getIconImage();
-
 		layoutCacheModel.iconImageId = getIconImageId();
 
 		layoutCacheModel.themeId = getThemeId();
@@ -1623,9 +1994,11 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(59);
+		StringBundler sb = new StringBundler(63);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", uuid=");
 		sb.append(getUuid());
 		sb.append(", plid=");
 		sb.append(getPlid());
@@ -1633,6 +2006,10 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		sb.append(getGroupId());
 		sb.append(", companyId=");
 		sb.append(getCompanyId());
+		sb.append(", userId=");
+		sb.append(getUserId());
+		sb.append(", userName=");
+		sb.append(getUserName());
 		sb.append(", createDate=");
 		sb.append(getCreateDate());
 		sb.append(", modifiedDate=");
@@ -1661,8 +2038,6 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		sb.append(getHidden());
 		sb.append(", friendlyURL=");
 		sb.append(getFriendlyURL());
-		sb.append(", iconImage=");
-		sb.append(getIconImage());
 		sb.append(", iconImageId=");
 		sb.append(getIconImageId());
 		sb.append(", themeId=");
@@ -1688,13 +2063,18 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(91);
+		StringBundler sb = new StringBundler(97);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.Layout");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>uuid</column-name><column-value><![CDATA[");
 		sb.append(getUuid());
@@ -1710,6 +2090,14 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		sb.append(
 			"<column><column-name>companyId</column-name><column-value><![CDATA[");
 		sb.append(getCompanyId());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>userId</column-name><column-value><![CDATA[");
+		sb.append(getUserId());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>userName</column-name><column-value><![CDATA[");
+		sb.append(getUserName());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>createDate</column-name><column-value><![CDATA[");
@@ -1768,10 +2156,6 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 		sb.append(getFriendlyURL());
 		sb.append("]]></column-value></column>");
 		sb.append(
-			"<column><column-name>iconImage</column-name><column-value><![CDATA[");
-		sb.append(getIconImage());
-		sb.append("]]></column-value></column>");
-		sb.append(
 			"<column><column-name>iconImageId</column-name><column-value><![CDATA[");
 		sb.append(getIconImageId());
 		sb.append("]]></column-value></column>");
@@ -1818,9 +2202,8 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	}
 
 	private static ClassLoader _classLoader = Layout.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
-			Layout.class
-		};
+	private static Class<?>[] _escapedModelInterfaces = new Class[] { Layout.class };
+	private long _mvccVersion;
 	private String _uuid;
 	private String _originalUuid;
 	private long _plid;
@@ -1830,6 +2213,8 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	private long _companyId;
 	private long _originalCompanyId;
 	private boolean _setOriginalCompanyId;
+	private long _userId;
+	private String _userName;
 	private Date _createDate;
 	private Date _modifiedDate;
 	private boolean _privateLayout;
@@ -1857,7 +2242,6 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	private boolean _hidden;
 	private String _friendlyURL;
 	private String _originalFriendlyURL;
-	private boolean _iconImage;
 	private long _iconImageId;
 	private long _originalIconImageId;
 	private boolean _setOriginalIconImageId;
@@ -1873,5 +2257,5 @@ public class LayoutModelImpl extends BaseModelImpl<Layout>
 	private String _sourcePrototypeLayoutUuid;
 	private String _originalSourcePrototypeLayoutUuid;
 	private long _columnBitmask;
-	private Layout _escapedModelProxy;
+	private Layout _escapedModel;
 }

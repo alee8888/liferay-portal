@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,6 @@
 
 package com.liferay.portlet.mobiledevicerules.model.impl;
 
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portlet.mobiledevicerules.model.MDRRule;
 import com.liferay.portlet.mobiledevicerules.service.MDRRuleLocalServiceUtil;
 
@@ -29,7 +28,8 @@ public class MDRRuleGroupImpl extends MDRRuleGroupBaseImpl {
 	public MDRRuleGroupImpl() {
 	}
 
-	public List<MDRRule> getRules() throws SystemException {
+	@Override
+	public List<MDRRule> getRules() {
 		if (getRuleGroupId() > 0) {
 			return MDRRuleLocalServiceUtil.getRules(getRuleGroupId());
 		}

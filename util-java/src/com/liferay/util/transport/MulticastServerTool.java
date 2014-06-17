@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.util.transport;
+
+import com.liferay.portal.kernel.util.GetterUtil;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -29,11 +31,12 @@ public class MulticastServerTool {
 
 	public static void main(String[] args) {
 		try {
-			int port = Integer.parseInt(args[1]);
-			long interval = Long.parseLong(args[2]);
+			int port = GetterUtil.getInteger(args[1]);
+			long interval = GetterUtil.getLong(args[2]);
 
 			DatagramHandler handler = new DatagramHandler() {
 
+				@Override
 				public void process(DatagramPacket packet) {
 					String s = new String(
 						packet.getData(), 0, packet.getLength());
@@ -41,6 +44,7 @@ public class MulticastServerTool {
 					System.out.println(s);
 				}
 
+				@Override
 				public void errorReceived(Throwable t) {
 					t.printStackTrace();
 				}

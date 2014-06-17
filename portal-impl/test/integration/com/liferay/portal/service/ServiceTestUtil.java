@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,68 +14,44 @@
 
 package com.liferay.portal.service;
 
-import com.liferay.counter.service.CounterLocalServiceUtil;
-import com.liferay.portal.NoSuchLayoutException;
 import com.liferay.portal.jcr.JCRFactoryUtil;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.messaging.BaseDestination;
+import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
+import com.liferay.portal.kernel.messaging.SynchronousDestination;
 import com.liferay.portal.kernel.messaging.sender.MessageSender;
 import com.liferay.portal.kernel.messaging.sender.SynchronousMessageSender;
-import com.liferay.portal.kernel.scheduler.SchedulerEngineUtil;
-import com.liferay.portal.kernel.search.IndexerRegistryUtil;
-import com.liferay.portal.kernel.search.SearchContext;
-import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
+import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
+import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
-import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
-import com.liferay.portal.model.Group;
-import com.liferay.portal.model.GroupConstants;
-import com.liferay.portal.model.Layout;
-import com.liferay.portal.model.LayoutConstants;
+import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.model.Portlet;
+import com.liferay.portal.model.Role;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.PortletImpl;
+import com.liferay.portal.repository.liferayrepository.LiferayRepository;
+import com.liferay.portal.search.lucene.LuceneHelperUtil;
 import com.liferay.portal.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.security.lang.DoPrivilegedUtil;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.security.permission.ResourceActionsUtil;
 import com.liferay.portal.tools.DBUpgrader;
-import com.liferay.portal.util.InitUtil;
 import com.liferay.portal.util.PortalInstances;
+import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.TestPropsValues;
-import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
-import com.liferay.portlet.blogs.asset.BlogsEntryAssetRendererFactory;
-import com.liferay.portlet.blogs.trash.BlogsEntryTrashHandler;
-import com.liferay.portlet.blogs.util.BlogsIndexer;
-import com.liferay.portlet.blogs.workflow.BlogsEntryWorkflowHandler;
-import com.liferay.portlet.bookmarks.util.BookmarksIndexer;
-import com.liferay.portlet.directory.workflow.UserWorkflowHandler;
-import com.liferay.portlet.documentlibrary.asset.DLFileEntryAssetRendererFactory;
-import com.liferay.portlet.documentlibrary.trash.DLFileEntryTrashHandler;
-import com.liferay.portlet.documentlibrary.trash.DLFileShortcutTrashHandler;
-import com.liferay.portlet.documentlibrary.trash.DLFolderTrashHandler;
-import com.liferay.portlet.documentlibrary.util.DLIndexer;
-import com.liferay.portlet.documentlibrary.workflow.DLFileEntryWorkflowHandler;
-import com.liferay.portlet.journal.workflow.JournalArticleWorkflowHandler;
-import com.liferay.portlet.messageboards.util.MBIndexer;
-import com.liferay.portlet.messageboards.workflow.MBDiscussionWorkflowHandler;
-import com.liferay.portlet.messageboards.workflow.MBMessageWorkflowHandler;
-import com.liferay.portlet.usersadmin.util.ContactIndexer;
-import com.liferay.portlet.usersadmin.util.UserIndexer;
-import com.liferay.util.PwdGenerator;
+import com.liferay.portal.util.test.RoleTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Random;
 import java.util.Set;
 
 /**
@@ -88,141 +64,62 @@ public class ServiceTestUtil {
 
 	public static final int THREAD_COUNT = 25;
 
-	public static Group addGroup(long parentGroupId, String name)
+	/**
+	 * @deprecated As of 7.0.0
+	 */
+	@Deprecated
+	public static void addResourcePermission(
+			Role role, String resourceName, int scope, String primKey,
+			String actionId)
 		throws Exception {
 
-		Group group = GroupLocalServiceUtil.fetchGroup(
-			TestPropsValues.getCompanyId(), name);
-
-		if (group != null) {
-			return group;
-		}
-
-		String description = "This is a test group.";
-		int type = GroupConstants.TYPE_SITE_OPEN;
-		String friendlyURL =
-			StringPool.SLASH + FriendlyURLNormalizerUtil.normalize(name);
-		boolean site = true;
-		boolean active = true;
-
-		return GroupLocalServiceUtil.addGroup(
-			TestPropsValues.getUserId(), parentGroupId, null, 0, name,
-			description, type, friendlyURL, site, active, getServiceContext());
+		RoleTestUtil.addResourcePermission(
+			role, resourceName, scope, primKey, actionId);
 	}
 
-	public static Group addGroup(String name) throws Exception {
-		return addGroup(GroupConstants.DEFAULT_PARENT_GROUP_ID, name);
-	}
-
-	public static Layout addLayout(long groupId, String name) throws Exception {
-		String friendlyURL =
-			StringPool.SLASH + FriendlyURLNormalizerUtil.normalize(name);
-
-		Layout layout = null;
-
-		try {
-			layout = LayoutLocalServiceUtil.getFriendlyURLLayout(
-				groupId, false, friendlyURL);
-
-			return layout;
-		}
-		catch (NoSuchLayoutException nsle) {
-		}
-
-		String description = "This is a test page.";
-
-		return LayoutLocalServiceUtil.addLayout(
-			TestPropsValues.getUserId(), groupId, false,
-			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, name, null, description,
-			LayoutConstants.TYPE_PORTLET, false, friendlyURL,
-			getServiceContext());
-	}
-
-	public static User addUser(
-			String screenName, boolean autoScreenName, long[] groupIds)
+	/**
+	 * @deprecated As of 7.0.0
+	 */
+	@Deprecated
+	public static void addResourcePermission(
+			String roleName, String resourceName, int scope, String primKey,
+			String actionId)
 		throws Exception {
 
-		User user = UserLocalServiceUtil.fetchUserByScreenName(
-			TestPropsValues.getCompanyId(), screenName);
+		RoleTestUtil.addResourcePermission(
+			roleName, resourceName, scope, primKey, actionId);
+	}
 
-		if (user != null) {
-			return user;
-		}
+	/**
+	 * @deprecated As of 7.0.0
+	 */
+	@Deprecated
+	public static Role addRole(String roleName, int roleType) throws Exception {
+		return RoleTestUtil.addRole(roleName, roleType);
+	}
 
-		boolean autoPassword = true;
-		String password1 = StringPool.BLANK;
-		String password2 = StringPool.BLANK;
-		String emailAddress = "ServiceTestSuite." + nextLong() + "@liferay.com";
-		long facebookId = 0;
-		String openId = StringPool.BLANK;
-		Locale locale = LocaleUtil.getDefault();
-		String firstName = "ServiceTestSuite";
-		String middleName = StringPool.BLANK;
-		String lastName = "ServiceTestSuite";
-		int prefixId = 0;
-		int suffixId = 0;
-		boolean male = true;
-		int birthdayMonth = Calendar.JANUARY;
-		int birthdayDay = 1;
-		int birthdayYear = 1970;
-		String jobTitle = StringPool.BLANK;
-		long[] organizationIds = null;
-		long[] roleIds = null;
-		long[] userGroupIds = null;
-		boolean sendMail = false;
+	/**
+	 * @deprecated As of 7.0.0
+	 */
+	@Deprecated
+	public static Role addRole(
+			String roleName, int roleType, String resourceName, int scope,
+			String primKey, String actionId)
+		throws Exception {
 
-		return UserLocalServiceUtil.addUser(
-			TestPropsValues.getUserId(), TestPropsValues.getCompanyId(),
-			autoPassword, password1, password2, autoScreenName, screenName,
-			emailAddress, facebookId, openId, locale, firstName, middleName,
-			lastName, prefixId, suffixId, male, birthdayMonth, birthdayDay,
-			birthdayYear, jobTitle, groupIds, organizationIds, roleIds,
-			userGroupIds, sendMail, getServiceContext());
+		return RoleTestUtil.addRole(
+			roleName, roleType, resourceName, scope, primKey, actionId);
 	}
 
 	public static void destroyServices() {
-		FileUtil.delete(PropsValues.LIFERAY_HOME + "/data");
-	}
-
-	public static SearchContext getSearchContext() throws Exception {
-		SearchContext searchContext = new SearchContext();
-
-		searchContext.setCompanyId(TestPropsValues.getCompanyId());
-		searchContext.setGroupIds(new long[] {TestPropsValues.getGroupId()});
-		searchContext.setUserId(TestPropsValues.getUserId());
-
-		return searchContext;
-	}
-
-	public static ServiceContext getServiceContext() throws Exception {
-		ServiceContext serviceContext = new ServiceContext();
-
-		serviceContext.setCompanyId(TestPropsValues.getCompanyId());
-		serviceContext.setScopeGroupId(TestPropsValues.getGroupId());
-		serviceContext.setUserId(TestPropsValues.getUserId());
-
-		return serviceContext;
+		_deleteDirectories();
 	}
 
 	public static void initPermissions() {
-		if (System.getProperty("external-properties") == null) {
-			System.setProperty("external-properties", "portal-test.properties");
-		}
-
-		InitUtil.initWithSpring();
-
 		try {
 			PortalInstances.addCompanyId(TestPropsValues.getCompanyId());
 
-			PrincipalThreadLocal.setName(TestPropsValues.getUserId());
-
-			User user = UserLocalServiceUtil.getUserById(
-				TestPropsValues.getUserId());
-
-			PermissionChecker permissionChecker =
-				PermissionCheckerFactoryUtil.create(user);
-
-			PermissionThreadLocal.setPermissionChecker(permissionChecker);
+			setUser(TestPropsValues.getUser());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -230,11 +127,6 @@ public class ServiceTestUtil {
 	}
 
 	public static void initServices() {
-		InitUtil.initWithSpring();
-
-		FileUtil.delete(PropsValues.LIFERAY_HOME + "/data");
-
-		FileUtil.mkdirs(PropsValues.LUCENE_DIR);
 
 		// JCR
 
@@ -245,14 +137,18 @@ public class ServiceTestUtil {
 			e.printStackTrace();
 		}
 
+		// Template manager
+
+		try {
+			TemplateManagerUtil.init();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		// Indexers
 
-		IndexerRegistryUtil.register(new BlogsIndexer());
-		IndexerRegistryUtil.register(new ContactIndexer());
-		IndexerRegistryUtil.register(new UserIndexer());
-		IndexerRegistryUtil.register(new BookmarksIndexer());
-		IndexerRegistryUtil.register(new DLIndexer());
-		IndexerRegistryUtil.register(new MBIndexer());
+		PortalRegisterTestUtil.registerIndexers();
 
 		// Upgrade
 
@@ -275,12 +171,27 @@ public class ServiceTestUtil {
 				SynchronousMessageSender.class.getName());
 
 		MessageBusUtil.init(
-			messageBus, messageSender, synchronousMessageSender);
+			DoPrivilegedUtil.wrap(messageBus),
+			DoPrivilegedUtil.wrap(messageSender),
+			DoPrivilegedUtil.wrap(synchronousMessageSender));
+
+		if (TestPropsValues.DL_FILE_ENTRY_PROCESSORS_TRIGGER_SYNCHRONOUSLY) {
+			_replaceWithSynchronousDestination(
+				DestinationNames.DOCUMENT_LIBRARY_AUDIO_PROCESSOR);
+			_replaceWithSynchronousDestination(
+				DestinationNames.DOCUMENT_LIBRARY_IMAGE_PROCESSOR);
+			_replaceWithSynchronousDestination(
+				DestinationNames.DOCUMENT_LIBRARY_PDF_PROCESSOR);
+			_replaceWithSynchronousDestination(
+				DestinationNames.DOCUMENT_LIBRARY_RAW_METADATA_PROCESSOR);
+			_replaceWithSynchronousDestination(
+				DestinationNames.DOCUMENT_LIBRARY_VIDEO_PROCESSOR);
+		}
 
 		// Scheduler
 
 		try {
-			SchedulerEngineUtil.start();
+			SchedulerEngineHelperUtil.start();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -295,6 +206,10 @@ public class ServiceTestUtil {
 			e.printStackTrace();
 		}
 
+		// Class names
+
+		_checkClassNames();
+
 		// Resource actions
 
 		try {
@@ -304,35 +219,39 @@ public class ServiceTestUtil {
 			e.printStackTrace();
 		}
 
-		// Asset
-
-		AssetRendererFactoryRegistryUtil.register(
-			new BlogsEntryAssetRendererFactory());
-		AssetRendererFactoryRegistryUtil.register(
-			new DLFileEntryAssetRendererFactory());
-
 		// Trash
 
-		TrashHandlerRegistryUtil.register(new BlogsEntryTrashHandler());
-		TrashHandlerRegistryUtil.register(new DLFileEntryTrashHandler());
-		TrashHandlerRegistryUtil.register(new DLFileShortcutTrashHandler());
-		TrashHandlerRegistryUtil.register(new DLFolderTrashHandler());
+		PortalRegisterTestUtil.registerTrashHandlers();
 
 		// Workflow
 
-		WorkflowHandlerRegistryUtil.register(new BlogsEntryWorkflowHandler());
-		WorkflowHandlerRegistryUtil.register(new DLFileEntryWorkflowHandler());
-		WorkflowHandlerRegistryUtil.register(
-			new JournalArticleWorkflowHandler());
-		WorkflowHandlerRegistryUtil.register(new MBDiscussionWorkflowHandler());
-		WorkflowHandlerRegistryUtil.register(new MBMessageWorkflowHandler());
-		WorkflowHandlerRegistryUtil.register(new UserWorkflowHandler());
+		PortalRegisterTestUtil.registerWorkflowHandlers();
+
+		// Asset renderers
+
+		PortalRegisterTestUtil.registerAssetRendererFactories();
 
 		// Company
 
 		try {
 			CompanyLocalServiceUtil.checkCompany(
 				TestPropsValues.COMPANY_WEB_ID);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// Directories
+
+		_deleteDirectories();
+
+		// Lucene
+
+		try {
+			FileUtil.mkdirs(
+				PropsValues.LUCENE_DIR + TestPropsValues.getCompanyId());
+
+			LuceneHelperUtil.startup(TestPropsValues.getCompanyId());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -353,28 +272,21 @@ public class ServiceTestUtil {
 		return calendar.getTime();
 	}
 
-	public static Date nextDate() throws Exception {
-		return new Date();
+	public static void setUser(User user) throws Exception {
+		if (user == null) {
+			return;
+		}
+
+		PrincipalThreadLocal.setName(user.getUserId());
+
+		PermissionChecker permissionChecker =
+			PermissionCheckerFactoryUtil.create(user);
+
+		PermissionThreadLocal.setPermissionChecker(permissionChecker);
 	}
 
-	public static double nextDouble() throws Exception {
-		return CounterLocalServiceUtil.increment();
-	}
-
-	public static int nextInt() throws Exception {
-		return (int)CounterLocalServiceUtil.increment();
-	}
-
-	public static long nextLong() throws Exception {
-		return CounterLocalServiceUtil.increment();
-	}
-
-	public static boolean randomBoolean() throws Exception {
-		return _random.nextBoolean();
-	}
-
-	public static String randomString() throws Exception {
-		return PwdGenerator.getPassword();
+	private static void _checkClassNames() {
+		PortalUtil.getClassNameId(LiferayRepository.class.getName());
 	}
 
 	private static void _checkResourceActions() throws Exception {
@@ -405,6 +317,29 @@ public class ServiceTestUtil {
 		}
 	}
 
-	private static Random _random = new Random();
+	private static void _deleteDirectories() {
+		FileUtil.deltree(PropsValues.DL_STORE_FILE_SYSTEM_ROOT_DIR);
+
+		FileUtil.deltree(
+			PropsUtil.get(PropsKeys.JCR_JACKRABBIT_REPOSITORY_ROOT));
+
+		try {
+			FileUtil.deltree(
+				PropsValues.LUCENE_DIR + TestPropsValues.getCompanyId());
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private static void _replaceWithSynchronousDestination(String name) {
+		BaseDestination baseDestination = new SynchronousDestination();
+
+		baseDestination.setName(name);
+
+		MessageBus messageBus = MessageBusUtil.getMessageBus();
+
+		messageBus.replace(baseDestination);
+	}
 
 }

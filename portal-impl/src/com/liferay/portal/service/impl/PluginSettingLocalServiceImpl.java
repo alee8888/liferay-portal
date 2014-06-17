@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portal.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -33,6 +32,7 @@ import com.liferay.portal.util.PortalUtil;
 public class PluginSettingLocalServiceImpl
 	extends PluginSettingLocalServiceBaseImpl {
 
+	@Override
 	public void checkPermission(long userId, String pluginId, String pluginType)
 		throws PortalException {
 
@@ -41,6 +41,7 @@ public class PluginSettingLocalServiceImpl
 		}
 	}
 
+	@Override
 	public PluginSetting getDefaultPluginSetting() {
 		PluginSettingImpl pluginSetting = new PluginSettingImpl();
 
@@ -50,42 +51,42 @@ public class PluginSettingLocalServiceImpl
 		return pluginSetting;
 	}
 
+	@Override
 	public PluginSetting getPluginSetting(
-			long companyId, String pluginId, String pluginType)
-		throws SystemException {
+		long companyId, String pluginId, String pluginType) {
 
 		PluginSetting pluginSetting = pluginSettingPersistence.fetchByC_I_T(
 			companyId, pluginId, pluginType);
 
-		if (pluginSetting == null) {
-			Plugin plugin = null;
+		if (pluginSetting != null) {
+			return pluginSetting;
+		}
 
-			if (pluginType.equals(Plugin.TYPE_LAYOUT_TEMPLATE)) {
-				plugin = layoutTemplateLocalService.getLayoutTemplate(
-					pluginId, false, null);
-			}
-			else if (pluginType.equals(Plugin.TYPE_THEME)) {
-				boolean wapTheme = true;
+		Plugin plugin = null;
 
-				plugin = themeLocalService.getTheme(
-					companyId, pluginId, wapTheme);
-			}
+		if (pluginType.equals(Plugin.TYPE_LAYOUT_TEMPLATE)) {
+			plugin = layoutTemplateLocalService.getLayoutTemplate(
+				pluginId, false, null);
+		}
+		else if (pluginType.equals(Plugin.TYPE_THEME)) {
+			boolean wapTheme = true;
 
-			if ((plugin == null) ||
-				(plugin.getDefaultPluginSetting() == null)) {
+			plugin = themeLocalService.getTheme(companyId, pluginId, wapTheme);
+		}
 
-				pluginSetting = getDefaultPluginSetting();
+		if ((plugin == null) || (plugin.getDefaultPluginSetting() == null)) {
+			pluginSetting = getDefaultPluginSetting();
 
-				pluginSetting.setCompanyId(companyId);
-			}
-			else {
-				pluginSetting = plugin.getDefaultPluginSetting(companyId);
-			}
+			pluginSetting.setCompanyId(companyId);
+		}
+		else {
+			pluginSetting = plugin.getDefaultPluginSetting(companyId);
 		}
 
 		return pluginSetting;
 	}
 
+	@Override
 	public boolean hasPermission(
 		long userId, String pluginId, String pluginType) {
 
@@ -111,10 +112,10 @@ public class PluginSettingLocalServiceImpl
 		}
 	}
 
+	@Override
 	public PluginSetting updatePluginSetting(
-			long companyId, String pluginId, String pluginType, String roles,
-			boolean active)
-		throws SystemException {
+		long companyId, String pluginId, String pluginType, String roles,
+		boolean active) {
 
 		pluginId = PortalUtil.getJsSafePortletId(pluginId);
 
@@ -134,7 +135,7 @@ public class PluginSettingLocalServiceImpl
 		pluginSetting.setRoles(roles);
 		pluginSetting.setActive(active);
 
-		pluginSettingPersistence.update(pluginSetting, false);
+		pluginSettingPersistence.update(pluginSetting);
 
 		return pluginSetting;
 	}

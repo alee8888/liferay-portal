@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,22 +14,14 @@
 
 package com.liferay.portal.dao.jdbc.util;
 
-import com.liferay.portal.dao.orm.hibernate.PortletSessionFactoryImpl;
 import com.liferay.portal.dao.orm.hibernate.SessionFactoryImpl;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataSourceFactoryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.portlet.PortletClassLoaderUtil;
 import com.liferay.portal.spring.hibernate.PortalHibernateConfiguration;
-import com.liferay.portal.spring.hibernate.PortletHibernateConfiguration;
-import com.liferay.portal.spring.jpa.LocalContainerEntityManagerFactoryBean;
-import com.liferay.portal.util.PropsValues;
 
-import java.util.List;
 import java.util.Properties;
-
-import javax.persistence.EntityManagerFactory;
 
 import javax.sql.DataSource;
 
@@ -68,20 +60,11 @@ public class DataSourceSwapper {
 
 		DataSourceFactoryUtil.destroyDataSource(oldDataSource);
 
-		if (PropsValues.PERSISTENCE_PROVIDER.equalsIgnoreCase("jpa")) {
-			if (_log.isInfoEnabled()) {
-				_log.info("Reinitialize Hibernate for new counter data source");
-			}
-
-			_reinitializeJPA("counterSessionFactory", newDataSource);
+		if (_log.isInfoEnabled()) {
+			_log.info("Reinitialize Hibernate for new counter data source");
 		}
-		else {
-			if (_log.isInfoEnabled()) {
-				_log.info("Reinitialize JPA for new counter data source");
-			}
 
-			_reinitializeHibernate("counterSessionFactory", newDataSource);
-		}
+		_reinitializeHibernate("counterSessionFactory", newDataSource);
 	}
 
 	public static void swapLiferayDataSource(Properties properties)
@@ -109,22 +92,11 @@ public class DataSourceSwapper {
 
 		DataSourceFactoryUtil.destroyDataSource(oldDataSource);
 
-		if (PropsValues.PERSISTENCE_PROVIDER.equalsIgnoreCase("jpa")) {
-			if (_log.isInfoEnabled()) {
-				_log.info("Reinitialize Hibernate for new liferay data source");
-			}
-
-			_reinitializeJPA("liferaySessionFactory", newDataSource);
-		}
-		else {
-			if (_log.isInfoEnabled()) {
-				_log.info("Reinitialize JPA for new liferay data source");
-			}
-
-			_reinitializeHibernate("liferaySessionFactory", newDataSource);
+		if (_log.isInfoEnabled()) {
+			_log.info("Reinitialize Hibernate for new liferay data source");
 		}
 
-		_reinitializePortletsHibernate(newDataSource);
+		_reinitializeHibernate("liferaySessionFactory", newDataSource);
 	}
 
 	public void setCounterDataSourceWrapper(
@@ -177,74 +149,6 @@ public class DataSourceSwapper {
 				"Unable to swap to session factory for " +
 					abstractPlatformTransactionManager.getClass() +
 						" which may cause subsequent transaction failures");
-		}
-	}
-
-	private static void _reinitializeJPA(String name, DataSource dataSource)
-		throws Exception {
-
-		LocalContainerEntityManagerFactoryBean
-			localContainerEntityManagerFactoryBean =
-				new LocalContainerEntityManagerFactoryBean();
-
-		localContainerEntityManagerFactoryBean.setDataSource(dataSource);
-
-		localContainerEntityManagerFactoryBean.afterPropertiesSet();
-
-		EntityManagerFactory entityManagerFactory =
-			localContainerEntityManagerFactoryBean.getObject();
-
-		com.liferay.portal.dao.orm.jpa.SessionFactoryImpl sessionFactoryImpl =
-			(com.liferay.portal.dao.orm.jpa.SessionFactoryImpl)
-				PortalBeanLocatorUtil.locate(name);
-
-		sessionFactoryImpl.setEntityManagerFactory(entityManagerFactory);
-	}
-
-	private static void _reinitializePortletsHibernate(DataSource newDataSource)
-		throws Exception {
-
-		List<PortletSessionFactoryImpl> portletSessionFactoryImpls =
-			SessionFactoryImpl.getPortletSessionFactories();
-
-		for (PortletSessionFactoryImpl portletSessionFactoryImpl :
-				portletSessionFactoryImpls) {
-
-			ClassLoader oldPortletClassLoader =
-				PortletClassLoaderUtil.getClassLoader();
-
-			ClassLoader portletClassLoader =
-				portletSessionFactoryImpl.getSessionFactoryClassLoader();
-
-			PortletClassLoaderUtil.setClassLoader(portletClassLoader);
-
-			Thread currentThread = Thread.currentThread();
-
-			ClassLoader oldContextClassLoader =
-				currentThread.getContextClassLoader();
-
-			currentThread.setContextClassLoader(portletClassLoader);
-
-			try {
-				PortletHibernateConfiguration portletHibernateConfiguration =
-					new PortletHibernateConfiguration();
-
-				portletHibernateConfiguration.setDataSource(newDataSource);
-
-				portletHibernateConfiguration.afterPropertiesSet();
-
-				SessionFactoryImplementor sessionFactoryImplementor =
-					(SessionFactoryImplementor)
-						portletHibernateConfiguration.getObject();
-
-				portletSessionFactoryImpl.setSessionFactoryImplementor(
-					sessionFactoryImplementor);
-			}
-			finally {
-				PortletClassLoaderUtil.setClassLoader(oldPortletClassLoader);
-
-				currentThread.setContextClassLoader(oldContextClassLoader);
-			}
 		}
 	}
 

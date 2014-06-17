@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,9 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -37,7 +38,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.RepositoryModelImpl
  * @generated
  */
-public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
+@ProviderType
+public interface RepositoryModel extends BaseModel<Repository>, MVCCModel,
+	StagedGroupedModel, TypedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -59,11 +62,28 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	public void setPrimaryKey(long primaryKey);
 
 	/**
+	 * Returns the mvcc version of this repository.
+	 *
+	 * @return the mvcc version of this repository
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this repository.
+	 *
+	 * @param mvccVersion the mvcc version of this repository
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
 	 * Returns the uuid of this repository.
 	 *
 	 * @return the uuid of this repository
 	 */
 	@AutoEscape
+	@Override
 	public String getUuid();
 
 	/**
@@ -71,6 +91,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @param uuid the uuid of this repository
 	 */
+	@Override
 	public void setUuid(String uuid);
 
 	/**
@@ -92,6 +113,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @return the group ID of this repository
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -99,6 +121,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @param groupId the group ID of this repository
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -106,6 +129,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @return the company ID of this repository
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -113,6 +137,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @param companyId the company ID of this repository
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -120,6 +145,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @return the user ID of this repository
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -127,21 +153,23 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @param userId the user ID of this repository
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
 	 * Returns the user uuid of this repository.
 	 *
 	 * @return the user uuid of this repository
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getUserUuid() throws SystemException;
+	@Override
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this repository.
 	 *
 	 * @param userUuid the user uuid of this repository
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -150,6 +178,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 * @return the user name of this repository
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -157,6 +186,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @param userName the user name of this repository
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -164,6 +194,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @return the create date of this repository
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -171,6 +202,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @param createDate the create date of this repository
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -178,6 +210,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @return the modified date of this repository
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -185,6 +218,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @param modifiedDate the modified date of this repository
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -192,6 +226,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @return the fully qualified class name of this repository
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -201,6 +236,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @return the class name ID of this repository
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -208,6 +244,7 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 *
 	 * @param classNameId the class name ID of this repository
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -284,35 +321,60 @@ public interface RepositoryModel extends BaseModel<Repository>, GroupedModel {
 	 */
 	public void setDlFolderId(long dlFolderId);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(Repository repository);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<Repository> toCacheModel();
 
+	@Override
 	public Repository toEscapedModel();
 
+	@Override
+	public Repository toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

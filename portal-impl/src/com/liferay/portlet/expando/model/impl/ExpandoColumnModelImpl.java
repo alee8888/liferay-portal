@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -93,6 +93,10 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	 * @return the normal model instance
 	 */
 	public static ExpandoColumn toModel(ExpandoColumnSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		ExpandoColumn model = new ExpandoColumnImpl();
 
 		model.setColumnId(soapModel.getColumnId());
@@ -113,6 +117,10 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	 * @return the normal model instances
 	 */
 	public static List<ExpandoColumn> toModels(ExpandoColumnSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<ExpandoColumn> models = new ArrayList<ExpandoColumn>(soapModels.length);
 
 		for (ExpandoColumnSoap soapModel : soapModels) {
@@ -128,26 +136,32 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	public ExpandoColumnModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _columnId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setColumnId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_columnId);
+		return _columnId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return ExpandoColumn.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return ExpandoColumn.class.getName();
 	}
@@ -163,6 +177,9 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		attributes.put("type", getType());
 		attributes.put("defaultData", getDefaultData());
 		attributes.put("typeSettings", getTypeSettings());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -213,28 +230,34 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	}
 
 	@JSON
+	@Override
 	public long getColumnId() {
 		return _columnId;
 	}
 
+	@Override
 	public void setColumnId(long columnId) {
 		_columnId = columnId;
 	}
 
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_companyId = companyId;
 	}
 
 	@JSON
+	@Override
 	public long getTableId() {
 		return _tableId;
 	}
 
+	@Override
 	public void setTableId(long tableId) {
 		_columnBitmask |= TABLEID_COLUMN_BITMASK;
 
@@ -252,6 +275,7 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	}
 
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -261,6 +285,7 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		}
 	}
 
+	@Override
 	public void setName(String name) {
 		_columnBitmask = -1L;
 
@@ -276,15 +301,18 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	}
 
 	@JSON
+	@Override
 	public int getType() {
 		return _type;
 	}
 
+	@Override
 	public void setType(int type) {
 		_type = type;
 	}
 
 	@JSON
+	@Override
 	public String getDefaultData() {
 		if (_defaultData == null) {
 			return StringPool.BLANK;
@@ -294,11 +322,13 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		}
 	}
 
+	@Override
 	public void setDefaultData(String defaultData) {
 		_defaultData = defaultData;
 	}
 
 	@JSON
+	@Override
 	public String getTypeSettings() {
 		if (_typeSettings == null) {
 			return StringPool.BLANK;
@@ -308,6 +338,7 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		}
 	}
 
+	@Override
 	public void setTypeSettings(String typeSettings) {
 		_typeSettings = typeSettings;
 	}
@@ -318,13 +349,12 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 
 	@Override
 	public ExpandoColumn toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (ExpandoColumn)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
+		if (_escapedModel == null) {
+			_escapedModel = (ExpandoColumn)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
 		}
 
-		return _escapedModelProxy;
+		return _escapedModel;
 	}
 
 	@Override
@@ -344,6 +374,7 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		return expandoColumnImpl;
 	}
 
+	@Override
 	public int compareTo(ExpandoColumn expandoColumn) {
 		int value = 0;
 
@@ -358,18 +389,15 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ExpandoColumn)) {
 			return false;
 		}
 
-		ExpandoColumn expandoColumn = null;
-
-		try {
-			expandoColumn = (ExpandoColumn)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		ExpandoColumn expandoColumn = (ExpandoColumn)obj;
 
 		long primaryKey = expandoColumn.getPrimaryKey();
 
@@ -384,6 +412,16 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -461,6 +499,7 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(25);
 
@@ -503,7 +542,7 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	}
 
 	private static ClassLoader _classLoader = ExpandoColumn.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			ExpandoColumn.class
 		};
 	private long _columnId;
@@ -517,5 +556,5 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	private String _defaultData;
 	private String _typeSettings;
 	private long _columnBitmask;
-	private ExpandoColumn _escapedModelProxy;
+	private ExpandoColumn _escapedModel;
 }

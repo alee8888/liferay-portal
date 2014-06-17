@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,20 +14,29 @@
 
 package com.liferay.portal.util;
 
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.Html;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.htmlparser.jericho.Renderer;
 import net.htmlparser.jericho.Source;
 import net.htmlparser.jericho.TextExtractor;
 
 /**
+ * Provides the implementation of the HTML utility interface for escaping,
+ * rendering, replacing, and stripping HTML text. This class uses XSS
+ * recommendations from <a
+ * href="http://www.owasp.org/index.php/Cross_Site_Scripting#How_to_Protect_Yourself">http://www.owasp.org/index.php/Cross_Site_Scripting#How_to_Protect_Yourself</a>
+ * when escaping HTML text.
+ *
  * @author Brian Wing Shun Chan
  * @author Clarence Shen
  * @author Harry Mark
@@ -35,6 +44,7 @@ import net.htmlparser.jericho.TextExtractor;
  * @author Connor McKay
  * @author Shuyang Zhou
  */
+@DoPrivileged
 public class HtmlImpl implements Html {
 
 	public static final int ESCAPE_MODE_ATTRIBUTE = 1;
@@ -47,6 +57,14 @@ public class HtmlImpl implements Html {
 
 	public static final int ESCAPE_MODE_URL = 5;
 
+	/**
+	 * Escapes the text so that it is safe to use in an HTML context.
+	 *
+	 * @param  text the text to escape
+	 * @return the escaped HTML text, or <code>null</code> if the text is
+	 *         <code>null</code>
+	 */
+	@Override
 	public String escape(String text) {
 		if (text == null) {
 			return null;
@@ -129,16 +147,32 @@ public class HtmlImpl implements Html {
 		if (sb == null) {
 			return text;
 		}
-		else {
-			if (lastReplacementIndex < text.length()) {
-				sb.append(text.substring(lastReplacementIndex));
-			}
 
-			return sb.toString();
+		if (lastReplacementIndex < text.length()) {
+			sb.append(text.substring(lastReplacementIndex));
 		}
+
+		return sb.toString();
 	}
 
-	public String escape(String text, int type) {
+	/**
+	 * Escapes the input text as a hexadecimal value, based on the mode (type).
+	 * The encoding types include: {@link #ESCAPE_MODE_ATTRIBUTE}, {@link
+	 * #ESCAPE_MODE_CSS}, {@link #ESCAPE_MODE_JS}, {@link #ESCAPE_MODE_TEXT},
+	 * and {@link #ESCAPE_MODE_URL}.
+	 *
+	 * <p>
+	 * Note that <code>escape(text, ESCAPE_MODE_TEXT)</code> returns the same as
+	 * <code>escape(text)</code>.
+	 * </p>
+	 *
+	 * @param  text the text to escape
+	 * @param  mode the encoding type
+	 * @return the escaped hexadecimal value of the input text, based on the
+	 *         mode, or <code>null</code> if the text is <code>null</code>
+	 */
+	@Override
+	public String escape(String text, int mode) {
 		if (text == null) {
 			return null;
 		}
@@ -150,17 +184,17 @@ public class HtmlImpl implements Html {
 		String prefix = StringPool.BLANK;
 		String postfix = StringPool.BLANK;
 
-		if (type == ESCAPE_MODE_ATTRIBUTE) {
+		if (mode == ESCAPE_MODE_ATTRIBUTE) {
 			prefix = "&#x";
 			postfix = StringPool.SEMICOLON;
 		}
-		else if (type == ESCAPE_MODE_CSS) {
+		else if (mode == ESCAPE_MODE_CSS) {
 			prefix = StringPool.BACK_SLASH;
 		}
-		else if (type == ESCAPE_MODE_JS) {
+		else if (mode == ESCAPE_MODE_JS) {
 			prefix = "\\x";
 		}
-		else if (type == ESCAPE_MODE_URL) {
+		else if (mode == ESCAPE_MODE_URL) {
 			return HttpUtil.encodeURL(text, true);
 		}
 		else {
@@ -172,7 +206,7 @@ public class HtmlImpl implements Html {
 		for (int i = 0; i < text.length(); i++) {
 			char c = text.charAt(i);
 
-			if (Character.isLetterOrDigit(c) ||
+			if ((c > 255) || Character.isLetterOrDigit(c) ||
 				(c == CharPool.DASH) || (c == CharPool.UNDERLINE)) {
 
 				sb.append(c);
@@ -199,14 +233,40 @@ public class HtmlImpl implements Html {
 		}
 	}
 
+	/**
+	 * Escapes the attribute value so that it is safe to use as an attribute
+	 * value.
+	 *
+	 * @param  attribute the attribute to escape
+	 * @return the escaped attribute value, or <code>null</code> if the
+	 *         attribute value is <code>null</code>
+	 */
+	@Override
 	public String escapeAttribute(String attribute) {
 		return escape(attribute, ESCAPE_MODE_ATTRIBUTE);
 	}
 
+	/**
+	 * Escapes the CSS value so that it is safe to use in a CSS context.
+	 *
+	 * @param  css the CSS value to escape
+	 * @return the escaped CSS value, or <code>null</code> if the CSS value is
+	 *         <code>null</code>
+	 */
+	@Override
 	public String escapeCSS(String css) {
 		return escape(css, ESCAPE_MODE_CSS);
 	}
 
+	/**
+	 * Escapes the HREF attribute so that it is safe to use as an HREF
+	 * attribute.
+	 *
+	 * @param  href the HREF attribute to escape
+	 * @return the escaped HREF attribute, or <code>null</code> if the HREF
+	 *         attribute is <code>null</code>
+	 */
+	@Override
 	public String escapeHREF(String href) {
 		if (href == null) {
 			return null;
@@ -217,24 +277,107 @@ public class HtmlImpl implements Html {
 		}
 
 		if (href.indexOf(StringPool.COLON) == 10) {
-			String protocol = href.substring(0, 10).toLowerCase();
+			String protocol = StringUtil.toLowerCase(href.substring(0, 10));
 
 			if (protocol.equals("javascript")) {
-				return StringUtil.replaceFirst(href, StringPool.COLON, "%3a");
+				href = StringUtil.replaceFirst(href, StringPool.COLON, "%3a");
 			}
 		}
 
-		return href;
+		return escapeAttribute(href);
 	}
 
+	/**
+	 * Escapes the JavaScript value so that it is safe to use in a JavaScript
+	 * context.
+	 *
+	 * @param  js the JavaScript value to escape
+	 * @return the escaped JavaScript value, or <code>null</code> if the
+	 *         JavaScript value is <code>null</code>
+	 */
+	@Override
 	public String escapeJS(String js) {
 		return escape(js, ESCAPE_MODE_JS);
 	}
 
+	/**
+	 * Escapes the URL value so that it is safe to use as a URL.
+	 *
+	 * @param  url the URL value to escape
+	 * @return the escaped URL value, or <code>null</code> if the URL value is
+	 *         <code>null</code>
+	 */
+	@Override
 	public String escapeURL(String url) {
 		return escape(url, ESCAPE_MODE_URL);
 	}
 
+	@Override
+	public String escapeXPath(String xPath) {
+		if (Validator.isNull(xPath)) {
+			return xPath;
+		}
+
+		StringBuilder sb = new StringBuilder(xPath.length());
+
+		for (int i = 0; i < xPath.length(); i++) {
+			char c = xPath.charAt(i);
+
+			boolean hasToken = false;
+
+			for (int j = 0; j < _XPATH_TOKENS.length; j++) {
+				if (c == _XPATH_TOKENS[j]) {
+					hasToken = true;
+
+					break;
+				}
+			}
+
+			if (hasToken) {
+				sb.append(StringPool.UNDERLINE);
+			}
+			else {
+				sb.append(c);
+			}
+		}
+
+		return sb.toString();
+	}
+
+	@Override
+	public String escapeXPathAttribute(String xPathAttribute) {
+		boolean hasApostrophe = xPathAttribute.contains(StringPool.APOSTROPHE);
+		boolean hasQuote = xPathAttribute.contains(StringPool.QUOTE);
+
+		if (hasQuote && hasApostrophe) {
+			String[] parts = xPathAttribute.split(StringPool.APOSTROPHE);
+
+			return "concat('".concat(
+				StringUtil.merge(parts, "', \"'\", '")).concat("')");
+		}
+
+		if (hasQuote) {
+			return StringPool.APOSTROPHE.concat(xPathAttribute).concat(
+				StringPool.APOSTROPHE);
+		}
+
+		return StringPool.QUOTE.concat(xPathAttribute).concat(StringPool.QUOTE);
+	}
+
+	/**
+	 * Extracts the raw text from the HTML input, compressing its whitespace and
+	 * removing all attributes, scripts, and styles.
+	 *
+	 * <p>
+	 * For example, raw text returned by this method can be stored in a search
+	 * index.
+	 * </p>
+	 *
+	 * @param  html the HTML text
+	 * @return the raw text from the HTML input, or <code>null</code> if the
+	 *         HTML input is <code>null</code>
+	 */
+	@Override
 	public String extractText(String html) {
 		if (html == null) {
 			return null;
@@ -247,22 +390,157 @@ public class HtmlImpl implements Html {
 		return textExtractor.toString();
 	}
 
+	@Override
 	public String fromInputSafe(String text) {
 		return StringUtil.replace(text, "&amp;", "&");
 	}
 
+	@Override
+	public String getAUICompatibleId(String text) {
+		if (Validator.isNull(text)) {
+			return text;
+		}
+
+		StringBundler sb = null;
+
+		int lastReplacementIndex = 0;
+
+		for (int i = 0; i < text.length(); i++) {
+			char c = text.charAt(i);
+
+			if (((c <= 127) && (Validator.isChar(c) || Validator.isDigit(c))) ||
+				((c > 127) && (c != CharPool.FIGURE_SPACE) &&
+				 (c != CharPool.NARROW_NO_BREAK_SPACE) &&
+				 (c != CharPool.NO_BREAK_SPACE))) {
+
+				continue;
+			}
+
+			if (sb == null) {
+				sb = new StringBundler();
+			}
+
+			if (i > lastReplacementIndex) {
+				sb.append(text.substring(lastReplacementIndex, i));
+			}
+
+			sb.append(CharPool.UNDERLINE);
+
+			if (c != CharPool.UNDERLINE) {
+				sb.append(StringUtil.toHexString(c));
+			}
+
+			sb.append(CharPool.UNDERLINE);
+
+			lastReplacementIndex = i + 1;
+		}
+
+		if (sb == null) {
+			return text;
+		}
+
+		if (lastReplacementIndex < text.length()) {
+			sb.append(text.substring(lastReplacementIndex));
+		}
+
+		return sb.toString();
+	}
+
+	/**
+	 * Renders the HTML content into text. This provides a human readable
+	 * version of the content that is modeled on the way Mozilla
+	 * Thunderbird&reg; and other email clients provide an automatic conversion
+	 * of HTML content to text in their alternative MIME encoding of emails.
+	 *
+	 * <p>
+	 * Using the default settings, the output complies with the
+	 * <code>Text/Plain; Format=Flowed (DelSp=No)</code> protocol described in
+	 * <a href="http://tools.ietf.org/html/rfc3676">RFC-3676</a>.
+	 * </p>
+	 *
+	 * @param  html the HTML text
+	 * @return the rendered HTML text, or <code>null</code> if the HTML text is
+	 *         <code>null</code>
+	 */
+	@Override
+	public String render(String html) {
+		if (html == null) {
+			return null;
+		}
+
+		Source source = new Source(html);
+
+		Renderer renderer = source.getRenderer();
+
+		return renderer.toString();
+	}
+
+	/**
+	 * Replaces all Microsoft&reg; Word Unicode characters with plain HTML
+	 * entities or characters.
+	 *
+	 * @param      text the text
+	 * @return     the converted text, or <code>null</code> if the text is
+	 *             <code>null</code>
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
+	@Override
 	public String replaceMsWordCharacters(String text) {
 		return StringUtil.replace(text, _MS_WORD_UNICODE, _MS_WORD_HTML);
 	}
 
+	/**
+	 * Replaces all new lines or carriage returns with the <code><br /></code>
+	 * HTML tag.
+	 *
+	 * @param  html the text
+	 * @return the converted text, or <code>null</code> if the text is
+	 *         <code>null</code>
+	 */
+	@Override
+	public String replaceNewLine(String html) {
+		if (html == null) {
+			return null;
+		}
+
+		return html.replaceAll("\r?\n", "<br />");
+	}
+
+	/**
+	 * Strips all content delimited by the tag out of the text.
+	 *
+	 * <p>
+	 * If the tag appears multiple times, all occurrences (including the tag)
+	 * are stripped. The tag may have attributes. In order for this method to
+	 * recognize the tag, it must consist of a separate opening and closing tag.
+	 * Self-closing tags remain in the result.
+	 * </p>
+	 *
+	 * @param  text the text
+	 * @param  tag the tag used for delimiting, which should only be the tag's
+	 *         name (e.g. no &lt;)
+	 * @return the text, without the stripped tag and its contents, or
+	 *         <code>null</code> if the text is <code>null</code>
+	 */
+	@Override
 	public String stripBetween(String text, String tag) {
 		return StringUtil.stripBetween(text, "<" + tag, "</" + tag + ">");
 	}
 
+	/**
+	 * Strips all XML comments out of the text.
+	 *
+	 * @param  text the text
+	 * @return the text, without the stripped XML comments, or <code>null</code>
+	 *         if the text is <code>null</code>
+	 */
+	@Override
 	public String stripComments(String text) {
 		return StringUtil.stripBetween(text, "<!--", "-->");
 	}
 
+	@Override
 	public String stripHtml(String text) {
 		if (text == null) {
 			return null;
@@ -279,48 +557,13 @@ public class HtmlImpl implements Html {
 			sb.append(text.substring(x, y));
 			sb.append(StringPool.SPACE);
 
-			// Look for text enclosed by <script></script>
+			// Look for text enclosed by <abc></abc>
 
-			boolean scriptFound = isScriptTag(text, y + 1);
-
-			if (scriptFound) {
-				int pos = y + _TAG_SCRIPT.length;
-
-				// Find end of the tag
-
-				pos = text.indexOf(">", pos);
-
-				if (pos >= 0) {
-
-					// Check if preceding character is / (i.e. is this instance
-					// of <script/>)
-
-					if (text.charAt(pos-1) != '/') {
-
-						// Search for the ending </script> tag
-
-						for (;;) {
-							pos = text.indexOf("</", pos);
-
-							if (pos >= 0) {
-								if (isScriptTag(text, pos + 2)) {
-									y = pos;
-
-									break;
-								}
-								else {
-
-									// Skip past "</"
-
-									pos += 2;
-								}
-							}
-							else {
-								break;
-							}
-						}
-					}
-				}
+			if (isTag(_TAG_SCRIPT, text, y + 1)) {
+				y = stripTag(_TAG_SCRIPT, text, y);
+			}
+			else if (isTag(_TAG_STYLE, text, y + 1)) {
+				y = stripTag(_TAG_STYLE, text, y);
 			}
 
 			x = text.indexOf(">", y);
@@ -348,6 +591,19 @@ public class HtmlImpl implements Html {
 		return sb.toString();
 	}
 
+	/**
+	 * Encodes the text so that it's safe to use as an HTML input field value.
+	 *
+	 * <p>
+	 * For example, the <code>&</code> character is replaced by
+	 * <code>&amp;amp;</code>.
+	 * </p>
+	 *
+	 * @param  text the text
+	 * @return the encoded text that is safe to use as an HTML input field
+	 *         value, or <code>null</code> if the text is <code>null</code>
+	 */
+	@Override
 	public String toInputSafe(String text) {
 		return StringUtil.replace(
 			text,
@@ -355,6 +611,7 @@ public class HtmlImpl implements Html {
 			new String[] {"&amp;", "&quot;"});
 	}
 
+	@Override
 	public String unescape(String text) {
 		if (text == null) {
 			return null;
@@ -384,6 +641,7 @@ public class HtmlImpl implements Html {
 		return text;
 	}
 
+	@Override
 	public String unescapeCDATA(String text) {
 		if (text == null) {
 			return null;
@@ -399,6 +657,7 @@ public class HtmlImpl implements Html {
 		return text;
 	}
 
+	@Override
 	public String wordBreak(String text, int columns) {
 		StringBundler sb = new StringBundler();
 
@@ -406,9 +665,7 @@ public class HtmlImpl implements Html {
 		int lastWrite = 0;
 		int pos = 0;
 
-		Pattern pattern = Pattern.compile("([\\s<&]|$)");
-
-		Matcher matcher = pattern.matcher(text);
+		Matcher matcher = _pattern.matcher(text);
 
 		while (matcher.find()) {
 			if (matcher.start() < pos) {
@@ -463,27 +720,70 @@ public class HtmlImpl implements Html {
 		return sb.toString();
 	}
 
-	protected boolean isScriptTag(String text, int pos) {
-		if ((pos + _TAG_SCRIPT.length + 1) <= text.length()) {
+	protected boolean isTag(char[] tag, String text, int pos) {
+		if ((pos + tag.length + 1) <= text.length()) {
 			char item;
 
-			for (int i = 0; i < _TAG_SCRIPT.length; i++) {
+			for (int i = 0; i < tag.length; i++) {
 				item = text.charAt(pos++);
 
-				if (Character.toLowerCase(item) != _TAG_SCRIPT[i]) {
+				if (Character.toLowerCase(item) != tag[i]) {
 					return false;
 				}
 			}
 
 			item = text.charAt(pos);
 
-			// Check that char after "script" is not a letter (i.e. another tag)
+			// Check that char after tag is not a letter (i.e. another tag)
 
 			return !Character.isLetter(item);
 		}
 		else {
 			return false;
 		}
+	}
+
+	protected int stripTag(char[] tag, String text, int pos) {
+		int x = pos + _TAG_SCRIPT.length;
+
+		// Find end of the tag
+
+		x = text.indexOf(">", x);
+
+		if (x < 0) {
+			return pos;
+		}
+
+		// Check if preceding character is / (i.e. is this instance of <abc/>)
+
+		if (text.charAt(x-1) == '/') {
+			return pos;
+		}
+
+		// Search for the ending </abc> tag
+
+		while (true) {
+			x = text.indexOf("</", x);
+
+			if (x >= 0) {
+				if (isTag(tag, text, x + 2)) {
+					pos = x;
+
+					break;
+				}
+				else {
+
+					// Skip past "</"
+
+					x += 2;
+				}
+			}
+			else {
+				break;
+			}
+		}
+
+		return pos;
 	}
 
 	private static final String[] _MS_WORD_HTML = new String[] {
@@ -495,5 +795,15 @@ public class HtmlImpl implements Html {
 	};
 
 	private static final char[] _TAG_SCRIPT = {'s', 'c', 'r', 'i', 'p', 't'};
+
+	private static final char[] _TAG_STYLE = {'s', 't', 'y', 'l', 'e'};
+
+	// See http://www.w3.org/TR/xpath20/#lexical-structure
+
+	private static final char[] _XPATH_TOKENS = {
+		'(', ')', '[', ']', '.', '@', ',', ':', '/', '|', '+', '-', '=', '!',
+		'<', '>', '*', '$', '"', '"', ' ', 9, 10, 13, 133, 8232};
+
+	private Pattern _pattern = Pattern.compile("([\\s<&]|$)");
 
 }

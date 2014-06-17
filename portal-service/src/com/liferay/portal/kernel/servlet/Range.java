@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,9 @@
  */
 
 package com.liferay.portal.kernel.servlet;
+
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 
 /**
  * @author Juan González
@@ -32,7 +35,7 @@ public class Range {
 			return true;
 		}
 
-		if ((obj == null) || !(obj instanceof Range)) {
+		if (!(obj instanceof Range)) {
 			return false;
 		}
 
@@ -45,6 +48,19 @@ public class Range {
 		}
 
 		return false;
+	}
+
+	public String getContentRange() {
+		StringBundler sb = new StringBundler(6);
+
+		sb.append("bytes ");
+		sb.append(getStart());
+		sb.append(StringPool.DASH);
+		sb.append(getEnd());
+		sb.append(StringPool.SLASH);
+		sb.append(getTotal());
+
+		return sb.toString();
 	}
 
 	public long getEnd() {

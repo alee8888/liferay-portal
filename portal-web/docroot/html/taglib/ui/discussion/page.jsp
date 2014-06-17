@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,30 +14,10 @@
  */
 --%>
 
-<%@ include file="/html/taglib/init.jsp" %>
-
-<%@ page import="com.liferay.portal.kernel.parsers.bbcode.BBCodeTranslatorUtil" %>
-<%@ page import="com.liferay.portlet.messageboards.model.MBCategory" %>
-<%@ page import="com.liferay.portlet.messageboards.model.MBDiscussion" %>
-<%@ page import="com.liferay.portlet.messageboards.model.MBMessage" %>
-<%@ page import="com.liferay.portlet.messageboards.model.MBMessageDisplay" %>
-<%@ page import="com.liferay.portlet.messageboards.model.MBThread" %>
-<%@ page import="com.liferay.portlet.messageboards.model.MBThreadConstants" %>
-<%@ page import="com.liferay.portlet.messageboards.model.MBTreeWalker" %>
-<%@ page import="com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil" %>
-<%@ page import="com.liferay.portlet.messageboards.service.permission.MBDiscussionPermission" %>
-<%@ page import="com.liferay.portlet.messageboards.util.comparator.MessageCreateDateComparator" %>
-<%@ page import="com.liferay.portlet.ratings.model.RatingsEntry" %>
-<%@ page import="com.liferay.portlet.ratings.model.RatingsStats" %>
-<%@ page import="com.liferay.portlet.ratings.service.RatingsEntryLocalServiceUtil" %>
-<%@ page import="com.liferay.portlet.ratings.service.RatingsStatsLocalServiceUtil" %>
-<%@ page import="com.liferay.portlet.ratings.service.persistence.RatingsEntryUtil" %>
-<%@ page import="com.liferay.portlet.ratings.service.persistence.RatingsStatsUtil" %>
-
-<portlet:defineObjects />
+<%@ include file="/html/taglib/ui/discussion/init.jsp" %>
 
 <%
-String randomNamespace = PwdGenerator.getPassword(PwdGenerator.KEY3, 4) + StringPool.UNDERLINE;
+String randomNamespace = StringUtil.randomId() + StringPool.UNDERLINE;
 
 boolean assetEntryVisible = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:discussion:assetEntryVisible"));
 String className = (String)request.getAttribute("liferay-ui:discussion:className");
@@ -78,13 +58,13 @@ else {
 Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
 %>
 
-<div class="aui-helper-hidden lfr-message-response" id="<portlet:namespace />discussion-status-messages"></div>
+<div class="hide lfr-message-response" id="<portlet:namespace />discussion-status-messages"></div>
 
 <c:if test="<%= (messagesCount > 1) || MBDiscussionPermission.contains(permissionChecker, company.getCompanyId(), scopeGroupId, permissionClassName, permissionClassPK, userId, ActionKeys.VIEW) %>">
-	<div class="taglib-discussion">
+	<div class="taglib-discussion" id="<portlet:namespace />discussion-container">
 		<aui:form action="<%= formAction %>" method="post" name="<%= formName %>">
 			<aui:input name="randomNamespace" type="hidden" value="<%= randomNamespace %>" />
-			<aui:input name="<%= Constants.CMD %>" type="hidden" />
+			<aui:input id="<%= randomNamespace + Constants.CMD %>" name="<%= Constants.CMD %>" type="hidden" />
 			<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 			<aui:input name="contentURL" type="hidden" value="<%= PortalUtil.getCanonicalURL(redirect, themeDisplay, layout) %>" />
 			<aui:input name="assetEntryVisible" type="hidden" value="<%= assetEntryVisible %>" />
@@ -98,6 +78,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 			<aui:input name="parentMessageId" type="hidden" />
 			<aui:input name="body" type="hidden" />
 			<aui:input name="workflowAction" type="hidden" value="<%= String.valueOf(WorkflowConstants.ACTION_PUBLISH) %>" />
+			<aui:input name="ajax" type="hidden" value="<%= true %>" />
 
 			<%
 			int i = 0;
@@ -117,16 +98,25 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 					%>
 
 					<c:choose>
-						<c:when test="<%= messagesCount == 1 %>">
-							<liferay-ui:message key="no-comments-yet" /> <a href="<%= taglibPostReplyURL %>"><liferay-ui:message key="be-the-first" /></a>
+						<c:when test="<%= TrashUtil.isInTrash(className, classPK) %>">
+							<div class="alert alert-block">
+								<liferay-ui:message key="commenting-is-disabled-because-this-entry-is-in-the-recycle-bin" />
+							</div>
 						</c:when>
 						<c:otherwise>
-							<liferay-ui:icon
-								image="reply"
-								label="<%= true %>"
-								message="add-comment"
-								url="<%= taglibPostReplyURL %>"
-							/>
+							<c:choose>
+								<c:when test="<%= messagesCount == 1 %>">
+									<liferay-ui:message key="no-comments-yet" /> <a href="<%= taglibPostReplyURL %>"><liferay-ui:message key="be-the-first" /></a>
+								</c:when>
+								<c:otherwise>
+									<liferay-ui:icon
+										iconCssClass="icon-reply"
+										label="<%= true %>"
+										message="add-comment"
+										url="<%= taglibPostReplyURL %>"
+									/>
+								</c:otherwise>
+							</c:choose>
 						</c:otherwise>
 					</c:choose>
 
@@ -136,12 +126,12 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 					String subscriptionURL = "javascript:" + randomNamespace + "subscribeToComments(" + !subscribed + ");";
 					%>
 
-					<c:if test="<%= themeDisplay.isSignedIn() %>">
+					<c:if test="<%= themeDisplay.isSignedIn() && !TrashUtil.isInTrash(className, classPK) %>">
 						<c:choose>
 							<c:when test="<%= subscribed %>">
 								<liferay-ui:icon
 									cssClass="subscribe-link"
-									image="unsubscribe"
+									iconCssClass="icon-remove-sign"
 									label="<%= true %>"
 									message="unsubscribe-from-comments"
 									url="<%= subscriptionURL %>"
@@ -150,7 +140,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 							<c:otherwise>
 								<liferay-ui:icon
 									cssClass="subscribe-link"
-									image="subscribe"
+									iconCssClass="icon-ok-sign"
 									label="<%= true %>"
 									message="subscribe-to-comments"
 									url="<%= subscriptionURL %>"
@@ -162,7 +152,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 					<aui:input name="emailAddress" type="hidden" />
 
 					<div id="<%= randomNamespace %>postReplyForm<%= i %>" style="display: none;">
-						<aui:input id='<%= randomNamespace + "postReplyBody" + i %>' label="comment" name='<%= "postReplyBody" + i %>' style='<%= "height: " + ModelHintsConstants.TEXTAREA_DISPLAY_HEIGHT + "px; width: " + ModelHintsConstants.TEXTAREA_DISPLAY_WIDTH + "px;" %>' type="textarea" wrap="soft" />
+						<aui:input id='<%= randomNamespace + "postReplyBody" + i %>' label="comment" name='<%= "postReplyBody" + i %>' style='<%= "height: " + ModelHintsConstants.TEXTAREA_DISPLAY_HEIGHT + "px; max-width: " + ModelHintsConstants.TEXTAREA_DISPLAY_WIDTH + "px;" %>' type="textarea" wrap="soft" />
 
 						<%
 						String postReplyButtonLabel = LanguageUtil.get(pageContext, "reply");
@@ -181,13 +171,13 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 						</c:if>
 
 						<aui:button-row>
-							<aui:button id='<%= namespace + randomNamespace + "postReplyButton" + i %>' onClick='<%= randomNamespace + "postReply(" + i + ");" %>' value="<%= postReplyButtonLabel %>" />
+							<aui:button cssClass="btn-comment btn-primary" id='<%= namespace + randomNamespace + "postReplyButton" + i %>' onClick='<%= randomNamespace + "postReply(" + i + ");" %>' value="<%= postReplyButtonLabel %>" />
 
 							<%
 							String taglibCancel = "document.getElementById('" + randomNamespace + "postReplyForm" + i + "').style.display = 'none'; document.getElementById('" + namespace + randomNamespace + "postReplyBody" + i + "').value = ''; void('');";
 							%>
 
-							<aui:button onClick="<%= taglibCancel %>" type="cancel" />
+							<aui:button cssClass="btn-comment" onClick="<%= taglibCancel %>" type="cancel" />
 						</aui:button-row>
 					</div>
 				</aui:fieldset>
@@ -197,18 +187,22 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 				<a name="<%= randomNamespace %>messages_top"></a>
 
 				<c:if test="<%= treeWalker != null %>">
-				<table class="tree-walker">
-					<tr class="portlet-section-header results-header" style="font-size: x-small; font-weight: bold;">
-						<td colspan="2">
+				<table class="table table-bordered table-hover table-striped tree-walker">
+					<thead class="table-columns">
+					<tr>
+						<th class="table-header" colspan="2">
 							<liferay-ui:message key="threaded-replies" />
-						</td>
-						<td colspan="2">
+						</th>
+						<th class="table-header" colspan="2">
 							<liferay-ui:message key="author" />
-						</td>
-						<td>
+						</th>
+						<th class="table-header">
 							<liferay-ui:message key="date" />
-						</td>
+						</th>
 					</tr>
+					</thead>
+
+					<tbody class="table-data">
 
 					<%
 					int[] range = treeWalker.getChildrenRange(rootMessage);
@@ -223,12 +217,12 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 						}
 
 						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER, treeWalker);
-						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_SEL_MESSAGE, rootMessage);
-						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_CUR_MESSAGE, message);
 						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_CATEGORY, category);
-						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_THREAD, thread);
-						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_LAST_NODE, Boolean.valueOf(lastChildNode));
+						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_CUR_MESSAGE, message);
 						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_DEPTH, new Integer(0));
+						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_LAST_NODE, Boolean.valueOf(lastChildNode));
+						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_SEL_MESSAGE, rootMessage);
+						request.setAttribute(WebKeys.MESSAGE_BOARDS_TREE_WALKER_THREAD, thread);
 					%>
 
 						<liferay-util:include page="/html/taglib/ui/discussion/view_message_thread.jsp" />
@@ -237,12 +231,13 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 					}
 					%>
 
+					</tbody>
 				</table>
 
 					<br />
 				</c:if>
 
-				<aui:layout>
+				<aui:row>
 
 					<%
 					if (messages != null) {
@@ -298,143 +293,148 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 								<aui:input name='<%= "parentMessageId" + i %>' type="hidden" value="<%= message.getMessageId() %>" />
 							</div>
 
-							<aui:column cssClass="lfr-discussion-details">
-								<liferay-ui:user-display
-									displayStyle="<%= 2 %>"
-									userId="<%= message.getUserId() %>"
-									userName="<%= HtmlUtil.escape(message.getUserName()) %>"
-								/>
-							</aui:column>
+							<aui:row fluid="<%= true %>">
+								<aui:col cssClass="lfr-discussion-details" width="25">
+									<liferay-ui:user-display
+										displayStyle="2"
+										userId="<%= message.getUserId() %>"
+										userName="<%= HtmlUtil.escape(message.getUserName()) %>"
+									/>
+								</aui:col>
 
-							<aui:column cssClass="lfr-discussion-body">
-								<c:if test="<%= (message != null) && !message.isApproved() %>">
-									<aui:model-context bean="<%= message %>" model="<%= MBMessage.class %>" />
+								<aui:col cssClass="lfr-discussion-body" width="75">
+									<c:if test="<%= (message != null) && !message.isApproved() %>">
+										<aui:model-context bean="<%= message %>" model="<%= MBMessage.class %>" />
 
-									<div>
-										<aui:workflow-status model="<%= MBDiscussion.class %>" status="<%= message.getStatus() %>" />
-									</div>
-								</c:if>
+										<div>
+											<aui:workflow-status model="<%= MBDiscussion.class %>" status="<%= message.getStatus() %>" />
+										</div>
+									</c:if>
 
-								<div class="lfr-discussion-message">
-
-									<%
-									String msgBody = BBCodeTranslatorUtil.getHTML(message.getBody());
-
-									msgBody = StringUtil.replace(msgBody, "@theme_images_path@/emoticons", themeDisplay.getPathThemeImages() + "/emoticons");
-									msgBody = HtmlUtil.wordBreak(msgBody, 80);
-									%>
-
-									<%= msgBody %>
-								</div>
-
-								<div class="lfr-discussion-controls">
-									<c:if test="<%= ratingsEnabled %>">
+									<div class="lfr-discussion-message">
 
 										<%
-										RatingsEntry ratingsEntry = getRatingsEntry(ratingsEntries, message.getMessageId());
-										RatingsStats ratingStats = getRatingsStats(ratingsStatsList, message.getMessageId());
+										String msgBody = message.getBody();
+
+										if (message.isFormatBBCode()) {
+											msgBody = MBUtil.getBBCodeHTML(msgBody, themeDisplay.getPathThemeImages());
+										}
 										%>
 
-										<liferay-ui:ratings
-											className="<%= MBDiscussion.class.getName() %>"
-											classPK="<%= message.getMessageId() %>"
-											ratingsEntry="<%= ratingsEntry %>"
-											ratingsStats="<%= ratingStats %>"
-											type="thumbs"
-										/>
-									</c:if>
+										<%= msgBody %>
+									</div>
 
-									<c:if test="<%= !hideControls %>">
-										<ul class="lfr-discussion-actions">
-											<c:if test="<%= MBDiscussionPermission.contains(permissionChecker, company.getCompanyId(), scopeGroupId, permissionClassName, permissionClassPK, userId, ActionKeys.ADD_DISCUSSION) %>">
-												<li class="lfr-discussion-reply-to">
+									<div class="lfr-discussion-controls">
+										<c:if test="<%= ratingsEnabled && !TrashUtil.isInTrash(message.getClassName(), message.getClassPK()) %>">
 
-													<%
-													String taglibPostReplyURL = "javascript:" + randomNamespace + "showForm('" + randomNamespace + "postReplyForm" + i + "', '" + namespace + randomNamespace + "postReplyBody" + i + "');";
-													%>
+											<%
+											RatingsEntry ratingsEntry = getRatingsEntry(ratingsEntries, message.getMessageId());
+											RatingsStats ratingStats = getRatingsStats(ratingsStatsList, message.getMessageId());
+											%>
 
-													<liferay-ui:icon
-														image="reply"
-														label="<%= true %>"
-														message="post-reply"
-														url="<%= taglibPostReplyURL %>"
-													/>
-												</li>
-											</c:if>
+											<liferay-ui:ratings
+												className="<%= MBDiscussion.class.getName() %>"
+												classPK="<%= message.getMessageId() %>"
+												ratingsEntry="<%= ratingsEntry %>"
+												ratingsStats="<%= ratingStats %>"
+												type="thumbs"
+											/>
+										</c:if>
 
-											<c:if test="<%= i > 0 %>">
+										<c:if test="<%= !hideControls && !TrashUtil.isInTrash(message.getClassName(), message.getClassPK()) %>">
+											<ul class="lfr-discussion-actions">
+												<c:if test="<%= MBDiscussionPermission.contains(permissionChecker, company.getCompanyId(), scopeGroupId, permissionClassName, permissionClassPK, userId, ActionKeys.ADD_DISCUSSION) %>">
+													<li class="lfr-discussion-reply-to">
 
-												<%
-												String taglibTopURL = "#" + randomNamespace + "messages_top";
-												%>
+														<%
+														String taglibPostReplyURL = "javascript:" + randomNamespace + "showForm('" + randomNamespace + "postReplyForm" + i + "', '" + namespace + randomNamespace + "postReplyBody" + i + "'); " + randomNamespace + "hideForm('" + randomNamespace + "editForm" + i + "', '" + namespace + randomNamespace + "editReplyBody" + i + "', '" + HtmlUtil.escapeJS(message.getBody()) + "');";
+														%>
 
-												<li class="lfr-discussion-top-link">
-													<liferay-ui:icon
-														image="top"
-														label="<%= true %>"
-														url="<%= taglibTopURL %>"
-														/>
-												</li>
-
-												<c:if test="<%= MBDiscussionPermission.contains(permissionChecker, company.getCompanyId(), scopeGroupId, permissionClassName, permissionClassPK, message.getMessageId(), userId, ActionKeys.UPDATE_DISCUSSION) %>">
-
-													<%
-													String taglibEditURL = "javascript:" + randomNamespace + "showForm('" + randomNamespace + "editForm" + i + "', '" + namespace + randomNamespace + "editReplyBody" + i + "');";
-													%>
-
-													<li class="lfr-discussion-delete-reply">
 														<liferay-ui:icon
-															image="edit"
+															iconCssClass="icon-reply"
 															label="<%= true %>"
-															url="<%= taglibEditURL %>"
+															message="post-reply"
+															url="<%= taglibPostReplyURL %>"
 														/>
 													</li>
 												</c:if>
 
-												<c:if test="<%= MBDiscussionPermission.contains(permissionChecker, company.getCompanyId(), scopeGroupId, permissionClassName, permissionClassPK, message.getMessageId(), userId, ActionKeys.DELETE_DISCUSSION) %>">
+												<c:if test="<%= i > 0 %>">
 
 													<%
-													String taglibDeleteURL = "javascript:" + randomNamespace + "deleteMessage(" + i + ");";
+													String taglibTopURL = "#" + randomNamespace + "messages_top";
 													%>
 
-													<li class="lfr-discussion-delete">
-														<liferay-ui:icon-delete
+													<li class="lfr-discussion-top-link">
+														<liferay-ui:icon
+															iconCssClass="icon-long-arrow-up"
 															label="<%= true %>"
-															url="<%= taglibDeleteURL %>"
+															message="top"
+															url="<%= taglibTopURL %>"
 														/>
 													</li>
-												</c:if>
-											</c:if>
-										</ul>
-									</c:if>
-								</div>
-							</aui:column>
 
-							<aui:layout cssClass="lfr-discussion-form-container">
-								<div class="lfr-discussion-form lfr-discussion-form-reply" id="<%= randomNamespace %>postReplyForm<%= i %>" style="display: none;">
+													<c:if test="<%= MBDiscussionPermission.contains(permissionChecker, company.getCompanyId(), scopeGroupId, permissionClassName, permissionClassPK, message.getMessageId(), message.getUserId(), ActionKeys.UPDATE_DISCUSSION) %>">
+
+														<%
+														String taglibEditURL = "javascript:" + randomNamespace + "showForm('" + randomNamespace + "editForm" + i + "', '" + namespace + randomNamespace + "editReplyBody" + i + "');" + randomNamespace + "hideForm('" + randomNamespace + "postReplyForm" + i + "', '" + namespace + randomNamespace + "postReplyBody" + i + "', '')";
+														%>
+
+														<li class="lfr-discussion-edit">
+															<liferay-ui:icon
+																iconCssClass="icon-edit"
+																label="<%= true %>"
+																message="edit"
+																url="<%= taglibEditURL %>"
+															/>
+														</li>
+													</c:if>
+
+													<c:if test="<%= MBDiscussionPermission.contains(permissionChecker, company.getCompanyId(), scopeGroupId, permissionClassName, permissionClassPK, message.getMessageId(), message.getUserId(), ActionKeys.DELETE_DISCUSSION) %>">
+
+														<%
+														String taglibDeleteURL = "javascript:" + randomNamespace + "deleteMessage(" + i + ");";
+														%>
+
+														<li class="lfr-discussion-delete">
+															<liferay-ui:icon-delete
+																label="<%= true %>"
+																url="<%= taglibDeleteURL %>"
+															/>
+														</li>
+													</c:if>
+												</c:if>
+											</ul>
+										</c:if>
+									</div>
+								</aui:col>
+							</aui:row>
+
+							<aui:row cssClass="lfr-discussion-form-container" fluid="<%= true %>">
+								<div class="col-md-12 lfr-discussion-form lfr-discussion-form-reply" id="<%= randomNamespace %>postReplyForm<%= i %>" style='<%= "display: none; max-width: " + ModelHintsConstants.TEXTAREA_DISPLAY_WIDTH + "px;" %>'>
 
 									<liferay-ui:user-display
-										displayStyle="<%= 2 %>"
+										displayStyle="2"
 										userId="<%= user.getUserId() %>"
 										userName="<%= HtmlUtil.escape(PortalUtil.getUserName(user.getUserId(), StringPool.BLANK)) %>"
 									/>
 
-									<aui:input id='<%= randomNamespace + "postReplyBody" + i %>' label="" name='<%= "postReplyBody" + i %>' style='<%= "height: " + ModelHintsConstants.TEXTAREA_DISPLAY_HEIGHT + "px; width: " + ModelHintsConstants.TEXTAREA_DISPLAY_WIDTH + "px;" %>' type="textarea" wrap="soft" />
+									<aui:input id='<%= randomNamespace + "postReplyBody" + i %>' label="" name='<%= "postReplyBody" + i %>' style='<%= "height: " + ModelHintsConstants.TEXTAREA_DISPLAY_HEIGHT + "px;" %>' title="reply-body" type="textarea" wrap="soft" />
 
 									<aui:button-row>
-										<aui:button id='<%= namespace + randomNamespace + "postReplyButton" + i %>' onClick='<%= randomNamespace + "postReply(" + i + ");" %>' value='<%= themeDisplay.isSignedIn() ? "reply" : "reply-as" %>' />
+										<aui:button cssClass="btn-comment btn-primary" id='<%= namespace + randomNamespace + "postReplyButton" + i %>' onClick='<%= randomNamespace + "postReply(" + i + ");" %>' value='<%= themeDisplay.isSignedIn() ? "reply" : "reply-as" %>' />
 
 										<%
-										String taglibCancel = "document.getElementById('" + randomNamespace + "postReplyForm" + i + "').style.display = 'none'; document.getElementById('" + namespace + randomNamespace + "postReplyBody" + i + "').value = ''; void('');";
+										String taglibCancel = randomNamespace + "hideForm('" + randomNamespace + "postReplyForm" + i + "', '" + namespace + randomNamespace + "postReplyBody" + i + "', '');";
 										%>
 
-										<aui:button onClick="<%= taglibCancel %>" type="cancel" />
+										<aui:button cssClass="btn-comment" onClick="<%= taglibCancel %>" type="cancel" />
 									</aui:button-row>
 								</div>
 
-								<c:if test="<%= !hideControls && MBDiscussionPermission.contains(permissionChecker, company.getCompanyId(), scopeGroupId, permissionClassName, permissionClassPK, message.getMessageId(), userId, ActionKeys.UPDATE_DISCUSSION) %>">
-									<div class="lfr-discussion-form lfr-discussion-form-edit" id="<%= randomNamespace %>editForm<%= i %>" style="display: none;">
-										<aui:input id='<%= randomNamespace + "editReplyBody" + i %>' label="" name='<%= "editReplyBody" + i %>' style='<%= "height: " + ModelHintsConstants.TEXTAREA_DISPLAY_HEIGHT + "px; width: " + ModelHintsConstants.TEXTAREA_DISPLAY_WIDTH + "px;" %>' type="textarea" value="<%= message.getBody() %>" wrap="soft" />
+								<c:if test="<%= !hideControls && MBDiscussionPermission.contains(permissionChecker, company.getCompanyId(), scopeGroupId, permissionClassName, permissionClassPK, message.getMessageId(), message.getUserId(), ActionKeys.UPDATE_DISCUSSION) %>">
+									<div class="col-md-12 lfr-discussion-form lfr-discussion-form-edit" id="<%= randomNamespace %>editForm<%= i %>" style='<%= "display: none; max-width: " + ModelHintsConstants.TEXTAREA_DISPLAY_WIDTH + "px;" %>'>
+										<aui:input id='<%= randomNamespace + "editReplyBody" + i %>' label="" name='<%= "editReplyBody" + i %>' style='<%= "height: " + ModelHintsConstants.TEXTAREA_DISPLAY_HEIGHT + "px;" %>' title="reply-body" type="textarea" value="<%= message.getBody() %>" wrap="soft" />
 
 										<%
 										boolean pending = message.isPending();
@@ -455,37 +455,64 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 											<aui:button name='<%= randomNamespace + "editReplyButton" + i %>' onClick='<%= randomNamespace + "updateMessage(" + i + ");" %>' value="<%= publishButtonLabel %>" />
 
 											<%
-											String taglibCancel = "document.getElementById('" + randomNamespace + "editForm" + i + "').style.display = 'none'; document.getElementById('" + namespace + randomNamespace + "editReplyBody" + i + "').value = '" + message.getBody() + "'; void('');";
+											String taglibCancel = randomNamespace + "hideForm('" + randomNamespace + "editForm" + i + "', '" + namespace + randomNamespace + "editReplyBody" + i + "', '" + HtmlUtil.escapeJS(message.getBody()) + "');";
 											%>
 
 											<aui:button onClick="<%= taglibCancel %>" type="cancel" />
 										</aui:button-row>
 									</div>
 								</c:if>
-							</aui:layout>
+							</aui:row>
 
 							<div class="lfr-discussion-posted-on">
 								<c:choose>
 									<c:when test="<%= message.getParentMessageId() == rootMessage.getMessageId() %>">
-										<%= LanguageUtil.format(pageContext, "posted-on-x", dateFormatDateTime.format(message.getModifiedDate())) %>
+										<%= LanguageUtil.format(pageContext, "posted-on-x", dateFormatDateTime.format(message.getModifiedDate()), false) %>
 									</c:when>
 									<c:otherwise>
 
 										<%
 										MBMessage parentMessage = MBMessageLocalServiceUtil.getMessage(message.getParentMessageId());
+										%>
 
+										<liferay-util:buffer var="buffer">
+
+											<%
+											User parentMessageUser = UserLocalServiceUtil.fetchUser(parentMessage.getUserId());
+
+											boolean male = (parentMessageUser == null) ? true : parentMessageUser.isMale();
+											long portraitId = (parentMessageUser == null) ? 0 : parentMessageUser.getPortraitId();
+											String userUuid = (parentMessageUser == null) ? null : parentMessageUser.getUserUuid();
+											%>
+
+											<span id="lfr-discussion-reply-user-info">
+												<div class="lfr-discussion-reply-user-avatar">
+													<img alt="<%= parentMessage.getUserName() %>" class="user-status-avatar-image" src="<%= UserConstants.getPortraitURL(themeDisplay.getPathImage(), male, portraitId, userUuid) %>" width="30" />
+												</div>
+
+												<div class="lfr-discussion-reply-user-name">
+														<%= parentMessage.getUserName() %>
+												</div>
+
+												<div class="lfr-discussion-reply-creation-date">
+													<%= dateFormatDateTime.format(parentMessage.getCreateDate()) %>
+												</div>
+											</span>
+										</liferay-util:buffer>
+
+										<%
 										StringBundler sb = new StringBundler(7);
 
-										sb.append("<a href=\"#");
-										sb.append(randomNamespace);
-										sb.append("message_");
-										sb.append(parentMessage.getMessageId());
+										sb.append("<a class=\"lfr-discussion-parent-link\" data-title=\"");
+										sb.append(HtmlUtil.escape(buffer));
+										sb.append("\"data-metaData=\"");
+										sb.append(HtmlUtil.escape(parentMessage.getBody()));
 										sb.append("\">");
 										sb.append(HtmlUtil.escape(parentMessage.getUserName()));
 										sb.append("</a>");
 										%>
 
-										<%= LanguageUtil.format(pageContext, "posted-on-x-in-reply-to-x", new Object[] {dateFormatDateTime.format(message.getModifiedDate()), sb.toString()}) %>
+										<%= LanguageUtil.format(pageContext, "posted-on-x-in-reply-to-x", new Object[] {dateFormatDateTime.format(message.getModifiedDate()), sb.toString()}, false) %>
 									</c:otherwise>
 								</c:choose>
 							</div>
@@ -495,7 +522,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 					}
 					%>
 
-				</aui:layout>
+				</aui:row>
 
 				<c:if test="<%= (searchContainer != null) && (searchContainer.getTotal() > searchContainer.getDelta()) %>">
 					<liferay-ui:search-paginator searchContainer="<%= searchContainer %>" />
@@ -507,96 +534,122 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 	<%
 	PortletURL loginURL = PortletURLFactoryUtil.create(request, PortletKeys.FAST_LOGIN, themeDisplay.getPlid(), PortletRequest.RENDER_PHASE);
 
-	loginURL.setWindowState(LiferayWindowState.POP_UP);
-	loginURL.setPortletMode(PortletMode.VIEW);
-
-	loginURL.setParameter("saveLastPath", "0");
+	loginURL.setParameter("saveLastPath", Boolean.FALSE.toString());
 	loginURL.setParameter("struts_action", "/login/login");
+	loginURL.setPortletMode(PortletMode.VIEW);
+	loginURL.setWindowState(LiferayWindowState.POP_UP);
 	%>
 
 	<aui:script>
-		function <%= randomNamespace %>afterLogin(emailAddress, anonymousAccount) {
-			document.<%= namespace %><%= formName %>.<%= namespace %>emailAddress.value = emailAddress;
-
-			if (anonymousAccount) {
-				<portlet:namespace />sendMessage(document.<portlet:namespace /><%= formName %>);
-			}
-			else {
-				<portlet:namespace />sendMessage(document.<portlet:namespace /><%= formName %>, true);
-			}
-		}
-
-		function <%= randomNamespace %>deleteMessage(i) {
-			eval("var messageId = document.<%= namespace %><%= formName %>.<%= namespace %>messageId" + i + ".value;");
-
-			document.<%= namespace %><%= formName %>.<%= namespace %><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
-			document.<%= namespace %><%= formName %>.<%= namespace %>messageId.value = messageId;
-			<portlet:namespace />sendMessage(document.<%= namespace %><%= formName %>);
-		}
-
-		function <%= randomNamespace %>postReply(i) {
-			eval("var parentMessageId = document.<%= namespace %><%= formName %>.<%= namespace %>parentMessageId" + i + ".value;");
-			eval("var body = document.<%= namespace %><%= formName %>.<%= namespace %>postReplyBody" + i + ".value;");
-
-			document.<%= namespace %><%= formName %>.<%= namespace %><%= Constants.CMD %>.value = "<%= Constants.ADD %>";
-			document.<%= namespace %><%= formName %>.<%= namespace %>parentMessageId.value = parentMessageId;
-			document.<%= namespace %><%= formName %>.<%= namespace %>body.value = body;
-
-			if (!themeDisplay.isSignedIn()) {
-				window.namespace = '<%= namespace %>';
-				window.randomNamespace = '<%= randomNamespace %>';
-
-				Liferay.Util.openWindow(
-					{
-						dialog: {
-							align: Liferay.Util.Window.ALIGN_CENTER,
-							modal: true
-						},
-						id: '<%= namespace %>signInDialog',
-						title: Liferay.Language.get('sign-in'),
-						uri: '<%= loginURL.toString() %>'
-					}
-				);
-			}
-			else {
-				<portlet:namespace />sendMessage(document.<%= namespace %><%= formName %>);
-			}
+		function <%= randomNamespace %>hideForm(rowId, textAreaId, textAreaValue) {
+			document.getElementById(rowId).style.display = 'none';
+			document.getElementById(textAreaId).value = textAreaValue;
 		}
 
 		function <%= randomNamespace %>scrollIntoView(messageId) {
-			document.getElementById("<%= randomNamespace %>messageScroll" + messageId).scrollIntoView();
+			document.getElementById('<%= randomNamespace %>messageScroll' + messageId).scrollIntoView();
 		}
 
 		function <%= randomNamespace %>showForm(rowId, textAreaId) {
-			document.getElementById(rowId).style.display = "";
+			document.getElementById(rowId).style.display = 'block';
 			document.getElementById(textAreaId).focus();
 		}
 
-		function <%= randomNamespace %>subscribeToComments(subscribe) {
-			if (subscribe) {
-				document.<%= namespace %><%= formName %>.<%= namespace %><%= Constants.CMD %>.value = "<%= Constants.SUBSCRIBE_TO_COMMENTS %>";
-			}
-			else {
-				document.<%= namespace %><%= formName %>.<%= namespace %><%= Constants.CMD %>.value = "<%= Constants.UNSUBSCRIBE_FROM_COMMENTS %>";
-			}
+		Liferay.provide(
+			window,
+			'<%= randomNamespace %>afterLogin',
+			function(emailAddress, anonymousAccount) {
+				var A = AUI();
 
-			<portlet:namespace />sendMessage(document.<%= namespace %><%= formName %>);
-		}
+				var form = A.one('#<%= namespace %><%= HtmlUtil.escapeJS(formName) %>');
 
-		function <%= randomNamespace %>updateMessage(i, pending) {
-			eval("var messageId = document.<%= namespace %><%= formName %>.<%= namespace %>messageId" + i + ".value;");
-			eval("var body = document.<%= namespace %><%= formName %>.<%= namespace %>editReplyBody" + i + ".value;");
+				form.one('#<%= namespace %>emailAddress').val(emailAddress);
 
-			if (pending) {
-				document.<%= namespace %><%= formName %>.<%= namespace %>workflowAction.value = <%= WorkflowConstants.ACTION_SAVE_DRAFT %>;
-			}
+				<portlet:namespace />sendMessage(form, !anonymousAccount);
+			},
+			['aui-base']
+		);
 
-			document.<%= namespace %><%= formName %>.<%= namespace %><%= Constants.CMD %>.value = "<%= Constants.UPDATE %>";
-			document.<%= namespace %><%= formName %>.<%= namespace %>messageId.value = messageId;
-			document.<%= namespace %><%= formName %>.<%= namespace %>body.value = body;
+		Liferay.provide(
+			window,
+			'<%= randomNamespace %>deleteMessage',
+			function(i) {
+				var A = AUI();
 
-			<portlet:namespace />sendMessage(document.<%= namespace %><%= formName %>);
-		}
+				var form = A.one('#<%= namespace %><%= HtmlUtil.escapeJS(formName) %>');
+
+				var messageId = form.one('#<%= namespace %>messageId' + i).val();
+
+				form.one('#<%= namespace %><%= randomNamespace %><%= Constants.CMD %>').val('<%= Constants.DELETE %>');
+				form.one('#<%= namespace %>messageId').val(messageId);
+
+				<portlet:namespace />sendMessage(form);
+			},
+			['aui-base']
+		);
+
+		Liferay.provide(
+			window,
+			'<portlet:namespace />onMessagePosted',
+			function(response, refreshPage) {
+				Liferay.after(
+					'<%= portletDisplay.getId() %>:portletRefreshed',
+					function(event) {
+						var A = AUI();
+
+						<portlet:namespace />showStatusMessage('success', '<%= UnicodeLanguageUtil.get(pageContext, "your-request-processed-successfully") %>');
+
+						location.hash = '#' + A.one('#<portlet:namespace />randomNamespace').val() + 'message_' + response.messageId;
+					}
+				);
+
+				if (refreshPage) {
+					window.location.reload();
+				}
+				else {
+					Liferay.Portlet.refresh('#p_p_id_<%= portletDisplay.getId() %>_');
+				}
+			},
+			['aui-base']
+		);
+
+		Liferay.provide(
+			window,
+			'<%= randomNamespace %>postReply',
+			function(i) {
+				var A = AUI();
+
+				var form = A.one('#<%= namespace %><%= HtmlUtil.escapeJS(formName) %>');
+
+				var body = form.one('#<%= namespace %><%= randomNamespace%>postReplyBody' + i).val();
+				var parentMessageId = form.one('#<%= namespace %>parentMessageId' + i).val();
+
+				form.one('#<%= namespace %><%= randomNamespace %><%= Constants.CMD %>').val('<%= Constants.ADD %>');
+				form.one('#<%= namespace %>parentMessageId').val(parentMessageId);
+				form.one('#<%= namespace %>body').val(body);
+
+				if (!themeDisplay.isSignedIn()) {
+					window.namespace = '<%= namespace %>';
+					window.randomNamespace = '<%= randomNamespace %>';
+
+					Liferay.Util.openWindow(
+						{
+							dialog: {
+								height: 460,
+								width: 770
+							},
+							id: '<%= namespace %>signInDialog',
+							title: '<%= UnicodeLanguageUtil.get(pageContext, "sign-in") %>',
+							uri: '<%= loginURL.toString() %>'
+						}
+					);
+				}
+				else {
+					<portlet:namespace />sendMessage(form);
+				}
+			},
+			['aui-base']
+		);
 
 		Liferay.provide(
 			window,
@@ -604,18 +657,28 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 			function(form, refreshPage) {
 				var A = AUI();
 
-				var uri = form.getAttribute('action');
+				var Util = Liferay.Util;
+
+				form = A.one(form);
+
+				var commentButtonList = form.all('.btn-comment');
 
 				A.io.request(
-					uri,
+					form.attr('action'),
 					{
-						dataType: 'json',
+						dataType: 'JSON',
 						form: {
 							id: form
 						},
 						on: {
+							complete: function(event, id, obj) {
+								Util.toggleDisabled(commentButtonList, false);
+							},
 							failure: function(event, id, obj) {
 								<portlet:namespace />showStatusMessage('error', '<%= UnicodeLanguageUtil.get(pageContext, "your-request-failed-to-complete") %>');
+							},
+							start: function() {
+								Util.toggleDisabled(commentButtonList, true);
 							},
 							success: function(event, id, obj) {
 								var response = this.get('responseData');
@@ -633,7 +696,7 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 									Liferay.fire('<%= portletDisplay.getId() %>:messagePosted', response);
 								}
 								else {
-									var errorKey = '';
+									var errorKey = '<%= UnicodeLanguageUtil.get(pageContext, "your-request-failed-to-complete") %>';
 
 									if (exception.indexOf('MessageBodyException') > -1) {
 										errorKey = '<%= UnicodeLanguageUtil.get(pageContext, "please-enter-a-valid-message") %>';
@@ -646,9 +709,6 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 									}
 									else if (exception.indexOf('RequiredMessageException') > -1) {
 										errorKey = '<%= UnicodeLanguageUtil.get(pageContext, "you-cannot-delete-a-root-message-that-has-more-than-one-immediate-reply") %>';
-									}
-									else {
-										errorKey = '<%= UnicodeLanguageUtil.get(pageContext, "your-request-failed-to-complete") %>';
 									}
 
 									<portlet:namespace />showStatusMessage('error', errorKey);
@@ -663,41 +723,15 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 
 		Liferay.provide(
 			window,
-			'<portlet:namespace />onMessagePosted',
-			function(response, refreshPage) {
-				var A = AUI();
-
-				Liferay.after(
-					'<%= portletDisplay.getId() %>:portletRefreshed',
-					function(event) {
-						<portlet:namespace />showStatusMessage('success', '<%= UnicodeLanguageUtil.get(pageContext, "your-request-processed-successfully") %>');
-
-						location.hash = '#' + A.one("#<portlet:namespace />randomNamespace").val() + 'message_' + response.messageId;
-					}
-				);
-
-				if (refreshPage) {
-					window.location.reload();
-				}
-				else {
-					Liferay.Portlet.refresh('#p_p_id_<%= portletDisplay.getId() %>_');
-				}
-			},
-			['aui-base']
-		);
-
-		Liferay.provide(
-			window,
 			'<portlet:namespace />showStatusMessage',
 			function(type, message) {
 				var A = AUI();
 
 				var messageContainer = A.one('#<portlet:namespace />discussion-status-messages');
 
-				messageContainer.removeClass('portlet-msg-error');
-				messageContainer.removeClass('portlet-msg-success');
+				messageContainer.removeClass('alert-danger').removeClass('alert-success');
 
-				messageContainer.addClass('portlet-msg-' + type);
+				messageContainer.addClass('alert alert-' + type);
 
 				messageContainer.html(message);
 
@@ -705,6 +739,99 @@ Format dateFormatDateTime = FastDateFormatFactoryUtil.getDateTime(locale, timeZo
 			},
 			['aui-base']
 		);
+
+		Liferay.provide(
+			window,
+			'<%= randomNamespace %>subscribeToComments',
+			function(subscribe) {
+				var A = AUI();
+
+				var form = A.one('#<%= namespace %><%= HtmlUtil.escapeJS(formName) %>');
+
+				var cmd = form.one('#<%= namespace %><%= randomNamespace %><%= Constants.CMD %>');
+
+				var cmdVal = '<%= Constants.UNSUBSCRIBE_FROM_COMMENTS %>';
+
+				if (subscribe) {
+					cmdVal = '<%= Constants.SUBSCRIBE_TO_COMMENTS %>';
+				}
+
+				cmd.val(cmdVal);
+
+				<portlet:namespace />sendMessage(form);
+			},
+			['aui-base']
+		);
+
+		Liferay.provide(
+			window,
+			'<%= randomNamespace %>updateMessage',
+			function(i, pending) {
+				var A = AUI();
+
+				var form = A.one('#<%= namespace %><%= HtmlUtil.escapeJS(formName) %>');
+
+				var body = form.one('#<%= namespace %><%= randomNamespace%>editReplyBody' + i).val();
+				var messageId = form.one('#<%= namespace %>messageId' + i).val();
+
+				if (pending) {
+					form.one('#<%= namespace %>workflowAction').val('<%= WorkflowConstants.ACTION_SAVE_DRAFT %>');
+				}
+
+				form.one('#<%= namespace %><%= randomNamespace %><%= Constants.CMD %>').val('<%= Constants.UPDATE %>');
+				form.one('#<%= namespace %>messageId').val(messageId);
+				form.one('#<%= namespace %>body').val(body);
+
+				<portlet:namespace />sendMessage(form);
+			},
+			['aui-base']
+		);
+	</aui:script>
+
+	<aui:script use="aui-popover,event-outside">
+		var discussionContainer = A.one('#<portlet:namespace />discussion-container');
+
+		var popover = new A.Popover(
+			{
+				cssClass: 'lfr-discussion-reply',
+				constrain: true,
+				position: 'top',
+				visible: false,
+				width: 400,
+				zIndex: Liferay.zIndex.TOOLTIP
+			}
+		).render(discussionContainer);
+
+		var handle;
+
+		var boundingBox = popover.get('boundingBox');
+
+		discussionContainer.delegate(
+			'click',
+			function(event) {
+				event.stopPropagation();
+
+				if (handle) {
+					handle.detach();
+
+					handle = null;
+				}
+
+				handle = boundingBox.once('clickoutside', popover.hide, popover);
+
+				popover.hide();
+
+				var currentTarget = event.currentTarget;
+
+				popover.set('align.node', currentTarget);
+				popover.set('bodyContent', currentTarget.attr('data-metaData'));
+				popover.set('headerContent', currentTarget.attr('data-title'));
+
+				popover.show();
+			},
+			'.lfr-discussion-parent-link'
+		);
+
 	</aui:script>
 </c:if>
 

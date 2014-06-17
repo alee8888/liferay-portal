@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,10 @@
 
 package com.liferay.portal.util;
 
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.service.http.HttpPrincipalTestUtil;
+import com.liferay.portal.util.test.TestPropsValues;
 
 import java.io.IOException;
 
@@ -32,16 +35,19 @@ import org.apache.http.StatusLine;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.protocol.ClientContext;
-import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.ByteArrayBody;
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 
@@ -50,7 +56,7 @@ import org.apache.http.util.EntityUtils;
  */
 public class BaseJsonClientTestCase {
 
-	public static final String URL_JSONWS = "/api/secure/jsonws";
+	public static final String URL_JSONWS = "/api/jsonws";
 
 	@SuppressWarnings("unchecked")
 	public void checkException(String responseContent) throws Exception {
@@ -90,26 +96,31 @@ public class BaseJsonClientTestCase {
 
 	public String executeRequest(HttpRequest request) throws Exception {
 		return executeRequest(
-			TestPropsValues.getLogin(), TestPropsValues.USER_PASSWORD, request);
+			HttpPrincipalTestUtil.getLogin(false),
+			TestPropsValues.USER_PASSWORD, request);
 	}
 
 	public String executeRequest(
 			String login, String password, HttpRequest request)
 		throws Exception {
 
-		DefaultHttpClient defaultHttpClient = new DefaultHttpClient();
+		HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
 
 		URL url = new URL(TestPropsValues.PORTAL_URL);
 
-		HttpHost httpHost = new HttpHost(
-			url.getHost(), url.getPort(), url.getProtocol());
-
 		CredentialsProvider credentialsProvider =
-			defaultHttpClient.getCredentialsProvider();
+			new BasicCredentialsProvider();
 
 		credentialsProvider.setCredentials(
 			new AuthScope(url.getHost(), url.getPort()),
 			new UsernamePasswordCredentials(login, password));
+
+		httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+
+		HttpClient httpClient = httpClientBuilder.build();
+
+		HttpHost httpHost = new HttpHost(
+			url.getHost(), url.getPort(), url.getProtocol());
 
 		BasicAuthCache basicAuthCache = new BasicAuthCache();
 
@@ -119,9 +130,10 @@ public class BaseJsonClientTestCase {
 
 		BasicHttpContext basicHttpContext = new BasicHttpContext();
 
-		basicHttpContext.setAttribute(ClientContext.AUTH_CACHE, basicAuthCache);
+		basicHttpContext.setAttribute(
+			HttpClientContext.AUTH_CACHE, basicAuthCache);
 
-		return defaultHttpClient.execute(
+		return httpClient.execute(
 			httpHost, request, new StringHandler(), basicHttpContext);
 	}
 
@@ -129,23 +141,28 @@ public class BaseJsonClientTestCase {
 			byte[] bytes, String mimeType, String fileName)
 		throws Exception {
 
-		return new ByteArrayBody(bytes, mimeType, fileName);
+		return new ByteArrayBody(bytes, ContentType.create(mimeType), fileName);
 	}
 
-	public MultipartEntity getMultipartEntity(String[] names, Object[] values)
+	public MultipartEntityBuilder getMultipartEntityBuilder(
+			String[] names, Object[] values)
 		throws Exception {
 
-		MultipartEntity multipartEntity = new MultipartEntity();
+		MultipartEntityBuilder multipartEntityBuilder =
+			MultipartEntityBuilder.create();
 
 		for (int i = 0; i < names.length; i++) {
-			multipartEntity.addPart(names[i], getStringBody(values[i]));
+			multipartEntityBuilder.addPart(names[i], getStringBody(values[i]));
 		}
 
-		return multipartEntity;
+		return multipartEntityBuilder;
 	}
 
 	public ContentBody getStringBody(Object value) throws Exception {
-		return new StringBody(String.valueOf(value), Charset.defaultCharset());
+		return new StringBody(
+			String.valueOf(value),
+			ContentType.create(
+				ContentTypes.TEXT_PLAIN, Charset.defaultCharset()));
 	}
 
 	public String parseResponseContent(
@@ -185,6 +202,7 @@ public class BaseJsonClientTestCase {
 
 	private class StringHandler implements ResponseHandler<String> {
 
+		@Override
 		public String handleResponse(HttpResponse response)
 			throws HttpResponseException, IOException {
 

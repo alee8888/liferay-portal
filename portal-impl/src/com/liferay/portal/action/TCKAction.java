@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portal.action;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.Layout;
@@ -53,8 +54,8 @@ public class TCKAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		try {
@@ -82,7 +83,7 @@ public class TCKAction extends Action {
 			}
 
 			long userId = user.getUserId();
-			long groupId = user.getGroup().getGroupId();
+			long groupId = user.getGroupId();
 
 			ServiceContext serviceContext = new ServiceContext();
 
@@ -119,7 +120,8 @@ public class TCKAction extends Action {
 				themeDisplay.getPathMain() + "/portal/layout?p_l_id=" +
 					layout.getPlid());
 
-			return mapping.findForward(ActionConstants.COMMON_FORWARD_JSP);
+			return actionMapping.findForward(
+				ActionConstants.COMMON_FORWARD_JSP);
 		}
 		catch (Exception e) {
 			if (_log.isWarnEnabled()) {
@@ -148,7 +150,7 @@ public class TCKAction extends Action {
 			String emailAddress = "tck@liferay.com";
 			long facebookId = 0;
 			String openId = StringPool.BLANK;
-			Locale locale = Locale.US;
+			Locale locale = LocaleUtil.US;
 			String firstName = "TCK";
 			String middleName = StringPool.BLANK;
 			String lastName = "User";

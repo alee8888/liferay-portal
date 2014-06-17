@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,20 +27,25 @@ import java.util.Properties;
  */
 public class LiferaySearchProvider implements SearchProvider {
 
+	@Override
 	public Collection<WikiPage> findPages(String query) {
 		return Collections.emptyList();
 	}
 
+	@Override
 	public String getProviderInfo() {
 		return LiferaySearchProvider.class.getName();
 	}
 
+	@Override
 	public void initialize(WikiEngine engine, Properties props) {
 	}
 
+	@Override
 	public void pageRemoved(WikiPage page) {
 	}
 
+	@Override
 	public void reindexPage(WikiPage page) {
 	}
 

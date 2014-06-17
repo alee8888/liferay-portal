@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,8 +23,8 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portlet.journal.service.http.JournalFeedServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portlet.journal.service.http.JournalFeedServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portlet.journal.service.http.JournalFeedServiceSoap
  * @generated
  */
 public class JournalFeedSoap implements Serializable {
@@ -52,7 +52,7 @@ public class JournalFeedSoap implements Serializable {
 		soapModel.setTargetLayoutFriendlyUrl(model.getTargetLayoutFriendlyUrl());
 		soapModel.setTargetPortletId(model.getTargetPortletId());
 		soapModel.setContentField(model.getContentField());
-		soapModel.setFeedType(model.getFeedType());
+		soapModel.setFeedFormat(model.getFeedFormat());
 		soapModel.setFeedVersion(model.getFeedVersion());
 
 		return soapModel;
@@ -274,12 +274,12 @@ public class JournalFeedSoap implements Serializable {
 		_contentField = contentField;
 	}
 
-	public String getFeedType() {
-		return _feedType;
+	public String getFeedFormat() {
+		return _feedFormat;
 	}
 
-	public void setFeedType(String feedType) {
-		_feedType = feedType;
+	public void setFeedFormat(String feedFormat) {
+		_feedFormat = feedFormat;
 	}
 
 	public double getFeedVersion() {
@@ -311,6 +311,6 @@ public class JournalFeedSoap implements Serializable {
 	private String _targetLayoutFriendlyUrl;
 	private String _targetPortletId;
 	private String _contentField;
-	private String _feedType;
+	private String _feedFormat;
 	private double _feedVersion;
 }

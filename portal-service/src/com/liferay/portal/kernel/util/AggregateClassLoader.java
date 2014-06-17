@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portal.kernel.util;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.memory.EqualityWeakReference;
 
 import java.io.IOException;
 
@@ -42,7 +43,7 @@ public class AggregateClassLoader extends ClassLoader {
 	public static ClassLoader getAggregateClassLoader(
 		ClassLoader parentClassLoader, ClassLoader[] classLoaders) {
 
-		if ((classLoaders == null) || (classLoaders.length == 0)) {
+		if (ArrayUtil.isEmpty(classLoaders)) {
 			return null;
 		}
 
@@ -63,7 +64,7 @@ public class AggregateClassLoader extends ClassLoader {
 	public static ClassLoader getAggregateClassLoader(
 		ClassLoader[] classLoaders) {
 
-		if ((classLoaders == null) || (classLoaders.length == 0)) {
+		if (ArrayUtil.isEmpty(classLoaders)) {
 			return null;
 		}
 
@@ -76,7 +77,9 @@ public class AggregateClassLoader extends ClassLoader {
 	}
 
 	public void addClassLoader(ClassLoader classLoader) {
-		if (getClassLoaders().contains(classLoader)) {
+		List<ClassLoader> classLoaders = getClassLoaders();
+
+		if (classLoaders.contains(classLoader)) {
 			return;
 		}
 
@@ -94,7 +97,7 @@ public class AggregateClassLoader extends ClassLoader {
 		}
 		else {
 			_classLoaderReferences.add(
-				new WeakReference<ClassLoader>(classLoader));
+				new EqualityWeakReference<ClassLoader>(classLoader));
 		}
 	}
 
@@ -139,7 +142,7 @@ public class AggregateClassLoader extends ClassLoader {
 		List<ClassLoader> classLoaders = new ArrayList<ClassLoader>(
 			_classLoaderReferences.size());
 
-		Iterator<WeakReference<ClassLoader>> itr =
+		Iterator<EqualityWeakReference<ClassLoader>> itr =
 			_classLoaderReferences.iterator();
 
 		while (itr.hasNext()) {
@@ -289,10 +292,10 @@ public class AggregateClassLoader extends ClassLoader {
 		catch (InvocationTargetException ite) {
 			Throwable t = ite.getTargetException();
 
-			throw new IOException(t.getMessage());
+			throw new IOException(t);
 		}
 		catch (Exception e) {
-			throw new IOException(e.getMessage());
+			throw new IOException(e);
 		}
 	}
 
@@ -301,7 +304,7 @@ public class AggregateClassLoader extends ClassLoader {
 		throws ClassNotFoundException {
 
 		try {
-			return (Class<?>) _loadClassMethod.invoke(
+			return (Class<?>)_loadClassMethod.invoke(
 				classLoader, name, resolve);
 		}
 		catch (InvocationTargetException ite) {
@@ -320,8 +323,8 @@ public class AggregateClassLoader extends ClassLoader {
 	private static Method _getResourcesMethod;
 	private static Method _loadClassMethod;
 
-	private List<WeakReference<ClassLoader>> _classLoaderReferences =
-		new ArrayList<WeakReference<ClassLoader>>();
+	private List<EqualityWeakReference<ClassLoader>> _classLoaderReferences =
+		new ArrayList<EqualityWeakReference<ClassLoader>>();
 	private WeakReference<ClassLoader> _parentClassLoaderReference;
 
 	static {

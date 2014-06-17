@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,10 +16,8 @@ package com.liferay.portal.kernel.jndi;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.kernel.util.StringUtil;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
@@ -30,35 +28,26 @@ import javax.naming.NamingException;
  */
 public class JNDIUtil {
 
-	public static Object lookup(Context ctx, String location)
+	public static Object lookup(Context context, String location)
 		throws NamingException {
 
-		return lookup(ctx, location, false);
+		return _lookup(context, location);
 	}
 
-	public static Object lookup(Context ctx, String location, boolean cache)
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #lookup(Context, String)}
+	 */
+	@Deprecated
+	public static Object lookup(Context context, String location, boolean cache)
 		throws NamingException {
 
-		Object obj = null;
-
-		if (cache) {
-			obj = _cache.get(location);
-
-			if (obj == null) {
-				obj = _lookup(ctx, location);
-
-				_cache.put(location, obj);
-			}
-		}
-		else {
-			obj = _lookup(ctx, location);
-		}
-
-		return obj;
+		return _lookup(context, location);
 	}
 
-	private static Object _lookup(Context ctx, String location)
+	private static Object _lookup(Context context, String location)
 		throws NamingException {
+
+		PortalRuntimePermission.checkGetBeanProperty(JNDIUtil.class);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Lookup " + location);
@@ -67,13 +56,13 @@ public class JNDIUtil {
 		Object obj = null;
 
 		try {
-			obj = ctx.lookup(location);
+			obj = context.lookup(location);
 		}
 		catch (NamingException ne1) {
 
 			// java:comp/env/ObjectName to ObjectName
 
-			if (location.indexOf("java:comp/env/") != -1) {
+			if (location.contains("java:comp/env/")) {
 				try {
 					String newLocation = StringUtil.replace(
 						location, "java:comp/env/", "");
@@ -83,7 +72,7 @@ public class JNDIUtil {
 						_log.debug("Attempt " + newLocation);
 					}
 
-					obj = ctx.lookup(newLocation);
+					obj = context.lookup(newLocation);
 				}
 				catch (NamingException ne2) {
 
@@ -97,13 +86,13 @@ public class JNDIUtil {
 						_log.debug("Attempt " + newLocation);
 					}
 
-					obj = ctx.lookup(newLocation);
+					obj = context.lookup(newLocation);
 				}
 			}
 
 			// java:ObjectName to ObjectName
 
-			else if (location.indexOf("java:") != -1) {
+			else if (location.contains("java:")) {
 				try {
 					String newLocation = StringUtil.replace(
 						location, "java:", "");
@@ -113,7 +102,7 @@ public class JNDIUtil {
 						_log.debug("Attempt " + newLocation);
 					}
 
-					obj = ctx.lookup(newLocation);
+					obj = context.lookup(newLocation);
 				}
 				catch (NamingException ne2) {
 
@@ -127,13 +116,13 @@ public class JNDIUtil {
 						_log.debug("Attempt " + newLocation);
 					}
 
-					obj = ctx.lookup(newLocation);
+					obj = context.lookup(newLocation);
 				}
 			}
 
 			// ObjectName to java:ObjectName
 
-			else if (location.indexOf("java:") == -1) {
+			else if (!location.contains("java:")) {
 				try {
 					String newLocation = "java:" + location;
 
@@ -142,7 +131,7 @@ public class JNDIUtil {
 						_log.debug("Attempt " + newLocation);
 					}
 
-					obj = ctx.lookup(newLocation);
+					obj = context.lookup(newLocation);
 				}
 				catch (NamingException ne2) {
 
@@ -155,7 +144,7 @@ public class JNDIUtil {
 						_log.debug("Attempt " + newLocation);
 					}
 
-					obj = ctx.lookup(newLocation);
+					obj = context.lookup(newLocation);
 				}
 			}
 			else {
@@ -167,7 +156,5 @@ public class JNDIUtil {
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(JNDIUtil.class);
-
-	private static Map<String, Object> _cache = new HashMap<String, Object>();
 
 }

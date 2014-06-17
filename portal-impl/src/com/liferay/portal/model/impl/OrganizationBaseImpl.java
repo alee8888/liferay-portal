@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,9 +14,14 @@
 
 package com.liferay.portal.model.impl;
 
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.service.OrganizationLocalServiceUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The extended model base implementation for the Organization service. Represents a row in the &quot;Organization_&quot; database table, with each column mapped to a property of this class.
@@ -37,12 +42,49 @@ public abstract class OrganizationBaseImpl extends OrganizationModelImpl
 	 *
 	 * Never modify or reference this class directly. All methods that expect a organization model instance should use the {@link Organization} interface instead.
 	 */
-	public void persist() throws SystemException {
+	@Override
+	public void persist() {
 		if (this.isNew()) {
 			OrganizationLocalServiceUtil.addOrganization(this);
 		}
 		else {
 			OrganizationLocalServiceUtil.updateOrganization(this);
 		}
+	}
+
+	@Override
+	@SuppressWarnings("unused")
+	public String buildTreePath() throws PortalException {
+		List<Organization> organizations = new ArrayList<Organization>();
+
+		Organization organization = this;
+
+		while (organization != null) {
+			organizations.add(organization);
+
+			organization = OrganizationLocalServiceUtil.fetchOrganization(organization.getParentOrganizationId());
+		}
+
+		StringBundler sb = new StringBundler((organizations.size() * 2) + 1);
+
+		sb.append(StringPool.SLASH);
+
+		for (int i = organizations.size() - 1; i >= 0; i--) {
+			organization = organizations.get(i);
+
+			sb.append(organization.getOrganizationId());
+			sb.append(StringPool.SLASH);
+		}
+
+		return sb.toString();
+	}
+
+	@Override
+	public void updateTreePath(String treePath) {
+		Organization organization = this;
+
+		organization.setTreePath(treePath);
+
+		OrganizationLocalServiceUtil.updateOrganization(organization);
 	}
 }

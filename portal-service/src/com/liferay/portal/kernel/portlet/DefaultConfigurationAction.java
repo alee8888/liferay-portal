@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,201 +14,79 @@
 
 package com.liferay.portal.kernel.portlet;
 
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.servlet.SessionErrors;
-import com.liferay.portal.kernel.servlet.SessionMessages;
-import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PropertiesParamUtil;
-import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.UnicodeProperties;
-import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.model.Portlet;
-import com.liferay.portal.security.permission.ActionKeys;
-import com.liferay.portal.service.PortletLocalServiceUtil;
-import com.liferay.portal.service.permission.PortletPermissionUtil;
-import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portlet.PortletConfigFactoryUtil;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.liferay.portal.kernel.settings.PortletPreferencesSettings;
+import com.liferay.portal.kernel.settings.Settings;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import javax.portlet.ActionRequest;
-import javax.portlet.ActionResponse;
-import javax.portlet.PortletConfig;
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
-import javax.portlet.RenderRequest;
-import javax.portlet.RenderResponse;
-import javax.portlet.ResourceRequest;
-import javax.portlet.ResourceResponse;
-
-import javax.servlet.ServletContext;
+import javax.portlet.ReadOnlyException;
 
 /**
- * @author Brian Wing Shun Chan
- * @author Julio Camarero
+ * @author Iván Zaera
  */
 public class DefaultConfigurationAction
+	extends SettingsConfigurationAction
 	implements ConfigurationAction, ResourceServingConfigurationAction {
 
-	public static final String PREFERENCES_PREFIX = "preferences--";
-
-	public String getLocalizedParameter(
-		PortletRequest portletRequest, String name) {
-
-		String languageId = ParamUtil.getString(portletRequest, "languageId");
-
-		return getParameter(
-			portletRequest,
-			name.concat(StringPool.UNDERLINE).concat(languageId));
+	public DefaultConfigurationAction() {
+		setParameterNamePrefix("preferences--");
 	}
 
-	public String getParameter(PortletRequest portletRequest, String name) {
-		name = PREFERENCES_PREFIX.concat(name).concat(StringPool.DOUBLE_DASH);
-
-		return ParamUtil.getString(portletRequest, name);
+	@Override
+	protected Settings getSettings(ActionRequest actionRequest) {
+		return new PortletPreferencesSettings(actionRequest.getPreferences());
 	}
 
-	public void processAction(
-			PortletConfig portletConfig, ActionRequest actionRequest,
-			ActionResponse actionResponse)
-		throws Exception {
+	@SuppressWarnings("unused")
+	protected void postProcess(
+			long companyId, PortletRequest portletRequest,
+			PortletPreferences portletPreferences)
+		throws PortalException {
+	}
 
-		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
+	@Override
+	protected void postProcess(
+			long companyId, PortletRequest portletRequest, Settings settings)
+		throws PortalException {
 
-		if (!cmd.equals(Constants.UPDATE)) {
-			return;
-		}
+		PortletPreferencesSettings portletPreferencesSettings =
+			(PortletPreferencesSettings)settings;
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		postProcess(
+			companyId, portletRequest,
+			portletPreferencesSettings.getPortletPreferences());
+	}
 
-		UnicodeProperties properties = PropertiesParamUtil.getProperties(
-			actionRequest, PREFERENCES_PREFIX);
+	protected void removeDefaultValue(
+			PortletRequest portletRequest,
+			PortletPreferences portletPreferences, String key,
+			String defaultValue) {
 
-		String portletResource = ParamUtil.getString(
-			actionRequest, "portletResource");
+		String value = getParameter(portletRequest, key);
 
-		PortletPermissionUtil.check(
-			themeDisplay.getPermissionChecker(), themeDisplay.getLayout(),
-			portletResource, ActionKeys.CONFIGURATION);
+		if (defaultValue.equals(value) ||
+			StringUtil.equalsIgnoreBreakLine(defaultValue, value)) {
 
-		PortletPreferences portletPreferences =
-			PortletPreferencesFactoryUtil.getPortletSetup(
-				actionRequest, portletResource);
-
-		for (Map.Entry<String, String> entry : properties.entrySet()) {
-			String name = entry.getKey();
-			String value = entry.getValue();
-
-			portletPreferences.setValue(name, value);
-		}
-
-		Map<String, String[]> portletPreferencesMap =
-			(Map<String, String[]>)actionRequest.getAttribute(
-				WebKeys.PORTLET_PREFERENCES_MAP);
-
-		if (portletPreferencesMap != null) {
-			for (Map.Entry<String, String[]> entry :
-					portletPreferencesMap.entrySet()) {
-
-				String name = entry.getKey();
-				String[] values = entry.getValue();
-
-				portletPreferences.setValues(name, values);
+			try {
+				portletPreferences.reset(key);
+			}
+			catch (ReadOnlyException roe) {
+				throw new SystemException(roe);
 			}
 		}
-
-		if (SessionErrors.isEmpty(actionRequest)) {
-			portletPreferences.store();
-
-			SessionMessages.add(
-				actionRequest,
-				portletConfig.getPortletName() +
-					SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
-				portletResource);
-
-			SessionMessages.add(
-				actionRequest,
-				portletConfig.getPortletName() +
-					SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
-		}
 	}
 
-	public String render(
-			PortletConfig portletConfig, RenderRequest renderRequest,
-			RenderResponse renderResponse)
-		throws Exception {
+	@Override
+	protected void updateMultiValuedKeys(ActionRequest actionRequest) {
 
-		PortletConfig selPortletConfig = getSelPortletConfig(renderRequest);
+		// Legacy configuration actions that are not based on Settings must
+		// ignore this method to avoid failures due to multi valued keys not
+		// registering with SettingsConfigurationAction
 
-		String configTemplate = selPortletConfig.getInitParameter(
-			"config-template");
-
-		if (Validator.isNotNull(configTemplate)) {
-			return configTemplate;
-		}
-
-		String configJSP = selPortletConfig.getInitParameter("config-jsp");
-
-		if (Validator.isNotNull(configJSP)) {
-			return configJSP;
-		}
-
-		return "/configuration.jsp";
-	}
-
-	public void serveResource(
-			PortletConfig portletConfig, ResourceRequest resourceRequest,
-			ResourceResponse resourceResponse)
-		throws Exception {
-	}
-
-	public void setPreference(
-		PortletRequest portletRequest, String name, String value) {
-
-		setPreference(portletRequest, name, new String[] {value});
-	}
-
-	public void setPreference(
-		PortletRequest portletRequest, String name, String[] values) {
-
-		Map<String, String[]> portletPreferencesMap =
-			(Map<String, String[]>)portletRequest.getAttribute(
-				WebKeys.PORTLET_PREFERENCES_MAP);
-
-		if (portletPreferencesMap == null) {
-			portletPreferencesMap = new HashMap<String, String[]>();
-
-			portletRequest.setAttribute(
-				WebKeys.PORTLET_PREFERENCES_MAP, portletPreferencesMap);
-		}
-
-		portletPreferencesMap.put(name, values);
-	}
-
-	protected PortletConfig getSelPortletConfig(PortletRequest portletRequest)
-		throws SystemException {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		String portletResource = ParamUtil.getString(
-			portletRequest, "portletResource");
-
-		Portlet selPortlet = PortletLocalServiceUtil.getPortletById(
-			themeDisplay.getCompanyId(), portletResource);
-
-		ServletContext servletContext =
-			(ServletContext)portletRequest.getAttribute(WebKeys.CTX);
-
-		PortletConfig selPortletConfig = PortletConfigFactoryUtil.create(
-			selPortlet, servletContext);
-
-		return selPortletConfig;
 	}
 
 }

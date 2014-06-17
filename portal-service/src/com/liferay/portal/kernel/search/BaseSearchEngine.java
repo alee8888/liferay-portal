@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,14 +17,19 @@ package com.liferay.portal.kernel.search;
 import com.liferay.portal.kernel.cluster.Priority;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 
 /**
  * @author Bruno Farache
+ * @author Carlos Sierra Andrés
+ * @author Marcellus Tavares
  */
+@DoPrivileged
 public class BaseSearchEngine implements SearchEngine {
 
+	@Override
 	public BooleanClauseFactory getBooleanClauseFactory() {
 		if (_booleanClauseFactory == null) {
 			ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
@@ -46,105 +51,121 @@ public class BaseSearchEngine implements SearchEngine {
 		return _booleanClauseFactory;
 	}
 
+	@Override
 	public BooleanQueryFactory getBooleanQueryFactory() {
-		if (_booleanQueryFactory == null) {
-			ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
+		if (_booleanQueryFactory != null) {
+			return _booleanQueryFactory;
+		}
 
-			String className =
-				"com.liferay.portal.search.lucene.BooleanQueryFactoryImpl";
+		ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
 
-			if (!isLuceneBased()) {
-				className =
-					"com.liferay.portal.search.generic.BooleanQueryFactoryImpl";
-			}
+		String className =
+			"com.liferay.portal.search.lucene.BooleanQueryFactoryImpl";
 
-			try {
-				_booleanQueryFactory =
-					(BooleanQueryFactory)InstanceFactory.newInstance(
-						classLoader, className);
-			}
-			catch (Exception e) {
-				_log.fatal(
-					"Unable to locate appropriate BooleanQueryFactory", e);
-			}
+		if (!isLuceneBased()) {
+			className =
+				"com.liferay.portal.search.generic.BooleanQueryFactoryImpl";
+		}
+
+		try {
+			_booleanQueryFactory =
+				(BooleanQueryFactory)InstanceFactory.newInstance(
+					classLoader, className);
+		}
+		catch (Exception e) {
+			_log.fatal("Unable to locate appropriate BooleanQueryFactory", e);
 		}
 
 		return _booleanQueryFactory;
 	}
 
+	@Override
 	public Priority getClusteredWritePriority() {
 		return _clusteredWritePriority;
 	}
 
+	@Override
 	public IndexSearcher getIndexSearcher() {
 		return _indexSearcher;
 	}
 
+	@Override
 	public IndexWriter getIndexWriter() {
 		return _indexWriter;
 	}
 
+	@Override
 	public TermQueryFactory getTermQueryFactory() {
-		if (_termQueryFactory == null) {
-			ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
+		if (_termQueryFactory != null) {
+			return _termQueryFactory;
+		}
 
-			String className =
-				"com.liferay.portal.search.lucene.TermQueryFactoryImpl";
+		ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
 
-			if (!isLuceneBased()) {
-				className =
-					"com.liferay.portal.search.generic.TermQueryFactoryImpl";
-			}
+		String className =
+			"com.liferay.portal.search.lucene.TermQueryFactoryImpl";
 
-			try {
-				_termQueryFactory =
-					(TermQueryFactory)InstanceFactory.newInstance(
-						classLoader, className);
-			}
-			catch (Exception e) {
-				_log.fatal(
-					"Unable to locate appropriate BooleanQueryFactory", e);
-			}
+		if (!isLuceneBased()) {
+			className =
+				"com.liferay.portal.search.generic.TermQueryFactoryImpl";
+		}
+
+		try {
+			_termQueryFactory =
+				(TermQueryFactory)InstanceFactory.newInstance(
+					classLoader, className);
+		}
+		catch (Exception e) {
+			_log.fatal("Unable to locate appropriate BooleanQueryFactory", e);
 		}
 
 		return _termQueryFactory;
 	}
 
+	@Override
 	public TermRangeQueryFactory getTermRangeQueryFactory() {
-		if (_termRangeQueryFactory == null) {
-			ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
+		if (_termRangeQueryFactory != null) {
+			return _termRangeQueryFactory;
+		}
 
-			String className =
-				"com.liferay.portal.search.lucene.TermRangeQueryFactoryImpl";
+		ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
 
-			if (!isLuceneBased()) {
-				className =
-					"com.liferay.portal.search.generic." +
-						"TermRangeQueryFactoryImpl";
-			}
+		String className =
+			"com.liferay.portal.search.lucene.TermRangeQueryFactoryImpl";
 
-			try {
-				_termRangeQueryFactory =
-					(TermRangeQueryFactory)InstanceFactory.newInstance(
-						classLoader, className);
-			}
-			catch (Exception e) {
-				_log.fatal(
-					"Unable to locate appropriate BooleanQueryFactory", e);
-			}
+		if (!isLuceneBased()) {
+			className =
+				"com.liferay.portal.search.generic." +
+					"TermRangeQueryFactoryImpl";
+		}
+
+		try {
+			_termRangeQueryFactory =
+				(TermRangeQueryFactory)InstanceFactory.newInstance(
+					classLoader, className);
+		}
+		catch (Exception e) {
+			_log.fatal("Unable to locate appropriate BooleanQueryFactory", e);
 		}
 
 		return _termRangeQueryFactory;
 	}
 
+	@Override
 	public String getVendor() {
 		return _vendor;
 	}
 
+	@Override
+	public void initialize(long companyId) {
+	}
+
+	@Override
 	public boolean isClusteredWrite() {
 		return _clusteredWrite;
 	}
 
+	@Override
 	public boolean isLuceneBased() {
 		return _luceneBased;
 	}
@@ -201,8 +222,8 @@ public class BaseSearchEngine implements SearchEngine {
 	private BooleanQueryFactory _booleanQueryFactory;
 	private boolean _clusteredWrite;
 	private Priority _clusteredWritePriority;
-	private IndexSearcher _indexSearcher;
-	private IndexWriter _indexWriter;
+	private IndexSearcher _indexSearcher = new DummyIndexSearcher();
+	private IndexWriter _indexWriter = new DummyIndexWriter();
 	private boolean _luceneBased;
 	private TermQueryFactory _termQueryFactory;
 	private TermRangeQueryFactory _termRangeQueryFactory;

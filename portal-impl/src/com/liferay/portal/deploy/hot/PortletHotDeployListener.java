@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,8 +15,6 @@
 package com.liferay.portal.deploy.hot;
 
 import com.liferay.portal.apache.bridges.struts.LiferayServletContextProvider;
-import com.liferay.portal.kernel.atom.AtomCollectionAdapter;
-import com.liferay.portal.kernel.atom.AtomCollectionAdapterRegistryUtil;
 import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
 import com.liferay.portal.kernel.deploy.hot.BaseHotDeployListener;
@@ -27,38 +25,29 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletBag;
-import com.liferay.portal.kernel.scheduler.SchedulerEngineUtil;
+import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
 import com.liferay.portal.kernel.scheduler.SchedulerEntry;
 import com.liferay.portal.kernel.scheduler.StorageType;
-import com.liferay.portal.kernel.search.Indexer;
-import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.servlet.DirectServletRegistryUtil;
 import com.liferay.portal.kernel.servlet.FileTimestampUtil;
 import com.liferay.portal.kernel.servlet.PortletServlet;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.servlet.ServletContextProvider;
-import com.liferay.portal.kernel.trash.TrashHandler;
-import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
+import com.liferay.portal.kernel.settings.SettingsFactoryUtil;
 import com.liferay.portal.kernel.util.ClassUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.InfrastructureUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.webdav.WebDAVUtil;
-import com.liferay.portal.kernel.workflow.WorkflowHandler;
-import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.PortletApp;
 import com.liferay.portal.model.PortletCategory;
 import com.liferay.portal.model.PortletFilter;
 import com.liferay.portal.model.PortletURLListener;
-import com.liferay.portal.poller.PollerProcessorUtil;
-import com.liferay.portal.pop.POPServerUtil;
 import com.liferay.portal.security.permission.ResourceActionsUtil;
 import com.liferay.portal.service.PortletLocalServiceUtil;
 import com.liferay.portal.service.ResourceActionLocalServiceUtil;
@@ -67,7 +56,6 @@ import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebAppPool;
 import com.liferay.portal.util.WebKeys;
-import com.liferay.portal.xmlrpc.XmlRpcServlet;
 import com.liferay.portlet.CustomUserAttributes;
 import com.liferay.portlet.InvokerPortlet;
 import com.liferay.portlet.PortletBagFactory;
@@ -77,12 +65,7 @@ import com.liferay.portlet.PortletFilterFactory;
 import com.liferay.portlet.PortletInstanceFactoryUtil;
 import com.liferay.portlet.PortletResourceBundles;
 import com.liferay.portlet.PortletURLListenerFactory;
-import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
-import com.liferay.portlet.asset.model.AssetRendererFactory;
-import com.liferay.portlet.social.service.SocialActivityInterpreterLocalServiceUtil;
-import com.liferay.portlet.social.service.SocialRequestInterpreterLocalServiceUtil;
 import com.liferay.util.bridges.php.PHPPortlet;
-import com.liferay.util.log4j.Log4JUtil;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -114,6 +97,7 @@ import org.apache.portals.bridges.struts.StrutsPortlet;
  */
 public class PortletHotDeployListener extends BaseHotDeployListener {
 
+	@Override
 	public void invokeDeploy(HotDeployEvent hotDeployEvent)
 		throws HotDeployException {
 
@@ -122,10 +106,14 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error registering portlets for ", t);
+				hotDeployEvent,
+				"Error registering portlets for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
+	@Override
 	public void invokeUndeploy(HotDeployEvent hotDeployEvent)
 		throws HotDeployException {
 
@@ -134,7 +122,10 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error unregistering portlets for ", t);
+				hotDeployEvent,
+				"Error unregistering portlets for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -205,64 +196,16 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 			PortletURLListenerFactory.destroy(portletURLListener);
 		}
 
-		List<Indexer> indexers = portlet.getIndexerInstances();
-
-		for (Indexer indexer : indexers) {
-			IndexerRegistryUtil.unregister(indexer);
-		}
-
 		if (PropsValues.SCHEDULER_ENABLED) {
 			List<SchedulerEntry> schedulerEntries =
 				portlet.getSchedulerEntries();
 
 			if ((schedulerEntries != null) && !schedulerEntries.isEmpty()) {
 				for (SchedulerEntry schedulerEntry : schedulerEntries) {
-					SchedulerEngineUtil.unschedule(
+					SchedulerEngineHelperUtil.unschedule(
 						schedulerEntry, StorageType.MEMORY_CLUSTERED);
 				}
 			}
-		}
-
-		PollerProcessorUtil.deletePollerProcessor(portlet.getPortletId());
-
-		POPServerUtil.deleteListener(portlet.getPopMessageListenerInstance());
-
-		SocialActivityInterpreterLocalServiceUtil.deleteActivityInterpreter(
-			portlet.getSocialActivityInterpreterInstance());
-
-		SocialRequestInterpreterLocalServiceUtil.deleteRequestInterpreter(
-			portlet.getSocialRequestInterpreterInstance());
-
-		WebDAVUtil.deleteStorage(portlet.getWebDAVStorageInstance());
-
-		XmlRpcServlet.unregisterMethod(portlet.getXmlRpcMethodInstance());
-
-		List<AssetRendererFactory> assetRendererFactories =
-			portlet.getAssetRendererFactoryInstances();
-
-		if (assetRendererFactories != null) {
-			AssetRendererFactoryRegistryUtil.unregister(assetRendererFactories);
-		}
-
-		List<AtomCollectionAdapter<?>> atomCollectionAdapters =
-			portlet.getAtomCollectionAdapterInstances();
-
-		if (atomCollectionAdapters != null) {
-			AtomCollectionAdapterRegistryUtil.unregister(
-				atomCollectionAdapters);
-		}
-
-		List<TrashHandler> trashHandlers = portlet.getTrashHandlerInstances();
-
-		if (trashHandlers != null) {
-			TrashHandlerRegistryUtil.unregister(trashHandlers);
-		}
-
-		List<WorkflowHandler> workflowHandlers =
-			portlet.getWorkflowHandlerInstances();
-
-		if (workflowHandlers != null) {
-			WorkflowHandlerRegistryUtil.unregister(workflowHandlers);
 		}
 
 		PortletInstanceFactoryUtil.destroy(portlet);
@@ -305,10 +248,6 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 			servletContextName, servletContext, xmls,
 			hotDeployEvent.getPluginPackage());
 
-		ClassLoader classLoader = hotDeployEvent.getContextClassLoader();
-
-		initLogger(classLoader);
-
 		boolean portletAppInitialized = false;
 
 		boolean phpPortlet = false;
@@ -316,7 +255,10 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 
 		PortletBagFactory portletBagFactory = new PortletBagFactory();
 
+		ClassLoader classLoader = hotDeployEvent.getContextClassLoader();
+
 		portletBagFactory.setClassLoader(classLoader);
+
 		portletBagFactory.setServletContext(servletContext);
 		portletBagFactory.setWARFile(true);
 
@@ -325,7 +267,7 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		while (itr.hasNext()) {
 			Portlet portlet = itr.next();
 
-			PortletBag portletBag = initPortlet(portlet, portletBagFactory);
+			PortletBag portletBag = portletBagFactory.create(portlet);
 
 			if (portletBag == null) {
 				itr.remove();
@@ -333,8 +275,8 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 			else {
 				if (!portletAppInitialized) {
 					initPortletApp(
-						portlet, servletContextName, servletContext,
-						classLoader);
+						servletContextName, servletContext, classLoader,
+						portlet);
 
 					portletAppInitialized = true;
 				}
@@ -347,7 +289,6 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 						PHPPortlet.class.getName())) {
 
 					phpPortlet = true;
-
 				}
 
 				if (ClassUtil.isSubclass(
@@ -429,8 +370,8 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 
 		for (Portlet portlet : portlets) {
 			boolean ready = GetterUtil.getBoolean(
-				servletContext.getInitParameter(
-					"portlets-ready-by-default"), true);
+				servletContext.getInitParameter("portlets-ready-by-default"),
+				true);
 
 			portlet.setReady(ready);
 		}
@@ -441,10 +382,11 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 
 		DirectServletRegistryUtil.clearServlets();
 		FileTimestampUtil.reset();
+		SettingsFactoryUtil.clearCache();
 
-		_portlets.put(
-			servletContextName,
-			new ObjectValuePair<long[], List<Portlet>>(companyIds, portlets));
+		_portlets.put(servletContextName, portlets);
+
+		servletContext.setAttribute(WebKeys.PLUGIN_PORTLETS, portlets);
 
 		if (_log.isInfoEnabled()) {
 			if (portlets.size() == 1) {
@@ -471,15 +413,11 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 			_log.debug("Invoking undeploy for " + servletContextName);
 		}
 
-		ObjectValuePair<long[], List<Portlet>> ovp = _portlets.remove(
-			servletContextName);
+		List<Portlet> portlets = _portlets.remove(servletContextName);
 
-		if (ovp == null) {
+		if (portlets == null) {
 			return;
 		}
-
-		long[] companyIds = ovp.getKey();
-		List<Portlet> portlets = ovp.getValue();
 
 		Set<String> portletIds = new HashSet<String>();
 
@@ -495,7 +433,9 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 
 		ServletContextPool.remove(servletContextName);
 
-		if (portletIds.size() > 0) {
+		if (!portletIds.isEmpty()) {
+			long[] companyIds = PortalInstances.getCompanyIds();
+
 			for (long companyId : companyIds) {
 				PortletCategory portletCategory =
 					(PortletCategory)WebAppPool.get(
@@ -515,7 +455,6 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		JavadocManagerUtil.unload(servletContextName);
 
 		DirectServletRegistryUtil.clearServlets();
-		FileTimestampUtil.reset();
 
 		if (_log.isInfoEnabled()) {
 			if (portlets.size() == 1) {
@@ -526,26 +465,14 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 			else {
 				_log.info(
 					portlets.size() + " portlets for " + servletContextName +
-						" was unregistered");
+						" were unregistered");
 			}
 		}
 	}
 
-	protected void initLogger(ClassLoader classLoader) {
-		Log4JUtil.configureLog4J(
-			classLoader.getResource("META-INF/portal-log4j.xml"));
-	}
-
-	protected PortletBag initPortlet(
-			Portlet portlet, PortletBagFactory portletBagFactory)
-		throws Exception {
-
-		return portletBagFactory.create(portlet);
-	}
-
 	protected void initPortletApp(
-			Portlet portlet, String servletContextName,
-			ServletContext servletContext, ClassLoader classLoader)
+			String servletContextName, ServletContext servletContext,
+			ClassLoader classLoader, Portlet portlet)
 		throws Exception {
 
 		PortletContextBag portletContextBag = new PortletContextBag(
@@ -565,9 +492,10 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 
 			String attrCustomClass = entry.getValue();
 
+			Class<?> clazz = classLoader.loadClass(attrCustomClass);
+
 			CustomUserAttributes customUserAttributesInstance =
-				(CustomUserAttributes)classLoader.loadClass(
-					attrCustomClass).newInstance();
+				(CustomUserAttributes)clazz.newInstance();
 
 			portletContextBag.getCustomUserAttributes().put(
 				attrCustomClass, customUserAttributesInstance);
@@ -636,7 +564,7 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		Properties portletProperties =
 			portletPropertiesConfiguration.getProperties();
 
-		if (portletProperties.size() == 0) {
+		if (portletProperties.isEmpty()) {
 			return;
 		}
 
@@ -715,8 +643,7 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 
 	private static Map<String, Boolean> _dataSourceBindStates =
 		new HashMap<String, Boolean>();
-	private static Map<String, ObjectValuePair<long[], List<Portlet>>>
-		_portlets =
-			new HashMap<String, ObjectValuePair<long[], List<Portlet>>>();
+	private static Map<String, List<Portlet>> _portlets =
+		new HashMap<String, List<Portlet>>();
 
 }

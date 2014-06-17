@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,9 +14,17 @@
 
 package com.liferay.portal.kernel.language;
 
-import java.util.Locale;
+import aQute.bnd.annotation.ProviderType;
 
-import javax.portlet.PortletConfig;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 import javax.portlet.PortletRequest;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +34,14 @@ import javax.servlet.jsp.PageContext;
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public class LanguageUtil {
+
+	public static String format(
+		Locale locale, String pattern, List<Object> arguments) {
+
+		return getLanguage().format(locale, pattern, arguments);
+	}
 
 	public static String format(
 		Locale locale, String pattern, Object argument) {
@@ -113,33 +128,31 @@ public class LanguageUtil {
 	}
 
 	public static String format(
-		PortletConfig portletConfig, Locale locale, String pattern,
-		Object argument) {
+		ResourceBundle resourceBundle, String pattern, Object argument) {
 
-		return getLanguage().format(portletConfig, locale, pattern, argument);
+		return getLanguage().format(resourceBundle, pattern, argument);
 	}
 
 	public static String format(
-		PortletConfig portletConfig, Locale locale, String pattern,
-		Object argument, boolean translateArguments) {
+		ResourceBundle resourceBundle, String pattern, Object argument,
+		boolean translateArguments) {
 
 		return getLanguage().format(
-			portletConfig, locale, pattern, argument, translateArguments);
+			resourceBundle, pattern, argument, translateArguments);
 	}
 
 	public static String format(
-		PortletConfig portletConfig, Locale locale, String pattern,
-		Object[] arguments) {
+		ResourceBundle resourceBundle, String pattern, Object[] arguments) {
 
-		return getLanguage().format(portletConfig, locale, pattern, arguments);
+		return getLanguage().format(resourceBundle, pattern, arguments);
 	}
 
 	public static String format(
-		PortletConfig portletConfig, Locale locale, String pattern,
-		Object[] arguments, boolean translateArguments) {
+		ResourceBundle resourceBundle, String pattern, Object[] arguments,
+		boolean translateArguments) {
 
 		return getLanguage().format(
-			portletConfig, locale, pattern, arguments, translateArguments);
+			resourceBundle, pattern, arguments, translateArguments);
 	}
 
 	public static String get(Locale locale, String key) {
@@ -160,21 +173,34 @@ public class LanguageUtil {
 		return getLanguage().get(pageContext, key, defaultValue);
 	}
 
-	public static String get(
-		PortletConfig portletConfig, Locale locale, String key) {
-
-		return getLanguage().get(portletConfig, locale, key);
+	public static String get(ResourceBundle resourceBundle, String key) {
+		return getLanguage().get(resourceBundle, key);
 	}
 
 	public static String get(
-		PortletConfig portletConfig, Locale locale, String key,
-		String defaultValue) {
+		ResourceBundle resourceBundle, String key, String defaultValue) {
 
-		return getLanguage().get(portletConfig, locale, key, defaultValue);
+		return getLanguage().get(resourceBundle, key, defaultValue);
 	}
 
 	public static Locale[] getAvailableLocales() {
 		return getLanguage().getAvailableLocales();
+	}
+
+	public static Locale[] getAvailableLocales(long groupId) {
+		return getLanguage().getAvailableLocales(groupId);
+	}
+
+	public static String getBCP47LanguageId(HttpServletRequest request) {
+		return getLanguage().getBCP47LanguageId(request);
+	}
+
+	public static String getBCP47LanguageId(Locale locale) {
+		return getLanguage().getBCP47LanguageId(locale);
+	}
+
+	public static String getBCP47LanguageId(PortletRequest portletRequest) {
+		return getLanguage().getBCP47LanguageId(portletRequest);
 	}
 
 	public static String getCharset(Locale locale) {
@@ -182,6 +208,8 @@ public class LanguageUtil {
 	}
 
 	public static Language getLanguage() {
+		PortalRuntimePermission.checkGetBeanProperty(LanguageUtil.class);
+
 		return _language;
 	}
 
@@ -199,6 +227,10 @@ public class LanguageUtil {
 
 	public static Locale getLocale(String languageCode) {
 		return getLanguage().getLocale(languageCode);
+	}
+
+	public static Locale[] getSupportedLocales() {
+		return getLanguage().getSupportedLocales();
 	}
 
 	public static String getTimeDescription(Locale locale, long milliseconds) {
@@ -239,8 +271,24 @@ public class LanguageUtil {
 		getLanguage().init();
 	}
 
+	public static boolean isAvailableLanguageCode(String languageCode) {
+		return getLanguage().isAvailableLanguageCode(languageCode);
+	}
+
 	public static boolean isAvailableLocale(Locale locale) {
 		return getLanguage().isAvailableLocale(locale);
+	}
+
+	public static boolean isAvailableLocale(long groupId, Locale locale) {
+		return getLanguage().isAvailableLocale(groupId, locale);
+	}
+
+	public static boolean isAvailableLocale(long groupId, String languageId) {
+		return getLanguage().isAvailableLocale(groupId, languageId);
+	}
+
+	public static boolean isAvailableLocale(String languageId) {
+		return getLanguage().isAvailableLocale(languageId);
 	}
 
 	public static boolean isBetaLocale(Locale locale) {
@@ -249,6 +297,28 @@ public class LanguageUtil {
 
 	public static boolean isDuplicateLanguageCode(String languageCode) {
 		return getLanguage().isDuplicateLanguageCode(languageCode);
+	}
+
+	public static boolean isInheritLocales(long groupId)
+		throws PortalException {
+
+		return getLanguage().isInheritLocales(groupId);
+	}
+
+	public static boolean isValidLanguageKey(Locale locale, String key) {
+		String value = getLanguage().get(locale, key, StringPool.BLANK);
+
+		return Validator.isNotNull(value);
+	}
+
+	public static String process(
+		ResourceBundle resourceBundle, Locale locale, String content) {
+
+		return getLanguage().process(resourceBundle, locale, content);
+	}
+
+	public static void resetAvailableGroupLocales(long groupId) {
+		getLanguage().resetAvailableGroupLocales(groupId);
 	}
 
 	public static void resetAvailableLocales(long companyId) {
@@ -263,6 +333,8 @@ public class LanguageUtil {
 	}
 
 	public void setLanguage(Language language) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_language = language;
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -43,33 +43,17 @@ public class MethodHandler implements Serializable {
 		return arguments;
 	}
 
-	public Class<?>[] getArgumentsClasses() {
-		return _methodKey.getParameterTypes();
-	}
-
-	public String getClassName() {
-		return _methodKey.getClassName();
-	}
-
 	public MethodKey getMethodKey() {
 		return _methodKey;
 	}
 
-	public String getMethodName() {
-		return _methodKey.getMethodName();
-	}
-
-	public Object invoke(boolean newInstance) throws Exception {
-		Method method = MethodCache.get(_methodKey);
-
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+	public Object invoke() throws Exception {
+		Method method = _methodKey.getMethod();
 
 		Object targetObject = null;
 
-		if (newInstance && !Modifier.isStatic(method.getModifiers())) {
-			Class<?> targetClass = contextClassLoader.loadClass(getClassName());
+		if (!Modifier.isStatic(method.getModifiers())) {
+			Class<?> targetClass = _methodKey.getDeclaringClass();
 
 			targetObject = targetClass.newInstance();
 		}
@@ -77,8 +61,16 @@ public class MethodHandler implements Serializable {
 		return method.invoke(targetObject, _arguments);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #invoke}
+	 */
+	@Deprecated
+	public Object invoke(boolean newInstance) throws Exception {
+		return invoke();
+	}
+
 	public Object invoke(Object target) throws Exception {
-		Method method = MethodCache.get(_methodKey);
+		Method method = _methodKey.getMethod();
 
 		return method.invoke(target, _arguments);
 	}

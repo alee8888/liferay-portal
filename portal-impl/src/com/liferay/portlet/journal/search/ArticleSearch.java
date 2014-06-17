@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,7 +20,9 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.PortalPreferences;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
@@ -47,28 +49,29 @@ public class ArticleSearch extends SearchContainer<JournalArticle> {
 	static {
 		headerNames.add("id");
 		headerNames.add("title");
+		headerNames.add("status");
 		//headerNames.add("version");
 		headerNames.add("modified-date");
 		headerNames.add("display-date");
 		headerNames.add("author");
+		headerNames.add("structure");
+		headerNames.add(StringPool.BLANK);
 
-		orderableHeaders.put("id", "id");
-		orderableHeaders.put("name", "title");
+		//orderableHeaders.put("id", "id");
+		//orderableHeaders.put("title", "title");
 		//orderableHeaders.put("version", "version");
 		orderableHeaders.put("modified-date", "modified-date");
 		orderableHeaders.put("display-date", "display-date");
 	}
 
-	public static final String EMPTY_RESULTS_MESSAGE =
-		"no-web-content-were-found";
-
 	public ArticleSearch(
-		PortletRequest portletRequest, PortletURL iteratorURL) {
+		PortletRequest portletRequest, int cur, int delta,
+		PortletURL iteratorURL) {
 
 		super(
 			portletRequest, new ArticleDisplayTerms(portletRequest),
-			new ArticleSearchTerms(portletRequest), DEFAULT_CUR_PARAM,
-			DEFAULT_DELTA, iteratorURL, headerNames, EMPTY_RESULTS_MESSAGE);
+			new ArticleSearchTerms(portletRequest), DEFAULT_CUR_PARAM, cur,
+			delta, iteratorURL, headerNames, null);
 
 		PortletConfig portletConfig =
 			(PortletConfig)portletRequest.getAttribute(
@@ -81,8 +84,8 @@ public class ArticleSearch extends SearchContainer<JournalArticle> {
 		String portletName = portletConfig.getPortletName();
 
 		if (!portletName.equals(PortletKeys.JOURNAL)) {
-			displayTerms.setStatus("approved");
-			searchTerms.setStatus("approved");
+			displayTerms.setStatus(WorkflowConstants.STATUS_APPROVED);
+			searchTerms.setStatus(WorkflowConstants.STATUS_APPROVED);
 		}
 
 		iteratorURL.setParameter(
@@ -92,10 +95,16 @@ public class ArticleSearch extends SearchContainer<JournalArticle> {
 		iteratorURL.setParameter(
 			ArticleDisplayTerms.DESCRIPTION, displayTerms.getDescription());
 		iteratorURL.setParameter(
+			ArticleDisplayTerms.FOLDER_ID,
+			String.valueOf(displayTerms.getFolderId()));
+		iteratorURL.setParameter(
 			ArticleDisplayTerms.GROUP_ID,
 			String.valueOf(displayTerms.getGroupId()));
 		iteratorURL.setParameter(
-			ArticleDisplayTerms.STATUS, displayTerms.getStatus());
+			ArticleDisplayTerms.NAVIGATION, displayTerms.getNavigation());
+		iteratorURL.setParameter(
+			ArticleDisplayTerms.STATUS,
+			String.valueOf(displayTerms.getStatus()));
 		iteratorURL.setParameter(
 			ArticleDisplayTerms.STRUCTURE_ID, displayTerms.getStructureId());
 		iteratorURL.setParameter(
@@ -145,6 +154,12 @@ public class ArticleSearch extends SearchContainer<JournalArticle> {
 		catch (Exception e) {
 			_log.error(e);
 		}
+	}
+
+	public ArticleSearch(
+		PortletRequest portletRequest, PortletURL iteratorURL) {
+
+		this(portletRequest, 0, DEFAULT_DELTA, iteratorURL);
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(ArticleSearch.class);

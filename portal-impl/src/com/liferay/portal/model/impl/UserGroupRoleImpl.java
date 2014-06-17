@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.User;
@@ -31,15 +30,18 @@ public class UserGroupRoleImpl extends UserGroupRoleBaseImpl {
 	public UserGroupRoleImpl() {
 	}
 
-	public Group getGroup() throws PortalException, SystemException {
+	@Override
+	public Group getGroup() throws PortalException {
 		return GroupLocalServiceUtil.getGroup(getGroupId());
 	}
 
-	public Role getRole() throws PortalException, SystemException {
+	@Override
+	public Role getRole() throws PortalException {
 		return RoleLocalServiceUtil.getRole(getRoleId());
 	}
 
-	public User getUser() throws PortalException, SystemException {
+	@Override
+	public User getUser() throws PortalException {
 		return UserLocalServiceUtil.getUser(getUserId());
 	}
 

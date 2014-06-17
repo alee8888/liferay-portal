@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,6 +23,7 @@ import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
@@ -62,33 +63,37 @@ public class CommandArgument {
 
 		int pos = currentGroupName.indexOf(" - ");
 
-		if (pos > 0) {
-			long groupId = GetterUtil.getLong(
-				currentGroupName.substring(0, pos));
-
-			Group group = GroupLocalServiceUtil.getGroup(groupId);
-
-			if (group.getCompanyId() == getCompanyId()) {
-				return group;
-			}
+		if (pos == -1) {
+			throw new NoSuchGroupException();
 		}
 
-		throw new NoSuchGroupException();
+		long groupId = GetterUtil.getLong(currentGroupName.substring(0, pos));
+
+		Group group = GroupLocalServiceUtil.getGroup(groupId);
+
+		if (group.getCompanyId() == getCompanyId()) {
+			return group;
+		}
+
+		throw new NoSuchGroupException("{groupId=" + groupId + "}");
 	}
 
 	public String getCurrentGroupName() {
 		if (_currentFolder.equals("/")) {
 			return StringPool.BLANK;
 		}
-		else {
-			StringTokenizer st = new StringTokenizer(_currentFolder, "/");
 
-			return st.nextToken();
-		}
+		StringTokenizer st = new StringTokenizer(_currentFolder, "/");
+
+		return st.nextToken();
 	}
 
 	public HttpServletRequest getHttpServletRequest() {
 		return _request;
+	}
+
+	public Locale getLocale() {
+		return _themeDisplay.getLocale();
 	}
 
 	public String getNewFolder() {

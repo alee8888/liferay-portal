@@ -8,6 +8,10 @@ import java.io.Serializable;
 
 import java.util.Date;
 
+/**
+ * @author ${author}
+ * @generated
+ */
 public class ${entity.PKClassName} implements Comparable<${entity.PKClassName}>, Serializable {
 
 	<#list entity.PKList as column>
@@ -51,6 +55,7 @@ public class ${entity.PKClassName} implements Comparable<${entity.PKClassName}>,
 		</#if>
 	</#list>
 
+	@Override
 	public int compareTo(${entity.PKClassName} pk) {
 		if (pk == null) {
 			return -1;
@@ -99,18 +104,15 @@ public class ${entity.PKClassName} implements Comparable<${entity.PKClassName}>,
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ${entity.PKClassName})) {
 			return false;
 		}
 
-		${entity.PKClassName} pk = null;
-
-		try {
-			pk = (${entity.PKClassName})obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		${entity.PKClassName} pk = (${entity.PKClassName})obj;
 
 		if (
 

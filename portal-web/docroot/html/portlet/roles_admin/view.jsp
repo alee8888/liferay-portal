@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,11 +31,9 @@ String portletURLString = portletURL.toString();
 <aui:form action="<%= portletURLString %>" method="get" name="fm">
 	<liferay-portlet:renderURLParams varImpl="portletURL" />
 
-	<liferay-util:include page="/html/portlet/roles_admin/toolbar.jsp">
-		<liferay-util:param name="toolbarItem" value="view-all" />
-	</liferay-util:include>
-
 	<%
+	String toolbarItem = ParamUtil.getString(request, "toolbarItem");
+
 	RoleSearch searchContainer = new RoleSearch(renderRequest, portletURL);
 
 	List headerNames = searchContainer.getHeaderNames();
@@ -43,10 +41,43 @@ String portletURLString = portletURL.toString();
 	headerNames.add(StringPool.BLANK);
 	%>
 
-	<liferay-ui:search-form
-		page="/html/portlet/roles_admin/role_search.jsp"
-		searchContainer="<%= searchContainer %>"
-	/>
+	<aui:nav-bar>
+		<aui:nav cssClass="navbar-nav">
+			<c:if test="<%= PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_ROLE) %>">
+				<portlet:renderURL var="viewRolesURL">
+					<portlet:param name="struts_action" value="/roles_admin/view" />
+				</portlet:renderURL>
+
+				<liferay-portlet:renderURL varImpl="addRoleURL">
+					<portlet:param name="struts_action" value="/roles_admin/edit_role" />
+					<portlet:param name="redirect" value="<%= viewRolesURL %>" />
+				</liferay-portlet:renderURL>
+
+				<aui:nav-item dropdown="<%= true %>" label="add" selected='<%= toolbarItem.equals("add") %>'>
+
+					<%
+					addRoleURL.setParameter("type", String.valueOf(RoleConstants.TYPE_REGULAR));
+					%>
+
+					<aui:nav-item href="<%= addRoleURL.toString() %>" label="regular-role" />
+
+					<%
+					addRoleURL.setParameter("type", String.valueOf(RoleConstants.TYPE_SITE));
+					%>
+
+					<aui:nav-item href="<%= addRoleURL.toString() %>" label="site-role" />
+
+					<%
+					addRoleURL.setParameter("type", String.valueOf(RoleConstants.TYPE_ORGANIZATION));
+					%>
+
+					<aui:nav-item href="<%= addRoleURL.toString() %>" label="organization-role" />
+				</aui:nav-item>
+			</c:if>
+		</aui:nav>
+
+		<aui:nav-bar-search file="/html/portlet/roles_admin/role_search.jsp" searchContainer="<%= searchContainer %>" />
+	</aui:nav-bar>
 
 	<%
 	RoleSearchTerms searchTerms = (RoleSearchTerms)searchContainer.getSearchTerms();
@@ -63,8 +94,6 @@ String portletURLString = portletURL.toString();
 	%>
 
 	<aui:input name="rolesRedirect" type="hidden" value="<%= portletURL.toString() %>" />
-
-	<div class="separator"><!-- --></div>
 
 	<%
 	List resultRows = searchContainer.getResultRows();
@@ -109,7 +138,7 @@ String portletURLString = portletURL.toString();
 
 		// Action
 
-		row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/roles_admin/role_action.jsp");
+		row.addJSP("/html/portlet/roles_admin/role_action.jsp", "entry-action");
 
 		// CSS
 

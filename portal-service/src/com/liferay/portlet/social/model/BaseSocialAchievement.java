@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,6 @@ package com.liferay.portlet.social.model;
 
 import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -63,10 +62,12 @@ public class BaseSocialAchievement implements SocialAchievement {
 		return _counterThreshold;
 	}
 
+	@Override
 	public String getDescriptionKey() {
 		return _ACHIEVEMENT_DESCRIPTION_PREFIX.concat(_name);
 	}
 
+	@Override
 	public String getIcon() {
 		if (_icon == null) {
 			return _name.concat(_ICON_SUFFIX);
@@ -75,14 +76,17 @@ public class BaseSocialAchievement implements SocialAchievement {
 		return _icon;
 	}
 
+	@Override
 	public String getName() {
 		return _name;
 	}
 
+	@Override
 	public String getNameKey() {
 		return _ACHIEVEMENT_NAME_PREFIX.concat(_name);
 	}
 
+	@Override
 	public void initialize(SocialActivityDefinition activityDefinition) {
 		SocialActivityCounterDefinition activityCounterDefinition =
 			activityDefinition.getActivityCounterDefinition(_counterName);
@@ -106,6 +110,7 @@ public class BaseSocialAchievement implements SocialAchievement {
 		activityDefinition.addCounter(activityCounterDefinition);
 	}
 
+	@Override
 	public void processActivity(SocialActivity activity) {
 		try {
 			doProcessActivity(activity);
@@ -128,13 +133,13 @@ public class BaseSocialAchievement implements SocialAchievement {
 	public void setCounterOwner(String counterOwner) {
 		_counterOwner = counterOwner;
 
-		if (counterOwner.equalsIgnoreCase("actor")) {
+		if (StringUtil.equalsIgnoreCase(counterOwner, "actor")) {
 			_ownerType = SocialActivityCounterConstants.TYPE_ACTOR;
 		}
-		else if (counterOwner.equalsIgnoreCase("asset")) {
+		else if (StringUtil.equalsIgnoreCase(counterOwner, "asset")) {
 			_ownerType = SocialActivityCounterConstants.TYPE_ASSET;
 		}
-		else if (counterOwner.equalsIgnoreCase("creator")) {
+		else if (StringUtil.equalsIgnoreCase(counterOwner, "creator")) {
 			_ownerType = SocialActivityCounterConstants.TYPE_CREATOR;
 		}
 	}
@@ -147,17 +152,20 @@ public class BaseSocialAchievement implements SocialAchievement {
 		_counterThreshold = counterThreshold;
 	}
 
+	@Override
 	public void setIcon(String icon) {
 		_icon = icon;
 	}
 
+	@Override
 	public void setName(String name) {
 		name = StringUtil.replace(name, StringPool.SPACE, StringPool.UNDERLINE);
-		name = name.toLowerCase();
+		name = StringUtil.toLowerCase(name);
 
 		_name = StringUtil.extract(name, _NAME_SUPPORTED_CHARS);
 	}
 
+	@Override
 	public void setProperty(String name, String value) {
 		if (name.equals("counterIncrement") ||
 			name.equals("counterPeriodLength") ||
@@ -172,17 +180,17 @@ public class BaseSocialAchievement implements SocialAchievement {
 	}
 
 	protected void doProcessActivity(SocialActivity activity)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (_counterThreshold == 0) {
 			return;
 		}
 
-		int count =
-			SocialActivityAchievementLocalServiceUtil.getUserAchievementCount(
+		SocialActivityAchievement achievement =
+			SocialActivityAchievementLocalServiceUtil.fetchUserAchievement(
 				activity.getUserId(), activity.getGroupId(), _name);
 
-		if (count > 0) {
+		if (achievement != null) {
 			return;
 		}
 

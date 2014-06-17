@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,16 +14,27 @@
 
 package com.liferay.portlet.wiki.service.impl;
 
+import com.liferay.portal.kernel.diff.DiffHtmlUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.notifications.UserNotificationDefinition;
+import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.settings.LocalizedValuesMap;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.systemevent.SystemEventHierarchyEntryThreadLocal;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MathUtil;
+import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.NotificationThreadLocal;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -31,34 +42,40 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TempFileUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
-import com.liferay.portal.model.CompanyConstants;
+import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
+import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.ResourceConstants;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
+import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceContextUtil;
 import com.liferay.portal.util.Portal;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.SubscriptionSender;
-import com.liferay.portlet.asset.NoSuchEntryException;
+import com.liferay.portlet.PortletURLFactoryUtil;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.AssetLink;
 import com.liferay.portlet.asset.model.AssetLinkConstants;
-import com.liferay.portlet.documentlibrary.DuplicateDirectoryException;
-import com.liferay.portlet.documentlibrary.NoSuchDirectoryException;
-import com.liferay.portlet.documentlibrary.NoSuchFileException;
-import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
+import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.expando.model.ExpandoBridge;
+import com.liferay.portlet.social.model.SocialActivity;
 import com.liferay.portlet.social.model.SocialActivityConstants;
+import com.liferay.portlet.trash.model.TrashEntry;
+import com.liferay.portlet.trash.model.TrashVersion;
+import com.liferay.portlet.trash.util.TrashUtil;
 import com.liferay.portlet.wiki.DuplicatePageException;
 import com.liferay.portlet.wiki.NoSuchPageException;
-import com.liferay.portlet.wiki.NoSuchPageResourceException;
 import com.liferay.portlet.wiki.PageContentException;
 import com.liferay.portlet.wiki.PageTitleException;
 import com.liferay.portlet.wiki.PageVersionException;
+import com.liferay.portlet.wiki.WikiSettings;
 import com.liferay.portlet.wiki.model.WikiNode;
 import com.liferay.portlet.wiki.model.WikiPage;
 import com.liferay.portlet.wiki.model.WikiPageConstants;
@@ -73,28 +90,32 @@ import com.liferay.portlet.wiki.util.WikiCacheUtil;
 import com.liferay.portlet.wiki.util.WikiUtil;
 import com.liferay.portlet.wiki.util.comparator.PageCreateDateComparator;
 import com.liferay.portlet.wiki.util.comparator.PageVersionComparator;
-import com.liferay.util.UniqueList;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.portlet.PortletPreferences;
+import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
-import javax.portlet.WindowState;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
+ * Provides the local service for accessing, adding, deleting, moving,
+ * subscription handling of, trash handling of, updating, and validating wiki
+ * pages.
+ *
  * @author Brian Wing Shun Chan
  * @author Jorge Ferrer
  * @author Raymond Augé
@@ -107,12 +128,13 @@ import javax.portlet.WindowState;
  */
 public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
+	@Override
 	public WikiPage addPage(
 			long userId, long nodeId, String title, double version,
 			String content, String summary, boolean minorEdit, String format,
 			boolean head, String parentTitle, String redirectTitle,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		// Page
 
@@ -146,14 +168,17 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		page.setVersion(version);
 		page.setMinorEdit(minorEdit);
 		page.setContent(content);
-		page.setStatus(WorkflowConstants.STATUS_DRAFT);
 		page.setSummary(summary);
 		page.setFormat(format);
 		page.setHead(head);
 		page.setParentTitle(parentTitle);
 		page.setRedirectTitle(redirectTitle);
+		page.setStatus(WorkflowConstants.STATUS_DRAFT);
+		page.setStatusByUserId(userId);
+		page.setStatusDate(serviceContext.getModifiedDate(now));
+		page.setExpandoBridgeAttributes(serviceContext);
 
-		wikiPagePersistence.update(page, false);
+		wikiPagePersistence.update(page);
 
 		// Resources
 
@@ -174,7 +199,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		node.setLastPostDate(serviceContext.getModifiedDate(now));
 
-		wikiNodePersistence.update(node, false);
+		wikiNodePersistence.update(node);
 
 		// Asset
 
@@ -182,12 +207,6 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			userId, page, serviceContext.getAssetCategoryIds(),
 			serviceContext.getAssetTagNames(),
 			serviceContext.getAssetLinkEntryIds());
-
-		// Expando
-
-		ExpandoBridge expandoBridge = page.getExpandoBridge();
-
-		expandoBridge.setAttributes(serviceContext);
 
 		// Message boards
 
@@ -200,17 +219,16 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		// Workflow
 
-		WorkflowHandlerRegistryUtil.startWorkflowInstance(
-			user.getCompanyId(), page.getGroupId(), userId,
-			WikiPage.class.getName(), page.getPageId(), page, serviceContext);
+		startWorkflowInstance(userId, page, serviceContext);
 
 		return page;
 	}
 
+	@Override
 	public WikiPage addPage(
 			long userId, long nodeId, String title, String content,
 			String summary, boolean minorEdit, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		double version = WikiPageConstants.VERSION_DEFAULT;
 		String format = WikiPageConstants.DEFAULT_FORMAT;
@@ -223,138 +241,136 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			head, parentTitle, redirectTitle, serviceContext);
 	}
 
+	@Override
 	public void addPageAttachment(
-			long userId, long nodeId, String title, String fileName, File file)
-		throws PortalException, SystemException {
-
-		if (Validator.isNull(fileName)) {
-			return;
-		}
+			long userId, long nodeId, String title, String fileName, File file,
+			String mimeType)
+		throws PortalException {
 
 		WikiPage page = getPage(nodeId, title);
+
+		Folder folder = page.addAttachmentsFolder();
+
+		FileEntry fileEntry = PortletFileRepositoryUtil.addPortletFileEntry(
+			page.getGroupId(), userId, WikiPage.class.getName(),
+			page.getResourcePrimKey(), PortletKeys.WIKI, folder.getFolderId(),
+			file, fileName, mimeType, true);
 
 		if (userId == 0) {
 			userId = page.getUserId();
 		}
 
+		JSONObject extraDataJSONObject = JSONFactoryUtil.createJSONObject();
+
+		extraDataJSONObject.put("fileEntryId", fileEntry.getFileEntryId());
+		extraDataJSONObject.put("fileEntryTitle", fileEntry.getTitle());
+		extraDataJSONObject.put("title", page.getTitle());
+		extraDataJSONObject.put("version", page.getVersion());
+
 		socialActivityLocalService.addActivity(
 			userId, page.getGroupId(), WikiPage.class.getName(),
 			page.getResourcePrimKey(),
 			SocialActivityConstants.TYPE_ADD_ATTACHMENT,
-			page.getAttachmentsDir() + "/" + fileName, 0);
-
-		try {
-			DLStoreUtil.addDirectory(
-				page.getCompanyId(), CompanyConstants.SYSTEM,
-				page.getAttachmentsDir());
-		}
-		catch (DuplicateDirectoryException dde) {
-		}
-
-		DLStoreUtil.addFile(
-			page.getCompanyId(), CompanyConstants.SYSTEM,
-			page.getAttachmentsDir() + "/" + fileName, file);
+			extraDataJSONObject.toString(), 0);
 	}
 
+	@Override
 	public void addPageAttachment(
 			long userId, long nodeId, String title, String fileName,
-			InputStream inputStream)
-		throws PortalException, SystemException {
-
-		if (Validator.isNull(fileName)) {
-			return;
-		}
+			InputStream inputStream, String mimeType)
+		throws PortalException {
 
 		WikiPage page = getPage(nodeId, title);
+
+		Folder folder = page.addAttachmentsFolder();
+
+		FileEntry fileEntry = PortletFileRepositoryUtil.addPortletFileEntry(
+			page.getGroupId(), userId, WikiPage.class.getName(),
+			page.getResourcePrimKey(), PortletKeys.WIKI, folder.getFolderId(),
+			inputStream, fileName, mimeType, true);
 
 		if (userId == 0) {
 			userId = page.getUserId();
 		}
 
+		JSONObject extraDataJSONObject = JSONFactoryUtil.createJSONObject();
+
+		extraDataJSONObject.put("fileEntryId", fileEntry.getFileEntryId());
+		extraDataJSONObject.put("fileEntryTitle", fileEntry.getTitle());
+		extraDataJSONObject.put("title", page.getTitle());
+		extraDataJSONObject.put("version", page.getVersion());
+
 		socialActivityLocalService.addActivity(
 			userId, page.getGroupId(), WikiPage.class.getName(),
 			page.getResourcePrimKey(),
 			SocialActivityConstants.TYPE_ADD_ATTACHMENT,
-			page.getAttachmentsDir() + "/" + fileName, 0);
-
-		try {
-			DLStoreUtil.addDirectory(
-				page.getCompanyId(), CompanyConstants.SYSTEM,
-				page.getAttachmentsDir());
-		}
-		catch (DuplicateDirectoryException dde) {
-		}
-
-		DLStoreUtil.addFile(
-			page.getCompanyId(), CompanyConstants.SYSTEM,
-			page.getAttachmentsDir() + "/" + fileName, inputStream);
+			extraDataJSONObject.toString(), 0);
 	}
 
-	public void addPageAttachment(
-			long companyId, String dirName, Date modifiedDate, String fileName,
-			InputStream inputStream)
-		throws PortalException, SystemException {
-
-		if (inputStream == null) {
-			return;
-		}
-
-		long repositoryId = CompanyConstants.SYSTEM;
-
-		try {
-			DLStoreUtil.addDirectory(companyId, repositoryId, dirName);
-		}
-		catch (DuplicateDirectoryException dde) {
-		}
-
-		DLStoreUtil.addFile(
-			companyId, repositoryId, dirName + "/" + fileName, false,
-			inputStream);
-	}
-
+	@Override
 	public void addPageAttachments(
 			long userId, long nodeId, String title,
-			List<ObjectValuePair<String, InputStream>> inputStreams)
-		throws PortalException, SystemException {
+			List<ObjectValuePair<String, InputStream>> inputStreamOVPs)
+		throws PortalException {
 
-		if (inputStreams.size() == 0) {
+		if (inputStreamOVPs.isEmpty()) {
 			return;
 		}
 
-		for (int i = 0; i < inputStreams.size(); i++) {
-			ObjectValuePair<String, InputStream> ovp = inputStreams.get(i);
+		for (int i = 0; i < inputStreamOVPs.size(); i++) {
+			ObjectValuePair<String, InputStream> inputStreamOVP =
+				inputStreamOVPs.get(i);
 
-			String fileName = ovp.getKey();
-			InputStream inputStream = ovp.getValue();
+			String fileName = inputStreamOVP.getKey();
+			InputStream inputStream = inputStreamOVP.getValue();
 
-			addPageAttachment(userId, nodeId, title, fileName, inputStream);
+			File file = null;
+
+			try {
+				file = FileUtil.createTempFile(inputStream);
+
+				String mimeType = MimeTypesUtil.getContentType(file, fileName);
+
+				addPageAttachment(
+					userId, nodeId, title, fileName, file, mimeType);
+			}
+			catch (IOException ioe) {
+				throw new SystemException(
+					"Unable to write temporary file", ioe);
+			}
+			finally {
+				FileUtil.delete(file);
+			}
 		}
 	}
 
+	@Override
 	public void addPageResources(
 			long nodeId, String title, boolean addGroupPermissions,
 			boolean addGuestPermissions)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		WikiPage page = getPage(nodeId, title);
 
 		addPageResources(page, addGroupPermissions, addGuestPermissions);
 	}
 
+	@Override
 	public void addPageResources(
 			long nodeId, String title, String[] groupPermissions,
 			String[] guestPermissions)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		WikiPage page = getPage(nodeId, title);
 
 		addPageResources(page, groupPermissions, guestPermissions);
 	}
 
+	@Override
 	public void addPageResources(
 			WikiPage page, boolean addGroupPermissions,
 			boolean addGuestPermissions)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		resourceLocalService.addResources(
 			page.getCompanyId(), page.getGroupId(), page.getUserId(),
@@ -362,9 +378,10 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			addGroupPermissions, addGuestPermissions);
 	}
 
+	@Override
 	public void addPageResources(
 			WikiPage page, String[] groupPermissions, String[] guestPermissions)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		resourceLocalService.addModelResources(
 			page.getCompanyId(), page.getGroupId(), page.getUserId(),
@@ -372,19 +389,21 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			groupPermissions, guestPermissions);
 	}
 
-	public String addTempPageAttachment(
-			long userId, String fileName, String tempFolderName,
-			InputStream inputStream)
-		throws IOException, PortalException, SystemException {
+	@Override
+	public void addTempPageAttachment(
+			long groupId, long userId, String fileName, String tempFolderName,
+			InputStream inputStream, String mimeType)
+		throws PortalException {
 
-		return TempFileUtil.addTempFile(
-			userId, fileName, tempFolderName, inputStream);
+		TempFileUtil.addTempFile(
+			groupId, userId, fileName, tempFolderName, inputStream, mimeType);
 	}
 
+	@Override
 	public void changeParent(
 			long userId, long nodeId, String title, String newParentTitle,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (Validator.isNotNull(newParentTitle)) {
 			WikiPage parentPage = getPage(nodeId, newParentTitle);
@@ -406,14 +425,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		String format = page.getFormat();
 		String redirectTitle = page.getRedirectTitle();
 
-		long[] assetCategoryIds = assetCategoryLocalService.getCategoryIds(
-			WikiPage.class.getName(), page.getResourcePrimKey());
-		String[] assetTagNames = assetTagLocalService.getTagNames(
-			WikiPage.class.getName(), page.getResourcePrimKey());
-
-		serviceContext.setAssetCategoryIds(assetCategoryIds);
-		serviceContext.setAssetLinkEntryIds(null);
-		serviceContext.setAssetTagNames(assetTagNames);
+		populateServiceContext(serviceContext, page);
 
 		updatePage(
 			userId, nodeId, title, version, content, summary, minorEdit, format,
@@ -423,90 +435,101 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			nodeId, title, false);
 
 		for (WikiPage oldPage : oldPages) {
-			oldPage.setParentTitle(originalParentTitle);
+			if (!WorkflowThreadLocal.isEnabled()) {
+				oldPage.setParentTitle(originalParentTitle);
 
-			wikiPagePersistence.update(oldPage, false);
+				wikiPagePersistence.update(oldPage);
+			}
 		}
 	}
 
-	public void deletePage(long nodeId, String title)
-		throws PortalException, SystemException {
+	@Override
+	public void copyPageAttachments(
+			long userId, long templateNodeId, String templateTitle, long nodeId,
+			String title)
+		throws PortalException {
 
+		WikiPage templatePage = getPage(templateNodeId, templateTitle);
+
+		List<FileEntry> templateFileEntries =
+			templatePage.getAttachmentsFileEntries();
+
+		for (FileEntry templateFileEntry : templateFileEntries) {
+			addPageAttachment(
+				userId, nodeId, title, templateFileEntry.getTitle(),
+				templateFileEntry.getContentStream(),
+				templateFileEntry.getMimeType());
+		}
+	}
+
+	@Override
+	public void deletePage(long nodeId, String title) throws PortalException {
 		List<WikiPage> pages = wikiPagePersistence.findByN_T_H(
 			nodeId, title, true, 0, 1);
 
 		if (!pages.isEmpty()) {
-			WikiPage page = pages.iterator().next();
-
-			deletePage(page);
+			wikiPageLocalService.deletePage(pages.get(0));
 		}
 	}
 
+	/**
+	 * @deprecated As of 6.2.0 replaced by {@link #discardDraft(long, String,
+	 *             double)}
+	 */
+	@Deprecated
+	@Override
 	public void deletePage(long nodeId, String title, double version)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		wikiPagePersistence.removeByN_T_V(nodeId, title, version);
+		discardDraft(nodeId, title, version);
 	}
 
-	public void deletePage(WikiPage page)
-		throws PortalException, SystemException {
+	@Override
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP, send = false,
+		type = SystemEventConstants.TYPE_DELETE)
+	public void deletePage(WikiPage page) throws PortalException {
 
-		// Children
+		// Child pages
 
-		List<WikiPage> children = wikiPagePersistence.findByN_H_P(
-			page.getNodeId(), true, page.getTitle());
-
-		for (WikiPage curPage : children) {
-			deletePage(curPage);
-		}
-
-		// Indexer
-
-		Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
-			WikiPage.class);
-
-		indexer.delete(page);
-
-		// Attachments
-
-		long companyId = page.getCompanyId();
-		long repositoryId = CompanyConstants.SYSTEM;
-		String dirName = page.getAttachmentsDir();
-
-		try {
-			DLStoreUtil.deleteDirectory(companyId, repositoryId, dirName);
-		}
-		catch (NoSuchDirectoryException nsde) {
-		}
-
-		// Subscriptions
-
-		subscriptionLocalService.deleteSubscriptions(
-			page.getCompanyId(), WikiPage.class.getName(),
-			page.getResourcePrimKey());
-
-		// Message boards
-
-		mbMessageLocalService.deleteDiscussionMessages(
-			WikiPage.class.getName(), page.getResourcePrimKey());
-
-		// Expando
-
-		expandoValueLocalService.deleteValues(
-			WikiPage.class.getName(), page.getResourcePrimKey());
-
-		// Asset
-
-		List<WikiPage> pageVersions = wikiPagePersistence.findByN_T(
+		List<WikiPage> childPages = wikiPagePersistence.findByN_P(
 			page.getNodeId(), page.getTitle());
 
-		for (WikiPage pageVersion : pageVersions) {
-			assetEntryLocalService.deleteEntry(
-				WikiPage.class.getName(), pageVersion.getPrimaryKey());
+		for (WikiPage childPage : childPages) {
+			if (childPage.isApproved() || childPage.isInTrashImplicitly()) {
+				wikiPageLocalService.deletePage(childPage);
+			}
+			else {
+				childPage.setParentTitle(StringPool.BLANK);
+
+				wikiPagePersistence.update(childPage);
+			}
 		}
 
-		assetEntryLocalService.deleteEntry(
-			WikiPage.class.getName(), page.getResourcePrimKey());
+		List<WikiPage> redirectPages = wikiPagePersistence.findByN_R(
+			page.getNodeId(), page.getTitle());
+
+		for (WikiPage redirectPage : redirectPages) {
+			if (redirectPage.isApproved() ||
+				redirectPage.isInTrashImplicitly()) {
+
+				wikiPageLocalService.deletePage(redirectPage);
+			}
+			else {
+				redirectPage.setRedirectTitle(StringPool.BLANK);
+
+				wikiPagePersistence.update(redirectPage);
+			}
+		}
+
+		List<WikiPage> versionPages = wikiPagePersistence.findByN_T(
+			page.getNodeId(), page.getTitle());
+
+		wikiPagePersistence.removeByN_T(page.getNodeId(), page.getTitle());
+
+		// References
+
+		wikiPagePersistence.removeByN_R(page.getNodeId(), page.getTitle());
 
 		// Resources
 
@@ -516,91 +539,307 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		// Resource
 
-		try {
-			wikiPageResourceLocalService.deletePageResource(
+		WikiPageResource pageResource =
+			wikiPageResourceLocalService.fetchPageResource(
 				page.getNodeId(), page.getTitle());
-		}
-		catch (NoSuchPageResourceException nspre) {
-		}
 
-		// All versions
-
-		List<WikiPage> pages = wikiPagePersistence.findByN_T(
-			page.getNodeId(), page.getTitle());
-
-		for (WikiPage curPage : pages) {
-
-			// Workflow
-
-			workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
-				curPage.getCompanyId(), curPage.getGroupId(),
-				WikiPage.class.getName(), curPage.getPageId());
+		if (pageResource != null) {
+			wikiPageResourceLocalService.deleteWikiPageResource(pageResource);
 		}
 
-		wikiPagePersistence.removeByN_T(page.getNodeId(), page.getTitle());
+		// Attachments
 
-		// All referrals
+		long folderId = page.getAttachmentsFolderId();
 
-		wikiPagePersistence.removeByN_R(page.getNodeId(), page.getTitle());
+		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			PortletFileRepositoryUtil.deletePortletFolder(folderId);
+		}
+
+		// Subscriptions
+
+		subscriptionLocalService.deleteSubscriptions(
+			page.getCompanyId(), WikiPage.class.getName(),
+			page.getResourcePrimKey());
+
+		// Asset
+
+		SystemEventHierarchyEntryThreadLocal.pop(
+			page.getModelClass(), page.getPageId());
+
+		try {
+			for (WikiPage versionPage : versionPages) {
+				assetEntryLocalService.deleteEntry(
+					WikiPage.class.getName(), versionPage.getPrimaryKey());
+			}
+		}
+		finally {
+			SystemEventHierarchyEntryThreadLocal.push(
+				page.getModelClass(), page.getPageId());
+		}
+
+		assetEntryLocalService.deleteEntry(
+			WikiPage.class.getName(), page.getResourcePrimKey());
+
+		// Expando
+
+		expandoRowLocalService.deleteRows(page.getPrimaryKey());
+
+		// Message boards
+
+		mbMessageLocalService.deleteDiscussionMessages(
+			WikiPage.class.getName(), page.getResourcePrimKey());
+
+		// Trash
+
+		if (page.isInTrash()) {
+			if (page.isInTrashExplicitly()) {
+				page.setTitle(TrashUtil.getOriginalTitle(page.getTitle()));
+
+				trashEntryLocalService.deleteEntry(
+					WikiPage.class.getName(), page.getResourcePrimKey());
+			}
+			else {
+				for (WikiPage versionPage : versionPages) {
+					trashVersionLocalService.deleteTrashVersion(
+						WikiPage.class.getName(), versionPage.getPageId());
+				}
+			}
+		}
+
+		// Indexer
+
+		Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+			WikiPage.class);
+
+		indexer.delete(page);
 
 		// Cache
 
 		clearPageCache(page);
+
+		// Version pages
+
+		for (WikiPage versionPage : versionPages) {
+
+			// Workflow
+
+			workflowInstanceLinkLocalService.deleteWorkflowInstanceLinks(
+				versionPage.getCompanyId(), versionPage.getGroupId(),
+				WikiPage.class.getName(), versionPage.getPageId());
+		}
+
+		if (pageResource != null) {
+			JSONObject extraDataJSONObject = JSONFactoryUtil.createJSONObject();
+
+			extraDataJSONObject.put("version", page.getVersion());
+
+			systemEventLocalService.addSystemEvent(
+				0, page.getGroupId(), page.getModelClassName(),
+				page.getPrimaryKey(), pageResource.getUuid(), null,
+				SystemEventConstants.TYPE_DELETE,
+				extraDataJSONObject.toString());
+		}
 	}
 
+	@Override
 	public void deletePageAttachment(long nodeId, String title, String fileName)
-		throws PortalException, SystemException {
-
-		if (Validator.isNull(fileName)) {
-			return;
-		}
+		throws PortalException {
 
 		WikiPage page = getPage(nodeId, title);
 
-		long companyId = page.getCompanyId();
-		long repositoryId = CompanyConstants.SYSTEM;
+		long folderId = page.getAttachmentsFolderId();
 
-		try {
-			DLStoreUtil.deleteFile(companyId, repositoryId, fileName);
+		if (folderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			return;
 		}
-		catch (NoSuchFileException nsfe) {
-		}
+
+		FileEntry fileEntry = PortletFileRepositoryUtil.getPortletFileEntry(
+			page.getGroupId(), folderId, fileName);
+
+		deletePageAttachment(fileEntry.getFileEntryId());
 	}
 
-	public void deletePages(long nodeId)
-		throws PortalException, SystemException {
+	@Override
+	public void deletePageAttachments(long nodeId, String title)
+		throws PortalException {
 
+		WikiPage page = getPage(nodeId, title);
+
+		long folderId = page.getAttachmentsFolderId();
+
+		if (folderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			return;
+		}
+
+		PortletFileRepositoryUtil.deletePortletFileEntries(
+			page.getGroupId(), folderId);
+	}
+
+	@Override
+	public void deletePages(long nodeId) throws PortalException {
 		List<WikiPage> pages = wikiPagePersistence.findByN_H_P(
 			nodeId, true, StringPool.BLANK);
 
 		for (WikiPage page : pages) {
-			deletePage(page);
+			wikiPageLocalService.deletePage(page);
 		}
 
 		pages = wikiPagePersistence.findByN_H_P(
 			nodeId, false, StringPool.BLANK);
 
 		for (WikiPage page : pages) {
-			deletePage(page);
+			wikiPageLocalService.deletePage(page);
 		}
 	}
 
+	@Override
 	public void deleteTempPageAttachment(
-		long userId, String fileName, String tempFolderName) {
+			long groupId, long userId, String fileName, String tempFolderName)
+		throws PortalException {
 
-		TempFileUtil.deleteTempFile(userId, fileName, tempFolderName);
+		TempFileUtil.deleteTempFile(groupId, userId, fileName, tempFolderName);
 	}
 
+	@Override
+	public void deleteTrashPageAttachments(long nodeId, String title)
+		throws PortalException {
+
+		WikiPage page = getPage(nodeId, title);
+
+		long folderId = page.getAttachmentsFolderId();
+
+		if (folderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			return;
+		}
+
+		PortletFileRepositoryUtil.deletePortletFileEntries(
+			page.getGroupId(), folderId, WorkflowConstants.STATUS_IN_TRASH);
+	}
+
+	@Override
+	public void discardDraft(long nodeId, String title, double version)
+		throws PortalException {
+
+		wikiPagePersistence.removeByN_T_V(nodeId, title, version);
+	}
+
+	@Override
+	public WikiPage fetchLatestPage(
+		long resourcePrimKey, int status, boolean preferApproved) {
+
+		WikiPage page = null;
+
+		OrderByComparator orderByComparator = new PageVersionComparator();
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			if (preferApproved) {
+				page = wikiPagePersistence.fetchByR_S_First(
+					resourcePrimKey, WorkflowConstants.STATUS_APPROVED,
+					orderByComparator);
+			}
+
+			if (page == null) {
+				page = wikiPagePersistence.fetchByResourcePrimKey_First(
+					resourcePrimKey, orderByComparator);
+			}
+		}
+		else {
+			page = wikiPagePersistence.fetchByR_S_First(
+				resourcePrimKey, status, orderByComparator);
+		}
+
+		return page;
+	}
+
+	@Override
+	public WikiPage fetchLatestPage(
+		long resourcePrimKey, long nodeId, int status, boolean preferApproved) {
+
+		WikiPage page = null;
+
+		OrderByComparator orderByComparator = new PageVersionComparator();
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			if (preferApproved) {
+				page = wikiPagePersistence.fetchByR_N_S_First(
+					resourcePrimKey, nodeId, WorkflowConstants.STATUS_APPROVED,
+					orderByComparator);
+			}
+
+			if (page == null) {
+				page = wikiPagePersistence.fetchByR_N_First(
+					resourcePrimKey, nodeId, orderByComparator);
+			}
+		}
+		else {
+			page = wikiPagePersistence.fetchByR_N_S_First(
+				resourcePrimKey, nodeId, status, orderByComparator);
+		}
+
+		return page;
+	}
+
+	@Override
+	public WikiPage fetchLatestPage(
+		long nodeId, String title, int status, boolean preferApproved) {
+
+		WikiPage page = null;
+
+		OrderByComparator orderByComparator = new PageVersionComparator();
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			if (preferApproved) {
+				page = wikiPagePersistence.fetchByN_T_S_First(
+					nodeId, title, WorkflowConstants.STATUS_APPROVED,
+					orderByComparator);
+			}
+
+			if (page == null) {
+				page = wikiPagePersistence.fetchByN_T_First(
+					nodeId, title, orderByComparator);
+			}
+		}
+		else {
+			page = wikiPagePersistence.fetchByN_T_S_First(
+				nodeId, title, status, orderByComparator);
+		}
+
+		return page;
+	}
+
+	@Override
+	public WikiPage fetchPage(long nodeId, String title) {
+
+		return wikiPagePersistence.fetchByN_T_H_First(
+			nodeId, title, true, null);
+	}
+
+	@Override
+	public WikiPage fetchPage(long nodeId, String title, double version) {
+
+		WikiPage page = null;
+
+		if (version == 0) {
+			page = fetchPage(nodeId, title);
+		}
+		else {
+			page = wikiPagePersistence.fetchByN_T_V(nodeId, title, version);
+		}
+
+		return page;
+	}
+
+	@Override
 	public List<WikiPage> getChildren(
-			long nodeId, boolean head, String parentTitle)
-		throws SystemException {
+		long nodeId, boolean head, String parentTitle) {
 
 		return wikiPagePersistence.findByN_H_P_S(
 			nodeId, head, parentTitle, WorkflowConstants.STATUS_APPROVED);
 	}
 
+	@Override
 	public WikiPage getDraftPage(long nodeId, String title)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		List<WikiPage> pages = wikiPagePersistence.findByN_T_S(
 			nodeId, title, WorkflowConstants.STATUS_DRAFT, 0, 1);
@@ -608,22 +847,29 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		if (!pages.isEmpty()) {
 			return pages.get(0);
 		}
-		else {
-			pages = wikiPagePersistence.findByN_T_S(
-				nodeId, title, WorkflowConstants.STATUS_PENDING, 0, 1);
 
-			if (!pages.isEmpty()) {
-				return pages.get(0);
-			}
-			else {
-				throw new NoSuchPageException();
-			}
+		pages = wikiPagePersistence.findByN_T_S(
+			nodeId, title, WorkflowConstants.STATUS_PENDING, 0, 1);
+
+		if (!pages.isEmpty()) {
+			return pages.get(0);
 		}
+		else {
+			StringBundler sb = new StringBundler(5);
 
+			sb.append("{nodeId=");
+			sb.append(nodeId);
+			sb.append(", title=");
+			sb.append(title);
+			sb.append("}");
+
+			throw new NoSuchPageException(sb.toString());
+		}
 	}
 
+	@Override
 	public List<WikiPage> getIncomingLinks(long nodeId, String title)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		List<WikiPage> links = new UniqueList<WikiPage>();
 
@@ -648,50 +894,95 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		return ListUtil.sort(links);
 	}
 
-	public List<WikiPage> getNoAssetPages() throws SystemException {
+	@Override
+	public WikiPage getLatestPage(
+			long resourcePrimKey, int status, boolean preferApproved)
+		throws PortalException {
+
+		WikiPage page = fetchLatestPage(
+			resourcePrimKey, status, preferApproved);
+
+		if (page == null) {
+			StringBundler sb = new StringBundler(5);
+
+			sb.append("{resourcePrimKey=");
+			sb.append(resourcePrimKey);
+			sb.append(", status=");
+			sb.append(status);
+			sb.append("}");
+
+			throw new NoSuchPageException(sb.toString());
+		}
+
+		return page;
+	}
+
+	@Override
+	public WikiPage getLatestPage(
+			long resourcePrimKey, long nodeId, int status,
+			boolean preferApproved)
+		throws PortalException {
+
+		WikiPage page = fetchLatestPage(
+			resourcePrimKey, nodeId, status, preferApproved);
+
+		if (page == null) {
+			StringBundler sb = new StringBundler(7);
+
+			sb.append("{resourcePrimKey=");
+			sb.append(resourcePrimKey);
+			sb.append(", nodeId=");
+			sb.append(nodeId);
+			sb.append(", status=");
+			sb.append(status);
+			sb.append("}");
+
+			throw new NoSuchPageException(sb.toString());
+		}
+
+		return page;
+	}
+
+	@Override
+	public WikiPage getLatestPage(
+			long nodeId, String title, int status, boolean preferApproved)
+		throws PortalException {
+
+		WikiPage page = fetchLatestPage(nodeId, title, status, preferApproved);
+
+		if (page == null) {
+			StringBundler sb = new StringBundler(7);
+
+			sb.append("{nodeId=");
+			sb.append(nodeId);
+			sb.append(", title=");
+			sb.append(title);
+			sb.append(", status=");
+			sb.append(status);
+			sb.append("}");
+
+			throw new NoSuchPageException(sb.toString());
+		}
+
+		return page;
+	}
+
+	@Override
+	public List<WikiPage> getNoAssetPages() {
 		return wikiPageFinder.findByNoAssets();
 	}
 
-	public List<WikiPage> getOrphans(long nodeId)
-		throws PortalException, SystemException {
-
-		List<Map<String, Boolean>> pageTitles =
-			new ArrayList<Map<String, Boolean>>();
-
+	@Override
+	public List<WikiPage> getOrphans(long nodeId) throws PortalException {
 		List<WikiPage> pages = wikiPagePersistence.findByN_H_S(
 			nodeId, true, WorkflowConstants.STATUS_APPROVED);
 
-		for (WikiPage page : pages) {
-			pageTitles.add(WikiCacheUtil.getOutgoingLinks(page));
-		}
-
-		Set<WikiPage> notOrphans = new HashSet<WikiPage>();
-
-		for (WikiPage page : pages) {
-			for (Map<String, Boolean> pageTitle : pageTitles) {
-				if (pageTitle.get(page.getTitle().toLowerCase()) != null) {
-					notOrphans.add(page);
-
-					break;
-				}
-			}
-		}
-
-		List<WikiPage> orphans = new ArrayList<WikiPage>();
-
-		for (WikiPage page : pages) {
-			if (!notOrphans.contains(page)) {
-				orphans.add(page);
-			}
-		}
-
-		orphans = ListUtil.sort(orphans);
-
-		return orphans;
+		return WikiUtil.filterOrphans(pages);
 	}
 
+	@Override
 	public List<WikiPage> getOutgoingLinks(long nodeId, String title)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		WikiPage page = getPage(nodeId, title);
 
@@ -726,38 +1017,44 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		return ListUtil.fromMapValues(pages);
 	}
 
-	public WikiPage getPage(long resourcePrimKey)
-		throws PortalException, SystemException {
-
+	@Override
+	public WikiPage getPage(long resourcePrimKey) throws PortalException {
 		return getPage(resourcePrimKey, Boolean.TRUE);
 	}
 
+	@Override
 	public WikiPage getPage(long resourcePrimKey, Boolean head)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		WikiPageResource wikiPageResource =
+		WikiPageResource pageResource =
 			wikiPageResourceLocalService.getPageResource(resourcePrimKey);
 
-		return getPage(
-			wikiPageResource.getNodeId(), wikiPageResource.getTitle(), head);
+		return getPage(pageResource.getNodeId(), pageResource.getTitle(), head);
 	}
 
-	public WikiPage getPage(long nodeId, String title)
-		throws PortalException, SystemException {
+	@Override
+	public WikiPage getPage(long nodeId, String title) throws PortalException {
+		WikiPage page = fetchPage(nodeId, title);
 
-		List<WikiPage> pages = wikiPagePersistence.findByN_T_H(
-			nodeId, title, true, 0, 1);
-
-		if (!pages.isEmpty()) {
-			return pages.get(0);
+		if (page != null) {
+			return page;
 		}
 		else {
-			throw new NoSuchPageException();
+			StringBundler sb = new StringBundler(5);
+
+			sb.append("{nodeId=");
+			sb.append(nodeId);
+			sb.append(", title=");
+			sb.append(title);
+			sb.append("}");
+
+			throw new NoSuchPageException(sb.toString());
 		}
 	}
 
+	@Override
 	public WikiPage getPage(long nodeId, String title, Boolean head)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		List<WikiPage> pages;
 
@@ -772,12 +1069,23 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			return pages.get(0);
 		}
 		else {
-			throw new NoSuchPageException();
+			StringBundler sb = new StringBundler(7);
+
+			sb.append("{nodeId=");
+			sb.append(nodeId);
+			sb.append(", title=");
+			sb.append(title);
+			sb.append(", head=");
+			sb.append(head);
+			sb.append("}");
+
+			throw new NoSuchPageException(sb.toString());
 		}
 	}
 
+	@Override
 	public WikiPage getPage(long nodeId, String title, double version)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		WikiPage page = null;
 
@@ -791,16 +1099,16 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		return page;
 	}
 
-	public WikiPage getPageByPageId(long pageId)
-		throws PortalException, SystemException {
-
+	@Override
+	public WikiPage getPageByPageId(long pageId) throws PortalException {
 		return wikiPagePersistence.findByPrimaryKey(pageId);
 	}
 
+	@Override
 	public WikiPageDisplay getPageDisplay(
 			long nodeId, String title, PortletURL viewPageURL,
 			PortletURL editPageURL, String attachmentURLPrefix)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		WikiPage page = getPage(nodeId, title);
 
@@ -808,10 +1116,11 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			page, viewPageURL, editPageURL, attachmentURLPrefix);
 	}
 
+	@Override
 	public WikiPageDisplay getPageDisplay(
 			WikiPage page, PortletURL viewPageURL, PortletURL editPageURL,
 			String attachmentURLPrefix)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		String formattedContent = WikiUtil.convert(
 			page, viewPageURL, editPageURL, attachmentURLPrefix);
@@ -819,50 +1128,72 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		return new WikiPageDisplayImpl(
 			page.getUserId(), page.getNodeId(), page.getTitle(),
 			page.getVersion(), page.getContent(), formattedContent,
-			page.getFormat(), page.getHead(), page.getAttachmentsFiles());
+			page.getFormat(), page.getHead(), page.getAttachmentsFileEntries());
 	}
 
+	@Override
 	public List<WikiPage> getPages(
-			long nodeId, boolean head, int start, int end)
-		throws SystemException {
+		long nodeId, boolean head, int start, int end) {
 
 		return getPages(
 			nodeId, head, start, end, new PageCreateDateComparator(false));
 	}
 
+	@Override
 	public List<WikiPage> getPages(
-			long nodeId, boolean head, int start, int end,
-			OrderByComparator obc)
-		throws SystemException {
+		long nodeId, boolean head, int status, int start, int end) {
 
-		return wikiPagePersistence.findByN_H_S(
+		return getPages(
+			nodeId, head, status, start, end,
+			new PageCreateDateComparator(false));
+	}
+
+	@Override
+	public List<WikiPage> getPages(
+		long nodeId, boolean head, int status, int start, int end,
+		OrderByComparator obc) {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return wikiPagePersistence.findByN_H(nodeId, head, start, end, obc);
+		}
+		else {
+			return wikiPagePersistence.findByN_H_S(
+				nodeId, head, status, start, end, obc);
+		}
+	}
+
+	@Override
+	public List<WikiPage> getPages(
+		long nodeId, boolean head, int start, int end, OrderByComparator obc) {
+
+		return getPages(
 			nodeId, head, WorkflowConstants.STATUS_APPROVED, start, end, obc);
 	}
 
-	public List<WikiPage> getPages(long nodeId, int start, int end)
-		throws SystemException {
+	@Override
+	public List<WikiPage> getPages(long nodeId, int start, int end) {
 
 		return getPages(
 			nodeId, start, end, new PageCreateDateComparator(false));
 	}
 
+	@Override
 	public List<WikiPage> getPages(
-			long nodeId, int start, int end, OrderByComparator obc)
-		throws SystemException {
+		long nodeId, int start, int end, OrderByComparator obc) {
 
 		return wikiPagePersistence.findByNodeId(nodeId, start, end, obc);
 	}
 
+	@Override
 	public List<WikiPage> getPages(
-			long resourcePrimKey, long nodeId, int status)
-		throws SystemException {
+		long resourcePrimKey, long nodeId, int status) {
 
 		return wikiPagePersistence.findByR_N_S(resourcePrimKey, nodeId, status);
 	}
 
+	@Override
 	public List<WikiPage> getPages(
-			long userId, long nodeId, int status, int start, int end)
-		throws SystemException {
+		long userId, long nodeId, int status, int start, int end) {
 
 		if (userId > 0) {
 			return wikiPagePersistence.findByU_N_S(
@@ -876,46 +1207,65 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		}
 	}
 
+	@Override
 	public List<WikiPage> getPages(
-			long nodeId, String title, boolean head, int start, int end)
-		throws SystemException {
+		long nodeId, String title, boolean head, int start, int end) {
 
 		return wikiPagePersistence.findByN_T_H(
 			nodeId, title, head, start, end,
 			new PageCreateDateComparator(false));
 	}
 
+	@Override
 	public List<WikiPage> getPages(
-			long nodeId, String title, int start, int end)
-		throws SystemException {
+		long nodeId, String title, int start, int end) {
 
 		return wikiPagePersistence.findByN_T(
 			nodeId, title, start, end, new PageCreateDateComparator(false));
 	}
 
+	@Override
 	public List<WikiPage> getPages(
-			long nodeId, String title, int start, int end,
-			OrderByComparator obc)
-		throws SystemException {
+		long nodeId, String title, int start, int end, OrderByComparator obc) {
 
 		return wikiPagePersistence.findByN_T(nodeId, title, start, end, obc);
 	}
 
-	public List<WikiPage> getPages(String format) throws SystemException {
+	@Override
+	public List<WikiPage> getPages(String format) {
 		return wikiPagePersistence.findByFormat(format);
 	}
 
-	public int getPagesCount(long nodeId) throws SystemException {
+	@Override
+	public int getPagesCount(long nodeId) {
 		return wikiPagePersistence.countByNodeId(nodeId);
 	}
 
-	public int getPagesCount(long nodeId, boolean head) throws SystemException {
+	@Override
+	public int getPagesCount(long nodeId, boolean head) {
 		return wikiPagePersistence.countByN_H_S(
 			nodeId, head, WorkflowConstants.STATUS_APPROVED);
 	}
 
-	public int getPagesCount(long userId, long nodeId, int status)
-		throws SystemException {
+	@Override
+	public int getPagesCount(long nodeId, boolean head, int status) {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return wikiPagePersistence.countByN_H_NotS(
+				nodeId, head, WorkflowConstants.STATUS_IN_TRASH);
+		}
+		else {
+			return wikiPagePersistence.countByN_H_S(nodeId, head, status);
+		}
+	}
+
+	@Override
+	public int getPagesCount(long nodeId, int status) {
+		return wikiPagePersistence.countByN_S(nodeId, status);
+	}
+
+	@Override
+	public int getPagesCount(long userId, long nodeId, int status) {
 
 		if (userId > 0) {
 			return wikiPagePersistence.countByU_N_S(userId, nodeId, status);
@@ -925,47 +1275,95 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		}
 	}
 
-	public int getPagesCount(long nodeId, String title) throws SystemException {
+	@Override
+	public int getPagesCount(long nodeId, String title) {
 		return wikiPagePersistence.countByN_T(nodeId, title);
 	}
 
-	public int getPagesCount(long nodeId, String title, boolean head)
-		throws SystemException {
+	@Override
+	public int getPagesCount(long nodeId, String title, boolean head) {
 
 		return wikiPagePersistence.countByN_T_H(nodeId, title, head);
 	}
 
-	public int getPagesCount(String format) throws SystemException {
+	@Override
+	public int getPagesCount(String format) {
 		return wikiPagePersistence.countByFormat(format);
 	}
 
+	@Override
+	public WikiPage getPreviousVersionPage(WikiPage page)
+		throws PortalException {
+
+		double previousVersion = MathUtil.format(page.getVersion() - 0.1, 1, 1);
+
+		if (previousVersion < 1) {
+			return null;
+		}
+
+		return getPage(page.getNodeId(), page.getTitle(), previousVersion);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getRecentChanges(long, long,
+	 *             int, int)}
+	 */
+	@Deprecated
+	@Override
 	public List<WikiPage> getRecentChanges(long nodeId, int start, int end)
-		throws SystemException {
+		throws PortalException {
+
+		WikiNode node = wikiNodePersistence.findByPrimaryKey(nodeId);
+
+		return getRecentChanges(node.getGroupId(), nodeId, start, end);
+	}
+
+	@Override
+	public List<WikiPage> getRecentChanges(
+		long groupId, long nodeId, int start, int end) {
 
 		Calendar cal = CalendarFactoryUtil.getCalendar();
 
 		cal.add(Calendar.WEEK_OF_YEAR, -1);
 
 		return wikiPageFinder.findByCreateDate(
-			nodeId, cal.getTime(), false, start, end);
+			groupId, nodeId, cal.getTime(), false, start, end);
 	}
 
-	public int getRecentChangesCount(long nodeId) throws SystemException {
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getRecentChangesCount(long,
+	 *             long)}
+	 */
+	@Deprecated
+	@Override
+	public int getRecentChangesCount(long nodeId) throws PortalException {
+		WikiNode node = wikiNodePersistence.findByPrimaryKey(nodeId);
+
+		return getRecentChangesCount(node.getGroupId(), nodeId);
+	}
+
+	@Override
+	public int getRecentChangesCount(long groupId, long nodeId) {
+
 		Calendar cal = CalendarFactoryUtil.getCalendar();
 
 		cal.add(Calendar.WEEK_OF_YEAR, -1);
 
-		return wikiPageFinder.countByCreateDate(nodeId, cal.getTime(), false);
+		return wikiPageFinder.countByCreateDate(
+			groupId, nodeId, cal.getTime(), false);
 	}
 
+	@Override
 	public String[] getTempPageAttachmentNames(
-		long userId, String tempFolderName) {
+			long groupId, long userId, String tempFolderName)
+		throws PortalException {
 
-		return TempFileUtil.getTempFileEntryNames(userId, tempFolderName);
+		return TempFileUtil.getTempFileEntryNames(
+			groupId, userId, tempFolderName);
 	}
 
-	public boolean hasDraftPage(long nodeId, String title)
-		throws SystemException {
+	@Override
+	public boolean hasDraftPage(long nodeId, String title) {
 
 		int count = wikiPagePersistence.countByN_T_S(
 			nodeId, title, WorkflowConstants.STATUS_DRAFT);
@@ -978,16 +1376,24 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		}
 	}
 
+	@Override
+	public void moveDependentToTrash(WikiPage page, long trashEntryId)
+		throws PortalException {
+
+		moveDependentToTrash(page, trashEntryId, false);
+	}
+
+	@Override
 	public void movePage(
 			long userId, long nodeId, String title, String newTitle,
 			boolean strict, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		validateTitle(newTitle);
 
 		// Check if the new title already exists
 
-		if (title.equalsIgnoreCase(newTitle)) {
+		if (StringUtil.equalsIgnoreCase(title, newTitle)) {
 			throw new DuplicatePageException(newTitle);
 		}
 
@@ -1007,48 +1413,55 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			}
 		}
 
-		// All versions
+		// Version pages
 
-		List<WikiPage> pageVersions = wikiPagePersistence.findByN_T(
+		List<WikiPage> versionPages = wikiPagePersistence.findByN_T(
 			nodeId, title);
 
-		if (pageVersions.size() == 0) {
+		if (versionPages.isEmpty()) {
 			return;
 		}
 
-		for (WikiPage page : pageVersions) {
+		for (WikiPage page : versionPages) {
 			page.setTitle(newTitle);
 
-			wikiPagePersistence.update(page, false);
+			if (Validator.isNotNull(page.getRedirectTitle())) {
+				page.setRedirectTitle(StringPool.BLANK);
+
+				page.setSummary(StringPool.BLANK);
+			}
+
+			wikiPagePersistence.update(page);
 		}
 
-		// Children
+		// Child pages
 
-		List<WikiPage> children = wikiPagePersistence.findByN_P(nodeId, title);
+		List<WikiPage> childPages = wikiPagePersistence.findByN_P(
+			nodeId, title);
 
-		for (WikiPage page : children) {
-			page.setParentTitle(newTitle);
+		for (WikiPage childPage : childPages) {
+			childPage.setParentTitle(newTitle);
 
-			wikiPagePersistence.update(page, false);
+			wikiPagePersistence.update(childPage);
 		}
 
-		WikiPage page = pageVersions.get(pageVersions.size() - 1);
+		WikiPage page = versionPages.get(versionPages.size() - 1);
 
 		long resourcePrimKey = page.getResourcePrimKey();
 
 		// Page resource
 
-		WikiPageResource wikiPageResource =
+		WikiPageResource pageResource =
 			wikiPageResourcePersistence.findByPrimaryKey(resourcePrimKey);
 
-		wikiPageResource.setTitle(newTitle);
+		pageResource.setTitle(newTitle);
 
-		wikiPageResourcePersistence.update(wikiPageResource, false);
+		wikiPageResourcePersistence.update(pageResource);
 
 		// Create stub page at the old location
 
 		double version = WikiPageConstants.VERSION_DEFAULT;
-		String summary = WikiPageConstants.MOVED + " to " + title;
+		String summary = WikiPageConstants.MOVED + " to " + newTitle;
 		String format = page.getFormat();
 		boolean head = true;
 		String parentTitle = page.getParentTitle();
@@ -1060,16 +1473,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		serviceContext.setAddGroupPermissions(true);
 		serviceContext.setAddGuestPermissions(true);
 
-		AssetEntry assetEntry = assetEntryLocalService.getEntry(
-			WikiPage.class.getName(), page.getResourcePrimKey());
-
-		List<AssetLink> assetLinks = assetLinkLocalService.getDirectLinks(
-			assetEntry.getEntryId(), AssetLinkConstants.TYPE_RELATED);
-
-		long[] assetLinkEntryIds = StringUtil.split(
-			ListUtil.toString(assetLinks, AssetLink.ENTRY_ID2_ACCESSOR), 0L);
-
-		serviceContext.setAssetLinkEntryIds(assetLinkEntryIds);
+		populateServiceContext(serviceContext, page);
 
 		addPage(
 			userId, nodeId, title, version, content, summary, false, format,
@@ -1083,12 +1487,15 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		for (WikiPage redirectedPage : redirectedPages) {
 			redirectedPage.setRedirectTitle(newTitle);
 
-			wikiPagePersistence.update(redirectedPage, false);
+			wikiPagePersistence.update(redirectedPage);
 		}
 
 		// Asset
 
-		updateAsset(userId, page, null, null, null);
+		updateAsset(
+			userId, page, serviceContext.getAssetCategoryIds(),
+			serviceContext.getAssetTagNames(),
+			serviceContext.getAssetLinkEntryIds());
 
 		// Indexer
 
@@ -1101,20 +1508,396 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		indexer.reindex(page);
 	}
 
+	@Override
 	public void movePage(
 			long userId, long nodeId, String title, String newTitle,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		movePage(userId, nodeId, title, newTitle, true, serviceContext);
 	}
 
+	@Override
+	public FileEntry movePageAttachmentToTrash(
+			long userId, long nodeId, String title, String fileName)
+		throws PortalException {
+
+		WikiPage page = getPage(nodeId, title);
+
+		FileEntry fileEntry = PortletFileRepositoryUtil.getPortletFileEntry(
+			page.getGroupId(), page.getAttachmentsFolderId(), fileName);
+
+		fileEntry = PortletFileRepositoryUtil.movePortletFileEntryToTrash(
+			userId, fileEntry.getFileEntryId());
+
+		JSONObject extraDataJSONObject = JSONFactoryUtil.createJSONObject();
+
+		extraDataJSONObject.put("fileEntryId", fileEntry.getFileEntryId());
+		extraDataJSONObject.put(
+			"fileEntryTitle", TrashUtil.getOriginalTitle(fileEntry.getTitle()));
+		extraDataJSONObject.put("title", page.getTitle());
+		extraDataJSONObject.put("version", page.getVersion());
+
+		socialActivityLocalService.addActivity(
+			userId, page.getGroupId(), WikiPage.class.getName(),
+			page.getResourcePrimKey(),
+			SocialActivityConstants.TYPE_MOVE_ATTACHMENT_TO_TRASH,
+			extraDataJSONObject.toString(), 0);
+
+		return fileEntry;
+	}
+
+	@Override
+	public WikiPage movePageToTrash(long userId, long nodeId, String title)
+		throws PortalException {
+
+		List<WikiPage> wikiPages = wikiPagePersistence.findByN_T_H(
+			nodeId, title, true, 0, 1);
+
+		if (!wikiPages.isEmpty()) {
+			return movePageToTrash(userId, wikiPages.get(0));
+		}
+
+		return null;
+	}
+
+	@Override
+	public WikiPage movePageToTrash(
+			long userId, long nodeId, String title, double version)
+		throws PortalException {
+
+		WikiPage page = wikiPagePersistence.findByN_T_V(nodeId, title, version);
+
+		return movePageToTrash(userId, page);
+	}
+
+	@Override
+	public WikiPage movePageToTrash(long userId, WikiPage page)
+		throws PortalException {
+
+		// Page
+
+		int oldStatus = page.getStatus();
+		String oldTitle = page.getTitle();
+
+		if (oldStatus == WorkflowConstants.STATUS_PENDING) {
+			page.setStatus(WorkflowConstants.STATUS_DRAFT);
+
+			wikiPagePersistence.update(page);
+		}
+
+		List<WikiPage> pageVersions = wikiPagePersistence.findByR_N_H(
+			page.getResourcePrimKey(), page.getNodeId(), false);
+
+		pageVersions = ListUtil.sort(pageVersions, new PageVersionComparator());
+
+		List<ObjectValuePair<Long, Integer>> pageVersionStatusOVPs =
+			new ArrayList<ObjectValuePair<Long, Integer>>();
+
+		if ((pageVersions != null) && !pageVersions.isEmpty()) {
+			pageVersionStatusOVPs = getPageVersionStatuses(pageVersions);
+		}
+
+		page = updateStatus(
+			userId, page, WorkflowConstants.STATUS_IN_TRASH,
+			new ServiceContext(), new HashMap<String, Serializable>());
+
+		// Trash
+
+		WikiPageResource pageResource =
+			wikiPageResourcePersistence.fetchByPrimaryKey(
+				page.getResourcePrimKey());
+
+		UnicodeProperties typeSettingsProperties = new UnicodeProperties();
+
+		typeSettingsProperties.put("title", page.getTitle());
+
+		TrashEntry trashEntry = trashEntryLocalService.addTrashEntry(
+			userId, page.getGroupId(), WikiPage.class.getName(),
+			page.getResourcePrimKey(), pageResource.getUuid(), null, oldStatus,
+			pageVersionStatusOVPs, typeSettingsProperties);
+
+		String trashTitle = TrashUtil.getTrashTitle(trashEntry.getEntryId());
+
+		for (WikiPage pageVersion : pageVersions) {
+			pageVersion.setTitle(trashTitle);
+			pageVersion.setStatus(WorkflowConstants.STATUS_IN_TRASH);
+
+			wikiPagePersistence.update(pageVersion);
+		}
+
+		pageResource.setTitle(trashTitle);
+
+		wikiPageResourcePersistence.update(pageResource);
+
+		page.setTitle(trashTitle);
+
+		wikiPagePersistence.update(page);
+
+		// Child pages
+
+		moveDependentChildPagesToTrash(
+			page, oldTitle, trashTitle, trashEntry.getEntryId(), true);
+
+		// Redirect pages
+
+		moveDependentRedirectPagesToTrash(
+			page, oldTitle, trashTitle, trashEntry.getEntryId(), true);
+
+		// Asset
+
+		assetEntryLocalService.updateVisible(
+			WikiPage.class.getName(), page.getResourcePrimKey(), false);
+
+		// Social
+
+		JSONObject extraDataJSONObject = JSONFactoryUtil.createJSONObject();
+
+		extraDataJSONObject.put(
+			"title", TrashUtil.getOriginalTitle(page.getTitle()));
+		extraDataJSONObject.put("version", page.getVersion());
+
+		socialActivityLocalService.addActivity(
+			userId, page.getGroupId(), WikiPage.class.getName(),
+			page.getResourcePrimKey(),
+			SocialActivityConstants.TYPE_MOVE_TO_TRASH,
+			extraDataJSONObject.toString(), 0);
+
+		if (!pageVersions.isEmpty()) {
+			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+				WikiPage.class);
+
+			for (WikiPage pageVersion : pageVersions) {
+				indexer.reindex(pageVersion);
+			}
+		}
+
+		// Workflow
+
+		if (oldStatus == WorkflowConstants.STATUS_PENDING) {
+			workflowInstanceLinkLocalService.deleteWorkflowInstanceLink(
+				page.getCompanyId(), page.getGroupId(),
+				WikiPage.class.getName(), page.getPageId());
+		}
+
+		return page;
+	}
+
+	@Override
+	public void restoreDependentFromTrash(WikiPage page, long trashEntryId)
+		throws PortalException {
+
+		String trashTitle = page.getTitle();
+
+		TrashVersion trashVersion = trashVersionLocalService.fetchVersion(
+			trashEntryId, WikiPage.class.getName(), page.getPageId());
+
+		if (trashVersion != null) {
+			String originalTitle = TrashUtil.getOriginalTitle(page.getTitle());
+
+			page.setTitle(originalTitle);
+
+			wikiPagePersistence.update(page);
+		}
+
+		int oldStatus = WorkflowConstants.STATUS_APPROVED;
+
+		if (trashVersion != null) {
+			oldStatus = trashVersion.getStatus();
+		}
+
+		// Version pages
+
+		List<WikiPage> versionPages = wikiPagePersistence.findByR_N(
+			page.getResourcePrimKey(), page.getNodeId());
+
+		for (WikiPage versionPage : versionPages) {
+
+			// Version page
+
+			versionPage.setTitle(page.getTitle());
+
+			trashVersion = trashVersionLocalService.fetchVersion(
+				trashEntryId, WikiPage.class.getName(),
+				versionPage.getPageId());
+
+			int versionPageOldStatus = WorkflowConstants.STATUS_APPROVED;
+
+			if (trashVersion != null) {
+				versionPageOldStatus = trashVersion.getStatus();
+			}
+
+			versionPage.setStatus(versionPageOldStatus);
+
+			wikiPagePersistence.update(versionPage);
+
+			// Trash
+
+			if (trashVersion != null) {
+				trashVersionLocalService.deleteTrashVersion(trashVersion);
+			}
+		}
+
+		// Asset
+
+		if (oldStatus == WorkflowConstants.STATUS_APPROVED) {
+			assetEntryLocalService.updateVisible(
+				WikiPage.class.getName(), page.getResourcePrimKey(), true);
+		}
+
+		// Index
+
+		Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+			WikiPage.class);
+
+		indexer.reindex(page);
+
+		// Child pages
+
+		restoreDependentChildPagesFromTrash(
+			page, page.getTitle(), trashTitle, trashEntryId);
+
+		// Redirect pages
+
+		restoreDependentRedirectPagesFromTrash(
+			page, page.getTitle(), trashTitle, trashEntryId);
+	}
+
+	@Override
+	public void restorePageAttachmentFromTrash(
+			long userId, long nodeId, String title, String fileName)
+		throws PortalException {
+
+		WikiPage page = getPage(nodeId, title);
+
+		FileEntry fileEntry = PortletFileRepositoryUtil.getPortletFileEntry(
+			page.getGroupId(), page.getAttachmentsFolderId(), fileName);
+
+		JSONObject extraDataJSONObject = JSONFactoryUtil.createJSONObject();
+
+		extraDataJSONObject.put("fileEntryId", fileEntry.getFileEntryId());
+		extraDataJSONObject.put("fileEntryTitle", TrashUtil.getOriginalTitle(
+			fileEntry.getTitle()));
+		extraDataJSONObject.put("title", page.getTitle());
+		extraDataJSONObject.put("version", page.getVersion());
+
+		PortletFileRepositoryUtil.restorePortletFileEntryFromTrash(
+			userId, fileEntry.getFileEntryId());
+
+		socialActivityLocalService.addActivity(
+			userId, page.getGroupId(), WikiPage.class.getName(),
+			page.getResourcePrimKey(),
+			SocialActivityConstants.TYPE_RESTORE_ATTACHMENT_FROM_TRASH,
+			extraDataJSONObject.toString(), 0);
+	}
+
+	@Override
+	public void restorePageFromTrash(long userId, WikiPage page)
+		throws PortalException {
+
+		String trashTitle = page.getTitle();
+
+		String originalTitle = TrashUtil.getOriginalTitle(trashTitle);
+
+		List<WikiPage> pageVersions = wikiPagePersistence.findByR_N_H(
+			page.getResourcePrimKey(), page.getNodeId(), false);
+
+		for (WikiPage pageVersion : pageVersions) {
+			pageVersion.setTitle(originalTitle);
+
+			wikiPagePersistence.update(pageVersion);
+		}
+
+		WikiPageResource pageResource =
+			wikiPageResourcePersistence.fetchByPrimaryKey(
+				page.getResourcePrimKey());
+
+		pageResource.setTitle(originalTitle);
+
+		wikiPageResourcePersistence.update(pageResource);
+
+		page.setTitle(originalTitle);
+
+		WikiPage parentPage = page.getParentPage();
+
+		if ((parentPage != null) && parentPage.isInTrash()) {
+			page.setParentTitle(StringPool.BLANK);
+		}
+
+		WikiPage redirectPage = page.getRedirectPage();
+
+		if ((redirectPage != null) && redirectPage.isInTrash()) {
+			page.setRedirectTitle(StringPool.BLANK);
+		}
+
+		wikiPagePersistence.update(page);
+
+		TrashEntry trashEntry = trashEntryLocalService.getEntry(
+			WikiPage.class.getName(), page.getResourcePrimKey());
+
+		updateStatus(
+			userId, page, trashEntry.getStatus(), new ServiceContext(),
+			new HashMap<String, Serializable>());
+
+		// Child pages
+
+		restoreDependentChildPagesFromTrash(
+			page, originalTitle, trashTitle, trashEntry.getEntryId());
+
+		// Redirect pages
+
+		restoreDependentRedirectPagesFromTrash(
+			page, originalTitle, trashTitle, trashEntry.getEntryId());
+
+		// Trash
+
+		List<TrashVersion> trashVersions = trashVersionLocalService.getVersions(
+			trashEntry.getEntryId());
+
+		for (TrashVersion trashVersion : trashVersions) {
+			WikiPage trashArticleVersion = wikiPagePersistence.findByPrimaryKey(
+				trashVersion.getClassPK());
+
+			trashArticleVersion.setStatus(trashVersion.getStatus());
+
+			wikiPagePersistence.update(trashArticleVersion);
+		}
+
+		trashEntryLocalService.deleteEntry(
+			WikiPage.class.getName(), page.getResourcePrimKey());
+
+		// Social
+
+		JSONObject extraDataJSONObject = JSONFactoryUtil.createJSONObject();
+
+		extraDataJSONObject.put("title", page.getTitle());
+		extraDataJSONObject.put("version", page.getVersion());
+
+		socialActivityLocalService.addActivity(
+			userId, page.getGroupId(), WikiPage.class.getName(),
+			page.getResourcePrimKey(),
+			SocialActivityConstants.TYPE_RESTORE_FROM_TRASH,
+			extraDataJSONObject.toString(), 0);
+
+		if (!pageVersions.isEmpty()) {
+			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+				WikiPage.class);
+
+			for (WikiPage pageVersion : pageVersions) {
+				indexer.reindex(pageVersion);
+			}
+		}
+	}
+
+	@Override
 	public WikiPage revertPage(
 			long userId, long nodeId, String title, double version,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		WikiPage oldPage = getPage(nodeId, title, version);
+
+		populateServiceContext(serviceContext, oldPage);
 
 		return updatePage(
 			userId, nodeId, title, 0, oldPage.getContent(),
@@ -1123,8 +1906,9 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			oldPage.getRedirectTitle(), serviceContext);
 	}
 
+	@Override
 	public void subscribePage(long userId, long nodeId, String title)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		WikiPage page = getPage(nodeId, title);
 
@@ -1133,8 +1917,9 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			page.getResourcePrimKey());
 	}
 
+	@Override
 	public void unsubscribePage(long userId, long nodeId, String title)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		WikiPage page = getPage(nodeId, title);
 
@@ -1142,10 +1927,11 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			userId, WikiPage.class.getName(), page.getResourcePrimKey());
 	}
 
+	@Override
 	public void updateAsset(
 			long userId, WikiPage page, long[] assetCategoryIds,
 			String[] assetTagNames, long[] assetLinkEntryIds)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		boolean addDraftAssetEntry = false;
 
@@ -1165,17 +1951,18 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		if (addDraftAssetEntry) {
 			assetEntry = assetEntryLocalService.updateEntry(
-				userId, page.getGroupId(), WikiPage.class.getName(),
+				userId, page.getGroupId(), page.getCreateDate(),
+				page.getModifiedDate(), WikiPage.class.getName(),
 				page.getPrimaryKey(), page.getUuid(), 0, assetCategoryIds,
-				assetTagNames, false, null, null, null, null,
-				ContentTypes.TEXT_HTML, page.getTitle(), null, null, null, null,
-				0, 0, null, false);
+				assetTagNames, false, null, null, null, ContentTypes.TEXT_HTML,
+				page.getTitle(), null, null, null, null, 0, 0, null, false);
 		}
 		else {
 			assetEntry = assetEntryLocalService.updateEntry(
-				userId, page.getGroupId(), WikiPage.class.getName(),
+				userId, page.getGroupId(), page.getCreateDate(),
+				page.getModifiedDate(), WikiPage.class.getName(),
 				page.getResourcePrimKey(), page.getUuid(), 0, assetCategoryIds,
-				assetTagNames, page.isApproved(), null, null, null, null,
+				assetTagNames, page.isApproved(), null, null, null,
 				ContentTypes.TEXT_HTML, page.getTitle(), null, null, null, null,
 				0, 0, null, false);
 		}
@@ -1185,12 +1972,13 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			AssetLinkConstants.TYPE_RELATED);
 	}
 
+	@Override
 	public WikiPage updatePage(
 			long userId, long nodeId, String title, double version,
 			String content, String summary, boolean minorEdit, String format,
 			String parentTitle, String redirectTitle,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		// Page
 
@@ -1245,6 +2033,8 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			newVersion = MathUtil.format(oldVersion + 0.1, 1, 1);
 
 			page = wikiPagePersistence.create(pageId);
+
+			page.setUuid(serviceContext.getUuid());
 		}
 
 		page.setResourcePrimKey(resourcePrimKey);
@@ -1278,13 +2068,9 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			page.setRedirectTitle(redirectTitle);
 		}
 
-		wikiPagePersistence.update(page, false);
+		page.setExpandoBridgeAttributes(serviceContext);
 
-		// Expando
-
-		ExpandoBridge expandoBridge = page.getExpandoBridge();
-
-		expandoBridge.setAttributes(serviceContext);
+		wikiPagePersistence.update(page);
 
 		// Node
 
@@ -1292,7 +2078,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 		node.setLastPostDate(serviceContext.getModifiedDate(now));
 
-		wikiNodePersistence.update(node, false);
+		wikiNodePersistence.update(node);
 
 		// Asset
 
@@ -1301,25 +2087,56 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			serviceContext.getAssetTagNames(),
 			serviceContext.getAssetLinkEntryIds());
 
+		// Social
+
+		if (!page.isMinorEdit() ||
+			PropsValues.WIKI_PAGE_MINOR_EDIT_ADD_SOCIAL_ACTIVITY) {
+
+			if (oldVersion == newVersion) {
+				SocialActivity lastSocialActivity =
+					socialActivityLocalService.fetchFirstActivity(
+						WikiPage.class.getName(), page.getResourcePrimKey(),
+						WikiActivityKeys.UPDATE_PAGE);
+
+				if (lastSocialActivity != null) {
+					lastSocialActivity.setCreateDate(now.getTime() + 1);
+					lastSocialActivity.setUserId(serviceContext.getUserId());
+
+					socialActivityPersistence.update(lastSocialActivity);
+				}
+			}
+			else {
+				JSONObject extraDataJSONObject =
+					JSONFactoryUtil.createJSONObject();
+
+				extraDataJSONObject.put("title", page.getTitle());
+				extraDataJSONObject.put("version", page.getVersion());
+
+				socialActivityLocalService.addActivity(
+					userId, page.getGroupId(), WikiPage.class.getName(),
+					page.getResourcePrimKey(), WikiActivityKeys.UPDATE_PAGE,
+					extraDataJSONObject.toString(), 0);
+			}
+		}
+
 		// Workflow
 
-		WorkflowHandlerRegistryUtil.startWorkflowInstance(
-			user.getCompanyId(), page.getGroupId(), userId,
-			WikiPage.class.getName(), page.getPageId(), page, serviceContext);
+		startWorkflowInstance(userId, page, serviceContext);
 
 		return page;
 	}
 
+	@Override
 	public WikiPage updateStatus(
 			long userId, long resourcePrimKey, int status,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		WikiPageResource wikiPageResource =
+		WikiPageResource pageResource =
 			wikiPageResourceLocalService.getPageResource(resourcePrimKey);
 
 		List<WikiPage> pages = wikiPagePersistence.findByN_T(
-			wikiPageResource.getNodeId(), wikiPageResource.getTitle(), 0, 1,
+			pageResource.getNodeId(), pageResource.getTitle(), 0, 1,
 			new PageVersionComparator());
 
 		WikiPage page = null;
@@ -1328,21 +2145,41 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			page = pages.get(0);
 		}
 		else {
-			throw new NoSuchPageException();
+			throw new NoSuchPageException(
+				"{resourcePrimKey=" + resourcePrimKey + "}");
 		}
 
-		return updateStatus(userId, page, status, serviceContext);
+		return updateStatus(
+			userId, page, status, serviceContext,
+			new HashMap<String, Serializable>());
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #updateStatus(long, WikiPage,
+	 *             int, ServiceContext, Map)}
+	 */
+	@Deprecated
+	@Override
 	public WikiPage updateStatus(
 			long userId, WikiPage page, int status,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
+
+		return updateStatus(
+			userId, page, status, serviceContext,
+			new HashMap<String, Serializable>());
+	}
+
+	@Override
+	public WikiPage updateStatus(
+			long userId, WikiPage page, int status,
+			ServiceContext serviceContext,
+			Map<String, Serializable> workflowContext)
+		throws PortalException {
 
 		// Page
 
 		User user = userPersistence.findByPrimaryKey(userId);
-		WikiNode node = wikiNodePersistence.findByPrimaryKey(page.getNodeId());
 
 		Date now = new Date();
 
@@ -1353,6 +2190,8 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		page.setStatusByUserName(user.getFullName());
 		page.setStatusDate(now);
 
+		wikiPagePersistence.update(page);
+
 		if (status == WorkflowConstants.STATUS_APPROVED) {
 
 			// Asset
@@ -1360,11 +2199,10 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			if ((oldStatus != WorkflowConstants.STATUS_APPROVED) &&
 				(page.getVersion() != WikiPageConstants.VERSION_DEFAULT)) {
 
-				try {
-					AssetEntry draftAssetEntry =
-						assetEntryLocalService.getEntry(
-							WikiPage.class.getName(), page.getPrimaryKey());
+				AssetEntry draftAssetEntry = assetEntryLocalService.fetchEntry(
+					WikiPage.class.getName(), page.getPrimaryKey());
 
+				if (draftAssetEntry != null) {
 					long[] assetCategoryIds = draftAssetEntry.getCategoryIds();
 					String[] assetTagNames = draftAssetEntry.getTagNames();
 
@@ -1378,11 +2216,12 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 							assetLinks, AssetLink.ENTRY_ID2_ACCESSOR), 0L);
 
 					AssetEntry assetEntry = assetEntryLocalService.updateEntry(
-						userId, page.getGroupId(), WikiPage.class.getName(),
+						userId, page.getGroupId(), page.getCreateDate(),
+						page.getModifiedDate(), WikiPage.class.getName(),
 						page.getResourcePrimKey(), page.getUuid(), 0,
 						assetCategoryIds, assetTagNames, true, null, null, null,
-						null, ContentTypes.TEXT_HTML, page.getTitle(), null,
-						null, null, null, 0, 0, null, false);
+						ContentTypes.TEXT_HTML, page.getTitle(), null, null,
+						null, null, 0, 0, null, false);
 
 					// Asset Links
 
@@ -1390,10 +2229,16 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 						userId, assetEntry.getEntryId(), assetLinkEntryIds,
 						AssetLinkConstants.TYPE_RELATED);
 
-					assetEntryLocalService.deleteEntry(
-						draftAssetEntry.getEntryId());
-				}
-				catch (NoSuchEntryException nsee) {
+					SystemEventHierarchyEntryThreadLocal.push(WikiPage.class);
+
+					try {
+						assetEntryLocalService.deleteEntry(
+							draftAssetEntry.getEntryId());
+					}
+					finally {
+						SystemEventHierarchyEntryThreadLocal.pop(
+							WikiPage.class);
+					}
 				}
 			}
 
@@ -1402,41 +2247,43 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 			// Social
 
-			int activity = WikiActivityKeys.ADD_PAGE;
+			if ((oldStatus != WorkflowConstants.STATUS_IN_TRASH) &&
+				(page.getVersion() == WikiPageConstants.VERSION_DEFAULT) &&
+				(!page.isMinorEdit() ||
+				 PropsValues.WIKI_PAGE_MINOR_EDIT_ADD_SOCIAL_ACTIVITY)) {
 
-			if (page.getVersion() > WikiPageConstants.VERSION_DEFAULT) {
-				activity = WikiActivityKeys.UPDATE_PAGE;
+				JSONObject extraDataJSONObject =
+					JSONFactoryUtil.createJSONObject();
+
+				extraDataJSONObject.put("title", page.getTitle());
+				extraDataJSONObject.put("version", page.getVersion());
+
+				socialActivityLocalService.addActivity(
+					userId, page.getGroupId(), WikiPage.class.getName(),
+					page.getResourcePrimKey(), WikiActivityKeys.ADD_PAGE,
+					extraDataJSONObject.toString(), 0);
 			}
-
-			socialActivityLocalService.addActivity(
-				userId, page.getGroupId(), WikiPage.class.getName(),
-				page.getResourcePrimKey(), activity, StringPool.BLANK, 0);
 
 			// Subscriptions
 
-			if (!page.isMinorEdit() && NotificationThreadLocal.isEnabled()) {
-				boolean update = false;
+			if (NotificationThreadLocal.isEnabled() &&
+				(!page.isMinorEdit() ||
+				 PropsValues.WIKI_PAGE_MINOR_EDIT_SEND_EMAIL)) {
 
-				if (page.getVersion() > WikiPageConstants.VERSION_DEFAULT) {
-					update = true;
-				}
-
-				notifySubscribers(node, page, serviceContext, update);
+				notifySubscribers(
+					page,
+					(String)workflowContext.get(WorkflowConstants.CONTEXT_URL),
+					serviceContext);
 			}
-
-			// Indexer
-
-			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
-				WikiPage.class);
-
-			indexer.reindex(page);
 
 			// Cache
 
 			clearPageCache(page);
+		}
 
-			// Head
+		// Head
 
+		if (status == WorkflowConstants.STATUS_APPROVED) {
 			page.setHead(true);
 
 			List<WikiPage> pages = wikiPagePersistence.findByN_T_H(
@@ -1446,14 +2293,11 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 				if (!curPage.equals(page)) {
 					curPage.setHead(false);
 
-					wikiPagePersistence.update(curPage, false);
+					wikiPagePersistence.update(curPage);
 				}
 			}
 		}
-		else {
-
-			// Head
-
+		else if (status != WorkflowConstants.STATUS_IN_TRASH) {
 			page.setHead(false);
 
 			List<WikiPage> pages = wikiPagePersistence.findByN_T_S(
@@ -1464,16 +2308,24 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 				if (!curPage.equals(page)) {
 					curPage.setHead(true);
 
-					wikiPagePersistence.update(curPage, false);
+					wikiPagePersistence.update(curPage);
 
 					break;
 				}
 			}
 		}
 
-		return wikiPagePersistence.update(page, false);
+		// Indexer
+
+		Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+			WikiPage.class);
+
+		indexer.reindex(page);
+
+		return wikiPagePersistence.update(page);
 	}
 
+	@Override
 	public void validateTitle(String title) throws PortalException {
 		if (title.equals("all_pages") || title.equals("orphan_pages") ||
 			title.equals("recent_changes")) {
@@ -1501,6 +2353,114 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		WikiCacheUtil.clearCache(page.getNodeId());
 	}
 
+	protected void deletePageAttachment(long fileEntryId)
+		throws PortalException {
+
+		PortletFileRepositoryUtil.deletePortletFileEntry(fileEntryId);
+	}
+
+	protected String getDiffsURL(
+			WikiPage page, WikiPage previousVersionPage,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		if (previousVersionPage == null) {
+			return StringPool.BLANK;
+		}
+
+		HttpServletRequest request = serviceContext.getRequest();
+
+		if (request == null) {
+			return StringPool.BLANK;
+		}
+
+		String portletId = null;
+		long plid = LayoutConstants.DEFAULT_PLID;
+		String strutsAction = null;
+
+		if (serviceContext.getPlid() != LayoutConstants.DEFAULT_PLID) {
+			portletId = PortletKeys.WIKI;
+			plid = serviceContext.getPlid();
+			strutsAction = "/wiki/compare_versions";
+		}
+		else {
+			portletId = PortletKeys.WIKI_ADMIN;
+			plid = PortalUtil.getControlPanelPlid(
+				serviceContext.getCompanyId());
+			strutsAction = "/wiki_admin/compare_versions";
+		}
+
+		PortletURL portletURL = PortletURLFactoryUtil.create(
+			request, portletId, plid, PortletRequest.RENDER_PHASE);
+
+		portletURL.setParameter("struts_action", strutsAction);
+		portletURL.setParameter("nodeId", String.valueOf(page.getNodeId()));
+		portletURL.setParameter("title", page.getTitle());
+		portletURL.setParameter(
+			"sourceVersion", String.valueOf(previousVersionPage.getVersion()));
+		portletURL.setParameter(
+			"targetVersion", String.valueOf(page.getVersion()));
+		portletURL.setParameter("type", "html");
+
+		return portletURL.toString();
+	}
+
+	protected String getPageURL(WikiPage page, ServiceContext serviceContext)
+		throws PortalException {
+
+		HttpServletRequest request = serviceContext.getRequest();
+
+		if (request == null) {
+			return StringPool.BLANK;
+		}
+
+		String layoutFullURL = getLayoutURL(
+			page.getGroupId(), PortletKeys.WIKI, serviceContext);
+
+		if (Validator.isNotNull(layoutFullURL)) {
+			return layoutFullURL + Portal.FRIENDLY_URL_SEPARATOR + "wiki/" +
+				page.getNodeId() + StringPool.SLASH +
+					HttpUtil.encodeURL(WikiUtil.escapeName(page.getTitle()));
+		}
+		else {
+			long controlPanelPlid = PortalUtil.getControlPanelPlid(
+				serviceContext.getCompanyId());
+
+			PortletURL portletURL = PortletURLFactoryUtil.create(
+				request, PortletKeys.WIKI_ADMIN, controlPanelPlid,
+				PortletRequest.RENDER_PHASE);
+
+			portletURL.setParameter(
+				"struts_action", "/wiki_admin/view_page_activities");
+			portletURL.setParameter("nodeId", String.valueOf(page.getNodeId()));
+			portletURL.setParameter("title", page.getTitle());
+
+			return portletURL.toString();
+		}
+	}
+
+	protected List<ObjectValuePair<Long, Integer>> getPageVersionStatuses(
+		List<WikiPage> pages) {
+
+		List<ObjectValuePair<Long, Integer>> pageVersionStatusOVPs =
+			new ArrayList<ObjectValuePair<Long, Integer>>(pages.size());
+
+		for (WikiPage page : pages) {
+			int status = page.getStatus();
+
+			if (status == WorkflowConstants.STATUS_PENDING) {
+				status = WorkflowConstants.STATUS_DRAFT;
+			}
+
+			ObjectValuePair<Long, Integer> pageVersionStatusOVP =
+				new ObjectValuePair<Long, Integer>(page.getPageId(), status);
+
+			pageVersionStatusOVPs.add(pageVersionStatusOVP);
+		}
+
+		return pageVersionStatusOVPs;
+	}
+
 	protected String getParentPageTitle(WikiPage page) {
 
 		// LPS-4586
@@ -1516,24 +2476,12 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		}
 	}
 
-	protected WikiPage getPreviousVersionPage(WikiPage page)
-		throws PortalException, SystemException {
-
-		double previousVersion = MathUtil.format(page.getVersion() - 0.1, 1, 1);
-
-		if (previousVersion < 1) {
-			return null;
-		}
-
-		return getPage(page.getNodeId(), page.getTitle(), previousVersion);
-	}
-
 	protected boolean isLinkedTo(WikiPage page, String targetTitle)
 		throws PortalException {
 
 		Map<String, Boolean> links = WikiCacheUtil.getOutgoingLinks(page);
 
-		Boolean link = links.get(targetTitle.toLowerCase());
+		Boolean link = links.get(StringUtil.toLowerCase(targetTitle));
 
 		if (link != null) {
 			return true;
@@ -1543,8 +2491,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		}
 	}
 
-	protected boolean isUsedTitle(long nodeId, String title)
-		throws SystemException {
+	protected boolean isUsedTitle(long nodeId, String title) {
 
 		if (getPagesCount(nodeId, title, true) > 0) {
 			return true;
@@ -1554,47 +2501,193 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		}
 	}
 
+	protected void moveDependentChildPagesToTrash(
+			WikiPage page, String title, String trashTitle, long trashEntryId,
+			boolean createTrashVersion)
+		throws PortalException {
+
+		List<WikiPage> childPages = wikiPagePersistence.findByN_H_P(
+			page.getNodeId(), true, title);
+
+		for (WikiPage curPage : childPages) {
+			curPage.setParentTitle(trashTitle);
+
+			wikiPagePersistence.update(curPage);
+
+			if (!curPage.isInTrashExplicitly()) {
+				moveDependentToTrash(curPage, trashEntryId, createTrashVersion);
+			}
+		}
+	}
+
+	protected void moveDependentRedirectPagesToTrash(
+			WikiPage page, String title, String trashTitle, long trashEntryId,
+			boolean createTrashVersion)
+		throws PortalException {
+
+		List<WikiPage> redirectPages = wikiPagePersistence.findByN_H_R(
+			page.getNodeId(), true, title);
+
+		for (WikiPage curPage : redirectPages) {
+			curPage.setRedirectTitle(trashTitle);
+
+			wikiPagePersistence.update(curPage);
+
+			if (!curPage.isInTrashExplicitly()) {
+				moveDependentToTrash(curPage, trashEntryId, createTrashVersion);
+			}
+		}
+	}
+
+	protected void moveDependentToTrash(
+			WikiPage page, long trashEntryId, boolean createTrashVersion)
+		throws PortalException {
+
+		// Page
+
+		String title = page.getTitle();
+
+		String trashTitle = title;
+
+		if (createTrashVersion) {
+			UnicodeProperties typeSettingsProperties = new UnicodeProperties();
+
+			typeSettingsProperties.put("title", page.getTitle());
+
+			TrashVersion trashVersion =
+				trashVersionLocalService.addTrashVersion(
+					trashEntryId, WikiPage.class.getName(), page.getPageId(),
+					page.getStatus(), typeSettingsProperties);
+
+			trashTitle = TrashUtil.getTrashTitle(trashVersion.getVersionId());
+
+			WikiPageResource pageResource =
+				wikiPageResourcePersistence.findByPrimaryKey(
+					page.getResourcePrimKey());
+
+			pageResource.setTitle(trashTitle);
+
+			wikiPageResourcePersistence.update(pageResource);
+
+			page.setTitle(trashTitle);
+
+			wikiPagePersistence.update(page);
+		}
+
+		int oldStatus = page.getStatus();
+
+		if (oldStatus == WorkflowConstants.STATUS_IN_TRASH) {
+			return;
+		}
+
+		// Version pages
+
+		List<WikiPage> versionPages = wikiPagePersistence.findByR_N(
+			page.getResourcePrimKey(), page.getNodeId());
+
+		for (WikiPage versionPage : versionPages) {
+
+			// Version page
+
+			versionPage.setTitle(page.getTitle());
+
+			int versionPageOldStatus = versionPage.getStatus();
+
+			versionPage.setStatus(WorkflowConstants.STATUS_IN_TRASH);
+
+			wikiPagePersistence.update(versionPage);
+
+			// Trash
+
+			int status = versionPageOldStatus;
+
+			if (versionPageOldStatus ==
+					WorkflowConstants.STATUS_PENDING) {
+
+				status = WorkflowConstants.STATUS_DRAFT;
+			}
+
+			if (versionPageOldStatus !=
+					WorkflowConstants.STATUS_APPROVED) {
+
+				trashVersionLocalService.addTrashVersion(
+					trashEntryId, WikiPage.class.getName(),
+					versionPage.getPageId(), status, null);
+			}
+		}
+
+		// Asset
+
+		if (oldStatus == WorkflowConstants.STATUS_APPROVED) {
+			assetEntryLocalService.updateVisible(
+				WikiPage.class.getName(), page.getResourcePrimKey(), false);
+		}
+
+		// Indexer
+
+		Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+			WikiPage.class);
+
+		indexer.reindex(page);
+
+		// Cache
+
+		if (WikiCacheThreadLocal.isClearCache()) {
+			WikiCacheUtil.clearCache(page.getNodeId());
+		}
+
+		// Workflow
+
+		if (oldStatus == WorkflowConstants.STATUS_PENDING) {
+			workflowInstanceLinkLocalService.deleteWorkflowInstanceLink(
+				page.getCompanyId(), page.getGroupId(),
+				WikiPage.class.getName(), page.getResourcePrimKey());
+		}
+
+		// Child pages
+
+		moveDependentChildPagesToTrash(
+			page, title, trashTitle, trashEntryId, createTrashVersion);
+
+		// Redirect pages
+
+		moveDependentRedirectPagesToTrash(
+			page, title, trashTitle, trashEntryId, createTrashVersion);
+	}
+
 	protected void notifySubscribers(
-			WikiNode node, WikiPage page, ServiceContext serviceContext,
-			boolean update)
-		throws PortalException, SystemException {
+			WikiPage page, String pageURL, ServiceContext serviceContext)
+		throws PortalException {
 
-		PortletPreferences preferences = null;
-
-		String portletId = serviceContext.getPortletId();
-
-		if (Validator.isNull(portletId) ||
-			!portletId.startsWith(PortletKeys.WIKI_DISPLAY)) {
-
-			preferences = ServiceContextUtil.getPortletPreferences(
-				serviceContext);
+		if (!page.isApproved() || Validator.isNull(pageURL)) {
+			return;
 		}
 
-		if (preferences == null) {
-			preferences = portletPreferencesLocalService.getPreferences(
-				node.getCompanyId(), node.getGroupId(),
-				PortletKeys.PREFS_OWNER_TYPE_GROUP,
-				PortletKeys.PREFS_PLID_SHARED, PortletKeys.WIKI_ADMIN, null);
+		WikiSettings wikiSettings = WikiSettings.getInstance(page.getGroupId());
+
+		boolean update = false;
+
+		if (page.getVersion() > WikiPageConstants.VERSION_DEFAULT) {
+			update = true;
 		}
 
-		if (!update && WikiUtil.getEmailPageAddedEnabled(preferences)) {
+		if (!update && wikiSettings.isEmailPageAddedEnabled()) {
 		}
-		else if (update && WikiUtil.getEmailPageUpdatedEnabled(preferences)) {
+		else if (update && wikiSettings.isEmailPageUpdatedEnabled()) {
 		}
 		else {
 			return;
 		}
 
 		String portalURL = serviceContext.getPortalURL();
-		String layoutFullURL = serviceContext.getLayoutFullURL();
 
 		WikiPage previousVersionPage = getPreviousVersionPage(page);
 
-		String attachmentURLPrefix =
-			portalURL + serviceContext.getPathMain() +
-				"/wiki/get_page_attachment?p_l_id=" + serviceContext.getPlid() +
-					"&nodeId=" + page.getNodeId() + "&title=" +
-						HttpUtil.encodeURL(page.getTitle()) + "&fileName=";
+		String attachmentURLPrefix = WikiUtil.getAttachmentURLPrefix(
+			serviceContext.getPathMain(), serviceContext.getPlid(),
+			page.getNodeId(), page.getTitle());
+
+		attachmentURLPrefix = portalURL + attachmentURLPrefix;
 
 		String pageDiffs = StringPool.BLANK;
 
@@ -1616,124 +2709,162 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			pageContent = WikiUtil.processContent(pageContent);
 		}
 
-		String pageURL = StringPool.BLANK;
-		String diffsURL = StringPool.BLANK;
+		String pageTitle = page.getTitle();
 
-		if (Validator.isNotNull(layoutFullURL)) {
-			pageURL =
-				layoutFullURL + Portal.FRIENDLY_URL_SEPARATOR + "wiki/" +
-					node.getNodeId() + StringPool.SLASH +
-						HttpUtil.encodeURL(page.getTitle());
+		String fromName = wikiSettings.getEmailFromName();
+		String fromAddress = wikiSettings.getEmailFromAddress();
 
-			if (previousVersionPage != null) {
-				StringBundler sb = new StringBundler(16);
-
-				sb.append(layoutFullURL);
-				sb.append("?p_p_id=");
-				sb.append(PortletKeys.WIKI);
-				sb.append("&p_p_state=");
-				sb.append(WindowState.MAXIMIZED);
-				sb.append("&struts_action=");
-				sb.append(HttpUtil.encodeURL("/wiki/compare_versions"));
-				sb.append("&nodeId=");
-				sb.append(node.getNodeId());
-				sb.append("&title=");
-				sb.append(HttpUtil.encodeURL(page.getTitle()));
-				sb.append("&sourceVersion=");
-				sb.append(previousVersionPage.getVersion());
-				sb.append("&targetVersion=");
-				sb.append(page.getVersion());
-				sb.append("&type=html");
-
-				diffsURL = sb.toString();
-			}
-		}
-
-		String fromName = WikiUtil.getEmailFromName(
-			preferences, page.getCompanyId());
-		String fromAddress = WikiUtil.getEmailFromAddress(
-			preferences, page.getCompanyId());
-
-		String subjectPrefix = null;
-		String body = null;
-		String signature = null;
+		LocalizedValuesMap subjectLocalizedValuesMap = null;
+		LocalizedValuesMap bodyLocalizedValuesMap = null;
 
 		if (update) {
-			subjectPrefix = WikiUtil.getEmailPageUpdatedSubjectPrefix(
-				preferences);
-			body = WikiUtil.getEmailPageUpdatedBody(preferences);
-			signature = WikiUtil.getEmailPageUpdatedSignature(preferences);
+			subjectLocalizedValuesMap =
+				wikiSettings.getEmailPageUpdatedSubject();
+			bodyLocalizedValuesMap = wikiSettings.getEmailPageUpdatedBody();
 		}
 		else {
-			subjectPrefix = WikiUtil.getEmailPageAddedSubjectPrefix(
-				preferences);
-			body = WikiUtil.getEmailPageAddedBody(preferences);
-			signature = WikiUtil.getEmailPageAddedSignature(preferences);
-		}
-
-		String subject = page.getTitle();
-
-		if (subject.indexOf(subjectPrefix) == -1) {
-			subject = subjectPrefix + StringPool.SPACE + subject;
-		}
-
-		if (Validator.isNotNull(signature)) {
-			body += "\n" + signature;
+			subjectLocalizedValuesMap = wikiSettings.getEmailPageAddedSubject();
+			bodyLocalizedValuesMap = wikiSettings.getEmailPageAddedBody();
 		}
 
 		SubscriptionSender subscriptionSender = new SubscriptionSender();
 
-		subscriptionSender.setBody(body);
+		subscriptionSender.setClassName(page.getModelClassName());
+		subscriptionSender.setClassPK(page.getPageId());
 		subscriptionSender.setCompanyId(page.getCompanyId());
-		subscriptionSender.setContextAttributes(
-			"[$DIFFS_URL$]", diffsURL, "[$NODE_NAME$]", node.getName(),
-			"[$PAGE_DATE_UPDATE$]", page.getModifiedDate(), "[$PAGE_ID$]",
-			page.getPageId(), "[$PAGE_SUMMARY$]", page.getSummary(),
-			"[$PAGE_TITLE$]", page.getTitle(), "[$PAGE_URL$]", pageURL);
 		subscriptionSender.setContextAttribute(
 			"[$PAGE_CONTENT$]", pageContent, false);
 		subscriptionSender.setContextAttribute(
-			"[$PAGE_DIFFS$]", replaceStyles(pageDiffs), false);
+			"[$PAGE_DIFFS$]", DiffHtmlUtil.replaceStyles(pageDiffs), false);
+
+		WikiNode node = page.getNode();
+
+		subscriptionSender.setContextAttributes(
+			"[$DIFFS_URL$]",
+			getDiffsURL(page, previousVersionPage, serviceContext),
+			"[$NODE_NAME$]", node.getName(), "[$PAGE_DATE_UPDATE$]",
+			page.getModifiedDate(), "[$PAGE_ID$]", page.getPageId(),
+			"[$PAGE_SUMMARY$]", page.getSummary(), "[$PAGE_TITLE$]", pageTitle,
+			"[$PAGE_URL$]", pageURL);
+
 		subscriptionSender.setContextUserPrefix("PAGE");
+		subscriptionSender.setEntryTitle(pageTitle);
+		subscriptionSender.setEntryURL(pageURL);
 		subscriptionSender.setFrom(fromAddress, fromName);
 		subscriptionSender.setHtmlFormat(true);
+		subscriptionSender.setLocalizedBodyMap(bodyLocalizedValuesMap);
+		subscriptionSender.setLocalizedSubjectMap(subjectLocalizedValuesMap);
 		subscriptionSender.setMailId(
 			"wiki_page", page.getNodeId(), page.getPageId());
+
+		int notificationType =
+			UserNotificationDefinition.NOTIFICATION_TYPE_ADD_ENTRY;
+
+		if (serviceContext.isCommandUpdate()) {
+			notificationType =
+				UserNotificationDefinition.NOTIFICATION_TYPE_UPDATE_ENTRY;
+		}
+
+		subscriptionSender.setNotificationType(notificationType);
+
 		subscriptionSender.setPortletId(PortletKeys.WIKI);
 		subscriptionSender.setReplyToAddress(fromAddress);
-		subscriptionSender.setScopeGroupId(node.getGroupId());
+		subscriptionSender.setScopeGroupId(page.getGroupId());
 		subscriptionSender.setServiceContext(serviceContext);
-		subscriptionSender.setSubject(subject);
 		subscriptionSender.setUserId(page.getUserId());
 
 		subscriptionSender.addPersistedSubscribers(
-			WikiNode.class.getName(), node.getNodeId());
+			WikiNode.class.getName(), page.getNodeId());
+
 		subscriptionSender.addPersistedSubscribers(
 			WikiPage.class.getName(), page.getResourcePrimKey());
 
 		subscriptionSender.flushNotificationsAsync();
 	}
 
-	protected String replaceStyles(String html) {
-		return StringUtil.replace(
-			html,
-			new String[] {
-				"class=\"diff-html-added\"", "class=\"diff-html-removed\"",
-				"class=\"diff-html-changed\"",
-				"changeType=\"diff-added-image\"",
-				"changeType=\"diff-removed-image\"",
-				"changeType=\"diff-changed-image\""
-			},
-			new String[] {
-				"style=\"background-color: #CFC;\"",
-				"style=\"background-color: #FDC6C6; text-decoration: " +
-					"line-through;\"",
-				"style=\"border-bottom: 2px dotted blue;\"",
-				"style=\"border: 10px solid #CFC;\"",
-				"style=\"border: 10px solid #FDC6C6;\"",
-				"style=\"border: 10px solid blue;\""
+	protected void populateServiceContext(
+			ServiceContext serviceContext, WikiPage page)
+		throws PortalException {
+
+		long[] assetCategoryIds = assetCategoryLocalService.getCategoryIds(
+			WikiPage.class.getName(), page.getResourcePrimKey());
+
+		serviceContext.setAssetCategoryIds(assetCategoryIds);
+
+		AssetEntry assetEntry = assetEntryLocalService.getEntry(
+			WikiPage.class.getName(), page.getResourcePrimKey());
+
+		List<AssetLink> assetLinks = assetLinkLocalService.getLinks(
+			assetEntry.getEntryId());
+
+		long[] assetLinkEntryIds = StringUtil.split(
+			ListUtil.toString(assetLinks, AssetLink.ENTRY_ID2_ACCESSOR), 0L);
+
+		serviceContext.setAssetLinkEntryIds(assetLinkEntryIds);
+
+		String[] assetTagNames = assetTagLocalService.getTagNames(
+			WikiPage.class.getName(), page.getResourcePrimKey());
+
+		serviceContext.setAssetTagNames(assetTagNames);
+
+		ExpandoBridge expandoBridge = page.getExpandoBridge();
+
+		serviceContext.setExpandoBridgeAttributes(
+			expandoBridge.getAttributes());
+	}
+
+	protected void restoreDependentChildPagesFromTrash(
+			WikiPage page, String title, String trashTitle, long trashEntryId)
+		throws PortalException {
+
+		List<WikiPage> childPages = wikiPagePersistence.findByN_H_P_S(
+			page.getNodeId(), true, trashTitle,
+			WorkflowConstants.STATUS_IN_TRASH);
+
+		for (WikiPage curPage : childPages) {
+			curPage.setParentTitle(title);
+
+			wikiPagePersistence.update(curPage);
+
+			if (!curPage.isInTrashExplicitly()) {
+				restoreDependentFromTrash(curPage, trashEntryId);
 			}
-		);
+		}
+	}
+
+	protected void restoreDependentRedirectPagesFromTrash
+			(WikiPage page, String title, String trashTitle, long trashEntryId)
+		throws PortalException {
+
+		List<WikiPage> redirectPages = wikiPagePersistence.findByN_H_R_S(
+			page.getNodeId(), true, trashTitle,
+			WorkflowConstants.STATUS_IN_TRASH);
+
+		for (WikiPage curPage : redirectPages) {
+			curPage.setRedirectTitle(title);
+
+			wikiPagePersistence.update(curPage);
+
+			if (!curPage.isInTrashExplicitly()) {
+				restoreDependentFromTrash(curPage, trashEntryId);
+			}
+		}
+	}
+
+	protected void startWorkflowInstance(
+			long userId, WikiPage page, ServiceContext serviceContext)
+		throws PortalException {
+
+		Map<String, Serializable> workflowContext =
+			new HashMap<String, Serializable>();
+
+		workflowContext.put(
+			WorkflowConstants.CONTEXT_URL, getPageURL(page, serviceContext));
+
+		WorkflowHandlerRegistryUtil.startWorkflowInstance(
+			page.getCompanyId(), page.getGroupId(), userId,
+			WikiPage.class.getName(), page.getPageId(), page, serviceContext,
+			workflowContext);
 	}
 
 	protected void validate(long nodeId, String content, String format)
@@ -1746,14 +2877,14 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 
 	protected void validate(
 			String title, long nodeId, String content, String format)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (Validator.isNull(title)) {
 			throw new PageTitleException();
 		}
 
 		if (isUsedTitle(nodeId, title)) {
-			throw new DuplicatePageException();
+			throw new DuplicatePageException("{nodeId=" + nodeId + "}");
 		}
 
 		validateTitle(title);

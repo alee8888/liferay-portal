@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,58 +19,82 @@
 <%
 String tabs1 = ParamUtil.getString(request, "tabs1", "structures");
 
+long groupId = ParamUtil.getLong(request, "groupId", themeDisplay.getSiteGroupId());
+
 PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("struts_action", "/dynamic_data_mapping/view");
+portletURL.setParameter("groupId", String.valueOf(groupId));
 portletURL.setParameter("tabs1", tabs1);
 %>
 
-<liferay-ui:error exception="<%= RequiredStructureException.class %>" message="required-structures-could-not-be-deleted" />
+<liferay-ui:error exception="<%= RequiredStructureException.class %>">
 
-<c:if test="<%= showToolbar %>">
-	<liferay-util:include page="/html/portlet/dynamic_data_mapping/toolbar.jsp">
-		<liferay-util:param name="toolbarItem" value="view-all" />
-	</liferay-util:include>
-</c:if>
+	<%
+	RequiredStructureException rse = (RequiredStructureException)errorException;
+	%>
+
+	<c:choose>
+		<c:when test="<%= rse.getType() == RequiredStructureException.REFERENCED_TEMPLATE %>">
+			<liferay-ui:message key="required-structures-could-not-be-deleted.-they-are-referenced-by-templates" />
+		</c:when>
+		<c:otherwise>
+			<liferay-ui:message key="required-structures-could-not-be-deleted" />
+		</c:otherwise>
+	</c:choose>
+</liferay-ui:error>
 
 <aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
-	<liferay-ui:search-form
-		page="/html/portlet/dynamic_data_mapping/structure_search.jsp"
-	/>
-</aui:form>
+	<aui:input name="<%= Constants.CMD %>" type="hidden" />
+	<aui:input name="redirect" type="hidden" value="<%= portletURL.toString() %>" />
+	<aui:input name="deleteStructureIds" type="hidden" />
 
-<div class="separator"></div>
+	<%
+	String orderByCol = ParamUtil.getString(request, "orderByCol");
+	String orderByType = ParamUtil.getString(request, "orderByType");
 
-<liferay-ui:search-container
-	searchContainer="<%= new StructureSearch(renderRequest, portletURL) %>"
->
-	<liferay-ui:search-container-results>
-		<%@ include file="/html/portlet/dynamic_data_mapping/structure_search_results.jspf" %>
-	</liferay-ui:search-container-results>
+	if (Validator.isNotNull(orderByCol) && Validator.isNotNull(orderByType)) {
+		portalPreferences.setValue(PortletKeys.DYNAMIC_DATA_MAPPING, "entries-order-by-col", orderByCol);
+		portalPreferences.setValue(PortletKeys.DYNAMIC_DATA_MAPPING, "entries-order-by-type", orderByType);
+	}
+	else {
+		orderByCol = portalPreferences.getValue(PortletKeys.DYNAMIC_DATA_MAPPING, "entries-order-by-col", "id");
+		orderByType = portalPreferences.getValue(PortletKeys.DYNAMIC_DATA_MAPPING, "entries-order-by-type", "asc");
+	}
 
-	<liferay-ui:search-container-row
-		className="com.liferay.portlet.dynamicdatamapping.model.DDMStructure"
-		keyProperty="structureId"
-		modelVar="structure"
+	OrderByComparator orderByComparator = DDMUtil.getStructureOrderByComparator(orderByCol, orderByType);
+	%>
+
+	<liferay-ui:search-container
+		orderByCol="<%= orderByCol %>"
+		orderByComparator="<%= orderByComparator %>"
+		orderByType="<%= orderByType %>"
+		rowChecker="<%= new RowChecker(renderResponse) %>"
+		searchContainer="<%= new StructureSearch(renderRequest, portletURL) %>"
 	>
 
-		<%
-		String rowHREF = null;
+		<c:if test="<%= showToolbar %>">
 
-		if (Validator.isNotNull(chooseCallback)) {
-			StringBundler sb = new StringBundler(7);
+			<%
+			request.setAttribute(WebKeys.SEARCH_CONTAINER, searchContainer);
+			%>
 
-			sb.append("javascript:Liferay.Util.getOpener()['");
-			sb.append(HtmlUtil.escapeJS(chooseCallback));
-			sb.append("']('");
-			sb.append(structure.getStructureId());
-			sb.append("', '");
-			sb.append(HtmlUtil.escape(structure.getName(locale)));
-			sb.append("', Liferay.Util.getWindow());");
+			<liferay-util:include page="/html/portlet/dynamic_data_mapping/toolbar.jsp">
+				<liferay-util:param name="groupId" value="<%= String.valueOf(groupId) %>" />
+			</liferay-util:include>
+		</c:if>
 
-			rowHREF = sb.toString();
-		}
-		else {
+		<liferay-ui:search-container-results>
+			<%@ include file="/html/portlet/dynamic_data_mapping/structure_search_results.jspf" %>
+		</liferay-ui:search-container-results>
+
+		<liferay-ui:search-container-row
+			className="com.liferay.portlet.dynamicdatamapping.model.DDMStructure"
+			keyProperty="structureId"
+			modelVar="structure"
+		>
+
+			<%
 			PortletURL rowURL = renderResponse.createRenderURL();
 
 			rowURL.setParameter("struts_action", "/dynamic_data_mapping/edit_structure");
@@ -78,79 +102,98 @@ portletURL.setParameter("tabs1", tabs1);
 			rowURL.setParameter("classNameId", String.valueOf(PortalUtil.getClassNameId(DDMStructure.class)));
 			rowURL.setParameter("classPK", String.valueOf(structure.getStructureId()));
 
-			rowHREF = rowURL.toString();
-		}
-		%>
-
-		<liferay-ui:search-container-column-text
-			href="<%= rowHREF %>"
-			name="id"
-			property="structureId"
-		/>
-
-		<liferay-ui:search-container-column-text
-			href="<%= rowHREF %>"
-			name="name"
-			value="<%= structure.getName(locale) %>"
-		/>
-
-		<c:if test="<%= Validator.isNull(storageTypeValue) %>">
-			<liferay-ui:search-container-column-text
-				href="<%= rowHREF %>"
-				name="storage-type"
-				value="<%= LanguageUtil.get(pageContext, structure.getStorageType()) %>"
-			/>
-		</c:if>
-
-		<c:if test="<%= scopeClassNameId == 0 %>">
-			<liferay-ui:search-container-column-text
-				buffer="buffer"
-				href="<%= rowHREF %>"
-				name="type"
-			>
-
-				<%
-				buffer.append(ResourceActionsUtil.getModelResource(locale, structure.getClassName()));
-				%>
-
-			</liferay-ui:search-container-column-text>
-		</c:if>
-
-		<liferay-ui:search-container-column-text
-			buffer="buffer"
-			href="<%= rowHREF %>"
-			name="modified-date"
-		>
-
-			<%
-			buffer.append(dateFormatDateTime.format(structure.getModifiedDate()));
+			String rowHREF = rowURL.toString();
 			%>
 
-		</liferay-ui:search-container-column-text>
+			<liferay-ui:search-container-column-text
+				href="<%= rowHREF %>"
+				name="id"
+				orderable="<%= true %>"
+				orderableProperty="id"
+				property="structureId"
+			/>
 
-		<liferay-ui:search-container-column-jsp
-			align="right"
-			path="/html/portlet/dynamic_data_mapping/structure_action.jsp"
-		/>
-	</liferay-ui:search-container-row>
+			<liferay-ui:search-container-column-text
+				href="<%= rowHREF %>"
+				name="name"
+				value="<%= HtmlUtil.escape(structure.getName(locale)) %>"
+			/>
 
-	<liferay-ui:search-iterator />
-</liferay-ui:search-container>
+			<liferay-ui:search-container-column-text
+				href="<%= rowHREF %>"
+				name="description"
+				value="<%= HtmlUtil.escape(structure.getDescription(locale)) %>"
+			/>
+
+			<c:if test="<%= Validator.isNull(storageTypeValue) %>">
+				<liferay-ui:search-container-column-text
+					href="<%= rowHREF %>"
+					name="storage-type"
+					value="<%= LanguageUtil.get(pageContext, structure.getStorageType()) %>"
+				/>
+			</c:if>
+
+			<c:if test="<%= scopeClassNameId == 0 %>">
+				<liferay-ui:search-container-column-text
+					href="<%= rowHREF %>"
+					name="type"
+					value="<%= ResourceActionsUtil.getModelResource(locale, structure.getClassName()) %>"
+				/>
+			</c:if>
+
+			<liferay-ui:search-container-column-date
+				href="<%= rowHREF %>"
+				name="modified-date"
+				orderable="<%= true %>"
+				orderableProperty="modified-date"
+				value="<%= structure.getModifiedDate() %>"
+			/>
+
+			<liferay-ui:search-container-column-jsp
+				align="right"
+				cssClass="entry-action"
+				path="/html/portlet/dynamic_data_mapping/structure_action.jsp"
+			/>
+		</liferay-ui:search-container-row>
+
+		<c:if test="<%= total > 0 %>">
+			<aui:button-row>
+				<aui:button cssClass="delete-structures-button" disabled="<%= true %>" name="delete" onClick='<%= renderResponse.getNamespace() + "deleteStructures();" %>' value="delete" />
+			</aui:button-row>
+
+			<div class="separator"><!-- --></div>
+		</c:if>
+
+		<liferay-ui:search-iterator />
+	</liferay-ui:search-container>
+</aui:form>
 
 <aui:script>
+	Liferay.Util.toggleSearchContainerButton('#<portlet:namespace />delete', '#<portlet:namespace /><%= searchContainerReference.getId() %>SearchContainer', document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 	function <portlet:namespace />copyStructure(uri) {
 		Liferay.Util.openWindow(
 			{
-				dialog: {
-					align: Liferay.Util.Window.ALIGN_CENTER,
-					constrain: true,
-					width: 600
-				},
 				id: '<portlet:namespace />copyStructure',
 				refreshWindow: window,
-				title: '<%= UnicodeLanguageUtil.get(pageContext, "copy-data-definition") %>',
+				title: '<%= UnicodeLanguageUtil.format(pageContext, "copy-x", ddmDisplay.getStructureName(locale), false) %>',
 				uri: uri
 			}
 		);
 	}
+
+	Liferay.provide(
+		window,
+		'<portlet:namespace />deleteStructures',
+		function() {
+			if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-delete-this") %>')) {
+				document.<portlet:namespace />fm.method = 'post';
+				document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.DELETE %>';
+				document.<portlet:namespace />fm.<portlet:namespace />deleteStructureIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
+				submitForm(document.<portlet:namespace />fm, '<portlet:actionURL><portlet:param name="struts_action" value="/dynamic_data_mapping/edit_structure" /></portlet:actionURL>');
+			}
+		},
+		['liferay-util-list-fields']
+	);
 </aui:script>

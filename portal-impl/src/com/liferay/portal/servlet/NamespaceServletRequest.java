@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -154,13 +154,12 @@ public class NamespaceServletRequest extends DynamicServletRequest {
 		if (reservedAttrs.contains(name)) {
 			return true;
 		}
-		else {
-			for (String requestSharedAttribute :
-					PropsValues.REQUEST_SHARED_ATTRIBUTES) {
 
-				if (name.startsWith(requestSharedAttribute)) {
-					return true;
-				}
+		for (String requestSharedAttribute :
+				PropsValues.REQUEST_SHARED_ATTRIBUTES) {
+
+			if (name.startsWith(requestSharedAttribute)) {
+				return true;
 			}
 		}
 

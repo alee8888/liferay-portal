@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,16 +15,19 @@
 package com.liferay.portlet.ratings.model.impl;
 
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSON;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -66,6 +69,7 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	 */
 	public static final String TABLE_NAME = "RatingsEntry";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "uuid_", Types.VARCHAR },
 			{ "entryId", Types.BIGINT },
 			{ "companyId", Types.BIGINT },
 			{ "userId", Types.BIGINT },
@@ -76,8 +80,10 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 			{ "classPK", Types.BIGINT },
 			{ "score", Types.DOUBLE }
 		};
-	public static final String TABLE_SQL_CREATE = "create table RatingsEntry (entryId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,score DOUBLE)";
+	public static final String TABLE_SQL_CREATE = "create table RatingsEntry (uuid_ VARCHAR(75) null,entryId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,score DOUBLE)";
 	public static final String TABLE_SQL_DROP = "drop table RatingsEntry";
+	public static final String ORDER_BY_JPQL = " ORDER BY ratingsEntry.entryId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY RatingsEntry.entryId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -92,8 +98,11 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 			true);
 	public static long CLASSNAMEID_COLUMN_BITMASK = 1L;
 	public static long CLASSPK_COLUMN_BITMASK = 2L;
-	public static long SCORE_COLUMN_BITMASK = 4L;
-	public static long USERID_COLUMN_BITMASK = 8L;
+	public static long COMPANYID_COLUMN_BITMASK = 4L;
+	public static long SCORE_COLUMN_BITMASK = 8L;
+	public static long USERID_COLUMN_BITMASK = 16L;
+	public static long UUID_COLUMN_BITMASK = 32L;
+	public static long ENTRYID_COLUMN_BITMASK = 64L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -102,8 +111,13 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	 * @return the normal model instance
 	 */
 	public static RatingsEntry toModel(RatingsEntrySoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		RatingsEntry model = new RatingsEntryImpl();
 
+		model.setUuid(soapModel.getUuid());
 		model.setEntryId(soapModel.getEntryId());
 		model.setCompanyId(soapModel.getCompanyId());
 		model.setUserId(soapModel.getUserId());
@@ -124,6 +138,10 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	 * @return the normal model instances
 	 */
 	public static List<RatingsEntry> toModels(RatingsEntrySoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<RatingsEntry> models = new ArrayList<RatingsEntry>(soapModels.length);
 
 		for (RatingsEntrySoap soapModel : soapModels) {
@@ -139,26 +157,32 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	public RatingsEntryModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _entryId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setEntryId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_entryId);
+		return _entryId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return RatingsEntry.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return RatingsEntry.class.getName();
 	}
@@ -167,6 +191,7 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("uuid", getUuid());
 		attributes.put("entryId", getEntryId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
@@ -177,11 +202,20 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 		attributes.put("classPK", getClassPK());
 		attributes.put("score", getScore());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		String uuid = (String)attributes.get("uuid");
+
+		if (uuid != null) {
+			setUuid(uuid);
+		}
+
 		Long entryId = (Long)attributes.get("entryId");
 
 		if (entryId != null) {
@@ -238,28 +272,70 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	}
 
 	@JSON
+	@Override
+	public String getUuid() {
+		if (_uuid == null) {
+			return StringPool.BLANK;
+		}
+		else {
+			return _uuid;
+		}
+	}
+
+	@Override
+	public void setUuid(String uuid) {
+		if (_originalUuid == null) {
+			_originalUuid = _uuid;
+		}
+
+		_uuid = uuid;
+	}
+
+	public String getOriginalUuid() {
+		return GetterUtil.getString(_originalUuid);
+	}
+
+	@JSON
+	@Override
 	public long getEntryId() {
 		return _entryId;
 	}
 
+	@Override
 	public void setEntryId(long entryId) {
 		_entryId = entryId;
 	}
 
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
+		_columnBitmask |= COMPANYID_COLUMN_BITMASK;
+
+		if (!_setOriginalCompanyId) {
+			_setOriginalCompanyId = true;
+
+			_originalCompanyId = _companyId;
+		}
+
 		_companyId = companyId;
 	}
 
+	public long getOriginalCompanyId() {
+		return _originalCompanyId;
+	}
+
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
 
+	@Override
 	public void setUserId(long userId) {
 		_columnBitmask |= USERID_COLUMN_BITMASK;
 
@@ -272,12 +348,20 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 		_userId = userId;
 	}
 
-	public String getUserUuid() throws SystemException {
-		return PortalUtil.getUserValue(getUserId(), "uuid", _userUuid);
+	@Override
+	public String getUserUuid() {
+		try {
+			User user = UserLocalServiceUtil.getUserById(getUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
+		}
 	}
 
+	@Override
 	public void setUserUuid(String userUuid) {
-		_userUuid = userUuid;
 	}
 
 	public long getOriginalUserId() {
@@ -285,6 +369,7 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	}
 
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -294,28 +379,34 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 		}
 	}
 
+	@Override
 	public void setUserName(String userName) {
 		_userName = userName;
 	}
 
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
 
+	@Override
 	public void setCreateDate(Date createDate) {
 		_createDate = createDate;
 	}
 
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
 
+	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		_modifiedDate = modifiedDate;
 	}
 
+	@Override
 	public String getClassName() {
 		if (getClassNameId() <= 0) {
 			return StringPool.BLANK;
@@ -324,6 +415,7 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 		return PortalUtil.getClassName(getClassNameId());
 	}
 
+	@Override
 	public void setClassName(String className) {
 		long classNameId = 0;
 
@@ -335,10 +427,12 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	}
 
 	@JSON
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
 
+	@Override
 	public void setClassNameId(long classNameId) {
 		_columnBitmask |= CLASSNAMEID_COLUMN_BITMASK;
 
@@ -356,10 +450,12 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	}
 
 	@JSON
+	@Override
 	public long getClassPK() {
 		return _classPK;
 	}
 
+	@Override
 	public void setClassPK(long classPK) {
 		_columnBitmask |= CLASSPK_COLUMN_BITMASK;
 
@@ -377,10 +473,12 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	}
 
 	@JSON
+	@Override
 	public double getScore() {
 		return _score;
 	}
 
+	@Override
 	public void setScore(double score) {
 		_columnBitmask |= SCORE_COLUMN_BITMASK;
 
@@ -397,19 +495,14 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 		return _originalScore;
 	}
 
-	public long getColumnBitmask() {
-		return _columnBitmask;
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(PortalUtil.getClassNameId(
+				RatingsEntry.class.getName()), getClassNameId());
 	}
 
-	@Override
-	public RatingsEntry toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (RatingsEntry)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -426,9 +519,20 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	}
 
 	@Override
+	public RatingsEntry toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (RatingsEntry)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		RatingsEntryImpl ratingsEntryImpl = new RatingsEntryImpl();
 
+		ratingsEntryImpl.setUuid(getUuid());
 		ratingsEntryImpl.setEntryId(getEntryId());
 		ratingsEntryImpl.setCompanyId(getCompanyId());
 		ratingsEntryImpl.setUserId(getUserId());
@@ -444,6 +548,7 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 		return ratingsEntryImpl;
 	}
 
+	@Override
 	public int compareTo(RatingsEntry ratingsEntry) {
 		long primaryKey = ratingsEntry.getPrimaryKey();
 
@@ -460,18 +565,15 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof RatingsEntry)) {
 			return false;
 		}
 
-		RatingsEntry ratingsEntry = null;
-
-		try {
-			ratingsEntry = (RatingsEntry)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		RatingsEntry ratingsEntry = (RatingsEntry)obj;
 
 		long primaryKey = ratingsEntry.getPrimaryKey();
 
@@ -489,8 +591,24 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		RatingsEntryModelImpl ratingsEntryModelImpl = this;
+
+		ratingsEntryModelImpl._originalUuid = ratingsEntryModelImpl._uuid;
+
+		ratingsEntryModelImpl._originalCompanyId = ratingsEntryModelImpl._companyId;
+
+		ratingsEntryModelImpl._setOriginalCompanyId = false;
 
 		ratingsEntryModelImpl._originalUserId = ratingsEntryModelImpl._userId;
 
@@ -514,6 +632,14 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	@Override
 	public CacheModel<RatingsEntry> toCacheModel() {
 		RatingsEntryCacheModel ratingsEntryCacheModel = new RatingsEntryCacheModel();
+
+		ratingsEntryCacheModel.uuid = getUuid();
+
+		String uuid = ratingsEntryCacheModel.uuid;
+
+		if ((uuid != null) && (uuid.length() == 0)) {
+			ratingsEntryCacheModel.uuid = null;
+		}
 
 		ratingsEntryCacheModel.entryId = getEntryId();
 
@@ -558,9 +684,11 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(21);
 
-		sb.append("{entryId=");
+		sb.append("{uuid=");
+		sb.append(getUuid());
+		sb.append(", entryId=");
 		sb.append(getEntryId());
 		sb.append(", companyId=");
 		sb.append(getCompanyId());
@@ -583,13 +711,18 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(31);
+		StringBundler sb = new StringBundler(34);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portlet.ratings.model.RatingsEntry");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>uuid</column-name><column-value><![CDATA[");
+		sb.append(getUuid());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>entryId</column-name><column-value><![CDATA[");
 		sb.append(getEntryId());
@@ -633,13 +766,16 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	}
 
 	private static ClassLoader _classLoader = RatingsEntry.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			RatingsEntry.class
 		};
+	private String _uuid;
+	private String _originalUuid;
 	private long _entryId;
 	private long _companyId;
+	private long _originalCompanyId;
+	private boolean _setOriginalCompanyId;
 	private long _userId;
-	private String _userUuid;
 	private long _originalUserId;
 	private boolean _setOriginalUserId;
 	private String _userName;
@@ -655,5 +791,5 @@ public class RatingsEntryModelImpl extends BaseModelImpl<RatingsEntry>
 	private double _originalScore;
 	private boolean _setOriginalScore;
 	private long _columnBitmask;
-	private RatingsEntry _escapedModelProxy;
+	private RatingsEntry _escapedModel;
 }

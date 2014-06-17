@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,6 +24,7 @@ import com.liferay.portlet.social.model.SocialRequestFeedEntry;
  */
 public class PortalRequestInterpreter extends BaseSocialRequestInterpreter {
 
+	@Override
 	public String[] getClassNames() {
 		return _CLASS_NAMES;
 	}
@@ -43,8 +44,7 @@ public class PortalRequestInterpreter extends BaseSocialRequestInterpreter {
 		return true;
 	}
 
-	private static final String[] _CLASS_NAMES = new String[] {
-		PortalRequestInterpreter.class.getName()
-	};
+	private static final String[] _CLASS_NAMES =
+		{PortalRequestInterpreter.class.getName()};
 
 }

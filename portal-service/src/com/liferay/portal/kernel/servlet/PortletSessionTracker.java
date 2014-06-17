@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,81 +14,38 @@
 
 package com.liferay.portal.kernel.servlet;
 
-import com.liferay.portal.kernel.concurrent.ConcurrentHashSet;
 import com.liferay.portal.kernel.servlet.filters.compoundsessionid.CompoundSessionIdSplitterUtil;
 
-import java.io.Serializable;
-
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpSessionBindingEvent;
-import javax.servlet.http.HttpSessionBindingListener;
-import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;
 
 /**
  * <p>
- * See http://issues.liferay.com/browse/LEP-1466.
+ * See https://issues.liferay.com/browse/LEP-1466.
  * </p>
  *
  * @author Rudy Hilado
  * @author Shuyang Zhou
  */
-public class PortletSessionTracker
-	implements HttpSessionListener, HttpSessionBindingListener, Serializable {
+public class PortletSessionTracker {
 
 	public static void add(HttpSession session) {
-		_instance._add(session);
-	}
-
-	public static HttpSessionBindingListener getInstance() {
-		return _instance;
-	}
-
-	public static void invalidate(HttpSession session) {
-		_instance._invalidate(session.getId());
-	}
-
-	public static void invalidate(String sessionId) {
-		_instance._invalidate(sessionId);
-	}
-
-	public void sessionCreated(HttpSessionEvent httpSessionEvent) {
-	}
-
-	public void sessionDestroyed(HttpSessionEvent httpSessionEvent) {
-		_invalidate(httpSessionEvent.getSession().getId());
-	}
-
-	public void valueBound(HttpSessionBindingEvent event) {
-	}
-
-	public void valueUnbound(HttpSessionBindingEvent event) {
-		invalidate(event.getSession().getId());
-	}
-
-	private PortletSessionTracker() {
-		_sessions = new ConcurrentHashMap<String, Set<HttpSession>>();
-
-		PortletSessionListenerManager.addHttpSessionListener(this);
-	}
-
-	private void _add(HttpSession session) {
 		String sessionId = session.getId();
 
 		if (CompoundSessionIdSplitterUtil.hasSessionDelimiter()) {
 			sessionId = CompoundSessionIdSplitterUtil.parseSessionId(sessionId);
 		}
 
-		Set<HttpSession> sessions = _sessions.get(sessionId);
+		Map<String, HttpSession> sessions = _sessions.get(sessionId);
 
 		if (sessions == null) {
-			sessions = new ConcurrentHashSet<HttpSession>();
+			sessions = new ConcurrentHashMap<String, HttpSession>();
 
-			Set<HttpSession> previousSessions = _sessions.putIfAbsent(
+			Map<String, HttpSession> previousSessions = _sessions.putIfAbsent(
 				sessionId, sessions);
 
 			if (previousSessions != null) {
@@ -96,21 +53,30 @@ public class PortletSessionTracker
 			}
 		}
 
-		sessions.add(session);
+		ServletContext servletContext = session.getServletContext();
+
+		String contextPath = servletContext.getContextPath();
+
+		// ConcurrentHashMap's read is faster than its write. This check is
+		// logically unnecessary, but is a performance improvement.
+
+		if (!sessions.containsKey(contextPath)) {
+			sessions.put(contextPath, session);
+		}
 	}
 
-	private void _invalidate(String sessionId) {
+	public static void invalidate(String sessionId) {
 		if (CompoundSessionIdSplitterUtil.hasSessionDelimiter()) {
 			sessionId = CompoundSessionIdSplitterUtil.parseSessionId(sessionId);
 		}
 
-		Set<HttpSession> sessions = _sessions.remove(sessionId);
+		Map<String, HttpSession> sessions = _sessions.remove(sessionId);
 
 		if (sessions == null) {
 			return;
 		}
 
-		for (HttpSession session : sessions) {
+		for (HttpSession session : sessions.values()) {
 			try {
 				session.invalidate();
 			}
@@ -119,9 +85,7 @@ public class PortletSessionTracker
 		}
 	}
 
-	private static PortletSessionTracker _instance =
-		new PortletSessionTracker();
-
-	private transient ConcurrentMap<String, Set<HttpSession>> _sessions;
+	private static ConcurrentMap<String, Map<String, HttpSession>> _sessions =
+		new ConcurrentHashMap<String, Map<String, HttpSession>>();
 
 }

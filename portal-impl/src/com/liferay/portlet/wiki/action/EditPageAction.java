@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,12 @@
 
 package com.liferay.portlet.wiki.action;
 
+import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Layout;
@@ -32,6 +34,10 @@ import com.liferay.portlet.PortletResponseImpl;
 import com.liferay.portlet.PortletURLImpl;
 import com.liferay.portlet.asset.AssetCategoryException;
 import com.liferay.portlet.asset.AssetTagException;
+import com.liferay.portlet.trash.model.TrashEntry;
+import com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil;
+import com.liferay.portlet.trash.service.TrashEntryServiceUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
 import com.liferay.portlet.wiki.DuplicatePageException;
 import com.liferay.portlet.wiki.NoSuchNodeException;
 import com.liferay.portlet.wiki.NoSuchPageException;
@@ -41,6 +47,9 @@ import com.liferay.portlet.wiki.PageVersionException;
 import com.liferay.portlet.wiki.model.WikiNode;
 import com.liferay.portlet.wiki.model.WikiPage;
 import com.liferay.portlet.wiki.model.WikiPageConstants;
+import com.liferay.portlet.wiki.model.WikiPageResource;
+import com.liferay.portlet.wiki.service.WikiPageLocalServiceUtil;
+import com.liferay.portlet.wiki.service.WikiPageResourceLocalServiceUtil;
 import com.liferay.portlet.wiki.service.WikiPageServiceUtil;
 
 import javax.portlet.ActionRequest;
@@ -62,8 +71,9 @@ public class EditPageAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -75,7 +85,13 @@ public class EditPageAction extends PortletAction {
 				page = updatePage(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deletePage(actionRequest);
+				deletePage(actionRequest, false);
+			}
+			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
+				deletePage(actionRequest, true);
+			}
+			else if (cmd.equals(Constants.RESTORE)) {
+				restorePage(actionRequest);
 			}
 			else if (cmd.equals(Constants.REVERT)) {
 				revertPage(actionRequest);
@@ -120,25 +136,34 @@ public class EditPageAction extends PortletAction {
 			else if (e instanceof DuplicatePageException ||
 					 e instanceof PageContentException ||
 					 e instanceof PageVersionException ||
-					 e instanceof PageTitleException) {
+					 e instanceof PageTitleException ||
+					 e instanceof SanitizerException) {
 
 				SessionErrors.add(actionRequest, e.getClass());
 			}
 			else if (e instanceof AssetCategoryException ||
 					 e instanceof AssetTagException) {
 
-				SessionErrors.add(actionRequest, e.getClass().getName(), e);
+				SessionErrors.add(actionRequest, e.getClass(), e);
 			}
 			else {
-				throw e;
+				Throwable cause = e.getCause();
+
+				if (cause instanceof SanitizerException) {
+					SessionErrors.add(actionRequest, SanitizerException.class);
+				}
+				else {
+					throw e;
+				}
 			}
 		}
 	}
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -157,7 +182,7 @@ public class EditPageAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.wiki.error");
+				return actionMapping.findForward("portlet.wiki.error");
 			}
 			else if (e instanceof NoSuchPageException) {
 
@@ -169,20 +194,41 @@ public class EditPageAction extends PortletAction {
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.wiki.edit_page"));
 	}
 
-	protected void deletePage(ActionRequest actionRequest) throws Exception {
+	protected void deletePage(ActionRequest actionRequest, boolean moveToTrash)
+		throws Exception {
+
 		long nodeId = ParamUtil.getLong(actionRequest, "nodeId");
 		String title = ParamUtil.getString(actionRequest, "title");
 		double version = ParamUtil.getDouble(actionRequest, "version");
 
-		if (version > 0) {
-			WikiPageServiceUtil.deletePage(nodeId, title, version);
+		WikiPage wikiPage = null;
+
+		if (moveToTrash) {
+			if (version > 0) {
+				wikiPage = WikiPageServiceUtil.movePageToTrash(
+					nodeId, title, version);
+			}
+			else {
+				wikiPage = WikiPageServiceUtil.movePageToTrash(nodeId, title);
+			}
 		}
 		else {
-			WikiPageServiceUtil.deletePage(nodeId, title);
+			if (version > 0) {
+				WikiPageServiceUtil.discardDraft(nodeId, title, version);
+			}
+			else {
+				WikiPageServiceUtil.deletePage(nodeId, title);
+			}
+		}
+
+		if (moveToTrash && (wikiPage != null)) {
+			TrashUtil.addTrashSessionMessages(actionRequest, wikiPage);
+
+			hideDefaultSuccessMessage(actionRequest);
 		}
 	}
 
@@ -204,39 +250,43 @@ public class EditPageAction extends PortletAction {
 
 		WikiPage page = null;
 
-		if (Validator.isNotNull(title)) {
+		if (Validator.isNull(title)) {
+			renderRequest.setAttribute(WebKeys.WIKI_PAGE, page);
+
+			return;
+		}
+
+		try {
+			if (version == 0) {
+				page = WikiPageServiceUtil.getPage(nodeId, title, null);
+			}
+			else {
+				page = WikiPageServiceUtil.getPage(nodeId, title, version);
+			}
+		}
+		catch (NoSuchPageException nspe1) {
 			try {
-				if (version == 0) {
-					page = WikiPageServiceUtil.getPage(nodeId, title, null);
+				page = WikiPageServiceUtil.getPage(nodeId, title, false);
+			}
+			catch (NoSuchPageException nspe2) {
+				if (title.equals(WikiPageConstants.FRONT_PAGE) &&
+					(version == 0)) {
+
+					ServiceContext serviceContext = new ServiceContext();
+
+					page = WikiPageServiceUtil.addPage(
+						nodeId, title, null, WikiPageConstants.NEW, true,
+						serviceContext);
 				}
 				else {
-					page = WikiPageServiceUtil.getPage(nodeId, title, version);
+					throw nspe2;
 				}
 			}
-			catch (NoSuchPageException nspe1) {
-				try {
-					page = WikiPageServiceUtil.getPage(nodeId, title, false);
-				}
-				catch (NoSuchPageException nspe2) {
-					if (title.equals(WikiPageConstants.FRONT_PAGE) &&
-						(version == 0)) {
+		}
 
-						ServiceContext serviceContext = new ServiceContext();
-
-						page = WikiPageServiceUtil.addPage(
-							nodeId, title, null, WikiPageConstants.NEW, true,
-							serviceContext);
-					}
-					else {
-						throw nspe2;
-					}
-				}
-			}
-
-			if (removeRedirect) {
-				page.setContent(StringPool.BLANK);
-				page.setRedirectTitle(StringPool.BLANK);
-			}
+		if (removeRedirect) {
+			page.setContent(StringPool.BLANK);
+			page.setRedirectTitle(StringPool.BLANK);
 		}
 
 		renderRequest.setAttribute(WebKeys.WIKI_PAGE, page);
@@ -252,9 +302,6 @@ public class EditPageAction extends PortletAction {
 
 		Layout layout = themeDisplay.getLayout();
 
-		String originalRedirect = ParamUtil.getString(
-			actionRequest, "originalRedirect");
-
 		PortletURLImpl portletURL = new StrutsActionPortletURL(
 			(PortletResponseImpl)actionResponse, themeDisplay.getPlid(),
 			PortletRequest.RENDER_PHASE);
@@ -262,12 +309,12 @@ public class EditPageAction extends PortletAction {
 		portletURL.setParameter("struts_action", "/wiki/edit_page");
 		portletURL.setParameter(Constants.CMD, Constants.UPDATE, false);
 		portletURL.setParameter("redirect", redirect, false);
-		portletURL.setParameter("originalRedirect", originalRedirect, false);
 		portletURL.setParameter(
 			"groupId", String.valueOf(layout.getGroupId()), false);
 		portletURL.setParameter(
 			"nodeId", String.valueOf(page.getNodeId()), false);
 		portletURL.setParameter("title", page.getTitle(), false);
+		portletURL.setWindowState(actionRequest.getWindowState());
 
 		return portletURL.toString();
 	}
@@ -275,6 +322,37 @@ public class EditPageAction extends PortletAction {
 	@Override
 	protected boolean isCheckMethodOnProcessAction() {
 		return _CHECK_METHOD_ON_PROCESS_ACTION;
+	}
+
+	protected void restorePage(ActionRequest actionRequest) throws Exception {
+		long[] restoreEntryIds = StringUtil.split(
+			ParamUtil.getString(actionRequest, "restoreTrashEntryIds"), 0L);
+
+		for (long restoreEntryId : restoreEntryIds) {
+			long overridePageResourcePrimKey = 0;
+
+			TrashEntry trashEntry = TrashEntryLocalServiceUtil.getTrashEntry(
+				restoreEntryId);
+
+			WikiPageResource pageResource =
+				WikiPageResourceLocalServiceUtil.getPageResource(
+					trashEntry.getClassPK());
+
+			String title = TrashUtil.getOriginalTitle(pageResource.getTitle());
+
+			if (title.equals(WikiPageConstants.FRONT_PAGE)) {
+				WikiPage overridePage = WikiPageLocalServiceUtil.fetchPage(
+					pageResource.getNodeId(), WikiPageConstants.FRONT_PAGE);
+
+				if (overridePage != null) {
+					overridePageResourcePrimKey =
+						overridePage.getResourcePrimKey();
+				}
+			}
+
+			TrashEntryServiceUtil.restoreEntry(
+				restoreEntryId, overridePageResourcePrimKey, null);
+		}
 	}
 
 	protected void revertPage(ActionRequest actionRequest) throws Exception {
@@ -319,21 +397,34 @@ public class EditPageAction extends PortletAction {
 		String format = ParamUtil.getString(actionRequest, "format");
 		String parentTitle = ParamUtil.getString(actionRequest, "parentTitle");
 		String redirectTitle = null;
+		boolean copyPageAttachments = ParamUtil.getBoolean(
+			actionRequest, "copyPageAttachments");
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			WikiPage.class.getName(), actionRequest);
 
 		WikiPage page = null;
 
-		if (cmd.equals(Constants.ADD)) {
-			page = WikiPageServiceUtil.addPage(
-				nodeId, title, content, summary, minorEdit, format, parentTitle,
-				redirectTitle, serviceContext);
-		}
-		else {
+		if (cmd.equals(Constants.UPDATE)) {
 			page = WikiPageServiceUtil.updatePage(
 				nodeId, title, version, content, summary, minorEdit, format,
 				parentTitle, redirectTitle, serviceContext);
+		}
+		else {
+			page = WikiPageServiceUtil.addPage(
+				nodeId, title, content, summary, minorEdit, format, parentTitle,
+				redirectTitle, serviceContext);
+
+			if (copyPageAttachments) {
+				long templateNodeId = ParamUtil.getLong(
+					actionRequest, "templateNodeId");
+				String templateTitle = ParamUtil.getString(
+					actionRequest, "templateTitle");
+
+				WikiPageServiceUtil.copyPageAttachments(
+					templateNodeId, templateTitle, page.getNodeId(),
+					page.getTitle());
+			}
 		}
 
 		return page;

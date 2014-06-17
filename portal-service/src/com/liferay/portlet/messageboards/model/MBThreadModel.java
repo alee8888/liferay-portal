@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,14 +14,21 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.ContainerModel;
+import com.liferay.portal.model.StagedGroupedModel;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
+import com.liferay.portlet.trash.model.TrashEntry;
 
 import java.io.Serializable;
 
@@ -40,7 +47,9 @@ import java.util.Date;
  * @see com.liferay.portlet.messageboards.model.impl.MBThreadModelImpl
  * @generated
  */
-public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
+@ProviderType
+public interface MBThreadModel extends BaseModel<MBThread>, ContainerModel,
+	StagedGroupedModel, TrashedModel, WorkflowedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -62,6 +71,23 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	public void setPrimaryKey(long primaryKey);
 
 	/**
+	 * Returns the uuid of this message boards thread.
+	 *
+	 * @return the uuid of this message boards thread
+	 */
+	@AutoEscape
+	@Override
+	public String getUuid();
+
+	/**
+	 * Sets the uuid of this message boards thread.
+	 *
+	 * @param uuid the uuid of this message boards thread
+	 */
+	@Override
+	public void setUuid(String uuid);
+
+	/**
 	 * Returns the thread ID of this message boards thread.
 	 *
 	 * @return the thread ID of this message boards thread
@@ -80,6 +106,7 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 *
 	 * @return the group ID of this message boards thread
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -87,6 +114,7 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 *
 	 * @param groupId the group ID of this message boards thread
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -94,6 +122,7 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 *
 	 * @return the company ID of this message boards thread
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -101,7 +130,89 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 *
 	 * @param companyId the company ID of this message boards thread
 	 */
+	@Override
 	public void setCompanyId(long companyId);
+
+	/**
+	 * Returns the user ID of this message boards thread.
+	 *
+	 * @return the user ID of this message boards thread
+	 */
+	@Override
+	public long getUserId();
+
+	/**
+	 * Sets the user ID of this message boards thread.
+	 *
+	 * @param userId the user ID of this message boards thread
+	 */
+	@Override
+	public void setUserId(long userId);
+
+	/**
+	 * Returns the user uuid of this message boards thread.
+	 *
+	 * @return the user uuid of this message boards thread
+	 */
+	@Override
+	public String getUserUuid();
+
+	/**
+	 * Sets the user uuid of this message boards thread.
+	 *
+	 * @param userUuid the user uuid of this message boards thread
+	 */
+	@Override
+	public void setUserUuid(String userUuid);
+
+	/**
+	 * Returns the user name of this message boards thread.
+	 *
+	 * @return the user name of this message boards thread
+	 */
+	@AutoEscape
+	@Override
+	public String getUserName();
+
+	/**
+	 * Sets the user name of this message boards thread.
+	 *
+	 * @param userName the user name of this message boards thread
+	 */
+	@Override
+	public void setUserName(String userName);
+
+	/**
+	 * Returns the create date of this message boards thread.
+	 *
+	 * @return the create date of this message boards thread
+	 */
+	@Override
+	public Date getCreateDate();
+
+	/**
+	 * Sets the create date of this message boards thread.
+	 *
+	 * @param createDate the create date of this message boards thread
+	 */
+	@Override
+	public void setCreateDate(Date createDate);
+
+	/**
+	 * Returns the modified date of this message boards thread.
+	 *
+	 * @return the modified date of this message boards thread
+	 */
+	@Override
+	public Date getModifiedDate();
+
+	/**
+	 * Sets the modified date of this message boards thread.
+	 *
+	 * @param modifiedDate the modified date of this message boards thread
+	 */
+	@Override
+	public void setModifiedDate(Date modifiedDate);
 
 	/**
 	 * Returns the category ID of this message boards thread.
@@ -149,9 +260,8 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 * Returns the root message user uuid of this message boards thread.
 	 *
 	 * @return the root message user uuid of this message boards thread
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getRootMessageUserUuid() throws SystemException;
+	public String getRootMessageUserUuid();
 
 	/**
 	 * Sets the root message user uuid of this message boards thread.
@@ -206,9 +316,8 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 * Returns the last post by user uuid of this message boards thread.
 	 *
 	 * @return the last post by user uuid of this message boards thread
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getLastPostByUserUuid() throws SystemException;
+	public String getLastPostByUserUuid();
 
 	/**
 	 * Sets the last post by user uuid of this message boards thread.
@@ -271,6 +380,7 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 *
 	 * @return the status of this message boards thread
 	 */
+	@Override
 	public int getStatus();
 
 	/**
@@ -278,6 +388,7 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 *
 	 * @param status the status of this message boards thread
 	 */
+	@Override
 	public void setStatus(int status);
 
 	/**
@@ -285,6 +396,7 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 *
 	 * @return the status by user ID of this message boards thread
 	 */
+	@Override
 	public long getStatusByUserId();
 
 	/**
@@ -292,21 +404,23 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 *
 	 * @param statusByUserId the status by user ID of this message boards thread
 	 */
+	@Override
 	public void setStatusByUserId(long statusByUserId);
 
 	/**
 	 * Returns the status by user uuid of this message boards thread.
 	 *
 	 * @return the status by user uuid of this message boards thread
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getStatusByUserUuid() throws SystemException;
+	@Override
+	public String getStatusByUserUuid();
 
 	/**
 	 * Sets the status by user uuid of this message boards thread.
 	 *
 	 * @param statusByUserUuid the status by user uuid of this message boards thread
 	 */
+	@Override
 	public void setStatusByUserUuid(String statusByUserUuid);
 
 	/**
@@ -315,6 +429,7 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 * @return the status by user name of this message boards thread
 	 */
 	@AutoEscape
+	@Override
 	public String getStatusByUserName();
 
 	/**
@@ -322,6 +437,7 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 *
 	 * @param statusByUserName the status by user name of this message boards thread
 	 */
+	@Override
 	public void setStatusByUserName(String statusByUserName);
 
 	/**
@@ -329,6 +445,7 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 *
 	 * @return the status date of this message boards thread
 	 */
+	@Override
 	public Date getStatusDate();
 
 	/**
@@ -336,11 +453,60 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 *
 	 * @param statusDate the status date of this message boards thread
 	 */
+	@Override
 	public void setStatusDate(Date statusDate);
 
 	/**
-	 * @deprecated Renamed to {@link #isApproved()}
+	 * Returns the trash entry created when this message boards thread was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this message boards thread.
+	 *
+	 * @return the trash entry created when this message boards thread was moved to the Recycle Bin
 	 */
+	@Override
+	public TrashEntry getTrashEntry() throws PortalException;
+
+	/**
+	 * Returns the class primary key of the trash entry for this message boards thread.
+	 *
+	 * @return the class primary key of the trash entry for this message boards thread
+	 */
+	@Override
+	public long getTrashEntryClassPK();
+
+	/**
+	 * Returns the trash handler for this message boards thread.
+	 *
+	 * @return the trash handler for this message boards thread
+	 */
+	@Override
+	public TrashHandler getTrashHandler();
+
+	/**
+	 * Returns <code>true</code> if this message boards thread is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if this message boards thread is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInTrash();
+
+	/**
+	 * Returns <code>true</code> if the parent of this message boards thread is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if the parent of this message boards thread is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInTrashContainer();
+
+	@Override
+	public boolean isInTrashExplicitly();
+
+	@Override
+	public boolean isInTrashImplicitly();
+
+	/**
+	 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
+	 */
+	@Deprecated
+	@Override
 	public boolean getApproved();
 
 	/**
@@ -348,13 +514,23 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 *
 	 * @return <code>true</code> if this message boards thread is approved; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isApproved();
+
+	/**
+	 * Returns <code>true</code> if this message boards thread is denied.
+	 *
+	 * @return <code>true</code> if this message boards thread is denied; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isDenied();
 
 	/**
 	 * Returns <code>true</code> if this message boards thread is a draft.
 	 *
 	 * @return <code>true</code> if this message boards thread is a draft; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isDraft();
 
 	/**
@@ -362,44 +538,135 @@ public interface MBThreadModel extends BaseModel<MBThread>, WorkflowedModel {
 	 *
 	 * @return <code>true</code> if this message boards thread is expired; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isExpired();
+
+	/**
+	 * Returns <code>true</code> if this message boards thread is inactive.
+	 *
+	 * @return <code>true</code> if this message boards thread is inactive; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInactive();
+
+	/**
+	 * Returns <code>true</code> if this message boards thread is incomplete.
+	 *
+	 * @return <code>true</code> if this message boards thread is incomplete; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isIncomplete();
 
 	/**
 	 * Returns <code>true</code> if this message boards thread is pending.
 	 *
 	 * @return <code>true</code> if this message boards thread is pending; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isPending();
 
+	/**
+	 * Returns <code>true</code> if this message boards thread is scheduled.
+	 *
+	 * @return <code>true</code> if this message boards thread is scheduled; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isScheduled();
+
+	/**
+	 * Returns the container model ID of this message boards thread.
+	 *
+	 * @return the container model ID of this message boards thread
+	 */
+	@Override
+	public long getContainerModelId();
+
+	/**
+	 * Sets the container model ID of this message boards thread.
+	 *
+	 * @param containerModelId the container model ID of this message boards thread
+	 */
+	@Override
+	public void setContainerModelId(long containerModelId);
+
+	/**
+	 * Returns the container name of this message boards thread.
+	 *
+	 * @return the container name of this message boards thread
+	 */
+	@Override
+	public String getContainerModelName();
+
+	/**
+	 * Returns the parent container model ID of this message boards thread.
+	 *
+	 * @return the parent container model ID of this message boards thread
+	 */
+	@Override
+	public long getParentContainerModelId();
+
+	/**
+	 * Sets the parent container model ID of this message boards thread.
+	 *
+	 * @param parentContainerModelId the parent container model ID of this message boards thread
+	 */
+	@Override
+	public void setParentContainerModelId(long parentContainerModelId);
+
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(MBThread mbThread);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<MBThread> toCacheModel();
 
+	@Override
 	public MBThread toEscapedModel();
 
+	@Override
+	public MBThread toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

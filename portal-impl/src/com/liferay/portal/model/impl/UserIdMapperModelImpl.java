@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,16 +15,17 @@
 package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserIdMapper;
 import com.liferay.portal.model.UserIdMapperModel;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.service.UserLocalServiceUtil;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
@@ -58,14 +59,17 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 	 */
 	public static final String TABLE_NAME = "UserIdMapper";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "userIdMapperId", Types.BIGINT },
 			{ "userId", Types.BIGINT },
 			{ "type_", Types.VARCHAR },
 			{ "description", Types.VARCHAR },
 			{ "externalUserId", Types.VARCHAR }
 		};
-	public static final String TABLE_SQL_CREATE = "create table UserIdMapper (userIdMapperId LONG not null primary key,userId LONG,type_ VARCHAR(75) null,description VARCHAR(75) null,externalUserId VARCHAR(75) null)";
+	public static final String TABLE_SQL_CREATE = "create table UserIdMapper (mvccVersion LONG default 0,userIdMapperId LONG not null primary key,userId LONG,type_ VARCHAR(75) null,description VARCHAR(75) null,externalUserId VARCHAR(75) null)";
 	public static final String TABLE_SQL_DROP = "drop table UserIdMapper";
+	public static final String ORDER_BY_JPQL = " ORDER BY userIdMapper.userIdMapperId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY UserIdMapper.userIdMapperId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -81,32 +85,39 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 	public static long EXTERNALUSERID_COLUMN_BITMASK = 1L;
 	public static long TYPE_COLUMN_BITMASK = 2L;
 	public static long USERID_COLUMN_BITMASK = 4L;
+	public static long USERIDMAPPERID_COLUMN_BITMASK = 8L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portal.model.UserIdMapper"));
 
 	public UserIdMapperModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _userIdMapperId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setUserIdMapperId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_userIdMapperId);
+		return _userIdMapperId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return UserIdMapper.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return UserIdMapper.class.getName();
 	}
@@ -115,17 +126,27 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("userIdMapperId", getUserIdMapperId());
 		attributes.put("userId", getUserId());
 		attributes.put("type", getType());
 		attributes.put("description", getDescription());
 		attributes.put("externalUserId", getExternalUserId());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long userIdMapperId = (Long)attributes.get("userIdMapperId");
 
 		if (userIdMapperId != null) {
@@ -157,18 +178,32 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 		}
 	}
 
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@Override
 	public long getUserIdMapperId() {
 		return _userIdMapperId;
 	}
 
+	@Override
 	public void setUserIdMapperId(long userIdMapperId) {
 		_userIdMapperId = userIdMapperId;
 	}
 
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
 
+	@Override
 	public void setUserId(long userId) {
 		_columnBitmask |= USERID_COLUMN_BITMASK;
 
@@ -181,18 +216,27 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 		_userId = userId;
 	}
 
-	public String getUserUuid() throws SystemException {
-		return PortalUtil.getUserValue(getUserId(), "uuid", _userUuid);
+	@Override
+	public String getUserUuid() {
+		try {
+			User user = UserLocalServiceUtil.getUserById(getUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
+		}
 	}
 
+	@Override
 	public void setUserUuid(String userUuid) {
-		_userUuid = userUuid;
 	}
 
 	public long getOriginalUserId() {
 		return _originalUserId;
 	}
 
+	@Override
 	public String getType() {
 		if (_type == null) {
 			return StringPool.BLANK;
@@ -202,6 +246,7 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 		}
 	}
 
+	@Override
 	public void setType(String type) {
 		_columnBitmask |= TYPE_COLUMN_BITMASK;
 
@@ -216,6 +261,7 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 		return GetterUtil.getString(_originalType);
 	}
 
+	@Override
 	public String getDescription() {
 		if (_description == null) {
 			return StringPool.BLANK;
@@ -225,10 +271,12 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 		}
 	}
 
+	@Override
 	public void setDescription(String description) {
 		_description = description;
 	}
 
+	@Override
 	public String getExternalUserId() {
 		if (_externalUserId == null) {
 			return StringPool.BLANK;
@@ -238,6 +286,7 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 		}
 	}
 
+	@Override
 	public void setExternalUserId(String externalUserId) {
 		_columnBitmask |= EXTERNALUSERID_COLUMN_BITMASK;
 
@@ -257,17 +306,6 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 	}
 
 	@Override
-	public UserIdMapper toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (UserIdMapper)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
 			UserIdMapper.class.getName(), getPrimaryKey());
@@ -281,9 +319,20 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 	}
 
 	@Override
+	public UserIdMapper toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (UserIdMapper)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		UserIdMapperImpl userIdMapperImpl = new UserIdMapperImpl();
 
+		userIdMapperImpl.setMvccVersion(getMvccVersion());
 		userIdMapperImpl.setUserIdMapperId(getUserIdMapperId());
 		userIdMapperImpl.setUserId(getUserId());
 		userIdMapperImpl.setType(getType());
@@ -295,6 +344,7 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 		return userIdMapperImpl;
 	}
 
+	@Override
 	public int compareTo(UserIdMapper userIdMapper) {
 		long primaryKey = userIdMapper.getPrimaryKey();
 
@@ -311,18 +361,15 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof UserIdMapper)) {
 			return false;
 		}
 
-		UserIdMapper userIdMapper = null;
-
-		try {
-			userIdMapper = (UserIdMapper)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		UserIdMapper userIdMapper = (UserIdMapper)obj;
 
 		long primaryKey = userIdMapper.getPrimaryKey();
 
@@ -337,6 +384,16 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -357,6 +414,8 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 	@Override
 	public CacheModel<UserIdMapper> toCacheModel() {
 		UserIdMapperCacheModel userIdMapperCacheModel = new UserIdMapperCacheModel();
+
+		userIdMapperCacheModel.mvccVersion = getMvccVersion();
 
 		userIdMapperCacheModel.userIdMapperId = getUserIdMapperId();
 
@@ -391,9 +450,11 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(11);
+		StringBundler sb = new StringBundler(13);
 
-		sb.append("{userIdMapperId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", userIdMapperId=");
 		sb.append(getUserIdMapperId());
 		sb.append(", userId=");
 		sb.append(getUserId());
@@ -408,13 +469,18 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(22);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.UserIdMapper");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>userIdMapperId</column-name><column-value><![CDATA[");
 		sb.append(getUserIdMapperId());
@@ -442,12 +508,12 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 	}
 
 	private static ClassLoader _classLoader = UserIdMapper.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			UserIdMapper.class
 		};
+	private long _mvccVersion;
 	private long _userIdMapperId;
 	private long _userId;
-	private String _userUuid;
 	private long _originalUserId;
 	private boolean _setOriginalUserId;
 	private String _type;
@@ -456,5 +522,5 @@ public class UserIdMapperModelImpl extends BaseModelImpl<UserIdMapper>
 	private String _externalUserId;
 	private String _originalExternalUserId;
 	private long _columnBitmask;
-	private UserIdMapper _escapedModelProxy;
+	private UserIdMapper _escapedModel;
 }

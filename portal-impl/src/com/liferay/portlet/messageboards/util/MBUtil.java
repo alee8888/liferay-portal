@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,28 +14,51 @@
 
 package com.liferay.portlet.messageboards.util;
 
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.dao.shard.ShardCallable;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.parsers.bbcode.BBCodeTranslatorUtil;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.sanitizer.Sanitizer;
+import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
+import com.liferay.portal.kernel.search.Document;
+import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.Hits;
+import com.liferay.portal.kernel.transaction.TransactionCommitCallbackRegistryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Organization;
+import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.Role;
+import com.liferay.portal.model.RoleConstants;
+import com.liferay.portal.model.Subscription;
+import com.liferay.portal.model.ThemeConstants;
 import com.liferay.portal.model.UserGroup;
+import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.security.permission.ResourceActionsUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.OrganizationLocalServiceUtil;
+import com.liferay.portal.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.service.RoleLocalServiceUtil;
+import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.SubscriptionLocalServiceUtil;
 import com.liferay.portal.service.UserGroupLocalServiceUtil;
 import com.liferay.portal.service.UserGroupRoleLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
@@ -43,24 +66,34 @@ import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
+import com.liferay.portlet.documentlibrary.model.DLFileEntry;
+import com.liferay.portlet.documentlibrary.service.DLFileEntryLocalServiceUtil;
+import com.liferay.portlet.messageboards.MBSettings;
 import com.liferay.portlet.messageboards.model.MBBan;
 import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.model.MBCategoryConstants;
-import com.liferay.portlet.messageboards.model.MBMailingList;
 import com.liferay.portlet.messageboards.model.MBMessage;
-import com.liferay.portlet.messageboards.model.MBMessageConstants;
 import com.liferay.portlet.messageboards.model.MBStatsUser;
+import com.liferay.portlet.messageboards.model.MBThread;
 import com.liferay.portlet.messageboards.service.MBCategoryLocalServiceUtil;
-import com.liferay.portlet.messageboards.service.MBMailingListLocalServiceUtil;
-import com.liferay.util.ContentUtil;
+import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
+import com.liferay.portlet.messageboards.service.MBThreadLocalServiceUtil;
+import com.liferay.portlet.messageboards.service.permission.MBMessagePermission;
 import com.liferay.util.mail.JavaMailUtil;
 
 import java.io.InputStream;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Callable;
 
 import javax.mail.BodyPart;
 import javax.mail.Message;
@@ -68,7 +101,7 @@ import javax.mail.Part;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
-import javax.portlet.PortletPreferences;
+import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderResponse;
 
@@ -82,6 +115,8 @@ public class MBUtil {
 	public static final String BB_CODE_EDITOR_WYSIWYG_IMPL_KEY =
 		"editor.wysiwyg.portal-web.docroot.html.portlet.message_boards." +
 			"edit_message.bb_code.jsp";
+
+	public static final String EMOTICONS = "/emoticons";
 
 	public static final String MESSAGE_POP_PORTLET_PREFIX = "mb_message.";
 
@@ -117,10 +152,9 @@ public class MBUtil {
 			ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-			portletURL.setWindowState(LiferayWindowState.POP_UP);
-
 			portletURL.setParameter(
 				"struts_action", "/message_boards/select_category");
+			portletURL.setWindowState(LiferayWindowState.POP_UP);
 
 			PortalUtil.addPortletBreadcrumbEntry(
 				request, themeDisplay.translate("categories"),
@@ -154,17 +188,18 @@ public class MBUtil {
 			RenderResponse renderResponse)
 		throws Exception {
 
-		if ((message.getCategoryId() ==
-				MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) ||
-			(message.getCategoryId() ==
-				MBCategoryConstants.DISCUSSION_CATEGORY_ID)) {
+		if (message.getCategoryId() ==
+				MBCategoryConstants.DISCUSSION_CATEGORY_ID) {
 
 			return;
 		}
 
-		MBCategory category = message.getCategory();
+		if (message.getCategoryId() !=
+				MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) {
 
-		addPortletBreadcrumbEntries(category, request, renderResponse);
+			addPortletBreadcrumbEntries(
+				message.getCategory(), request, renderResponse);
+		}
 
 		PortletURL portletURL = renderResponse.createRenderURL();
 
@@ -194,10 +229,11 @@ public class MBUtil {
 
 		Object partContent = part.getContent();
 
-		String contentType = part.getContentType().toLowerCase();
+		String contentType = StringUtil.toLowerCase(part.getContentType());
 
 		if ((part.getDisposition() != null) &&
-			part.getDisposition().equalsIgnoreCase(MimeMessage.ATTACHMENT)) {
+			StringUtil.equalsIgnoreCase(
+				part.getDisposition(), MimeMessage.ATTACHMENT)) {
 
 			if (_log.isDebugEnabled()) {
 				_log.debug("Processing attachment");
@@ -221,14 +257,65 @@ public class MBUtil {
 				collectMultipartContent(mimeMultipart, mbMailMessage);
 			}
 			else if (partContent instanceof String) {
-				if (contentType.startsWith("text/html")) {
-					mbMailMessage.setHtmlBody((String)partContent);
+				Map<String, Object> options = new HashMap<String, Object>();
+
+				options.put("emailPartToMBMessageBody", Boolean.TRUE);
+
+				String messageBody = SanitizerUtil.sanitize(
+					0, 0, 0, MBMessage.class.getName(), 0, contentType,
+					Sanitizer.MODE_ALL, (String)partContent, options);
+
+				if (contentType.startsWith(ContentTypes.TEXT_HTML)) {
+					mbMailMessage.setHtmlBody(messageBody);
 				}
 				else {
-					mbMailMessage.setPlainBody((String)partContent);
+					mbMailMessage.setPlainBody(messageBody);
 				}
 			}
 		}
+	}
+
+	public static String getAbsolutePath(
+			PortletRequest portletRequest, long mbCategoryId)
+		throws PortalException {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		if (mbCategoryId == MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) {
+			return themeDisplay.translate("home");
+		}
+
+		MBCategory mbCategory = MBCategoryLocalServiceUtil.fetchMBCategory(
+			mbCategoryId);
+
+		List<MBCategory> categories = mbCategory.getAncestors();
+
+		Collections.reverse(categories);
+
+		StringBundler sb = new StringBundler((categories.size() * 3) + 5);
+
+		sb.append(themeDisplay.translate("home"));
+		sb.append(StringPool.SPACE);
+
+		for (MBCategory curCategory : categories) {
+			sb.append(StringPool.RAQUO_CHAR);
+			sb.append(StringPool.SPACE);
+			sb.append(curCategory.getName());
+		}
+
+		sb.append(StringPool.RAQUO_CHAR);
+		sb.append(StringPool.SPACE);
+		sb.append(mbCategory.getName());
+
+		return sb.toString();
+	}
+
+	public static String getBBCodeHTML(String msgBody, String pathThemeImages) {
+		return StringUtil.replace(
+			BBCodeTranslatorUtil.getHTML(msgBody),
+			ThemeConstants.TOKEN_THEME_IMAGES_PATH + EMOTICONS,
+			pathThemeImages + EMOTICONS);
 	}
 
 	public static long getCategoryId(
@@ -259,204 +346,236 @@ public class MBUtil {
 		return categoryId;
 	}
 
-	public static String getEmailFromAddress(
-			PortletPreferences preferences, long companyId)
-		throws SystemException {
+	public static Set<Long> getCategorySubscriptionClassPKs(long userId) {
 
-		return PortalUtil.getEmailFromAddress(
-			preferences, companyId,
-			PropsValues.MESSAGE_BOARDS_EMAIL_FROM_ADDRESS);
+		List<Subscription> subscriptions =
+			SubscriptionLocalServiceUtil.getUserSubscriptions(
+				userId, MBCategory.class.getName());
+
+		Set<Long> classPKs = new HashSet<Long>(subscriptions.size());
+
+		for (Subscription subscription : subscriptions) {
+			classPKs.add(subscription.getClassPK());
+		}
+
+		return classPKs;
 	}
 
-	public static String getEmailFromName(
-			PortletPreferences preferences, long companyId)
-		throws SystemException {
+	public static Map<String, String> getEmailDefinitionTerms(
+		PortletRequest portletRequest, String emailFromAddress,
+		String emailFromName) {
 
-		return PortalUtil.getEmailFromName(
-			preferences, companyId, PropsValues.MESSAGE_BOARDS_EMAIL_FROM_NAME);
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		Map<String, String> definitionTerms =
+			new LinkedHashMap<String, String>();
+
+		definitionTerms.put(
+			"[$CATEGORY_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-category-in-which-the-message-has-been-posted"));
+		definitionTerms.put(
+			"[$COMPANY_ID$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-company-id-associated-with-the-message-board"));
+		definitionTerms.put(
+			"[$COMPANY_MX$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-company-mx-associated-with-the-message-board"));
+		definitionTerms.put(
+			"[$COMPANY_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-company-name-associated-with-the-message-board"));
+		definitionTerms.put(
+			"[$FROM_ADDRESS$]", HtmlUtil.escape(emailFromAddress));
+		definitionTerms.put("[$FROM_NAME$]", HtmlUtil.escape(emailFromName));
+
+		if (PropsValues.POP_SERVER_NOTIFICATIONS_ENABLED) {
+			definitionTerms.put(
+				"[$MAILING_LIST_ADDRESS$]",
+				LanguageUtil.get(
+					themeDisplay.getLocale(),
+					"the-email-address-of-the-mailing-list"));
+		}
+
+		definitionTerms.put(
+			"[$MESSAGE_BODY$]",
+			LanguageUtil.get(themeDisplay.getLocale(), "the-message-body"));
+		definitionTerms.put(
+			"[$MESSAGE_ID$]",
+			LanguageUtil.get(themeDisplay.getLocale(), "the-message-id"));
+		definitionTerms.put(
+			"[$MESSAGE_SUBJECT$]",
+			LanguageUtil.get(themeDisplay.getLocale(), "the-message-subject"));
+		definitionTerms.put(
+			"[$MESSAGE_URL$]",
+			LanguageUtil.get(themeDisplay.getLocale(), "the-message-url"));
+		definitionTerms.put(
+			"[$MESSAGE_USER_ADDRESS$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-email-address-of-the-user-who-added-the-message"));
+		definitionTerms.put(
+			"[$MESSAGE_USER_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(), "the-user-who-added-the-message"));
+
+		Company company = themeDisplay.getCompany();
+
+		definitionTerms.put("[$PORTAL_URL$]", company.getVirtualHostname());
+
+		definitionTerms.put(
+			"[$PORTLET_NAME$]", PortalUtil.getPortletTitle(portletRequest));
+		definitionTerms.put(
+			"[$SITE_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-site-name-associated-with-the-message-board"));
+
+		if (!PropsValues.MESSAGE_BOARDS_EMAIL_BULK) {
+			definitionTerms.put(
+				"[$TO_ADDRESS$]",
+				LanguageUtil.get(
+					themeDisplay.getLocale(),
+					"the-address-of-the-email-recipient"));
+			definitionTerms.put(
+				"[$TO_NAME$]",
+				LanguageUtil.get(
+					themeDisplay.getLocale(),
+					"the-name-of-the-email-recipient"));
+		}
+
+		return definitionTerms;
 	}
 
-	public static boolean getEmailHtmlFormat(PortletPreferences preferences) {
-		String emailHtmlFormat = preferences.getValue(
-			"emailHtmlFormat", StringPool.BLANK);
+	public static Map<String, String> getEmailFromDefinitionTerms(
+		PortletRequest portletRequest) {
 
-		if (Validator.isNotNull(emailHtmlFormat)) {
-			return GetterUtil.getBoolean(emailHtmlFormat);
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		Map<String, String> definitionTerms =
+			new LinkedHashMap<String, String>();
+
+		definitionTerms.put(
+			"[$COMPANY_ID$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-company-id-associated-with-the-message-board"));
+		definitionTerms.put(
+			"[$COMPANY_MX$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-company-mx-associated-with-the-message-board"));
+		definitionTerms.put(
+			"[$COMPANY_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-company-name-associated-with-the-message-board"));
+
+		if (PropsValues.POP_SERVER_NOTIFICATIONS_ENABLED) {
+			definitionTerms.put(
+				"[$MAILING_LIST_ADDRESS$]",
+				LanguageUtil.get(
+					themeDisplay.getLocale(),
+					"the-email-address-of-the-mailing-list"));
 		}
-		else {
-			return PropsValues.MESSAGE_BOARDS_EMAIL_HTML_FORMAT;
-		}
+
+		definitionTerms.put(
+			"[$MESSAGE_USER_ADDRESS$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-email-address-of-the-user-who-added-the-message"));
+		definitionTerms.put(
+			"[$MESSAGE_USER_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(), "the-user-who-added-the-message"));
+		definitionTerms.put(
+			"[$PORTLET_NAME$]", PortalUtil.getPortletTitle(portletRequest));
+		definitionTerms.put(
+			"[$SITE_NAME$]",
+			LanguageUtil.get(
+				themeDisplay.getLocale(),
+				"the-site-name-associated-with-the-message-board"));
+
+		return definitionTerms;
 	}
 
-	public static String getEmailMessageAddedBody(
-		PortletPreferences preferences) {
+	public static List<Object> getEntries(Hits hits) {
+		List<Object> entries = new ArrayList<Object>();
 
-		String emailMessageAddedBody = preferences.getValue(
-			"emailMessageAddedBody", StringPool.BLANK);
-
-		if (Validator.isNotNull(emailMessageAddedBody)) {
-			return emailMessageAddedBody;
-		}
-		else {
-			return ContentUtil.get(
-				PropsValues.MESSAGE_BOARDS_EMAIL_MESSAGE_ADDED_BODY);
-		}
-	}
-
-	public static boolean getEmailMessageAddedEnabled(
-		PortletPreferences preferences) {
-
-		String emailMessageAddedEnabled = preferences.getValue(
-			"emailMessageAddedEnabled", StringPool.BLANK);
-
-		if (Validator.isNotNull(emailMessageAddedEnabled)) {
-			return GetterUtil.getBoolean(emailMessageAddedEnabled);
-		}
-		else {
-			return PropsValues.MESSAGE_BOARDS_EMAIL_MESSAGE_ADDED_ENABLED;
-		}
-	}
-
-	public static String getEmailMessageAddedSignature(
-		PortletPreferences preferences) {
-
-		String emailMessageAddedSignature = preferences.getValue(
-			"emailMessageAddedSignature", StringPool.BLANK);
-
-		if (Validator.isNotNull(emailMessageAddedSignature)) {
-			return emailMessageAddedSignature;
-		}
-		else {
-			return ContentUtil.get(
-				PropsValues.MESSAGE_BOARDS_EMAIL_MESSAGE_ADDED_SIGNATURE);
-		}
-	}
-
-	public static String getEmailMessageAddedSubjectPrefix(
-		PortletPreferences preferences) {
-
-		String emailMessageAddedSubjectPrefix = preferences.getValue(
-			"emailMessageAddedSubjectPrefix", StringPool.BLANK);
-
-		if (Validator.isNotNull(emailMessageAddedSubjectPrefix)) {
-			return emailMessageAddedSubjectPrefix;
-		}
-		else {
-			return ContentUtil.get(
-				PropsValues.MESSAGE_BOARDS_EMAIL_MESSAGE_ADDED_SUBJECT_PREFIX);
-		}
-	}
-
-	public static String getEmailMessageUpdatedBody(
-		PortletPreferences preferences) {
-
-		String emailMessageUpdatedBody = preferences.getValue(
-			"emailMessageUpdatedBody", StringPool.BLANK);
-
-		if (Validator.isNotNull(emailMessageUpdatedBody)) {
-			return emailMessageUpdatedBody;
-		}
-		else {
-			return ContentUtil.get(
-				PropsValues.MESSAGE_BOARDS_EMAIL_MESSAGE_UPDATED_BODY);
-		}
-	}
-
-	public static boolean getEmailMessageUpdatedEnabled(
-		PortletPreferences preferences) {
-
-		String emailMessageUpdatedEnabled = preferences.getValue(
-			"emailMessageUpdatedEnabled", StringPool.BLANK);
-
-		if (Validator.isNotNull(emailMessageUpdatedEnabled)) {
-			return GetterUtil.getBoolean(emailMessageUpdatedEnabled);
-		}
-		else {
-			return PropsValues.MESSAGE_BOARDS_EMAIL_MESSAGE_UPDATED_ENABLED;
-		}
-	}
-
-	public static String getEmailMessageUpdatedSignature(
-		PortletPreferences preferences) {
-
-		String emailMessageUpdatedSignature = preferences.getValue(
-			"emailMessageUpdatedSignature", StringPool.BLANK);
-
-		if (Validator.isNotNull(emailMessageUpdatedSignature)) {
-			return emailMessageUpdatedSignature;
-		}
-		else {
-			return ContentUtil.get(
-				PropsValues.MESSAGE_BOARDS_EMAIL_MESSAGE_UPDATED_SIGNATURE);
-		}
-	}
-
-	public static String getEmailMessageUpdatedSubjectPrefix(
-		PortletPreferences preferences) {
-
-		String emailMessageUpdatedSubject = preferences.getValue(
-			"emailMessageUpdatedSubjectPrefix", StringPool.BLANK);
-
-		if (Validator.isNotNull(emailMessageUpdatedSubject)) {
-			return emailMessageUpdatedSubject;
-		}
-		else {
-			return ContentUtil.get(
-				PropsValues.
-					MESSAGE_BOARDS_EMAIL_MESSAGE_UPDATED_SUBJECT_PREFIX);
-		}
-	}
-
-	public static String getMailingListAddress(
-		long groupId, long categoryId, long messageId, String mx,
-		String defaultMailingListAddress) {
-
-		if (PropsValues.POP_SERVER_SUBDOMAIN.length() <= 0) {
-			String mailingListAddress = defaultMailingListAddress;
+		for (Document document : hits.getDocs()) {
+			long categoryId = GetterUtil.getLong(
+				document.get(Field.CATEGORY_ID));
 
 			try {
-				MBMailingList mailingList =
-					MBMailingListLocalServiceUtil.getCategoryMailingList(
-						groupId, categoryId);
-
-				if (mailingList.isActive()) {
-					mailingListAddress = mailingList.getEmailAddress();
-				}
+				MBCategoryLocalServiceUtil.getCategory(categoryId);
 			}
 			catch (Exception e) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Message boards search index is stale and contains " +
+							"category " + categoryId);
+				}
+
+				continue;
 			}
 
-			return mailingListAddress;
+			long threadId = GetterUtil.getLong(document.get("threadId"));
+
+			try {
+				MBThreadLocalServiceUtil.getThread(threadId);
+			}
+			catch (Exception e) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Message boards search index is stale and contains " +
+							"thread " + threadId);
+				}
+
+				continue;
+			}
+
+			String entryClassName = document.get(Field.ENTRY_CLASS_NAME);
+			long entryClassPK = GetterUtil.getLong(
+				document.get(Field.ENTRY_CLASS_PK));
+
+			Object obj = null;
+
+			try {
+				if (entryClassName.equals(DLFileEntry.class.getName())) {
+					long classPK = GetterUtil.getLong(
+						document.get(Field.CLASS_PK));
+
+					MBMessageLocalServiceUtil.getMessage(classPK);
+
+					obj = DLFileEntryLocalServiceUtil.getDLFileEntry(
+						entryClassPK);
+				}
+				else if (entryClassName.equals(MBMessage.class.getName())) {
+					obj = MBMessageLocalServiceUtil.getMessage(entryClassPK);
+				}
+
+				entries.add(obj);
+			}
+			catch (Exception e) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Message boards search index is stale and contains " +
+							"entry {className=" + entryClassName + ", " +
+								"classPK=" + entryClassPK + "}");
+				}
+
+				continue;
+			}
 		}
 
-		StringBundler sb = new StringBundler(8);
-
-		sb.append(MESSAGE_POP_PORTLET_PREFIX);
-		sb.append(categoryId);
-		sb.append(StringPool.PERIOD);
-		sb.append(messageId);
-		sb.append(StringPool.AT);
-		sb.append(PropsValues.POP_SERVER_SUBDOMAIN);
-		sb.append(StringPool.PERIOD);
-		sb.append(mx);
-
-		return sb.toString();
-	}
-
-	public static String getMessageFormat(PortletPreferences preferences) {
-		String messageFormat = preferences.getValue(
-			"messageFormat", MBMessageConstants.DEFAULT_FORMAT);
-
-		String editorImpl = PropsUtil.get(BB_CODE_EDITOR_WYSIWYG_IMPL_KEY);
-
-		if (messageFormat.equals("bbcode") &&
-			!(editorImpl.equals("bbcode") ||
-			  editorImpl.equals("ckeditor_bbcode"))) {
-
-			messageFormat = "html";
-		}
-
-		return messageFormat;
+		return entries;
 	}
 
 	public static long getMessageId(String mailId) {
@@ -510,7 +629,7 @@ public class MBUtil {
 
 		String[] references = message.getHeader("References");
 
-		if ((references != null) && (references.length > 0)) {
+		if (ArrayUtil.isNotEmpty(references)) {
 			String reference = references[0];
 
 			int x = reference.lastIndexOf("<mb.");
@@ -525,7 +644,7 @@ public class MBUtil {
 		if (parentHeader == null) {
 			String[] inReplyToHeaders = message.getHeader("In-Reply-To");
 
-			if ((inReplyToHeaders != null) && (inReplyToHeaders.length > 0)) {
+			if (ArrayUtil.isNotEmpty(inReplyToHeaders)) {
 				parentHeader = inReplyToHeaders[0];
 			}
 		}
@@ -537,6 +656,44 @@ public class MBUtil {
 		}
 
 		return parentHeader;
+	}
+
+	public static String getReplyToAddress(
+		long categoryId, long messageId, String mx,
+		String defaultMailingListAddress) {
+
+		if (PropsValues.POP_SERVER_SUBDOMAIN.length() <= 0) {
+			return defaultMailingListAddress;
+		}
+
+		StringBundler sb = new StringBundler(8);
+
+		sb.append(MESSAGE_POP_PORTLET_PREFIX);
+		sb.append(categoryId);
+		sb.append(StringPool.PERIOD);
+		sb.append(messageId);
+		sb.append(StringPool.AT);
+		sb.append(PropsValues.POP_SERVER_SUBDOMAIN);
+		sb.append(StringPool.PERIOD);
+		sb.append(mx);
+
+		return sb.toString();
+	}
+
+	public static String getSubjectForEmail(Message message) throws Exception {
+		long parentMessageId = getParentMessageId(message);
+
+		MBMessage parentMessage = MBMessageLocalServiceUtil.getMBMessage(
+			parentMessageId);
+
+		String subject = parentMessage.getSubject();
+
+		if (subject.startsWith("RE:")) {
+			return subject;
+		}
+		else {
+			return "RE: " + parentMessage.getSubject();
+		}
 	}
 
 	public static String getSubjectWithoutMessageId(Message message)
@@ -558,27 +715,40 @@ public class MBUtil {
 	}
 
 	public static String[] getThreadPriority(
-			PortletPreferences preferences, String languageId, double value,
+			MBSettings mbSettings, String languageId, double value,
 			ThemeDisplay themeDisplay)
 		throws Exception {
 
-		String[] priorities = LocalizationUtil.getPreferencesValues(
-			preferences, "priorities", languageId);
+		String[] priorities = mbSettings.getPriorities(languageId);
 
 		String[] priorityPair = _findThreadPriority(
 			value, themeDisplay, priorities);
 
 		if (priorityPair == null) {
 			String defaultLanguageId = LocaleUtil.toLanguageId(
-				LocaleUtil.getDefault());
+				LocaleUtil.getSiteDefault());
 
-			priorities = LocalizationUtil.getPreferencesValues(
-				preferences, "priorities", defaultLanguageId);
+			priorities = mbSettings.getPriorities(defaultLanguageId);
 
 			priorityPair = _findThreadPriority(value, themeDisplay, priorities);
 		}
 
 		return priorityPair;
+	}
+
+	public static Set<Long> getThreadSubscriptionClassPKs(long userId) {
+
+		List<Subscription> subscriptions =
+			SubscriptionLocalServiceUtil.getUserSubscriptions(
+				userId, MBThread.class.getName());
+
+		Set<Long> classPKs = new HashSet<Long>(subscriptions.size());
+
+		for (Subscription subscription : subscriptions) {
+			classPKs.add(subscription.getClassPK());
+		}
+
+		return classPKs;
 	}
 
 	public static Date getUnbanDate(MBBan ban, int expireInterval) {
@@ -594,13 +764,12 @@ public class MBUtil {
 	}
 
 	public static String getUserRank(
-			PortletPreferences preferences, String languageId, int posts)
+			MBSettings mbSettings, String languageId, int posts)
 		throws Exception {
 
 		String rank = StringPool.BLANK;
 
-		String[] ranks = LocalizationUtil.getPreferencesValues(
-			preferences, "ranks", languageId);
+		String[] ranks = mbSettings.getRanks(languageId);
 
 		for (int i = 0; i < ranks.length; i++) {
 			String[] kvp = StringUtil.split(ranks[i], CharPool.EQUAL);
@@ -620,8 +789,7 @@ public class MBUtil {
 	}
 
 	public static String[] getUserRank(
-			PortletPreferences preferences, String languageId,
-			MBStatsUser statsUser)
+			MBSettings mbSettings, String languageId, MBStatsUser statsUser)
 		throws Exception {
 
 		String[] rank = {StringPool.BLANK, StringPool.BLANK};
@@ -632,8 +800,7 @@ public class MBUtil {
 
 		long companyId = group.getCompanyId();
 
-		String[] ranks = LocalizationUtil.getPreferencesValues(
-			preferences, "ranks", languageId);
+		String[] ranks = mbSettings.getRanks(languageId);
 
 		for (int i = 0; i < ranks.length; i++) {
 			String[] kvp = StringUtil.split(ranks[i], CharPool.EQUAL);
@@ -653,7 +820,6 @@ public class MBUtil {
 					rank[0] = curRank;
 					maxPosts = posts;
 				}
-
 			}
 			else {
 				String entityType = curRankValueKvp[0];
@@ -697,19 +863,251 @@ public class MBUtil {
 		return false;
 	}
 
-	public static boolean isAllowAnonymousPosting(
-		PortletPreferences preferences) {
+	public static boolean isValidMessageFormat(String messageFormat) {
+		String editorImpl = PropsUtil.get(BB_CODE_EDITOR_WYSIWYG_IMPL_KEY);
 
-		return GetterUtil.getBoolean(
-			preferences.getValue("allowAnonymousPosting", null),
-			PropsValues.MESSAGE_BOARDS_ANONYMOUS_POSTING_ENABLED);
+		if (messageFormat.equals("bbcode") &&
+			!(editorImpl.equals("bbcode") ||
+			  editorImpl.equals("ckeditor_bbcode"))) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	public static boolean isViewableMessage(
+			ThemeDisplay themeDisplay, MBMessage message)
+		throws Exception {
+
+		return isViewableMessage(themeDisplay, message, message);
+	}
+
+	public static boolean isViewableMessage(
+			ThemeDisplay themeDisplay, MBMessage message,
+			MBMessage parentMessage)
+		throws Exception {
+
+		PermissionChecker permissionChecker =
+			themeDisplay.getPermissionChecker();
+
+		if (!MBMessagePermission.contains(
+				permissionChecker, parentMessage, ActionKeys.VIEW)) {
+
+			return false;
+		}
+
+		if ((message.getMessageId() != parentMessage.getMessageId()) &&
+			!MBMessagePermission.contains(
+				permissionChecker, message, ActionKeys.VIEW)) {
+
+			return false;
+		}
+
+		if (!message.isApproved() &&
+			!Validator.equals(message.getUserId(), themeDisplay.getUserId()) &&
+			!permissionChecker.isGroupAdmin(themeDisplay.getScopeGroupId())) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	public static void propagatePermissions(
+			long companyId, long groupId, long parentMessageId,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		MBMessage parentMessage = MBMessageLocalServiceUtil.getMBMessage(
+			parentMessageId);
+
+		Role defaultGroupRole = RoleLocalServiceUtil.getDefaultGroupRole(
+			groupId);
+		Role guestRole = RoleLocalServiceUtil.getRole(
+			companyId, RoleConstants.GUEST);
+
+		long[] roleIds = {defaultGroupRole.getRoleId(), guestRole.getRoleId()};
+
+		List<String> actionIds = ResourceActionsUtil.getModelResourceActions(
+			MBMessage.class.getName());
+
+		Map<Long, Set<String>> roleIdsToActionIds =
+			ResourcePermissionLocalServiceUtil.
+				getAvailableResourcePermissionActionIds(
+					companyId, MBMessage.class.getName(),
+					ResourceConstants.SCOPE_INDIVIDUAL,
+					String.valueOf(parentMessage.getMessageId()), roleIds,
+					actionIds);
+
+		Set<String> defaultGroupActionIds = roleIdsToActionIds.get(
+			defaultGroupRole.getRoleId());
+
+		if (defaultGroupActionIds == null) {
+			serviceContext.setGroupPermissions(new String[]{});
+		}
+		else {
+			serviceContext.setGroupPermissions(
+				defaultGroupActionIds.toArray(
+					new String[defaultGroupActionIds.size()]));
+		}
+
+		Set<String> guestActionIds = roleIdsToActionIds.get(
+			guestRole.getRoleId());
+
+		if (guestActionIds == null) {
+			serviceContext.setGuestPermissions(new String[]{});
+		}
+		else {
+			serviceContext.setGuestPermissions(
+				guestActionIds.toArray(new String[guestActionIds.size()]));
+		}
+	}
+
+	public static String replaceMessageBodyPaths(
+		ThemeDisplay themeDisplay, String messageBody) {
+
+		return StringUtil.replace(
+			messageBody,
+			new String[] {
+				ThemeConstants.TOKEN_THEME_IMAGES_PATH, "href=\"/", "src=\"/"
+			},
+			new String[] {
+				themeDisplay.getPathThemeImages(),
+				"href=\"" + themeDisplay.getURLPortal() + "/",
+				"src=\"" + themeDisplay.getURLPortal() + "/"
+			});
+	}
+
+	public static void updateCategoryMessageCount(
+		long companyId, final long categoryId) {
+
+		Callable<Void> callable = new ShardCallable<Void>(companyId) {
+
+			@Override
+			protected Void doCall() throws Exception {
+				MBCategory category =
+					MBCategoryLocalServiceUtil.fetchMBCategory(categoryId);
+
+				if (category == null) {
+					return null;
+				}
+
+				int messageCount = _getMessageCount(category);
+
+				category.setMessageCount(messageCount);
+
+				MBCategoryLocalServiceUtil.updateMBCategory(category);
+
+				return null;
+			}
+
+		};
+
+		TransactionCommitCallbackRegistryUtil.registerCallback(callable);
+	}
+
+	public static void updateCategoryStatistics(
+		long companyId, final long categoryId) {
+
+		Callable<Void> callable = new ShardCallable<Void>(companyId) {
+
+			@Override
+			protected Void doCall() throws Exception {
+				MBCategory category =
+					MBCategoryLocalServiceUtil.fetchMBCategory(categoryId);
+
+				if (category == null) {
+					return null;
+				}
+
+				int messageCount = _getMessageCount(category);
+
+				int threadCount =
+					MBThreadLocalServiceUtil.getCategoryThreadsCount(
+						category.getGroupId(), category.getCategoryId(),
+						WorkflowConstants.STATUS_APPROVED);
+
+				category.setMessageCount(messageCount);
+				category.setThreadCount(threadCount);
+
+				MBCategoryLocalServiceUtil.updateMBCategory(category);
+
+				return null;
+			}
+
+		};
+
+		TransactionCommitCallbackRegistryUtil.registerCallback(callable);
+	}
+
+	public static void updateCategoryThreadCount(
+		long companyId, final long categoryId) {
+
+		Callable<Void> callable = new ShardCallable<Void>(companyId) {
+
+			@Override
+			protected Void doCall() throws Exception {
+				MBCategory category =
+					MBCategoryLocalServiceUtil.fetchMBCategory(categoryId);
+
+				if (category == null) {
+					return null;
+				}
+
+				int threadCount =
+					MBThreadLocalServiceUtil.getCategoryThreadsCount(
+						category.getGroupId(), category.getCategoryId(),
+						WorkflowConstants.STATUS_APPROVED);
+
+				category.setThreadCount(threadCount);
+
+				MBCategoryLocalServiceUtil.updateMBCategory(category);
+
+				return null;
+			}
+
+		};
+
+		TransactionCommitCallbackRegistryUtil.registerCallback(callable);
+	}
+
+	public static void updateThreadMessageCount(
+		long companyId, final long threadId) {
+
+		Callable<Void> callable = new ShardCallable<Void>(companyId) {
+
+			@Override
+			protected Void doCall() throws Exception {
+				MBThread thread = MBThreadLocalServiceUtil.fetchThread(
+					threadId);
+
+				if (thread == null) {
+					return null;
+				}
+
+				int messageCount =
+					MBMessageLocalServiceUtil.getThreadMessagesCount(
+						threadId, WorkflowConstants.STATUS_APPROVED);
+
+				thread.setMessageCount(messageCount);
+
+				MBThreadLocalServiceUtil.updateMBThread(thread);
+
+				return null;
+			}
+
+		};
+
+		TransactionCommitCallbackRegistryUtil.registerCallback(callable);
 	}
 
 	private static String[] _findThreadPriority(
 		double value, ThemeDisplay themeDisplay, String[] priorities) {
 
 		for (int i = 0; i < priorities.length; i++) {
-			String[] priority = StringUtil.split(priorities[i]);
+			String[] priority = StringUtil.split(
+				priorities[i], StringPool.PIPE);
 
 			try {
 				String priorityName = priority[0];
@@ -731,6 +1129,13 @@ public class MBUtil {
 		}
 
 		return null;
+	}
+
+	private static int _getMessageCount(MBCategory category) {
+
+		return MBMessageLocalServiceUtil.getCategoryMessagesCount(
+			category.getGroupId(), category.getCategoryId(),
+			WorkflowConstants.STATUS_APPROVED);
 	}
 
 	private static String _getParentMessageIdFromSubject(Message message)

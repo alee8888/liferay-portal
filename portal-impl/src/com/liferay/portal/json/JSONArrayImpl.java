@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,7 +19,11 @@ import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.Validator;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.io.Writer;
 
 /**
@@ -31,8 +35,16 @@ public class JSONArrayImpl implements JSONArray {
 		_jsonArray = new org.json.JSONArray();
 	}
 
+	public JSONArrayImpl(org.json.JSONArray jsonArray) {
+		_jsonArray = jsonArray;
+	}
+
 	public JSONArrayImpl(String json) throws JSONException {
 		try {
+			if (Validator.isNull(json)) {
+				json = _NULL_JSON;
+			}
+
 			_jsonArray = new org.json.JSONArray(json);
 		}
 		catch (Exception e) {
@@ -40,18 +52,17 @@ public class JSONArrayImpl implements JSONArray {
 		}
 	}
 
-	public JSONArrayImpl(org.json.JSONArray jsonArray) {
-		_jsonArray = jsonArray;
-	}
-
+	@Override
 	public boolean getBoolean(int index) {
 		return _jsonArray.optBoolean(index);
 	}
 
+	@Override
 	public double getDouble(int index) {
 		return _jsonArray.optDouble(index);
 	}
 
+	@Override
 	public int getInt(int index) {
 		return _jsonArray.optInt(index);
 	}
@@ -60,6 +71,7 @@ public class JSONArrayImpl implements JSONArray {
 		return _jsonArray;
 	}
 
+	@Override
 	public JSONArray getJSONArray(int index) {
 		org.json.JSONArray jsonArray = _jsonArray.optJSONArray(index);
 
@@ -70,6 +82,7 @@ public class JSONArrayImpl implements JSONArray {
 		return new JSONArrayImpl(jsonArray);
 	}
 
+	@Override
 	public JSONObject getJSONObject(int index) {
 		org.json.JSONObject jsonObj = _jsonArray.optJSONObject(index);
 
@@ -80,18 +93,22 @@ public class JSONArrayImpl implements JSONArray {
 		return new JSONObjectImpl(jsonObj);
 	}
 
+	@Override
 	public long getLong(int index) {
 		return _jsonArray.optLong(index);
 	}
 
+	@Override
 	public String getString(int index) {
 		return _jsonArray.optString(index);
 	}
 
+	@Override
 	public boolean isNull(int index) {
 		return _jsonArray.isNull(index);
 	}
 
+	@Override
 	public String join(String separator) throws JSONException {
 		try {
 			return _jsonArray.join(separator);
@@ -101,16 +118,19 @@ public class JSONArrayImpl implements JSONArray {
 		}
 	}
 
+	@Override
 	public int length() {
 		return _jsonArray.length();
 	}
 
+	@Override
 	public JSONArray put(boolean value) {
 		_jsonArray.put(value);
 
 		return this;
 	}
 
+	@Override
 	public JSONArray put(double value) {
 		try {
 			_jsonArray.put(value);
@@ -124,30 +144,35 @@ public class JSONArrayImpl implements JSONArray {
 		return this;
 	}
 
+	@Override
 	public JSONArray put(int value) {
 		_jsonArray.put(value);
 
 		return this;
 	}
 
+	@Override
 	public JSONArray put(JSONArray value) {
 		_jsonArray.put(((JSONArrayImpl)value).getJSONArray());
 
 		return this;
 	}
 
+	@Override
 	public JSONArray put(JSONObject value) {
 		_jsonArray.put(((JSONObjectImpl)value).getJSONObject());
 
 		return this;
 	}
 
+	@Override
 	public JSONArray put(long value) {
 		_jsonArray.put(value);
 
 		return this;
 	}
 
+	@Override
 	public JSONArray put(String value) {
 		_jsonArray.put(value);
 
@@ -155,10 +180,21 @@ public class JSONArrayImpl implements JSONArray {
 	}
 
 	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		try {
+			_jsonArray = new org.json.JSONArray(objectInput.readUTF());
+		}
+		catch (Exception e) {
+			throw new IOException(e);
+		}
+	}
+
+	@Override
 	public String toString() {
 		return _jsonArray.toString();
 	}
 
+	@Override
 	public String toString(int indentFactor) throws JSONException {
 		try {
 			return _jsonArray.toString(indentFactor);
@@ -168,6 +204,7 @@ public class JSONArrayImpl implements JSONArray {
 		}
 	}
 
+	@Override
 	public Writer write(Writer writer) throws JSONException {
 		try {
 			return _jsonArray.write(writer);
@@ -176,6 +213,13 @@ public class JSONArrayImpl implements JSONArray {
 			throw new JSONException(e);
 		}
 	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeUTF(toString());
+	}
+
+	private static final String _NULL_JSON = "[]";
 
 	private static Log _log = LogFactoryUtil.getLog(JSONArrayImpl.class);
 

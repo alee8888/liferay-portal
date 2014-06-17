@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,188 +14,143 @@
 
 package com.liferay.portal.freemarker;
 
-import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.template.Template;
+import com.liferay.portal.kernel.template.StringTemplateResource;
+import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.template.TemplateException;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.template.TemplateResource;
+import com.liferay.portal.template.AbstractTemplate;
 import com.liferay.portal.template.TemplateContextHelper;
+import com.liferay.portal.template.TemplateResourceThreadLocal;
 import com.liferay.portal.util.PropsValues;
 
 import freemarker.core.ParseException;
 
 import freemarker.template.Configuration;
+import freemarker.template.Template;
 
 import java.io.Writer;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 
-import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 /**
  * @author Mika Koivisto
  * @author Tina Tian
  */
-public class FreeMarkerTemplate implements Template {
+public class FreeMarkerTemplate extends AbstractTemplate {
 
 	public FreeMarkerTemplate(
-		String templateId, String templateContent, String errorTemplateId,
-		String errorTemplateContent, Map<String, Object> context,
+		TemplateResource templateResource,
+		TemplateResource errorTemplateResource, Map<String, Object> context,
 		Configuration configuration,
-		TemplateContextHelper templateContextHelper,
-		StringTemplateLoader stringTemplateLoader) {
+		TemplateContextHelper templateContextHelper, boolean privileged) {
 
-		_templateId = templateId;
-		_templateContent = templateContent;
-
-		if (errorTemplateId != null) {
-			_errorTemplateId = errorTemplateId;
-			_errorTemplateContent = errorTemplateContent;
-			_hasErrorTemplate = true;
-		}
-
-		_context = new ConcurrentHashMap<String, Object>();
-
-		if (context != null) {
-			for (Map.Entry<String, Object> entry : context.entrySet()) {
-				put(entry.getKey(), entry.getValue());
-			}
-		}
+		super(
+			templateResource, errorTemplateResource, context,
+			templateContextHelper, TemplateConstants.LANG_TYPE_FTL,
+			PropsValues.FREEMARKER_ENGINE_RESOURCE_MODIFICATION_CHECK_INTERVAL);
 
 		_configuration = configuration;
-		_templateContextHelper = templateContextHelper;
-		_stringTemplateLoader = stringTemplateLoader;
+		_privileged = privileged;
 	}
 
-	public Object get(String key) {
-		return _context.get(key);
-	}
+	@Override
+	protected void handleException(Exception exception, Writer writer)
+		throws TemplateException {
 
-	public void prepare(HttpServletRequest request) throws TemplateException {
-		_templateContextHelper.prepare(this, request);
-	}
+		if ((exception instanceof ParseException) ||
+			(exception instanceof freemarker.template.TemplateException)) {
 
-	public boolean processTemplate(Writer writer) throws TemplateException {
-		handleTemplateContent(_templateId, _templateContent);
+			put("exception", exception.getMessage());
 
-		freemarker.template.Template template = null;
+			if (templateResource instanceof StringTemplateResource) {
+				StringTemplateResource stringTemplateResource =
+					(StringTemplateResource)templateResource;
 
-		if (!_hasErrorTemplate) {
+				put("script", stringTemplateResource.getContent());
+			}
+
+			if (exception instanceof ParseException) {
+				ParseException pe = (ParseException)exception;
+
+				put("column", pe.getColumnNumber());
+				put("line", pe.getLineNumber());
+			}
+
 			try {
-				template = _configuration.getTemplate(
-					_templateId, StringPool.UTF8);
-
-				template.process(_context, writer);
-
-				return true;
+				processTemplate(errorTemplateResource, writer);
 			}
 			catch (Exception e) {
 				throw new TemplateException(
-					"Unable to process FreeMarker template " + _templateId, e);
+					"Unable to process FreeMarker template " +
+						errorTemplateResource.getTemplateId(),
+					e);
 			}
 		}
+		else {
+			throw new TemplateException(
+				"Unable to process FreeMarker template " +
+					templateResource.getTemplateId(),
+				exception);
+		}
+	}
+
+	@Override
+	protected void processTemplate(
+			TemplateResource templateResource, Writer writer)
+		throws Exception {
+
+		TemplateResourceThreadLocal.setTemplateResource(
+			TemplateConstants.LANG_TYPE_FTL, templateResource);
 
 		try {
-			template = _configuration.getTemplate(_templateId, StringPool.UTF8);
+			Template template = null;
 
-			UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
-
-			template.process(_context, unsyncStringWriter);
-
-			StringBundler sb = unsyncStringWriter.getStringBundler();
-
-			sb.writeTo(writer);
-
-			return true;
-		}
-		catch (Exception e1) {
-			if ((e1 instanceof ParseException) ||
-				(e1 instanceof freemarker.template.TemplateException)) {
-
-				put("exception", e1.getMessage());
-				put("script", _templateContent);
-
-				if (e1 instanceof ParseException) {
-					ParseException pe = (ParseException)e1;
-
-					put("column", pe.getColumnNumber());
-					put("line", pe.getLineNumber());
-				}
-
-				handleTemplateContent(_errorTemplateId, _errorTemplateContent);
-
-				try {
-					template = _configuration.getTemplate(
-						_errorTemplateId, StringPool.UTF8);
-
-					template.process(_context, writer);
-				}
-				catch (Exception e2) {
-					throw new TemplateException(
-						"Unable to process FreeMarker template " +
-							_errorTemplateId,
-						e2);
-				}
+			if (_privileged) {
+				template = AccessController.doPrivileged(
+					new TemplatePrivilegedExceptionAction(templateResource));
 			}
 			else {
-				throw new TemplateException(
-					"Unable to process FreeMarker template " + _templateId, e1);
+				template = _configuration.getTemplate(
+					getTemplateResourceUUID(templateResource),
+					TemplateConstants.DEFAUT_ENCODING);
 			}
+
+			template.process(context, writer);
 		}
-
-		return false;
-	}
-
-	public void put(String key, Object value) {
-		if (value == null) {
-			return;
+		catch (PrivilegedActionException pae) {
+			throw pae.getException();
 		}
-
-		_context.put(key, value);
-	}
-
-	protected void handleTemplateContent(
-		String templateId, String templateContent) {
-
-		if (Validator.isNotNull(templateContent) &&
-			(!PropsValues.LAYOUT_TEMPLATE_CACHE_ENABLED ||
-			 !stringTemplateExists(templateId))) {
-
-			_stringTemplateLoader.putTemplate(templateId, templateContent);
-
-			if (_log.isDebugEnabled()) {
-				_log.debug(
-					"Added " + templateId + " to the string based FreeMarker " +
-						"template repository");
-			}
+		finally {
+			TemplateResourceThreadLocal.setTemplateResource(
+				TemplateConstants.LANG_TYPE_FTL, null);
 		}
 	}
-
-	protected boolean stringTemplateExists(String templateId) {
-		Object templateSource = _stringTemplateLoader.findTemplateSource(
-			templateId);
-
-		if (templateSource == null) {
-			return false;
-		}
-
-		return true;
-	}
-
-	private static Log _log = LogFactoryUtil.getLog(FreeMarkerTemplate.class);
 
 	private Configuration _configuration;
-	private Map<String, Object> _context;
-	private String _errorTemplateContent;
-	private String _errorTemplateId;
-	private boolean _hasErrorTemplate;
-	private StringTemplateLoader _stringTemplateLoader;
-	private String _templateContent;
-	private TemplateContextHelper _templateContextHelper;
-	private String _templateId;
+	private boolean _privileged;
+
+	private class TemplatePrivilegedExceptionAction
+		implements PrivilegedExceptionAction<Template> {
+
+		public TemplatePrivilegedExceptionAction(
+			TemplateResource templateResource) {
+
+			_templateResource = templateResource;
+		}
+
+		@Override
+		public Template run() throws Exception {
+			return _configuration.getTemplate(
+				getTemplateResourceUUID(_templateResource),
+				TemplateConstants.DEFAUT_ENCODING);
+		}
+
+		private TemplateResource _templateResource;
+
+	}
 
 }

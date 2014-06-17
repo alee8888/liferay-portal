@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortlet;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalClassInvoker;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -51,6 +50,13 @@ import javax.portlet.WindowState;
  * @author Raymond Augé
  */
 public class MVCPortlet extends LiferayPortlet {
+
+	@Override
+	public void destroy() {
+		super.destroy();
+
+		_actionCommandCache.close();
+	}
 
 	@Override
 	public void doAbout(
@@ -188,9 +194,8 @@ public class MVCPortlet extends LiferayPortlet {
 		String packagePrefix = getInitParameter(
 			ActionCommandCache.ACTION_PACKAGE_NAME);
 
-		if (Validator.isNotNull(packagePrefix)) {
-			_actionCommandCache = new ActionCommandCache(packagePrefix);
-		}
+		_actionCommandCache = new ActionCommandCache(
+			packagePrefix, getPortletName());
 	}
 
 	public void invokeTaglibDiscussion(
@@ -199,17 +204,8 @@ public class MVCPortlet extends LiferayPortlet {
 
 		PortletConfig portletConfig = getPortletConfig();
 
-		PortalClassInvoker.invoke(
-			true,
-			"com.liferay.portlet.messageboards.action.EditDiscussionAction",
-			"processAction",
-			new String[] {
-				"org.apache.struts.action.ActionMapping",
-				"org.apache.struts.action.ActionForm",
-				PortletConfig.class.getName(), ActionRequest.class.getName(),
-				ActionResponse.class.getName()
-			},
-			null, null, portletConfig, actionRequest, actionResponse);
+		PortalUtil.invokeTaglibDiscussion(
+			portletConfig, actionRequest, actionResponse);
 	}
 
 	@Override
@@ -243,53 +239,61 @@ public class MVCPortlet extends LiferayPortlet {
 
 	@Override
 	protected boolean callActionMethod(
-			ActionRequest request, ActionResponse response)
+			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws PortletException {
 
-		if (_actionCommandCache == null) {
-			return super.callActionMethod(request, response);
+		try {
+			checkPermissions(actionRequest);
+		}
+		catch (Exception e) {
+			throw new PortletException(e);
 		}
 
 		String actionName = ParamUtil.getString(
-			request, ActionRequest.ACTION_NAME);
+			actionRequest, ActionRequest.ACTION_NAME);
 
 		if (!actionName.contains(StringPool.COMMA)) {
 			ActionCommand actionCommand = _actionCommandCache.getActionCommand(
 				actionName);
 
 			if (actionCommand != ActionCommandCache.EMPTY) {
-				return actionCommand.processCommand(request, response);
+				return actionCommand.processCommand(
+					actionRequest, actionResponse);
 			}
 		}
 		else {
 			List<ActionCommand> actionCommands =
 				_actionCommandCache.getActionCommandChain(actionName);
 
-			if (actionCommands.isEmpty()) {
-				return false;
-			}
+			if (!actionCommands.isEmpty()) {
+				for (ActionCommand actionCommand : actionCommands) {
+					if (!actionCommand.processCommand(
+							actionRequest, actionResponse)) {
 
-			for (ActionCommand actionCommand : actionCommands) {
-				if (!actionCommand.processCommand(request, response)) {
-					return false;
+						return false;
+					}
 				}
-			}
 
-			return true;
+				return true;
+			}
 		}
 
-		return false;
+		return super.callActionMethod(actionRequest, actionResponse);
 	}
 
 	protected void checkPath(String path) throws PortletException {
 		if (Validator.isNotNull(path) &&
 			(!path.startsWith(templatePath) ||
-			 path.contains(StringPool.DOUBLE_PERIOD) ||
-			 !PortalUtil.isValidResourceId(path))) {
+			 !PortalUtil.isValidResourceId(path) ||
+			 !Validator.isFilePath(path, false))) {
 
 			throw new PortletException(
 				"Path " + path + " is not accessible by this portlet");
 		}
+	}
+
+	protected void checkPermissions(PortletRequest portletRequest)
+		throws Exception {
 	}
 
 	@Override

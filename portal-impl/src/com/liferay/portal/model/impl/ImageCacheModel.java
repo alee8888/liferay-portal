@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,8 +18,12 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.Image;
+import com.liferay.portal.model.MVCCModel;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import java.util.Date;
 
@@ -30,17 +34,28 @@ import java.util.Date;
  * @see Image
  * @generated
  */
-public class ImageCacheModel implements CacheModel<Image>, Serializable {
+public class ImageCacheModel implements CacheModel<Image>, Externalizable,
+	MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
 		StringBundler sb = new StringBundler(15);
 
-		sb.append("{imageId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", imageId=");
 		sb.append(imageId);
 		sb.append(", modifiedDate=");
 		sb.append(modifiedDate);
-		sb.append(", text=");
-		sb.append(text);
 		sb.append(", type=");
 		sb.append(type);
 		sb.append(", height=");
@@ -54,9 +69,11 @@ public class ImageCacheModel implements CacheModel<Image>, Serializable {
 		return sb.toString();
 	}
 
+	@Override
 	public Image toEntityModel() {
 		ImageImpl imageImpl = new ImageImpl();
 
+		imageImpl.setMvccVersion(mvccVersion);
 		imageImpl.setImageId(imageId);
 
 		if (modifiedDate == Long.MIN_VALUE) {
@@ -64,13 +81,6 @@ public class ImageCacheModel implements CacheModel<Image>, Serializable {
 		}
 		else {
 			imageImpl.setModifiedDate(new Date(modifiedDate));
-		}
-
-		if (text == null) {
-			imageImpl.setText(StringPool.BLANK);
-		}
-		else {
-			imageImpl.setText(text);
 		}
 
 		if (type == null) {
@@ -89,9 +99,39 @@ public class ImageCacheModel implements CacheModel<Image>, Serializable {
 		return imageImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		imageId = objectInput.readLong();
+		modifiedDate = objectInput.readLong();
+		type = objectInput.readUTF();
+		height = objectInput.readInt();
+		width = objectInput.readInt();
+		size = objectInput.readInt();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(imageId);
+		objectOutput.writeLong(modifiedDate);
+
+		if (type == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(type);
+		}
+
+		objectOutput.writeInt(height);
+		objectOutput.writeInt(width);
+		objectOutput.writeInt(size);
+	}
+
+	public long mvccVersion;
 	public long imageId;
 	public long modifiedDate;
-	public String text;
 	public String type;
 	public int height;
 	public int width;

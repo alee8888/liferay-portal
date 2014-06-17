@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portal.service.permission;
 
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.model.Contact;
@@ -24,22 +25,28 @@ import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.security.permission.BaseModelPermissionChecker;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.service.UserGroupRoleLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 
+import java.util.List;
+
 /**
  * @author Charles May
  * @author Jorge Ferrer
  */
-public class UserPermissionImpl implements UserPermission {
+public class UserPermissionImpl
+	implements BaseModelPermissionChecker, UserPermission {
 
 	/**
-	 * @deprecated Replaced by {@link #check(PermissionChecker, long, long[],
-	 *             String)}
+	 * @deprecated As of 6.2.0, replaced by {@link #check(PermissionChecker,
+	 *             long, long[], String)}
 	 */
+	@Deprecated
+	@Override
 	public void check(
 			PermissionChecker permissionChecker, long userId,
 			long organizationId, long locationId, String actionId)
@@ -50,6 +57,7 @@ public class UserPermissionImpl implements UserPermission {
 			actionId);
 	}
 
+	@Override
 	public void check(
 			PermissionChecker permissionChecker, long userId,
 			long[] organizationIds, String actionId)
@@ -60,6 +68,7 @@ public class UserPermissionImpl implements UserPermission {
 		}
 	}
 
+	@Override
 	public void check(
 			PermissionChecker permissionChecker, long userId, String actionId)
 		throws PrincipalException {
@@ -69,10 +78,32 @@ public class UserPermissionImpl implements UserPermission {
 		}
 	}
 
+	@Override
+	public void checkBaseModel(
+			PermissionChecker permissionChecker, long groupId, long primaryKey,
+			String actionId)
+		throws PortalException {
+
+		List<Organization> organizations =
+			OrganizationLocalServiceUtil.getUserOrganizations(primaryKey);
+
+		long[] organizationsIds = new long[organizations.size()];
+
+		for (int i = 0; i < organizations.size(); i++) {
+			Organization organization = organizations.get(i);
+
+			organizationsIds[i] = organization.getOrganizationId();
+		}
+
+		check(permissionChecker, primaryKey, organizationsIds, actionId);
+	}
+
 	/**
-	 * @deprecated Replaced by {@link #contains(PermissionChecker, long, long[],
-	 *             String)}
+	 * @deprecated As of 6.2.0, replaced by {@link #contains(PermissionChecker,
+	 *             long, long[], String)}
 	 */
+	@Deprecated
+	@Override
 	public boolean contains(
 		PermissionChecker permissionChecker, long userId, long organizationId,
 		long locationId, String actionId) {
@@ -82,11 +113,15 @@ public class UserPermissionImpl implements UserPermission {
 			actionId);
 	}
 
+	@Override
 	public boolean contains(
 		PermissionChecker permissionChecker, long userId,
 		long[] organizationIds, String actionId) {
 
-		if (actionId.equals(ActionKeys.IMPERSONATE) &&
+		if ((actionId.equals(ActionKeys.DELETE) ||
+			 actionId.equals(ActionKeys.IMPERSONATE) ||
+			 actionId.equals(ActionKeys.PERMISSIONS) ||
+			 actionId.equals(ActionKeys.UPDATE)) &&
 			PortalUtil.isOmniadmin(userId) &&
 			!permissionChecker.isOmniadmin()) {
 
@@ -125,23 +160,22 @@ public class UserPermissionImpl implements UserPermission {
 			}
 
 			for (long organizationId : organizationIds) {
+				Organization organization =
+					OrganizationLocalServiceUtil.getOrganization(
+						organizationId);
+
 				if (OrganizationPermissionUtil.contains(
-						permissionChecker, organizationId,
+						permissionChecker, organization,
 						ActionKeys.MANAGE_USERS)) {
 
 					if (permissionChecker.getUserId() == user.getUserId()) {
 						return true;
 					}
 
-					Organization organization =
-						OrganizationLocalServiceUtil.getOrganization(
-							organizationId);
-
 					Group organizationGroup = organization.getGroup();
 
-					// Organization administrators can only manage normal
-					// users. Owners can only manage normal users and
-					// administrators.
+					// Organization administrators can only manage normal users.
+					// Owners can only manage normal users and administrators.
 
 					if (UserGroupRoleLocalServiceUtil.hasUserGroupRole(
 							user.getUserId(), organizationGroup.getGroupId(),
@@ -173,6 +207,7 @@ public class UserPermissionImpl implements UserPermission {
 		return false;
 	}
 
+	@Override
 	public boolean contains(
 		PermissionChecker permissionChecker, long userId, String actionId) {
 

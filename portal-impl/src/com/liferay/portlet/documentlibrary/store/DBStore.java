@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,8 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.transaction.Propagation;
+import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portlet.documentlibrary.DuplicateFileException;
@@ -53,7 +55,7 @@ public class DBStore extends BaseStore {
 	@Override
 	public void addFile(
 			long companyId, long repositoryId, String fileName, byte[] bytes)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		updateFile(
 			companyId, repositoryId, fileName, Store.VERSION_DEFAULT, bytes);
@@ -62,7 +64,7 @@ public class DBStore extends BaseStore {
 	@Override
 	public void addFile(
 			long companyId, long repositoryId, String fileName, File file)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		updateFile(
 			companyId, repositoryId, fileName, Store.VERSION_DEFAULT, file);
@@ -72,7 +74,7 @@ public class DBStore extends BaseStore {
 	public void addFile(
 			long companyId, long repositoryId, String fileName,
 			InputStream inputStream)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		updateFile(
 			companyId, repositoryId, fileName, Store.VERSION_DEFAULT,
@@ -85,17 +87,14 @@ public class DBStore extends BaseStore {
 
 	@Override
 	public void deleteDirectory(
-			long companyId, long repositoryId, String dirName)
-		throws SystemException {
+		long companyId, long repositoryId, String dirName) {
 
 		DLContentLocalServiceUtil.deleteContentsByDirectory(
 			companyId, repositoryId, dirName);
 	}
 
 	@Override
-	public void deleteFile(long companyId, long repositoryId, String fileName)
-		throws SystemException {
-
+	public void deleteFile(long companyId, long repositoryId, String fileName) {
 		DLContentLocalServiceUtil.deleteContents(
 			companyId, repositoryId, fileName);
 	}
@@ -104,16 +103,17 @@ public class DBStore extends BaseStore {
 	public void deleteFile(
 			long companyId, long repositoryId, String fileName,
 			String versionLabel)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DLContentLocalServiceUtil.deleteContent(
 			companyId, repositoryId, fileName, versionLabel);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public InputStream getFileAsStream(
 			long companyId, long repositoryId, String fileName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DLContent dlContent = DLContentLocalServiceUtil.getContent(
 			companyId, repositoryId, fileName);
@@ -159,10 +159,11 @@ public class DBStore extends BaseStore {
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public InputStream getFileAsStream(
 			long companyId, long repositoryId, String fileName,
 			String versionLabel)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DLContent dlContent = DLContentLocalServiceUtil.getContent(
 			companyId, repositoryId, fileName, versionLabel);
@@ -209,8 +210,8 @@ public class DBStore extends BaseStore {
 		}
 	}
 
-	public String[] getFileNames(long companyId, long repositoryId)
-		throws SystemException {
+	@Override
+	public String[] getFileNames(long companyId, long repositoryId) {
 
 		List<DLContent> dlContents = DLContentLocalServiceUtil.getContents(
 			companyId, repositoryId);
@@ -228,8 +229,7 @@ public class DBStore extends BaseStore {
 
 	@Override
 	public String[] getFileNames(
-			long companyId, long repositoryId, String dirName)
-		throws SystemException {
+			long companyId, long repositoryId, String dirName) {
 
 		List<DLContent> dlContents =
 			DLContentLocalServiceUtil.getContentsByDirectory(
@@ -248,7 +248,7 @@ public class DBStore extends BaseStore {
 
 	@Override
 	public long getFileSize(long companyId, long repositoryId, String fileName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DLContent dlContent = DLContentLocalServiceUtil.getContent(
 			companyId, repositoryId, fileName);
@@ -265,9 +265,8 @@ public class DBStore extends BaseStore {
 
 	@Override
 	public boolean hasFile(
-			long companyId, long repositoryId, String fileName,
-			String versionLabel)
-		throws SystemException {
+		long companyId, long repositoryId, String fileName,
+		String versionLabel) {
 
 		return DLContentLocalServiceUtil.hasContent(
 			companyId, repositoryId, fileName, versionLabel);
@@ -279,18 +278,17 @@ public class DBStore extends BaseStore {
 
 	@Override
 	public void updateFile(
-			long companyId, long repositoryId, long newRepositoryId,
-			String fileName)
-		throws SystemException {
+		long companyId, long repositoryId, long newRepositoryId,
+		String fileName) {
 
 		DLContentLocalServiceUtil.updateDLContent(
 			companyId, repositoryId, newRepositoryId, fileName, fileName);
 	}
 
+	@Override
 	public void updateFile(
-			long companyId, long repositoryId, String fileName,
-			String newFileName)
-		throws SystemException {
+		long companyId, long repositoryId, String fileName,
+		String newFileName) {
 
 		DLContentLocalServiceUtil.updateDLContent(
 			companyId, repositoryId, repositoryId, fileName, newFileName);
@@ -300,7 +298,7 @@ public class DBStore extends BaseStore {
 	public void updateFile(
 			long companyId, long repositoryId, String fileName,
 			String versionLabel, byte[] bytes)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (DLContentLocalServiceUtil.hasContent(
 				companyId, repositoryId, fileName, versionLabel)) {
@@ -316,7 +314,7 @@ public class DBStore extends BaseStore {
 	public void updateFile(
 			long companyId, long repositoryId, String fileName,
 			String versionLabel, File file)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (DLContentLocalServiceUtil.hasContent(
 				companyId, repositoryId, fileName, versionLabel)) {
@@ -327,7 +325,7 @@ public class DBStore extends BaseStore {
 		InputStream inputStream = null;
 
 		try {
-			 inputStream = new FileInputStream(file);
+			inputStream = new FileInputStream(file);
 		}
 		catch (FileNotFoundException fnfe) {
 			throw new SystemException(fnfe);
@@ -342,7 +340,7 @@ public class DBStore extends BaseStore {
 	public void updateFile(
 			long companyId, long repositoryId, String fileName,
 			String versionLabel, InputStream inputStream)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (DLContentLocalServiceUtil.hasContent(
 				companyId, repositoryId, fileName, versionLabel)) {

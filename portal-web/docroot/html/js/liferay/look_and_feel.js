@@ -4,6 +4,108 @@ AUI.add(
 		var Browser = Liferay.Browser;
 		var Lang = A.Lang;
 
+		var REGEX_IGNORED_CLASSES = /boundary|draggable/;
+
+		var REGEX_IGNORED_CLASSES_PORTLET = /(?:^|\s)portlet(?=\s|$)/g;
+
+		var REGEX_VALID_CLASSES = /(?:([\w\d-]+)-)?portlet(?:-?([\w\d-]+-?))?/g;
+
+		var BACKGROUND_COLOR = 'backgroundColor';
+
+		var BLUR = 'blur';
+
+		var BOLD = 'bold';
+
+		var BOUNDING_BOX = 'boundingBox';
+
+		var CHANGE = 'change';
+
+		var CHECKBOX = 'checkbox';
+
+		var CHECKED = 'checked';
+
+		var CLASS_NAME = 'className';
+
+		var CLICK = 'click';
+
+		var COLOR = 'color';
+
+		var DISABLED = 'disabled';
+
+		var EMPTY = '';
+
+		var ERROR = 'error';
+
+		var EXCLUSIVE = 'exclusive';
+
+		var FIELDSET = 'fieldset';
+
+		var FIRST_CHILD = 'firstChild';
+
+		var FOCUSED = 'focused';
+
+		var FONT_FAMILY = 'fontFamily';
+
+		var FONT_SIZE = 'fontSize';
+
+		var FONT_STYLE = 'fontStyle';
+
+		var FONT_WEIGHT = 'fontWeight';
+
+		var FORM = 'form';
+
+		var HEAD = 'head';
+
+		var HEX = 'hex';
+
+		var HIDE = 'hide';
+
+		var HOST = 'host';
+
+		var ID = 'id';
+
+		var INSTANTIATED = 'instantiated';
+
+		var ITALIC = 'italic';
+
+		var JSON = 'json';
+
+		var KEYUP = 'keyup';
+
+		var LETTER_SPACING = 'letterSpacing';
+
+		var LINE_HEIGHT = 'lineHeight';
+
+		var NORMAL = 'normal';
+
+		var OK = 'ok';
+
+		var OPACITY = 'opacity';
+
+		var PX = 'px';
+
+		var RESPONSE_DATA = 'responseData';
+
+		var SELECT = 'select';
+
+		var SELECTED = 'selected';
+
+		var SHOW = 'show';
+
+		var STYLE = 'style';
+
+		var SUCCESS = 'success';
+
+		var TEXT_ALIGN = 'textAlign';
+
+		var TEXT_DECORATION = 'textDecoration';
+
+		var TRANSPARENT = 'transparent';
+
+		var TYPE = 'type';
+
+		var WORD_SPACING = 'wordSpacing';
+
 		var PortletCSS = {
 			init: function(portletId) {
 				var instance = this;
@@ -13,18 +115,17 @@ AUI.add(
 
 				if (obj) {
 					instance._portletId = portletId;
-					instance._curPortlet = obj.one('.portlet');
 
-					instance._portletBoundary = obj;
-
-					if (!instance._curPortlet) {
+					if (!obj.hasClass('portlet-borderless')) {
+						instance._curPortlet = obj.one('.portlet');
+						instance._curPortletWrapperId = instance._curPortlet.attr(ID);
+					}
+					else {
 						instance._curPortlet = obj;
 						instance._curPortletWrapperId = curPortletBoundaryId;
 					}
-					else {
-						instance._curPortletWrapperId = instance._curPortlet.attr('id');
-					}
 
+					instance._portletBoundary = obj;
 					instance._portletBoundaryId = curPortletBoundaryId;
 					instance._newPanel = A.one('#portlet-set-properties');
 					instance._currentLanguage = themeDisplay.getLanguageId();
@@ -37,29 +138,35 @@ AUI.add(
 						}
 
 						if (!instance._currentPopup) {
-							instance._currentPopup = new A.Dialog(
+							instance._currentPopup = Liferay.Util.Window.getWindow(
 								{
-									on: {
-										close: function() {
-											if (Browser.isIe() && Browser.getMajorVersion() == 6) {
-												window.location.reload(true);
+									dialog: {
+										draggable: {
+											handles: ['.modal-header']
+										},
+										modal: false,
+										on: {
+											visibleChange: function(event) {
+												if (!event.newVal && Browser.isIe() && Browser.getMajorVersion() == 6) {
+													window.location.reload(true);
+												}
+
+												instance._destroyColorPickers();
 											}
 										}
 									},
-									title: Liferay.Language.get('look-and-feel'),
-									width: 820
+									title: Liferay.Language.get('look-and-feel')
 								}
-							).render();
+							);
 
 							instance._currentPopup.plug(
 								[
 									{
-										fn: A.Plugin.IO,
 										cfg: {
 											after: {
 												success: function(event) {
-													var host = this.get('host');
-													var boundingBox = host.get('boundingBox');
+													var host = this.get(HOST);
+													var boundingBox = host.get(BOUNDING_BOX);
 
 													var properties = boundingBox.one('#portlet-set-properties');
 
@@ -70,15 +177,16 @@ AUI.add(
 												}
 											},
 											autoLoad: false,
-											showLoading: false,
 											data: {
+												doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
 												p_l_id: themeDisplay.getPlid(),
 												p_p_id: 113,
-												p_p_state: 'exclusive',
-												doAsUserId: themeDisplay.getDoAsUserIdEncoded()
+												p_p_state: EXCLUSIVE
 											},
+											showLoading: false,
 											uri: themeDisplay.getPathMain() + '/portal/render_portlet'
-										}
+										},
+										fn: A.Plugin.IO
 									},
 									{
 										fn: A.LoadingMask
@@ -88,7 +196,6 @@ AUI.add(
 						}
 
 						instance._currentPopup.show();
-						instance._currentPopup.alignToViewport(20, 20);
 						instance._currentPopup.loadingmask.show();
 						instance._currentPopup.io.start();
 					}
@@ -107,55 +214,49 @@ AUI.add(
 
 				var backgroundColor = instance._backgroundColor;
 
-				var setColor = function(obj) {
-					var color = obj.val();
-
+				var setColor = function(color) {
 					var cssColor = color;
 
-					if ((color == '') || (color == '#')) {
-						cssColor = 'transparent';
-						color = '';
+					if ((color === EMPTY) || (color === '#')) {
+						cssColor = TRANSPARENT;
+
+						color = EMPTY;
 					}
 
-					portlet.setStyle('backgroundColor', cssColor);
+					portlet.setStyle(BACKGROUND_COLOR, cssColor);
+
 					bgData.backgroundColor = color;
 				};
 
-				var hexValue = backgroundColor.val().replace('#', '');
+				var hexValue = backgroundColor.val().replace('#', EMPTY);
 
 				if (!instance._backgroundColorPicker) {
-					instance._backgroundColorPicker = new A.ColorPicker(
+					instance._backgroundColorPicker = new A.ColorPickerPopover(
 						{
-							triggerParent: backgroundColor.get('parentNode'),
-							zIndex: 9999
+							constrain: true,
+							plugins: [Liferay.WidgetZIndex],
+							trigger: backgroundColor
 						}
-					).render(instance._currentPopup.get('boundingBox'));
+					).render(instance._currentPopup.get(BOUNDING_BOX));
 				}
 
 				var backgroundColorPicker = instance._backgroundColorPicker;
 
-				var afterColorChange = function() {
-					backgroundColor.val('#' + this.get('hex'));
+				var afterColorChange = function(event) {
+					var color = event.color;
 
-					setColor(backgroundColor);
+					backgroundColor.val(event.color);
+
+					backgroundColor.setStyle(BACKGROUND_COLOR, color);
+
+					setColor(color);
 				};
 
 				if (instance._afterBackgroundColorChangeHandler) {
 					instance._afterBackgroundColorChangeHandler.detach();
 				}
 
-				instance._afterBackgroundColorChangeHandler = backgroundColorPicker.after('colorChange', afterColorChange);
-
-				backgroundColorPicker.set('hex', hexValue);
-
-				backgroundColor.detach('blur');
-
-				backgroundColor.on(
-					'blur',
-					function(event) {
-						setColor(event.currentTarget);
-					}
-				);
+				instance._afterBackgroundColorChangeHandler = backgroundColorPicker.after(SELECT, afterColorChange);
 			},
 
 			_borderStyles: function() {
@@ -187,7 +288,7 @@ AUI.add(
 					borderWidth = instance._getCombo(wTopInt, wTopUnit);
 					styling = {borderWidth: borderWidth.both};
 
-					var ufa = ufaWidth.get('checked');
+					var ufa = ufaWidth.get(CHECKED);
 
 					borderData.borderWidth.top.value = borderWidth.input;
 					borderData.borderWidth.top.unit = borderWidth.selectBox;
@@ -224,44 +325,44 @@ AUI.add(
 					changeColor();
 				};
 
-				wTopInt.detach('blur');
-				wTopInt.on('blur', changeWidth);
+				wTopInt.detach(BLUR);
+				wTopInt.on(BLUR, changeWidth);
 
-				wTopInt.detach('keyup');
-				wTopInt.on('keyup', changeWidth);
+				wTopInt.detach(KEYUP);
+				wTopInt.on(KEYUP, changeWidth);
 
-				wRightInt.detach('blur');
-				wRightInt.on('blur', changeWidth);
+				wRightInt.detach(BLUR);
+				wRightInt.on(BLUR, changeWidth);
 
-				wRightInt.detach('keyup');
-				wRightInt.on('keyup', changeWidth);
+				wRightInt.detach(KEYUP);
+				wRightInt.on(KEYUP, changeWidth);
 
-				wBottomInt.detach('blur');
-				wBottomInt.on('blur', changeWidth);
+				wBottomInt.detach(BLUR);
+				wBottomInt.on(BLUR, changeWidth);
 
-				wBottomInt.detach('keyup');
-				wBottomInt.on('keyup', changeWidth);
+				wBottomInt.detach(KEYUP);
+				wBottomInt.on(KEYUP, changeWidth);
 
-				wLeftInt.detach('blur');
-				wLeftInt.on('blur', changeWidth);
+				wLeftInt.detach(BLUR);
+				wLeftInt.on(BLUR, changeWidth);
 
-				wLeftInt.detach('keyup');
-				wLeftInt.on('keyup', changeWidth);
+				wLeftInt.detach(KEYUP);
+				wLeftInt.on(KEYUP, changeWidth);
 
-				wTopUnit.detach('change');
-				wTopUnit.on('change', changeWidth);
+				wTopUnit.detach(CHANGE);
+				wTopUnit.on(CHANGE, changeWidth);
 
-				wRightUnit.detach('change');
-				wRightUnit.on('change', changeWidth);
+				wRightUnit.detach(CHANGE);
+				wRightUnit.on(CHANGE, changeWidth);
 
-				wBottomUnit.detach('change');
-				wBottomUnit.on('change', changeWidth);
+				wBottomUnit.detach(CHANGE);
+				wBottomUnit.on(CHANGE, changeWidth);
 
-				wLeftUnit.detach('change');
-				wLeftUnit.on('change', changeWidth);
+				wLeftUnit.detach(CHANGE);
+				wLeftUnit.on(CHANGE, changeWidth);
 
-				ufaWidth.detach('change');
-				ufaWidth.on('change', changeWidth);
+				ufaWidth.detach(CHANGE);
+				ufaWidth.on(CHANGE, changeWidth);
 
 				// Border style
 
@@ -277,7 +378,7 @@ AUI.add(
 					borderStyle = sTopStyle.val();
 					styling = {borderStyle: borderStyle};
 
-					var ufa = ufaStyle.get('checked');
+					var ufa = ufaStyle.get(CHECKED);
 
 					borderData.borderStyle.top = borderStyle;
 					borderData.borderStyle.sameForAll = ufa;
@@ -307,20 +408,20 @@ AUI.add(
 					portlet.setStyles(styling);
 				};
 
-				sTopStyle.detach('change');
-				sTopStyle.on('change', changeStyle);
+				sTopStyle.detach(CHANGE);
+				sTopStyle.on(CHANGE, changeStyle);
 
-				sRightStyle.detach('change');
-				sRightStyle.on('change', changeStyle);
+				sRightStyle.detach(CHANGE);
+				sRightStyle.on(CHANGE, changeStyle);
 
-				sBottomStyle.detach('change');
-				sBottomStyle.on('change', changeStyle);
+				sBottomStyle.detach(CHANGE);
+				sBottomStyle.on(CHANGE, changeStyle);
 
-				sLeftStyle.detach('change');
-				sLeftStyle.on('change', changeStyle);
+				sLeftStyle.detach(CHANGE);
+				sLeftStyle.on(CHANGE, changeStyle);
 
-				ufaStyle.detach('change');
-				ufaStyle.on('change', changeStyle);
+				ufaStyle.detach(CHANGE);
+				ufaStyle.on(CHANGE, changeStyle);
 
 				// Border color
 
@@ -336,7 +437,7 @@ AUI.add(
 					borderColor = cTopColor.val();
 					styling = {borderColor: borderColor};
 
-					var ufa = ufaColor.get('checked');
+					var ufa = ufaColor.get(CHECKED);
 
 					borderData.borderColor.top = borderColor;
 					borderData.borderColor.sameForAll = ufa;
@@ -366,30 +467,35 @@ AUI.add(
 					portlet.setStyles(styling);
 				};
 
-				var popupBoundingBox = instance._currentPopup.get('boundingBox');
+				var popupBoundingBox = instance._currentPopup.get(BOUNDING_BOX);
 
 				A.each(
 					[cTopColor, cRightColor, cBottomColor, cLeftColor],
-					function(item, index, collection) {
-						var hexValue = item.val().replace('#', '');
+					function(item, index) {
+						var hexValue = item.val().replace('#', EMPTY);
 
 						var borderLocation = '_borderColorPicker' + index;
 
 						if (!instance[borderLocation]) {
-							instance[borderLocation] = new A.ColorPicker(
+							instance[borderLocation] = new A.ColorPickerPopover(
 								{
-									triggerParent: item.get('parentNode'),
-									zIndex: 9999
+									constrain: true,
+									trigger: item,
+									zIndex: 1000
 								}
 							).render(popupBoundingBox);
 						}
 
 						var borderColorPicker = instance[borderLocation];
 
-						var afterColorChange = function() {
-							item.val('#' + this.get('hex'));
+						var afterColorChange = function(event) {
+							var color = event.color;
 
-							changeColor();
+							item.val(color);
+
+							item.setStyle(BACKGROUND_COLOR, color);
+
+							changeColor(color);
 						};
 
 						var borderColorChangeHandler = '_afterBorderColorChangeHandler' + index;
@@ -398,62 +504,62 @@ AUI.add(
 							instance[borderColorChangeHandler].detach();
 						}
 
-						instance[borderColorChangeHandler] = borderColorPicker.after('colorChange', afterColorChange);
+						instance[borderColorChangeHandler] = borderColorPicker.after(SELECT, afterColorChange);
 
-						borderColorPicker.set('hex', hexValue);
+						borderColorPicker.set(HEX, hexValue);
 					}
 				);
 
-				cTopColor.detach('blur');
-				cTopColor.on('blur', changeColor);
+				cTopColor.detach(BLUR);
+				cTopColor.on(BLUR, changeColor);
 
-				cRightColor.detach('blur');
-				cRightColor.on('blur', changeColor);
+				cRightColor.detach(BLUR);
+				cRightColor.on(BLUR, changeColor);
 
-				cBottomColor.detach('blur');
-				cBottomColor.on('blur', changeColor);
+				cBottomColor.detach(BLUR);
+				cBottomColor.on(BLUR, changeColor);
 
-				cLeftColor.detach('blur');
-				cLeftColor.on('blur', changeColor);
+				cLeftColor.detach(BLUR);
+				cLeftColor.on(BLUR, changeColor);
 
-				cTopColor.detach('keyup');
-				cTopColor.on('keyup', changeColor);
+				cTopColor.detach(KEYUP);
+				cTopColor.on(KEYUP, changeColor);
 
-				cRightColor.detach('keyup');
-				cRightColor.on('keyup', changeColor);
+				cRightColor.detach(KEYUP);
+				cRightColor.on(KEYUP, changeColor);
 
-				cBottomColor.detach('keyup');
-				cBottomColor.on('keyup', changeColor);
+				cBottomColor.detach(KEYUP);
+				cBottomColor.on(KEYUP, changeColor);
 
-				cLeftColor.detach('keyup');
-				cLeftColor.on('keyup', changeColor);
+				cLeftColor.detach(KEYUP);
+				cLeftColor.on(KEYUP, changeColor);
 
-				ufaColor.detach('change');
-				ufaColor.on('change', changeColor);
+				ufaColor.detach(CHANGE);
+				ufaColor.on(CHANGE, changeColor);
 			},
 
 			_cssStyles: function() {
 				var instance = this;
 
 				var portlet = instance._curPortlet;
+				var portletBoundary = instance._portletBoundary;
 
 				var customCSS = instance._getNodeById('lfr-custom-css');
 				var customCSSClassName = instance._getNodeById('lfr-custom-css-class-name');
-				var customCSSContainer = customCSS.ancestor('.aui-field');
-				var customCSSClassNameContainer = customCSSClassName.ancestor('.aui-field');
-				var customPortletNoteHTML = '<p class="portlet-msg-info form-hint"></p>';
+				var customCSSContainer = customCSS;
+				var customCSSClassNameContainer = customCSSClassName;
+				var customPortletNoteHTML = '<p class="alert alert-info form-hint"></p>';
 				var customPortletNote = A.one('#lfr-portlet-info');
-				var refreshText = '';
+				var refreshText = EMPTY;
 
 				var portletId = instance._curPortletWrapperId;
-				var portletClasses = portlet.get('className');
 
-				portletClasses = Lang.trim(portletClasses).replace(/(\s)/g, '$1.');
+				var portletClasses = instance._getCSSClasses(portletBoundary, portlet);
 
 				var portletInfoText =
-					Liferay.Language.get('your-current-portlet-information-is-as-follows') + ':<br />' +
+					Liferay.Language.get('your-current-portlet-information-is-as-follows') + '<br />' +
 						Liferay.Language.get('portlet-id') + ': <strong>#' + portletId + '</strong><br />' +
-							Liferay.Language.get('portlet-classes') + ': <strong>.' + portletClasses + '</strong>';
+							Liferay.Language.get('portlet-classes') + ': <strong>' + portletClasses + '</strong>';
 
 				var customNote = A.one('#lfr-refresh-styles');
 
@@ -462,7 +568,7 @@ AUI.add(
 
 					customNote.setAttrs(
 						{
-							'className': '',
+							CLASS_NAME: EMPTY,
 							id: 'lfr-refresh-styles'
 						}
 					);
@@ -472,67 +578,60 @@ AUI.add(
 					customPortletNote = A.Node.create(customPortletNoteHTML);
 					customCSSClassNameContainer.placeBefore(customPortletNote);
 
-					customPortletNote.attr('id', 'lfr-portlet-info');
+					customPortletNote.attr(ID, 'lfr-portlet-info');
 				}
 
 				customPortletNote.html(portletInfoText);
 
 				Liferay.Util.enableTextareaTabs(customCSS.getDOM());
 
-				if (!Browser.isSafari()) {
-					refreshText = Liferay.Language.get('update-the-styles-on-this-page');
+				refreshText = Liferay.Language.get('update-the-styles-on-this-page');
 
-					var refreshLink = A.Node.create('<a href="javascript:;">' + refreshText + '</a>');
+				var refreshLink = A.Node.create('<a href="javascript:;">' + refreshText + '</a>');
 
-					var customStyleBlock = A.one('#lfr-custom-css-block-' + portletId);
+				var customStyleBlock = A.one('#lfr-custom-css-block-' + portletId);
 
-					if (!customStyleBlock) {
+				if (!customStyleBlock) {
 
-						// Do not modify. This is a workaround for an IE bug.
+					// Do not modify. This is a workaround for an IE bug.
 
-						var styleEl = document.createElement('style');
+					var styleEl = document.createElement(STYLE);
 
-						styleEl.id = 'lfr-custom-css-block-' + portletId;
-						styleEl.className = 'lfr-custom-css-block';
-						styleEl.setAttribute('type', 'text/css');
+					styleEl.id = 'lfr-custom-css-block-' + portletId;
+					styleEl.className = 'lfr-custom-css-block';
+					styleEl.setAttribute(TYPE, 'text/css');
 
-						document.getElementsByTagName('head')[0].appendChild(styleEl);
-					}
-					else {
-						styleEl = customStyleBlock.getDOM();
-					}
-
-					var refreshStyles = function() {
-						var customStyles = customCSS.val();
-
-						customStyles = customStyles.replace(/<script[^>]*>([\u0001-\uFFFF]*?)<\/script>/gim, '');
-						customStyles = customStyles.replace(/<\/?[^>]+>/gi, '');
-
-						if (styleEl.styleSheet) { // for IE only
-							if (customStyles == '') {
-
-								// Do not modify. This is a workaround for an IE bug.
-
-								customStyles = '<!---->';
-							}
-
-							styleEl.styleSheet.cssText = customStyles;
-						}
-						else {
-							A.one(styleEl).html(customStyles);
-						}
-					};
-
-					refreshLink.detach('click');
-					refreshLink.on('click', refreshStyles);
-
-					customNote.empty().append(refreshLink);
+					document.getElementsByTagName(HEAD)[0].appendChild(styleEl);
 				}
 				else {
-					refreshText = Liferay.Language.get('please-press-the-save-button-to-view-your-changes');
-
-					customNote.empty().text(refreshText);
+					styleEl = customStyleBlock.getDOM();
 				}
+
+				var refreshStyles = function() {
+					var customStyles = customCSS.val();
+
+					customStyles = customStyles.replace(/<script[^>]*>([\u0001-\uFFFF]*?)<\/script>/gim, EMPTY);
+					customStyles = customStyles.replace(/<\/?[^>]+>/gi, EMPTY);
+
+					if (styleEl.styleSheet) { // for IE only
+						if (customStyles == EMPTY) {
+
+							// Do not modify. This is a workaround for an IE bug.
+
+							customStyles = '<!---->';
+						}
+
+						styleEl.styleSheet.cssText = customStyles;
+					}
+					else {
+						A.one(styleEl).html(customStyles);
+					}
+				};
+
+				refreshLink.detach(CLICK);
+				refreshLink.on(CLICK, refreshStyles);
+
+				customNote.empty().append(refreshLink);
 
 				var insertContainer = A.one('#lfr-add-rule-container');
 				var addIdLink = A.one('#lfr-add-id');
@@ -544,13 +643,13 @@ AUI.add(
 					addIdLink = A.Node.create('<a href="javascript:;" id="lfr-add-id">' + Liferay.Language.get('add-a-css-rule-for-just-this-portlet') + '</a>');
 					addClassLink = A.Node.create('<a href="javascript:;" id="lfr-add-class">' + Liferay.Language.get('add-a-css-rule-for-all-portlets-like-this-one') + '</a>');
 
-					var updateOnTypeHolder = A.Node.create('<span class="aui-field"><span class="aui-field-content"></span></span>');
+					var updateOnTypeHolder = A.Node.create('<span class="field"><span class="field-content"></span></span>');
 					var updateOnTypeLabel = A.Node.create('<label>' + Liferay.Language.get('update-my-styles-as-i-type') + ' </label>');
 
-					updateOnType = A.Node.create('<input id="lfr-update-on-type" type="checkbox" />');
+					updateOnType = A.Node.create('<input checked="checked" id="lfr-update-on-type" type="' + CHECKBOX + '" />');
 
 					updateOnTypeLabel.appendChild(updateOnType);
-					updateOnTypeHolder.get('firstChild').appendChild(updateOnTypeLabel);
+					updateOnTypeHolder.get(FIRST_CHILD).appendChild(updateOnTypeLabel);
 
 					customCSSContainer.placeAfter(insertContainer);
 
@@ -561,40 +660,99 @@ AUI.add(
 					insertContainer.appendChild(addClassLink);
 					insertContainer.appendChild(updateOnTypeHolder);
 
-					insertContainer.after(customNote);
+					customNote.hide();
+
+					insertContainer.placeAfter(customNote);
+
+					customCSS.on(KEYUP, refreshStyles);
 				}
 
 				updateOnType.on(
-					'click',
+					CLICK,
 					function(event) {
-						if (event.currentTarget.get('checked')) {
+						if (event.currentTarget.get(CHECKED)) {
 							customNote.hide();
-							customCSS.on('keyup', refreshStyles);
+							customCSS.on(KEYUP, refreshStyles);
 						}
 						else {
 							customNote.show();
-							customCSS.detach('keyup', refreshStyles);
+							customCSS.detach(KEYUP, refreshStyles);
 						}
 					}
 				);
 
-				addIdLink.detach('click');
+				addIdLink.detach(CLICK);
 
 				addIdLink.on(
-					'click',
+					CLICK,
 					function() {
-						customCSS.getDOM().value += '\n#' + portletId + '{\n\t\n}\n';
+						instance._insertCustomCSSValue(customCSS, '#' + portletId);
 					}
 				);
 
-				addClassLink.detach('click');
+				addClassLink.detach(CLICK);
 
 				addClassLink.on(
-					'click',
+					CLICK,
 					function() {
-						customCSS.getDOM().value += '\n.' + portletClasses.replace(/\s/g, '') + '{\n\t\n}\n';
+						instance._insertCustomCSSValue(customCSS, instance._getCSSClasses(portletBoundary, portlet));
 					}
 				);
+			},
+
+			_destroyColorPickers: function() {
+				var instance = this;
+
+				for (var i = 0; i < 4; i++) {
+					var borderLocation = '_borderColorPicker' + i;
+
+					if (instance[borderLocation]) {
+						instance[borderLocation].destroy();
+
+						instance[borderLocation] = null;
+					}
+				}
+
+				if (instance._backgroundColorPicker) {
+					instance._backgroundColorPicker.destroy();
+
+					instance._backgroundColorPicker = null;
+				}
+
+				if (instance._fontColorPicker) {
+					instance._fontColorPicker.destroy();
+
+					instance._fontColorPicker = null;
+				}
+			},
+
+			_getCSSClasses: function(portletBoundary, portlet) {
+				var instance = this;
+
+				var portletClasses = EMPTY;
+
+				if (portlet && portlet != portletBoundary) {
+					portletClasses = portlet.attr(CLASS_NAME).replace(REGEX_IGNORED_CLASSES_PORTLET, EMPTY);
+
+					portletClasses = Lang.trim(portletClasses).replace(/\s+/g, '.');
+
+					if (portletClasses) {
+						portletClasses = ' .' + portletClasses;
+					}
+				}
+
+				var boundaryClasses = [];
+
+				portletBoundary.attr(CLASS_NAME).replace(
+					REGEX_VALID_CLASSES,
+					function(match, subMatch1, subMatch2) {
+						if (!REGEX_IGNORED_CLASSES.test(subMatch2)) {
+							boundaryClasses.push(match);
+						}
+					}
+				);
+
+				return '.' + boundaryClasses.join('.') + portletClasses;
 			},
 
 			_getCombo: function(input, selectBox) {
@@ -605,7 +763,138 @@ AUI.add(
 
 				inputVal = instance._getSafeInteger(inputVal);
 
-				return {input: inputVal, selectBox: selectVal, both: inputVal + selectVal};
+				return {
+					both: inputVal + selectVal,
+					input: inputVal,
+					selectBox: selectVal
+				};
+			},
+
+			_getDefaultData: function() {
+				var instance = this;
+
+				return {
+					advancedData: {
+						customCSS: EMPTY,
+						customCSSClassName: EMPTY
+					},
+					bgData: {
+						backgroundColor: EMPTY,
+						backgroundImage: EMPTY,
+						backgroundPosition: {
+							left: {
+								unit: PX,
+								value: EMPTY
+							},
+							top: {
+								unit: PX,
+								value: EMPTY
+							}
+						},
+						backgroundRepeat: EMPTY,
+						useBgImage: false
+					},
+					borderData: {
+						borderColor: {
+							bottom: EMPTY,
+							left: EMPTY,
+							right: EMPTY,
+							sameForAll: true,
+							top: EMPTY
+						},
+						borderStyle: {
+							bottom: EMPTY,
+							left: EMPTY,
+							right: EMPTY,
+							sameForAll: true,
+							top: EMPTY
+						},
+						borderWidth: {
+							bottom: {
+								unit: PX,
+								value: EMPTY
+							},
+							left: {
+								unit: PX,
+								value: EMPTY
+							},
+							right: {
+								unit: PX,
+								value: EMPTY
+							},
+							sameForAll: true,
+							top: {
+								unit: PX,
+								value: EMPTY
+							}
+						}
+					},
+					portletData: {
+						customTitle: EMPTY,
+						language: 'en_US',
+						portletLinksTarget: EMPTY,
+						showBorders: EMPTY,
+						title: EMPTY,
+						titles: {},
+						useCustomTitle: false
+					},
+					spacingData: {
+						margin: {
+							bottom: {
+								unit: PX,
+								value: EMPTY
+							},
+							left: {
+								unit: PX,
+								value: EMPTY
+							},
+							right: {
+								unit: PX,
+								value: EMPTY
+							},
+							sameForAll: true,
+							top: {
+								unit: PX,
+								value: EMPTY
+							}
+						},
+						padding: {
+							bottom: {
+								unit: PX,
+								value: EMPTY
+							},
+							left: {
+								unit: PX,
+								value: EMPTY
+							},
+							right: {
+								unit: PX,
+								value: EMPTY
+							},
+							sameForAll: true,
+							top: {
+								unit: PX,
+								value: EMPTY
+							}
+						}
+					},
+					textData: {
+						color: EMPTY,
+						fontFamily: EMPTY,
+						fontSize: EMPTY,
+						fontStyle: EMPTY,
+						fontWeight: EMPTY,
+						letterSpacing: EMPTY,
+						lineHeight: EMPTY,
+						textAlign: EMPTY,
+						textDecoration: EMPTY,
+						wordSpacing: EMPTY
+					},
+					wapData: {
+						initialWindowState: 'NORMAL',
+						title: EMPTY
+					}
+				};
 			},
 
 			_getNodeById: function(id) {
@@ -617,13 +906,23 @@ AUI.add(
 			_getSafeInteger: function(input) {
 				var instance = this;
 
-				var output = parseInt(input);
+				return Lang.toInt(input);
+			},
 
-				if (output == '' || isNaN(output)) {
-					output = 0;
+			_insertCustomCSSValue: function(textarea, value) {
+				var instance = this;
+
+				var currentVal = Lang.trim(textarea.val());
+
+				if (currentVal.length) {
+					currentVal += '\n\n';
 				}
 
-				return output;
+				var newVal = currentVal + value + ' {\n\t\n}\n';
+
+				textarea.val(newVal);
+
+				Liferay.Util.setCursorPosition(textarea, newVal.length - 3);
 			},
 
 			_languageClasses: function(key, value, removeClass) {
@@ -633,10 +932,10 @@ AUI.add(
 
 				if (option) {
 					if (removeClass) {
-						option.removeClass('focused');
+						option.removeClass(FOCUSED);
 					}
 					else {
-						option.addClass('focused');
+						option.addClass(FOCUSED);
 					}
 				}
 			},
@@ -646,19 +945,21 @@ AUI.add(
 
 				var newPanel = instance._newPanel;
 
+				var portletConfig = instance._getDefaultData();
+
 				if (!instantiated) {
-					newPanel.addClass('instantiated');
+					newPanel.addClass(INSTANTIATED);
 					instance._portletBoundaryIdVar = A.one('#portlet-boundary-id');
 
 					// Portlet config
 
-					var portletTitle = instance._curPortlet.one('.portlet-title');
+					var portletTitle = instance._curPortlet.one('.portlet-title-text');
 
-					instance._defaultPortletTitle = Lang.trim(portletTitle ? portletTitle.text() : '');
+					instance._defaultPortletTitle = Lang.trim(portletTitle ? portletTitle.text() : EMPTY);
 
 					instance._customTitleInput = instance._getNodeById('custom-title');
-					instance._customTitleCheckbox = instance._getNodeById('use-custom-titleCheckbox');
-					instance._showBorders = instance._getNodeById('show-bordersCheckbox');
+					instance._customTitleCheckbox = instance._getNodeById('use-custom-title');
+					instance._showBorders = instance._getNodeById('show-borders');
 					instance._borderNote = A.one('#border-note');
 					instance._portletLanguage = instance._getNodeById('lfr-portlet-language');
 					instance._portletLinksTarget = instance._getNodeById('lfr-point-links');
@@ -666,8 +967,8 @@ AUI.add(
 					// Text
 
 					instance._fontFamily = instance._getNodeById('lfr-font-family');
-					instance._fontWeight = instance._getNodeById('lfr-font-boldCheckbox');
-					instance._fontStyle = instance._getNodeById('lfr-font-italicCheckbox');
+					instance._fontWeight = instance._getNodeById('lfr-font-bold');
+					instance._fontStyle = instance._getNodeById('lfr-font-italic');
 					instance._fontSize = instance._getNodeById('lfr-font-size');
 					instance._fontColor = instance._getNodeById('lfr-font-color');
 					instance._textAlign = instance._getNodeById('lfr-font-align');
@@ -682,9 +983,9 @@ AUI.add(
 
 					// Border
 
-					instance._ufaBorderWidth = instance._getNodeById('lfr-use-for-all-widthCheckbox');
-					instance._ufaBorderStyle = instance._getNodeById('lfr-use-for-all-styleCheckbox');
-					instance._ufaBorderColor = instance._getNodeById('lfr-use-for-all-colorCheckbox');
+					instance._ufaBorderWidth = instance._getNodeById('lfr-use-for-all-width');
+					instance._ufaBorderStyle = instance._getNodeById('lfr-use-for-all-style');
+					instance._ufaBorderColor = instance._getNodeById('lfr-use-for-all-color');
 
 					instance._borderTopInt = instance._getNodeById('lfr-border-width-top');
 					instance._borderTopUnit = instance._getNodeById('lfr-border-width-top-unit');
@@ -707,8 +1008,8 @@ AUI.add(
 
 					// Spacing
 
-					instance._ufaPadding = instance._getNodeById('lfr-use-for-all-paddingCheckbox');
-					instance._ufaMargin = instance._getNodeById('lfr-use-for-all-marginCheckbox');
+					instance._ufaPadding = instance._getNodeById('lfr-use-for-all-padding');
+					instance._ufaMargin = instance._getNodeById('lfr-use-for-all-margin');
 
 					instance._paddingTopInt = instance._getNodeById('lfr-padding-top');
 					instance._paddingTopUnit = instance._getNodeById('lfr-padding-top-unit');
@@ -738,17 +1039,20 @@ AUI.add(
 
 					// WAP styling
 
-					instance._wapTitleInput = instance._getNodeById('lfr-wap-title');
-					instance._wapInitialWindowStateSelect = instance._getNodeById('lfr-wap-initial-window-state');
+					instance._wapStyling = instance._getNodeById('wap-styling');
 
+					if (instance._wapStyling) {
+						instance._wapTitleInput = instance._getNodeById('lfr-wap-title');
+						instance._wapInitialWindowStateSelect = instance._getNodeById('lfr-wap-initial-window-state');
+					}
 				}
 
 				instance._tabs = new A.TabView(
 					{
-						listNode: newPanel.one('.aui-tabview-list'),
-						contentNode: newPanel.one('.aui-tabview-content')
+						panelNode: newPanel.one('.tab-pane'),
+						srcNode: newPanel
 					}
-				).render(newPanel.one('form'));
+				).render();
 
 				newPanel.show();
 
@@ -762,138 +1066,10 @@ AUI.add(
 					instance._portletMsgResponse.hide();
 				}
 
-				var defaultData = {
-					advancedData: {
-						customCSS: ''
-					},
-
-					bgData: {
-						backgroundColor: '',
-						backgroundImage: '',
-						backgroundPosition: {
-							left: {
-								unit: 'px',
-								value: ''
-							},
-							top: {
-								unit: 'px',
-								value: ''
-							}
-						},
-						backgroundRepeat: '',
-						useBgImage: false
-					},
-
-					borderData: {
-						borderColor: {
-							bottom: '',
-							left: '',
-							right: '',
-							sameForAll: true,
-							top: ''
-						},
-
-						borderStyle: {
-							bottom: '',
-							left: '',
-							right: '',
-							sameForAll: true,
-							top: ''
-						},
-
-						borderWidth: {
-							bottom: {
-								unit: 'px',
-								value: ''
-							},
-							left: {
-								unit: 'px',
-								value: ''
-							},
-							right: {
-								unit: 'px',
-								value: ''
-							},
-							sameForAll: true,
-							top: {
-								unit: 'px',
-								value: ''
-							}
-						}
-					},
-
-					portletData: {
-						language: 'en_US',
-						portletLinksTarget: '',
-						showBorders: themeDisplay.getPortletSetupShowBordersDefault(),
-						title: '',
-						titles: {},
-						useCustomTitle: false
-					},
-
-					spacingData: {
-						margin: {
-							bottom: {
-								unit: 'px',
-								value: ''
-							},
-							left: {
-								unit: 'px',
-								value: ''
-							},
-							right: {
-								unit: 'px',
-								value: ''
-							},
-							sameForAll: true,
-							top: {
-								unit: 'px',
-								value: ''
-							}
-						},
-						padding: {
-							bottom: {
-								unit: 'px',
-								value: ''
-							},
-							left: {
-								unit: 'px',
-								value: ''
-							},
-							right: {
-								unit: 'px',
-								value: ''
-							},
-							sameForAll: true,
-							top: {
-								unit: 'px',
-								value: ''
-							}
-						}
-
-					},
-
-					textData: {
-						color: '',
-						fontFamily: '',
-						fontSize: '',
-						fontStyle: '',
-						fontWeight: '',
-						letterSpacing: '',
-						lineHeight: '',
-						textAlign: '',
-						textDecoration: '',
-						wordSpacing: ''
-					},
-
-					wapData: {
-						initialWindowState: 'NORMAL',
-						title: ''
-					}
-				};
-
 				var onLookAndFeelComplete = function() {
 					instance._portletBoundaryIdVar.val(instance._curPortletWrapperId);
+
+					instance._destroyColorPickers();
 
 					instance._setDefaults();
 
@@ -906,49 +1082,49 @@ AUI.add(
 
 					var useForAll = newPanel.all('.lfr-use-for-all input[type=checkbox]');
 
-					var handleForms = function(item, index, collection) {
+					var handleForms = function(item, index) {
 						var checkBox = item;
 
-						var fieldset = checkBox.ancestor('fieldset');
+						var fieldset = checkBox.ancestor(FIELDSET);
 
-						var otherHolders = fieldset.all('.aui-field-row');
+						var otherHolders = fieldset.all('.field-row');
 						var firstIndex = 0;
 
 						if (!otherHolders.size()) {
-							otherHolders = fieldset.all('.aui-field-content');
+							otherHolders = fieldset.all('.field-content');
 							firstIndex = 1;
 						}
 
-						var checked = item.get('checked');
+						var checked = item.get(CHECKED);
 
 						otherHolders.each(
-							function(holderItem, holderIndex, holderCollection) {
+							function(holderItem, holderIndex) {
 								if (holderIndex > firstIndex) {
 									var fields = holderItem.all('input, select');
-									var colorPickerImages = holderItem.all('.aui-buttonitem');
+									var colorPickerImages = holderItem.all('.buttonitem');
 
-									var action = 'show';
+									var action = SHOW;
 									var disabled = false;
 									var opacity = 1;
 
 									if (checked) {
-										action = 'hide';
+										action = HIDE;
 										disabled = true;
 										opacity = 0.3;
 									}
 
-									holderItem.setStyle('opacity', opacity);
-									fields.set('disabled', disabled);
+									holderItem.setStyle(OPACITY, opacity);
+									fields.set(DISABLED, disabled);
 									colorPickerImages[action]();
 								}
 							}
 						);
 					};
 
-					useForAll.detach('click');
+					useForAll.detach(CLICK);
 
 					useForAll.on(
-						'click',
+						CLICK,
 						function(event) {
 							handleForms(event.currentTarget);
 						}
@@ -966,26 +1142,28 @@ AUI.add(
 					var saveHandler = function(event, id, obj) {
 						var ajaxResponseMsg = instance._portletMsgResponse;
 						var ajaxResponseHTML = '<div id="lfr-portlet-css-response"></div>';
-						var message = '';
-						var messageClass = '';
-						var type = 'success';
+						var message = EMPTY;
+						var messageClass = EMPTY;
+						var type = SUCCESS;
 
-						if (obj.statusText.toLowerCase() != 'ok') {
-							type = 'error';
+						if (obj.statusText.toLowerCase() != OK) {
+							type = ERROR;
 						}
 
-						if (type == 'success') {
+						if (type == SUCCESS) {
 							message = Liferay.Language.get('your-request-processed-successfully');
-							messageClass = 'portlet-msg-success';
+							messageClass = 'alert alert-success';
 						}
 						else {
 							message = Liferay.Language.get('your-settings-could-not-be-saved');
-							messageClass = 'portlet-msg-error';
+							messageClass = 'alert alert-danger';
 						}
+
+						var ajaxResponse = ajaxResponseMsg;
 
 						if (!ajaxResponseMsg) {
 							ajaxResponse = A.Node.create(ajaxResponseHTML);
-							newPanel.one('form').prepend(ajaxResponse);
+							newPanel.one(FORM).prepend(ajaxResponse);
 
 							instance._portletMsgResponse = ajaxResponse;
 						}
@@ -995,10 +1173,10 @@ AUI.add(
 						ajaxResponse.show();
 					};
 
-					instance._saveButton.detach('click');
+					instance._saveButton.detach(CLICK);
 
 					instance._saveButton.on(
-						'click',
+						CLICK,
 						function() {
 							instance._objData.advancedData.customCSS = instance._customCSS.val();
 
@@ -1009,8 +1187,10 @@ AUI.add(
 
 							updatePortletCSSClassName(previousCSSClass, newCSSClass);
 
-							instance._objData.wapData.title = instance._wapTitleInput.val();
-							instance._objData.wapData.initialWindowState = instance._wapInitialWindowStateSelect.val();
+							if (instance._wapStyling) {
+								instance._objData.wapData.title = instance._wapTitleInput.val();
+								instance._objData.wapData.initialWindowState = instance._wapInitialWindowStateSelect.val();
+							}
 
 							A.io.request(
 								themeDisplay.getPathMain() + '/portlet_configuration/update_look_and_feel',
@@ -1018,6 +1198,7 @@ AUI.add(
 									data: {
 										css: A.JSON.stringify(instance._objData),
 										doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
+										p_auth: Liferay.authToken,
 										p_l_id: themeDisplay.getPlid(),
 										portletId: instance._portletId
 									},
@@ -1029,16 +1210,16 @@ AUI.add(
 						}
 					);
 
-					instance._resetButton.detach('click');
+					instance._resetButton.detach(CLICK);
 
 					instance._resetButton.on(
-						'click',
+						CLICK,
 						function() {
 							try {
-								instance._curPortlet.set('style', '');
+								instance._curPortlet.set(STYLE, EMPTY);
 							}
 							catch (e) {
-								instance._curPortlet.set('style.cssText', '');
+								instance._curPortlet.set('style.cssText', EMPTY);
 							}
 
 							var customStyle = A.one('#lfr-custom-css-block-' + instance._curPortletWrapperId);
@@ -1047,7 +1228,8 @@ AUI.add(
 								customStyle.remove(true);
 							}
 
-							instance._objData = defaultData;
+							A.mix(instance._objData, instance._getDefaultData(), true);
+
 							instance._setDefaults();
 						}
 					);
@@ -1055,25 +1237,29 @@ AUI.add(
 					instance._currentPopup.loadingmask.hide();
 				};
 
-				instance._objData = defaultData;
+				instance._objData = portletConfig;
 
 				A.io.request(
 					themeDisplay.getPathMain() + '/portlet_configuration/get_look_and_feel',
 					{
 						data: {
 							doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
+							p_auth: Liferay.authToken,
 							p_l_id: themeDisplay.getPlid(),
 							portletId: instance._portletId
 						},
-						dataType: 'json',
+						dataType: JSON,
 						on: {
 							success: function(event, id, obj) {
-								var objectData = this.get('responseData');
+								var objectData = this.get(RESPONSE_DATA);
+
+								A.mix(objectData, portletConfig);
 
 								if (objectData.hasCssValue) {
 									instance._objData = objectData;
 								}
 								else {
+									instance._objData.defaultPortletTitles = objectData.defaultPortletTitles;
 									instance._objData.portletData = objectData.portletData;
 								}
 
@@ -1097,51 +1283,19 @@ AUI.add(
 
 				// Use custom title
 
-				customTitleCheckbox.detach('click');
+				customTitleCheckbox.detach(CLICK);
 
 				customTitleCheckbox.on(
-					'click',
+					CLICK,
 					function(event) {
-						var title;
-						var portletTitle = instance._curPortlet.one('.portlet-title');
-
-						var checked = event.currentTarget.get('checked');
-
-						portletData.useCustomTitle = checked;
-
-						if (checked) {
-							customTitleInput.set('disabled', false);
-							language.set('disabled', false);
-
-							title = Lang.trim(customTitleInput.val());
-
-							if (title == '') {
-								title = (portletTitle && portletTitle.text()) || '';
-								title = Lang.trim(title);
-
-								customTitleInput.val(title);
-							}
-
-							portletData.title = title;
-
-							instance._portletTitles(false, title);
-						}
-						else {
-							customTitleInput.attr('disabled', true);
-							language.attr('disabled', true);
-							title = instance._defaultPortletTitle;
-						}
-
-						if (portletTitle) {
-							portletTitle.text(title);
-						}
+						instance._setCustomTitleInput(event);
 					}
 				);
 
-				customTitleInput.detach('keyup');
+				customTitleInput.detach(KEYUP);
 
 				customTitleInput.on(
-					'keyup',
+					KEYUP,
 					function(event) {
 						if (!portletData.useCustomTitle) {
 							return;
@@ -1153,10 +1307,10 @@ AUI.add(
 							var cruft = portletTitle.html().match(/<\/?[^>]+>|\n|\r|\t/gim);
 
 							if (cruft) {
-								cruft = cruft.join('');
+								cruft = cruft.join(EMPTY);
 							}
 							else {
-								cruft = '';
+								cruft = EMPTY;
 							}
 
 							var value = event.currentTarget.val();
@@ -1164,10 +1318,21 @@ AUI.add(
 							var portletLanguage = instance._portletLanguage.val();
 
 							if (portletLanguage == instance._currentLanguage) {
-								portletTitle.html(cruft + value);
+								portletTitle.html(cruft);
+
+								var portletTitleText = portletTitle;
+
+								if (instance._showBorders.val() != 'false') {
+									portletTitleText = portletTitle.one('.portlet-title-text');
+								}
+
+								if (portletTitleText) {
+									portletTitleText.text(value);
+								}
 							}
 
 							portletData.title = value;
+
 							instance._portletTitles(portletLanguage, value);
 						}
 					}
@@ -1175,18 +1340,17 @@ AUI.add(
 
 				// Show borders
 
-				showBorders.detach('click');
-
 				showBorders.on(
-					'click',
+					CHANGE,
 					function(event) {
-						borderNote.toggle();
-						portletData.showBorders = event.currentTarget.get('checked');
+						borderNote.show();
+
+						portletData.showBorders = event.currentTarget.val();
 					}
 				);
 
 				language.on(
-					'change',
+					CHANGE,
 					function(event) {
 						portletData.language = event.currentTarget.val();
 
@@ -1201,7 +1365,7 @@ AUI.add(
 				// Point target links to
 
 				portletLinksTarget.on(
-					'change',
+					CHANGE,
 					function(event) {
 						portletData.portletLinksTarget = event.currentTarget.val();
 					}
@@ -1224,16 +1388,16 @@ AUI.add(
 				if (value == null) {
 					var portletTitle = portletTitles[key];
 
-					if (portletTitle) {
+					if (portletTitle != null) {
 						return portletTitle;
 					}
 
-					return '';
+					return instance._objData.defaultPortletTitles[key];
 				}
 				else {
 					portletTitles[key] = value;
 
-					if (value == '') {
+					if (value == EMPTY) {
 						instance._languageClasses(key, null, true);
 					}
 					else {
@@ -1246,7 +1410,58 @@ AUI.add(
 				var instance = this;
 
 				if (obj) {
-					obj.set('checked', value);
+					obj.set(CHECKED, value);
+				}
+			},
+
+			_setCustomTitleInput: function(event) {
+				var instance = this;
+
+				var title;
+
+				var customTitleInput = instance._customTitleInput;
+				var language = instance._portletLanguage;
+
+				var portletData = instance._objData.portletData;
+
+				var portletTitleSelector = '.portlet-title-default';
+
+				if (instance._showBorders.val() != 'false') {
+					portletTitleSelector = '.portlet-title-text';
+				}
+
+				var portletTitleText = instance._curPortlet.one(portletTitleSelector);
+
+				var checked = event.currentTarget.get(CHECKED);
+
+				portletData.useCustomTitle = checked;
+
+				if (checked) {
+					customTitleInput.set(DISABLED, false);
+					language.set(DISABLED, false);
+
+					title = Lang.trim(customTitleInput.val());
+
+					if (title == EMPTY) {
+						title = (portletTitleText && portletTitleText.text()) || EMPTY;
+						title = Lang.trim(title);
+
+						customTitleInput.val(title);
+					}
+
+					portletData.title = title;
+
+					instance._portletTitles(false, title);
+				}
+				else {
+					customTitleInput.attr(DISABLED, true);
+					language.attr(DISABLED, true);
+
+					title = instance._defaultPortletTitle;
+				}
+
+				if (portletTitleText) {
+					portletTitleText.text(title);
 				}
 			},
 
@@ -1265,7 +1480,7 @@ AUI.add(
 				if (wapData == null) {
 					wapData = {
 						initialWindowState: 'NORMAL',
-						title: ''
+						title: EMPTY
 					};
 
 					objData.wapData = wapData;
@@ -1274,43 +1489,45 @@ AUI.add(
 				var fontStyle = false;
 				var fontWeight = false;
 
-				if (textData.fontStyle && textData.fontStyle != 'normal') {
+				if (textData.fontStyle && textData.fontStyle != NORMAL) {
 					fontStyle = true;
 				}
 
-				if (textData.fontWeight && textData.fontWeight != 'normal') {
+				if (textData.fontWeight && textData.fontWeight != NORMAL) {
 					fontWeight = true;
 				}
 
 				// Portlet config
 
 				instance._setCheckbox(instance._customTitleCheckbox, portletData.useCustomTitle);
-				instance._setCheckbox(instance._showBorders, portletData.showBorders);
+				instance._setSelect(instance._showBorders, portletData.showBorders);
 				instance._setSelect(instance._portletLanguage, instance._currentLanguage);
 				instance._setSelect(instance._portletLinksTarget, portletData.portletLinksTarget);
 
-				var portletTitles = portletData.titles;
 				var portletTitle = instance._portletTitles(portletData.language);
 
-				if (!portletTitle) {
-					portletTitle = instance._defaultPortletTitle;
+				if (portletData.useCustomTitle) {
+					if (!portletTitle) {
+						instance._portletTitles(EMPTY);
+
+						portletData.title = EMPTY;
+					}
+
+					if (portletData.titles) {
+						A.each(
+							portletData.titles,
+							function(item, index) {
+								instance._languageClasses(item);
+							}
+						);
+					}
+				}
+				else {
+					instance._customTitleInput.attr(DISABLED, true);
+					instance._portletLanguage.attr(DISABLED, true);
 				}
 
 				instance._setInput(instance._customTitleInput, portletTitle);
-
-				if (!portletData.useCustomTitle) {
-					instance._customTitleInput.set('disabled', true);
-					instance._portletLanguage.set('disabled', true);
-				}
-
-				if (portletData.titles) {
-					A.each(
-						portletData.titles,
-						function(item, index, collection) {
-							instance._languageClasses(item);
-						}
-					);
-				}
 
 				// Text
 
@@ -1319,6 +1536,7 @@ AUI.add(
 				instance._setCheckbox(instance._fontStyle, fontStyle);
 				instance._setSelect(instance._fontSize, textData.fontSize);
 				instance._setInput(instance._fontColor, textData.color);
+				instance._setInputColor(instance._fontColor, textData.color);
 				instance._setSelect(instance._textAlign, textData.textAlign);
 				instance._setSelect(instance._textDecoration, textData.textDecoration);
 				instance._setSelect(instance._wordSpacing, textData.wordSpacing);
@@ -1328,6 +1546,7 @@ AUI.add(
 				// Background
 
 				instance._setInput(instance._backgroundColor, bgData.backgroundColor);
+				instance._setInputColor(instance._backgroundColor, bgData.backgroundColor);
 
 				// Border
 
@@ -1350,9 +1569,16 @@ AUI.add(
 				instance._setSelect(instance._borderLeftStyle, borderData.borderStyle.left);
 
 				instance._setInput(instance._borderTopColor, borderData.borderColor.top);
+				instance._setInputColor(instance._borderTopColor, borderData.borderColor.top);
+
 				instance._setInput(instance._borderRightColor, borderData.borderColor.right);
+				instance._setInputColor(instance._borderRightColor, borderData.borderColor.right);
+
 				instance._setInput(instance._borderBottomColor, borderData.borderColor.bottom);
+				instance._setInputColor(instance._borderBottomColor, borderData.borderColor.bottom);
+
 				instance._setInput(instance._borderLeftColor, borderData.borderColor.left);
+				instance._setInputColor(instance._borderLeftColor, borderData.borderColor.left);
 
 				// Spacing
 
@@ -1383,7 +1609,7 @@ AUI.add(
 
 				var customStyles = customStyleBlock && customStyleBlock.html();
 
-				if (customStyles == '' || customStyles == null) {
+				if (customStyles == EMPTY || customStyles == null) {
 					customStyles = objData.advancedData.customCSS;
 				}
 
@@ -1393,8 +1619,10 @@ AUI.add(
 
 				// WAP styling
 
-				instance._setInput(instance._wapTitleInput, wapData.title);
-				instance._setSelect(instance._wapInitialWindowStateSelect, wapData.initialWindowState);
+				if (instance._wapStyling) {
+					instance._setInput(instance._wapTitleInput, wapData.title);
+					instance._setSelect(instance._wapInitialWindowStateSelect, wapData.initialWindowState);
+				}
 			},
 
 			_setInput: function(obj, value) {
@@ -1405,6 +1633,12 @@ AUI.add(
 				}
 			},
 
+			_setInputColor: function(obj, value) {
+				if (obj) {
+					obj.setStyle(BACKGROUND_COLOR, value);
+				}
+			},
+
 			_setSelect: function(obj, value) {
 				var instance = this;
 
@@ -1412,7 +1646,7 @@ AUI.add(
 					var option = obj.one('option[value=' + value + ']');
 
 					if (option) {
-						option.attr('selected', 'selected');
+						option.attr(SELECTED, SELECTED);
 					}
 				}
 			},
@@ -1451,7 +1685,7 @@ AUI.add(
 
 					styling = {padding: padding.both};
 
-					var ufa = ufaPadding.get('checked');
+					var ufa = ufaPadding.get(CHECKED);
 
 					spacingData.padding.top.value = padding.input;
 					spacingData.padding.top.unit = padding.selectBox;
@@ -1486,44 +1720,44 @@ AUI.add(
 					portlet.setStyles(styling);
 				};
 
-				pTop.detach('blur');
-				pTop.on('blur', changePadding);
+				pTop.detach(BLUR);
+				pTop.on(BLUR, changePadding);
 
-				pRight.detach('blur');
-				pRight.on('blur', changePadding);
+				pRight.detach(BLUR);
+				pRight.on(BLUR, changePadding);
 
-				pBottom.detach('blur');
-				pBottom.on('blur', changePadding);
+				pBottom.detach(BLUR);
+				pBottom.on(BLUR, changePadding);
 
-				pLeft.detach('blur');
-				pLeft.on('blur', changePadding);
+				pLeft.detach(BLUR);
+				pLeft.on(BLUR, changePadding);
 
-				pTop.detach('keyup');
-				pTop.on('keyup', changePadding);
+				pTop.detach(KEYUP);
+				pTop.on(KEYUP, changePadding);
 
-				pRight.detach('keyup');
-				pRight.on('keyup', changePadding);
+				pRight.detach(KEYUP);
+				pRight.on(KEYUP, changePadding);
 
-				pBottom.detach('keyup');
-				pBottom.on('keyup', changePadding);
+				pBottom.detach(KEYUP);
+				pBottom.on(KEYUP, changePadding);
 
-				pLeft.detach('keyup');
-				pLeft.on('keyup', changePadding);
+				pLeft.detach(KEYUP);
+				pLeft.on(KEYUP, changePadding);
 
-				pTopUnit.detach('change');
-				pTopUnit.on('change', changePadding);
+				pTopUnit.detach(CHANGE);
+				pTopUnit.on(CHANGE, changePadding);
 
-				pRightUnit.detach('change');
-				pRightUnit.on('change', changePadding);
+				pRightUnit.detach(CHANGE);
+				pRightUnit.on(CHANGE, changePadding);
 
-				pBottomUnit.detach('change');
-				pBottomUnit.on('change', changePadding);
+				pBottomUnit.detach(CHANGE);
+				pBottomUnit.on(CHANGE, changePadding);
 
-				pLeftUnit.detach('change');
-				pLeftUnit.on('change', changePadding);
+				pLeftUnit.detach(CHANGE);
+				pLeftUnit.on(CHANGE, changePadding);
 
-				ufaPadding.detach('change');
-				ufaPadding.on('change', changePadding);
+				ufaPadding.detach(CHANGE);
+				ufaPadding.on(CHANGE, changePadding);
 
 				// Margin
 
@@ -1543,7 +1777,7 @@ AUI.add(
 
 					styling = {margin: margin.both};
 
-					var ufa = ufaMargin.get('checked');
+					var ufa = ufaMargin.get(CHECKED);
 
 					spacingData.margin.top.value = margin.input;
 					spacingData.margin.top.unit = margin.selectBox;
@@ -1578,44 +1812,44 @@ AUI.add(
 					portlet.setStyles(styling);
 				};
 
-				mTop.detach('blur');
-				mTop.on('blur', changeMargin);
+				mTop.detach(BLUR);
+				mTop.on(BLUR, changeMargin);
 
-				mRight.detach('blur');
-				mRight.on('blur', changeMargin);
+				mRight.detach(BLUR);
+				mRight.on(BLUR, changeMargin);
 
-				mBottom.detach('blur');
-				mBottom.on('blur', changeMargin);
+				mBottom.detach(BLUR);
+				mBottom.on(BLUR, changeMargin);
 
-				mLeft.detach('blur');
-				mLeft.on('blur', changeMargin);
+				mLeft.detach(BLUR);
+				mLeft.on(BLUR, changeMargin);
 
-				mTop.detach('keyup');
-				mTop.on('keyup', changeMargin);
+				mTop.detach(KEYUP);
+				mTop.on(KEYUP, changeMargin);
 
-				mRight.detach('keyup');
-				mRight.on('keyup', changeMargin);
+				mRight.detach(KEYUP);
+				mRight.on(KEYUP, changeMargin);
 
-				mBottom.detach('keyup');
-				mBottom.on('keyup', changeMargin);
+				mBottom.detach(KEYUP);
+				mBottom.on(KEYUP, changeMargin);
 
-				mLeft.detach('keyup');
-				mLeft.on('keyup', changeMargin);
+				mLeft.detach(KEYUP);
+				mLeft.on(KEYUP, changeMargin);
 
-				mTopUnit.detach('change');
-				mTopUnit.on('change', changeMargin);
+				mTopUnit.detach(CHANGE);
+				mTopUnit.on(CHANGE, changeMargin);
 
-				mRightUnit.detach('change');
-				mRightUnit.on('change', changeMargin);
+				mRightUnit.detach(CHANGE);
+				mRightUnit.on(CHANGE, changeMargin);
 
-				mBottomUnit.detach('change');
-				mBottomUnit.on('change', changeMargin);
+				mBottomUnit.detach(CHANGE);
+				mBottomUnit.on(CHANGE, changeMargin);
 
-				mLeftUnit.detach('change');
-				mLeftUnit.on('change', changeMargin);
+				mLeftUnit.detach(CHANGE);
+				mLeftUnit.on(CHANGE, changeMargin);
 
-				ufaMargin.detach('change');
-				ufaMargin.on('change', changeMargin);
+				ufaMargin.detach(CHANGE);
+				ufaMargin.on(CHANGE, changeMargin);
 			},
 
 			_textStyles: function() {
@@ -1637,14 +1871,14 @@ AUI.add(
 
 				// Font family
 
-				fontFamily.detach('change');
+				fontFamily.detach(CHANGE);
 
 				fontFamily.on(
-					'change',
+					CHANGE,
 					function(event) {
 						var fontFamily = event.currentTarget.val();
 
-						portlet.setStyle('fontFamily', fontFamily);
+						portlet.setStyle(FONT_FAMILY, fontFamily);
 
 						textData.fontFamily = fontFamily;
 					}
@@ -1652,35 +1886,35 @@ AUI.add(
 
 				// Font style
 
-				fontBold.detach('click');
+				fontBold.detach(CLICK);
 
 				fontBold.on(
-					'click',
+					CLICK,
 					function(event) {
-						var style = 'normal';
+						var style = NORMAL;
 
-						if (event.currentTarget.get('checked')) {
-							style = 'bold';
+						if (event.currentTarget.get(CHECKED)) {
+							style = BOLD;
 						}
 
-						portlet.setStyle('fontWeight', style);
+						portlet.setStyle(FONT_WEIGHT, style);
 
 						textData.fontWeight = style;
 					}
 				);
 
-				fontItalic.detach('click');
+				fontItalic.detach(CLICK);
 
 				fontItalic.on(
-					'click',
+					CLICK,
 					function(event) {
-						var style = 'normal';
+						var style = NORMAL;
 
-						if (event.currentTarget.get('checked')) {
-							style = 'italic';
+						if (event.currentTarget.get(CHECKED)) {
+							style = ITALIC;
 						}
 
-						portlet.setStyle('fontStyle', style);
+						portlet.setStyle(FONT_STYLE, style);
 
 						textData.fontStyle = style;
 					}
@@ -1688,14 +1922,14 @@ AUI.add(
 
 				// Font size
 
-				fontSize.detach('change');
+				fontSize.detach(CHANGE);
 
 				fontSize.on(
-					'change',
+					CHANGE,
 					function(event) {
 						var fontSize = event.currentTarget.val();
 
-						portlet.setStyle('fontSize', fontSize);
+						portlet.setStyle(FONT_SIZE, fontSize);
 
 						textData.fontSize = fontSize;
 					}
@@ -1703,62 +1937,54 @@ AUI.add(
 
 				// Font color
 
-				var changeColor = function(obj) {
-					var color = obj.val();
-
+				var changeColor = function(color) {
 					if (color) {
-						portlet.setStyle('color', color);
+						portlet.setStyle(COLOR, color);
 
 						textData.color = color;
 					}
 				};
 
-				var hexValue = fontColor.val().replace('#', '');
+				var hexValue = fontColor.val().replace('#', EMPTY);
 
 				if (!instance._fontColorPicker) {
-					instance._fontColorPicker = new A.ColorPicker(
+					instance._fontColorPicker = new A.ColorPickerPopover(
 						{
-							triggerParent: fontColor.get('parentNode'),
-							zIndex: 9999
+							constrain: true,
+							plugins: [Liferay.WidgetZIndex],
+							trigger: fontColor
 						}
-					).render(instance._currentPopup.get('boundingBox'));
+					).render(instance._currentPopup.get(BOUNDING_BOX));
 				}
 
 				var fontColorPicker = instance._fontColorPicker;
 
-				var afterColorChange = function() {
-					fontColor.val('#' + this.get('hex'));
+				var afterColorChange = function(event) {
+					var color = event.color;
 
-					changeColor(fontColor);
+					fontColor.val(color);
+
+					fontColor.setStyle(BACKGROUND_COLOR, color);
+
+					changeColor(color);
 				};
 
 				if (instance._afterFontColorChangeHandler) {
 					instance._afterFontColorChangeHandler.detach();
 				}
 
-				instance._afterFontColorChangeHandler = fontColorPicker.after('colorChange', afterColorChange);
-
-				fontColorPicker.set('hex', hexValue);
-
-				fontColor.detach('blur');
-
-				fontColor.on(
-					'blur',
-					function(event) {
-						changeColor(event.currentTarget);
-					}
-				);
+				instance._afterFontColorChangeHandler = fontColorPicker.after(SELECT, afterColorChange);
 
 				// Text alignment
 
-				textAlign.detach('change');
+				textAlign.detach(CHANGE);
 
 				textAlign.on(
-					'change',
+					CHANGE,
 					function(event) {
 						var textAlign = event.currentTarget.val();
 
-						portlet.setStyle('textAlign', textAlign);
+						portlet.setStyle(TEXT_ALIGN, textAlign);
 
 						textData.textAlign = textAlign;
 					}
@@ -1766,14 +1992,14 @@ AUI.add(
 
 				// Text decoration
 
-				textDecoration.detach('change');
+				textDecoration.detach(CHANGE);
 
 				textDecoration.on(
-					'change',
+					CHANGE,
 					function(event) {
 						var decoration = event.currentTarget.val();
 
-						portlet.setStyle('textDecoration', decoration);
+						portlet.setStyle(TEXT_DECORATION, decoration);
 
 						textData.textDecoration = decoration;
 					}
@@ -1781,14 +2007,14 @@ AUI.add(
 
 				// Word spacing
 
-				wordSpacing.detach('change');
+				wordSpacing.detach(CHANGE);
 
 				wordSpacing.on(
-					'change',
+					CHANGE,
 					function(event) {
 						var spacing = event.currentTarget.val();
 
-						portlet.setStyle('wordSpacing', spacing);
+						portlet.setStyle(WORD_SPACING, spacing);
 
 						textData.wordSpacing = spacing;
 					}
@@ -1796,14 +2022,14 @@ AUI.add(
 
 				// Line height
 
-				leading.detach('change');
+				leading.detach(CHANGE);
 
 				leading.on(
-					'change',
+					CHANGE,
 					function(event) {
 						var leading = event.currentTarget.val();
 
-						portlet.setStyle('lineHeight', leading);
+						portlet.setStyle(LINE_HEIGHT, leading);
 
 						textData.lineHeight = leading;
 					}
@@ -1811,14 +2037,14 @@ AUI.add(
 
 				// Letter spacing
 
-				tracking.detach('change');
+				tracking.detach(CHANGE);
 
 				tracking.on(
-					'change',
+					CHANGE,
 					function(event) {
 						var tracking = event.currentTarget.val();
 
-						portlet.setStyle('letterSpacing', tracking);
+						portlet.setStyle(LETTER_SPACING, tracking);
 
 						textData.letterSpacing = tracking;
 					}
@@ -1830,6 +2056,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-color-picker', 'aui-dialog', 'aui-io-request', 'aui-tabs-base']
+		requires: ['aui-color-picker-popover', 'aui-io-plugin-deprecated', 'aui-io-request', 'aui-tabview',  'liferay-util-window', 'liferay-widget-zindex']
 	}
 );

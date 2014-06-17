@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -32,6 +32,7 @@ public class EntityRegionWrapper
 		super(ehcacheEntityRegion);
 	}
 
+	@Override
 	public EntityRegionAccessStrategy buildAccessStrategy(AccessType accessType)
 		throws CacheException {
 
@@ -40,18 +41,21 @@ public class EntityRegionWrapper
 		return ehcacheEntityRegion.buildAccessStrategy(accessType);
 	}
 
+	@Override
 	public CacheDataDescription getCacheDataDescription() {
 		EhcacheEntityRegion ehcacheEntityRegion = getEhcacheEntityRegion();
 
 		return ehcacheEntityRegion.getCacheDataDescription();
 	}
 
+	@Override
 	public void invalidate() {
 		EhcacheEntityRegion ehcacheEntityRegion = getEhcacheEntityRegion();
 
 		ehcacheEntityRegion.clear();
 	}
 
+	@Override
 	public boolean isTransactionAware() {
 		EhcacheEntityRegion ehcacheEntityRegion = getEhcacheEntityRegion();
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,12 +14,16 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
 
 import java.io.Serializable;
+
+import java.util.Date;
 
 /**
  * The base model interface for the Organization service. Represents a row in the &quot;Organization_&quot; database table, with each column mapped to a property of this class.
@@ -34,7 +38,9 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.OrganizationModelImpl
  * @generated
  */
-public interface OrganizationModel extends BaseModel<Organization> {
+@ProviderType
+public interface OrganizationModel extends BaseModel<Organization>, MVCCModel,
+	StagedAuditedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -56,6 +62,39 @@ public interface OrganizationModel extends BaseModel<Organization> {
 	public void setPrimaryKey(long primaryKey);
 
 	/**
+	 * Returns the mvcc version of this organization.
+	 *
+	 * @return the mvcc version of this organization
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this organization.
+	 *
+	 * @param mvccVersion the mvcc version of this organization
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the uuid of this organization.
+	 *
+	 * @return the uuid of this organization
+	 */
+	@AutoEscape
+	@Override
+	public String getUuid();
+
+	/**
+	 * Sets the uuid of this organization.
+	 *
+	 * @param uuid the uuid of this organization
+	 */
+	@Override
+	public void setUuid(String uuid);
+
+	/**
 	 * Returns the organization ID of this organization.
 	 *
 	 * @return the organization ID of this organization
@@ -74,6 +113,7 @@ public interface OrganizationModel extends BaseModel<Organization> {
 	 *
 	 * @return the company ID of this organization
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -81,7 +121,89 @@ public interface OrganizationModel extends BaseModel<Organization> {
 	 *
 	 * @param companyId the company ID of this organization
 	 */
+	@Override
 	public void setCompanyId(long companyId);
+
+	/**
+	 * Returns the user ID of this organization.
+	 *
+	 * @return the user ID of this organization
+	 */
+	@Override
+	public long getUserId();
+
+	/**
+	 * Sets the user ID of this organization.
+	 *
+	 * @param userId the user ID of this organization
+	 */
+	@Override
+	public void setUserId(long userId);
+
+	/**
+	 * Returns the user uuid of this organization.
+	 *
+	 * @return the user uuid of this organization
+	 */
+	@Override
+	public String getUserUuid();
+
+	/**
+	 * Sets the user uuid of this organization.
+	 *
+	 * @param userUuid the user uuid of this organization
+	 */
+	@Override
+	public void setUserUuid(String userUuid);
+
+	/**
+	 * Returns the user name of this organization.
+	 *
+	 * @return the user name of this organization
+	 */
+	@AutoEscape
+	@Override
+	public String getUserName();
+
+	/**
+	 * Sets the user name of this organization.
+	 *
+	 * @param userName the user name of this organization
+	 */
+	@Override
+	public void setUserName(String userName);
+
+	/**
+	 * Returns the create date of this organization.
+	 *
+	 * @return the create date of this organization
+	 */
+	@Override
+	public Date getCreateDate();
+
+	/**
+	 * Sets the create date of this organization.
+	 *
+	 * @param createDate the create date of this organization
+	 */
+	@Override
+	public void setCreateDate(Date createDate);
+
+	/**
+	 * Returns the modified date of this organization.
+	 *
+	 * @return the modified date of this organization
+	 */
+	@Override
+	public Date getModifiedDate();
+
+	/**
+	 * Sets the modified date of this organization.
+	 *
+	 * @param modifiedDate the modified date of this organization
+	 */
+	@Override
+	public void setModifiedDate(Date modifiedDate);
 
 	/**
 	 * Returns the parent organization ID of this organization.
@@ -219,35 +341,74 @@ public interface OrganizationModel extends BaseModel<Organization> {
 	 */
 	public void setComments(String comments);
 
+	/**
+	 * Returns the logo ID of this organization.
+	 *
+	 * @return the logo ID of this organization
+	 */
+	public long getLogoId();
+
+	/**
+	 * Sets the logo ID of this organization.
+	 *
+	 * @param logoId the logo ID of this organization
+	 */
+	public void setLogoId(long logoId);
+
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(Organization organization);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<Organization> toCacheModel();
 
+	@Override
 	public Organization toEscapedModel();
 
+	@Override
+	public Organization toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

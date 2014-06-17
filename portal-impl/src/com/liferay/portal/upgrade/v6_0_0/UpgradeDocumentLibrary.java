@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,7 +30,6 @@ import com.liferay.portal.upgrade.v6_0_0.util.DLFileEntryVersionUpgradeColumnImp
 import com.liferay.portal.upgrade.v6_0_0.util.DLFileRankTable;
 import com.liferay.portal.upgrade.v6_0_0.util.DLFileShortcutTable;
 import com.liferay.portal.upgrade.v6_0_0.util.DLFileVersionTable;
-import com.liferay.portlet.documentlibrary.NoSuchFileException;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
 
@@ -56,7 +55,7 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(5);
 
@@ -99,7 +98,7 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement("select * from DLFileEntry");
 
@@ -127,8 +126,10 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 						DLStoreUtil.updateFile(
 							companyId, repositoryId, name, newName);
 					}
-					catch (NoSuchFileException nsfe) {
-						_log.error(nsfe);
+					catch (Exception e) {
+						if (_log.isWarnEnabled()) {
+							_log.warn("Unable to update file for " + name, e);
+						}
 					}
 				}
 			}
@@ -151,6 +152,7 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 			DLFileEntryTable.TABLE_NAME, DLFileEntryTable.TABLE_COLUMNS,
 			nameColumn, titleColumn, versionColumn);
 
+		upgradeTable.setAllowUniqueIndexes(true);
 		upgradeTable.setCreateSQL(DLFileEntryTable.TABLE_SQL_CREATE);
 		upgradeTable.setIndexesSQL(DLFileEntryTable.TABLE_SQL_ADD_INDEXES);
 
@@ -199,7 +201,7 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			StringBundler sb = new StringBundler(5);
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,6 +29,7 @@ public class CountryImpl extends CountryBaseImpl {
 	public CountryImpl() {
 	}
 
+	@Override
 	public String getName(Locale locale) {
 		String name = LanguageUtil.get(
 			locale, CountryConstants.NAME_PREFIX + getName());
@@ -40,17 +41,20 @@ public class CountryImpl extends CountryBaseImpl {
 		return getName();
 	}
 
+	@Override
 	public String getNameCurrentLanguageId() {
 		return _nameCurrentLanguageId;
 	}
 
 	@JSON
+	@Override
 	public String getNameCurrentValue() {
 		Locale locale = getLocale(_nameCurrentLanguageId);
 
 		return getName(locale);
 	}
 
+	@Override
 	public void setNameCurrentLanguageId(String languageId) {
 		_nameCurrentLanguageId = languageId;
 	}

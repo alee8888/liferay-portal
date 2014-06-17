@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,16 +15,19 @@
 package com.liferay.portal.kernel.portlet;
 
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.MethodCache;
-import com.liferay.portal.kernel.util.MethodKey;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 
 import java.io.IOException;
@@ -32,8 +35,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -48,6 +52,7 @@ import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
 import javax.portlet.WindowState;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -93,8 +98,7 @@ public class LiferayPortlet extends GenericPortlet {
 			Throwable cause = pe.getCause();
 
 			if (isSessionErrorException(cause)) {
-				SessionErrors.add(
-					actionRequest, cause.getClass().getName(), cause);
+				SessionErrors.add(actionRequest, cause.getClass(), cause);
 			}
 			else {
 				throw pe;
@@ -124,7 +128,7 @@ public class LiferayPortlet extends GenericPortlet {
 		String successMessage = ParamUtil.getString(
 			actionRequest, "successMessage");
 
-		SessionMessages.add(actionRequest, "request_processed", successMessage);
+		SessionMessages.add(actionRequest, "requestProcessed", successMessage);
 	}
 
 	protected boolean callActionMethod(
@@ -134,14 +138,15 @@ public class LiferayPortlet extends GenericPortlet {
 		String actionName = ParamUtil.getString(
 			actionRequest, ActionRequest.ACTION_NAME);
 
-		if (Validator.isNull(actionName)) {
+		if (Validator.isNull(actionName) ||
+			actionName.equals("callActionMethod") ||
+			actionName.equals("processAction")) {
+
 			return false;
 		}
 
 		try {
-			Method method = MethodCache.get(
-				_classesMap, _methodsMap, getClass().getName(), actionName,
-				new Class[] {ActionRequest.class, ActionResponse.class});
+			Method method = getActionMethod(actionName);
 
 			method.invoke(this, actionRequest, actionResponse);
 
@@ -271,6 +276,36 @@ public class LiferayPortlet extends GenericPortlet {
 		throw new PortletException("doPrint method not implemented");
 	}
 
+	protected Method getActionMethod(String actionName)
+		throws NoSuchMethodException {
+
+		Method method = _actionMethods.get(actionName);
+
+		if (method != null) {
+			return method;
+		}
+
+		Class<?> clazz = getClass();
+
+		method = clazz.getMethod(
+			actionName, ActionRequest.class, ActionResponse.class);
+
+		_actionMethods.put(actionName, method);
+
+		return method;
+	}
+
+	protected String getJSONContentType(PortletRequest portletRequest) {
+		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+			portletRequest);
+
+		if (BrowserSnifferUtil.isIe(request)) {
+			return ContentTypes.TEXT_HTML;
+		}
+
+		return ContentTypes.APPLICATION_JSON;
+	}
+
 	protected String getRedirect(
 		ActionRequest actionRequest, ActionResponse actionResponse) {
 
@@ -281,6 +316,16 @@ public class LiferayPortlet extends GenericPortlet {
 		}
 
 		return redirect;
+	}
+
+	@Override
+	protected String getTitle(RenderRequest renderRequest) {
+		try {
+			return PortalUtil.getPortletTitle(renderRequest);
+		}
+		catch (Exception e) {
+			return super.getTitle(renderRequest);
+		}
 	}
 
 	protected boolean isProcessActionRequest(ActionRequest actionRequest) {
@@ -302,12 +347,15 @@ public class LiferayPortlet extends GenericPortlet {
 	}
 
 	protected boolean isSessionErrorException(Throwable cause) {
+		if (_log.isDebugEnabled()) {
+			_log.debug(cause, cause);
+		}
+
 		if (cause instanceof PortalException) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	protected void sendRedirect(
@@ -321,6 +369,28 @@ public class LiferayPortlet extends GenericPortlet {
 		}
 	}
 
+	protected String translate(PortletRequest portletRequest, String key) {
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		ResourceBundle resourceBundle = getResourceBundle(
+			themeDisplay.getLocale());
+
+		return LanguageUtil.get(resourceBundle, key);
+	}
+
+	protected String translate(
+		PortletRequest portletRequest, String key, Object... arguments) {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		ResourceBundle resourceBundle = getResourceBundle(
+			themeDisplay.getLocale());
+
+		return LanguageUtil.format(resourceBundle, key, arguments);
+	}
+
 	protected void writeJSON(
 			PortletRequest portletRequest, ActionResponse actionResponse,
 			Object json)
@@ -329,9 +399,11 @@ public class LiferayPortlet extends GenericPortlet {
 		HttpServletResponse response = PortalUtil.getHttpServletResponse(
 			actionResponse);
 
-		response.setContentType(ContentTypes.TEXT_JAVASCRIPT);
+		response.setContentType(getJSONContentType(portletRequest));
 
 		ServletResponseUtil.write(response, json.toString());
+
+		response.flushBuffer();
 	}
 
 	protected void writeJSON(
@@ -339,17 +411,20 @@ public class LiferayPortlet extends GenericPortlet {
 			Object json)
 		throws IOException {
 
-		mimeResponse.setContentType(ContentTypes.TEXT_JAVASCRIPT);
+		mimeResponse.setContentType(getJSONContentType(portletRequest));
 
 		PortletResponseUtil.write(mimeResponse, json.toString());
+
+		mimeResponse.flushBuffer();
 	}
 
 	protected boolean addProcessActionSuccessMessage;
 
 	private static final boolean _PROCESS_PORTLET_REQUEST = true;
 
-	private Map<String, Class<?>> _classesMap = new HashMap<String, Class<?>>();
-	private Map<MethodKey, Method> _methodsMap =
-		new HashMap<MethodKey, Method>();
+	private static Log _log = LogFactoryUtil.getLog(LiferayPortlet.class);
+
+	private Map<String, Method> _actionMethods =
+		new ConcurrentHashMap<String, Method>();
 
 }

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,13 +14,15 @@
  */
 --%>
 
-<%@ include file="/html/taglib/ui/categorization_filter/init.jsp" %>
+<%@ include file="/html/taglib/init.jsp" %>
+
+<portlet:defineObjects />
 
 <%
 String assetType = GetterUtil.getString((String)request.getAttribute("liferay-ui:categorization-filter:assetType"), "content");
 PortletURL portletURL = (PortletURL)request.getAttribute("liferay-ui:categorization-filter:portletURL");
 
-if (Validator.isNull(portletURL)) {
+if (portletURL == null) {
 	portletURL = renderResponse.createRenderURL();
 }
 
@@ -55,7 +57,7 @@ if (assetCategoryId != 0) {
 			</portlet:renderURL>
 
 			<a href="<%= viewURLWithoutCategory %>" title="<liferay-ui:message key="remove" />">
-				<span class="aui-icon aui-icon-close aui-textboxlistentry-close"></span>
+				<span class="icon icon-remove textboxlistentry-remove"></span>
 			</a>
 		</span>
 	</c:if>
@@ -71,7 +73,7 @@ if (assetCategoryId != 0) {
 			</liferay-portlet:renderURL>
 
 			<a href="<%= viewURLWithoutTag %>" title="<liferay-ui:message key="remove" />">
-				<span class="aui-icon aui-icon-close aui-textboxlistentry-close"></span>
+				<span class="icon icon-remove textboxlistentry-remove"></span>
 			</a>
 		</span>
 	</c:if>
@@ -83,15 +85,15 @@ if (assetCategoryId != 0) {
 		<%
 		AssetUtil.addPortletBreadcrumbEntries(assetCategoryId, request, portletURL);
 
-		AssetUtil.addPortletBreadcrumbEntry(request, assetTagName, currentURL);
+		PortalUtil.addPortletBreadcrumbEntry(request, assetTagName, currentURL);
 
 		PortalUtil.addPageKeywords(assetCategoryTitle, request);
 		PortalUtil.addPageKeywords(assetTagName, request);
 		%>
 
-		<h1 class="taglib-categorization-filter entry-title">
-			<liferay-ui:message arguments="<%= new String[] {assetVocabularyTitle, removeCategory, removeTag} %>" key='<%= assetType.concat("-with-x-x-and-tag-x") %>' />
-		</h1>
+		<h2 class="taglib-categorization-filter entry-title">
+			<liferay-ui:message arguments="<%= new String[] {assetVocabularyTitle, removeCategory, removeTag} %>" key='<%= assetType.concat("-with-x-x-and-tag-x") %>' translateArguments="<%= false %>" />
+		</h2>
 	</c:when>
 	<c:when test="<%= assetCategoryId != 0 %>">
 
@@ -101,20 +103,20 @@ if (assetCategoryId != 0) {
 		PortalUtil.addPageKeywords(assetCategoryTitle, request);
 		%>
 
-		<h1 class="taglib-categorization-filter entry-title">
-			<liferay-ui:message arguments="<%= new String[] {assetVocabularyTitle, removeCategory} %>" key='<%= assetType.concat("-with-x-x") %>' />
-		</h1>
+		<h2 class="taglib-categorization-filter entry-title">
+			<liferay-ui:message arguments="<%= new String[] {assetVocabularyTitle, removeCategory} %>" key='<%= assetType.concat("-with-x-x") %>' translateArguments="<%= false %>" />
+		</h2>
 	</c:when>
 	<c:when test="<%= Validator.isNotNull(assetTagName) %>">
 
 		<%
-		AssetUtil.addPortletBreadcrumbEntry(request, assetTagName, currentURL);
+		PortalUtil.addPortletBreadcrumbEntry(request, assetTagName, currentURL);
 
 		PortalUtil.addPageKeywords(assetTagName, request);
 		%>
 
-		<h1 class="taglib-categorization-filter entry-title">
-			<liferay-ui:message arguments="<%= removeTag %>" key='<%= assetType.concat("-with-tag-x") %>' />
-		</h1>
+		<h2 class="taglib-categorization-filter entry-title">
+			<liferay-ui:message arguments="<%= removeTag %>" key='<%= assetType.concat("-with-tag-x") %>' translateArguments="<%= false %>" />
+		</h2>
 	</c:when>
 </c:choose>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portal.kernel.dao.search;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,6 +101,36 @@ public class ResultRow {
 			name, href);
 	}
 
+	public void addDate(Date date) {
+		addDate(_searchEntries.size(), date, null);
+	}
+
+	public void addDate(Date date, PortletURL portletURL) {
+		if (portletURL != null) {
+			addDate(_searchEntries.size(), date, portletURL.toString());
+		}
+		else {
+			addDate(_searchEntries.size(), date, null);
+		}
+	}
+
+	public void addDate(Date date, String href) {
+		addDate(_searchEntries.size(), date, null);
+	}
+
+	public void addDate(int index, Date date, String href) {
+
+		DateSearchEntry dateSearchEntry = new DateSearchEntry();
+
+		dateSearchEntry.setAlign(SearchEntry.DEFAULT_ALIGN);
+		dateSearchEntry.setColspan(SearchEntry.DEFAULT_COLSPAN);
+		dateSearchEntry.setDate(date);
+		dateSearchEntry.setHref(href);
+		dateSearchEntry.setValign(SearchEntry.DEFAULT_VALIGN);
+
+		_searchEntries.add(index, dateSearchEntry);
+	}
+
 	public void addJSP(int index, String path) {
 		addJSP(
 			index, SearchEntry.DEFAULT_ALIGN, SearchEntry.DEFAULT_VALIGN,
@@ -158,6 +189,18 @@ public class ResultRow {
 		addJSP(_searchEntries.size(), path, servletContext, request, response);
 	}
 
+	public void addJSP(String path, String cssClass) {
+		JSPSearchEntry jspSearchEntry = new JSPSearchEntry();
+
+		jspSearchEntry.setAlign(SearchEntry.DEFAULT_ALIGN);
+		jspSearchEntry.setColspan(SearchEntry.DEFAULT_COLSPAN);
+		jspSearchEntry.setCssClass(cssClass);
+		jspSearchEntry.setPath(path);
+		jspSearchEntry.setValign(SearchEntry.DEFAULT_VALIGN);
+
+		_searchEntries.add(_searchEntries.size(), jspSearchEntry);
+	}
+
 	public void addJSP(String align, String valign, int colspan, String path) {
 		addJSP(_searchEntries.size(), align, valign, colspan, path);
 	}
@@ -193,6 +236,87 @@ public class ResultRow {
 
 	public void addSearchEntry(SearchEntry searchEntry) {
 		_searchEntries.add(searchEntry);
+	}
+
+	public void addStatus(int status) {
+		addStatus(_searchEntries.size(), status, 0, null, null);
+	}
+
+	public void addStatus(
+		int index, int status, long statusByUserId, Date statusDate,
+		String href) {
+
+		StatusSearchEntry statusSearchEntry = new StatusSearchEntry();
+
+		statusSearchEntry.setAlign(SearchEntry.DEFAULT_ALIGN);
+		statusSearchEntry.setColspan(SearchEntry.DEFAULT_COLSPAN);
+		statusSearchEntry.setHref(href);
+		statusSearchEntry.setStatus(status);
+		statusSearchEntry.setStatusDate(statusDate);
+		statusSearchEntry.setStatusByUserId(statusByUserId);
+		statusSearchEntry.setValign(SearchEntry.DEFAULT_VALIGN);
+
+		_searchEntries.add(index, statusSearchEntry);
+	}
+
+	public void addStatus(
+		int index, int status, String href, ServletContext servletContext,
+		HttpServletRequest request, HttpServletResponse response) {
+
+		StatusSearchEntry statusSearchEntry = new StatusSearchEntry();
+
+		statusSearchEntry.setAlign(SearchEntry.DEFAULT_ALIGN);
+		statusSearchEntry.setColspan(SearchEntry.DEFAULT_COLSPAN);
+		statusSearchEntry.setHref(href);
+		statusSearchEntry.setRequest(request);
+		statusSearchEntry.setResponse(response);
+		statusSearchEntry.setServletContext(servletContext);
+		statusSearchEntry.setStatus(status);
+		statusSearchEntry.setValign(SearchEntry.DEFAULT_VALIGN);
+
+		_searchEntries.add(index, statusSearchEntry);
+	}
+
+	public void addStatus(int status, long statusByUserId, Date statusDate) {
+		addStatus(
+			_searchEntries.size(), status, statusByUserId, statusDate, null);
+	}
+
+	public void addStatus(
+		int status, long statusByUserId, Date statusDate,
+		PortletURL portletURL) {
+
+		if (portletURL != null) {
+			addStatus(
+				_searchEntries.size(), status, statusByUserId, statusDate,
+				portletURL.toString());
+		}
+		else {
+			addStatus(
+				_searchEntries.size(), status, statusByUserId, statusDate,
+				null);
+		}
+	}
+
+	public void addStatus(
+		int status, long statusByUserId, Date statusDate, String href) {
+
+		addStatus(
+			_searchEntries.size(), status, statusByUserId, statusDate, href);
+	}
+
+	public void addStatus(int status, PortletURL portletURL) {
+		if (portletURL != null) {
+			addStatus(
+				_searchEntries.size(), status, 0, null, portletURL.toString());
+		}
+		else {
+			addStatus(_searchEntries.size(), status, 0, null, null);
+		}
+	}
+
+	public void addStatus(int status, String href) {
+		addStatus(_searchEntries.size(), status, 0, null, href);
 	}
 
 	public void addText(int index, String name) {

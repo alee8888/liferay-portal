@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,21 +18,23 @@ import com.liferay.portal.NoSuchPortletItemException;
 import com.liferay.portal.PortletItemNameException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
+import com.liferay.portal.kernel.settings.ArchivedSettings;
+import com.liferay.portal.kernel.settings.ModifiableSettings;
+import com.liferay.portal.kernel.settings.Settings;
+import com.liferay.portal.kernel.settings.SettingsFactoryUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.security.auth.PrincipalException;
-import com.liferay.portal.service.PortletPreferencesServiceUtil;
+import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletConfig;
-import javax.portlet.PortletPreferences;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
@@ -44,18 +46,19 @@ import org.apache.struts.action.ActionMapping;
  * @author Jorge Ferrer
  * @author Raymond Augé
  */
-public class EditArchivedSetupsAction extends EditConfigurationAction {
+public class EditArchivedSetupsAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		Portlet portlet = null;
 
 		try {
-			portlet = getPortlet(actionRequest);
+			portlet = ActionUtil.getPortlet(actionRequest);
 		}
 		catch (PrincipalException pe) {
 			SessionErrors.add(
@@ -63,6 +66,8 @@ public class EditArchivedSetupsAction extends EditConfigurationAction {
 
 			setForward(actionRequest, "portlet.portlet_configuration.error");
 		}
+
+		actionRequest = ActionUtil.getWrappedActionRequest(actionRequest, null);
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
@@ -74,7 +79,7 @@ public class EditArchivedSetupsAction extends EditConfigurationAction {
 				restoreSetup(actionRequest, portlet);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteSetup(actionRequest);
+				deleteSetup(actionRequest, portlet);
 			}
 		}
 		catch (Exception e) {
@@ -96,59 +101,76 @@ public class EditArchivedSetupsAction extends EditConfigurationAction {
 			}
 		}
 
-		if (SessionErrors.isEmpty(actionRequest)) {
-			String portletResource = ParamUtil.getString(
-				actionRequest, "portletResource");
+		if (!SessionErrors.isEmpty(actionRequest)) {
+			return;
+		}
 
-			SessionMessages.add(
-				actionRequest,
-				portletConfig.getPortletName() +
-					SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
-				portletResource);
+		String portletResource = ParamUtil.getString(
+			actionRequest, "portletResource");
 
-			SessionMessages.add(
-				actionRequest,
-				portletConfig.getPortletName() +
-					SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
+		SessionMessages.add(
+			actionRequest,
+			PortalUtil.getPortletId(actionRequest) +
+				SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
+			portletResource);
 
-			String redirect = PortalUtil.escapeRedirect(
-				ParamUtil.getString(actionRequest, "redirect"));
+		SessionMessages.add(
+			actionRequest,
+			PortalUtil.getPortletId(actionRequest) +
+				SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
 
-			if (Validator.isNotNull(redirect)) {
-				actionResponse.sendRedirect(redirect);
-			}
+		String redirect = PortalUtil.escapeRedirect(
+			ParamUtil.getString(actionRequest, "redirect"));
+
+		if (Validator.isNotNull(redirect)) {
+			actionResponse.sendRedirect(redirect);
 		}
 	}
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		Portlet portlet = null;
 
 		try {
-			portlet = getPortlet(renderRequest);
+			portlet = ActionUtil.getPortlet(renderRequest);
 		}
 		catch (PrincipalException pe) {
 			SessionErrors.add(
 				renderRequest, PrincipalException.class.getName());
 
-			return mapping.findForward("portlet.portlet_configuration.error");
+			return actionMapping.findForward(
+				"portlet.portlet_configuration.error");
 		}
 
-		renderResponse.setTitle(getTitle(portlet, renderRequest));
+		renderRequest = ActionUtil.getWrappedRenderRequest(renderRequest, null);
 
-		return mapping.findForward(getForward(
-			renderRequest,
-			"portlet.portlet_configuration.edit_archived_setups"));
+		renderResponse.setTitle(ActionUtil.getTitle(portlet, renderRequest));
+
+		return actionMapping.findForward(
+			getForward(
+				renderRequest,
+				"portlet.portlet_configuration.edit_archived_setups"));
 	}
 
-	protected void deleteSetup(ActionRequest actionRequest) throws Exception {
-		long portletItemId = ParamUtil.getLong(actionRequest, "portletItemId");
+	protected void deleteSetup(ActionRequest actionRequest, Portlet portlet)
+		throws Exception {
 
-		PortletPreferencesServiceUtil.deleteArchivedPreferences(portletItemId);
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		String name = ParamUtil.getString(actionRequest, "name");
+
+		ArchivedSettings archivedSettings =
+			SettingsFactoryUtil.getPortletInstanceArchivedSettings(
+				themeDisplay.getSiteGroupId(), portlet.getRootPortletId(),
+				name);
+
+		archivedSettings.delete();
 	}
 
 	protected void restoreSetup(ActionRequest actionRequest, Portlet portlet)
@@ -157,15 +179,23 @@ public class EditArchivedSetupsAction extends EditConfigurationAction {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
+		Settings portletInstanceSettings =
+			SettingsFactoryUtil.getPortletInstanceSettings(
+				themeDisplay.getLayout(), portlet.getPortletId());
+
+		ModifiableSettings portletInstanceModifiableSettings =
+			portletInstanceSettings.getModifiableSettings();
+
 		String name = ParamUtil.getString(actionRequest, "name");
 
-		PortletPreferences setup =
-			PortletPreferencesFactoryUtil.getPortletSetup(
-				actionRequest, portlet.getPortletId());
+		ArchivedSettings archivedSettings =
+			SettingsFactoryUtil.getPortletInstanceArchivedSettings(
+				themeDisplay.getSiteGroupId(), portlet.getRootPortletId(),
+				name);
 
-		PortletPreferencesServiceUtil.restoreArchivedPreferences(
-			themeDisplay.getScopeGroupId(), name, themeDisplay.getLayout(),
-			portlet.getRootPortletId(), setup);
+		portletInstanceModifiableSettings.setValues(archivedSettings);
+
+		portletInstanceModifiableSettings.store();
 	}
 
 	protected void updateSetup(ActionRequest actionRequest, Portlet portlet)
@@ -176,13 +206,21 @@ public class EditArchivedSetupsAction extends EditConfigurationAction {
 
 		String name = ParamUtil.getString(actionRequest, "name");
 
-		PortletPreferences setup =
-			PortletPreferencesFactoryUtil.getPortletSetup(
-				actionRequest, portlet.getPortletId());
+		ArchivedSettings archivedSettings =
+			SettingsFactoryUtil.getPortletInstanceArchivedSettings(
+				themeDisplay.getSiteGroupId(), portlet.getRootPortletId(),
+				name);
 
-		PortletPreferencesServiceUtil.updateArchivePreferences(
-			themeDisplay.getUserId(), themeDisplay.getScopeGroupId(), name,
-			portlet.getRootPortletId(), setup);
+		Settings portletInstanceSettings =
+			SettingsFactoryUtil.getPortletInstanceSettings(
+				themeDisplay.getLayout(), portlet.getPortletId());
+
+		ModifiableSettings portletInstanceModifiableSettings =
+			portletInstanceSettings.getModifiableSettings();
+
+		archivedSettings.setValues(portletInstanceModifiableSettings);
+
+		archivedSettings.store();
 	}
 
 }

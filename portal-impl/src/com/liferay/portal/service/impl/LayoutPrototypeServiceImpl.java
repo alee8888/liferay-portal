@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,11 +16,11 @@ package com.liferay.portal.service.impl;
 
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.model.LayoutPrototype;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.LayoutPrototypeServiceBaseImpl;
 import com.liferay.portal.service.permission.LayoutPrototypePermissionUtil;
 import com.liferay.portal.service.permission.PortalPermissionUtil;
@@ -36,9 +36,31 @@ import java.util.Map;
  */
 public class LayoutPrototypeServiceImpl extends LayoutPrototypeServiceBaseImpl {
 
+	@Override
+	public LayoutPrototype addLayoutPrototype(
+			Map<Locale, String> nameMap, Map<Locale, String> descriptionMap,
+			boolean active, ServiceContext serviceContext)
+		throws PortalException {
+
+		PortalPermissionUtil.check(
+			getPermissionChecker(), ActionKeys.ADD_LAYOUT_PROTOTYPE);
+
+		User user = getUser();
+
+		return layoutPrototypeLocalService.addLayoutPrototype(
+			user.getUserId(), user.getCompanyId(), nameMap, descriptionMap,
+			active, serviceContext);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #addLayoutPrototype(Map,
+	 *             String, boolean, ServiceContext)}
+	 */
+	@Deprecated
+	@Override
 	public LayoutPrototype addLayoutPrototype(
 			Map<Locale, String> nameMap, String description, boolean active)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		PortalPermissionUtil.check(
 			getPermissionChecker(), ActionKeys.ADD_LAYOUT_PROTOTYPE);
@@ -50,8 +72,30 @@ public class LayoutPrototypeServiceImpl extends LayoutPrototypeServiceBaseImpl {
 			active);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #addLayoutPrototype(Map, Map,
+	 *             boolean, ServiceContext)}
+	 */
+	@Deprecated
+	@Override
+	public LayoutPrototype addLayoutPrototype(
+			Map<Locale, String> nameMap, String description, boolean active,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		PortalPermissionUtil.check(
+			getPermissionChecker(), ActionKeys.ADD_LAYOUT_PROTOTYPE);
+
+		User user = getUser();
+
+		return layoutPrototypeLocalService.addLayoutPrototype(
+			user.getUserId(), user.getCompanyId(), nameMap, description, active,
+			serviceContext);
+	}
+
+	@Override
 	public void deleteLayoutPrototype(long layoutPrototypeId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LayoutPrototypePermissionUtil.check(
 			getPermissionChecker(), layoutPrototypeId, ActionKeys.DELETE);
@@ -59,8 +103,9 @@ public class LayoutPrototypeServiceImpl extends LayoutPrototypeServiceBaseImpl {
 		layoutPrototypeLocalService.deleteLayoutPrototype(layoutPrototypeId);
 	}
 
+	@Override
 	public LayoutPrototype getLayoutPrototype(long layoutPrototypeId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LayoutPrototypePermissionUtil.check(
 			getPermissionChecker(), layoutPrototypeId, ActionKeys.VIEW);
@@ -69,9 +114,10 @@ public class LayoutPrototypeServiceImpl extends LayoutPrototypeServiceBaseImpl {
 			layoutPrototypeId);
 	}
 
+	@Override
 	public List<LayoutPrototype> search(
 			long companyId, Boolean active, OrderByComparator obc)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		List<LayoutPrototype> filteredLayoutPrototypes =
 			new ArrayList<LayoutPrototype>();
@@ -92,16 +138,54 @@ public class LayoutPrototypeServiceImpl extends LayoutPrototypeServiceBaseImpl {
 		return filteredLayoutPrototypes;
 	}
 
+	@Override
+	public LayoutPrototype updateLayoutPrototype(
+			long layoutPrototypeId, Map<Locale, String> nameMap,
+			Map<Locale, String> descriptionMap, boolean active,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		LayoutPrototypePermissionUtil.check(
+			getPermissionChecker(), layoutPrototypeId, ActionKeys.UPDATE);
+
+		return layoutPrototypeLocalService.updateLayoutPrototype(
+			layoutPrototypeId, nameMap, descriptionMap, active, serviceContext);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #updateLayoutPrototype(long,
+	 *             Map, String, boolean, ServiceContext)}
+	 */
+	@Deprecated
+	@Override
 	public LayoutPrototype updateLayoutPrototype(
 			long layoutPrototypeId, Map<Locale, String> nameMap,
 			String description, boolean active)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LayoutPrototypePermissionUtil.check(
 			getPermissionChecker(), layoutPrototypeId, ActionKeys.UPDATE);
 
 		return layoutPrototypeLocalService.updateLayoutPrototype(
 			layoutPrototypeId, nameMap, description, active);
+	}
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #updateLayoutPrototype(long,
+	 *             Map, Map, boolean, ServiceContext)}
+	 */
+	@Deprecated
+	@Override
+	public LayoutPrototype updateLayoutPrototype(
+			long layoutPrototypeId, Map<Locale, String> nameMap,
+			String description, boolean active, ServiceContext serviceContext)
+		throws PortalException {
+
+		LayoutPrototypePermissionUtil.check(
+			getPermissionChecker(), layoutPrototypeId, ActionKeys.UPDATE);
+
+		return layoutPrototypeLocalService.updateLayoutPrototype(
+			layoutPrototypeId, nameMap, description, active, serviceContext);
 	}
 
 }

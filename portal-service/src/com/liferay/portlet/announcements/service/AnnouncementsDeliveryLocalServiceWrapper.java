@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.announcements.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link AnnouncementsDeliveryLocalService}.
- * </p>
+ * Provides a wrapper for {@link AnnouncementsDeliveryLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AnnouncementsDeliveryLocalService
+ * @author Brian Wing Shun Chan
+ * @see AnnouncementsDeliveryLocalService
  * @generated
  */
+@ProviderType
 public class AnnouncementsDeliveryLocalServiceWrapper
 	implements AnnouncementsDeliveryLocalService,
 		ServiceWrapper<AnnouncementsDeliveryLocalService> {
@@ -38,11 +39,10 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	*
 	* @param announcementsDelivery the announcements delivery
 	* @return the announcements delivery that was added
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsDelivery addAnnouncementsDelivery(
-		com.liferay.portlet.announcements.model.AnnouncementsDelivery announcementsDelivery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.announcements.model.AnnouncementsDelivery announcementsDelivery) {
 		return _announcementsDeliveryLocalService.addAnnouncementsDelivery(announcementsDelivery);
 	}
 
@@ -52,6 +52,7 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	* @param deliveryId the primary key for the new announcements delivery
 	* @return the new announcements delivery
 	*/
+	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsDelivery createAnnouncementsDelivery(
 		long deliveryId) {
 		return _announcementsDeliveryLocalService.createAnnouncementsDelivery(deliveryId);
@@ -63,12 +64,11 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	* @param deliveryId the primary key of the announcements delivery
 	* @return the announcements delivery that was removed
 	* @throws PortalException if a announcements delivery with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsDelivery deleteAnnouncementsDelivery(
 		long deliveryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _announcementsDeliveryLocalService.deleteAnnouncementsDelivery(deliveryId);
 	}
 
@@ -77,14 +77,14 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	*
 	* @param announcementsDelivery the announcements delivery
 	* @return the announcements delivery that was removed
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsDelivery deleteAnnouncementsDelivery(
-		com.liferay.portlet.announcements.model.AnnouncementsDelivery announcementsDelivery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.announcements.model.AnnouncementsDelivery announcementsDelivery) {
 		return _announcementsDeliveryLocalService.deleteAnnouncementsDelivery(announcementsDelivery);
 	}
 
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _announcementsDeliveryLocalService.dynamicQuery();
 	}
@@ -94,12 +94,11 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _announcementsDeliveryLocalService.dynamicQuery(dynamicQuery);
 	}
 
@@ -107,19 +106,19 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	* Performs a dynamic query on the database and returns a range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.announcements.model.impl.AnnouncementsDeliveryModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return _announcementsDeliveryLocalService.dynamicQuery(dynamicQuery,
 			start, end);
 	}
@@ -128,7 +127,7 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.announcements.model.impl.AnnouncementsDeliveryModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -136,14 +135,13 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
 		return _announcementsDeliveryLocalService.dynamicQuery(dynamicQuery,
 			start, end, orderByComparator);
 	}
@@ -153,17 +151,31 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _announcementsDeliveryLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
+		return _announcementsDeliveryLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
+	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsDelivery fetchAnnouncementsDelivery(
-		long deliveryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long deliveryId) {
 		return _announcementsDeliveryLocalService.fetchAnnouncementsDelivery(deliveryId);
 	}
 
@@ -173,19 +185,33 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	* @param deliveryId the primary key of the announcements delivery
 	* @return the announcements delivery
 	* @throws PortalException if a announcements delivery with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsDelivery getAnnouncementsDelivery(
 		long deliveryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _announcementsDeliveryLocalService.getAnnouncementsDelivery(deliveryId);
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery() {
+		return _announcementsDeliveryLocalService.getActionableDynamicQuery();
+	}
+
+	/**
+	* @throws PortalException
+	*/
+	@Override
+	public com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _announcementsDeliveryLocalService.deletePersistedModel(persistedModel);
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _announcementsDeliveryLocalService.getPersistedModel(primaryKeyObj);
 	}
 
@@ -193,17 +219,16 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	* Returns a range of all the announcements deliveries.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.announcements.model.impl.AnnouncementsDeliveryModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of announcements deliveries
 	* @param end the upper bound of the range of announcements deliveries (not inclusive)
 	* @return the range of announcements deliveries
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portlet.announcements.model.AnnouncementsDelivery> getAnnouncementsDeliveries(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int start, int end) {
 		return _announcementsDeliveryLocalService.getAnnouncementsDeliveries(start,
 			end);
 	}
@@ -212,10 +237,9 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	* Returns the number of announcements deliveries.
 	*
 	* @return the number of announcements deliveries
-	* @throws SystemException if a system exception occurred
 	*/
-	public int getAnnouncementsDeliveriesCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public int getAnnouncementsDeliveriesCount() {
 		return _announcementsDeliveryLocalService.getAnnouncementsDeliveriesCount();
 	}
 
@@ -224,28 +248,11 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	*
 	* @param announcementsDelivery the announcements delivery
 	* @return the announcements delivery that was updated
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsDelivery updateAnnouncementsDelivery(
-		com.liferay.portlet.announcements.model.AnnouncementsDelivery announcementsDelivery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.announcements.model.AnnouncementsDelivery announcementsDelivery) {
 		return _announcementsDeliveryLocalService.updateAnnouncementsDelivery(announcementsDelivery);
-	}
-
-	/**
-	* Updates the announcements delivery in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param announcementsDelivery the announcements delivery
-	* @param merge whether to merge the announcements delivery with the current session. See {@link com.liferay.portal.service.persistence.BatchSession#update(com.liferay.portal.kernel.dao.orm.Session, com.liferay.portal.model.BaseModel, boolean)} for an explanation.
-	* @return the announcements delivery that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.announcements.model.AnnouncementsDelivery updateAnnouncementsDelivery(
-		com.liferay.portlet.announcements.model.AnnouncementsDelivery announcementsDelivery,
-		boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _announcementsDeliveryLocalService.updateAnnouncementsDelivery(announcementsDelivery,
-			merge);
 	}
 
 	/**
@@ -253,6 +260,7 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _announcementsDeliveryLocalService.getBeanIdentifier();
 	}
@@ -262,88 +270,92 @@ public class AnnouncementsDeliveryLocalServiceWrapper
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_announcementsDeliveryLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsDelivery addUserDelivery(
 		long userId, java.lang.String type)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _announcementsDeliveryLocalService.addUserDelivery(userId, type);
 	}
 
-	public void deleteDeliveries(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void deleteDeliveries(long userId) {
 		_announcementsDeliveryLocalService.deleteDeliveries(userId);
 	}
 
+	@Override
 	public void deleteDelivery(
-		com.liferay.portlet.announcements.model.AnnouncementsDelivery delivery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.announcements.model.AnnouncementsDelivery delivery) {
 		_announcementsDeliveryLocalService.deleteDelivery(delivery);
 	}
 
+	@Override
 	public void deleteDelivery(long deliveryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_announcementsDeliveryLocalService.deleteDelivery(deliveryId);
 	}
 
-	public void deleteDelivery(long userId, java.lang.String type)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void deleteDelivery(long userId, java.lang.String type) {
 		_announcementsDeliveryLocalService.deleteDelivery(userId, type);
 	}
 
+	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsDelivery getDelivery(
 		long deliveryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _announcementsDeliveryLocalService.getDelivery(deliveryId);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portlet.announcements.model.AnnouncementsDelivery> getUserDeliveries(
-		long userId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		long userId) throws com.liferay.portal.kernel.exception.PortalException {
 		return _announcementsDeliveryLocalService.getUserDeliveries(userId);
 	}
 
+	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsDelivery getUserDelivery(
 		long userId, java.lang.String type)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _announcementsDeliveryLocalService.getUserDelivery(userId, type);
 	}
 
+	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsDelivery updateDelivery(
 		long userId, java.lang.String type, boolean email, boolean sms,
 		boolean website)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _announcementsDeliveryLocalService.updateDelivery(userId, type,
 			email, sms, website);
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AnnouncementsDeliveryLocalService getWrappedAnnouncementsDeliveryLocalService() {
 		return _announcementsDeliveryLocalService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAnnouncementsDeliveryLocalService(
 		AnnouncementsDeliveryLocalService announcementsDeliveryLocalService) {
 		_announcementsDeliveryLocalService = announcementsDeliveryLocalService;
 	}
 
+	@Override
 	public AnnouncementsDeliveryLocalService getWrappedService() {
 		return _announcementsDeliveryLocalService;
 	}
 
+	@Override
 	public void setWrappedService(
 		AnnouncementsDeliveryLocalService announcementsDeliveryLocalService) {
 		_announcementsDeliveryLocalService = announcementsDeliveryLocalService;

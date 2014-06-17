@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portlet.wiki.translators;
 
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portlet.wiki.importers.mediawiki.MediaWikiImporter;
 
 import java.util.regex.Matcher;
@@ -154,8 +155,7 @@ public class MediaWikiToCreoleTranslator extends BaseTranslator {
 
 		// LEP-6118
 
-		Matcher matcher = Pattern.compile(
-			"^=([^=]+)=", Pattern.MULTILINE).matcher(content);
+		Matcher matcher = _titlePattern.matcher(content);
 
 		if (matcher.find()) {
 			content = runRegexp(content, "^===([^=]+)===", "====$1====");
@@ -171,8 +171,7 @@ public class MediaWikiToCreoleTranslator extends BaseTranslator {
 
 		// Images
 
-		matcher = Pattern.compile(
-			"(\\[{2})(Image|File)(:)", Pattern.DOTALL).matcher(content);
+		matcher = _imagePattern.matcher(content);
 
 		StringBuffer sb = new StringBuffer(content);
 
@@ -205,8 +204,9 @@ public class MediaWikiToCreoleTranslator extends BaseTranslator {
 
 			String image =
 				"{{" + MediaWikiImporter.SHARED_IMAGES_TITLE + "/" +
-					sb.substring(imageStartPos, imageEndPos).toLowerCase() +
-						"}}";
+					StringUtil.toLowerCase(
+						sb.substring(imageStartPos, imageEndPos)) +
+							"}}";
 
 			int imageLength = image.length();
 
@@ -226,8 +226,7 @@ public class MediaWikiToCreoleTranslator extends BaseTranslator {
 
 		// Tables
 
-		matcher = Pattern.compile(
-			"\\{\\|(.*?)\\|\\}", Pattern.DOTALL).matcher(content);
+		matcher = _tablePattern.matcher(content);
 
 		sb = new StringBuffer(content);
 
@@ -269,8 +268,7 @@ public class MediaWikiToCreoleTranslator extends BaseTranslator {
 
 		// Remove underscores from links
 
-		matcher = Pattern.compile(
-			"\\[{2}([^\\]]*)\\]{2}", Pattern.DOTALL).matcher(content);
+		matcher = _linkPattern.matcher(content);
 
 		sb = new StringBuffer(content);
 
@@ -291,6 +289,14 @@ public class MediaWikiToCreoleTranslator extends BaseTranslator {
 		"</p>", "<tt>", "</tt>", "<var>", "</var>"
 	};
 
+	private Pattern _imagePattern = Pattern.compile(
+		"(\\[{2})(Image|File)(:)", Pattern.DOTALL);
+	private Pattern _linkPattern = Pattern.compile(
+		"\\[{2}([^\\]]*)\\]{2}", Pattern.DOTALL);
 	private boolean _strictImportMode;
+	private Pattern _tablePattern = Pattern.compile(
+		"\\{\\|(.*?)\\|\\}", Pattern.DOTALL);
+	private Pattern _titlePattern = Pattern.compile(
+		"^=([^=]+)=", Pattern.MULTILINE);
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.taglib.ui;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -144,7 +143,7 @@ public class InputPermissionsParamsTag extends TagSupport {
 
 	public static String getDefaultViewRole(
 			String modelName, ThemeDisplay themeDisplay)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Layout layout = themeDisplay.getLayout();
 
@@ -172,11 +171,11 @@ public class InputPermissionsParamsTag extends TagSupport {
 			ResourceActionsUtil.getModelResourceGroupDefaultActions(modelName);
 
 		if (groupDefaultActions.contains(ActionKeys.VIEW)) {
-			Group parentGroup = GroupLocalServiceUtil.getGroup(
-				themeDisplay.getParentGroupId());
+			Group siteGroup = GroupLocalServiceUtil.getGroup(
+				themeDisplay.getSiteGroupId());
 
 			Role defaultGroupRole = RoleLocalServiceUtil.getDefaultGroupRole(
-				parentGroup.getGroupId());
+				siteGroup.getGroupId());
 
 			return defaultGroupRole.getName();
 		}

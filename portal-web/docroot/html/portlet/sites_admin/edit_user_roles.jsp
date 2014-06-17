@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +26,11 @@ String backURL = ParamUtil.getString(request, "backURL", redirect);
 
 Group group = (Group)request.getAttribute(WebKeys.GROUP);
 
-String groupName = group.getDescriptiveName(locale);
+if (group != null) {
+	group = StagingUtil.getLiveGroup(group.getGroupId());
+}
+
+String groupDescriptiveName = group.getDescriptiveName(locale);
 
 Role role = (Role)request.getAttribute(WebKeys.ROLE);
 
@@ -53,7 +57,7 @@ if (organization != null) {
 	UsersAdminUtil.addPortletBreadcrumbEntries(organization, request, renderResponse);
 }
 else if (group != null) {
-	PortalUtil.addPortletBreadcrumbEntry(request, group.getDescriptiveName(locale), null);
+	PortalUtil.addPortletBreadcrumbEntry(request, groupDescriptiveName, null);
 }
 
 PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "assign-user-roles"), portletURL.toString());
@@ -61,7 +65,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "ass
 if (role != null) {
 	portletURL.setParameter("roleId", String.valueOf(roleId));
 
-	PortalUtil.addPortletBreadcrumbEntry(request, HtmlUtil.escape(role.getTitle(locale)), currentURL);
+	PortalUtil.addPortletBreadcrumbEntry(request, role.getTitle(locale), currentURL);
 }
 
 request.setAttribute("edit_user_roles.jsp-tabs1", tabs1);
@@ -71,7 +75,7 @@ request.setAttribute("edit_user_roles.jsp-cur", cur);
 request.setAttribute("edit_user_roles.jsp-redirect", redirect);
 
 request.setAttribute("edit_user_roles.jsp-group", group);
-request.setAttribute("edit_user_roles.jsp-groupName", groupName);
+request.setAttribute("edit_user_roles.jsp-groupDescriptiveName", groupDescriptiveName);
 request.setAttribute("edit_user_roles.jsp-role", role);
 request.setAttribute("edit_user_roles.jsp-roleId", roleId);
 request.setAttribute("edit_user_roles.jsp-roleType", roleType);
@@ -81,9 +85,10 @@ request.setAttribute("edit_user_roles.jsp-portletURL", portletURL);
 %>
 
 <liferay-ui:header
-	backURL="<%= backURL %>"
+	backURL="<%= redirect %>"
+	escapeXml="<%= false %>"
 	localizeTitle="<%= false %>"
-	title="<%= group.getDescriptiveName(locale) %>"
+	title='<%= LanguageUtil.get(pageContext, "add-site-roles-to") + ": " + LanguageUtil.get(pageContext, "users") %>'
 />
 
 <aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
@@ -108,11 +113,12 @@ request.setAttribute("edit_user_roles.jsp-portletURL", portletURL);
 		window,
 		'<portlet:namespace />updateUserGroupRoleUsers',
 		function(redirect) {
-			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "user_group_role_users";
+			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'user_group_role_users';
 			document.<portlet:namespace />fm.<portlet:namespace />redirect.value = redirect;
-			document.<portlet:namespace />fm.<portlet:namespace />addUserIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-			document.<portlet:namespace />fm.<portlet:namespace />removeUserIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-			submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/sites_admin/edit_user_roles" /></portlet:actionURL>");
+			document.<portlet:namespace />fm.<portlet:namespace />addUserIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+			document.<portlet:namespace />fm.<portlet:namespace />removeUserIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
+			submitForm(document.<portlet:namespace />fm, '<portlet:actionURL><portlet:param name="struts_action" value="/sites_admin/edit_user_roles" /></portlet:actionURL>');
 		},
 		['liferay-util-list-fields']
 	);

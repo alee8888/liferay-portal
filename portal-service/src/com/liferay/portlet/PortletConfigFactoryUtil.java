@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portlet;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.model.Portlet;
 
 import javax.portlet.PortletConfig;
@@ -36,6 +37,9 @@ public class PortletConfigFactoryUtil {
 	}
 
 	public static PortletConfigFactory getPortletConfigFactory() {
+		PortalRuntimePermission.checkGetBeanProperty(
+			PortletConfigFactoryUtil.class);
+
 		return _portletConfigFactory;
 	}
 
@@ -45,6 +49,8 @@ public class PortletConfigFactoryUtil {
 
 	public void setPortletConfigFactory(
 		PortletConfigFactory portletConfigFactory) {
+
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
 
 		_portletConfigFactory = portletConfigFactory;
 	}

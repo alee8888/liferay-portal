@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,16 +29,16 @@ String oggPreviewFileURL = null;
 String ogvPreviewFileURL = null;
 
 for (String previewFileURL : previewFileURLs) {
-	if (previewFileURL.endsWith("mp3")){
+	if (previewFileURL.endsWith("mp3")) {
 		mp3PreviewFileURL = previewFileURL;
 	}
-	else if (previewFileURL.endsWith("mp4")){
+	else if (previewFileURL.endsWith("mp4")) {
 		mp4PreviewFileURL = previewFileURL;
 	}
-	else if (previewFileURL.endsWith("ogg")){
+	else if (previewFileURL.endsWith("ogg")) {
 		oggPreviewFileURL = previewFileURL;
 	}
-	else if (previewFileURL.endsWith("ogv")){
+	else if (previewFileURL.endsWith("ogv")) {
 		ogvPreviewFileURL = previewFileURL;
 	}
 }
@@ -51,15 +51,16 @@ for (String previewFileURL : previewFileURLs) {
 				{
 					contentBox: '#<portlet:namespace />previewFileContent',
 					fixedAttributes: {
-						allowfullscreen: 'true'
+						allowfullscreen: 'true',
+						wmode: 'opaque'
 					}
 
 					<c:if test="<%= Validator.isNotNull(oggPreviewFileURL) %>">
-						, oggUrl: '<%= oggPreviewFileURL %>'
+						, oggUrl: '<%= HtmlUtil.escapeJS(oggPreviewFileURL) %>'
 					</c:if>
 
 					<c:if test="<%= Validator.isNotNull(mp3PreviewFileURL) %>">
-						, url: '<%= mp3PreviewFileURL %>'
+						, url: '<%= HtmlUtil.escapeJS(mp3PreviewFileURL) %>'
 					</c:if>
 				}
 			).render();
@@ -72,17 +73,18 @@ for (String previewFileURL : previewFileURLs) {
 					contentBox: '#<portlet:namespace />previewFileContent',
 					fixedAttributes: {
 						allowfullscreen: 'true',
-						bgColor: '#000000'
+						bgColor: '#000000',
+						wmode: 'opaque'
 					},
 
 					<c:if test="<%= Validator.isNotNull(ogvPreviewFileURL) %>">
-						ogvUrl: '<%= ogvPreviewFileURL %>',
+						ogvUrl: '<%= HtmlUtil.escapeJS(ogvPreviewFileURL) %>',
 					</c:if>
 
-					poster: '<%= videoThumbnailURL %>'
+					poster: '<%= HtmlUtil.escapeJS(videoThumbnailURL) %>'
 
 					<c:if test="<%= Validator.isNotNull(mp4PreviewFileURL) %>">
-						, url: '<%= mp4PreviewFileURL %>'
+						, url: '<%= HtmlUtil.escapeJS(mp4PreviewFileURL) %>'
 					</c:if>
 				}
 			).render();

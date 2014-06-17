@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,8 @@
 
 package com.liferay.portlet;
 
+import com.liferay.portal.kernel.servlet.ServletOutputStreamAdapter;
 import com.liferay.portal.kernel.util.UnsyncPrintWriterPool;
-import com.liferay.util.servlet.GenericServletOutputStream;
 import com.liferay.util.servlet.NullServletOutputStream;
 
 import java.io.IOException;
@@ -63,8 +63,8 @@ public class PortletServletResponse extends HttpServletResponseWrapper {
 	}
 
 	@Override
-	public void addDateHeader(String name, long date) {
-		addHeader(name, String.valueOf(date));
+	public void addDateHeader(String name, long value) {
+		addHeader(name, String.valueOf(value));
 	}
 
 	@Override
@@ -188,7 +188,7 @@ public class PortletServletResponse extends HttpServletResponseWrapper {
 				mimeResponse.getPortletOutputStream();
 
 			ServletOutputStream servletOutputStream =
-				new GenericServletOutputStream(portletOutputStream);
+				new ServletOutputStreamAdapter(portletOutputStream);
 
 			return servletOutputStream;
 		}
@@ -207,7 +207,8 @@ public class PortletServletResponse extends HttpServletResponseWrapper {
 			return mimeResponse.getWriter();
 		}
 		else {
-			return UnsyncPrintWriterPool.borrow(new NullServletOutputStream());
+			return UnsyncPrintWriterPool.borrow(
+				new NullServletOutputStream(), getCharacterEncoding());
 		}
 	}
 
@@ -255,7 +256,7 @@ public class PortletServletResponse extends HttpServletResponseWrapper {
 	}
 
 	@Override
-	public void sendError(int status, String msg) {
+	public void sendError(int status, String message) {
 	}
 
 	@Override
@@ -281,23 +282,23 @@ public class PortletServletResponse extends HttpServletResponseWrapper {
 	}
 
 	@Override
-	public void setCharacterEncoding(String encoding) {
+	public void setCharacterEncoding(String characterEncoding) {
 		if (!_include) {
 			if (_lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
 				ResourceResponse resourceResponse = _getResourceResponse();
 
-				resourceResponse.setCharacterEncoding(encoding);
+				resourceResponse.setCharacterEncoding(characterEncoding);
 			}
 		}
 	}
 
 	@Override
-	public void setContentLength(int length) {
+	public void setContentLength(int contentLength) {
 		if (!_include) {
 			if (_lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
 				ResourceResponse resourceResponse = _getResourceResponse();
 
-				resourceResponse.setContentLength(length);
+				resourceResponse.setContentLength(contentLength);
 			}
 		}
 	}
@@ -362,7 +363,7 @@ public class PortletServletResponse extends HttpServletResponseWrapper {
 	}
 
 	@Override
-	public void setStatus(int status, String msg) {
+	public void setStatus(int status, String message) {
 		setStatus(status);
 	}
 

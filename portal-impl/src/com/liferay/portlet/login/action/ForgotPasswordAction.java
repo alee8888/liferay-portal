@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.RequiredReminderQueryException;
 import com.liferay.portal.SendPasswordException;
 import com.liferay.portal.UserActiveException;
 import com.liferay.portal.UserEmailAddressException;
+import com.liferay.portal.UserLockoutException;
 import com.liferay.portal.UserReminderQueryException;
 import com.liferay.portal.kernel.captcha.CaptchaException;
 import com.liferay.portal.kernel.captcha.CaptchaTextException;
@@ -58,8 +59,9 @@ public class ForgotPasswordAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -88,6 +90,7 @@ public class ForgotPasswordAction extends PortletAction {
 				e instanceof SendPasswordException ||
 				e instanceof UserActiveException ||
 				e instanceof UserEmailAddressException ||
+				e instanceof UserLockoutException ||
 				e instanceof UserReminderQueryException) {
 
 				SessionErrors.add(actionRequest, e.getClass());
@@ -100,8 +103,9 @@ public class ForgotPasswordAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
@@ -110,12 +114,12 @@ public class ForgotPasswordAction extends PortletAction {
 		Company company = themeDisplay.getCompany();
 
 		if (!company.isSendPassword() && !company.isSendPasswordResetLink()) {
-			return mapping.findForward("portlet.login.login");
+			return actionMapping.findForward("portlet.login.login");
 		}
 
 		renderResponse.setTitle(themeDisplay.translate("forgot-password"));
 
-		return mapping.findForward("portlet.login.forgot_password");
+		return actionMapping.findForward("portlet.login.forgot_password");
 	}
 
 	protected void checkCaptcha(ActionRequest actionRequest)
@@ -152,9 +156,8 @@ public class ForgotPasswordAction extends PortletAction {
 		actionRequest.setAttribute(WebKeys.FORGOT_PASSWORD_REMINDER_USER, user);
 
 		if (step == 2) {
-			Integer reminderAttempts =
-				(Integer)portletSession.getAttribute(
-					WebKeys.FORGOT_PASSWORD_REMINDER_ATTEMPTS);
+			Integer reminderAttempts = (Integer)portletSession.getAttribute(
+				WebKeys.FORGOT_PASSWORD_REMINDER_ATTEMPTS);
 
 			if (reminderAttempts == null) {
 				reminderAttempts = 0;
@@ -214,6 +217,10 @@ public class ForgotPasswordAction extends PortletAction {
 			throw new UserActiveException();
 		}
 
+		if (user.isLockout()) {
+			throw new UserLockoutException();
+		}
+
 		return user;
 	}
 
@@ -249,12 +256,13 @@ public class ForgotPasswordAction extends PortletAction {
 			}
 		}
 
-		PortletPreferences preferences = actionRequest.getPreferences();
+		PortletPreferences portletPreferences = actionRequest.getPreferences();
 
 		String languageId = LanguageUtil.getLanguageId(actionRequest);
 
-		String emailFromName = preferences.getValue("emailFromName", null);
-		String emailFromAddress = preferences.getValue(
+		String emailFromName = portletPreferences.getValue(
+			"emailFromName", null);
+		String emailFromAddress = portletPreferences.getValue(
 			"emailFromAddress", null);
 		String emailToAddress = user.getEmailAddress();
 
@@ -264,9 +272,9 @@ public class ForgotPasswordAction extends PortletAction {
 			emailParam = "emailPasswordReset";
 		}
 
-		String subject = preferences.getValue(
+		String subject = portletPreferences.getValue(
 			emailParam + "Subject_" + languageId, null);
-		String body = preferences.getValue(
+		String body = portletPreferences.getValue(
 			emailParam + "Body_" + languageId, null);
 
 		LoginUtil.sendPassword(

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portlet.dynamicdatamapping.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStorageLink;
 import com.liferay.portlet.dynamicdatamapping.service.base.DDMStorageLinkLocalServiceBaseImpl;
@@ -29,10 +28,10 @@ import java.util.List;
 public class DDMStorageLinkLocalServiceImpl
 	extends DDMStorageLinkLocalServiceBaseImpl {
 
+	@Override
 	public DDMStorageLink addStorageLink(
-			long classNameId, long classPK, long structureId,
-			ServiceContext serviceContext)
-		throws SystemException {
+		long classNameId, long classPK, long structureId,
+		ServiceContext serviceContext) {
 
 		long storageLinkId = counterLocalService.increment();
 
@@ -43,37 +42,35 @@ public class DDMStorageLinkLocalServiceImpl
 		storageLink.setClassPK(classPK);
 		storageLink.setStructureId(structureId);
 
-		ddmStorageLinkPersistence.update(storageLink, false);
+		ddmStorageLinkPersistence.update(storageLink);
 
 		return storageLink;
 	}
 
-	public void deleteClassStorageLink(long classPK)
-		throws PortalException, SystemException {
-
+	@Override
+	public void deleteClassStorageLink(long classPK) throws PortalException {
 		DDMStorageLink storageLink = ddmStorageLinkPersistence.findByClassPK(
 			classPK);
 
 		deleteStorageLink(storageLink);
 	}
 
-	public void deleteStorageLink(DDMStorageLink storageLink)
-		throws SystemException {
+	@Override
+	public void deleteStorageLink(DDMStorageLink storageLink) {
 
 		ddmStorageLinkPersistence.remove(storageLink);
 	}
 
-	public void deleteStorageLink(long storageLinkId)
-		throws PortalException, SystemException {
-
+	@Override
+	public void deleteStorageLink(long storageLinkId) throws PortalException {
 		DDMStorageLink storageLink = ddmStorageLinkPersistence.findByPrimaryKey(
 			storageLinkId);
 
 		deleteStorageLink(storageLink);
 	}
 
-	public void deleteStructureStorageLinks(long structureId)
-		throws SystemException {
+	@Override
+	public void deleteStructureStorageLinks(long structureId) {
 
 		List<DDMStorageLink> storageLinks =
 			ddmStorageLinkPersistence.findByStructureId(structureId);
@@ -83,27 +80,36 @@ public class DDMStorageLinkLocalServiceImpl
 		}
 	}
 
+	@Override
 	public DDMStorageLink getClassStorageLink(long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return ddmStorageLinkPersistence.findByClassPK(classPK);
 	}
 
+	@Override
 	public DDMStorageLink getStorageLink(long storageLinkId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return ddmStorageLinkPersistence.findByPrimaryKey(storageLinkId);
 	}
 
-	public List<DDMStorageLink> getStructureStorageLinks(long structureId)
-		throws SystemException {
+	@Override
+	public List<DDMStorageLink> getStructureStorageLinks(long structureId) {
 
 		return ddmStorageLinkPersistence.findByStructureId(structureId);
 	}
 
+	@Override
+	public int getStructureStorageLinksCount(long structureId) {
+
+		return ddmStorageLinkPersistence.countByStructureId(structureId);
+	}
+
+	@Override
 	public DDMStorageLink updateStorageLink(
 			long storageLinkId, long classNameId, long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDMStorageLink storageLink = ddmStorageLinkPersistence.findByPrimaryKey(
 			storageLinkId);
@@ -111,7 +117,7 @@ public class DDMStorageLinkLocalServiceImpl
 		storageLink.setClassNameId(classNameId);
 		storageLink.setClassPK(classPK);
 
-		ddmStorageLinkPersistence.update(storageLink, false);
+		ddmStorageLinkPersistence.update(storageLink);
 
 		return storageLink;
 	}

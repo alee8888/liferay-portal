@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<project name="portal-test-weblogic" basedir="." default="test" xmlns:antelope="antlib:ise.antelope.tasks">
+	<import file="build-test.xml" />
+
+	<target name="run-selenium-weblogic">
+		<app-server-properties-update>
+			app.server.type=weblogic
+		</app-server-properties-update>
+
+		<if>
+			<not>
+				<isset property="build.app.server" />
+			</not>
+			<then>
+				<ant antfile="build-dist.xml" target="unzip-weblogic" />
+
+				<ant target="all" />
+			</then>
+		</if>
+
+		<antcall target="revert-test-properties" />
+
+		<ant dir="portal-impl" target="build-selenium-new-test-case" />
+
+		<antcall target="prepare-selenium">
+			<param name="test.class" value="${test.name}" />
+		</antcall>
+
+		<antcall target="start-selenium" />
+
+		<antcall target="run-weblogic" inheritAll="false">
+			<param name="test.class" value="${test.name}" />
+		</antcall>
+
+		<antcall target="stop-selenium" />
+	</target>
+
+	<target name="run-weblogic">
+		<antcall target="clean-up-logs" />
+
+		<record action="start" name="log" />
+
+		<antcall target="run-simple-server" />
+
+		<record action="stop" name="log" />
+
+		<antcall target="evaluate-logs" />
+	</target>
+</project>

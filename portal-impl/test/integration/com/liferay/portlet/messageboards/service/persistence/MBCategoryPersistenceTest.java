@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,45 +15,94 @@
 package com.liferay.portlet.messageboards.service.persistence;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.model.ModelListener;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.messageboards.NoSuchCategoryException;
 import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.model.impl.MBCategoryModelImpl;
+import com.liferay.portlet.messageboards.service.MBCategoryLocalServiceUtil;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class MBCategoryPersistenceTest {
 	@Before
-	public void setUp() throws Exception {
-		_persistence = (MBCategoryPersistence)PortalBeanLocatorUtil.locate(MBCategoryPersistence.class.getName());
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<MBCategory> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<MBCategory> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBCategory mbCategory = _persistence.create(pk);
 
@@ -80,39 +129,47 @@ public class MBCategoryPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBCategory newMBCategory = _persistence.create(pk);
 
-		newMBCategory.setUuid(ServiceTestUtil.randomString());
+		newMBCategory.setUuid(RandomTestUtil.randomString());
 
-		newMBCategory.setGroupId(ServiceTestUtil.nextLong());
+		newMBCategory.setGroupId(RandomTestUtil.nextLong());
 
-		newMBCategory.setCompanyId(ServiceTestUtil.nextLong());
+		newMBCategory.setCompanyId(RandomTestUtil.nextLong());
 
-		newMBCategory.setUserId(ServiceTestUtil.nextLong());
+		newMBCategory.setUserId(RandomTestUtil.nextLong());
 
-		newMBCategory.setUserName(ServiceTestUtil.randomString());
+		newMBCategory.setUserName(RandomTestUtil.randomString());
 
-		newMBCategory.setCreateDate(ServiceTestUtil.nextDate());
+		newMBCategory.setCreateDate(RandomTestUtil.nextDate());
 
-		newMBCategory.setModifiedDate(ServiceTestUtil.nextDate());
+		newMBCategory.setModifiedDate(RandomTestUtil.nextDate());
 
-		newMBCategory.setParentCategoryId(ServiceTestUtil.nextLong());
+		newMBCategory.setParentCategoryId(RandomTestUtil.nextLong());
 
-		newMBCategory.setName(ServiceTestUtil.randomString());
+		newMBCategory.setName(RandomTestUtil.randomString());
 
-		newMBCategory.setDescription(ServiceTestUtil.randomString());
+		newMBCategory.setDescription(RandomTestUtil.randomString());
 
-		newMBCategory.setDisplayStyle(ServiceTestUtil.randomString());
+		newMBCategory.setDisplayStyle(RandomTestUtil.randomString());
 
-		newMBCategory.setThreadCount(ServiceTestUtil.nextInt());
+		newMBCategory.setThreadCount(RandomTestUtil.nextInt());
 
-		newMBCategory.setMessageCount(ServiceTestUtil.nextInt());
+		newMBCategory.setMessageCount(RandomTestUtil.nextInt());
 
-		newMBCategory.setLastPostDate(ServiceTestUtil.nextDate());
+		newMBCategory.setLastPostDate(RandomTestUtil.nextDate());
 
-		_persistence.update(newMBCategory, false);
+		newMBCategory.setStatus(RandomTestUtil.nextInt());
+
+		newMBCategory.setStatusByUserId(RandomTestUtil.nextLong());
+
+		newMBCategory.setStatusByUserName(RandomTestUtil.randomString());
+
+		newMBCategory.setStatusDate(RandomTestUtil.nextDate());
+
+		_persistence.update(newMBCategory);
 
 		MBCategory existingMBCategory = _persistence.findByPrimaryKey(newMBCategory.getPrimaryKey());
 
@@ -149,6 +206,212 @@ public class MBCategoryPersistenceTest {
 		Assert.assertEquals(Time.getShortTimestamp(
 				existingMBCategory.getLastPostDate()),
 			Time.getShortTimestamp(newMBCategory.getLastPostDate()));
+		Assert.assertEquals(existingMBCategory.getStatus(),
+			newMBCategory.getStatus());
+		Assert.assertEquals(existingMBCategory.getStatusByUserId(),
+			newMBCategory.getStatusByUserId());
+		Assert.assertEquals(existingMBCategory.getStatusByUserName(),
+			newMBCategory.getStatusByUserName());
+		Assert.assertEquals(Time.getShortTimestamp(
+				existingMBCategory.getStatusDate()),
+			Time.getShortTimestamp(newMBCategory.getStatusDate()));
+	}
+
+	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUUID_G() {
+		try {
+			_persistence.countByUUID_G(StringPool.BLANK,
+				RandomTestUtil.nextLong());
+
+			_persistence.countByUUID_G(StringPool.NULL, 0L);
+
+			_persistence.countByUUID_G((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				RandomTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(RandomTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(RandomTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_P() {
+		try {
+			_persistence.countByG_P(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
+
+			_persistence.countByG_P(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_PArrayable() {
+		try {
+			_persistence.countByG_P(RandomTestUtil.nextLong(),
+				new long[] { RandomTestUtil.nextLong(), 0L });
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_S() {
+		try {
+			_persistence.countByG_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
+
+			_persistence.countByG_S(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_S() {
+		try {
+			_persistence.countByC_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
+
+			_persistence.countByC_S(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_P_S() {
+		try {
+			_persistence.countByG_P_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
+
+			_persistence.countByG_P_S(0L, 0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_P_SArrayable() {
+		try {
+			_persistence.countByG_P_S(RandomTestUtil.nextLong(),
+				new long[] { RandomTestUtil.nextLong(), 0L },
+				RandomTestUtil.nextInt());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByNotC_G_P() {
+		try {
+			_persistence.countByNotC_G_P(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
+
+			_persistence.countByNotC_G_P(0L, 0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByNotC_G_PArrayable() {
+		try {
+			_persistence.countByNotC_G_P(new long[] {
+					RandomTestUtil.nextLong(), 0L
+				}, RandomTestUtil.nextLong(),
+				new long[] { RandomTestUtil.nextLong(), 0L });
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByNotC_G_P_S() {
+		try {
+			_persistence.countByNotC_G_P_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
+
+			_persistence.countByNotC_G_P_S(0L, 0L, 0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByNotC_G_P_SArrayable() {
+		try {
+			_persistence.countByNotC_G_P_S(new long[] {
+					RandomTestUtil.nextLong(), 0L
+				}, RandomTestUtil.nextLong(),
+				new long[] { RandomTestUtil.nextLong(), 0L },
+				RandomTestUtil.nextInt());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -162,7 +425,7 @@ public class MBCategoryPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -171,6 +434,38 @@ public class MBCategoryPersistenceTest {
 		}
 		catch (NoSuchCategoryException nsee) {
 		}
+	}
+
+	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testFilterFindByGroupId() throws Exception {
+		try {
+			_persistence.filterFindByGroupId(0, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("MBCategory", "uuid", true,
+			"categoryId", true, "groupId", true, "companyId", true, "userId",
+			true, "userName", true, "createDate", true, "modifiedDate", true,
+			"parentCategoryId", true, "name", true, "description", true,
+			"displayStyle", true, "threadCount", true, "messageCount", true,
+			"lastPostDate", true, "status", true, "statusByUserId", true,
+			"statusByUserName", true, "statusDate", true);
 	}
 
 	@Test
@@ -184,11 +479,115 @@ public class MBCategoryPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBCategory missingMBCategory = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingMBCategory);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		MBCategory newMBCategory1 = addMBCategory();
+		MBCategory newMBCategory2 = addMBCategory();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMBCategory1.getPrimaryKey());
+		primaryKeys.add(newMBCategory2.getPrimaryKey());
+
+		Map<Serializable, MBCategory> mbCategories = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, mbCategories.size());
+		Assert.assertEquals(newMBCategory1,
+			mbCategories.get(newMBCategory1.getPrimaryKey()));
+		Assert.assertEquals(newMBCategory2,
+			mbCategories.get(newMBCategory2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, MBCategory> mbCategories = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(mbCategories.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		MBCategory newMBCategory = addMBCategory();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMBCategory.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, MBCategory> mbCategories = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, mbCategories.size());
+		Assert.assertEquals(newMBCategory,
+			mbCategories.get(newMBCategory.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, MBCategory> mbCategories = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(mbCategories.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		MBCategory newMBCategory = addMBCategory();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMBCategory.getPrimaryKey());
+
+		Map<Serializable, MBCategory> mbCategories = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, mbCategories.size());
+		Assert.assertEquals(newMBCategory,
+			mbCategories.get(newMBCategory.getPrimaryKey()));
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = MBCategoryLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
+				@Override
+				public void performAction(Object object) {
+					MBCategory mbCategory = (MBCategory)object;
+
+					Assert.assertNotNull(mbCategory);
+
+					count.increment();
+				}
+			});
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -217,7 +616,7 @@ public class MBCategoryPersistenceTest {
 				MBCategory.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("categoryId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<MBCategory> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -256,7 +655,7 @@ public class MBCategoryPersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("categoryId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("categoryId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -283,42 +682,53 @@ public class MBCategoryPersistenceTest {
 	}
 
 	protected MBCategory addMBCategory() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBCategory mbCategory = _persistence.create(pk);
 
-		mbCategory.setUuid(ServiceTestUtil.randomString());
+		mbCategory.setUuid(RandomTestUtil.randomString());
 
-		mbCategory.setGroupId(ServiceTestUtil.nextLong());
+		mbCategory.setGroupId(RandomTestUtil.nextLong());
 
-		mbCategory.setCompanyId(ServiceTestUtil.nextLong());
+		mbCategory.setCompanyId(RandomTestUtil.nextLong());
 
-		mbCategory.setUserId(ServiceTestUtil.nextLong());
+		mbCategory.setUserId(RandomTestUtil.nextLong());
 
-		mbCategory.setUserName(ServiceTestUtil.randomString());
+		mbCategory.setUserName(RandomTestUtil.randomString());
 
-		mbCategory.setCreateDate(ServiceTestUtil.nextDate());
+		mbCategory.setCreateDate(RandomTestUtil.nextDate());
 
-		mbCategory.setModifiedDate(ServiceTestUtil.nextDate());
+		mbCategory.setModifiedDate(RandomTestUtil.nextDate());
 
-		mbCategory.setParentCategoryId(ServiceTestUtil.nextLong());
+		mbCategory.setParentCategoryId(RandomTestUtil.nextLong());
 
-		mbCategory.setName(ServiceTestUtil.randomString());
+		mbCategory.setName(RandomTestUtil.randomString());
 
-		mbCategory.setDescription(ServiceTestUtil.randomString());
+		mbCategory.setDescription(RandomTestUtil.randomString());
 
-		mbCategory.setDisplayStyle(ServiceTestUtil.randomString());
+		mbCategory.setDisplayStyle(RandomTestUtil.randomString());
 
-		mbCategory.setThreadCount(ServiceTestUtil.nextInt());
+		mbCategory.setThreadCount(RandomTestUtil.nextInt());
 
-		mbCategory.setMessageCount(ServiceTestUtil.nextInt());
+		mbCategory.setMessageCount(RandomTestUtil.nextInt());
 
-		mbCategory.setLastPostDate(ServiceTestUtil.nextDate());
+		mbCategory.setLastPostDate(RandomTestUtil.nextDate());
 
-		_persistence.update(mbCategory, false);
+		mbCategory.setStatus(RandomTestUtil.nextInt());
+
+		mbCategory.setStatusByUserId(RandomTestUtil.nextLong());
+
+		mbCategory.setStatusByUserName(RandomTestUtil.randomString());
+
+		mbCategory.setStatusDate(RandomTestUtil.nextDate());
+
+		_persistence.update(mbCategory);
 
 		return mbCategory;
 	}
 
-	private MBCategoryPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(MBCategoryPersistenceTest.class);
+	private ModelListener<MBCategory>[] _modelListeners;
+	private MBCategoryPersistence _persistence = (MBCategoryPersistence)PortalBeanLocatorUtil.locate(MBCategoryPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,49 +15,42 @@
 package com.liferay.portlet.portletconfiguration.action;
 
 import com.liferay.portal.LARFileException;
+import com.liferay.portal.LARFileSizeException;
 import com.liferay.portal.LARTypeException;
-import com.liferay.portal.LayoutImportException;
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.NoSuchLayoutException;
 import com.liferay.portal.PortletIdException;
-import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.lar.ExportImportDateUtil;
+import com.liferay.portal.kernel.lar.ExportImportHelper;
+import com.liferay.portal.kernel.lar.MissingReferences;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.staging.StagingUtil;
-import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.ContentTypes;
-import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.DateRange;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.Layout;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.security.auth.PrincipalException;
-import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.LayoutServiceUtil;
-import com.liferay.portal.struts.ActionConstants;
-import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.WebKeys;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portlet.dynamicdatalists.RecordSetDuplicateRecordSetKeyException;
+import com.liferay.portlet.dynamicdatamapping.StructureDuplicateStructureKeyException;
+import com.liferay.portlet.layoutsadmin.action.ImportLayoutsAction;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-import java.util.Calendar;
-import java.util.Date;
+import java.io.InputStream;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletConfig;
-import javax.portlet.PortletPreferences;
+import javax.portlet.PortletContext;
+import javax.portlet.PortletRequestDispatcher;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.portlet.ResourceRequest;
+import javax.portlet.ResourceResponse;
 
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -67,18 +60,19 @@ import org.apache.struts.action.ActionMapping;
  * @author Jorge Ferrer
  * @author Raymond Augé
  */
-public class ExportImportAction extends EditConfigurationAction {
+public class ExportImportAction extends ImportLayoutsAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		Portlet portlet = null;
 
 		try {
-			portlet = getPortlet(actionRequest);
+			portlet = ActionUtil.getPortlet(actionRequest);
 		}
 		catch (PrincipalException pe) {
 			SessionErrors.add(
@@ -87,67 +81,169 @@ public class ExportImportAction extends EditConfigurationAction {
 			setForward(actionRequest, "portlet.portlet_configuration.error");
 		}
 
+		actionRequest = ActionUtil.getWrappedActionRequest(actionRequest, null);
+
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
 		try {
-			if (cmd.equals("copy_from_live")) {
-				StagingUtil.copyFromLive(actionRequest, portlet);
+			if (Validator.isNotNull(cmd)) {
+				String redirect = ParamUtil.getString(
+					actionRequest, "redirect");
 
-				sendRedirect(actionRequest, actionResponse);
-			}
-			else if (cmd.equals(Constants.EXPORT)) {
-				exportData(actionRequest, actionResponse, portlet);
+				if (cmd.equals(Constants.ADD_TEMP)) {
+					addTempFileEntry(
+						actionRequest, actionResponse,
+						ExportImportHelper.TEMP_FOLDER_NAME +
+							portlet.getPortletId());
 
-				sendRedirect(actionRequest, actionResponse);
-			}
-			else if (cmd.equals(Constants.IMPORT)) {
-				importData(actionRequest, actionResponse, portlet);
+					validateFile(
+						actionRequest, actionResponse,
+						ExportImportHelper.TEMP_FOLDER_NAME +
+							portlet.getPortletId());
+				}
+				else if (cmd.equals("copy_from_live")) {
+					StagingUtil.copyFromLive(actionRequest, portlet);
 
-				sendRedirect(actionRequest, actionResponse);
-			}
-			else if (cmd.equals("publish_to_live")) {
-				StagingUtil.publishToLive(actionRequest, portlet);
+					sendRedirect(actionRequest, actionResponse);
+				}
+				else if (cmd.equals(Constants.DELETE_TEMP)) {
+					deleteTempFileEntry(
+						actionRequest, actionResponse,
+						ExportImportHelper.TEMP_FOLDER_NAME +
+							portlet.getPortletId());
+				}
+				else if (cmd.equals(Constants.EXPORT)) {
+					hideDefaultSuccessMessage(actionRequest);
 
-				sendRedirect(actionRequest, actionResponse);
+					exportData(actionRequest, actionResponse, portlet);
+
+					sendRedirect(actionRequest, actionResponse, redirect);
+				}
+				else if (cmd.equals(Constants.IMPORT)) {
+					hideDefaultSuccessMessage(actionRequest);
+
+					importData(
+						actionRequest, actionResponse,
+						ExportImportHelper.TEMP_FOLDER_NAME +
+							portlet.getPortletId());
+
+					SessionMessages.add(
+						actionRequest,
+						PortalUtil.getPortletId(actionRequest) +
+							SessionMessages.KEY_SUFFIX_CLOSE_REFRESH_PORTLET,
+						portlet.getPortletId());
+
+					sendRedirect(actionRequest, actionResponse, redirect);
+				}
+				else if (cmd.equals(Constants.PUBLISH_TO_LIVE)) {
+					hideDefaultSuccessMessage(actionRequest);
+
+					StagingUtil.publishToLive(actionRequest, portlet);
+
+					sendRedirect(actionRequest, actionResponse);
+				}
 			}
 		}
 		catch (Exception e) {
-			if (e instanceof NoSuchLayoutException ||
-				e instanceof PrincipalException) {
+			if (cmd.equals(Constants.ADD_TEMP) ||
+				cmd.equals(Constants.DELETE_TEMP)) {
 
-				SessionErrors.add(actionRequest, e.getClass());
-
-				setForward(
-					actionRequest, "portlet.portlet_configuration.error");
+				handleUploadException(
+					portletConfig, actionRequest, actionResponse,
+					ExportImportHelper.TEMP_FOLDER_NAME +
+						portlet.getPortletId(),
+					e);
 			}
 			else {
-				throw e;
+				if ((e instanceof LARFileException) ||
+					(e instanceof LARFileSizeException) ||
+					(e instanceof LARTypeException) ||
+					(e instanceof LocaleException) ||
+					(e instanceof NoSuchLayoutException) ||
+					(e instanceof PortletIdException) ||
+					(e instanceof PrincipalException) ||
+					(e instanceof StructureDuplicateStructureKeyException) ||
+					(e instanceof RecordSetDuplicateRecordSetKeyException)) {
+
+					SessionErrors.add(actionRequest, e.getClass());
+				}
+				else {
+					_log.error(e, e);
+
+					SessionErrors.add(
+						actionRequest, ExportImportAction.class.getName());
+				}
 			}
 		}
 	}
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		Portlet portlet = null;
 
 		try {
-			portlet = getPortlet(renderRequest);
+			portlet = ActionUtil.getPortlet(renderRequest);
 		}
 		catch (PrincipalException pe) {
 			SessionErrors.add(
 				renderRequest, PrincipalException.class.getName());
 
-			return mapping.findForward("portlet.portlet_configuration.error");
+			return actionMapping.findForward(
+				"portlet.portlet_configuration.error");
 		}
 
-		renderResponse.setTitle(getTitle(portlet, renderRequest));
+		renderResponse.setTitle(ActionUtil.getTitle(portlet, renderRequest));
 
-		return mapping.findForward(getForward(
-			renderRequest, "portlet.portlet_configuration.export_import"));
+		renderRequest = ActionUtil.getWrappedRenderRequest(renderRequest, null);
+
+		return actionMapping.findForward(
+			getForward(
+				renderRequest, "portlet.portlet_configuration.export_import"));
+	}
+
+	@Override
+	public void serveResource(
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ResourceRequest resourceRequest,
+			ResourceResponse resourceResponse)
+		throws Exception {
+
+		String cmd = ParamUtil.getString(resourceRequest, Constants.CMD);
+
+		PortletContext portletContext = portletConfig.getPortletContext();
+
+		PortletRequestDispatcher portletRequestDispatcher = null;
+
+		if (cmd.equals(Constants.EXPORT)) {
+			portletRequestDispatcher = portletContext.getRequestDispatcher(
+				"/html/portlet/portlet_configuration/" +
+					"export_portlet_processes.jsp");
+		}
+		else if (cmd.equals(Constants.IMPORT)) {
+			portletRequestDispatcher = portletContext.getRequestDispatcher(
+				"/html/portlet/portlet_configuration/" +
+					"import_portlet_processes.jsp");
+		}
+		else if (cmd.equals(Constants.PUBLISH)) {
+			portletRequestDispatcher = portletContext.getRequestDispatcher(
+				"/html/portlet/portlet_configuration/" +
+					"publish_portlet_processes.jsp");
+		}
+		else {
+			portletRequestDispatcher = portletContext.getRequestDispatcher(
+				"/html/portlet/portlet_configuration/" +
+					"import_portlet_resources.jsp");
+		}
+
+		resourceRequest = ActionUtil.getWrappedResourceRequest(
+			resourceRequest, null);
+
+		portletRequestDispatcher.include(resourceRequest, resourceResponse);
 	}
 
 	protected void exportData(
@@ -155,153 +251,59 @@ public class ExportImportAction extends EditConfigurationAction {
 			Portlet portlet)
 		throws Exception {
 
-		File file = null;
-
 		try {
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)actionRequest.getAttribute(WebKeys.THEME_DISPLAY);
-
 			long plid = ParamUtil.getLong(actionRequest, "plid");
 			long groupId = ParamUtil.getLong(actionRequest, "groupId");
 			String fileName = ParamUtil.getString(
 				actionRequest, "exportFileName");
-			String range = ParamUtil.getString(actionRequest, "range");
 
-			Date startDate = null;
-			Date endDate = null;
+			DateRange dateRange = ExportImportDateUtil.getDateRange(
+				actionRequest, groupId, false, plid, portlet.getPortletId(),
+				ExportImportDateUtil.RANGE_ALL);
 
-			if (range.equals("dateRange")) {
-				int startDateMonth = ParamUtil.getInteger(
-					actionRequest, "startDateMonth");
-				int startDateDay = ParamUtil.getInteger(
-					actionRequest, "startDateDay");
-				int startDateYear = ParamUtil.getInteger(
-					actionRequest, "startDateYear");
-				int startDateHour = ParamUtil.getInteger(
-					actionRequest, "startDateHour");
-				int startDateMinute = ParamUtil.getInteger(
-					actionRequest, "startDateMinute");
-				int startDateAmPm = ParamUtil.getInteger(
-					actionRequest, "startDateAmPm");
-
-				if (startDateAmPm == Calendar.PM) {
-					startDateHour += 12;
-				}
-
-				startDate = PortalUtil.getDate(
-					startDateMonth, startDateDay, startDateYear, startDateHour,
-					startDateMinute, themeDisplay.getTimeZone(),
-					new PortalException());
-
-				int endDateMonth = ParamUtil.getInteger(
-					actionRequest, "endDateMonth");
-				int endDateDay = ParamUtil.getInteger(
-					actionRequest, "endDateDay");
-				int endDateYear = ParamUtil.getInteger(
-					actionRequest, "endDateYear");
-				int endDateHour = ParamUtil.getInteger(
-					actionRequest, "endDateHour");
-				int endDateMinute = ParamUtil.getInteger(
-					actionRequest, "endDateMinute");
-				int endDateAmPm = ParamUtil.getInteger(
-					actionRequest, "endDateAmPm");
-
-				if (endDateAmPm == Calendar.PM) {
-					endDateHour += 12;
-				}
-
-				endDate = PortalUtil.getDate(
-					endDateMonth, endDateDay, endDateYear, endDateHour,
-					endDateMinute, themeDisplay.getTimeZone(),
-					new PortalException());
-			}
-			else if (range.equals("fromLastPublishDate")) {
-				Layout layout = LayoutLocalServiceUtil.getLayout(plid);
-
-				PortletPreferences preferences =
-					PortletPreferencesFactoryUtil.getPortletSetup(
-						layout, portlet.getPortletId(), StringPool.BLANK);
-
-				long lastPublishDate = GetterUtil.getLong(
-					preferences.getValue(
-						"last-publish-date", StringPool.BLANK));
-
-				if (lastPublishDate > 0) {
-					Calendar cal = Calendar.getInstance(
-						themeDisplay.getTimeZone(), themeDisplay.getLocale());
-
-					endDate = cal.getTime();
-
-					cal.setTimeInMillis(lastPublishDate);
-
-					startDate = cal.getTime();
-				}
-			}
-
-			file = LayoutServiceUtil.exportPortletInfoAsFile(
-				plid, groupId, portlet.getPortletId(),
-				actionRequest.getParameterMap(), startDate, endDate);
-
-			HttpServletRequest request = PortalUtil.getHttpServletRequest(
-				actionRequest);
-			HttpServletResponse response = PortalUtil.getHttpServletResponse(
-				actionResponse);
-
-			ServletResponseUtil.sendFile(
-				request, response, fileName, new FileInputStream(file),
-				ContentTypes.APPLICATION_ZIP);
-
-			setForward(actionRequest, ActionConstants.COMMON_NULL);
+			LayoutServiceUtil.exportPortletInfoAsFileInBackground(
+				portlet.getPortletId(), plid, groupId, portlet.getPortletId(),
+				actionRequest.getParameterMap(), dateRange.getStartDate(),
+				dateRange.getEndDate(), fileName);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
 				_log.debug(e, e);
 			}
 
-			SessionErrors.add(actionRequest, e.getClass().getName(), e);
-		}
-		finally {
-			FileUtil.delete(file);
+			SessionErrors.add(actionRequest, e.getClass(), e);
 		}
 	}
 
+	@Override
 	protected void importData(
-			ActionRequest actionRequest, ActionResponse actionResponse,
-			Portlet portlet)
+			ActionRequest actionRequest, String fileName,
+			InputStream inputStream)
 		throws Exception {
 
-		try {
-			UploadPortletRequest uploadPortletRequest =
-				PortalUtil.getUploadPortletRequest(actionRequest);
+		long plid = ParamUtil.getLong(actionRequest, "plid");
+		long groupId = ParamUtil.getLong(actionRequest, "groupId");
 
-			long plid = ParamUtil.getLong(uploadPortletRequest, "plid");
-			long groupId = ParamUtil.getLong(uploadPortletRequest, "groupId");
-			File file = uploadPortletRequest.getFile("importFileName");
+		Portlet portlet = ActionUtil.getPortlet(actionRequest);
 
-			if (!file.exists()) {
-				throw new LARFileException("Import file does not exist");
-			}
+		LayoutServiceUtil.importPortletInfoInBackground(
+			portlet.getPortletId(), plid, groupId, portlet.getPortletId(),
+			actionRequest.getParameterMap(), inputStream);
+	}
 
-			LayoutServiceUtil.importPortletInfo(
-				plid, groupId, portlet.getPortletId(),
-				actionRequest.getParameterMap(), file);
+	@Override
+	protected MissingReferences validateFile(
+			ActionRequest actionRequest, InputStream inputStream)
+		throws Exception {
 
-			addSuccessMessage(actionRequest, actionResponse);
-		}
-		catch (Exception e) {
-			if ((e instanceof LARFileException) ||
-				(e instanceof LARTypeException) ||
-				(e instanceof PortletIdException)) {
+		long plid = ParamUtil.getLong(actionRequest, "plid");
+		long groupId = ParamUtil.getLong(actionRequest, "groupId");
 
-				SessionErrors.add(actionRequest, e.getClass());
-			}
-			else {
-				_log.error(e, e);
+		Portlet portlet = ActionUtil.getPortlet(actionRequest);
 
-				SessionErrors.add(
-					actionRequest, LayoutImportException.class.getName());
-			}
-		}
+		return LayoutServiceUtil.validateImportPortletInfo(
+			plid, groupId, portlet.getPortletId(),
+			actionRequest.getParameterMap(), inputStream);
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(ExportImportAction.class);

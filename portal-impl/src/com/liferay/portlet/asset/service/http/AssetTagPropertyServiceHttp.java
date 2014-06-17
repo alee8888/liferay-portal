@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,13 +24,11 @@ import com.liferay.portal.service.http.TunnelUtil;
 import com.liferay.portlet.asset.service.AssetTagPropertyServiceUtil;
 
 /**
- * <p>
- * This class provides a HTTP utility for the
+ * Provides the HTTP utility for the
  * {@link com.liferay.portlet.asset.service.AssetTagPropertyServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it requires an additional
  * {@link com.liferay.portal.security.auth.HttpPrincipal} parameter.
- * </p>
  *
  * <p>
  * The benefits of using the HTTP utility is that it is fast and allows for
@@ -47,20 +45,19 @@ import com.liferay.portlet.asset.service.AssetTagPropertyServiceUtil;
  * The HTTP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetTagPropertyServiceSoap
- * @see       com.liferay.portal.security.auth.HttpPrincipal
- * @see       com.liferay.portlet.asset.service.AssetTagPropertyServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see AssetTagPropertyServiceSoap
+ * @see com.liferay.portal.security.auth.HttpPrincipal
+ * @see com.liferay.portlet.asset.service.AssetTagPropertyServiceUtil
  * @generated
  */
 public class AssetTagPropertyServiceHttp {
 	public static com.liferay.portlet.asset.model.AssetTagProperty addTagProperty(
 		HttpPrincipal httpPrincipal, long tagId, java.lang.String key,
 		java.lang.String value)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
-			MethodKey methodKey = new MethodKey(AssetTagPropertyServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(AssetTagPropertyServiceUtil.class,
 					"addTagProperty", _addTagPropertyParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, tagId,
@@ -74,10 +71,6 @@ public class AssetTagPropertyServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -94,10 +87,9 @@ public class AssetTagPropertyServiceHttp {
 
 	public static void deleteTagProperty(HttpPrincipal httpPrincipal,
 		long tagPropertyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
-			MethodKey methodKey = new MethodKey(AssetTagPropertyServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(AssetTagPropertyServiceUtil.class,
 					"deleteTagProperty", _deleteTagPropertyParameterTypes1);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey,
@@ -111,10 +103,6 @@ public class AssetTagPropertyServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 		}
@@ -126,10 +114,9 @@ public class AssetTagPropertyServiceHttp {
 	}
 
 	public static java.util.List<com.liferay.portlet.asset.model.AssetTagProperty> getTagProperties(
-		HttpPrincipal httpPrincipal, long tagId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		HttpPrincipal httpPrincipal, long tagId) {
 		try {
-			MethodKey methodKey = new MethodKey(AssetTagPropertyServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(AssetTagPropertyServiceUtil.class,
 					"getTagProperties", _getTagPropertiesParameterTypes2);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, tagId);
@@ -140,10 +127,6 @@ public class AssetTagPropertyServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception e) {
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -157,10 +140,9 @@ public class AssetTagPropertyServiceHttp {
 	}
 
 	public static java.util.List<com.liferay.portlet.asset.model.AssetTagProperty> getTagPropertyValues(
-		HttpPrincipal httpPrincipal, long companyId, java.lang.String key)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		HttpPrincipal httpPrincipal, long companyId, java.lang.String key) {
 		try {
-			MethodKey methodKey = new MethodKey(AssetTagPropertyServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(AssetTagPropertyServiceUtil.class,
 					"getTagPropertyValues", _getTagPropertyValuesParameterTypes3);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey,
@@ -172,10 +154,6 @@ public class AssetTagPropertyServiceHttp {
 				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
 			}
 			catch (Exception e) {
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -191,10 +169,9 @@ public class AssetTagPropertyServiceHttp {
 	public static com.liferay.portlet.asset.model.AssetTagProperty updateTagProperty(
 		HttpPrincipal httpPrincipal, long tagPropertyId, java.lang.String key,
 		java.lang.String value)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
-			MethodKey methodKey = new MethodKey(AssetTagPropertyServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(AssetTagPropertyServiceUtil.class,
 					"updateTagProperty", _updateTagPropertyParameterTypes4);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey,
@@ -208,10 +185,6 @@ public class AssetTagPropertyServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);

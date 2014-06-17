@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,7 +20,11 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.io.Writer;
 
 import java.util.Date;
@@ -62,8 +66,16 @@ public class JSONObjectImpl implements JSONObject {
 		_jsonObject = new org.json.JSONObject(obj, names);
 	}
 
+	public JSONObjectImpl(org.json.JSONObject jsonObject) {
+		_jsonObject = jsonObject;
+	}
+
 	public JSONObjectImpl(String json) throws JSONException {
 		try {
+			if (Validator.isNull(json)) {
+				json = _NULL_JSON;
+			}
+
 			_jsonObject = new org.json.JSONObject(json);
 		}
 		catch (Exception e) {
@@ -71,34 +83,37 @@ public class JSONObjectImpl implements JSONObject {
 		}
 	}
 
-	public JSONObjectImpl(org.json.JSONObject jsonObj) {
-		_jsonObject = jsonObj;
-	}
-
+	@Override
 	public boolean getBoolean(String key) {
 		return _jsonObject.optBoolean(key);
 	}
 
+	@Override
 	public boolean getBoolean(String key, boolean defaultValue) {
 		return _jsonObject.optBoolean(key, defaultValue);
 	}
 
+	@Override
 	public double getDouble(String key) {
 		return _jsonObject.optDouble(key);
 	}
 
+	@Override
 	public double getDouble(String key, double defaultValue) {
 		return _jsonObject.optDouble(key, defaultValue);
 	}
 
+	@Override
 	public int getInt(String key) {
 		return _jsonObject.optInt(key);
 	}
 
+	@Override
 	public int getInt(String key, int defaultValue) {
 		return _jsonObject.optInt(key, defaultValue);
 	}
 
+	@Override
 	public JSONArray getJSONArray(String key) {
 		org.json.JSONArray jsonArray = _jsonObject.optJSONArray(key);
 
@@ -113,52 +128,63 @@ public class JSONObjectImpl implements JSONObject {
 		return _jsonObject;
 	}
 
+	@Override
 	public JSONObject getJSONObject(String key) {
-		org.json.JSONObject jsonObj = _jsonObject.optJSONObject(key);
+		org.json.JSONObject jsonObject = _jsonObject.optJSONObject(key);
 
-		if (jsonObj == null) {
+		if (jsonObject == null) {
 			return null;
 		}
 
-		return new JSONObjectImpl(jsonObj);
+		return new JSONObjectImpl(jsonObject);
 	}
 
+	@Override
 	public long getLong(String key) {
 		return _jsonObject.optLong(key);
 	}
 
+	@Override
 	public long getLong(String key, long defaultValue) {
 		return _jsonObject.optLong(key, defaultValue);
 	}
 
+	@Override
 	public String getString(String key) {
 		return _jsonObject.optString(key);
 	}
 
+	@Override
 	public String getString(String key, String defaultValue) {
 		return _jsonObject.optString(key, defaultValue);
 	}
 
+	@Override
 	public boolean has(String key) {
 		return _jsonObject.has(key);
 	}
 
+	@Override
 	public boolean isNull(String key) {
 		return _jsonObject.isNull(key);
 	}
 
+	@Override
 	public Iterator<String> keys() {
 		return _jsonObject.keys();
 	}
 
+	@Override
 	public int length() {
 		return _jsonObject.length();
 	}
 
+	@Override
 	public JSONArray names() {
 		return new JSONArrayImpl(_jsonObject.names());
 	}
 
+	@Override
 	public JSONObject put(String key, boolean value) {
 		try {
 			_jsonObject.put(key, value);
@@ -172,6 +198,7 @@ public class JSONObjectImpl implements JSONObject {
 		return this;
 	}
 
+	@Override
 	public JSONObject put(String key, Date value) {
 		try {
 			_jsonObject.put(key, value);
@@ -185,6 +212,7 @@ public class JSONObjectImpl implements JSONObject {
 		return this;
 	}
 
+	@Override
 	public JSONObject put(String key, double value) {
 		try {
 			_jsonObject.put(key, value);
@@ -198,6 +226,7 @@ public class JSONObjectImpl implements JSONObject {
 		return this;
 	}
 
+	@Override
 	public JSONObject put(String key, int value) {
 		try {
 			_jsonObject.put(key, value);
@@ -211,6 +240,7 @@ public class JSONObjectImpl implements JSONObject {
 		return this;
 	}
 
+	@Override
 	public JSONObject put(String key, JSONArray value) {
 		try {
 			_jsonObject.put(key, ((JSONArrayImpl)value).getJSONArray());
@@ -224,6 +254,7 @@ public class JSONObjectImpl implements JSONObject {
 		return this;
 	}
 
+	@Override
 	public JSONObject put(String key, JSONObject value) {
 		try {
 			_jsonObject.put(key, ((JSONObjectImpl)value).getJSONObject());
@@ -237,6 +268,7 @@ public class JSONObjectImpl implements JSONObject {
 		return this;
 	}
 
+	@Override
 	public JSONObject put(String key, long value) {
 		try {
 			_jsonObject.put(key, value);
@@ -250,6 +282,7 @@ public class JSONObjectImpl implements JSONObject {
 		return this;
 	}
 
+	@Override
 	public JSONObject put(String key, String value) {
 		try {
 			_jsonObject.put(key, value);
@@ -263,6 +296,7 @@ public class JSONObjectImpl implements JSONObject {
 		return this;
 	}
 
+	@Override
 	public JSONObject putException(Exception exception) {
 		try {
 			_jsonObject.put(
@@ -279,6 +313,17 @@ public class JSONObjectImpl implements JSONObject {
 		return this;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		try {
+			_jsonObject = new org.json.JSONObject(objectInput.readUTF());
+		}
+		catch (Exception e) {
+			throw new IOException(e);
+		}
+	}
+
+	@Override
 	public Object remove(String key) {
 		return _jsonObject.remove(key);
 	}
@@ -288,6 +333,7 @@ public class JSONObjectImpl implements JSONObject {
 		return _jsonObject.toString();
 	}
 
+	@Override
 	public String toString(int indentFactor) throws JSONException {
 		try {
 			return _jsonObject.toString(indentFactor);
@@ -297,6 +343,7 @@ public class JSONObjectImpl implements JSONObject {
 		}
 	}
 
+	@Override
 	public Writer write(Writer writer) throws JSONException {
 		try {
 			return _jsonObject.write(writer);
@@ -305,6 +352,13 @@ public class JSONObjectImpl implements JSONObject {
 			throw new JSONException(e);
 		}
 	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeUTF(toString());
+	}
+
+	private static final String _NULL_JSON = "{}";
 
 	private static Log _log = LogFactoryUtil.getLog(JSONObjectImpl.class);
 

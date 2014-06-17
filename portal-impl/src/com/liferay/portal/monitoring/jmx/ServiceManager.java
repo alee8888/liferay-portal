@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,6 @@
 
 package com.liferay.portal.monitoring.jmx;
 
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.util.MethodKey;
 import com.liferay.portal.monitoring.statistics.service.ServerStatistics;
 import com.liferay.portal.monitoring.statistics.service.ServiceMonitorAdvice;
 
@@ -26,70 +24,77 @@ import java.util.Set;
  */
 public class ServiceManager implements ServiceManagerMBean {
 
+	@Override
 	public void addMonitoredClass(String className) {
 		_serviceMonitorAdvice.addMonitoredClass(className);
 	}
 
+	@Override
 	public void addMonitoredMethod(
-			String className, String methodName, String[] parameterTypes)
-		throws SystemException {
+		String className, String methodName, String[] parameterTypes) {
 
 		_serviceMonitorAdvice.addMonitoredMethod(
 			className, methodName, parameterTypes);
 	}
 
+	@Override
 	public long getErrorCount(
-			String className, String methodName, String[] parameterTypes)
-		throws SystemException {
+		String className, String methodName, String[] parameterTypes) {
 
 		return _serverStatistics.getErrorCount(
 			className, methodName, parameterTypes);
 	}
 
+	@Override
 	public long getMaxTime(
-			String className, String methodName, String[] parameterTypes)
-		throws SystemException {
+		String className, String methodName, String[] parameterTypes) {
 
 		return _serverStatistics.getMaxTime(
 			className, methodName, parameterTypes);
 	}
 
+	@Override
 	public long getMinTime(
-			String className, String methodName, String[] parameterTypes)
-		throws SystemException {
+		String className, String methodName, String[] parameterTypes) {
 
 		return _serverStatistics.getMinTime(
 			className, methodName, parameterTypes);
 	}
 
+	@Override
 	public Set<String> getMonitoredClasses() {
 		return _serviceMonitorAdvice.getMonitoredClasses();
 	}
 
-	public Set<MethodKey> getMonitoredMethods() {
+	@Override
+	public Set<MethodSignature> getMonitoredMethods() {
 		return _serviceMonitorAdvice.getMonitoredMethods();
 	}
 
+	@Override
 	public long getRequestCount(
-			String className, String methodName, String[] parameterTypes)
-		throws SystemException {
+		String className, String methodName, String[] parameterTypes) {
 
 		return _serverStatistics.getRequestCount(
 			className, methodName, parameterTypes);
 	}
 
+	@Override
 	public boolean isActive() {
-		return _serviceMonitorAdvice.isActive();
+		return ServiceMonitorAdvice.isActive();
 	}
 
+	@Override
 	public boolean isPermissiveMode() {
 		return _serviceMonitorAdvice.isPermissiveMode();
 	}
 
+	@Override
 	public void setActive(boolean active) {
 		_serviceMonitorAdvice.setActive(active);
 	}
 
+	@Override
 	public void setPermissiveMode(boolean permissiveMode) {
 		_serviceMonitorAdvice.setPermissiveMode(permissiveMode);
 	}

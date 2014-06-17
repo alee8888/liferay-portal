@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -32,14 +32,14 @@ for (int i = 0; i < activityCounters.size(); i++) {
 DecimalFormat decimalFormat = new DecimalFormat("##.00%");
 %>
 
-<aui:layout>
-	<aui:column columnWidth="<%= chartWidth %>" cssClass="chart-column">
+<aui:row>
+	<aui:col cssClass="chart-column" width="<%= chartWidth %>">
 		<div class="group-statistics-chart">
 			<div id="groupStatisticsChart<%= displayActivityCounterNameIndex %>"></div>
 		</div>
-	</aui:column>
+	</aui:col>
 
-	<aui:column columnWidth="<%= 100 - chartWidth %>" cssClass="info-column">
+	<aui:col cssClass="info-column" width="<%= 100 - chartWidth %>">
 		<div class="group-statistics-info">
 			<strong><liferay-ui:message key="activities-by-area" />:</strong>
 
@@ -80,8 +80,8 @@ DecimalFormat decimalFormat = new DecimalFormat("##.00%");
 
 			</table>
 		</div>
-	</aui:column>
-</aui:layout>
+	</aui:col>
+</aui:row>
 
 <aui:script use="charts">
 	var categories = [<%= StringUtil.merge(categories) %>];
@@ -149,9 +149,7 @@ DecimalFormat decimalFormat = new DecimalFormat("##.00%");
 		}
 	).render(chartContainer);
 
-	// TODO http://yuilibrary.com/projects/yui3/ticket/2531555
-
-	/*Liferay.after(
+	Liferay.after(
 		['portletMoved', 'liferaypanel:collapse'],
 		function(event) {
 			var width = getContainerWidth(chartContainer);
@@ -160,9 +158,11 @@ DecimalFormat decimalFormat = new DecimalFormat("##.00%");
 				(event.type == 'liferaypanel:collapse' && event.panelId == 'groupStatisticsPanel<%= displayActivityCounterNameIndex %>')) {
 
 				chart.set('width', width);
+
+				chartContainer.setStyle('height', width);
 			}
 		}
-	);*/
+	);
 </aui:script>
 
 <%!

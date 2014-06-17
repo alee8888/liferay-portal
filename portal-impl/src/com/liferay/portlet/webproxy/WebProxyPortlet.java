@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,7 @@ package com.liferay.portlet.webproxy;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.servlet.StringServletResponse;
+import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.StringPool;
@@ -29,6 +29,7 @@ import com.liferay.portlet.RenderResponseImpl;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.portlet.PortletContext;
 import javax.portlet.PortletException;
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequestDispatcher;
@@ -58,8 +59,10 @@ public class WebProxyPortlet extends PortletBridgePortlet {
 		String initUrl = preferences.getValue("initUrl", StringPool.BLANK);
 
 		if (Validator.isNull(initUrl)) {
+			PortletContext portletContext = getPortletContext();
+
 			PortletRequestDispatcher portletRequestDispatcher =
-				getPortletContext().getRequestDispatcher(
+				portletContext.getRequestDispatcher(
 					StrutsUtil.TEXT_HTML_DIR + "/portal/portlet_not_setup.jsp");
 
 			portletRequestDispatcher.include(renderRequest, renderResponse);
@@ -70,15 +73,16 @@ public class WebProxyPortlet extends PortletBridgePortlet {
 			RenderResponseImpl renderResponseImpl =
 				(RenderResponseImpl)renderResponse;
 
-			StringServletResponse stringResponse = (StringServletResponse)
-				renderResponseImpl.getHttpServletResponse();
+			BufferCacheServletResponse bufferCacheServletResponse =
+				(BufferCacheServletResponse)
+					renderResponseImpl.getHttpServletResponse();
 
-			String output = stringResponse.getString();
+			String output = bufferCacheServletResponse.getString();
 
 			output = StringUtil.replace(
 				output, "//pbhs/", PortalUtil.getPathContext() + "/pbhs/");
 
-			stringResponse.setString(output);
+			bufferCacheServletResponse.setString(output);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,8 +23,8 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portlet.journal.service.http.JournalArticleServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portlet.journal.service.http.JournalArticleServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portlet.journal.service.http.JournalArticleServiceSoap
  * @generated
  */
 public class JournalArticleSoap implements Serializable {
@@ -43,6 +43,7 @@ public class JournalArticleSoap implements Serializable {
 		soapModel.setFolderId(model.getFolderId());
 		soapModel.setClassNameId(model.getClassNameId());
 		soapModel.setClassPK(model.getClassPK());
+		soapModel.setTreePath(model.getTreePath());
 		soapModel.setArticleId(model.getArticleId());
 		soapModel.setVersion(model.getVersion());
 		soapModel.setTitle(model.getTitle());
@@ -210,6 +211,14 @@ public class JournalArticleSoap implements Serializable {
 
 	public void setClassPK(long classPK) {
 		_classPK = classPK;
+	}
+
+	public String getTreePath() {
+		return _treePath;
+	}
+
+	public void setTreePath(String treePath) {
+		_treePath = treePath;
 	}
 
 	public String getArticleId() {
@@ -400,6 +409,7 @@ public class JournalArticleSoap implements Serializable {
 	private long _folderId;
 	private long _classNameId;
 	private long _classPK;
+	private String _treePath;
 	private String _articleId;
 	private double _version;
 	private String _title;

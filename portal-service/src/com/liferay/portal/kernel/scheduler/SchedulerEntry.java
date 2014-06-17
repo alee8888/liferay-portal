@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,6 @@
 
 package com.liferay.portal.kernel.scheduler;
 
-import com.liferay.portal.kernel.messaging.MessageListener;
-
 import java.io.Serializable;
 
 /**
@@ -23,11 +21,7 @@ import java.io.Serializable;
  */
 public interface SchedulerEntry extends Serializable {
 
-	public String getContextPath();
-
 	public String getDescription();
-
-	public MessageListener getEventListener();
 
 	public String getEventListenerClass();
 
@@ -41,11 +35,7 @@ public interface SchedulerEntry extends Serializable {
 
 	public String getTriggerValue();
 
-	public void setContextPath(String contextPath);
-
 	public void setDescription(String description);
-
-	public void setEventListener(MessageListener eventListener);
 
 	public void setEventListenerClass(String eventListenerClass);
 

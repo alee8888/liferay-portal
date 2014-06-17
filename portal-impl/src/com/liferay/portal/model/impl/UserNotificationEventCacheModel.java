@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,9 +17,13 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.UserNotificationEvent;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing UserNotificationEvent in entity cache.
@@ -29,12 +33,24 @@ import java.io.Serializable;
  * @generated
  */
 public class UserNotificationEventCacheModel implements CacheModel<UserNotificationEvent>,
-	Serializable {
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(27);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", userNotificationEventId=");
 		sb.append(userNotificationEventId);
@@ -46,10 +62,16 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 		sb.append(type);
 		sb.append(", timestamp=");
 		sb.append(timestamp);
+		sb.append(", deliveryType=");
+		sb.append(deliveryType);
 		sb.append(", deliverBy=");
 		sb.append(deliverBy);
+		sb.append(", delivered=");
+		sb.append(delivered);
 		sb.append(", payload=");
 		sb.append(payload);
+		sb.append(", actionRequired=");
+		sb.append(actionRequired);
 		sb.append(", archived=");
 		sb.append(archived);
 		sb.append("}");
@@ -57,8 +79,11 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 		return sb.toString();
 	}
 
+	@Override
 	public UserNotificationEvent toEntityModel() {
 		UserNotificationEventImpl userNotificationEventImpl = new UserNotificationEventImpl();
+
+		userNotificationEventImpl.setMvccVersion(mvccVersion);
 
 		if (uuid == null) {
 			userNotificationEventImpl.setUuid(StringPool.BLANK);
@@ -79,7 +104,9 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 		}
 
 		userNotificationEventImpl.setTimestamp(timestamp);
+		userNotificationEventImpl.setDeliveryType(deliveryType);
 		userNotificationEventImpl.setDeliverBy(deliverBy);
+		userNotificationEventImpl.setDelivered(delivered);
 
 		if (payload == null) {
 			userNotificationEventImpl.setPayload(StringPool.BLANK);
@@ -88,6 +115,7 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 			userNotificationEventImpl.setPayload(payload);
 		}
 
+		userNotificationEventImpl.setActionRequired(actionRequired);
 		userNotificationEventImpl.setArchived(archived);
 
 		userNotificationEventImpl.resetOriginalValues();
@@ -95,13 +123,73 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 		return userNotificationEventImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		uuid = objectInput.readUTF();
+		userNotificationEventId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		userId = objectInput.readLong();
+		type = objectInput.readUTF();
+		timestamp = objectInput.readLong();
+		deliveryType = objectInput.readInt();
+		deliverBy = objectInput.readLong();
+		delivered = objectInput.readBoolean();
+		payload = objectInput.readUTF();
+		actionRequired = objectInput.readBoolean();
+		archived = objectInput.readBoolean();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
+		if (uuid == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(uuid);
+		}
+
+		objectOutput.writeLong(userNotificationEventId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(userId);
+
+		if (type == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(type);
+		}
+
+		objectOutput.writeLong(timestamp);
+		objectOutput.writeInt(deliveryType);
+		objectOutput.writeLong(deliverBy);
+		objectOutput.writeBoolean(delivered);
+
+		if (payload == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(payload);
+		}
+
+		objectOutput.writeBoolean(actionRequired);
+		objectOutput.writeBoolean(archived);
+	}
+
+	public long mvccVersion;
 	public String uuid;
 	public long userNotificationEventId;
 	public long companyId;
 	public long userId;
 	public String type;
 	public long timestamp;
+	public int deliveryType;
 	public long deliverBy;
+	public boolean delivered;
 	public String payload;
+	public boolean actionRequired;
 	public boolean archived;
 }

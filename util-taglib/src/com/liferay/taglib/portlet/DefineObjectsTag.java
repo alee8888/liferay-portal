@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,8 @@
 package com.liferay.taglib.portlet;
 
 import com.liferay.portal.kernel.util.JavaConstants;
+import com.liferay.portal.kernel.util.SearchContainerReference;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PortalUtil;
 
 import javax.portlet.PortletConfig;
@@ -95,28 +97,42 @@ public class DefineObjectsTag extends TagSupport {
 		PortletResponse portletResponse = (PortletResponse)request.getAttribute(
 			JavaConstants.JAVAX_PORTLET_RESPONSE);
 
-		if (portletResponse != null) {
-			pageContext.setAttribute(
-				"liferayPortletResponse",
-				PortalUtil.getLiferayPortletResponse(portletResponse));
-
-			String portletResponseAttrName = null;
-
-			if (lifecycle.equals(PortletRequest.ACTION_PHASE)) {
-				portletResponseAttrName = "actionResponse";
-			}
-			else if (lifecycle.equals(PortletRequest.EVENT_PHASE)) {
-				portletResponseAttrName = "eventResponse";
-			}
-			else if (lifecycle.equals(PortletRequest.RENDER_PHASE)) {
-				portletResponseAttrName = "renderResponse";
-			}
-			else if (lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
-				portletResponseAttrName = "resourceResponse";
-			}
-
-			pageContext.setAttribute(portletResponseAttrName, portletResponse);
+		if (portletResponse == null) {
+			return SKIP_BODY;
 		}
+
+		pageContext.setAttribute(
+			"liferayPortletResponse",
+			PortalUtil.getLiferayPortletResponse(portletResponse));
+
+		String portletResponseAttrName = null;
+
+		if (lifecycle.equals(PortletRequest.ACTION_PHASE)) {
+			portletResponseAttrName = "actionResponse";
+		}
+		else if (lifecycle.equals(PortletRequest.EVENT_PHASE)) {
+			portletResponseAttrName = "eventResponse";
+		}
+		else if (lifecycle.equals(PortletRequest.RENDER_PHASE)) {
+			portletResponseAttrName = "renderResponse";
+		}
+		else if (lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
+			portletResponseAttrName = "resourceResponse";
+		}
+
+		pageContext.setAttribute(portletResponseAttrName, portletResponse);
+
+		SearchContainerReference searchContainerReference =
+			(SearchContainerReference)request.getAttribute(
+				WebKeys.SEARCH_CONTAINER_REFERENCE);
+
+		if (searchContainerReference == null) {
+			searchContainerReference = new SearchContainerReference(
+				request, portletResponse.getNamespace());
+		}
+
+		pageContext.setAttribute(
+			"searchContainerReference", searchContainerReference);
 
 		return SKIP_BODY;
 	}

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -33,8 +33,6 @@ if (coupon != null) {
 	}
 }
 
-String limitCategories = BeanParamUtil.getString(coupon, request, "limitCategories");
-String limitSkus = BeanParamUtil.getString(coupon, request, "limitSkus");
 double minOrder = BeanParamUtil.getDouble(coupon, request, "minOrder");
 double discount = BeanParamUtil.getDouble(coupon, request, "discount");
 String discountType = BeanParamUtil.getString(coupon, request, "discountType");
@@ -69,30 +67,22 @@ String discountType = BeanParamUtil.getString(coupon, request, "discountType");
 	<aui:fieldset>
 		<c:choose>
 			<c:when test="<%= coupon == null %>">
-				<aui:input name="code" />
+				<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="code" />
 
 				<aui:input label="autogenerate-code" name="autoCode" type="checkbox" />
 			</c:when>
 			<c:otherwise>
-				<aui:field-wrapper label="code">
-					<%= HtmlUtil.escape(code) %>
-				</aui:field-wrapper>
+				<aui:input name="code" type="resource" value="<%= code %>" />
 			</c:otherwise>
 		</c:choose>
 
-		<aui:input name="name" />
+		<aui:input autoFocus="<%= (windowState.equals(WindowState.MAXIMIZED) && (coupon != null)) %>" name="name" />
 
 		<aui:input name="description" />
 
 		<aui:input name="startDate" />
 
-		<aui:input disabled="<%= neverExpire %>" label="expiration-date" name="endDate" />
-
-		<%
-		String taglibNeverExpireOnClick = renderResponse.getNamespace() + "disableInputDate('endDate', this.checked);";
-		%>
-
-		<aui:input name="neverExpire" onClick="<%= taglibNeverExpireOnClick %>" type="checkbox" value="<%= neverExpire %>" />
+		<aui:input dateTogglerCheckboxLabel="never-expire" disabled="<%= neverExpire %>" label="expiration-date" name="endDate" />
 
 		<aui:input name="active" value="<%= Boolean.TRUE %>" />
 	</aui:fieldset>
@@ -143,7 +133,7 @@ String discountType = BeanParamUtil.getString(coupon, request, "discountType");
 				List categoryIds = (List)errorException;
 				%>
 
-				<liferay-ui:message key="the-following-are-invalid-category-ids" /> <%= StringUtil.merge((String[])categoryIds.toArray(new String[0])) %>
+				<liferay-ui:message key="the-following-are-invalid-category-ids" /> <%= HtmlUtil.escape(StringUtil.merge((String[])categoryIds.toArray(new String[0]))) %>
 			</liferay-ui:error>
 
 			<liferay-ui:error exception="<%= CouponLimitSKUsException.class %>">
@@ -152,7 +142,7 @@ String discountType = BeanParamUtil.getString(coupon, request, "discountType");
 				List skus = (List)errorException;
 				%>
 
-				<liferay-ui:message key="the-following-are-invalid-item-skus" /> <%= StringUtil.merge((String[])skus.toArray(new String[0])) %>
+				<liferay-ui:message key="the-following-are-invalid-item-skus" /> <%= HtmlUtil.escape(StringUtil.merge((String[])skus.toArray(new String[0]))) %>
 			</liferay-ui:error>
 
 			<aui:fieldset>
@@ -166,32 +156,10 @@ String discountType = BeanParamUtil.getString(coupon, request, "discountType");
 
 <aui:script>
 	function <portlet:namespace />saveCoupon() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (coupon == null) ? Constants.ADD : Constants.UPDATE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= (coupon == null) ? Constants.ADD : Constants.UPDATE %>';
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
-	Liferay.provide(
-		window,
-		'<portlet:namespace />disableInputDate',
-		function(date, checked) {
-			var A = AUI();
-
-			document.<portlet:namespace />fm["<portlet:namespace />" + date + "Hour"].disabled = checked;
-			document.<portlet:namespace />fm["<portlet:namespace />" + date + "Minute"].disabled = checked;
-			document.<portlet:namespace />fm["<portlet:namespace />" + date + "AmPm"].disabled = checked;
-
-			var calendarWidget = A.Widget.getByNode(document.<portlet:namespace />fm["<portlet:namespace />" + date + "Month"]);
-
-			if (calendarWidget) {
-				calendarWidget.set('disabled', checked);
-			}
-		},
-		['aui-base']
-	);
-
-	Liferay.Util.disableToggleBoxes('<portlet:namespace />autoCodeCheckbox', '<portlet:namespace />code', true);
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace /><%= (coupon == null) ? "code" : "name" %>);
-	</c:if>
+	Liferay.Util.disableToggleBoxes('<portlet:namespace />autoCode', '<portlet:namespace />code', true);
 </aui:script>

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,8 +21,6 @@ String redirect = ParamUtil.getString(request, "redirect");
 
 ShoppingOrder order = (ShoppingOrder)request.getAttribute(WebKeys.SHOPPING_ORDER);
 
-order = order.toEscapedModel();
-
 long orderId = BeanParamUtil.getLong(order, request, "orderId");
 %>
 
@@ -40,15 +38,11 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 
 	<c:choose>
 		<c:when test="<%= windowState.equals(LiferayWindowState.POP_UP) %>">
-			<aui:a href="<%= themeDisplay.getURLHome() %>"><img alt="<liferay-ui:message key="logo" />" src="<%= themeDisplay.getCompanyLogo() %>" /></aui:a>
+			<h3 class="header-title">
+				<aui:a href="<%= themeDisplay.getURLHome() %>"><img alt="<liferay-ui:message key="logo" />" src="<%= themeDisplay.getCompanyLogo() %>" /></aui:a>
 
-			<br /><br />
-
-			<span style="font-size: small;">
-			<strong><liferay-ui:message key="invoice" /></strong>
-			</span>
-
-			<br /><br />
+				<liferay-ui:message key="invoice" />
+			</h3>
 		</c:when>
 		<c:otherwise>
 			<liferay-ui:header
@@ -58,320 +52,153 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 		</c:otherwise>
 	</c:choose>
 
-	<table class="lfr-table">
-	<tr>
-		<td>
-			<liferay-ui:message key="order" /> #:
-		</td>
-		<td>
-			<strong><%= order.getNumber() %></strong>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<liferay-ui:message key="order-date" />:
-		</td>
-		<td>
-			<%= dateFormatDateTime.format(order.getCreateDate()) %>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<liferay-ui:message key="last-modified" />:
-		</td>
-		<td>
-			<%= dateFormatDateTime.format(order.getModifiedDate()) %>
-		</td>
-	</tr>
-	</table>
+	<div class="well">
+		<table class="lfr-table">
+		<tr>
+			<th class="text-left">
+				<liferay-ui:message key="order" /> #:
+			</th>
+			<td>
+				<strong><%= HtmlUtil.escape(order.getNumber()) %></strong>
+			</td>
+		</tr>
+		<tr>
+			<th class="text-left">
+				<liferay-ui:message key="order-date" />:
+			</th>
+			<td>
+				<%= dateFormatDateTime.format(order.getCreateDate()) %>
+			</td>
+		</tr>
+		<tr>
+			<th class="text-left">
+				<liferay-ui:message key="last-modified" />:
+			</th>
+			<td>
+				<%= dateFormatDateTime.format(order.getModifiedDate()) %>
+			</td>
+		</tr>
+		</table>
+	</div>
 
-	<br />
+	<div class="row">
+		<div class="col-md-6">
+			<div class="well">
+				<h4><liferay-ui:message key="billing-address" /></h4>
 
-	<table class="lfr-table">
-	<tr>
-		<td>
-			<strong><liferay-ui:message key="billing-address" /></strong>
+				<%@ include file="/html/portlet/shopping/checkout_second_billing_address.jspf" %>
+			</div>
+		</div>
 
-			<br /><br />
+		<div class="col-md-6">
+			<div class="well">
+				<h4><liferay-ui:message key="shipping-address" /></h4>
 
-			<table class="lfr-table">
-			<tr>
-				<td>
-					<liferay-ui:message key="first-name" />:
-				</td>
-				<td>
-					<%= order.getBillingFirstName() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="last-name" />:
-				</td>
-				<td>
-					<%= order.getBillingLastName() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="email-address" />:
-				</td>
-				<td>
-					<%= order.getBillingEmailAddress() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="company" />:
-				</td>
-				<td>
-					<%= order.getBillingCompany() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="street" />:
-				</td>
-				<td>
-					<%= order.getBillingStreet() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="city" />
-				</td>
-				<td>
-					<%= order.getBillingCity() %>:
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="state" />:
-				</td>
-				<td>
-					<%= order.getBillingState() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="postal-code" />:
-				</td>
-				<td>
-					<%= order.getBillingZip() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="country" />:
-				</td>
-				<td>
-					<%= order.getBillingCountry() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="phone" />:
-				</td>
-				<td>
-					<%= order.getBillingPhone() %>
-				</td>
-			</tr>
-			</table>
-		</td>
-		<td class="lfr-top">
-			<strong><liferay-ui:message key="shipping-address" /></strong>
+				<%@ include file="/html/portlet/shopping/checkout_second_shipping_address.jspf" %>
+			</div>
+		</div>
+	</div>
 
-			<br /><br />
+	<div class="well">
+		<c:choose>
+			<c:when test="<%= shoppingSettings.usePayPal() %>">
+				<aui:model-context bean="<%= order %>" model="<%= ShoppingOrder.class %>" />
 
-			<table class="lfr-table">
-			<tr>
-				<td>
-					<liferay-ui:message key="first-name" />:
-				</td>
-				<td>
-					<%= order.getShippingFirstName() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="last-name" />:
-				</td>
-				<td>
-					<%= order.getShippingLastName() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="email-address" />:
-				</td>
-				<td>
-					<%= order.getShippingEmailAddress() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="company" />:
-				</td>
-				<td>
-					<%= order.getShippingCompany() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="street" />:
-				</td>
-				<td>
-					<%= order.getShippingStreet() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="city" />
-				</td>
-				<td>
-					<%= order.getShippingCity() %>:
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="state" />:
-				</td>
-				<td>
-					<%= order.getShippingState() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="postal-code" />:
-				</td>
-				<td>
-					<%= order.getShippingZip() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="country" />:
-				</td>
-				<td>
-					<%= order.getShippingCountry() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="phone" />:
-				</td>
-				<td>
-					<%= order.getShippingPhone() %>
-				</td>
-			</tr>
-			</table>
-		</td>
-	</tr>
-	</table>
-
-	<c:choose>
-		<c:when test="<%= shoppingPrefs.usePayPal() %>">
-			<aui:model-context bean="<%= order %>" model="<%= ShoppingOrder.class %>" />
-
-			<aui:fieldset label="PayPal">
-				<aui:select label="status" name="ppPaymentStatus">
-
-					<%
-					for (int i = 0; i < ShoppingOrderConstants.STATUSES.length; i++) {
-					%>
-
-						<aui:option label="<%= ShoppingOrderConstants.STATUSES[i] %>" selected="<%= ShoppingUtil.getPpPaymentStatus(ShoppingOrderConstants.STATUSES[i]).equals(order.getPpPaymentStatus()) %>" />
-
-					<%
-					}
-					%>
-
-				</aui:select>
-
-				<aui:input label="transaction-id" name="ppTxnId" />
-
-				<aui:input label="payment-gross" name="ppPaymentGross" value="<%= doubleFormat.format(order.getPpPaymentGross()) %>" />
-
-				<aui:input label="receiver-email-address" name="ppReceiverEmail" />
-
-				<aui:input label="payer-email-address" name="ppPayerEmail" />
-
-				<c:if test="<%= order.getPpPaymentStatus().equals(ShoppingOrderConstants.STATUS_CHECKOUT) %>">
-					<aui:field-wrapper label="paypal-order">
+				<aui:fieldset label="PayPal">
+					<aui:select label="status" name="ppPaymentStatus">
 
 						<%
-						String payPalLinkOpen = "<a href=\"" + ShoppingUtil.getPayPalRedirectURL(shoppingPrefs, order, ShoppingUtil.calculateTotal(order), ShoppingUtil.getPayPalReturnURL(renderResponse.createActionURL(), order), ShoppingUtil.getPayPalNotifyURL(themeDisplay)) + "\"><strong><u>";
-						String payPalLinkClose = "</u></strong></a>";
+						for (int i = 0; i < ShoppingOrderConstants.STATUSES.length; i++) {
 						%>
 
-						<liferay-ui:message arguments="<%= new Object[] {payPalLinkOpen, payPalLinkClose} %>" key="please-complete-your-order" translateArguments="<%= false %>" />
-					</aui:field-wrapper>
-				</c:if>
-			</aui:fieldset>
-		</c:when>
-		<c:otherwise>
-			<strong><liferay-ui:message key="credit-card" /></strong>
+							<aui:option label="<%= ShoppingOrderConstants.STATUSES[i] %>" selected="<%= ShoppingUtil.getPpPaymentStatus(ShoppingOrderConstants.STATUSES[i]).equals(order.getPpPaymentStatus()) %>" />
 
-			<br /><br />
+						<%
+						}
+						%>
 
-			<table class="lfr-table">
-			<tr>
-				<td>
-					<liferay-ui:message key="full-name" />:
-				</td>
-				<td>
-					<%= order.getCcName() %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="type" />:
-				</td>
-				<td>
-					<liferay-ui:message key='<%= "cc_" + order.getCcType() %>' />
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="number" />:
-				</td>
-				<td>
-					<%= CreditCard.hide(order.getCcNumber()) %>
-				</td>
-			</tr>
-			<tr>
-				<td>
-					<liferay-ui:message key="expiration-date" />:
-				</td>
-				<td>
-					<%= CalendarUtil.getMonths(locale)[order.getCcExpMonth()] %>, <%= order.getCcExpYear() %>
-				</td>
-			</tr>
+					</aui:select>
 
-			<c:if test="<%= Validator.isNotNull(order.getCcVerNumber()) %>">
+					<aui:input label="transaction-id" name="ppTxnId" />
+
+					<aui:input label="payment-gross" name="ppPaymentGross" value="<%= doubleFormat.format(order.getPpPaymentGross()) %>" />
+
+					<aui:input label="receiver-email-address" name="ppReceiverEmail" />
+
+					<aui:input label="payer-email-address" name="ppPayerEmail" />
+
+					<c:if test="<%= order.getPpPaymentStatus().equals(ShoppingOrderConstants.STATUS_CHECKOUT) %>">
+						<aui:field-wrapper label="paypal-order">
+
+							<%
+							String payPalLinkOpen = "<a href=\"" + ShoppingUtil.getPayPalRedirectURL(shoppingSettings, order, ShoppingUtil.calculateTotal(order), ShoppingUtil.getPayPalReturnURL(renderResponse.createActionURL(), order), ShoppingUtil.getPayPalNotifyURL(themeDisplay)) + "\"><strong><u>";
+							String payPalLinkClose = "</u></strong></a>";
+							%>
+
+							<liferay-ui:message arguments="<%= new Object[] {payPalLinkOpen, payPalLinkClose} %>" key="please-complete-your-order" translateArguments="<%= false %>" />
+						</aui:field-wrapper>
+					</c:if>
+				</aui:fieldset>
+			</c:when>
+			<c:otherwise>
+				<h4><liferay-ui:message key="credit-card" /></h4>
+
+				<table class="lfr-table">
 				<tr>
+					<th class="text-left">
+						<liferay-ui:message key="full-name" />:
+					</th>
 					<td>
-						<liferay-ui:message key="verification-number" />:
-					</td>
-					<td>
-						<%= order.getCcVerNumber() %>
+						<%= HtmlUtil.escape(order.getCcName()) %>
 					</td>
 				</tr>
-			</c:if>
+				<tr>
+					<th class="text-left">
+						<liferay-ui:message key="type" />:
+					</th>
+					<td>
+						<liferay-ui:message key='<%= "cc_" + order.getCcType() %>' />
+					</td>
+				</tr>
+				<tr>
+					<th class="text-left">
+						<liferay-ui:message key="number" />:
+					</th>
+					<td>
+						<%= CreditCard.hide(order.getCcNumber()) %>
+					</td>
+				</tr>
+				<tr>
+					<th class="text-left">
+						<liferay-ui:message key="expiration-date" />:
+					</th>
+					<td>
+						<%= CalendarUtil.getMonths(locale)[order.getCcExpMonth()] %>, <%= order.getCcExpYear() %>
+					</td>
+				</tr>
 
-			</table>
-		</c:otherwise>
-	</c:choose>
+				<c:if test="<%= Validator.isNotNull(order.getCcVerNumber()) %>">
+					<tr>
+						<th class="text-left">
+							<liferay-ui:message key="verification-number" />:
+						</th>
+						<td>
+							<%= HtmlUtil.escape(order.getCcVerNumber()) %>
+						</td>
+					</tr>
+				</c:if>
 
-	<br />
+				</table>
+			</c:otherwise>
+		</c:choose>
+	</div>
 
 	<c:if test="<%= Validator.isNotNull(order.getComments()) %>">
-		<strong><liferay-ui:message key="comments" /></strong>
+		<div class="well">
+			<h4><liferay-ui:message key="comments" /></h4>
 
-		<br /><br />
-
-		<%= order.getComments() %>
-
-		<br /><br />
+			<%= HtmlUtil.escape(order.getComments()) %>
+		</div>
 	</c:if>
 
 	<%
@@ -426,7 +253,7 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 
 		// SKU
 
-		row.addText(orderItem.getSku(), rowURL);
+		row.addText(HtmlUtil.escape(orderItem.getSku()), rowURL);
 
 		// Description
 
@@ -435,8 +262,8 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 
 			sb.append(HtmlUtil.escape(orderItem.getName()));
 			sb.append(" (");
-			sb.append(StringUtil.replace(StringUtil.merge(fieldsArray, ", "), "=", ": "));
-			sb.append(")");
+			sb.append(HtmlUtil.escape(StringUtil.replace(StringUtil.merge(fieldsArray, ", "), "=", ": ")));
+			sb.append(StringPool.CLOSE_PARENTHESIS);
 
 			row.addText(sb.toString(), rowURL);
 		}
@@ -464,80 +291,80 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 
 	<liferay-ui:search-iterator searchContainer="<%= searchContainer %>" />
 
-	<br />
-
-	<table class="lfr-table">
-	<tr>
-		<td>
-			<liferay-ui:message key="subtotal" />:
-		</td>
-		<td>
-			<%= currencyFormat.format(ShoppingUtil.calculateActualSubtotal(results)) %>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<liferay-ui:message key="tax" />:
-		</td>
-		<td>
-			<%= currencyFormat.format(order.getTax()) %>
-		</td>
-	</tr>
-	<tr>
-		<td>
-			<liferay-ui:message key="shipping" /> <%= Validator.isNotNull(order.getAltShipping()) ? "(" + order.getAltShipping() + ")" : StringPool.BLANK %>
-		</td>
-		<td>
-			<%= currencyFormat.format(order.getShipping()) %>
-		</td>
-	</tr>
-
-	<c:if test="<%= order.isInsure() %>">
+	<div class="well">
+		<table class="lfr-table">
 		<tr>
+			<th class="text-left">
+				<liferay-ui:message key="subtotal" />:
+			</th>
 			<td>
-				<liferay-ui:message key="insurance" />:
-			</td>
-			<td>
-				<%= currencyFormat.format(order.getInsurance()) %>
+				<%= currencyFormat.format(ShoppingUtil.calculateActualSubtotal(results)) %>
 			</td>
 		</tr>
-	</c:if>
-
-	<c:if test="<%= Validator.isNotNull(order.getCouponCodes()) %>">
 		<tr>
+			<th class="text-left">
+				<liferay-ui:message key="tax" />:
+			</th>
 			<td>
-				<liferay-ui:message key="coupon-discount" />:
-			</td>
-			<td>
-				<%= currencyFormat.format(order.getCouponDiscount()) %>
-
-				<portlet:renderURL var="viewCouponURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-					<portlet:param name="struts_action" value="/shopping/view_coupon" />
-					<portlet:param name="code" value="<%= order.getCouponCodes() %>" />
-				</portlet:renderURL>
-
-				<%
-				String taglibOpenCouponWindow = "var viewCouponWindow = window.open('" + viewCouponURL + "', 'viewCoupon', 'directories=no,height=200,location=no,menubar=no,resizable=no,scrollbars=yes,status=no,toolbar=no,width=280'); void(''); viewCouponWindow.focus();";
-				%>
-
-				<aui:a href='<%= "javascript:" + taglibOpenCouponWindow %>' label='<%= "(" + LanguageUtil.get(pageContext, order.getCouponCodes()) + ")" %>' />
+				<%= currencyFormat.format(order.getTax()) %>
 			</td>
 		</tr>
-	</c:if>
+		<tr>
+			<th class="text-left">
+				<liferay-ui:message key="shipping" /> <%= Validator.isNotNull(order.getAltShipping()) ? "(" + HtmlUtil.escape(order.getAltShipping()) + ")" : StringPool.BLANK %>
+			</th>
+			<td>
+				<%= currencyFormat.format(order.getShipping()) %>
+			</td>
+		</tr>
 
-	<tr>
-		<td>
-			<liferay-ui:message key="total" />:
-		</td>
-		<td>
-			<%= currencyFormat.format(ShoppingUtil.calculateTotal(order)) %>
-		</td>
-	</tr>
-	</table>
+		<c:if test="<%= order.isInsure() %>">
+			<tr>
+				<th class="text-left">
+					<liferay-ui:message key="insurance" />:
+				</th>
+				<td>
+					<%= currencyFormat.format(order.getInsurance()) %>
+				</td>
+			</tr>
+		</c:if>
+
+		<c:if test="<%= Validator.isNotNull(order.getCouponCodes()) %>">
+			<tr>
+				<th class="text-left">
+					<liferay-ui:message key="coupon-discount" />:
+				</th>
+				<td>
+					<%= currencyFormat.format(order.getCouponDiscount()) %>
+
+					<portlet:renderURL var="viewCouponURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+						<portlet:param name="struts_action" value="/shopping/view_coupon" />
+						<portlet:param name="code" value="<%= order.getCouponCodes() %>" />
+					</portlet:renderURL>
+
+					<%
+					String taglibOpenCouponWindow = "var viewCouponWindow = window.open('" + viewCouponURL + "', 'viewCoupon', 'directories=no,height=200,location=no,menubar=no,resizable=no,scrollbars=yes,status=no,toolbar=no,width=280'); void(''); viewCouponWindow.focus();";
+					%>
+
+					<aui:a href='<%= "javascript:" + taglibOpenCouponWindow %>' label='<%= "(" + LanguageUtil.get(pageContext, order.getCouponCodes()) + ")" %>' />
+				</td>
+			</tr>
+		</c:if>
+
+		<tr>
+			<th class="text-left">
+				<liferay-ui:message key="total" />:
+			</th>
+			<td>
+				<%= currencyFormat.format(ShoppingUtil.calculateTotal(order)) %>
+			</td>
+		</tr>
+		</table>
+	</div>
 
 	<c:if test="<%= !windowState.equals(LiferayWindowState.POP_UP) %>">
 		<aui:button-row>
-			<c:if test="<%= shoppingPrefs.usePayPal() %>">
+			<c:if test="<%= shoppingSettings.usePayPal() %>">
 				<aui:button onClick='<%= renderResponse.getNamespace() + "saveOrder();" %>' value="save" />
 			</c:if>
 
@@ -586,7 +413,6 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 				formAction="<%= discussionURL %>"
 				formName="fm2"
 				redirect="<%= currentURL %>"
-				subject="<%= order.getNumber() %>"
 				userId="<%= order.getUserId() %>"
 			/>
 		</liferay-ui:panel>
@@ -595,19 +421,22 @@ long orderId = BeanParamUtil.getLong(order, request, "orderId");
 
 <aui:script>
 	function <portlet:namespace />deleteOrder() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
-		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = "<%= HtmlUtil.escapeURL(redirect) %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.DELETE %>';
+		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = '<%= HtmlUtil.escapeURL(redirect) %>';
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />saveOrder() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.UPDATE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.UPDATE %>';
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />sendEmail(emailType) {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "sendEmail";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'sendEmail';
 		document.<portlet:namespace />fm.<portlet:namespace />emailType.value = emailType;
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 </aui:script>

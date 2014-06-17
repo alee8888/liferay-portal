@@ -1,9 +1,22 @@
 AUI.add(
 	'liferay-navigation',
 	function(A) {
+		var ANode = A.Node;
 		var Dockbar = Liferay.Dockbar;
 		var Util = Liferay.Util;
 		var Lang = A.Lang;
+
+		var STATUS_CODE = Liferay.STATUS_CODE;
+
+		var STR_EMPTY = '';
+
+		var STR_LAYOUT_ID = 'layoutId';
+
+		var TPL_EDITOR = '<div class="add-page-editor"><div class="input-group"></div></div>';
+
+		var TPL_FIELD_INPUT = '<input class="add-page-editor-input" type="text" value="{0}" />';
+
+		var TPL_LINK = '<a href="{url}">{pageTitle}</a>';
 
 		var TPL_LIST_ITEM = '<li class="add-page"></li>';
 
@@ -13,7 +26,6 @@ AUI.add(
 		 * OPTIONS
 		 *
 		 * Required
-		 * hasPermission {boolean}: Whether the current user has permission to modify the navigation
 		 * layoutIds {array}: The displayable layout ids.
 		 * layoutSetBranchId {String}: The id of the layout set branch (when branching is enabled).
 		 * navBlock {string|object}: A selector or DOM element of the navigation.
@@ -22,7 +34,16 @@ AUI.add(
 		var Navigation = A.Component.create(
 			{
 				ATTRS: {
-					hasPermission: {
+					hasAddLayoutPermission: {
+						value: false
+					},
+
+					isAddable: {
+						getter: function(value) {
+							var instance = this;
+
+							return instance.get('hasAddLayoutPermission') && instance.get('navBlock').hasClass('modify-pages');
+						},
 						value: false
 					},
 
@@ -30,8 +51,7 @@ AUI.add(
 						getter: function(value) {
 							var instance = this;
 
-							return instance.get('hasPermission') &&
-									instance.get('navBlock').hasClass('modify-pages');
+							return instance.get('navBlock').hasClass('modify-pages');
 						},
 						value: false
 					},
@@ -40,8 +60,7 @@ AUI.add(
 						getter: function(value) {
 							var instance = this;
 
-							return instance.get('hasPermission') &&
-									instance.get('navBlock').hasClass('sort-pages');
+							return instance.get('navBlock').hasClass('sort-pages');
 						},
 						value: false
 					},
@@ -76,7 +95,7 @@ AUI.add(
 				NAME: 'navigation',
 
 				prototype: {
-					TPL_DELETE_BUTTON: '<span class="delete-tab aui-helper-hidden">X</span>',
+					TPL_DELETE_BUTTON: '<span class="delete-tab">&times;</span>',
 
 					initializer: function(config) {
 						var instance = this;
@@ -84,22 +103,35 @@ AUI.add(
 						var navBlock = instance.get('navBlock');
 
 						if (navBlock) {
-							instance._updateURL = themeDisplay.getPathMain() + '/layouts_admin/update_page';
+							instance._updateURL = themeDisplay.getPathMain() + '/layouts_admin/update_page?p_auth=' + Liferay.authToken;
 
-							var items = navBlock.all('> ul > li');
+							var navListSelector = Liferay.Data.NAV_LIST_SELECTOR || '> ul';
+
+							var navItemSelector = Liferay.Data.NAV_ITEM_SELECTOR || navListSelector + '> li';
+
+							var navItemChildToggleSelector = Liferay.Data.NAV_ITEM_CHILD_TOGGLE_SELECTOR || '> span';
+
+							var navList = navBlock.one(navListSelector);
+
+							var items = navBlock.all(navItemSelector);
+
 							var layoutIds = instance.get('layoutIds');
 
 							var cssClassBuffer = [];
 
 							items.each(
-								function(item, index, collection) {
+								function(item, index) {
 									var layoutConfig = layoutIds[index];
 
 									if (layoutConfig) {
-										item._LFR_layoutId = layoutConfig.id;
+										item.setData(STR_LAYOUT_ID, layoutConfig.id);
 
 										if (layoutConfig.deletable) {
 											cssClassBuffer.push('lfr-nav-deletable');
+										}
+
+										if (layoutConfig.sortable) {
+											cssClassBuffer.push('lfr-nav-sortable');
 										}
 
 										if (layoutConfig.updateable) {
@@ -115,46 +147,40 @@ AUI.add(
 								}
 							);
 
-							instance._makeAddable();
+							instance._navItemChildToggleSelector = navItemChildToggleSelector;
+							instance._navItemSelector = navItemSelector;
+							instance._navListSelector = navListSelector;
+
+							instance._navList = navList;
+
 							instance._makeDeletable();
 							instance._makeSortable();
 							instance._makeEditable();
 
+							instance._tempTab = instance._createTempTab(TPL_TAB_LINK);
+							instance._tempChildTab = instance._createTempTab(TPL_LINK);
+
 							instance.on('savePage', A.bind('_savePage', instance));
 							instance.on('cancelPage', instance._cancelPage);
 
-							navBlock.delegate('keypress', A.bind(instance._onKeypress, instance), 'input');
+							Liferay.on('dockbaraddpage:addPage', instance._onAddPage, instance);
+							Liferay.on('dockbaraddpage:previewPageTitle', instance._onPreviewPageTitle, instance);
+
+							navBlock.delegate('keypress', A.bind('_onKeypress', instance), 'input');
 						}
 					},
 
-					_addPage: function(event) {
+					_afterMakeSortable: function(sortable) {
 						var instance = this;
 
-						if (!event.shiftKey) {
-							Dockbar.MenuManager.hideAll();
-							Dockbar.UnderlayManager.hideAll();
-						}
-
-						var navBlock = instance.get('navBlock');
-						var addBlock = A.Node.create(TPL_LIST_ITEM);
-
-						navBlock.show();
-
-						navBlock.one('ul').append(addBlock);
-
-						instance._createEditor(
-							addBlock,
-							{
-								prevVal: ''
-							}
-						);
+						sortable.delegate.dd.removeInvalid('a');
 					},
 
 					_cancelPage: function(event) {
 						var instance = this;
 
 						var actionNode = event.actionNode;
-						var comboBox = event.comboBox;
+						var toolbar = event.toolbar;
 						var field = event.field;
 						var listItem = event.listItem;
 
@@ -163,23 +189,49 @@ AUI.add(
 						if (actionNode) {
 							actionNode.show();
 
-							field.resetValue();
+							field.val(event.prevVal);
 						}
 						else {
 							listItem.remove(true);
 						}
 
-						comboBox.destroy();
+						toolbar.destroy();
 
 						if (!navBlock.one('li')) {
 							navBlock.hide();
 						}
 					},
 
+					_clearTempPage: function() {
+						var instance = this;
+
+						instance._tempTab.remove();
+
+						instance._tempChildTab.remove();
+					},
+
 					_createDeleteButton: function(obj) {
 						var instance = this;
 
 						obj.append(instance.TPL_DELETE_BUTTON);
+					},
+
+					_createTempTab: function(tpl) {
+						var instance = this;
+
+						var tempLink = Lang.sub(
+							tpl,
+							{
+								pageTitle: STR_EMPTY,
+								url: '#'
+							}
+						);
+
+						var tempTab = ANode.create('<li>');
+
+						tempTab.append(tempLink);
+
+						return tempTab;
 					},
 
 					_deleteButton: function(obj) {
@@ -190,12 +242,26 @@ AUI.add(
 						}
 
 						obj.each(
-							function(item, index, collection) {
+							function(item, index) {
 								if (item.hasClass('lfr-nav-deletable')) {
 									instance._createDeleteButton(item);
 								}
 							}
 						);
+					},
+
+					_displayNotice: function(message, type, timeout, useAnimation) {
+						new Liferay.Notice(
+							{
+								closeText: false,
+								content: message + '<button type="button" class="close">&times;</button>',
+								noticeClass: 'hide',
+								timeout: timeout || 10000,
+								toggleText: false,
+								type: type || 'warning',
+								useAnimation: Lang.isValue(useAnimation) ? useAnimation : true
+							}
+						).show();
 					},
 
 					_handleKeyDown: function(event) {
@@ -206,24 +272,10 @@ AUI.add(
 						}
 					},
 
-					_makeAddable: function() {
+					_hoverNavItem: function(event) {
 						var instance = this;
 
-						if (instance.get('isModifiable')) {
-							var prototypeMenuNode = A.one('#layoutPrototypeTemplate');
-
-							if (prototypeMenuNode) {
-								instance._prototypeMenuTemplate = prototypeMenuNode.html();
-							}
-
-							if (instance.get('hasPermission')) {
-								var addPageButton = A.one('#addPage');
-
-								if (addPageButton) {
-									addPageButton.on('click', instance._addPage, instance);
-								}
-							}
-						}
+						event.currentTarget.toggleClass('lfr-nav-hover', (event.type == 'mouseenter'));
 					},
 
 					_makeDeletable: function() {
@@ -232,8 +284,10 @@ AUI.add(
 						if (instance.get('isModifiable')) {
 							var navBlock = instance.get('navBlock');
 
-							var navItems = navBlock.all('> ul > li').filter(
-								function(item, index, collection) {
+							var navItemSelector = instance._navItemSelector;
+
+							var navItems = navBlock.all(navItemSelector).filter(
+								function(item, index) {
 									return !item.hasClass('selected');
 								}
 							);
@@ -247,20 +301,10 @@ AUI.add(
 							navBlock.delegate(
 								'keydown',
 								A.bind('_handleKeyDown', instance),
-								'> ul > li a'
+								navItemSelector
 							);
 
-							navBlock.delegate(
-								'mouseenter',
-								A.rbind(instance._toggleDeleteButton, instance, 'removeClass'),
-								'li'
-							);
-
-							navBlock.delegate(
-								'mouseleave',
-								A.rbind(instance._toggleDeleteButton, instance, 'addClass'),
-								'li'
-							);
+							navBlock.delegate(['mouseenter', 'mouseleave'], instance._hoverNavItem, '.lfr-nav-deletable', instance);
 
 							instance._deleteButton(navItems);
 						}
@@ -270,7 +314,7 @@ AUI.add(
 						var instance = this;
 
 						if (instance.get('isModifiable')) {
-							var currentItem = instance.get('navBlock').one('li.selected');
+							var currentItem = instance.get('navBlock').one('li.selected.lfr-nav-updateable');
 
 							if (currentItem) {
 								var currentLink = currentItem.one('a');
@@ -288,21 +332,10 @@ AUI.add(
 											}
 										);
 
-										currentLink.on(
-											'mouseenter',
-											function(event) {
-												if (!themeDisplay.isStateMaximized() || event.shiftKey) {
-													currentSpan.setStyle('cursor', 'text');
-												}
-											}
-										);
-
-										currentLink.on('mouseleave', A.bind(currentSpan.setStyle, currentSpan, 'cursor', 'pointer'));
-
 										currentSpan.on(
 											'click',
 											function(event) {
-												if (themeDisplay.isStateMaximized() && !event.shiftKey) {
+												if ((themeDisplay.isStateMaximized() && !event.shiftKey) || event.target.ancestor('.lfr-nav-child-toggle', true, '.lfr-nav-updateable')) {
 													return;
 												}
 
@@ -329,6 +362,63 @@ AUI.add(
 						}
 					},
 
+					_onAddPage: function(event) {
+						var instance = this;
+
+						var data = event.data;
+
+						instance._clearTempPage();
+
+						var navBlock = instance.get('navBlock');
+
+						navBlock.show();
+
+						var tabTPL = data.parentLayoutId ? TPL_LINK : TPL_TAB_LINK;
+
+						var tabHtml = Lang.sub(
+							tabTPL,
+							{
+								pageTitle: data.title,
+								url: data.url
+							}
+						);
+
+						var newTab = ANode.create(tabHtml);
+
+						var listItem = data.parentLayoutId ? ANode.create('<li>') : ANode.create(TPL_LIST_ITEM);
+
+						listItem.setData(STR_LAYOUT_ID, data.layoutId);
+
+						listItem.append(newTab);
+
+						if (data.parentLayoutId) {
+							var parentItem = navBlock.one('#layout_' + data.parentLayoutId);
+
+							if (parentItem) {
+								var parentListItem = parentItem.one('ul');
+
+								if (parentListItem) {
+									parentListItem.append(listItem);
+								}
+							}
+						}
+						else {
+							listItem.addClass('lfr-nav-sortable lfr-nav-updateable sortable-item');
+
+							instance._createDeleteButton(listItem);
+
+							navBlock.one('ul').append(listItem);
+						}
+
+						Liferay.fire(
+							'navigation',
+							{
+								item: listItem,
+								type: 'add'
+							}
+						);
+					},
+
 					_onKeypress: function(event) {
 						var instance = this;
 
@@ -340,24 +430,44 @@ AUI.add(
 								eventType = 'cancelPage';
 							}
 
-							var comboBox = listItem._comboBox;
-
-							comboBox.fire(eventType);
+							listItem._toolbar.fire(eventType);
 						}
 					},
 
-					_toggleDeleteButton: function(event, action) {
+					_onPreviewPageTitle: function(event) {
 						var instance = this;
 
-						var deleteTab = event.currentTarget.one('.delete-tab');
+						var data = event.data;
 
-						if (deleteTab) {
-							deleteTab[action]('aui-helper-hidden');
+						if (data.name === STR_EMPTY || data.hidden) {
+							instance._clearTempPage();
+						}
+						else {
+							var navBlock = instance.get('navBlock');
+
+							if (!data.parentLayoutId) {
+								instance._tempTab.one('span').text(data.name);
+
+								navBlock.one('ul').append(instance._tempTab);
+							}
+							else {
+								var parentItem = navBlock.one('#layout_' + data.parentLayoutId);
+
+								if (parentItem) {
+									var parentListItem = parentItem.one('ul');
+
+									if (parentListItem) {
+										instance._tempChildTab.one('a').text(data.name);
+
+										parentListItem.append(instance._tempChildTab);
+									}
+								}
+							}
 						}
 					},
 
 					_optionsOpen: true,
-					_updateURL: ''
+					_updateURL: STR_EMPTY
 				}
 			}
 		);
@@ -368,27 +478,18 @@ AUI.add(
 			function(listItem, options) {
 				var instance = this;
 
-				var prototypeTemplate = instance._prototypeMenuTemplate || '';
+				var prototypeTemplate = instance._prototypeMenuTemplate || STR_EMPTY;
 
-				prototypeTemplate = prototypeTemplate.replace(/name=\"template\"/g, 'name="' + A.guid() + '_template"');
-
-				var prevVal = options.prevVal;
+				var prevVal = Lang.trim(options.prevVal);
 
 				if (options.actionNode) {
 					options.actionNode.hide();
 				}
 
-				var docClick = A.getDoc().on(
-					'click',
-					function(event) {
-						docClick.detach();
-
-						instance.fire('cancelPage', options);
-					}
-				);
-
 				var relayEvent = function(event) {
-					docClick.detach();
+					if (docClick) {
+						docClick.detach();
+					}
 
 					var eventName = event.type.split(':');
 
@@ -399,133 +500,143 @@ AUI.add(
 
 				var icons = [
 					{
-						handler: function(event) {
-							comboBox.fire('savePage', options);
+						icon: 'icon-ok',
+						on: {
+							click: function(event) {
+								toolbar.fire('savePage', options);
+							}
 						},
-						icon: 'check',
-						id: 'save'
+						title: Liferay.Language.get('save')
 					}
 				];
 
 				if (prototypeTemplate && !prevVal) {
 					icons.unshift(
 						{
-							activeState: true,
-							handler: function(event) {
-								var toolItem = this;
+							icon: 'icon-cog',
+							on: {
+								click: function(event) {
+									var button = event.currentTarget.get('boundingBox');
 
-								event.halt();
+									var active = button.hasClass('active');
 
-								var action = 'show';
+									optionsPopover.set('visible', !active);
 
-								if (toolItem.StateInteraction.get('active')) {
-									action = 'hide';
+									button.toggleClass('active');
 								}
-
-								comboBox._optionsOverlay[action]();
 							},
-							icon: 'gear',
-							id: 'options'
+							title: Liferay.Language.get('options')
 						}
 					);
 				}
 
-				var optionsOverlay = new A.Overlay(
-					{
-						bodyContent: prototypeTemplate,
-						align: {
-							node: listItem,
-							points: ['tl', 'bl']
-						},
-						on: {
-							visibleChange: function(event) {
-								var instance = this;
+				var editorContainer = ANode.create(TPL_EDITOR);
 
-								if (event.newVal) {
-									if (!instance.get('rendered')) {
-										instance.set('align.node', comboBox.get('contentBox'));
+				var docClick = editorContainer.on(
+					'clickoutside',
+					function(event) {
+						docClick.detach();
 
-										instance.render();
-									}
-								}
-							}
-						},
-						zIndex: 200
+						instance.fire('cancelPage', options);
 					}
 				);
 
-				var comboBox = new A.Combobox(
+				var toolbarBoundingBox = editorContainer.one('.input-group');
+
+				var toolbar = new A.Toolbar(
 					{
 						after: {
 							destroy: function(event) {
 								instance.fire('stopEditing');
+
+								optionsPopover.destroy();
+
+								editorContainer.remove(true);
+
+								if (docClick) {
+									docClick.detach();
+								}
 							},
 							render: function(event) {
 								instance.fire('startEditing');
 							}
 						},
-						field: {
-							value: prevVal
+						boundingBox: toolbarBoundingBox,
+						children: icons
+					}
+				).render(editorContainer);
+
+				toolbar.get('contentBox').swallowEvent('click');
+
+				var optionItem;
+
+				var optionsPopover = new A.Popover(
+					{
+						align: {
+							points: ['tc', 'bc']
 						},
-						icons: icons,
+						bodyContent: prototypeTemplate,
 						on: {
-							destroy: function(event) {
+							visibleChange: function(event) {
 								var instance = this;
 
-								if (optionsOverlay.get('rendered')) {
-									optionsOverlay.destroy();
+								if (event.newVal && !instance.get('rendered')) {
+									instance.set('align.node', optionItem);
+
+									instance.render(editorContainer);
 								}
 							}
-						}
+						},
+						position: 'bottom',
+						zIndex: 200
 					}
-				).render(listItem);
+				);
+
+				var popoverContentBox = optionsPopover.get('contentBox');
+
+				popoverContentBox.addClass('lfr-menu-list lfr-page-templates');
+
+				popoverContentBox.swallowEvent('click');
+
+				var toolbarField = ANode.create(Lang.sub(TPL_FIELD_INPUT, [prevVal]));
+
+				toolbarBoundingBox.prepend(toolbarField);
+
+				listItem.prepend(editorContainer);
 
 				if (prototypeTemplate && instance._optionsOpen && !prevVal) {
-					var optionItem = comboBox.icons.item('options');
+					optionItem = toolbar.item(1).get('boundingBox');
 
-					optionItem.StateInteraction.set('active', true);
-					optionsOverlay.show();
+					optionItem.addClass('active');
+
+					optionsPopover.show();
 				}
 
-				var comboField = comboBox._field;
-
-				var comboContentBox = comboBox.get('contentBox');
-
-				var overlayBoundingBox = optionsOverlay.get('boundingBox');
-				var overlayContentBox = optionsOverlay.get('contentBox');
-
 				options.listItem = listItem;
-				options.comboBox = comboBox;
-				options.field = comboField;
-				options.optionsOverlay = optionsOverlay;
+				options.optionsPopover = optionsPopover;
+				options.toolbar = toolbar;
 
-				comboBox.on('savePage', relayEvent);
-				comboBox.on('cancelPage', relayEvent);
+				options.field = editorContainer.one('input');
 
-				comboBox._optionsOverlay = optionsOverlay;
+				toolbar.on(['cancelPage', 'savePage'], relayEvent);
 
-				listItem._comboBox = comboBox;
+				toolbar._optionsPopover = optionsPopover;
 
-				overlayBoundingBox.setStyle('minWidth', listItem.get('offsetWidth') + 'px');
-				overlayContentBox.addClass('lfr-menu-list lfr-component lfr-page-templates');
+				listItem._toolbar = toolbar;
 
-				comboContentBox.swallowEvent('click');
-				overlayContentBox.swallowEvent('click');
+				Util.focusFormField(toolbarField);
 
-				Util.focusFormField(comboField.get('node'));
+				var realign = A.bind('fire', optionsPopover, 'align');
 
-				var realign = A.bind(optionsOverlay.fire, optionsOverlay, 'align');
+				optionsPopover.on('visibleChange', realign);
 
-				optionsOverlay.on('visibleChange', realign);
-
-				instance.on('stopEditing', realign);
-				instance.on('startEditing', realign);
+				instance.on(['startEditing', 'stopEditing'], realign);
 
 				if (prevVal) {
 					instance.fire('editPage');
 				}
 			},
-			['aui-form-combobox', 'overlay'],
+			['aui-toolbar', 'aui-popover', 'event-outside'],
 			true
 		);
 
@@ -536,13 +647,11 @@ AUI.add(
 				var instance = this;
 
 				if (instance.get('isSortable')) {
-					var navBlock = instance.get('navBlock');
-
 					var sortable = new A.Sortable(
 						{
-							container: navBlock,
+							container: instance._navList,
 							moveType: 'move',
-							nodes: '.lfr-nav-updateable',
+							nodes: '.lfr-nav-sortable',
 							opacity: '.5',
 							opacityNode: 'currentNode'
 						}
@@ -554,27 +663,23 @@ AUI.add(
 							var dragNode = event.target.get('node');
 
 							instance._saveSortables(dragNode);
-
-							Liferay.fire(
-								'navigation',
-								{
-									item: dragNode.getDOM(),
-									type: 'sort'
-								}
-							);
 						}
 					);
 
 					sortable.delegate.on(
 						'drag:start',
 						function(event) {
-							var dragNode = event.target.get('dragNode');
+							var target = event.target;
+
+							var dragNode = target.get('dragNode');
 
 							dragNode.addClass('lfr-navigation-proxy');
+
+							instance._nextPageNode = target.get('node').next();
 						}
 					);
 
-					sortable.delegate.dd.removeInvalid('a');
+					instance._afterMakeSortable(sortable);
 				}
 			},
 			['dd-constrain', 'sortable'],
@@ -592,12 +697,33 @@ AUI.add(
 				var tab = event.currentTarget.ancestor('li');
 
 				if (confirm(Liferay.Language.get('are-you-sure-you-want-to-delete-this-page'))) {
+					var processRemovePageFailure = function(result) {
+						instance._displayNotice(result.message);
+					};
+
+					var processRemovePageSuccess = function(result) {
+						Liferay.fire(
+							'navigation',
+							{
+								item: tab,
+								type: 'delete'
+							}
+						);
+
+						tab.remove(true);
+
+						if (!navBlock.one('ul li')) {
+							navBlock.hide();
+						}
+					};
+
 					var data = {
 						cmd: 'delete',
 						doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
-						groupId: themeDisplay.getParentGroupId(),
-						layoutId: tab._LFR_layoutId,
+						groupId: themeDisplay.getSiteGroupId(),
+						layoutId: tab.getData(STR_LAYOUT_ID),
 						layoutSetBranchId: instance.get('layoutSetBranchId'),
+						p_auth: Liferay.authToken,
 						privateLayout: themeDisplay.isPrivateLayout()
 					};
 
@@ -605,44 +731,51 @@ AUI.add(
 						instance._updateURL,
 						{
 							data: data,
+							dataType: 'JSON',
 							on: {
-								success: function() {
-									Liferay.fire(
-										'navigation',
+								failure: function() {
+									processRemovePageFailure(
 										{
-											item: tab,
-											type: 'delete'
+											message: Liferay.Language.get('your-request-failed-to-complete'),
+											status: STATUS_CODE.BAD_REQUEST
 										}
 									);
+								},
+								success: function(event, id, obj) {
+									var result = this.get('responseData');
 
-									tab.remove(true);
+									var removePageFn = processRemovePageFailure;
 
-									if (!navBlock.one('ul li')) {
-										navBlock.hide();
+									if (result.status === STATUS_CODE.OK) {
+										removePageFn = processRemovePageSuccess;
 									}
+
+									removePageFn(result);
 								}
 							}
 						}
 					);
 				}
 			},
-			['aui-io-request'],
+			['aui-io-request', 'liferay-notice'],
 			true
 		);
 
 		Liferay.provide(
 			Navigation,
 			'_savePage',
-			function(event, obj, oldName) {
+			function(event, obj) {
 				var instance = this;
 
 				var actionNode = event.actionNode;
-				var comboBox = event.comboBox;
+				var toolbar = event.toolbar;
 				var field = event.field;
 				var listItem = event.listItem;
 				var textNode = event.textNode;
 
 				var pageTitle = field.get('value');
+
+				var prevVal = Lang.trim(event.prevVal);
 
 				pageTitle = Lang.trim(pageTitle);
 
@@ -651,30 +784,36 @@ AUI.add(
 
 				if (pageTitle) {
 					if (actionNode) {
-						if (field.isDirty()) {
+						if (!pageTitle || pageTitle != prevVal) {
 							data = {
 								cmd: 'name',
 								doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
-								groupId: themeDisplay.getParentGroupId(),
+								groupId: themeDisplay.getSiteGroupId(),
 								languageId: themeDisplay.getLanguageId(),
 								layoutId: themeDisplay.getLayoutId(),
 								name: pageTitle,
+								p_auth: Liferay.authToken,
 								privateLayout: themeDisplay.isPrivateLayout()
 							};
 
 							onSuccess = function(event, id, obj) {
 								var doc = A.getDoc();
 
+								var navChildToggle = textNode.all(instance._navItemChildToggleSelector);
+
 								textNode.text(pageTitle);
+
+								textNode.append(navChildToggle);
+
 								actionNode.show();
 
-								comboBox.destroy();
+								toolbar.destroy();
 
 								var oldTitle = doc.get('title');
 
-								var regex = new RegExp(field.get('prevVal'), 'g');
+								var regex = new RegExp(prevVal, 'g');
 
-								newTitle = oldTitle.replace(regex, pageTitle);
+								var newTitle = oldTitle.replace(regex, pageTitle);
 
 								doc.set('title', newTitle);
 							};
@@ -682,63 +821,8 @@ AUI.add(
 						else {
 							// The new name is the same as the old one
 
-							comboBox.fire('cancelPage');
+							toolbar.fire('cancelPage');
 						}
-					}
-					else {
-						var optionsOverlay = comboBox._optionsOverlay;
-						var selectedInput = optionsOverlay.get('contentBox').one('input:checked');
-						var layoutPrototypeId = selectedInput && selectedInput.val();
-
-						data = {
-							cmd: 'add',
-							doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
-							explicitCreation: true,
-							groupId: themeDisplay.getParentGroupId(),
-							layoutPrototypeId: layoutPrototypeId,
-							mainPath: themeDisplay.getPathMain(),
-							name: pageTitle,
-							parentLayoutId: themeDisplay.getParentLayoutId(),
-							privateLayout: themeDisplay.isPrivateLayout()
-						};
-
-						onSuccess = function(event, id, obj) {
-							var data = this.get('responseData');
-
-							var tabHtml = Lang.sub(
-								TPL_TAB_LINK,
-								{
-									url: data.url,
-									pageTitle: Lang.String.escapeHTML(pageTitle)
-								}
-							);
-
-							var newTab = A.Node.create(tabHtml);
-
-							newTab.setStyle('cursor', 'move');
-
-							listItem._LFR_layoutId = data.layoutId;
-
-							listItem.append(newTab);
-
-							comboBox.destroy();
-
-							if (data.updateable) {
-								listItem.addClass('sortable-item lfr-nav-updateable');
-							}
-
-							if (data.deletable) {
-								instance._createDeleteButton(listItem);
-							}
-
-							Liferay.fire(
-								'navigation',
-								{
-									item: listItem,
-									type: 'add'
-								}
-							);
-						};
 					}
 
 					if (data) {
@@ -746,7 +830,7 @@ AUI.add(
 							instance._updateURL,
 							{
 								data: data,
-								dataType: 'json',
+								dataType: 'JSON',
 								on: {
 									success: onSuccess
 								}
@@ -765,33 +849,75 @@ AUI.add(
 			function(node) {
 				var instance = this;
 
-				var navItems = instance.get('navBlock').all('li');
+				var nextLayoutId = -1;
 
-				var priority = -1;
+				var nextNode = node.next();
 
-				navItems.some(
-					function(item, index, collection) {
-						if (!item.ancestor().hasClass('child-menu')) {
-							priority++;
-						}
+				if (nextNode) {
+					nextLayoutId = nextNode.getData(STR_LAYOUT_ID);
+				}
 
-						return item == node;
-					}
-				);
+				var previousLayoutId = -1;
+
+				var previousNode = node.previous();
+
+				if (previousNode) {
+					previousLayoutId = previousNode.getData(STR_LAYOUT_ID);
+				}
 
 				var data = {
 					cmd: 'priority',
 					doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
-					groupId: themeDisplay.getParentGroupId(),
-					layoutId: node._LFR_layoutId,
-					priority: priority,
+					groupId: themeDisplay.getSiteGroupId(),
+					layoutId: node.getData(STR_LAYOUT_ID),
+					nextLayoutId: nextLayoutId,
+					p_auth: Liferay.authToken,
+					previousLayoutId: previousLayoutId,
 					privateLayout: themeDisplay.isPrivateLayout()
+				};
+
+				var processMovePageFailure = function(result) {
+					instance._displayNotice(result.message);
+
+					node.ancestor().insertBefore(node, instance._nextPageNode);
+				};
+
+				var processMovePageSuccess = function(result) {
+					Liferay.fire(
+						'navigation',
+						{
+							item: node.getDOM(),
+							type: 'sort'
+						}
+					);
 				};
 
 				A.io.request(
 					instance._updateURL,
 					{
-						data: data
+						data: data,
+						dataType: 'JSON',
+						on: {
+							failure: function() {
+								processMovePageFailure(
+									{
+										message: Liferay.Language.get('your-request-failed-to-complete'),
+										status: STATUS_CODE.BAD_REQUEST
+									}
+								);
+							},
+							success: function(event, id, obj) {
+								var result = this.get('responseData');
+
+								var movePageFn = processMovePageFailure;
+
+								if (result.status === STATUS_CODE.OK) {
+									movePageFn = processMovePageSuccess;
+								}
+
+								movePageFn(result);
+							}
+						}
 					}
 				);
 			},
@@ -803,6 +929,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: []
+		requires: ['aui-component', 'event-mouseenter']
 	}
 );

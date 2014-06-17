@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,6 +31,7 @@ public class RequestStatistics implements Statistics {
 		return _successStatistics.getAverageTime();
 	}
 
+	@Override
 	public String getDescription() {
 		return _description;
 	}
@@ -47,6 +48,7 @@ public class RequestStatistics implements Statistics {
 		return _successStatistics.getMinTime();
 	}
 
+	@Override
 	public String getName() {
 		return _name;
 	}
@@ -75,12 +77,14 @@ public class RequestStatistics implements Statistics {
 		_timeoutStatistics.incrementCount();
 	}
 
+	@Override
 	public void reset() {
 		_errorStatistics.reset();
 		_successStatistics.reset();
 		_timeoutStatistics.reset();
 	}
 
+	@Override
 	public void setDescription(String description) {
 		_description = description;
 	}

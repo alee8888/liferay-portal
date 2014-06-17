@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.UserGroupServiceUtil;
@@ -21,13 +23,11 @@ import com.liferay.portal.service.UserGroupServiceUtil;
 import java.rmi.RemoteException;
 
 /**
- * <p>
- * This class provides a SOAP utility for the
+ * Provides the SOAP utility for the
  * {@link com.liferay.portal.service.UserGroupServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it is difficult for SOAP to
  * support certain types.
- * </p>
  *
  * <p>
  * ServiceBuilder follows certain rules in translating the methods. For example,
@@ -47,9 +47,8 @@ import java.rmi.RemoteException;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -57,12 +56,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       UserGroupServiceHttp
- * @see       com.liferay.portal.model.UserGroupSoap
- * @see       com.liferay.portal.service.UserGroupServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see UserGroupServiceHttp
+ * @see com.liferay.portal.model.UserGroupSoap
+ * @see com.liferay.portal.service.UserGroupServiceUtil
  * @generated
  */
+@ProviderType
 public class UserGroupServiceSoap {
 	/**
 	* Adds the user groups to the group.
@@ -72,7 +72,6 @@ public class UserGroupServiceSoap {
 	* @throws PortalException if a group or user group with the primary key
 	could not be found, or if the user did not have permission to
 	assign group members
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void addGroupUserGroups(long groupId, long[] userGroupIds)
 		throws RemoteException {
@@ -94,7 +93,6 @@ public class UserGroupServiceSoap {
 	* @throws PortalException if a team or user group with the primary key
 	could not be found, or if the user did not have permission to
 	assign team members
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void addTeamUserGroups(long teamId, long[] userGroupIds)
 		throws RemoteException {
@@ -119,10 +117,12 @@ public class UserGroupServiceSoap {
 	* @param name the user group's name
 	* @param description the user group's description
 	* @return the user group
-	* @throws PortalException if the user group's information was invalid or if
-	the user did not have permission to add the user group
-	* @throws SystemException if a system exception occurred
+	* @throws PortalException if the user group's information was invalid
+	or if the user did not have permission to add the user group
+	* @deprecated As of 6.2.0, replaced by {@link #addUserGroup(String, String,
+	ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.UserGroupSoap addUserGroup(
 		java.lang.String name, java.lang.String description)
 		throws RemoteException {
@@ -140,13 +140,46 @@ public class UserGroupServiceSoap {
 	}
 
 	/**
+	* Adds a user group.
+	*
+	* <p>
+	* This method handles the creation and bookkeeping of the user group,
+	* including its resources, metadata, and internal data structures.
+	* </p>
+	*
+	* @param name the user group's name
+	* @param description the user group's description
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set expando bridge attributes for the
+	user group.
+	* @return the user group
+	* @throws PortalException if the user group's information was invalid or if
+	the user did not have permission to add the user group
+	*/
+	public static com.liferay.portal.model.UserGroupSoap addUserGroup(
+		java.lang.String name, java.lang.String description,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws RemoteException {
+		try {
+			com.liferay.portal.model.UserGroup returnValue = UserGroupServiceUtil.addUserGroup(name,
+					description, serviceContext);
+
+			return com.liferay.portal.model.UserGroupSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
 	* Deletes the user group.
 	*
 	* @param userGroupId the primary key of the user group
 	* @throws PortalException if a user group with the primary key could not be
 	found, if the user did not have permission to delete the user
 	group, or if the user group had a workflow in approved status
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void deleteUserGroup(long userGroupId)
 		throws RemoteException {
@@ -168,7 +201,6 @@ public class UserGroupServiceSoap {
 	* @throws PortalException if a user group with the primary key could not be
 	found or if the user did not have permission to view the user
 	group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.UserGroupSoap getUserGroup(
 		long userGroupId) throws RemoteException {
@@ -191,7 +223,6 @@ public class UserGroupServiceSoap {
 	* @return Returns the user group with the name
 	* @throws PortalException if a user group with the name could not be found
 	or if the user did not have permission to view the user group
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.UserGroupSoap getUserGroup(
 		java.lang.String name) throws RemoteException {
@@ -212,7 +243,8 @@ public class UserGroupServiceSoap {
 	*
 	* @param userId the primary key of the user
 	* @return the user groups to which the user belongs
-	* @throws SystemException if a system exception occurred
+	* @throws PortalException if the current user did not have permission to
+	view the user or any one of the user group members
 	*/
 	public static com.liferay.portal.model.UserGroupSoap[] getUserUserGroups(
 		long userId) throws RemoteException {
@@ -235,7 +267,6 @@ public class UserGroupServiceSoap {
 	* @param userGroupIds the primary keys of the user groups
 	* @throws PortalException if the user did not have permission to assign
 	group members
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void unsetGroupUserGroups(long groupId, long[] userGroupIds)
 		throws RemoteException {
@@ -256,7 +287,6 @@ public class UserGroupServiceSoap {
 	* @param userGroupIds the primary keys of the user groups
 	* @throws PortalException if the user did not have permission to assign
 	team members
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void unsetTeamUserGroups(long teamId, long[] userGroupIds)
 		throws RemoteException {
@@ -278,16 +308,49 @@ public class UserGroupServiceSoap {
 	* @param description the the user group's description
 	* @return the user group
 	* @throws PortalException if a user group with the primary key was not
-	found, if the new information was invalid, or if the user did not
-	have permission to update the user group information
-	* @throws SystemException if a system exception occurred
+	found, if the new information was invalid, or if the user did
+	not have permission to update the user group information
+	* @deprecated As of 6.2.0, replaced by {@link #updateUserGroup(long,
+	String, String, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.UserGroupSoap updateUserGroup(
 		long userGroupId, java.lang.String name, java.lang.String description)
 		throws RemoteException {
 		try {
 			com.liferay.portal.model.UserGroup returnValue = UserGroupServiceUtil.updateUserGroup(userGroupId,
 					name, description);
+
+			return com.liferay.portal.model.UserGroupSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
+	* Updates the user group.
+	*
+	* @param userGroupId the primary key of the user group
+	* @param name the user group's name
+	* @param description the the user group's description
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set expando bridge attributes for the
+	user group.
+	* @return the user group
+	* @throws PortalException if a user group with the primary key was not
+	found, if the new information was invalid, or if the user did not
+	have permission to update the user group information
+	*/
+	public static com.liferay.portal.model.UserGroupSoap updateUserGroup(
+		long userGroupId, java.lang.String name, java.lang.String description,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws RemoteException {
+		try {
+			com.liferay.portal.model.UserGroup returnValue = UserGroupServiceUtil.updateUserGroup(userGroupId,
+					name, description, serviceContext);
 
 			return com.liferay.portal.model.UserGroupSoap.toSoapModel(returnValue);
 		}

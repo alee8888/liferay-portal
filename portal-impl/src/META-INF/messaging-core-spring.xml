@@ -36,7 +36,7 @@
 	<bean id="destination.global" class="com.liferay.portal.kernel.messaging.ParallelDestination">
 		<property name="name" value="liferay/global" />
 	</bean>
-	<bean id="destination.message_bus_default_response" class="com.liferay.portal.kernel.messaging.ParallelDestination">
+	<bean id="destination.message_bus_default_response" class="com.liferay.portal.kernel.messaging.SynchronousDestination">
 		<property name="name" value="liferay/message_bus/default_response" />
 	</bean>
 	<bean id="destination.message_bus_message_status" class="com.liferay.portal.kernel.messaging.ParallelDestination">
@@ -88,9 +88,4 @@
 			<ref bean="com.liferay.portal.kernel.messaging.MessageBus" />
 		</property>
 	</bean>
-
-	<!-- Advice -->
-
-	<bean id="messagingProxyAdvice" class="com.liferay.portal.messaging.proxy.MessagingProxyAdvice" />
-	<bean id="multiDestinationMessagingProxyAdvice" class="com.liferay.portal.messaging.proxy.MultiDestinationMessagingProxyAdvice" />
 </beans>

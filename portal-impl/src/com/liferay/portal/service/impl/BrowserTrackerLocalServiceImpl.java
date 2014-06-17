@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,6 @@
 
 package com.liferay.portal.service.impl;
 
-import com.liferay.portal.NoSuchBrowserTrackerException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -27,16 +26,18 @@ import com.liferay.portal.service.base.BrowserTrackerLocalServiceBaseImpl;
 public class BrowserTrackerLocalServiceImpl
 	extends BrowserTrackerLocalServiceBaseImpl {
 
-	public void deleteUserBrowserTracker(long userId) throws SystemException {
-		try {
-			browserTrackerPersistence.removeByUserId(userId);
-		}
-		catch (NoSuchBrowserTrackerException nsbte) {
+	@Override
+	public void deleteUserBrowserTracker(long userId) {
+		BrowserTracker browserTracker = browserTrackerPersistence.fetchByUserId(
+			userId);
+
+		if (browserTracker != null) {
+			browserTrackerPersistence.remove(browserTracker);
 		}
 	}
 
-	public BrowserTracker getBrowserTracker(long userId, long browserKey)
-		throws SystemException {
+	@Override
+	public BrowserTracker getBrowserTracker(long userId, long browserKey) {
 
 		BrowserTracker browserTracker = browserTrackerPersistence.fetchByUserId(
 			userId);
@@ -49,8 +50,8 @@ public class BrowserTrackerLocalServiceImpl
 		return browserTracker;
 	}
 
-	public BrowserTracker updateBrowserTracker(long userId, long browserKey)
-		throws SystemException {
+	@Override
+	public BrowserTracker updateBrowserTracker(long userId, long browserKey) {
 
 		BrowserTracker browserTracker = browserTrackerPersistence.fetchByUserId(
 			userId);
@@ -66,7 +67,7 @@ public class BrowserTrackerLocalServiceImpl
 		browserTracker.setBrowserKey(browserKey);
 
 		try {
-			browserTrackerPersistence.update(browserTracker, false);
+			browserTrackerPersistence.update(browserTracker);
 		}
 		catch (SystemException se) {
 			if (_log.isWarnEnabled()) {

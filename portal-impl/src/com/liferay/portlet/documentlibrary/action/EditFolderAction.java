@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,29 +14,55 @@
 
 package com.liferay.portlet.documentlibrary.action;
 
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.portlet.PortletResponseUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.StreamUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.zip.ZipWriter;
+import com.liferay.portal.kernel.zip.ZipWriterFactoryUtil;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.struts.PortletAction;
+import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.assetpublisher.util.AssetPublisherUtil;
 import com.liferay.portlet.documentlibrary.DuplicateFileException;
 import com.liferay.portlet.documentlibrary.DuplicateFolderNameException;
 import com.liferay.portlet.documentlibrary.FolderNameException;
 import com.liferay.portlet.documentlibrary.NoSuchFolderException;
+import com.liferay.portlet.documentlibrary.RequiredFileEntryTypeException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletConfig;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
+import javax.portlet.ResourceRequest;
+import javax.portlet.ResourceResponse;
 
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -46,13 +72,15 @@ import org.apache.struts.action.ActionMapping;
  * @author Brian Wing Shun Chan
  * @author Alexander Chow
  * @author Sergio González
+ * @author Levente Hudák
  */
 public class EditFolderAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -64,11 +92,14 @@ public class EditFolderAction extends PortletAction {
 			else if (cmd.equals(Constants.DELETE)) {
 				deleteFolders(actionRequest, false);
 			}
-			else if (cmd.equals(Constants.MOVE)) {
-				moveFolders(actionRequest);
-			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
 				deleteFolders(actionRequest, true);
+			}
+			else if (cmd.equals(Constants.SUBSCRIBE)) {
+				subscribeFolder(actionRequest);
+			}
+			else if (cmd.equals(Constants.UNSUBSCRIBE)) {
+				unsubscribeFolder(actionRequest);
 			}
 			else if (cmd.equals("updateWorkflowDefinitions")) {
 				updateWorkflowDefinitions(actionRequest);
@@ -86,7 +117,8 @@ public class EditFolderAction extends PortletAction {
 			}
 			else if (e instanceof DuplicateFileException ||
 					 e instanceof DuplicateFolderNameException ||
-					 e instanceof FolderNameException) {
+					 e instanceof FolderNameException ||
+					 e instanceof RequiredFileEntryTypeException) {
 
 				SessionErrors.add(actionRequest, e.getClass());
 			}
@@ -98,8 +130,9 @@ public class EditFolderAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -111,15 +144,26 @@ public class EditFolderAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.document_library.error");
+				return actionMapping.findForward(
+					"portlet.document_library.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.document_library.edit_folder"));
+	}
+
+	@Override
+	public void serveResource(
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ResourceRequest resourceRequest,
+			ResourceResponse resourceResponse)
+		throws Exception {
+
+		downloadFolder(resourceRequest, resourceResponse);
 	}
 
 	protected void deleteFolders(
@@ -138,9 +182,16 @@ public class EditFolderAction extends PortletAction {
 				ParamUtil.getString(actionRequest, "folderIds"), 0L);
 		}
 
+		List<TrashedModel> trashedModels = new ArrayList<TrashedModel>();
+
 		for (long deleteFolderId : deleteFolderIds) {
 			if (moveToTrash) {
-				DLAppServiceUtil.moveFolderToTrash(deleteFolderId);
+				Folder folder = DLAppServiceUtil.moveFolderToTrash(
+					deleteFolderId);
+
+				if (folder.getModel() instanceof DLFolder) {
+					trashedModels.add((DLFolder)folder.getModel());
+				}
 			}
 			else {
 				DLAppServiceUtil.deleteFolder(deleteFolderId);
@@ -149,30 +200,80 @@ public class EditFolderAction extends PortletAction {
 			AssetPublisherUtil.removeRecentFolderId(
 				actionRequest, DLFileEntry.class.getName(), deleteFolderId);
 		}
+
+		if (moveToTrash && (deleteFolderIds.length > 0)) {
+			TrashUtil.addTrashSessionMessages(actionRequest, trashedModels);
+
+			hideDefaultSuccessMessage(actionRequest);
+		}
 	}
 
-	protected void moveFolders(ActionRequest actionRequest) throws Exception {
-		long folderId = ParamUtil.getLong(actionRequest, "folderId");
+	protected void downloadFolder(
+			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
+		throws Exception {
 
-		long parentFolderId = ParamUtil.getLong(
-			actionRequest, "parentFolderId");
+		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			DLFileEntry.class.getName(), actionRequest);
+		long repositoryId = ParamUtil.getLong(resourceRequest, "repositoryId");
+		long folderId = ParamUtil.getLong(resourceRequest, "folderId");
 
-		if (folderId > 0) {
-			DLAppServiceUtil.moveFolder(
-				folderId, parentFolderId, serviceContext);
+		File file = null;
+		InputStream inputStream = null;
+
+		try {
+			String zipFileName = LanguageUtil.get(
+				themeDisplay.getLocale(), "documents-and-media");
+
+			if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+				Folder folder = DLAppServiceUtil.getFolder(folderId);
+
+				zipFileName = folder.getName();
+			}
+
+			ZipWriter zipWriter = ZipWriterFactoryUtil.getZipWriter();
+
+			zipFolder(repositoryId, folderId, StringPool.SLASH, zipWriter);
+
+			file = zipWriter.getFile();
+
+			inputStream = new FileInputStream(file);
+
+			PortletResponseUtil.sendFile(
+				resourceRequest, resourceResponse, zipFileName, inputStream,
+				ContentTypes.APPLICATION_ZIP);
 		}
-		else {
-			long[] folderIds = StringUtil.split(
-				ParamUtil.getString(actionRequest, "folderIds"), 0L);
+		finally {
+			StreamUtil.cleanUp(inputStream);
 
-			for (long curFolderId : folderIds) {
-				DLAppServiceUtil.moveFolder(
-					curFolderId, parentFolderId, serviceContext);
+			if (file != null) {
+				file.delete();
 			}
 		}
+	}
+
+	protected void subscribeFolder(ActionRequest actionRequest)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		long folderId = ParamUtil.getLong(actionRequest, "folderId");
+
+		DLAppServiceUtil.subscribeFolder(
+			themeDisplay.getScopeGroupId(), folderId);
+	}
+
+	protected void unsubscribeFolder(ActionRequest actionRequest)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		long folderId = ParamUtil.getLong(actionRequest, "folderId");
+
+		DLAppServiceUtil.unsubscribeFolder(
+			themeDisplay.getScopeGroupId(), folderId);
 	}
 
 	protected void updateFolder(ActionRequest actionRequest) throws Exception {
@@ -213,6 +314,35 @@ public class EditFolderAction extends PortletAction {
 		DLAppServiceUtil.updateFolder(
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, null, null,
 			serviceContext);
+	}
+
+	protected void zipFolder(
+			long repositoryId, long folderId, String path, ZipWriter zipWriter)
+		throws Exception {
+
+		List<Object> foldersAndFileEntriesAndFileShortcuts =
+			DLAppServiceUtil.getFoldersAndFileEntriesAndFileShortcuts(
+				repositoryId, folderId, WorkflowConstants.STATUS_APPROVED,
+				false, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		for (Object entry : foldersAndFileEntriesAndFileShortcuts) {
+			if (entry instanceof Folder) {
+				Folder folder = (Folder)entry;
+
+				zipFolder(
+					folder.getRepositoryId(), folder.getFolderId(),
+					path.concat(StringPool.SLASH).concat(folder.getName()),
+					zipWriter);
+			}
+			else if (entry instanceof FileEntry) {
+				FileEntry fileEntry = (FileEntry)entry;
+
+				zipWriter.addEntry(
+					path + StringPool.SLASH +
+						HtmlUtil.escapeURL(fileEntry.getTitle()),
+					fileEntry.getContentStream());
+			}
+		}
 	}
 
 }

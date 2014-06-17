@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,12 +15,13 @@
 package com.liferay.portal.search.lucene;
 
 import com.liferay.portal.kernel.cluster.Address;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -28,11 +29,13 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.highlight.Formatter;
 import org.apache.lucene.util.Version;
 
 /**
  * @author Bruno Farache
  * @author Shuyang Zhou
+ * @author Andrea Di Giorgi
  */
 public interface LuceneHelper {
 
@@ -42,6 +45,19 @@ public interface LuceneHelper {
 	public void addExactTerm(
 		BooleanQuery booleanQuery, String field, String value);
 
+	public void addNumericRangeTerm(
+		BooleanQuery booleanQuery, String field, Integer startValue,
+		Integer endValue);
+
+	public void addNumericRangeTerm(
+		BooleanQuery booleanQuery, String field, Long startValue,
+		Long endValue);
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #addNumericRangeTerm(BooleanQuery, String, Long, Long)}
+	 */
+	@Deprecated
 	public void addNumericRangeTerm(
 		BooleanQuery booleanQuery, String field, String startValue,
 		String endValue);
@@ -66,6 +82,13 @@ public interface LuceneHelper {
 	public void addTerm(
 		BooleanQuery booleanQuery, String field, String[] values, boolean like);
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #releaseIndexSearcher(long,
+	 *             IndexSearcher)}
+	 */
+	@Deprecated
+	public void cleanUp(IndexSearcher indexSearcher);
+
 	public int countScoredFieldNames(Query query, String[] fieldNames);
 
 	public void delete(long companyId);
@@ -77,21 +100,27 @@ public interface LuceneHelper {
 
 	public Analyzer getAnalyzer();
 
+	public IndexAccessor getIndexAccessor(long companyId);
+
+	public IndexSearcher getIndexSearcher(long companyId) throws IOException;
+
 	public long getLastGeneration(long companyId);
 
 	public InputStream getLoadIndexesInputStreamFromCluster(
-			long companyId, Address bootupAddress)
-		throws SystemException;
+		long companyId, Address bootupAddress);
 
-	public String[] getQueryTerms(Query query);
+	public Set<String> getQueryTerms(Query query);
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #getIndexSearcher(long)}
+	 */
+	@Deprecated
 	public IndexSearcher getSearcher(long companyId, boolean readOnly)
 		throws IOException;
 
 	public String getSnippet(
 			Query query, String field, String s, int maxNumFragments,
-			int fragmentLength, String fragmentSuffix, String preTag,
-			String postTag)
+			int fragmentLength, String fragmentSuffix, Formatter formatter)
 		throws IOException;
 
 	public Version getVersion();
@@ -101,9 +130,15 @@ public interface LuceneHelper {
 	public void loadIndex(long companyId, InputStream inputStream)
 		throws IOException;
 
-	public void loadIndexesFromCluster(long companyId) throws SystemException;
+	public void loadIndexesFromCluster(long companyId);
+
+	public void releaseIndexSearcher(
+			long companyId, IndexSearcher indexSearcher)
+		throws IOException;
 
 	public void shutdown();
+
+	public void shutdown(long companyId);
 
 	public void startup(long companyId);
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,36 +17,47 @@ package com.liferay.portal.image;
 import com.liferay.portal.kernel.image.ImageBag;
 import com.liferay.portal.kernel.image.ImageMagick;
 import com.liferay.portal.kernel.image.ImageTool;
-import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.JavaDetector;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.model.Image;
+import com.liferay.portal.model.impl.ImageImpl;
 import com.liferay.portal.util.FileImpl;
+import com.liferay.portal.util.PropsUtil;
 
-import com.sun.media.jai.codec.ImageCodec;
-import com.sun.media.jai.codec.ImageDecoder;
-import com.sun.media.jai.codec.ImageEncoder;
-
-import java.awt.Graphics2D;
 import java.awt.Graphics;
-import java.awt.Image;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.IndexColorModel;
 import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
-import java.util.Enumeration;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.imageio.ImageIO;
-
-import javax.media.jai.RenderedImageAdapter;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 import net.jmge.gif.Gif89Encoder;
 
@@ -55,16 +66,100 @@ import org.im4java.core.IMOperation;
 /**
  * @author Brian Wing Shun Chan
  * @author Alexander Chow
+ * @author Shuyang Zhou
  */
+@DoPrivileged
 public class ImageToolImpl implements ImageTool {
 
 	public static ImageTool getInstance() {
 		return _instance;
 	}
 
-	public RenderedImage convertCMYKtoRGB(
-		byte[] bytes, String type, boolean fork) {
+	public void afterPropertiesSet() {
+		ClassLoader classLoader = getClass().getClassLoader();
 
+		try {
+			InputStream is = classLoader.getResourceAsStream(
+				PropsUtil.get(PropsKeys.IMAGE_DEFAULT_SPACER));
+
+			if (is == null) {
+				_log.error("Default spacer is not available");
+			}
+
+			_defaultSpacer = getImage(is);
+		}
+		catch (Exception e) {
+			_log.error(
+				"Unable to configure the default spacer: " + e.getMessage());
+		}
+
+		try {
+			InputStream is = classLoader.getResourceAsStream(
+				PropsUtil.get(PropsKeys.IMAGE_DEFAULT_COMPANY_LOGO));
+
+			if (is == null) {
+				_log.error("Default company logo is not available");
+			}
+
+			_defaultCompanyLogo = getImage(is);
+		}
+		catch (Exception e) {
+			_log.error(
+				"Unable to configure the default company logo: " +
+					e.getMessage());
+		}
+
+		try {
+			InputStream is = classLoader.getResourceAsStream(
+				PropsUtil.get(PropsKeys.IMAGE_DEFAULT_ORGANIZATION_LOGO));
+
+			if (is == null) {
+				_log.error("Default organization logo is not available");
+			}
+
+			_defaultOrganizationLogo = getImage(is);
+		}
+		catch (Exception e) {
+			_log.error(
+				"Unable to configure the default organization logo: " +
+					e.getMessage());
+		}
+
+		try {
+			InputStream is = classLoader.getResourceAsStream(
+				PropsUtil.get(PropsKeys.IMAGE_DEFAULT_USER_FEMALE_PORTRAIT));
+
+			if (is == null) {
+				_log.error("Default user female portrait is not available");
+			}
+
+			_defaultUserFemalePortrait = getImage(is);
+		}
+		catch (Exception e) {
+			_log.error(
+				"Unable to configure the default user female portrait: " +
+					e.getMessage());
+		}
+
+		try {
+			InputStream is = classLoader.getResourceAsStream(
+				PropsUtil.get(PropsKeys.IMAGE_DEFAULT_USER_MALE_PORTRAIT));
+
+			if (is == null) {
+				_log.error("Default user male portrait is not available");
+			}
+
+			_defaultUserMalePortrait = getImage(is);
+		}
+		catch (Exception e) {
+			_log.error(
+				"Unable to configure the default user male portrait: " +
+					e.getMessage());
+		}
+	}
+
+	@Override
+	public Future<RenderedImage> convertCMYKtoRGB(byte[] bytes, String type) {
 		ImageMagick imageMagick = getImageMagick();
 
 		if (!imageMagick.isEnabled()) {
@@ -82,10 +177,11 @@ public class ImageToolImpl implements ImageTool {
 			imOperation.addRawArgs("-format", "%[colorspace]");
 			imOperation.addImage(inputFile.getPath());
 
-			String[] output = imageMagick.identify(
-				imOperation.getCmdArgs(), fork);
+			String[] output = imageMagick.identify(imOperation.getCmdArgs());
 
-			if ((output.length == 1) && output[0].equalsIgnoreCase("CMYK")) {
+			if ((output.length == 1) &&
+				StringUtil.equalsIgnoreCase(output[0], "CMYK")) {
+
 				if (_log.isInfoEnabled()) {
 					_log.info("The image is in the CMYK colorspace");
 				}
@@ -96,11 +192,10 @@ public class ImageToolImpl implements ImageTool {
 				imOperation.addImage(inputFile.getPath());
 				imOperation.addImage(outputFile.getPath());
 
-				imageMagick.convert(imOperation.getCmdArgs(), fork);
+				Future<?> future = imageMagick.convert(
+					imOperation.getCmdArgs());
 
-				bytes = _fileUtil.getBytes(outputFile);
-
-				return read(bytes, type);
+				return new RenderedImageFuture(future, outputFile, type);
 			}
 		}
 		catch (Exception e) {
@@ -116,6 +211,7 @@ public class ImageToolImpl implements ImageTool {
 		return null;
 	}
 
+	@Override
 	public BufferedImage convertImageType(BufferedImage sourceImage, int type) {
 		BufferedImage targetImage = new BufferedImage(
 			sourceImage.getWidth(), sourceImage.getHeight(), type);
@@ -129,6 +225,23 @@ public class ImageToolImpl implements ImageTool {
 		return targetImage;
 	}
 
+	@Override
+	public RenderedImage crop(
+		RenderedImage renderedImage, int height, int width, int x, int y) {
+
+		Rectangle rectangle = new Rectangle(x, y, width, height);
+
+		Rectangle croppedRectangle = rectangle.intersection(
+			new Rectangle(renderedImage.getWidth(), renderedImage.getHeight()));
+
+		BufferedImage bufferedImage = getBufferedImage(renderedImage);
+
+		return bufferedImage.getSubimage(
+			croppedRectangle.x, croppedRectangle.y, croppedRectangle.width,
+			croppedRectangle.height);
+	}
+
+	@Override
 	public void encodeGIF(RenderedImage renderedImage, OutputStream os)
 		throws IOException {
 
@@ -149,6 +262,7 @@ public class ImageToolImpl implements ImageTool {
 		}
 	}
 
+	@Override
 	public void encodeWBMP(RenderedImage renderedImage, OutputStream os)
 		throws IOException {
 
@@ -193,18 +307,38 @@ public class ImageToolImpl implements ImageTool {
 		}
 	}
 
+	@Override
 	public BufferedImage getBufferedImage(RenderedImage renderedImage) {
 		if (renderedImage instanceof BufferedImage) {
 			return (BufferedImage)renderedImage;
 		}
-		else {
-			RenderedImageAdapter adapter = new RenderedImageAdapter(
-				renderedImage);
 
-			return adapter.getAsBufferedImage();
+		ColorModel colorModel = renderedImage.getColorModel();
+
+		WritableRaster writableRaster =
+			colorModel.createCompatibleWritableRaster(
+				renderedImage.getWidth(), renderedImage.getHeight());
+
+		Hashtable<String, Object> properties = new Hashtable<String, Object>();
+
+		String[] keys = renderedImage.getPropertyNames();
+
+		if (!ArrayUtil.isEmpty(keys)) {
+			for (String key : keys) {
+				properties.put(key, renderedImage.getProperty(key));
+			}
 		}
+
+		BufferedImage bufferedImage = new BufferedImage(
+			colorModel, writableRaster, colorModel.isAlphaPremultiplied(),
+			properties);
+
+		renderedImage.copyData(writableRaster);
+
+		return bufferedImage;
 	}
 
+	@Override
 	public byte[] getBytes(RenderedImage renderedImage, String contentType)
 		throws IOException {
 
@@ -215,35 +349,156 @@ public class ImageToolImpl implements ImageTool {
 		return baos.toByteArray();
 	}
 
-	public ImageBag read(byte[] bytes) {
-		RenderedImage renderedImage = null;
-		String type = TYPE_NOT_AVAILABLE;
-
-		Enumeration<ImageCodec> enu = ImageCodec.getCodecs();
-
-		while (enu.hasMoreElements()) {
-			ImageCodec codec = enu.nextElement();
-
-			if (codec.isFormatRecognized(bytes)) {
-				type = codec.getFormatName();
-
-				renderedImage = read(bytes, type);
-
-				break;
-			}
-		}
-
-		if (type.equals("jpeg")) {
-			type = TYPE_JPEG;
-		}
-
-		return new ImageBag(renderedImage, type);
+	@Override
+	public Image getDefaultCompanyLogo() {
+		return _defaultCompanyLogo;
 	}
 
+	@Override
+	public Image getDefaultOrganizationLogo() {
+		return _defaultOrganizationLogo;
+	}
+
+	@Override
+	public Image getDefaultSpacer() {
+		return _defaultSpacer;
+	}
+
+	@Override
+	public Image getDefaultUserFemalePortrait() {
+		return _defaultUserFemalePortrait;
+	}
+
+	@Override
+	public Image getDefaultUserMalePortrait() {
+		return _defaultUserMalePortrait;
+	}
+
+	@Override
+	public Image getImage(byte[] bytes) throws IOException {
+		if (bytes == null) {
+			return null;
+		}
+
+		ImageBag imageBag = read(bytes);
+
+		RenderedImage renderedImage = imageBag.getRenderedImage();
+
+		if (renderedImage == null) {
+			throw new IOException("Unable to decode image");
+		}
+
+		String type = imageBag.getType();
+
+		int height = renderedImage.getHeight();
+		int width = renderedImage.getWidth();
+		int size = bytes.length;
+
+		Image image = new ImageImpl();
+
+		image.setTextObj(bytes);
+		image.setType(type);
+		image.setHeight(height);
+		image.setWidth(width);
+		image.setSize(size);
+
+		return image;
+	}
+
+	@Override
+	public Image getImage(File file) throws IOException {
+		byte[] bytes = _fileUtil.getBytes(file);
+
+		return getImage(bytes);
+	}
+
+	@Override
+	public Image getImage(InputStream is) throws IOException {
+		byte[] bytes = _fileUtil.getBytes(is, -1, true);
+
+		return getImage(bytes);
+	}
+
+	@Override
+	public Image getImage(InputStream is, boolean cleanUpStream)
+		throws IOException {
+
+		byte[] bytes = _fileUtil.getBytes(is, -1, cleanUpStream);
+
+		return getImage(bytes);
+	}
+
+	@Override
+	public boolean isNullOrDefaultSpacer(byte[] bytes) {
+		if (ArrayUtil.isEmpty(bytes) ||
+			Arrays.equals(bytes, getDefaultSpacer().getTextObj())) {
+
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	@Override
+	public ImageBag read(byte[] bytes) throws IOException {
+		BufferedImage bufferedImage = null;
+		String formatName = null;
+
+		InputStream inputStream = new ByteArrayInputStream(bytes);
+
+		ImageInputStream imageInputStream = ImageIO.createImageInputStream(
+			inputStream);
+
+		Iterator<ImageReader> iterator = ImageIO.getImageReaders(
+			imageInputStream);
+
+		if (iterator.hasNext()) {
+			ImageReader imageReader = iterator.next();
+
+			imageReader.setInput(imageInputStream);
+
+			bufferedImage = imageReader.read(0);
+			formatName = imageReader.getFormatName();
+		}
+
+		formatName = StringUtil.toLowerCase(formatName);
+
+		String type = TYPE_JPEG;
+
+		if (formatName.contains(TYPE_BMP)) {
+			type = TYPE_BMP;
+		}
+		else if (formatName.contains(TYPE_GIF)) {
+			type = TYPE_GIF;
+		}
+		else if (formatName.contains("jpeg") || type.equals("jpeg")) {
+			type = TYPE_JPEG;
+		}
+		else if (formatName.contains(TYPE_PNG)) {
+			type = TYPE_PNG;
+		}
+		else if (formatName.contains(TYPE_TIFF)) {
+			type = TYPE_TIFF;
+		}
+		else {
+			throw new IllegalArgumentException(type + " is not supported");
+		}
+
+		return new ImageBag(bufferedImage, type);
+	}
+
+	@Override
 	public ImageBag read(File file) throws IOException {
 		return read(_fileUtil.getBytes(file));
 	}
 
+	@Override
+	public ImageBag read(InputStream inputStream) throws IOException {
+		return read(_fileUtil.getBytes(inputStream));
+	}
+
+	@Override
 	public RenderedImage scale(RenderedImage renderedImage, int width) {
 		if (width <= 0) {
 			return renderedImage;
@@ -252,7 +507,7 @@ public class ImageToolImpl implements ImageTool {
 		int imageHeight = renderedImage.getHeight();
 		int imageWidth = renderedImage.getWidth();
 
-		double factor = (double) width / imageWidth;
+		double factor = (double)width / imageWidth;
 
 		int scaledHeight = (int)(factor * imageHeight);
 		int scaledWidth = width;
@@ -270,14 +525,15 @@ public class ImageToolImpl implements ImageTool {
 
 		Graphics graphics = scaledBufferedImage.getGraphics();
 
-		Image scaledImage = bufferedImage.getScaledInstance(
-			scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+		java.awt.Image scaledImage = bufferedImage.getScaledInstance(
+			scaledWidth, scaledHeight, java.awt.Image.SCALE_SMOOTH);
 
 		graphics.drawImage(scaledImage, 0, 0, null);
 
 		return scaledBufferedImage;
 	}
 
+	@Override
 	public RenderedImage scale(
 		RenderedImage renderedImage, int maxHeight, int maxWidth) {
 
@@ -353,23 +609,21 @@ public class ImageToolImpl implements ImageTool {
 
 		Graphics graphics = scaledBufferedImage.getGraphics();
 
-		Image scaledImage = bufferedImage.getScaledInstance(
-			scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+		java.awt.Image scaledImage = bufferedImage.getScaledInstance(
+			scaledWidth, scaledHeight, java.awt.Image.SCALE_SMOOTH);
 
 		graphics.drawImage(scaledImage, 0, 0, null);
 
 		return scaledBufferedImage;
 	}
 
+	@Override
 	public void write(
 			RenderedImage renderedImage, String contentType, OutputStream os)
 		throws IOException {
 
 		if (contentType.contains(TYPE_BMP)) {
-			ImageEncoder imageEncoder = ImageCodec.createImageEncoder(
-				TYPE_BMP, os, null);
-
-			imageEncoder.encode(renderedImage);
+			ImageIO.write(renderedImage, "bmp", os);
 		}
 		else if (contentType.contains(TYPE_GIF)) {
 			encodeGIF(renderedImage, os);
@@ -385,10 +639,7 @@ public class ImageToolImpl implements ImageTool {
 		else if (contentType.contains(TYPE_TIFF) ||
 				 contentType.contains("tif")) {
 
-			ImageEncoder imageEncoder = ImageCodec.createImageEncoder(
-				TYPE_TIFF, os, null);
-
-			imageEncoder.encode(renderedImage);
+			ImageIO.write(renderedImage, "tiff", os);
 		}
 	}
 
@@ -410,10 +661,21 @@ public class ImageToolImpl implements ImageTool {
 				type = "jpeg";
 			}
 
-			ImageDecoder decoder = ImageCodec.createImageDecoder(
-				type, new UnsyncByteArrayInputStream(bytes), null);
+			InputStream inputStream = new ByteArrayInputStream(bytes);
 
-			renderedImage = decoder.decodeAsRenderedImage();
+			ImageInputStream imageInputStream = ImageIO.createImageInputStream(
+				inputStream);
+
+			Iterator<ImageReader> iterator = ImageIO.getImageReaders(
+				imageInputStream);
+
+			if (iterator.hasNext()) {
+				ImageReader imageReader = iterator.next();
+
+				imageReader.setInput(imageInputStream);
+
+				renderedImage = imageReader.read(0);
+			}
 		}
 		catch (IOException ioe) {
 			if (_log.isDebugEnabled()) {
@@ -455,5 +717,84 @@ public class ImageToolImpl implements ImageTool {
 
 	private static FileImpl _fileUtil = FileImpl.getInstance();
 	private static ImageMagick _imageMagick;
+
+	private Image _defaultCompanyLogo;
+	private Image _defaultOrganizationLogo;
+	private Image _defaultSpacer;
+	private Image _defaultUserFemalePortrait;
+	private Image _defaultUserMalePortrait;
+
+	private class RenderedImageFuture implements Future<RenderedImage> {
+
+		public RenderedImageFuture(
+			Future<?> future, File outputFile, String type) {
+
+			_future = future;
+			_outputFile = outputFile;
+			_type = type;
+		}
+
+		@Override
+		public boolean cancel(boolean mayInterruptIfRunning) {
+			if (_future.isCancelled() || _future.isDone()) {
+				return false;
+			}
+
+			_future.cancel(true);
+
+			return true;
+		}
+
+		@Override
+		public RenderedImage get()
+			throws ExecutionException, InterruptedException {
+
+			_future.get();
+
+			byte[] bytes = new byte[0];
+
+			try {
+				bytes = _fileUtil.getBytes(_outputFile);
+			}
+			catch (IOException ioe) {
+				throw new ExecutionException(ioe);
+			}
+
+			return read(bytes, _type);
+		}
+
+		@Override
+		public RenderedImage get(long timeout, TimeUnit timeUnit)
+			throws ExecutionException, InterruptedException, TimeoutException {
+
+			_future.get(timeout, timeUnit);
+
+			byte[] bytes = new byte[0];
+
+			try {
+				bytes = _fileUtil.getBytes(_outputFile);
+			}
+			catch (IOException ioe) {
+				throw new ExecutionException(ioe);
+			}
+
+			return read(bytes, _type);
+		}
+
+		@Override
+		public boolean isCancelled() {
+			return _future.isCancelled();
+		}
+
+		@Override
+		public boolean isDone() {
+			return _future.isDone();
+		}
+
+		private final Future<?> _future;
+		private final File _outputFile;
+		private final String _type;
+
+	}
 
 }

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -33,12 +33,12 @@ else if (displayStyle.equals("vertical")) {
 
 <div id="fb-root"></div>
 
-<fb:like
-	font=""
-	height="<%= (facebookDisplayStyle.equals("standard") || facebookDisplayStyle.equals("button_count")) ? 20 : StringPool.BLANK %>"
-	href="<%= url %>"
-	layout="<%= facebookDisplayStyle%>"
-	send="false"
-	show_faces="true"
+<div class="fb-like"
+	data-font=""
+	data-height="<%= (facebookDisplayStyle.equals("standard") || facebookDisplayStyle.equals("button_count")) ? 20 : StringPool.BLANK %>"
+	data-href="<%= url %>"
+	data-layout="<%= facebookDisplayStyle %>"
+	data-send="false"
+	data-show_faces="true"
 >
-</fb:like>
+</div>

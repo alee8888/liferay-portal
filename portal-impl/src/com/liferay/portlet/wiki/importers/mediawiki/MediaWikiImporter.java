@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,18 +14,17 @@
 
 package com.liferay.portlet.wiki.importers.mediawiki;
 
-import com.liferay.portal.NoSuchUserException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.ProgressTracker;
 import com.liferay.portal.kernel.util.ProgressTrackerThreadLocal;
+import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -67,6 +66,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -80,6 +80,7 @@ public class MediaWikiImporter implements WikiImporter {
 
 	public static final String SHARED_IMAGES_TITLE = "SharedImages";
 
+	@Override
 	public void importPages(
 			long userId, WikiNode node, InputStream[] inputStreams,
 			Map<String, String[]> options)
@@ -125,29 +126,27 @@ public class MediaWikiImporter implements WikiImporter {
 	}
 
 	protected long getUserId(
-			long userId, WikiNode node, String author,
-			Map<String, String> usersMap)
-		throws PortalException, SystemException {
+		long userId, WikiNode node, String author,
+		Map<String, String> usersMap) {
 
 		User user = null;
 
 		String emailAddress = usersMap.get(author);
 
-		try {
-			if (Validator.isNull(emailAddress)) {
-				user = UserLocalServiceUtil.getUserByScreenName(
-					node.getCompanyId(), author.toLowerCase());
-			}
-			else {
-				user = UserLocalServiceUtil.getUserByEmailAddress(
-					node.getCompanyId(), emailAddress);
-			}
+		if (Validator.isNotNull(emailAddress)) {
+			user = UserLocalServiceUtil.fetchUserByEmailAddress(
+				node.getCompanyId(), emailAddress);
 		}
-		catch (NoSuchUserException nsue) {
-			user = UserLocalServiceUtil.getUserById(userId);
+		else {
+			user = UserLocalServiceUtil.fetchUserByScreenName(
+				node.getCompanyId(), StringUtil.toLowerCase(author));
 		}
 
-		return user.getUserId();
+		if (user != null) {
+			return user.getUserId();
+		}
+
+		return userId;
 	}
 
 	protected void importPage(
@@ -214,13 +213,11 @@ public class MediaWikiImporter implements WikiImporter {
 	}
 
 	protected boolean isValidImage(String[] paths, InputStream inputStream) {
-		if (ArrayUtil.contains(_SPECIAL_MEDIA_WIKI_DIRS, paths[0])) {
+		if (_specialMediaWikiDirs.contains(paths[0])) {
 			return false;
 		}
 
-		if ((paths.length > 1) &&
-			(ArrayUtil.contains(_SPECIAL_MEDIA_WIKI_DIRS, paths[1]))) {
-
+		if ((paths.length > 1) && _specialMediaWikiDirs.contains(paths[1])) {
 			return false;
 		}
 
@@ -260,7 +257,6 @@ public class MediaWikiImporter implements WikiImporter {
 					WikiPageLocalServiceUtil.movePage(
 						userId, node.getNodeId(), frontPageTitle,
 						WikiPageConstants.FRONT_PAGE, false, serviceContext);
-
 				}
 			}
 			catch (Exception e) {
@@ -275,9 +271,7 @@ public class MediaWikiImporter implements WikiImporter {
 					_log.warn(sb.toString(), e);
 				}
 			}
-
 		}
-
 	}
 
 	protected String normalize(String categoryName, int length) {
@@ -361,7 +355,8 @@ public class MediaWikiImporter implements WikiImporter {
 					continue;
 				}
 
-				String fileName = paths[paths.length - 1].toLowerCase();
+				String fileName = StringUtil.toLowerCase(
+					paths[paths.length - 1]);
 
 				ObjectValuePair<String, InputStream> inputStreamOVP =
 					new ObjectValuePair<String, InputStream>(
@@ -380,7 +375,7 @@ public class MediaWikiImporter implements WikiImporter {
 
 					percentage = Math.min(50 + (i * 50) / total, 99);
 
-					progressTracker.updateProgress(percentage);
+					progressTracker.setPercent(percentage);
 				}
 			}
 
@@ -443,7 +438,7 @@ public class MediaWikiImporter implements WikiImporter {
 				10 + (i * (maxPercentage - percentage)) / pageElements.size(),
 				maxPercentage);
 
-			progressTracker.updateProgress(percentage);
+			progressTracker.setPercent(percentage);
 
 			if (isSpecialMediaWikiPage(title, specialNamespaces)) {
 				continue;
@@ -550,18 +545,18 @@ public class MediaWikiImporter implements WikiImporter {
 				}
 			}
 			catch (SystemException se) {
-				 _log.error(se, se);
+				_log.error(se, se);
 			}
 
 			if ((i % 5) == 0) {
-				progressTracker.updateProgress((i * 10) / pageElements.size());
+				progressTracker.setPercent((i * 10) / pageElements.size());
 			}
 		}
 	}
 
 	protected String[] readAssetTagNames(
 			long userId, WikiNode node, String content)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Matcher matcher = _categoriesPattern.matcher(content);
 
@@ -592,7 +587,7 @@ public class MediaWikiImporter implements WikiImporter {
 			assetTagNames.add(assetTag.getName());
 		}
 
-		if (content.indexOf(_WORK_IN_PROGRESS) != -1) {
+		if (content.contains(_WORK_IN_PROGRESS)) {
 			assetTagNames.add(_WORK_IN_PROGRESS_TAG);
 		}
 
@@ -694,10 +689,6 @@ public class MediaWikiImporter implements WikiImporter {
 		return usersMap;
 	}
 
-	private static final String[] _SPECIAL_MEDIA_WIKI_DIRS = {
-		"thumb", "temp", "archive"
-	};
-
 	private static final String _WORK_IN_PROGRESS = "{{Work in progress}}";
 
 	private static final String _WORK_IN_PROGRESS_TAG = "work in progress";
@@ -710,6 +701,8 @@ public class MediaWikiImporter implements WikiImporter {
 		"\\{{2}OtherTopics\\|([^\\}]*)\\}{2}");
 	private static Pattern _redirectPattern = Pattern.compile(
 		"#REDIRECT \\[\\[([^\\]]*)\\]\\]");
+	private static Set<String> _specialMediaWikiDirs = SetUtil.fromArray(
+		new String[] {"archive", "temp", "thumb"});
 
 	private MediaWikiToCreoleTranslator _translator =
 		new MediaWikiToCreoleTranslator();

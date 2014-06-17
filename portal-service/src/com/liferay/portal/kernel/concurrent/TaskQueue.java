@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -121,7 +121,20 @@ public class TaskQueue<E> {
 			if (count < _capacity) {
 				_enqueue(element);
 
-				_count.getAndIncrement();
+				if (_count.getAndIncrement() == 0) {
+
+					// Signal takers right after enqueue to increase the
+					// possibility of a concurrent token
+
+					_takeLock.lock();
+
+					try {
+						_notEmptyCondition.signal();
+					}
+					finally {
+						_takeLock.unlock();
+					}
+				}
 
 				// After enqueue, a non-increasing count implies a concurrent
 				// token because there are spare threads
@@ -133,17 +146,6 @@ public class TaskQueue<E> {
 		}
 		finally {
 			_putLock.unlock();
-		}
-
-		if (count == 0) {
-			_takeLock.lock();
-
-			try {
-				_notEmptyCondition.signal();
-			}
-			finally {
-				_takeLock.unlock();
-			}
 		}
 
 		return count >= 0;
@@ -319,7 +321,7 @@ public class TaskQueue<E> {
 	private final Condition _notEmptyCondition;
 	private final ReentrantLock _putLock = new ReentrantLock();
 	private Node<E> _tailNode;
-	private final ReentrantLock _takeLock = new ReentrantLock();
+	private final ReentrantLock _takeLock = new ReentrantLock(true);
 
 	private static class Node<E> {
 

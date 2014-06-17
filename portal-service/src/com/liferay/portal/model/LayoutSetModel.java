@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
@@ -36,7 +38,8 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.LayoutSetModelImpl
  * @generated
  */
-public interface LayoutSetModel extends BaseModel<LayoutSet> {
+@ProviderType
+public interface LayoutSetModel extends BaseModel<LayoutSet>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -56,6 +59,22 @@ public interface LayoutSetModel extends BaseModel<LayoutSet> {
 	 * @param primaryKey the primary key of this layout set
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this layout set.
+	 *
+	 * @return the mvcc version of this layout set
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this layout set.
+	 *
+	 * @param mvccVersion the mvcc version of this layout set
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the layout set ID of this layout set.
@@ -147,27 +166,6 @@ public interface LayoutSetModel extends BaseModel<LayoutSet> {
 	 * @param privateLayout the private layout of this layout set
 	 */
 	public void setPrivateLayout(boolean privateLayout);
-
-	/**
-	 * Returns the logo of this layout set.
-	 *
-	 * @return the logo of this layout set
-	 */
-	public boolean getLogo();
-
-	/**
-	 * Returns <code>true</code> if this layout set is logo.
-	 *
-	 * @return <code>true</code> if this layout set is logo; <code>false</code> otherwise
-	 */
-	public boolean isLogo();
-
-	/**
-	 * Sets whether this layout set is logo.
-	 *
-	 * @param logo the logo of this layout set
-	 */
-	public void setLogo(boolean logo);
 
 	/**
 	 * Returns the logo ID of this layout set.
@@ -324,35 +322,60 @@ public interface LayoutSetModel extends BaseModel<LayoutSet> {
 	public void setLayoutSetPrototypeLinkEnabled(
 		boolean layoutSetPrototypeLinkEnabled);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(LayoutSet layoutSet);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<LayoutSet> toCacheModel();
 
+	@Override
 	public LayoutSet toEscapedModel();
 
+	@Override
+	public LayoutSet toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

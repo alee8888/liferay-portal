@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,10 +18,10 @@
 
 <iframe allowTransparency="true" frameborder="0" id="<portlet:namespace />iframe" scrolling="no" src="<%= themeDisplay.getPathMain() %>/portal/license?p_p_state=pop_up" style="border: none; width: 100%;"></iframe>
 
-<aui:script use="aui-resize-iframe">
+<aui:script use="aui-autosize-iframe">
 	var iframe = A.one('#<portlet:namespace />iframe');
 
 	if (iframe) {
-		iframe.plug(A.Plugin.ResizeIframe);
+		iframe.plug(A.Plugin.AutosizeIframe);
 	}
 </aui:script>

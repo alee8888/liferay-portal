@@ -2,20 +2,19 @@ Liferay.Util.portletTitleEdit = function() {
 };
 
 if (!themeDisplay.isStatePopUp()) {
-	AUI().ready('aui-live-search', 'aui-overlay-context-panel', 'event-mouseenter', 'liferay-message', 'liferay-panel', 'liferay-store', 'node-focusmanager', 'transition',
+	AUI().ready(
+		'aui-live-search-deprecated',
+		'aui-overlay-context-panel-deprecated',
+		'event-mouseenter',
+		'liferay-message',
+		'liferay-store',
+		'node-focusmanager',
+		'transition',
 		function(A) {
 			var body = A.getBody();
 
-			var portletInformationEl = A.one('#cpContextPanelTemplate');
-			var portletInformationIcon = A.one('#cpPortletTitleHelpIcon');
-
 			var portletId = '';
 			var visible = false;
-
-			if (portletInformationEl) {
-				portletId = portletInformationEl.attr('data-portlet-id');
-				visible = (portletInformationEl.attr('data-visible-panel') == 'true');
-			}
 
 			var sessionKey = 'show-portlet-description-' + portletId;
 
@@ -33,23 +32,16 @@ if (!themeDisplay.isStatePopUp()) {
 
 			var SELECTOR_SEARCH_NODES = '#controlPanelMenuAddContentPanelContainer ul li a';
 
-			var TPL_CANCEL_SEARCH_BUTTON = '<a class="cancel-search" href="javascript:;"></a>';
+			var TPL_CANCEL_SEARCH_BUTTON = '<a class="icon-remove cancel-search" href="javascript:;"></a>';
 
-			var TPL_TOGGLE_PANELS_BUTTON = '<div id="minimize-panels"><a href="javascript:;"><span>' + Liferay.Language.get('minimize-panels') + '</span></a></div>';
+			var TPL_TOGGLE_PANELS_BUTTON = '<div class="minimize-panels"><a class="close-panel-button" href="javascript:;"><span>' + Liferay.Language.get('minimize-panels') + '</span></a></div>';
 
 			var ControlPanel = {
 				init: function() {
 					var instance = this;
 
 					instance._renderUI();
-
 					instance._bindUI();
-
-					instance._createCancelButton();
-
-					instance._createFocusManager();
-
-					instance._createLiveSearch();
 				},
 
 				_afterHiddenChange: function(event) {
@@ -61,46 +53,41 @@ if (!themeDisplay.isStatePopUp()) {
 				_bindUI: function() {
 					var instance = this;
 
-					Liferay.set('controlPanelSidebarHidden', body.hasClass(CSS_PANELS_MINIMIZED));
+					var panelHolder = instance._panelHolder;
 
-					Liferay.after('controlPanelSidebarHiddenChange', instance._afterHiddenChange, instance);
+					if (panelHolder) {
+						Liferay.set('controlPanelSidebarHidden', body.hasClass(CSS_PANELS_MINIMIZED));
 
-					instance._panelToggleButton.on('click', instance._toggleHidden, instance);
+						Liferay.after('controlPanelSidebarHiddenChange', instance._afterHiddenChange, instance);
 
-					instance._searchPanelHolder.on('click', instance._setVisible, instance);
+						if (body.hasClass(CSS_PANELS_MINIMIZED)) {
+							instance._panelHolderAccordionHandle = instance._panelHolderAccordionDisable();
 
-					instance._togglePanelsAction();
+							panelHolder.delegate('click', instance._panelHolderHandleClick, '.toggler-header');
 
-					instance._panelHolder.on(['mouseenter', 'mouseleave'], instance._togglePanelsAction, instance);
+							instance._controlPanelTools.on('click', instance._toggleHidden, instance);
+						}
 
-					var sidebarPanel = Liferay.Panel.get('addContentPanelContainer');
+						instance._panelToggleButton.on('click', instance._toggleHidden, instance);
+					}
 
-					if (sidebarPanel) {
-						sidebarPanel.on(
-							'collapse',
+					if (instance._searchPanelHolder) {
+						Liferay.publish(
+							'focusSearchBar',
+							{
+								defaultFn: A.bind('_focusSearchBar', instance)
+							}
+						);
+
+						A.getDoc().on(
+							'keyup',
 							function(event) {
-								if (Liferay.get('controlPanelSidebarHidden')) {
-									event.preventDefault();
+								if (event.isKey('ESC')) {
+									Liferay.fire('focusSearchBar');
 								}
 							}
 						);
 					}
-
-					Liferay.publish(
-						'focusSearchBar',
-						{
-							defaultFn: A.bind(instance._focusSearchBar, instance)
-						}
-					);
-
-					A.getDoc().on(
-						'keyup',
-						function(event) {
-							if (event.isKey('ESC')) {
-								Liferay.fire('focusSearchBar');
-							}
-						}
-					);
 				},
 
 				_createCancelButton: function() {
@@ -134,7 +121,7 @@ if (!themeDisplay.isStatePopUp()) {
 					addContentPanelContainer.plug(
 						A.Plugin.NodeFocusManager,
 						{
-							descendants: '.lfr-panel-content ul li a:visible',
+							descendants: '.toggler-content ul li a:visible',
 							keys: {
 								next: 'down:40',
 								previous: 'down:38'
@@ -162,21 +149,8 @@ if (!themeDisplay.isStatePopUp()) {
 
 					var liveSearch = new A.LiveSearch(
 						{
-							input: searchPanelInput,
-							nodes: SELECTOR_SEARCH_NODES,
-
 							data: function(node) {
 								return node.text();
-							},
-
-							on: {
-								search: function(event) {
-									if (trim(liveSearch.get('searchValue'))) {
-										body.addClass(CSS_SEARCH_PANEL_ACTIVE);
-
-										instance._searchActive = true;
-									}
-								}
 							},
 
 							after: {
@@ -191,6 +165,19 @@ if (!themeDisplay.isStatePopUp()) {
 										instance._searchActive = false;
 									}
 								}
+							},
+
+							input: searchPanelInput,
+							nodes: SELECTOR_SEARCH_NODES,
+
+							on: {
+								search: function(event) {
+									if (trim(liveSearch.get('searchValue'))) {
+										body.addClass(CSS_SEARCH_PANEL_ACTIVE);
+
+										instance._searchActive = true;
+									}
+								}
 							}
 						}
 					);
@@ -202,15 +189,51 @@ if (!themeDisplay.isStatePopUp()) {
 					var instance = this;
 
 					instance._searchPanelInput.selectText();
+				},
 
-					Liferay.set('controlPanelSidebarHidden', false, EVENT_DATA_SIDEBAR);
+				_panelHolderAccordionDisable: function() {
+					var component = Liferay.component('_160_controlPanelMenuAddContentPanelContainer');
+
+					var handler = A.on(
+						function(e) {
+							return new A.Do.Prevent();
+						},
+						component,
+						'headerEventHandler'
+					);
+
+					return handler;
+				},
+
+				_panelHolderCollapse: function() {
+					var instance = this;
+
+					body.addClass(CSS_PANELS_MINIMIZED);
+				},
+
+				_panelHolderExpand: function() {
+					var instance = this;
+
+					body.removeClass(CSS_PANELS_MINIMIZED);
+				},
+
+				_panelHolderHandleClick: function(event) {
+					var currentTarget = event.currentTarget;
+
+					var accordionGroup = currentTarget.ancestor();
+
+					accordionGroup.toggleClass('open');
+
+					currentTarget.once(
+						'clickoutside',
+						function() {
+							accordionGroup.removeClass('open');
+						}
+					);
 				},
 
 				_renderUI: function() {
 					var instance = this;
-
-					var searchPanelHolder = A.one('.search-panels');
-					var searchPanelInput = searchPanelHolder.one('#_160_searchPanel');
 
 					var controlPanelTools = A.one('.control-panel-tools');
 
@@ -220,38 +243,33 @@ if (!themeDisplay.isStatePopUp()) {
 
 					var panelToggleButton = togglePanels.one('a');
 
-					controlPanelTools.append(togglePanels);
+					var searchPanelHolder = A.one('.search-panels');
 
-					searchPanelInput.attr('autocomplete', 'off');
+					if (panelHolder) {
+						var panelPageBody = panelHolder.ancestor().one('.panel-page-body');
 
-					if (portletInformationEl) {
-						instance._helpBox = new Liferay.Message(
-							{
-								contentBox: portletInformationEl,
-								id: sessionKey,
-								persistenceCategory: 'enable-portlet-descriptions',
-								strings: {
-									dismissAll: Liferay.Language.get('or-disable-for-all-portlets')
-								},
-								trigger: portletInformationIcon,
-								type: 'help',
-								visible: portletInformationEl.test(':visible')
-							}
-						).render();
+						panelHolder.append(togglePanels);
+
+						instance._controlPanelTools = controlPanelTools;
+						instance._panelHolderAccordionHandle = null;
+						instance._panelHolder = panelHolder;
+						instance._panelPageBody = panelPageBody;
+						instance._panelToggleButton = panelToggleButton;
+						instance._togglePanels = togglePanels;
 					}
 
-					instance._controlPanelTools = controlPanelTools;
-					instance._panelHolder = panelHolder;
-					instance._panelToggleButton = panelToggleButton;
-					instance._searchPanelHolder = searchPanelHolder;
-					instance._searchPanelInput = searchPanelInput;
-					instance._togglePanels = togglePanels;
-				},
+					if (searchPanelHolder) {
+						var searchPanelInput = searchPanelHolder.one('#_160_searchPanel');
 
-				_setVisible: function(event) {
-					var instance = this;
+						searchPanelInput.attr('autocomplete', 'off');
 
-					Liferay.set('controlPanelSidebarHidden', false, EVENT_DATA_SIDEBAR);
+						instance._searchPanelHolder = searchPanelHolder;
+						instance._searchPanelInput = searchPanelInput;
+
+						instance._createCancelButton();
+						instance._createFocusManager();
+						instance._createLiveSearch();
+					}
 				},
 
 				_toggleHidden: function(event) {
@@ -260,78 +278,33 @@ if (!themeDisplay.isStatePopUp()) {
 					Liferay.set('controlPanelSidebarHidden', !Liferay.get('controlPanelSidebarHidden'), EVENT_DATA_SIDEBAR);
 				},
 
-				_togglePanelsAction: function(event) {
-					var instance = this;
-
-					var opacity = 0;
-
-					if (event) {
-						opacity = instance._eventOpacities[event.type];
-					}
-
-					instance._togglePanels.transition(
-						{
-							opacity: opacity
-						}
-					);
-				},
-
 				_uiSetHidden: function(newVal, persist) {
 					var instance = this;
 
-					var liveSearch = instance._liveSearch;
+					if (persist) {
+						Liferay.Store('control-panel-sidebar-minimized', newVal);
+					}
 
-					var panelCfg = instance._panelCfg;
+					if (body.hasClass(CSS_PANELS_MINIMIZED)) {
+						instance._panelHolder.detach();
 
-					var toggleValue = panelCfg.closeValue;
+						instance._panelHolderExpand();
 
-					var searchValue = instance._searchValue;
+						instance._controlPanelTools.detach('click');
 
-					if (!newVal) {
-						toggleValue = panelCfg.openValue;
+						if (instance._panelHolderAccordionHandle) {
+							instance._panelHolderAccordionHandle.detach();
+						}
 					}
 					else {
-						searchValue = '';
+						instance._panelHolderAccordionHandle = instance._panelHolderAccordionDisable();
 
-						instance._searchValue = liveSearch.get('searchValue');
+						instance._panelHolderCollapse();
+
+						instance._panelHolder.delegate('click', instance._panelHolderHandleClick, '.toggler-header');
+
+						instance._controlPanelTools.on('click', instance._toggleHidden, instance);
 					}
-
-					liveSearch.search(searchValue);
-
-					body.removeClass(CSS_DISPLAY_PANEL_COLUMNS);
-
-					instance._panelHolder.transition(
-						{
-							left: toggleValue,
-							easing: 'ease-out',
-							duration: 0.2
-						},
-						function() {
-							if (persist) {
-								Liferay.Store('control-panel-sidebar-minimized', newVal);
-							}
-
-							body.addClass(CSS_DISPLAY_PANEL_COLUMNS);
-
-							body.toggleClass(CSS_PANELS_MINIMIZED, newVal);
-
-							if (!newVal) {
-								instance._searchPanelInput.selectText();
-							}
-						}
-					);
-
-					body.toggleClass(CSS_SEARCH_PANEL_ACTIVE, (instance._searchActive && !newVal));
-				},
-
-				_eventOpacities: {
-					mouseenter: 1,
-					mouseleave: 0
-				},
-
-				_panelCfg: {
-					closeValue: '-198px',
-					openValue: '0'
 				},
 
 				_searchActive: false,

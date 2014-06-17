@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,10 +20,10 @@ import com.liferay.portal.kernel.captcha.CaptchaMaxChallengesException;
 import com.liferay.portal.kernel.captcha.CaptchaTextException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.RandomUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.InstancePool;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.Randomizer;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
@@ -60,6 +60,7 @@ public class SimpleCaptchaImpl implements Captcha {
 		initWordRenderers();
 	}
 
+	@Override
 	public void check(HttpServletRequest request) throws CaptchaException {
 		if (!isEnabled(request)) {
 			return;
@@ -74,10 +75,11 @@ public class SimpleCaptchaImpl implements Captcha {
 		}
 
 		if (_log.isDebugEnabled()) {
-			_log.debug("Captcha text is valid");
+			_log.debug("CAPTCHA text is valid");
 		}
 	}
 
+	@Override
 	public void check(PortletRequest portletRequest) throws CaptchaException {
 		if (!isEnabled(portletRequest)) {
 			return;
@@ -92,14 +94,16 @@ public class SimpleCaptchaImpl implements Captcha {
 		}
 
 		if (_log.isDebugEnabled()) {
-			_log.debug("Captcha text is valid");
+			_log.debug("CAPTCHA text is valid");
 		}
 	}
 
+	@Override
 	public String getTaglibPath() {
 		return _TAGLIB_PATH;
 	}
 
+	@Override
 	public boolean isEnabled(HttpServletRequest request)
 		throws CaptchaException {
 
@@ -113,6 +117,7 @@ public class SimpleCaptchaImpl implements Captcha {
 		}
 	}
 
+	@Override
 	public boolean isEnabled(PortletRequest portletRequest)
 		throws CaptchaException {
 
@@ -126,6 +131,7 @@ public class SimpleCaptchaImpl implements Captcha {
 		}
 	}
 
+	@Override
 	public void serveImage(
 			HttpServletRequest request, HttpServletResponse response)
 		throws IOException {
@@ -136,12 +142,13 @@ public class SimpleCaptchaImpl implements Captcha {
 
 		session.setAttribute(WebKeys.CAPTCHA_TEXT, simpleCaptcha.getAnswer());
 
-		response.setContentType(ContentTypes.IMAGE_JPEG);
+		response.setContentType(ContentTypes.IMAGE_PNG);
 
 		CaptchaServletUtil.writeImage(
 			response.getOutputStream(), simpleCaptcha.getImage());
 	}
 
+	@Override
 	public void serveImage(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws IOException {
@@ -152,6 +159,8 @@ public class SimpleCaptchaImpl implements Captcha {
 
 		portletSession.setAttribute(
 			WebKeys.CAPTCHA_TEXT, simpleCaptcha.getAnswer());
+
+		resourceResponse.setContentType(ContentTypes.IMAGE_PNG);
 
 		CaptchaServletUtil.writeImage(
 			resourceResponse.getPortletOutputStream(),
@@ -197,9 +206,7 @@ public class SimpleCaptchaImpl implements Captcha {
 			return _backgroundProducers[0];
 		}
 
-		Randomizer randomizer = Randomizer.getInstance();
-
-		int pos = randomizer.nextInt(_backgroundProducers.length);
+		int pos = RandomUtil.nextInt(_backgroundProducers.length);
 
 		return _backgroundProducers[pos];
 	}
@@ -209,9 +216,7 @@ public class SimpleCaptchaImpl implements Captcha {
 			return _gimpyRenderers[0];
 		}
 
-		Randomizer randomizer = Randomizer.getInstance();
-
-		int pos = randomizer.nextInt(_gimpyRenderers.length);
+		int pos = RandomUtil.nextInt(_gimpyRenderers.length);
 
 		return _gimpyRenderers[pos];
 	}
@@ -225,9 +230,7 @@ public class SimpleCaptchaImpl implements Captcha {
 			return _noiseProducers[0];
 		}
 
-		Randomizer randomizer = Randomizer.getInstance();
-
-		int pos = randomizer.nextInt(_noiseProducers.length);
+		int pos = RandomUtil.nextInt(_noiseProducers.length);
 
 		return _noiseProducers[pos];
 	}
@@ -250,9 +253,7 @@ public class SimpleCaptchaImpl implements Captcha {
 			return _textProducers[0];
 		}
 
-		Randomizer randomizer = Randomizer.getInstance();
-
-		int pos = randomizer.nextInt(_textProducers.length);
+		int pos = RandomUtil.nextInt(_textProducers.length);
 
 		return _textProducers[pos];
 	}
@@ -266,9 +267,7 @@ public class SimpleCaptchaImpl implements Captcha {
 			return _wordRenderers[0];
 		}
 
-		Randomizer randomizer = Randomizer.getInstance();
-
-		int pos = randomizer.nextInt(_wordRenderers.length);
+		int pos = RandomUtil.nextInt(_wordRenderers.length);
 
 		return _wordRenderers[pos];
 	}
@@ -394,8 +393,8 @@ public class SimpleCaptchaImpl implements Captcha {
 
 		if (captchaText == null) {
 			_log.error(
-				"Captcha text is null. User " + request.getRemoteUser() +
-					" may be trying to circumvent the captcha.");
+				"CAPTCHA text is null. User " + request.getRemoteUser() +
+					" may be trying to circumvent the CAPTCHA.");
 
 			throw new CaptchaTextException();
 		}
@@ -420,8 +419,8 @@ public class SimpleCaptchaImpl implements Captcha {
 
 		if (captchaText == null) {
 			_log.error(
-				"Captcha text is null. User " + portletRequest.getRemoteUser() +
-					" may be trying to circumvent the captcha.");
+				"CAPTCHA text is null. User " + portletRequest.getRemoteUser() +
+					" may be trying to circumvent the CAPTCHA.");
 
 			throw new CaptchaTextException();
 		}

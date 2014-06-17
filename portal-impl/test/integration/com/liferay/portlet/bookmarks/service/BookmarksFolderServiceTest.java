@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,91 +20,120 @@ import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.Query;
-import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
-import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.test.AssertUtils;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.search.lucene.LuceneHelperUtil;
-import com.liferay.portal.test.AssertUtils;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
+import com.liferay.portal.model.Group;
+import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.test.DeleteAfterTestRun;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.test.Sync;
+import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
+import com.liferay.portal.util.test.GroupTestUtil;
+import com.liferay.portal.util.test.RandomTestUtil;
+import com.liferay.portal.util.test.ServiceContextTestUtil;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
+import com.liferay.portlet.bookmarks.util.test.BookmarksTestUtil;
 
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
  * @author Brian Wing Shun Chan
  */
-@ExecutionTestListeners(listeners = {EnvironmentExecutionTestListener.class})
+@ExecutionTestListeners(
+	listeners = {
+		MainServletExecutionTestListener.class,
+		SynchronousDestinationExecutionTestListener.class
+	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-public class BookmarksFolderServiceTest extends BaseBookmarksServiceTestCase {
+@Sync
+public class BookmarksFolderServiceTest {
+
+	@Before
+	public void setUp() throws Exception {
+		_group = GroupTestUtil.addGroup();
+	}
 
 	@Test
 	public void testAddFolder() throws Exception {
-		addFolder();
+		BookmarksTestUtil.addFolder(
+			_group.getGroupId(), RandomTestUtil.randomString());
 	}
 
 	@Test
 	public void testAddSubfolder() throws Exception {
-		BookmarksFolder folder = addFolder();
+		BookmarksFolder folder = BookmarksTestUtil.addFolder(
+			_group.getGroupId(), RandomTestUtil.randomString());
 
-		addFolder(folder.getFolderId());
+		BookmarksTestUtil.addFolder(
+			_group.getGroupId(), folder.getFolderId(),
+			RandomTestUtil.randomString());
 	}
 
 	@Test
 	public void testDeleteFolder() throws Exception {
-		BookmarksFolder folder = addFolder();
+		BookmarksFolder folder = BookmarksTestUtil.addFolder(
+			_group.getGroupId(), RandomTestUtil.randomString());
 
 		BookmarksFolderServiceUtil.deleteFolder(folder.getFolderId());
 	}
 
 	@Test
 	public void testGetFolder() throws Exception {
-		BookmarksFolder folder = addFolder();
+		BookmarksFolder folder = BookmarksTestUtil.addFolder(
+			_group.getGroupId(), RandomTestUtil.randomString());
 
 		BookmarksFolderServiceUtil.getFolder(folder.getFolderId());
 	}
 
 	@Test
 	public void testSearch() throws Exception {
-		FileUtil.deltree(
-			PropsValues.LUCENE_DIR + TestPropsValues.getCompanyId());
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
 
-		FileUtil.mkdirs(
-			PropsValues.LUCENE_DIR + TestPropsValues.getCompanyId());
+		BookmarksFolder folder = BookmarksTestUtil.addFolder(
+			_group.getGroupId(), RandomTestUtil.randomString());
 
-		LuceneHelperUtil.startup(TestPropsValues.getCompanyId());
+		BookmarksEntry entry = BookmarksTestUtil.addEntry(
+			folder.getFolderId(), true, serviceContext);
 
-		BookmarksEntry entry = addEntry();
+		SearchContext searchContext = BookmarksTestUtil.getSearchContext(
+			entry.getCompanyId(), entry.getGroupId(), entry.getFolderId(),
+			"test");
 
-		Thread.sleep(1000 * TestPropsValues.JUNIT_DELAY_FACTOR);
+		Indexer indexer = IndexerRegistryUtil.getIndexer(BookmarksEntry.class);
+
+		Hits hits = indexer.search(searchContext);
+
+		Assert.assertEquals(1, hits.getLength());
+	}
+
+	@Test
+	public void testSearchAndDeleteFolderAndSearch() throws Exception {
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
+
+		BookmarksFolder folder = BookmarksTestUtil.addFolder(
+			_group.getGroupId(), RandomTestUtil.randomString());
+
+		BookmarksEntry entry = BookmarksTestUtil.addEntry(
+			folder.getFolderId(), true, serviceContext);
 
 		long companyId = entry.getCompanyId();
 		long groupId = entry.getFolder().getGroupId();
 		long folderId = entry.getFolderId();
 		String keywords = "test";
 
-		SearchContext searchContext = new SearchContext();
-
-		searchContext.setCompanyId(companyId);
-		searchContext.setFolderIds(new long[] {folderId});
-		searchContext.setGroupIds(new long[] {groupId});
-		searchContext.setKeywords(keywords);
-
-		QueryConfig queryConfig = new QueryConfig();
-
-		queryConfig.setHighlightEnabled(false);
-		queryConfig.setScoreEnabled(false);
-
-		searchContext.setQueryConfig(queryConfig);
+		SearchContext searchContext = BookmarksTestUtil.getSearchContext(
+			companyId, groupId, folderId, keywords);
 
 		Indexer indexer = IndexerRegistryUtil.getIndexer(BookmarksEntry.class);
 
@@ -112,53 +141,83 @@ public class BookmarksFolderServiceTest extends BaseBookmarksServiceTestCase {
 
 		Assert.assertEquals(1, hits.getLength());
 
-		List<Document> results =  hits.toList();
-
-		for (Document doc : results) {
-			Assert.assertEquals(
-				companyId, GetterUtil.getLong(doc.get(Field.COMPANY_ID)));
-
-			Assert.assertEquals(
-					groupId, GetterUtil.getLong(doc.get(Field.GROUP_ID)));
-
-			AssertUtils.assertEqualsIgnoreCase(
-				entry.getName(), doc.get(Field.TITLE));
-			Assert.assertEquals(entry.getUrl(), doc.get(Field.URL));
-			AssertUtils.assertEqualsIgnoreCase(
-				entry.getDescription(), doc.get(Field.DESCRIPTION));
-
-			Assert.assertEquals(
-				folderId, GetterUtil.getLong(doc.get("folderId")));
-			Assert.assertEquals(
-				entry.getEntryId(),
-				GetterUtil.getLong(doc.get(Field.ENTRY_CLASS_PK)));
-		}
-
 		BookmarksFolderLocalServiceUtil.deleteFolder(folderId);
-
-		Thread.sleep(1000 * TestPropsValues.JUNIT_DELAY_FACTOR);
 
 		hits = indexer.search(searchContext);
 
 		Query query = hits.getQuery();
 
 		Assert.assertEquals(query.toString(), 0, hits.getLength());
+	}
 
-		addEntry();
-		addEntry();
-		addEntry();
-		addEntry();
+	@Test
+	public void testSearchAndVerifyDocs() throws Exception {
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
 
-		Thread.sleep(1000 * TestPropsValues.JUNIT_DELAY_FACTOR);
+		BookmarksFolder folder = BookmarksTestUtil.addFolder(
+			_group.getGroupId(), RandomTestUtil.randomString());
+
+		BookmarksEntry entry = BookmarksTestUtil.addEntry(
+			folder.getFolderId(), true, serviceContext);
+
+		SearchContext searchContext = BookmarksTestUtil.getSearchContext(
+			entry.getCompanyId(), entry.getGroupId(), entry.getFolderId(),
+			"test");
+
+		Indexer indexer = IndexerRegistryUtil.getIndexer(BookmarksEntry.class);
+
+		Hits hits = indexer.search(searchContext);
+
+		Assert.assertEquals(1, hits.getLength());
+
+		List<Document> results = hits.toList();
+
+		for (Document doc : results) {
+			Assert.assertEquals(
+				entry.getCompanyId(),
+				GetterUtil.getLong(doc.get(Field.COMPANY_ID)));
+			Assert.assertEquals(
+				BookmarksEntry.class.getName(),
+				doc.get(Field.ENTRY_CLASS_NAME));
+			Assert.assertEquals(
+				entry.getEntryId(),
+				GetterUtil.getLong(doc.get(Field.ENTRY_CLASS_PK)));
+			AssertUtils.assertEqualsIgnoreCase(
+				entry.getName(), doc.get(Field.TITLE));
+			Assert.assertEquals(entry.getUrl(), doc.get(Field.URL));
+		}
+	}
+
+	@Test
+	public void testSearchRange() throws Exception {
+		BookmarksEntry entry = BookmarksTestUtil.addEntry(
+			_group.getGroupId(), true);
+
+		BookmarksTestUtil.addEntry(_group.getGroupId(), true);
+		BookmarksTestUtil.addEntry(_group.getGroupId(), true);
+		BookmarksTestUtil.addEntry(_group.getGroupId(), true);
+
+		SearchContext searchContext = BookmarksTestUtil.getSearchContext(
+			_group.getCompanyId(), _group.getGroupId(), entry.getFolderId(),
+			"test");
+
+		Indexer indexer = IndexerRegistryUtil.getIndexer(BookmarksEntry.class);
 
 		searchContext.setEnd(3);
-		searchContext.setFolderIds(null);
+		searchContext.setFolderIds((long[])null);
 		searchContext.setStart(1);
 
-		hits = indexer.search(searchContext);
+		Hits hits = indexer.search(searchContext);
 
 		Assert.assertEquals(4, hits.getLength());
-		Assert.assertEquals(2, hits.getDocs().length);
+
+		Document[] documents = hits.getDocs();
+
+		Assert.assertEquals(2, documents.length);
 	}
+
+	@DeleteAfterTestRun
+	private Group _group;
 
 }

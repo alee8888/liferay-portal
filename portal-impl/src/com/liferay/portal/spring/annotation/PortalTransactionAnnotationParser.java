@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,11 +29,13 @@ import org.springframework.transaction.interceptor.TransactionAttribute;
 /**
  * @author     Michael Young
  * @author     Shuyang Zhou
- * @deprecated
+ * @deprecated As of 6.1.0
  */
+@Deprecated
 public class PortalTransactionAnnotationParser
 	implements TransactionAnnotationParser, Serializable {
 
+	@Override
 	public TransactionAttribute parseTransactionAnnotation(
 		AnnotatedElement annotatedElement) {
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,8 +15,9 @@
 package com.liferay.portlet.mobiledevicerules.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.mobiledevicerules.model.MDRAction;
@@ -33,11 +34,12 @@ import java.util.Map;
  */
 public class MDRActionLocalServiceImpl extends MDRActionLocalServiceBaseImpl {
 
+	@Override
 	public MDRAction addAction(
 			long ruleGroupInstanceId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, String type,
 			String typeSettings, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		User user = userPersistence.findByPrimaryKey(
 			serviceContext.getUserId());
@@ -65,79 +67,101 @@ public class MDRActionLocalServiceImpl extends MDRActionLocalServiceBaseImpl {
 		action.setType(type);
 		action.setTypeSettings(typeSettings);
 
-		return updateMDRAction(action, false);
+		action = updateMDRAction(action);
+
+		ruleGroupInstance.setModifiedDate(now);
+
+		mdrRuleGroupInstancePersistence.update(ruleGroupInstance);
+
+		return action;
 	}
 
+	@Override
 	public MDRAction addAction(
 			long ruleGroupInstanceId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, String type,
 			UnicodeProperties typeSettingsProperties,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return addAction(
 			ruleGroupInstanceId, nameMap, descriptionMap, type,
 			typeSettingsProperties.toString(), serviceContext);
 	}
 
-	public void deleteAction(long actionId) throws SystemException {
+	@Override
+	public void deleteAction(long actionId) {
 		MDRAction action = mdrActionPersistence.fetchByPrimaryKey(actionId);
 
 		if (action != null) {
-			deleteAction(action);
+			mdrActionLocalService.deleteAction(action);
 		}
 	}
 
-	public void deleteAction(MDRAction action) throws SystemException {
+	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
+	public void deleteAction(MDRAction action) {
 		mdrActionPersistence.remove(action);
+
+		MDRRuleGroupInstance ruleGroupInstance =
+			mdrRuleGroupInstancePersistence.fetchByPrimaryKey(
+				action.getRuleGroupInstanceId());
+
+		if (ruleGroupInstance != null) {
+			ruleGroupInstance.setModifiedDate(new Date());
+
+			mdrRuleGroupInstancePersistence.update(ruleGroupInstance);
+		}
 	}
 
-	public void deleteActions(long ruleGroupInstanceId) throws SystemException {
+	@Override
+	public void deleteActions(long ruleGroupInstanceId) {
 		List<MDRAction> actions =
 			mdrActionPersistence.findByRuleGroupInstanceId(ruleGroupInstanceId);
 
 		for (MDRAction action : actions) {
-			deleteAction(action);
+			mdrActionLocalService.deleteAction(action);
 		}
 	}
 
-	public MDRAction fetchAction(long actionId) throws SystemException {
+	@Override
+	public MDRAction fetchAction(long actionId) {
 		return mdrActionPersistence.fetchByPrimaryKey(actionId);
 	}
 
-	public MDRAction getAction(long actionId)
-		throws PortalException, SystemException {
-
+	@Override
+	public MDRAction getAction(long actionId) throws PortalException {
 		return mdrActionPersistence.findByPrimaryKey(actionId);
 	}
 
-	public List<MDRAction> getActions(long ruleGroupInstanceId)
-		throws SystemException {
+	@Override
+	public List<MDRAction> getActions(long ruleGroupInstanceId) {
 
 		return mdrActionPersistence.findByRuleGroupInstanceId(
 			ruleGroupInstanceId);
 	}
 
+	@Override
 	public List<MDRAction> getActions(
-			long ruleGroupInstanceId, int start, int end)
-		throws SystemException {
+		long ruleGroupInstanceId, int start, int end) {
 
 		return mdrActionPersistence.findByRuleGroupInstanceId(
 			ruleGroupInstanceId, start, end);
 	}
 
-	public int getActionsCount(long ruleGroupInstanceId)
-		throws SystemException {
+	@Override
+	public int getActionsCount(long ruleGroupInstanceId) {
 
 		return mdrActionPersistence.countByRuleGroupInstanceId(
 			ruleGroupInstanceId);
 	}
 
+	@Override
 	public MDRAction updateAction(
 			long actionId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, String type,
 			String typeSettings, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		MDRAction action = mdrActionPersistence.findByPrimaryKey(actionId);
 
@@ -147,17 +171,26 @@ public class MDRActionLocalServiceImpl extends MDRActionLocalServiceBaseImpl {
 		action.setType(type);
 		action.setTypeSettings(typeSettings);
 
-		mdrActionPersistence.update(action, false);
+		mdrActionPersistence.update(action);
+
+		MDRRuleGroupInstance ruleGroupInstance =
+			mdrRuleGroupInstancePersistence.findByPrimaryKey(
+				action.getRuleGroupInstanceId());
+
+		ruleGroupInstance.setModifiedDate(serviceContext.getModifiedDate(null));
+
+		mdrRuleGroupInstancePersistence.update(ruleGroupInstance);
 
 		return action;
 	}
 
+	@Override
 	public MDRAction updateAction(
 			long actionId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, String type,
 			UnicodeProperties typeSettingsProperties,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return updateAction(
 			actionId, nameMap, descriptionMap, type,

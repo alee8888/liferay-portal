@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,26 +14,29 @@
 
 package com.liferay.portlet;
 
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.util.BaseTestCase;
-import com.liferay.portal.util.InitUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.service.util.PortletPreferencesImplTestUtil;
+import com.liferay.portal.service.util.test.PortletPreferencesTestUtil;
+import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 
 import java.util.Map;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * @author Shuyang Zhou
  * @author Brian Wing Shun Chan
  */
-public class PortletPreferencesFactoryImplTest extends BaseTestCase {
+@RunWith(LiferayIntegrationJUnitTestRunner.class)
+public class PortletPreferencesFactoryImplTest {
 
-	public PortletPreferencesFactoryImplTest() {
-		InitUtil.initWithSpring();
-	}
-
+	@Test
 	public void testBlankPreference() throws Exception {
 		String expectedXML =
-			"<portlet-preferences><preference><name>name</name><value>" +
-				"</value></preference></portlet-preferences>";
+			PortletPreferencesTestUtil.getPortletPreferencesXML(
+				"name", new String[] {StringPool.BLANK});
 
 		PortletPreferencesImpl portletPreferencesImpl =
 			new PortletPreferencesImpl();
@@ -43,25 +46,28 @@ public class PortletPreferencesFactoryImplTest extends BaseTestCase {
 		String actualXML = PortletPreferencesFactoryUtil.toXML(
 			portletPreferencesImpl);
 
-		assertEquals(expectedXML, actualXML);
+		Assert.assertEquals(expectedXML, actualXML);
 
-		portletPreferencesImpl = deserialize(expectedXML);
+		portletPreferencesImpl =
+			PortletPreferencesImplTestUtil.toPortletPreferencesImpl(
+				expectedXML);
 
 		Map<String, Preference> preferencesMap =
 			portletPreferencesImpl.getPreferences();
 
-		assertEquals(1, preferencesMap.size());
+		Assert.assertEquals(1, preferencesMap.size());
 
 		Preference preference = preferencesMap.values().iterator().next();
 
-		assertEquals("name", preference.getName());
+		Assert.assertEquals("name", preference.getName());
 
 		String[] values = preference.getValues();
 
-		assertEquals(1, values.length);
-		assertEquals("", values[0]);
+		Assert.assertEquals(1, values.length);
+		Assert.assertEquals("", values[0]);
 	}
 
+	@Test
 	public void testComplexPortletPreferences() throws Exception {
 		PortletPreferencesImpl portletPreferencesImpl =
 			new PortletPreferencesImpl();
@@ -91,67 +97,69 @@ public class PortletPreferencesFactoryImplTest extends BaseTestCase {
 		String actualXML = PortletPreferencesFactoryUtil.toXML(
 			portletPreferencesImpl);
 
-		portletPreferencesImpl = deserialize(actualXML);
+		portletPreferencesImpl =
+			PortletPreferencesImplTestUtil.toPortletPreferencesImpl(actualXML);
 
 		preferencesMap = portletPreferencesImpl.getPreferences();
 
-		assertEquals(4, preferencesMap.size());
+		Assert.assertEquals(4, preferencesMap.size());
 
 		// Blank
 
 		preference = preferencesMap.get("");
 
-		assertNotNull(preference);
-		assertEquals("", preference.getName());
+		Assert.assertNotNull(preference);
+		Assert.assertEquals("", preference.getName());
 
 		String[] values = preference.getValues();
 
-		assertEquals(1, values.length);
-		assertEquals("", values[0]);
-		assertFalse(preference.isReadOnly());
+		Assert.assertEquals(1, values.length);
+		Assert.assertEquals("", values[0]);
+		Assert.assertFalse(preference.isReadOnly());
 
 		// Empty
 
 		preference = preferencesMap.get("name1");
 
-		assertNotNull(preference);
-		assertEquals("name1", preference.getName());
+		Assert.assertNotNull(preference);
+		Assert.assertEquals("name1", preference.getName());
 		values = preference.getValues();
-		assertEquals(0, values.length);
-		assertFalse(preference.isReadOnly());
+		Assert.assertEquals(0, values.length);
+		Assert.assertFalse(preference.isReadOnly());
 
 		// Multiple
 
 		preference = preferencesMap.get("name2");
 
-		assertNotNull(preference);
-		assertEquals("name2", preference.getName());
+		Assert.assertNotNull(preference);
+		Assert.assertEquals("name2", preference.getName());
 
 		values = preference.getValues();
 
-		assertEquals(2, values.length);
-		assertEquals("", values[0]);
-		assertEquals("value1", values[1]);
-		assertFalse(preference.isReadOnly());
+		Assert.assertEquals(2, values.length);
+		Assert.assertEquals("", values[0]);
+		Assert.assertEquals("value1", values[1]);
+		Assert.assertFalse(preference.isReadOnly());
 
 		// Read only
 
 		preference = preferencesMap.get("name3");
 
-		assertNotNull(preference);
-		assertEquals("name3", preference.getName());
+		Assert.assertNotNull(preference);
+		Assert.assertEquals("name3", preference.getName());
 
 		values = preference.getValues();
 
-		assertEquals(2, values.length);
-		assertEquals("value2", values[0]);
-		assertEquals("value3", values[1]);
-		assertTrue(preference.isReadOnly());
-
+		Assert.assertEquals(2, values.length);
+		Assert.assertEquals("value2", values[0]);
+		Assert.assertEquals("value3", values[1]);
+		Assert.assertTrue(preference.isReadOnly());
 	}
 
-	public void testEmptyPortletPreferences() throws SystemException{
-		String expectedXML = "<portlet-preferences></portlet-preferences>";
+	@Test
+	public void testEmptyPortletPreferences() {
+		String expectedXML =
+			PortletPreferencesTestUtil.getPortletPreferencesXML();
 
 		PortletPreferencesImpl portletPreferencesImpl =
 			new PortletPreferencesImpl();
@@ -159,7 +167,7 @@ public class PortletPreferencesFactoryImplTest extends BaseTestCase {
 		String actualXML = PortletPreferencesFactoryUtil.toXML(
 			portletPreferencesImpl);
 
-		assertEquals(expectedXML, actualXML);
+		Assert.assertEquals(expectedXML, actualXML);
 
 		portletPreferencesImpl =
 			(PortletPreferencesImpl)
@@ -168,13 +176,14 @@ public class PortletPreferencesFactoryImplTest extends BaseTestCase {
 		Map<String, Preference> preferencesMap =
 			portletPreferencesImpl.getPreferences();
 
-		assertEquals(0, preferencesMap.size());
+		Assert.assertEquals(0, preferencesMap.size());
 	}
 
+	@Test
 	public void testEmptyPreference() throws Exception {
 		String expectedXML =
-			"<portlet-preferences><preference><name>name</name></preference>" +
-				"</portlet-preferences>";
+			PortletPreferencesTestUtil.getPortletPreferencesXML(
+				"name", new String[0]);
 
 		PortletPreferencesImpl portletPreferencesImpl =
 			new PortletPreferencesImpl();
@@ -184,62 +193,66 @@ public class PortletPreferencesFactoryImplTest extends BaseTestCase {
 		String actualXML = PortletPreferencesFactoryUtil.toXML(
 			portletPreferencesImpl);
 
-		assertEquals(expectedXML, actualXML);
+		Assert.assertEquals(expectedXML, actualXML);
 
-		portletPreferencesImpl = deserialize(expectedXML);
+		portletPreferencesImpl =
+			PortletPreferencesImplTestUtil.toPortletPreferencesImpl(
+				expectedXML);
 
 		Map<String, Preference> preferencesMap =
 			portletPreferencesImpl.getPreferences();
 
-		assertEquals(1, preferencesMap.size());
+		Assert.assertEquals(1, preferencesMap.size());
 
 		Preference preference = preferencesMap.values().iterator().next();
 
-		assertEquals("name", preference.getName());
-		assertEquals(0, preference.getValues().length);
-		assertFalse(preference.isReadOnly());
+		Assert.assertEquals("name", preference.getName());
+		Assert.assertEquals(0, preference.getValues().length);
+		Assert.assertFalse(preference.isReadOnly());
 	}
 
+	@Test
 	public void testMultiplePreferences() throws Exception {
+		String[] values = {"value1", "value2"};
+
 		String expectedXML =
-			"<portlet-preferences><preference><name>name</name><value>value1" +
-				"</value><value>value2</value></preference>" +
-					"</portlet-preferences>";
+			PortletPreferencesTestUtil.getPortletPreferencesXML("name", values);
 
 		PortletPreferencesImpl portletPreferencesImpl =
 			new PortletPreferencesImpl();
-
-		String[] values = {"value1", "value2"};
 
 		portletPreferencesImpl.setValues("name", values);
 
 		String actualXML = PortletPreferencesFactoryUtil.toXML(
 			portletPreferencesImpl);
 
-		assertEquals(expectedXML, actualXML);
+		Assert.assertEquals(expectedXML, actualXML);
 
-		portletPreferencesImpl = deserialize(expectedXML);
+		portletPreferencesImpl =
+			PortletPreferencesImplTestUtil.toPortletPreferencesImpl(
+				expectedXML);
 
 		Map<String, Preference> preferencesMap =
 			portletPreferencesImpl.getPreferences();
 
-		assertEquals(1, preferencesMap.size());
+		Assert.assertEquals(1, preferencesMap.size());
 
 		Preference preference = preferencesMap.values().iterator().next();
 
-		assertEquals("name", preference.getName());
+		Assert.assertEquals("name", preference.getName());
 
 		values = preference.getValues();
 
-		assertEquals(2, values.length);
-		assertEquals("value1", values[0]);
-		assertEquals("value2", values[1]);
+		Assert.assertEquals(2, values.length);
+		Assert.assertEquals("value1", values[0]);
+		Assert.assertEquals("value2", values[1]);
 	}
 
+	@Test
 	public void testSinglePreference() throws Exception {
 		String expectedXML =
-			"<portlet-preferences><preference><name>name</name><value>value" +
-				"</value></preference></portlet-preferences>";
+			PortletPreferencesTestUtil.getPortletPreferencesXML(
+				"name", new String[] {"value"});
 
 		PortletPreferencesImpl portletPreferencesImpl =
 			new PortletPreferencesImpl();
@@ -249,31 +262,25 @@ public class PortletPreferencesFactoryImplTest extends BaseTestCase {
 		String actualXML = PortletPreferencesFactoryUtil.toXML(
 			portletPreferencesImpl);
 
-		assertEquals(expectedXML, actualXML);
+		Assert.assertEquals(expectedXML, actualXML);
 
-		portletPreferencesImpl = deserialize(expectedXML);
+		portletPreferencesImpl =
+			PortletPreferencesImplTestUtil.toPortletPreferencesImpl(
+				expectedXML);
 
 		Map<String, Preference> preferencesMap =
 			portletPreferencesImpl.getPreferences();
 
-		assertEquals(1, preferencesMap.size());
+		Assert.assertEquals(1, preferencesMap.size());
 
 		Preference preference = preferencesMap.values().iterator().next();
 
-		assertEquals("name", preference.getName());
+		Assert.assertEquals("name", preference.getName());
 
 		String[] values = preference.getValues();
 
-		assertEquals(1, values.length);
-		assertEquals("value", values[0]);
-	}
-
-	protected PortletPreferencesImpl deserialize(String xml) throws Exception {
-		PortletPreferencesImpl portletPreferencesImpl =
-			(PortletPreferencesImpl)
-				PortletPreferencesFactoryUtil.fromDefaultXML(xml);
-
-		return portletPreferencesImpl;
+		Assert.assertEquals(1, values.length);
+		Assert.assertEquals("value", values[0]);
 	}
 
 }

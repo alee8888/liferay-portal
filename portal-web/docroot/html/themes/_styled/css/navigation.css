@@ -1,38 +1,163 @@
+@import "compass";
+@import "mixins";
+
 /* ---------- Add/remove page ---------- */
 
 .modify-pages {
 	li {
 		position: relative;
+
+		&.lfr-nav-hover {
+			.delete-tab {
+				@include opacity(1);
+			}
+		}
 	}
 
 	.delete-tab {
-		background: #333 url(../images/portlet/close_borderless.png) no-repeat 50%;
+		color: #444;
 		cursor: pointer;
 		display: block;
-		height: 8px;
-		margin-top: -7px;
-		padding: 3px;
+		font-size: 20px;
+		font-weight: bold;
+		height: 10px;
+		line-height: 6px;
+		margin-top: -8px;
+		overflow: hidden;
+
+		@include opacity(0);
+
+		padding: 3px 0;
 		position: absolute;
 		right: 1px;
-		text-indent: -9999em;
+		text-shadow: 0 1px #FFF;
 		top: 50%;
-		width: 8px;
+
+		&:hover {
+			color: #B50303;
+		}
+	}
+
+	.lfr-nav-sortable > a > span {
+		padding-left: 28px;
+	}
+
+	.drag-handle {
+		background-color: #555;
+
+		@include border-radius(50%);
+
+		color: #FFF;
+		cursor: pointer;
+		font-size: 16px;
+		left: 3px;
+		line-height: 1em;
+		margin: 8px;
+		padding: 4px;
+		position: absolute;
+		text-align: center;
+		top: 2px;
+		width: 1em;
+	}
+
+	@include respond-to(desktop) {
+		.lfr-nav-sortable > a > span {
+			padding-left: 0;
+		}
+
+		.drag-handle {
+			display: none;
+		}
+	}
+
+	.lfr-nav-updateable {
+		.add-page-editor {
+			.add-page-editor-input {
+				width: 150px;
+			}
+
+			.btn {
+				width: auto;
+			}
+
+			@include respond-to(phone, tablet) {
+				margin: 0 5px;
+
+				.input-group {
+					margin: 6px 0 7px;
+					width: 100%;
+				}
+
+				.add-page-editor-input, .btn {
+					height: 32px;
+				}
+
+				.add-page-editor-input {
+					width: 70%;
+					z-index: 1;
+				}
+
+				.btn {
+					display: inline-block;
+					width: 30%;
+				}
+			}
+		}
+
+		&.selected a:hover span {
+			cursor: text;
+		}
 	}
 }
 
-/*------ Navigation portlet ------*/
+.controls-hidden .modify-pages {
+	.lfr-nav-sortable > a > span {
+		padding-left: 0;
+	}
+
+	.drag-handle {
+		display: none;
+	}
+}
+
+.nav {
+	li .toolbar {
+		margin-top: 5px;
+	}
+}
+
+/* ---------- General navigation ---------- */
+
+.nav.list-group .list-group-item {
+	padding: 0;
+}
+
+.nav.list-group .list-group-item.nav-header {
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.navigation-pane .app-view-navigation-entry .overlay.entry-action .btn {
+	padding: 11px 14px;
+
+	@include respond-to(desktop) {
+		padding: 14px 10px;
+	}
+}
+
+/* ---------- Navigation portlet ---------- */
 
 .nav-menu {
 	ul {
 		padding-left: 10px;
 	}
 
-	li {
-		a.ancestor {
+	li a {
+		&.ancestor {
 			font-weight: bold;
 		}
 
-		a.selected {
+		&.selected {
 			color: #000;
 			font-weight: bold;
 			text-decoration: none;
@@ -40,9 +165,13 @@
 	}
 }
 
+.nav-menu-style-arrows ul {
+	list-style-image: url(../images/arrows/04_right.png);
+}
+
 /* ---------- Page template selector ---------- */
 
-.aui-form-options {
+.form-options {
 	border: 1px solid #AAA;
 	display: inline-block;
 	vertical-align: middle;
@@ -54,11 +183,11 @@
 	}
 }
 
-.aui-form-triggers {
+.form-triggers {
 	float: left;
 }
 
-.aui-form-trigger {
+.form-trigger {
 	background: #C4C4C4 url(../images/application/button_bg.png) repeat-x 0 0;
 	border-left: 1px solid #BBB;
 	display: inline-block;
@@ -72,26 +201,26 @@
 		width: 16px;
 	}
 
-	&:hover, &:focus {
+	&:focus, &:hover {
 		background-color: #83B0CA;
 		background-image: url(../images/application/button_bg_over.png);
 	}
 }
 
-.aui-trigger-selected {
+.trigger-selected {
 	background-color: #EBEBEB;
 	background-image: url(../images/application/button_bg_selected.png);
 
-	&:hover, &:focus {
+	&:focus, &:hover {
 		background-color: #B7DEF4;
 		background-image: url(../images/application/button_bg_selected_over.png);
 	}
 }
 
-.aui-options-trigger img {
+.options-trigger img {
 	background-image: url(../images/common/configuration.png);
 }
 
-.aui-save-trigger img {
+.save-trigger img {
 	background-image: url(../images/common/check.png);
 }

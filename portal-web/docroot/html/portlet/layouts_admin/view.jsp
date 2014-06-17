@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,6 +34,10 @@ SitesUtil.addPortletBreadcrumbEntries(group, pagesName, redirectURL, request, re
 		<liferay-ui:message arguments='<%= Validator.isNull(lte.getLayoutType()) ? type : "layout.types." + lte.getLayoutType() %>' key="the-first-page-cannot-be-of-type-x" />
 	</c:if>
 
+	<c:if test="<%= lte.getType() == LayoutTypeException.FIRST_LAYOUT_PERMISSION %>">
+		<liferay-ui:message key="you-cannot-delete-this-page-because-the-next-page-is-not-vieweable-by-unathenticated-users-and-so-cannot-be-the-first-page" />
+	</c:if>
+
 	<c:if test="<%= lte.getType() == LayoutTypeException.NOT_PARENTABLE %>">
 		<liferay-ui:message arguments="<%= type %>" key="pages-of-type-x-cannot-have-child-pages" />
 	</c:if>
@@ -53,12 +57,13 @@ SitesUtil.addPortletBreadcrumbEntries(group, pagesName, redirectURL, request, re
 </liferay-ui:error>
 
 <c:choose>
-	<c:when test="<%= portletName.equals(PortletKeys.MY_SITES) || portletName.equals(PortletKeys.GROUP_PAGES) || portletName.equals(PortletKeys.MY_PAGES) || portletName.equals(PortletKeys.SITES_ADMIN) || portletName.equals(PortletKeys.USER_GROUPS_ADMIN) || portletName.equals(PortletKeys.USERS_ADMIN) %>">
-		<c:if test="<%= portletName.equals(PortletKeys.MY_SITES) || portletName.equals(PortletKeys.GROUP_PAGES) || portletName.equals(PortletKeys.SITES_ADMIN) || portletName.equals(PortletKeys.USER_GROUPS_ADMIN) || portletName.equals(PortletKeys.USERS_ADMIN) %>">
+	<c:when test="<%= !selGroup.isLayoutSetPrototype() && (portletName.equals(PortletKeys.MY_SITES) || portletName.equals(PortletKeys.GROUP_PAGES) || portletName.equals(PortletKeys.MY_PAGES) || portletName.equals(PortletKeys.SITES_ADMIN) || portletName.equals(PortletKeys.USER_GROUPS_ADMIN) || portletName.equals(PortletKeys.USERS_ADMIN)) %>">
+		<c:if test="<%= portletName.equals(PortletKeys.MY_SITES) || (portletName.equals(PortletKeys.GROUP_PAGES) && !layout.isTypeControlPanel()) || portletName.equals(PortletKeys.SITES_ADMIN) || portletName.equals(PortletKeys.USER_GROUPS_ADMIN) || portletName.equals(PortletKeys.USERS_ADMIN) %>">
 			<liferay-ui:header
 				backURL="<%= backURL %>"
+				escapeXml="<%= false %>"
 				localizeTitle="<%= false %>"
-				title="<%= liveGroup.getDescriptiveName(locale) %>"
+				title="<%= HtmlUtil.escape(liveGroup.getDescriptiveName(locale)) %>"
 			/>
 		</c:if>
 
@@ -86,136 +91,108 @@ SitesUtil.addPortletBreadcrumbEntries(group, pagesName, redirectURL, request, re
 
 		<%
 		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, TextFormatter.format(tabs1, TextFormatter.O)), redirectURL.toString());
-
-		if ((selLayout != null) && !group.isLayoutPrototype()) {
-			redirectURL.setParameter("selPlid", String.valueOf(selLayout.getPlid()));
-
-			PortalUtil.addPortletBreadcrumbEntry(request, selLayout.getName(locale), currentURL);
-		}
 		%>
 
 	</c:when>
 	<c:otherwise>
-
-		<%
-		if ((selLayout != null) && !group.isLayoutPrototype()) {
-			redirectURL.setParameter("selPlid", String.valueOf(selLayout.getPlid()));
-
-			PortalUtil.addPortletBreadcrumbEntry(request, selLayout.getName(locale), redirectURL.toString());
-		}
-		%>
-
-		<div class="layout-breadcrumb">
-			<liferay-ui:breadcrumb displayStyle="horizontal" showGuestGroup="<%= false %>" showLayout="<%= false %>" showParentGroups="<%= false %>" showPortletBreadcrumb="<%= true %>" />
-		</div>
+		<liferay-ui:breadcrumb displayStyle="horizontal" showGuestGroup="<%= false %>" showLayout="<%= false %>" showParentGroups="<%= false %>" showPortletBreadcrumb="<%= true %>" />
 	</c:otherwise>
 </c:choose>
 
-<aui:layout cssClass="manage-view lfr-app-column-view">
-	<c:if test="<%= !group.isLayoutPrototype() %>">
-		<aui:column columnWidth="25" cssClass="manage-sitemap">
-			<div class="lfr-header-row">
-				<div class="lfr-header-row-content">
-					<c:if test="<%= stagingGroup != null %>">
+<div class="container-fluid">
+	<div class="lfr-app-column-view manage-view row">
+		<c:if test="<%= !group.isLayoutPrototype() %>">
+			<div class="col-md-3">
+				<c:if test="<%= stagingGroup != null %>">
 
-						<%
-						long layoutSetBranchId = ParamUtil.getLong(request, "layoutSetBranchId");
+					<%
+					long layoutSetBranchId = ParamUtil.getLong(request, "layoutSetBranchId");
 
-						if (layoutSetBranchId <= 0) {
-							layoutSetBranchId = StagingUtil.getRecentLayoutSetBranchId(user, selLayoutSet.getLayoutSetId());
+					if (layoutSetBranchId <= 0) {
+						layoutSetBranchId = StagingUtil.getRecentLayoutSetBranchId(user, selLayoutSet.getLayoutSetId());
+					}
+
+					LayoutSetBranch layoutSetBranch = null;
+
+					if (layoutSetBranchId > 0) {
+						try {
+							layoutSetBranch = LayoutSetBranchLocalServiceUtil.getLayoutSetBranch(layoutSetBranchId);
 						}
-
-						LayoutSetBranch layoutSetBranch = null;
-
-						if (layoutSetBranchId > 0) {
-							try {
-								layoutSetBranch = LayoutSetBranchLocalServiceUtil.getLayoutSetBranch(layoutSetBranchId);
-							}
-							catch (NoSuchLayoutSetBranchException nslsbe) {
-							}
+						catch (NoSuchLayoutSetBranchException nslsbe) {
 						}
+					}
 
-						if (layoutSetBranch == null) {
-							try {
-								layoutSetBranch = LayoutSetBranchLocalServiceUtil.getMasterLayoutSetBranch(stagingGroup.getGroupId(), privateLayout);
-							}
-							catch (NoSuchLayoutSetBranchException nslsbe) {
-							}
+					if (layoutSetBranch == null) {
+						try {
+							layoutSetBranch = LayoutSetBranchLocalServiceUtil.getMasterLayoutSetBranch(stagingGroup.getGroupId(), privateLayout);
 						}
+						catch (NoSuchLayoutSetBranchException nslsbe) {
+						}
+					}
 
-						List<LayoutSetBranch> layoutSetBranches = LayoutSetBranchLocalServiceUtil.getLayoutSetBranches(stagingGroup.getGroupId(), privateLayout);
-						%>
+					List<LayoutSetBranch> layoutSetBranches = LayoutSetBranchLocalServiceUtil.getLayoutSetBranches(stagingGroup.getGroupId(), privateLayout);
+					%>
 
-						<c:choose>
-							<c:when test="<%= layoutSetBranches.size() > 1 %>">
-								<liferay-ui:icon-menu align="left" cssClass="layoutset-branches-menu" direction="down" extended="<%= true %>" icon='<%= themeDisplay.getPathThemeImages() + "/common/staging.png" %>' message="<%= layoutSetBranch.getName() %>">
+					<c:choose>
+						<c:when test="<%= layoutSetBranches.size() > 1 %>">
+							<aui:nav-bar>
+								<aui:nav cssClass="navbar-nav">
+									<aui:nav-item dropdown="<%= true %>" label="<%= HtmlUtil.escape(layoutSetBranch.getName()) %>">
 
-									<%
-									for (int i = 0; i < layoutSetBranches.size(); i++) {
-										LayoutSetBranch curLayoutSetBranch = layoutSetBranches.get(i);
+										<%
+										for (int i = 0; i < layoutSetBranches.size(); i++) {
+											LayoutSetBranch curLayoutSetBranch = layoutSetBranches.get(i);
 
-										boolean selected = (curLayoutSetBranch.getLayoutSetBranchId() == layoutSetBranch.getLayoutSetBranchId());
-									%>
+											boolean selected = (curLayoutSetBranch.getLayoutSetBranchId() == layoutSetBranch.getLayoutSetBranchId());
+										%>
 
-										<portlet:actionURL var="layoutSetBranchURL">
-											<portlet:param name="struts_action" value="/dockbar/edit_layouts" />
-											<portlet:param name="<%= Constants.CMD %>" value="select_layout_set_branch" />
-											<portlet:param name="redirect" value="<%= redirectURL.toString() %>" />
-											<portlet:param name="groupId" value="<%= String.valueOf(curLayoutSetBranch.getGroupId()) %>" />
-											<portlet:param name="privateLayout" value="<%= String.valueOf(privateLayout) %>" />
-											<portlet:param name="layoutSetBranchId" value="<%= String.valueOf(curLayoutSetBranch.getLayoutSetBranchId()) %>" />
-										</portlet:actionURL>
+											<portlet:actionURL var="layoutSetBranchURL">
+												<portlet:param name="struts_action" value="/dockbar/edit_layouts" />
+												<portlet:param name="<%= Constants.CMD %>" value="select_layout_set_branch" />
+												<portlet:param name="redirect" value="<%= redirectURL.toString() %>" />
+												<portlet:param name="groupId" value="<%= String.valueOf(curLayoutSetBranch.getGroupId()) %>" />
+												<portlet:param name="privateLayout" value="<%= String.valueOf(privateLayout) %>" />
+												<portlet:param name="layoutSetBranchId" value="<%= String.valueOf(curLayoutSetBranch.getLayoutSetBranchId()) %>" />
+											</portlet:actionURL>
 
-										<liferay-ui:icon
-											cssClass='<%= selected ? "disabled" : StringPool.BLANK %>'
-											image='<%= selected ? "../arrows/01_right" : "copy"  %>'
-											message="<%= curLayoutSetBranch.getName() %>"
-											url="<%= selected ? null : layoutSetBranchURL %>"
-										/>
+											<aui:nav-item cssClass='<%= selected ? "disabled" : StringPool.BLANK %>' href="<%= selected ? null : layoutSetBranchURL %>" label="<%= HtmlUtil.escape(curLayoutSetBranch.getName()) %>" />
 
-									<%
-									}
-									%>
+										<%
+										}
+										%>
 
-								</liferay-ui:icon-menu>
-							</c:when>
-							<c:otherwise>
-								<liferay-ui:icon
-									cssClass="layoutset-branch"
-									image="../common/staging"
-									label="<%= true %>"
-									message='<%= (layoutSetBranch == null || (layoutSetBranches.size() == 1)) ? "staging" : layoutSetBranch.getName() %>'
-								/>
-							</c:otherwise>
-						</c:choose>
+									</aui:nav-item>
+								</aui:nav>
+							</aui:nav-bar>
+						</c:when>
+					</c:choose>
 
-						<liferay-ui:staging cssClass="manage-pages-branch-menu" extended="<%= true %>" groupId="<%= groupId %>" icon="/common/tool.png" message="" privateLayout="<%= privateLayout %>" selPlid="<%= selPlid %>" showManageBranches="<%= true %>"  />
-					</c:if>
-				</div>
+					<liferay-staging:menu cssClass="manage-pages-branch-menu" extended="<%= true %>" groupId="<%= groupId %>" icon="/common/tool.png" message="" privateLayout="<%= privateLayout %>" selPlid="<%= selPlid %>" showManageBranches="<%= true %>"  />
+				</c:if>
+
+				<liferay-util:include page="/html/portlet/layouts_admin/tree_js.jsp">
+					<liferay-util:param name="treeId" value="layoutsTree" />
+				</liferay-util:include>
 			</div>
+		</c:if>
 
-			<liferay-util:include page="/html/portlet/layouts_admin/tree_js.jsp">
-				<liferay-util:param name="treeId" value="layoutsTree" />
-			</liferay-util:include>
-		</aui:column>
-	</c:if>
-
-	<aui:column columnWidth="<%= group.isLayoutPrototype() ? 100 : 75 %>" cssClass="manage-layout">
-		<div id="<portlet:namespace />layoutsContainer">
-			<c:choose>
-				<c:when test="<%= selPlid > 0 %>">
-					<liferay-util:include page="/html/portlet/layouts_admin/edit_layout.jsp" />
-				</c:when>
-				<c:otherwise>
-					<liferay-util:include page="/html/portlet/layouts_admin/edit_layout_set.jsp" />
-				</c:otherwise>
-			</c:choose>
+		<div class='<%= !group.isLayoutPrototype() ? "col-md-9" : "col-md-12" %>'>
+			<div id="<portlet:namespace />layoutsContainer">
+				<c:choose>
+					<c:when test="<%= selPlid > 0 %>">
+						<liferay-util:include page="/html/portlet/layouts_admin/edit_layout.jsp" />
+					</c:when>
+					<c:otherwise>
+						<liferay-util:include page="/html/portlet/layouts_admin/edit_layout_set.jsp" />
+					</c:otherwise>
+				</c:choose>
+			</div>
 		</div>
-	</aui:column>
-</aui:layout>
+	</div>
+</div>
 
 <c:if test="<%= !group.isLayoutPrototype() %>">
-	<aui:script use="aui-io-plugin">
+	<aui:script use="aui-io-plugin-deprecated">
 		var layoutsContainer = A.one('#<portlet:namespace />layoutsContainer');
 
 		layoutsContainer.plug(
@@ -230,31 +207,37 @@ SitesUtil.addPortletBreadcrumbEntries(group, pagesName, redirectURL, request, re
 			function(event) {
 				event.preventDefault();
 
-				var hash = location.hash;
+				var link = event.currentTarget.one('a');
 
-				var prefix = '#_LFR_FN_<portlet:namespace />';
-				var historyKey = '';
+				if (link && !event.target.hasClass('tree-hitarea')) {
+					var href = link.attr('href');
 
-				if (hash.indexOf(prefix) != -1) {
-					historyKey = hash.replace(prefix, '');
-				}
+					var hash = location.hash;
 
-				var requestUri = A.Lang.sub(
-					event.currentTarget.get('href'),
-					{
-						historyKey: historyKey
+					var prefix = '#_LFR_FN_<portlet:namespace />';
+					var historyKey = '';
+
+					if (hash.indexOf(prefix) != -1) {
+						historyKey = hash.replace(prefix, '');
 					}
-				);
 
-				layoutsContainer.io.set('uri', requestUri);
+					var requestUri = A.Lang.sub(
+						href,
+						{
+							historyKey: historyKey
+						}
+					);
 
-				if (layoutsContainer.ParseContent) {
-					layoutsContainer.ParseContent.get('queue').stop();
+					layoutsContainer.io.set('uri', requestUri);
+
+					if (layoutsContainer.ParseContent) {
+						layoutsContainer.ParseContent.get('queue').stop();
+					}
+
+					layoutsContainer.io.start();
 				}
-
-				layoutsContainer.io.start();
 			},
-			'.layout-tree'
+			'.tree-node-content'
 		);
 	</aui:script>
 </c:if>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -57,6 +57,7 @@ public class MBTreeWalkerImpl implements MBTreeWalker {
 		}
 	}
 
+	@Override
 	public List<MBMessage> getChildren(MBMessage message) {
 		List<MBMessage> children = new ArrayList<MBMessage>();
 
@@ -69,6 +70,7 @@ public class MBTreeWalkerImpl implements MBTreeWalker {
 		return children;
 	}
 
+	@Override
 	public int[] getChildrenRange(MBMessage message) {
 		long messageId = message.getMessageId();
 
@@ -95,14 +97,17 @@ public class MBTreeWalkerImpl implements MBTreeWalker {
 		return range;
 	}
 
+	@Override
 	public List<MBMessage> getMessages() {
 		return _messages;
 	}
 
+	@Override
 	public MBMessage getRoot() {
 		return _messages.get(0);
 	}
 
+	@Override
 	public boolean isLeaf(MBMessage message) {
 		Long messageIdObj = new Long(message.getMessageId());
 
@@ -114,6 +119,7 @@ public class MBTreeWalkerImpl implements MBTreeWalker {
 		}
 	}
 
+	@Override
 	public boolean isOdd() {
 		_odd = !_odd;
 

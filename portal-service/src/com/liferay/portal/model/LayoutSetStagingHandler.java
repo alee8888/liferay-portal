@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portal.model;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -25,6 +24,8 @@ import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.service.LayoutSetBranchLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextThreadLocal;
+
+import java.io.Serializable;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -37,7 +38,8 @@ import java.util.Set;
  * @author Julio Camarero
  * @author Brian Wing Shun Chan
  */
-public class LayoutSetStagingHandler implements InvocationHandler {
+public class LayoutSetStagingHandler
+	implements InvocationHandler, Serializable {
 
 	public LayoutSetStagingHandler(LayoutSet layoutSet) {
 		_layoutSet = layoutSet;
@@ -60,6 +62,7 @@ public class LayoutSetStagingHandler implements InvocationHandler {
 		return _layoutSetBranch;
 	}
 
+	@Override
 	public Object invoke(Object proxy, Method method, Object[] arguments)
 		throws Throwable {
 
@@ -117,22 +120,34 @@ public class LayoutSetStagingHandler implements InvocationHandler {
 	}
 
 	private LayoutSetBranch _getLayoutSetBranch(LayoutSet layoutSet)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		if ((serviceContext == null) || !serviceContext.isSignedIn()) {
+		if (serviceContext == null) {
 			return null;
 		}
 
 		long layoutSetBranchId = ParamUtil.getLong(
 			serviceContext, "layoutSetBranchId");
 
-		return LayoutSetBranchLocalServiceUtil.getUserLayoutSetBranch(
-			serviceContext.getUserId(), layoutSet.getGroupId(),
-			layoutSet.isPrivateLayout(), layoutSet.getLayoutSetId(),
-			layoutSetBranchId);
+		LayoutSetBranch layoutSetBranch = null;
+
+		if (serviceContext.isSignedIn()) {
+			layoutSetBranch =
+				LayoutSetBranchLocalServiceUtil.getUserLayoutSetBranch(
+					serviceContext.getUserId(), layoutSet.getGroupId(),
+					layoutSet.isPrivateLayout(), layoutSet.getLayoutSetId(),
+					layoutSetBranchId);
+		}
+		else if (layoutSetBranchId > 0) {
+			layoutSetBranch =
+				LayoutSetBranchLocalServiceUtil.getLayoutSetBranch(
+					layoutSetBranchId);
+		}
+
+		return layoutSetBranch;
 	}
 
 	private Object _toEscapedModel() {

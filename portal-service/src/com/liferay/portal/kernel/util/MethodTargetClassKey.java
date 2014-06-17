@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -94,33 +94,35 @@ public class MethodTargetClassKey {
 
 	@Override
 	public String toString() {
-		if (_toString == null) {
-			Class<?>[] parameterTypes = _method.getParameterTypes();
-
-			StringBundler sb = new StringBundler(parameterTypes.length * 2 + 6);
-
-			sb.append(_method.getDeclaringClass().getName());
-			sb.append(StringPool.PERIOD);
-			sb.append(_method.getName());
-			sb.append(StringPool.OPEN_PARENTHESIS);
-
-			for (int i = 0; i < parameterTypes.length; i++) {
-				sb.append(parameterTypes[i].getName());
-
-				if ((i + 1) < parameterTypes.length) {
-					sb.append(StringPool.COMMA);
-				}
-			}
-
-			sb.append(StringPool.CLOSE_PARENTHESIS);
-
-			if (_targetClass != null) {
-				sb.append(StringPool.AT);
-				sb.append(_targetClass.getName());
-			}
-
-			_toString = sb.toString();
+		if (_toString != null) {
+			return _toString;
 		}
+
+		Class<?>[] parameterTypes = _method.getParameterTypes();
+
+		StringBundler sb = new StringBundler(parameterTypes.length * 2 + 6);
+
+		sb.append(_method.getDeclaringClass().getName());
+		sb.append(StringPool.PERIOD);
+		sb.append(_method.getName());
+		sb.append(StringPool.OPEN_PARENTHESIS);
+
+		for (int i = 0; i < parameterTypes.length; i++) {
+			sb.append(parameterTypes[i].getName());
+
+			if ((i + 1) < parameterTypes.length) {
+				sb.append(StringPool.COMMA);
+			}
+		}
+
+		sb.append(StringPool.CLOSE_PARENTHESIS);
+
+		if (_targetClass != null) {
+			sb.append(StringPool.AT);
+			sb.append(_targetClass.getName());
+		}
+
+		_toString = sb.toString();
 
 		return _toString;
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.trash.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
@@ -36,6 +39,7 @@ import java.io.Serializable;
  * @see com.liferay.portlet.trash.model.impl.TrashVersionModelImpl
  * @generated
  */
+@ProviderType
 public interface TrashVersionModel extends AttachedModel, BaseModel<TrashVersion> {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -90,6 +94,7 @@ public interface TrashVersionModel extends AttachedModel, BaseModel<TrashVersion
 	 *
 	 * @return the fully qualified class name of this trash version
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -99,6 +104,7 @@ public interface TrashVersionModel extends AttachedModel, BaseModel<TrashVersion
 	 *
 	 * @return the class name ID of this trash version
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -106,6 +112,7 @@ public interface TrashVersionModel extends AttachedModel, BaseModel<TrashVersion
 	 *
 	 * @param classNameId the class name ID of this trash version
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -113,6 +120,7 @@ public interface TrashVersionModel extends AttachedModel, BaseModel<TrashVersion
 	 *
 	 * @return the class p k of this trash version
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -120,7 +128,23 @@ public interface TrashVersionModel extends AttachedModel, BaseModel<TrashVersion
 	 *
 	 * @param classPK the class p k of this trash version
 	 */
+	@Override
 	public void setClassPK(long classPK);
+
+	/**
+	 * Returns the type settings of this trash version.
+	 *
+	 * @return the type settings of this trash version
+	 */
+	@AutoEscape
+	public String getTypeSettings();
+
+	/**
+	 * Sets the type settings of this trash version.
+	 *
+	 * @param typeSettings the type settings of this trash version
+	 */
+	public void setTypeSettings(String typeSettings);
 
 	/**
 	 * Returns the status of this trash version.
@@ -136,35 +160,60 @@ public interface TrashVersionModel extends AttachedModel, BaseModel<TrashVersion
 	 */
 	public void setStatus(int status);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(TrashVersion trashVersion);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<TrashVersion> toCacheModel();
 
+	@Override
 	public TrashVersion toEscapedModel();
 
+	@Override
+	public TrashVersion toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

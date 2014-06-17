@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,16 +20,15 @@
 String tabs1 = ParamUtil.getString(request, "tabs1", "web-content");
 
 String redirect = ParamUtil.getString(request, "redirect");
-String originalRedirect = ParamUtil.getString(request, "originalRedirect");
 
-String orderByCol = ParamUtil.getString(request, "orderByCol");
+String referringPortletResource = ParamUtil.getString(request, "referringPortletResource");
 
 JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_ARTICLE);
 %>
 
 <c:choose>
 	<c:when test="<%= article == null %>">
-		<div class="portlet-msg-error">
+		<div class="alert alert-danger">
 			<%= LanguageUtil.get(pageContext, "the-selected-web-content-no-longer-exists") %>
 		</div>
 	</c:when>
@@ -41,7 +40,7 @@ JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_AR
 		portletURL.setParameter("struts_action", "/journal/view_article_history");
 		portletURL.setParameter("tabs1", tabs1);
 		portletURL.setParameter("redirect", redirect);
-		portletURL.setParameter("originalRedirect", originalRedirect);
+		portletURL.setParameter("referringPortletResource", referringPortletResource);
 		portletURL.setParameter("groupId", String.valueOf(article.getGroupId()));
 		portletURL.setParameter("articleId", article.getArticleId());
 		%>
@@ -50,124 +49,144 @@ JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_AR
 
 		<aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
 			<aui:input name="<%= Constants.CMD %>" type="hidden" />
-			<aui:input name="originalRedirect" type="hidden" value="<%= originalRedirect %>" />
+			<aui:input name="referringPortletResource" type="hidden" value="<%= referringPortletResource %>" />
 			<aui:input name="groupId" type="hidden" />
-			<aui:input name="articleId" type="hidden" />
-			<aui:input name="deleteArticleIds" type="hidden" />
+			<aui:input name="articleId" type="hidden" value="<%= article.getArticleId() %>" />
+			<aui:input name="articleIds" type="hidden" />
 			<aui:input name="expireArticleIds" type="hidden" />
 
-			<%
-			ArticleSearch searchContainer = new ArticleSearch(renderRequest, portletURL);
+			<liferay-ui:search-container
+				rowChecker="<%= new RowChecker(renderResponse) %>"
+				searchContainer="<%= new ArticleSearch(renderRequest, portletURL) %>"
+				total="<%= JournalArticleServiceUtil.getArticlesCountByArticleId(article.getGroupId(), article.getArticleId()) %>"
+			>
+				<liferay-ui:search-container-results
+					results="<%= JournalArticleServiceUtil.getArticlesByArticleId(article.getGroupId(), article.getArticleId(), searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator()) %>"
+				/>
 
-			List headerNames = searchContainer.getHeaderNames();
+				<liferay-ui:search-container-row
+					className="com.liferay.portlet.journal.model.JournalArticle"
+					modelVar="articleVersion"
+				>
 
-			headerNames.add(2, "version");
-			headerNames.add(3, "status");
-			headerNames.add(StringPool.BLANK);
+					<%
+					row.setPrimaryKey(articleVersion.getArticleId() + EditArticleAction.VERSION_SEPARATOR + articleVersion.getVersion());
+					%>
 
-			Map<String, String> orderableHeaders = searchContainer.getOrderableHeaders();
+					<liferay-ui:search-container-column-text
+						name="id"
+						property="articleId"
+					/>
 
-			orderableHeaders.put("version", "version");
+					<liferay-ui:search-container-column-text
+						name="title"
+						value="<%= articleVersion.getTitle(locale) %>"
+					/>
 
-			if (Validator.isNull(orderByCol)) {
-				searchContainer.setOrderByCol("version");
-			}
+					<liferay-ui:search-container-column-text
+						name="version"
+						orderable="<%= true %>"
 
-			searchContainer.setRowChecker(new RowChecker(renderResponse));
+					/>
 
-			ArticleSearchTerms searchTerms = (ArticleSearchTerms)searchContainer.getSearchTerms();
+					<liferay-ui:search-container-column-status
+						name="status"
+					/>
 
-			searchTerms.setAdvancedSearch(true);
-			searchTerms.setArticleId(article.getArticleId());
+					<liferay-ui:search-container-column-date
+						name="modified-date"
+						orderable="<%= true %>"
+						property="modifiedDate"
+					/>
 
-			List<JournalArticle> results = JournalArticleServiceUtil.getArticlesByArticleId(searchTerms.getGroupId(), searchTerms.getArticleId(), searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
-
-			searchContainer.setResults(results);
-
-			int total = JournalArticleServiceUtil.getArticlesCountByArticleId(searchTerms.getGroupId(), searchTerms.getArticleId());
-
-			searchContainer.setTotal(total);
-			%>
-
-			<c:if test="<%= !results.isEmpty() %>">
-				<aui:button-row>
-					<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.EXPIRE) %>">
-						<aui:button onClick='<%= renderResponse.getNamespace() + "expireArticles();" %>' value="expire" />
+					<c:if test="<%= article.getDisplayDate() != null %>">
+						<liferay-ui:search-container-column-date
+							name="display-date"
+							orderable="<%= true %>"
+							property="displayDate"
+						/>
 					</c:if>
 
-					<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.DELETE) %>">
-						<aui:button onClick='<%= renderResponse.getNamespace() + "deleteArticles();" %>' value="delete" />
-					</c:if>
-				</aui:button-row>
-			</c:if>
+					<liferay-ui:search-container-column-text
+						name="author"
+						value="<%= PortalUtil.getUserName(articleVersion) %>"
+					/>
 
-			<%
-			List resultRows = searchContainer.getResultRows();
+					<liferay-ui:search-container-column-jsp
+						cssClass="entry-action"
+						path="/html/portlet/journal/article_version_action.jsp"
+					/>
+				</liferay-ui:search-container-row>
 
-			for (int i = 0; i < results.size(); i++) {
-				JournalArticle articleVersion = results.get(i);
+				<c:if test="<%= !results.isEmpty() %>">
+					<aui:button-row>
+						<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.EXPIRE) %>">
+							<aui:button disabled="<%= true %>" name="expire" onClick='<%= renderResponse.getNamespace() + "expireArticles();" %>' value="expire" />
+						</c:if>
 
-				articleVersion = articleVersion.toEscapedModel();
+						<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.DELETE) %>">
+							<aui:button disabled="<%= true %>" name="delete" onClick='<%= renderResponse.getNamespace() + "deleteArticles();" %>' value="delete" />
+						</c:if>
+					</aui:button-row>
+				</c:if>
 
-				ResultRow row = new ResultRow(articleVersion, articleVersion.getArticleId() + EditArticleAction.VERSION_SEPARATOR + articleVersion.getVersion(), i);
-
-				PortletURL rowURL = null;
-
-				// Article id
-
-				row.addText(articleVersion.getArticleId(), rowURL);
-
-				// Title
-
-				row.addText(articleVersion.getTitle(locale), rowURL);
-
-				// Version
-
-				row.addText(String.valueOf(articleVersion.getVersion()), rowURL);
-
-				// Status
-
-				String status = WorkflowConstants.toLabel(articleVersion.getStatus());
-
-				row.addText(LanguageUtil.get(pageContext, status), rowURL);
-
-				// Modified date
-
-				row.addText(dateFormatDateTime.format(articleVersion.getModifiedDate()), rowURL);
-
-				// Display date
-
-				row.addText(dateFormatDateTime.format(articleVersion.getDisplayDate()), rowURL);
-
-				// Author
-
-				row.addText(HtmlUtil.escape(PortalUtil.getUserName(articleVersion.getUserId(), articleVersion.getUserName())), rowURL);
-
-				// Action
-
-				row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/journal/article_version_action.jsp");
-
-				// Add result row
-
-				resultRows.add(row);
-			}
-			%>
-
-			<liferay-ui:search-iterator searchContainer="<%= searchContainer %>" />
+				<liferay-ui:search-iterator />
+			</liferay-ui:search-container>
 		</aui:form>
 
-		<aui:script>
+		<aui:script use="aui-base">
+			Liferay.Util.toggleSearchContainerButton('#<portlet:namespace />delete', '#<portlet:namespace /><%= searchContainerReference.getId() %>SearchContainer', document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+			Liferay.Util.toggleSearchContainerButton('#<portlet:namespace />expire', '#<portlet:namespace /><%= searchContainerReference.getId() %>SearchContainer', document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
+			A.getBody().delegate(
+				'click',
+				function(event) {
+					var currentTarget = event.currentTarget;
+
+					Liferay.Util.selectEntity(
+						{
+							dialog: {
+								constrain: true,
+								destroyOnHide: true,
+								modal: true
+							},
+							eventName: '<portlet:namespace />selectVersionFm',
+							id: '<portlet:namespace />compareVersions' + currentTarget.attr('id'),
+							title: '<liferay-ui:message key="compare-versions" />',
+							uri: currentTarget.attr('data-uri')
+						},
+						function(event) {
+							<portlet:renderURL var="compareVersionURL">
+								<portlet:param name="struts_action" value="/journal/compare_versions" />
+								<portlet:param name="redirect" value="<%= currentURL %>" />
+								<portlet:param name="groupId" value="<%= String.valueOf(article.getGroupId()) %>" />
+								<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
+							</portlet:renderURL>
+
+							var uri = '<%= compareVersionURL %>';
+
+							uri = Liferay.Util.addParams('<portlet:namespace />sourceVersion=' + event.sourceversion, uri);
+							uri = Liferay.Util.addParams('<portlet:namespace />targetVersion=' + event.targetversion, uri);
+
+							location.href = uri;
+						}
+					);
+				},
+				'.compare-to-link a'
+			);
+
 			<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.DELETE) %>">
 				Liferay.provide(
 					window,
 					'<portlet:namespace />deleteArticles',
 					function() {
 						if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-delete-the-selected-version") %>')) {
-							document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE_VERSIONS %>";
-							document.<portlet:namespace />fm.<portlet:namespace />groupId.value = "<%= scopeGroupId %>";
-							document.<portlet:namespace />fm.<portlet:namespace />articleId.value = "<%= article.getArticleId() %>";
-							document.<portlet:namespace />fm.<portlet:namespace />deleteArticleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-							submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/journal/edit_article" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:actionURL>");
+							document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.DELETE %>';
+							document.<portlet:namespace />fm.<portlet:namespace />groupId.value = '<%= scopeGroupId %>';
+							document.<portlet:namespace />fm.<portlet:namespace />articleId.value = '';
+							document.<portlet:namespace />fm.<portlet:namespace />articleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
+							submitForm(document.<portlet:namespace />fm, '<portlet:actionURL><portlet:param name="struts_action" value="/journal/edit_article" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:actionURL>');
 						}
 					},
 					['liferay-util-list-fields']
@@ -180,10 +199,12 @@ JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_AR
 					'<portlet:namespace />expireArticles',
 					function() {
 						if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-expire-the-selected-version") %>')) {
-							document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.EXPIRE %>";
-							document.<portlet:namespace />fm.<portlet:namespace />groupId.value = "<%= scopeGroupId %>";
-							document.<portlet:namespace />fm.<portlet:namespace />expireArticleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-							submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/journal/edit_article" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:actionURL>");
+							document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.EXPIRE %>';
+							document.<portlet:namespace />fm.<portlet:namespace />groupId.value = '<%= scopeGroupId %>';
+							document.<portlet:namespace />fm.<portlet:namespace />articleId.value = '';
+							document.<portlet:namespace />fm.<portlet:namespace />expireArticleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
+							submitForm(document.<portlet:namespace />fm, '<portlet:actionURL><portlet:param name="struts_action" value="/journal/edit_article" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:actionURL>');
 						}
 					},
 					['liferay-util-list-fields']

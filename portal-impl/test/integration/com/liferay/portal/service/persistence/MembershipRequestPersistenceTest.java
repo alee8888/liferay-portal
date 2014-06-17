@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,40 +16,88 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchMembershipRequestException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.model.MembershipRequest;
-import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.model.ModelListener;
+import com.liferay.portal.service.MembershipRequestLocalServiceUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
+import com.liferay.portal.util.test.RandomTestUtil;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class MembershipRequestPersistenceTest {
 	@Before
-	public void setUp() throws Exception {
-		_persistence = (MembershipRequestPersistence)PortalBeanLocatorUtil.locate(MembershipRequestPersistence.class.getName());
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<MembershipRequest> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<MembershipRequest> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MembershipRequest membershipRequest = _persistence.create(pk);
 
@@ -76,32 +124,36 @@ public class MembershipRequestPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MembershipRequest newMembershipRequest = _persistence.create(pk);
 
-		newMembershipRequest.setGroupId(ServiceTestUtil.nextLong());
+		newMembershipRequest.setMvccVersion(RandomTestUtil.nextLong());
 
-		newMembershipRequest.setCompanyId(ServiceTestUtil.nextLong());
+		newMembershipRequest.setGroupId(RandomTestUtil.nextLong());
 
-		newMembershipRequest.setUserId(ServiceTestUtil.nextLong());
+		newMembershipRequest.setCompanyId(RandomTestUtil.nextLong());
 
-		newMembershipRequest.setCreateDate(ServiceTestUtil.nextDate());
+		newMembershipRequest.setUserId(RandomTestUtil.nextLong());
 
-		newMembershipRequest.setComments(ServiceTestUtil.randomString());
+		newMembershipRequest.setCreateDate(RandomTestUtil.nextDate());
 
-		newMembershipRequest.setReplyComments(ServiceTestUtil.randomString());
+		newMembershipRequest.setComments(RandomTestUtil.randomString());
 
-		newMembershipRequest.setReplyDate(ServiceTestUtil.nextDate());
+		newMembershipRequest.setReplyComments(RandomTestUtil.randomString());
 
-		newMembershipRequest.setReplierUserId(ServiceTestUtil.nextLong());
+		newMembershipRequest.setReplyDate(RandomTestUtil.nextDate());
 
-		newMembershipRequest.setStatusId(ServiceTestUtil.nextInt());
+		newMembershipRequest.setReplierUserId(RandomTestUtil.nextLong());
 
-		_persistence.update(newMembershipRequest, false);
+		newMembershipRequest.setStatusId(RandomTestUtil.nextInt());
+
+		_persistence.update(newMembershipRequest);
 
 		MembershipRequest existingMembershipRequest = _persistence.findByPrimaryKey(newMembershipRequest.getPrimaryKey());
 
+		Assert.assertEquals(existingMembershipRequest.getMvccVersion(),
+			newMembershipRequest.getMvccVersion());
 		Assert.assertEquals(existingMembershipRequest.getMembershipRequestId(),
 			newMembershipRequest.getMembershipRequestId());
 		Assert.assertEquals(existingMembershipRequest.getGroupId(),
@@ -127,6 +179,56 @@ public class MembershipRequestPersistenceTest {
 	}
 
 	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(RandomTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUserId() {
+		try {
+			_persistence.countByUserId(RandomTestUtil.nextLong());
+
+			_persistence.countByUserId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_S() {
+		try {
+			_persistence.countByG_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
+
+			_persistence.countByG_S(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_U_S() {
+		try {
+			_persistence.countByG_U_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
+
+			_persistence.countByG_U_S(0L, 0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		MembershipRequest newMembershipRequest = addMembershipRequest();
 
@@ -137,7 +239,7 @@ public class MembershipRequestPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -147,6 +249,25 @@ public class MembershipRequestPersistenceTest {
 		}
 		catch (NoSuchMembershipRequestException nsee) {
 		}
+	}
+
+	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("MembershipRequest",
+			"mvccVersion", true, "membershipRequestId", true, "groupId", true,
+			"companyId", true, "userId", true, "createDate", true, "comments",
+			true, "replyComments", true, "replyDate", true, "replierUserId",
+			true, "statusId", true);
 	}
 
 	@Test
@@ -160,11 +281,115 @@ public class MembershipRequestPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MembershipRequest missingMembershipRequest = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingMembershipRequest);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		MembershipRequest newMembershipRequest1 = addMembershipRequest();
+		MembershipRequest newMembershipRequest2 = addMembershipRequest();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMembershipRequest1.getPrimaryKey());
+		primaryKeys.add(newMembershipRequest2.getPrimaryKey());
+
+		Map<Serializable, MembershipRequest> membershipRequests = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, membershipRequests.size());
+		Assert.assertEquals(newMembershipRequest1,
+			membershipRequests.get(newMembershipRequest1.getPrimaryKey()));
+		Assert.assertEquals(newMembershipRequest2,
+			membershipRequests.get(newMembershipRequest2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, MembershipRequest> membershipRequests = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(membershipRequests.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		MembershipRequest newMembershipRequest = addMembershipRequest();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMembershipRequest.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, MembershipRequest> membershipRequests = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, membershipRequests.size());
+		Assert.assertEquals(newMembershipRequest,
+			membershipRequests.get(newMembershipRequest.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, MembershipRequest> membershipRequests = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(membershipRequests.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		MembershipRequest newMembershipRequest = addMembershipRequest();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMembershipRequest.getPrimaryKey());
+
+		Map<Serializable, MembershipRequest> membershipRequests = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, membershipRequests.size());
+		Assert.assertEquals(newMembershipRequest,
+			membershipRequests.get(newMembershipRequest.getPrimaryKey()));
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = MembershipRequestLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
+				@Override
+				public void performAction(Object object) {
+					MembershipRequest membershipRequest = (MembershipRequest)object;
+
+					Assert.assertNotNull(membershipRequest);
+
+					count.increment();
+				}
+			});
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -193,7 +418,7 @@ public class MembershipRequestPersistenceTest {
 				MembershipRequest.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("membershipRequestId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<MembershipRequest> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -234,7 +459,7 @@ public class MembershipRequestPersistenceTest {
 				"membershipRequestId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("membershipRequestId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -243,32 +468,37 @@ public class MembershipRequestPersistenceTest {
 
 	protected MembershipRequest addMembershipRequest()
 		throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MembershipRequest membershipRequest = _persistence.create(pk);
 
-		membershipRequest.setGroupId(ServiceTestUtil.nextLong());
+		membershipRequest.setMvccVersion(RandomTestUtil.nextLong());
 
-		membershipRequest.setCompanyId(ServiceTestUtil.nextLong());
+		membershipRequest.setGroupId(RandomTestUtil.nextLong());
 
-		membershipRequest.setUserId(ServiceTestUtil.nextLong());
+		membershipRequest.setCompanyId(RandomTestUtil.nextLong());
 
-		membershipRequest.setCreateDate(ServiceTestUtil.nextDate());
+		membershipRequest.setUserId(RandomTestUtil.nextLong());
 
-		membershipRequest.setComments(ServiceTestUtil.randomString());
+		membershipRequest.setCreateDate(RandomTestUtil.nextDate());
 
-		membershipRequest.setReplyComments(ServiceTestUtil.randomString());
+		membershipRequest.setComments(RandomTestUtil.randomString());
 
-		membershipRequest.setReplyDate(ServiceTestUtil.nextDate());
+		membershipRequest.setReplyComments(RandomTestUtil.randomString());
 
-		membershipRequest.setReplierUserId(ServiceTestUtil.nextLong());
+		membershipRequest.setReplyDate(RandomTestUtil.nextDate());
 
-		membershipRequest.setStatusId(ServiceTestUtil.nextInt());
+		membershipRequest.setReplierUserId(RandomTestUtil.nextLong());
 
-		_persistence.update(membershipRequest, false);
+		membershipRequest.setStatusId(RandomTestUtil.nextInt());
+
+		_persistence.update(membershipRequest);
 
 		return membershipRequest;
 	}
 
-	private MembershipRequestPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(MembershipRequestPersistenceTest.class);
+	private ModelListener<MembershipRequest>[] _modelListeners;
+	private MembershipRequestPersistence _persistence = (MembershipRequestPersistence)PortalBeanLocatorUtil.locate(MembershipRequestPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

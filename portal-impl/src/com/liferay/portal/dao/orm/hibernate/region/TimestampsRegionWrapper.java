@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,6 +31,7 @@ public class TimestampsRegionWrapper
 		super(ehcacheTimestampsRegion);
 	}
 
+	@Override
 	public void evict(Object key) throws CacheException {
 		EhcacheTimestampsRegion ehcacheTimestampsRegion =
 			getEhcacheTimestampsRegion();
@@ -38,6 +39,7 @@ public class TimestampsRegionWrapper
 		ehcacheTimestampsRegion.evict(key);
 	}
 
+	@Override
 	public void evictAll() throws CacheException {
 		EhcacheTimestampsRegion ehcacheTimestampsRegion =
 			getEhcacheTimestampsRegion();
@@ -45,6 +47,7 @@ public class TimestampsRegionWrapper
 		ehcacheTimestampsRegion.evictAll();
 	}
 
+	@Override
 	public Object get(Object key) throws CacheException {
 		EhcacheTimestampsRegion ehcacheTimestampsRegion =
 			getEhcacheTimestampsRegion();
@@ -52,6 +55,7 @@ public class TimestampsRegionWrapper
 		return ehcacheTimestampsRegion.get(key);
 	}
 
+	@Override
 	public void invalidate() {
 		EhcacheTimestampsRegion ehcacheTimestampsRegion =
 			getEhcacheTimestampsRegion();
@@ -59,6 +63,7 @@ public class TimestampsRegionWrapper
 		ehcacheTimestampsRegion.evictAll();
 	}
 
+	@Override
 	public void put(Object key, Object value) throws CacheException {
 		EhcacheTimestampsRegion ehcacheTimestampsRegion =
 			getEhcacheTimestampsRegion();

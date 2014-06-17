@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,6 +28,7 @@ import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
 public class CyrusUserPersistenceImpl
 	extends BasePersistenceImpl<Dummy> implements CyrusUserPersistence {
 
+	@Override
 	public CyrusUser findByPrimaryKey(long userId)
 		throws NoSuchCyrusUserException, SystemException {
 
@@ -40,7 +41,7 @@ public class CyrusUserPersistenceImpl
 				CyrusUser.class, String.valueOf(userId));
 		}
 		catch (ObjectNotFoundException onfe) {
-			throw new NoSuchCyrusUserException();
+			throw new NoSuchCyrusUserException("{userId=" + userId + "}");
 		}
 		catch (Exception e) {
 			throw processException(e);
@@ -50,6 +51,7 @@ public class CyrusUserPersistenceImpl
 		}
 	}
 
+	@Override
 	public void remove(long userId)
 		throws NoSuchCyrusUserException, SystemException {
 
@@ -66,7 +68,7 @@ public class CyrusUserPersistenceImpl
 			session.flush();
 		}
 		catch (ObjectNotFoundException onfe) {
-			throw new NoSuchCyrusUserException();
+			throw new NoSuchCyrusUserException("{userId=" + userId + "}");
 		}
 		catch (Exception e) {
 			throw processException(e);
@@ -76,7 +78,8 @@ public class CyrusUserPersistenceImpl
 		}
 	}
 
-	public void update(CyrusUser user) throws SystemException {
+	@Override
+	public void update(CyrusUser user) {
 		Session session = null;
 
 		try {

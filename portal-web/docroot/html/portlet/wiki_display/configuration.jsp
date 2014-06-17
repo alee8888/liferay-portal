@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,20 +17,20 @@
 <%@ include file="/html/portlet/wiki_display/init.jsp" %>
 
 <%
-String redirect = ParamUtil.getString(request, "redirect");
-
 nodeId = ParamUtil.getLong(request, "nodeId", nodeId);
 
-List<WikiNode> nodes = WikiNodeLocalServiceUtil.getNodes(scopeGroupId);
+List<WikiNode> nodes = WikiNodeServiceUtil.getNodes(scopeGroupId);
 
 boolean nodeInGroup = false;
 %>
 
-<liferay-portlet:actionURL portletConfiguration="true" var="configurationURL" />
+<liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL" />
 
-<aui:form action="<%= configurationURL %>" method="post" name="fm">
+<liferay-portlet:renderURL portletConfiguration="true" var="configurationRenderURL" />
+
+<aui:form action="<%= configurationActionURL %>" method="post" name="fm">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
-	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+	<aui:input name="redirect" type="hidden" value="<%= configurationRenderURL %>" />
 
 	<liferay-ui:error exception="<%= NoSuchNodeException.class %>" message="the-node-could-not-be-found" />
 
@@ -58,7 +58,7 @@ boolean nodeInGroup = false;
 				</aui:select>
 			</c:when>
 			<c:otherwise>
-				<div class="portlet-msg-info">
+				<div class="alert alert-info">
 					<liferay-ui:message key="there-are-no-available-nodes-for-selection" />
 				</div>
 			</c:otherwise>
@@ -66,24 +66,40 @@ boolean nodeInGroup = false;
 
 		<c:choose>
 			<c:when test="<%= nodeInGroup %>">
-				<aui:select label="page" name="preferences--title--">
+				<div class="<portlet:namespace />pageSelectorContainer">
+					<aui:select label="page" name="preferences--title--">
 
-					<%
-					int total = WikiPageLocalServiceUtil.getPagesCount(nodeId, true);
+						<%
+						int total = WikiPageLocalServiceUtil.getPagesCount(nodeId, true);
 
-					List pages = WikiPageLocalServiceUtil.getPages(nodeId, true, 0, total);
+						List pages = WikiPageLocalServiceUtil.getPages(nodeId, true, 0, total);
 
-					for (int i = 0; i < pages.size(); i++) {
-						WikiPage wikiPage = (WikiPage)pages.get(i);
-					%>
+						for (int i = 0; i < pages.size(); i++) {
+							WikiPage wikiPage = (WikiPage)pages.get(i);
+						%>
 
-						<aui:option label="<%= wikiPage.getTitle() %>" selected="<%= wikiPage.getTitle().equals(title) || (Validator.isNull(title) && wikiPage.getTitle().equals(WikiPageConstants.FRONT_PAGE)) %>" />
+								<aui:option label="<%= wikiPage.getTitle() %>" selected="<%= wikiPage.getTitle().equals(title) || (Validator.isNull(title) && wikiPage.getTitle().equals(WikiPageConstants.FRONT_PAGE)) %>" />
 
-					<%
-					}
-					%>
+						<%
+						}
+						%>
 
-				</aui:select>
+					</aui:select>
+				</div>
+
+				<aui:script use="aui-base">
+					var nodeIdSelect = A.one('#<portlet:namespace/>nodeId');
+					var pageSelectorContainer = A.one('#<portlet:namespace />pageSelectorContainer');
+
+					var nodeIdValue = nodeIdSelect.val();
+
+					nodeIdSelect.on(
+						'change',
+						function() {
+							pageSelectorContainer.toggle(nodeIdSelect.val() === nodeIdValue);
+						}
+					);
+				</aui:script>
 			</c:when>
 			<c:otherwise>
 				<aui:input name="preferences--title--" type="hidden" value="<%= WikiPageConstants.FRONT_PAGE %>" />

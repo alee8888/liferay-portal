@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -252,6 +252,10 @@ public class GetterUtil_IW {
 		return GetterUtil.getInteger(value, defaultValue);
 	}
 
+	public int getIntegerStrict(java.lang.String value) {
+		return GetterUtil.getIntegerStrict(value);
+	}
+
 	public int[] getIntegerValues(java.lang.Object value) {
 		return GetterUtil.getIntegerValues(value);
 	}
@@ -282,6 +286,10 @@ public class GetterUtil_IW {
 
 	public long getLong(java.lang.String value, long defaultValue) {
 		return GetterUtil.getLong(value, defaultValue);
+	}
+
+	public long getLongStrict(java.lang.String value) {
+		return GetterUtil.getLongStrict(value);
 	}
 
 	public long[] getLongValues(java.lang.Object value) {
@@ -318,6 +326,24 @@ public class GetterUtil_IW {
 		return GetterUtil.getNumber(value, defaultValue);
 	}
 
+	public java.lang.Number[] getNumberValues(java.lang.Object value) {
+		return GetterUtil.getNumberValues(value);
+	}
+
+	public java.lang.Number[] getNumberValues(java.lang.Object value,
+		java.lang.Number[] defaultValue) {
+		return GetterUtil.getNumberValues(value, defaultValue);
+	}
+
+	public java.lang.Number[] getNumberValues(java.lang.String[] values) {
+		return GetterUtil.getNumberValues(values);
+	}
+
+	public java.lang.Number[] getNumberValues(java.lang.String[] values,
+		java.lang.Number[] defaultValue) {
+		return GetterUtil.getNumberValues(values, defaultValue);
+	}
+
 	public java.lang.Object getObject(java.lang.Object value) {
 		return GetterUtil.getObject(value);
 	}
@@ -341,6 +367,10 @@ public class GetterUtil_IW {
 
 	public short getShort(java.lang.String value, short defaultValue) {
 		return GetterUtil.getShort(value, defaultValue);
+	}
+
+	public short getShortStrict(java.lang.String value) {
+		return GetterUtil.getShortStrict(value);
 	}
 
 	public short[] getShortValues(java.lang.Object value) {
@@ -376,6 +406,24 @@ public class GetterUtil_IW {
 	public java.lang.String getString(java.lang.String value,
 		java.lang.String defaultValue) {
 		return GetterUtil.getString(value, defaultValue);
+	}
+
+	public java.lang.String[] getStringValues(java.lang.Object value) {
+		return GetterUtil.getStringValues(value);
+	}
+
+	public java.lang.String[] getStringValues(java.lang.Object value,
+		java.lang.String[] defaultValue) {
+		return GetterUtil.getStringValues(value, defaultValue);
+	}
+
+	public java.lang.String[] getStringValues(java.lang.Object[] values,
+		java.lang.String[] defaultValue) {
+		return GetterUtil.getStringValues(values, defaultValue);
+	}
+
+	public java.lang.String[] getStringValues(java.lang.String[] values) {
+		return GetterUtil.getStringValues(values);
 	}
 
 	private GetterUtil_IW() {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,8 +15,8 @@
 package com.liferay.portlet.announcements.service.permission;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.impl.VirtualLayout;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
@@ -32,7 +32,7 @@ public class AnnouncementsEntryPermission {
 	public static void check(
 			PermissionChecker permissionChecker, AnnouncementsEntry entry,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (!contains(permissionChecker, entry, actionId)) {
 			throw new PrincipalException();
@@ -42,7 +42,7 @@ public class AnnouncementsEntryPermission {
 	public static void check(
 			PermissionChecker permissionChecker, Layout layout, String name,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (!contains(permissionChecker, layout, name, actionId)) {
 			throw new PrincipalException();
@@ -51,7 +51,7 @@ public class AnnouncementsEntryPermission {
 
 	public static void check(
 			PermissionChecker permissionChecker, long entryId, String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (!contains(permissionChecker, entryId, actionId)) {
 			throw new PrincipalException();
@@ -61,7 +61,7 @@ public class AnnouncementsEntryPermission {
 	public static void check(
 			PermissionChecker permissionChecker, long plid, String name,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (!contains(permissionChecker, plid, name, actionId)) {
 			throw new PrincipalException();
@@ -71,7 +71,7 @@ public class AnnouncementsEntryPermission {
 	public static boolean contains(
 			PermissionChecker permissionChecker, AnnouncementsEntry entry,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (permissionChecker.hasOwnerPermission(
 				entry.getCompanyId(), AnnouncementsEntry.class.getName(),
@@ -88,7 +88,13 @@ public class AnnouncementsEntryPermission {
 	public static boolean contains(
 			PermissionChecker permissionChecker, Layout layout, String name,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
+
+		if (layout instanceof VirtualLayout) {
+			VirtualLayout virtualLayout = (VirtualLayout)layout;
+
+			layout = virtualLayout.getSourceLayout();
+		}
 
 		if (permissionChecker.isGroupAdmin(layout.getGroupId()) ||
 			permissionChecker.isGroupOwner(layout.getGroupId())) {
@@ -97,12 +103,12 @@ public class AnnouncementsEntryPermission {
 		}
 
 		return PortletPermissionUtil.contains(
-				permissionChecker, layout, name, actionId);
+			permissionChecker, layout, name, actionId);
 	}
 
 	public static boolean contains(
 			PermissionChecker permissionChecker, long entryId, String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		AnnouncementsEntry entry = AnnouncementsEntryLocalServiceUtil.getEntry(
 			entryId);
@@ -113,7 +119,7 @@ public class AnnouncementsEntryPermission {
 	public static boolean contains(
 			PermissionChecker permissionChecker, long plid, String name,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Layout layout = LayoutLocalServiceUtil.fetchLayout(plid);
 

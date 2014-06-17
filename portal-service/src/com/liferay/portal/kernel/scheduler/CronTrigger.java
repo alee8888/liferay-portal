@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,16 +23,6 @@ import java.util.Date;
  */
 public class CronTrigger extends BaseTrigger {
 
-	public CronTrigger(String jobName, String groupName, String cronText) {
-		this(jobName, groupName, new Date(), null, cronText);
-	}
-
-	public CronTrigger(
-		String jobName, String groupName, Date startDate, String cronText) {
-
-		this(jobName, groupName, startDate, null, cronText);
-	}
-
 	public CronTrigger(
 		String jobName, String groupName, Date startDate, Date endDate,
 		String cronText) {
@@ -42,6 +32,17 @@ public class CronTrigger extends BaseTrigger {
 		_cronText = cronText;
 	}
 
+	public CronTrigger(
+		String jobName, String groupName, Date startDate, String cronText) {
+
+		this(jobName, groupName, startDate, null, cronText);
+	}
+
+	public CronTrigger(String jobName, String groupName, String cronText) {
+		this(jobName, groupName, null, null, cronText);
+	}
+
+	@Override
 	public String getTriggerContent() {
 		return _cronText;
 	}

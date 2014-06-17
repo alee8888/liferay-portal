@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,40 +17,25 @@
 <%@ include file="/html/portlet/init.jsp" %>
 
 <%@ page import="com.liferay.portal.kernel.search.Document" %><%@
-page import="com.liferay.portal.kernel.search.Hits" %><%@
-page import="com.liferay.portal.kernel.search.Indexer" %><%@
-page import="com.liferay.portal.kernel.search.IndexerRegistryUtil" %><%@
-page import="com.liferay.portal.kernel.search.SearchContext" %><%@
-page import="com.liferay.portal.kernel.search.SearchContextFactory" %><%@
-page import="com.liferay.portlet.journal.model.JournalArticle" %><%@
-page import="com.liferay.portlet.journal.model.JournalArticleConstants" %><%@
 page import="com.liferay.portlet.journal.service.JournalContentSearchLocalServiceUtil" %><%@
 page import="com.liferay.portlet.journalcontentsearch.util.ContentHits" %>
 
 <%
-PortletPreferences preferences = renderRequest.getPreferences();
-
-String portletResource = ParamUtil.getString(request, "portletResource");
-
-if (Validator.isNotNull(portletResource)) {
-	preferences = PortletPreferencesFactoryUtil.getPortletSetup(request, portletResource);
-}
-
 boolean showListedDefault = true;
 
 if (portletName.equals(PortletKeys.JOURNAL_CONTENT_SEARCH)) {
 	showListedDefault = PropsValues.JOURNAL_CONTENT_SEARCH_SHOW_LISTED;
 }
 
-boolean showListed = PrefsParamUtil.getBoolean(preferences, request, "showListed", showListedDefault);
+boolean showListed = PrefsParamUtil.getBoolean(portletPreferences, request, "showListed", showListedDefault);
 
 String targetPortletId = StringPool.BLANK;
 
 if (!showListed) {
-	targetPortletId = PrefsParamUtil.getString(preferences, request, "targetPortletId", StringPool.BLANK);
+	targetPortletId = PrefsParamUtil.getString(portletPreferences, request, "targetPortletId", StringPool.BLANK);
 }
 
-String type = PrefsParamUtil.getString(preferences, request, "type", StringPool.BLANK);
+String type = PrefsParamUtil.getString(portletPreferences, request, "type", StringPool.BLANK);
 %>
 
 <%@ include file="/html/portlet/journal_content_search/init-ext.jsp" %>

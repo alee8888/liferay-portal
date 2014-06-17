@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,7 +18,6 @@
 
 <%
 String cssClass = GetterUtil.getString((String)request.getAttribute("liferay-ui:input-checkbox:cssClass"));
-String formName = namespace + request.getAttribute("liferay-ui:input-checkbox:formName");
 String param = (String)request.getAttribute("liferay-ui:input-checkbox:param");
 String id = (String)request.getAttribute("liferay-ui:input-checkbox:id");
 Boolean defaultValue = (Boolean)request.getAttribute("liferay-ui:input-checkbox:defaultValue");
@@ -32,6 +31,4 @@ if (Validator.isNull(id)) {
 }
 %>
 
-<input id="<%= id %>" name="<%= namespace %><%= param %>" type="hidden" value="<%= value %>" />
-
-<input <%= value ? "checked" : "" %> <%= Validator.isNotNull(cssClass) ? "class=\"" + cssClass + "\"" : StringPool.BLANK %> <%= disabled ? "disabled=\"disabled\"" : "" %> id="<%= id %>Checkbox" name="<%= namespace %><%= param %>Checkbox" type="checkbox" onClick="Liferay.Util.updateCheckboxValue(this); <%= onClick %>" />
+<input <%= value ? "checked" : "" %> class="<%= cssClass %>" <%= disabled ? "disabled=\"disabled\"" : "" %> id="<%= id %>" name="<%= namespace %><%= param %>" onClick="<%= onClick %>" type="checkbox" />

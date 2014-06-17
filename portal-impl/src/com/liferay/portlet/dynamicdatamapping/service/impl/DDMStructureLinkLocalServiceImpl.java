@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portlet.dynamicdatamapping.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructureLink;
 import com.liferay.portlet.dynamicdatamapping.service.base.DDMStructureLinkLocalServiceBaseImpl;
@@ -29,10 +28,10 @@ import java.util.List;
 public class DDMStructureLinkLocalServiceImpl
 	extends DDMStructureLinkLocalServiceBaseImpl {
 
+	@Override
 	public DDMStructureLink addStructureLink(
-			long classNameId, long classPK, long structureId,
-			ServiceContext serviceContext)
-		throws SystemException {
+		long classNameId, long classPK, long structureId,
+		ServiceContext serviceContext) {
 
 		long structureLinkId = counterLocalService.increment();
 
@@ -43,28 +42,28 @@ public class DDMStructureLinkLocalServiceImpl
 		structureLink.setClassPK(classPK);
 		structureLink.setStructureId(structureId);
 
-		ddmStructureLinkPersistence.update(structureLink, false);
+		ddmStructureLinkPersistence.update(structureLink);
 
 		return structureLink;
 	}
 
-	public void deleteClassStructureLink(long classPK)
-		throws PortalException, SystemException {
-
+	@Override
+	public void deleteClassStructureLink(long classPK) throws PortalException {
 		DDMStructureLink structureLink =
 			ddmStructureLinkPersistence.findByClassPK(classPK);
 
 		deleteStructureLink(structureLink);
 	}
 
-	public void deleteStructureLink(DDMStructureLink structureLink)
-		throws SystemException {
+	@Override
+	public void deleteStructureLink(DDMStructureLink structureLink) {
 
 		ddmStructureLinkPersistence.remove(structureLink);
 	}
 
+	@Override
 	public void deleteStructureLink(long structureLinkId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDMStructureLink structureLink =
 			ddmStructureLinkPersistence.findByPrimaryKey(structureLinkId);
@@ -72,8 +71,8 @@ public class DDMStructureLinkLocalServiceImpl
 		deleteStructureLink(structureLink);
 	}
 
-	public void deleteStructureStructureLinks(long structureId)
-		throws SystemException {
+	@Override
+	public void deleteStructureStructureLinks(long structureId) {
 
 		List<DDMStructureLink> structureLinks =
 			ddmStructureLinkPersistence.findByStructureId(structureId);
@@ -83,36 +82,39 @@ public class DDMStructureLinkLocalServiceImpl
 		}
 	}
 
+	@Override
 	public DDMStructureLink getClassStructureLink(long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return ddmStructureLinkPersistence.findByClassPK(classPK);
 	}
 
-	public List<DDMStructureLink> getClassStructureLinks(long classNameId)
-		throws SystemException {
+	@Override
+	public List<DDMStructureLink> getClassStructureLinks(long classNameId) {
 
 		return ddmStructureLinkPersistence.findByStructureId(classNameId);
 	}
 
+	@Override
 	public DDMStructureLink getStructureLink(long structureLinkId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return ddmStructureLinkPersistence.findByPrimaryKey(structureLinkId);
 	}
 
+	@Override
 	public List<DDMStructureLink> getStructureLinks(
-			long structureId, int start, int end)
-		throws SystemException {
+		long structureId, int start, int end) {
 
 		return ddmStructureLinkPersistence.findByStructureId(
 			structureId, start, end);
 	}
 
+	@Override
 	public DDMStructureLink updateStructureLink(
 			long structureLinkId, long classNameId, long classPK,
 			long structureId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDMStructureLink structureLink =
 			ddmStructureLinkPersistence.findByPrimaryKey(structureLinkId);
@@ -121,7 +123,7 @@ public class DDMStructureLinkLocalServiceImpl
 		structureLink.setClassPK(classPK);
 		structureLink.setStructureId(structureId);
 
-		ddmStructureLinkPersistence.update(structureLink, false);
+		ddmStructureLinkPersistence.update(structureLink);
 
 		return structureLink;
 	}

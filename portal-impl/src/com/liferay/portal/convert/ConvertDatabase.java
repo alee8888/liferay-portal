@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,7 @@ package com.liferay.portal.convert;
 
 import com.liferay.mail.model.CyrusUser;
 import com.liferay.mail.model.CyrusVirtual;
-import com.liferay.portal.events.StartupHelper;
+import com.liferay.portal.events.StartupHelperUtil;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.PluginContextListener;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Tuple;
@@ -35,6 +34,7 @@ import com.liferay.portal.model.ServiceComponent;
 import com.liferay.portal.service.ServiceComponentLocalServiceUtil;
 import com.liferay.portal.spring.hibernate.DialectDetector;
 import com.liferay.portal.upgrade.util.Table;
+import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.MaintenanceUtil;
 import com.liferay.portal.util.ShutdownUtil;
 
@@ -173,7 +173,7 @@ public class ConvertDatabase extends ConvertProcess {
 				_log.debug("Migrating database indexes");
 			}
 
-			StartupHelper.updateIndexes(db, connection, false);
+			StartupHelperUtil.updateIndexes(db, connection, false);
 
 			List<ServiceComponent> serviceComponents =
 				ServiceComponentLocalServiceUtil.getServiceComponents(
@@ -204,14 +204,15 @@ public class ConvertDatabase extends ConvertProcess {
 		String url = values[1];
 		String userName = values[2];
 		String password = values[3];
+		String jndiName = StringPool.BLANK;
 
 		return DataSourceFactoryUtil.initDataSource(
-			driverClassName, url, userName, password);
+			driverClassName, url, userName, password, jndiName);
 	}
 
 	protected Class<?> getImplClass(String implClassName) throws Exception {
 		try {
-			ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
+			ClassLoader classLoader = ClassLoaderUtil.getPortalClassLoader();
 
 			return classLoader.loadClass(implClassName);
 		}
@@ -267,12 +268,17 @@ public class ConvertDatabase extends ConvertProcess {
 
 		Table table = new Table(tableName, columns);
 
-		String tempFileName = table.generateTempFile();
+		try {
+			table.generateTempFile();
 
-		db.runSQL(connection, sqlCreate);
+			db.runSQL(connection, sqlCreate);
 
-		if (tempFileName != null) {
-			table.populateTable(tempFileName, connection);
+			table.populateTable(connection);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			MaintenanceUtil.appendStatus(e.getMessage());
 		}
 	}
 

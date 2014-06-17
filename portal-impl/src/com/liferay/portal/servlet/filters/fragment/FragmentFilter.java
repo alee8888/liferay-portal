@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,8 +16,8 @@ package com.liferay.portal.servlet.filters.fragment;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
-import com.liferay.portal.kernel.servlet.StringServletResponse;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -98,13 +98,16 @@ public class FragmentFilter extends BasePortalFilter {
 			_log.debug("Fragmenting " + completeURL);
 		}
 
-		StringServletResponse stringServerResponse = new StringServletResponse(
-			response);
+		BufferCacheServletResponse bufferCacheServletResponse =
+			new BufferCacheServletResponse(response);
 
 		processFilter(
-			FragmentFilter.class, request, stringServerResponse, filterChain);
+			FragmentFilter.class, request, bufferCacheServletResponse,
+			filterChain);
 
-		String content = getContent(request, stringServerResponse.getString());
+		String content = bufferCacheServletResponse.getString();
+
+		content = getContent(request, content);
 
 		ServletResponseUtil.write(response, content);
 	}

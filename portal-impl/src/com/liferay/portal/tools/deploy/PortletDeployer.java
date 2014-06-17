@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,15 +26,12 @@ import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.model.Plugin;
-import com.liferay.portal.util.InitUtil;
+import com.liferay.portal.tools.ToolDependencies;
 import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.xml.DocumentImpl;
 import com.liferay.util.bridges.mvc.MVCPortlet;
-import com.liferay.util.xml.XMLMerger;
-import com.liferay.util.xml.descriptor.FacesXMLDescriptor;
 
 import java.io.File;
 
@@ -47,22 +44,11 @@ import java.util.List;
  */
 public class PortletDeployer extends BaseDeployer {
 
-	public static final String JSF_MYFACES =
-		"org.apache.myfaces.portlet.MyFacesGenericPortlet";
-
 	public static final String JSF_STANDARD =
 		"javax.portlet.faces.GenericFacesPortlet";
 
-	public static final String JSF_SUN = "com.sun.faces.portlet.FacesPortlet";
-
-	public static final String LIFERAY_RENDER_KIT_FACTORY =
-		"com.liferay.util.jsf.sun.faces.renderkit.LiferayRenderKitFactoryImpl";
-
-	public static final String MYFACES_CONTEXT_FACTORY =
-		"com.liferay.util.bridges.jsf.myfaces.MyFacesContextFactoryImpl";
-
 	public static void main(String[] args) {
-		InitUtil.initWithSpring();
+		ToolDependencies.wireDeployers();
 
 		List<String> wars = new ArrayList<String>();
 		List<String> jars = new ArrayList<String>();
@@ -103,9 +89,7 @@ public class PortletDeployer extends BaseDeployer {
 
 		super.copyXmls(srcFile, displayName, pluginPackage);
 
-		if (appServerType.equals(ServerDetector.TOMCAT_ID)) {
-			copyDependencyXml("context.xml", srcFile + "/META-INF");
-		}
+		copyTomcatContextXml(srcFile);
 
 		copyDependencyXml(
 			"_servlet_context_include.jsp", srcFile + "/WEB-INF/jsp");
@@ -128,7 +112,6 @@ public class PortletDeployer extends BaseDeployer {
 			sb.append("</context-param>");
 		}
 
-		File facesXML = new File(srcFile + "/WEB-INF/faces-config.xml");
 		File portletXML = new File(
 			srcFile + "/WEB-INF/" + Portal.PORTLET_XML_FILE_NAME_STANDARD);
 		File webXML = new File(srcFile + "/WEB-INF/web.xml");
@@ -136,20 +119,6 @@ public class PortletDeployer extends BaseDeployer {
 		updatePortletXML(portletXML);
 
 		sb.append(getServletContent(portletXML, webXML));
-
-		setupJSF(facesXML, portletXML);
-
-		if (_sunFacesPortlet) {
-
-			// LiferayConfigureListener
-
-			sb.append("<listener>");
-			sb.append("<listener-class>");
-			sb.append("com.liferay.util.bridges.jsf.sun.");
-			sb.append("LiferayConfigureListener");
-			sb.append("</listener-class>");
-			sb.append("</listener>");
-		}
 
 		String extraContent = super.getExtraContent(
 			webXmlVersion, srcFile, displayName);
@@ -205,7 +174,8 @@ public class PortletDeployer extends BaseDeployer {
 		for (Element portletElement : portletElements) {
 			String portletName = PortalUtil.getJsSafePortletId(
 				portletElement.elementText("portlet-name"));
-			String portletClass = portletElement.elementText("portlet-class");
+			String portletClassName = portletElement.elementText(
+				"portlet-class");
 
 			String servletName = portletName + " Servlet";
 
@@ -219,7 +189,7 @@ public class PortletDeployer extends BaseDeployer {
 			sb.append("<init-param>");
 			sb.append("<param-name>portlet-class</param-name>");
 			sb.append("<param-value>");
-			sb.append(portletClass);
+			sb.append(portletClassName);
 			sb.append("</param-value>");
 			sb.append("</init-param>");
 			sb.append("<load-on-startup>1</load-on-startup>");
@@ -236,84 +206,6 @@ public class PortletDeployer extends BaseDeployer {
 		}
 
 		return sb.toString();
-	}
-
-	public void setupJSF(File facesXML, File portletXML) throws Exception {
-		_myFacesPortlet = false;
-		_sunFacesPortlet = false;
-
-		if (!facesXML.exists()) {
-			return;
-		}
-
-		// portlet.xml
-
-		Document document = SAXReaderUtil.read(portletXML, true);
-
-		Element rootElement = document.getRootElement();
-
-		List<Element> portletElements = rootElement.elements("portlet");
-
-		for (Element portletElement : portletElements) {
-			String portletClass = portletElement.elementText("portlet-class");
-
-			if (portletClass.equals(JSF_MYFACES)) {
-				_myFacesPortlet = true;
-
-				break;
-			}
-			else if (portletClass.equals(JSF_SUN)) {
-				_sunFacesPortlet = true;
-
-				break;
-			}
-		}
-
-		// faces-config.xml
-
-		document = SAXReaderUtil.read(facesXML, true);
-
-		rootElement = document.getRootElement();
-
-		Element factoryElement = rootElement.element("factory");
-
-		Element renderKitFactoryElement = null;
-		Element facesContextFactoryElement = null;
-
-		if (factoryElement == null) {
-			factoryElement = rootElement.addElement("factory");
-		}
-
-		renderKitFactoryElement = factoryElement.element("render-kit-factory");
-		facesContextFactoryElement = factoryElement.element(
-			"faces-context-factory");
-
-		if (appServerType.equals("orion") && _sunFacesPortlet &&
-			(renderKitFactoryElement == null)) {
-
-			renderKitFactoryElement = factoryElement.addElement(
-				"render-kit-factory");
-
-			renderKitFactoryElement.addText(LIFERAY_RENDER_KIT_FACTORY);
-		}
-		else if (_myFacesPortlet && (facesContextFactoryElement == null)) {
-			facesContextFactoryElement = factoryElement.addElement(
-				"faces-context-factory");
-
-			facesContextFactoryElement.addText(MYFACES_CONTEXT_FACTORY);
-		}
-
-		if (!appServerType.equals("orion") && _sunFacesPortlet) {
-			factoryElement.detach();
-		}
-
-		XMLMerger xmlMerger = new XMLMerger(new FacesXMLDescriptor());
-
-		DocumentImpl documentImpl = (DocumentImpl)document;
-
-		xmlMerger.organizeXML(documentImpl.getWrappedDocument());
-
-		FileUtil.write(facesXML, document.formattedString(), true);
 	}
 
 	@Override
@@ -370,8 +262,5 @@ public class PortletDeployer extends BaseDeployer {
 
 		FileUtil.write(portletXML, content);
 	}
-
-	private boolean _myFacesPortlet;
-	private boolean _sunFacesPortlet;
 
 }

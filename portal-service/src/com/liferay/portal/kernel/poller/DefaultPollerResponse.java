@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,87 +21,87 @@ import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.util.Validator;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Brian Wing Shun Chan
  */
 public class DefaultPollerResponse implements PollerResponse {
 
-	public DefaultPollerResponse(
-		PollerHeader pollerHeader, String portletId, String chunkId) {
+	@Override
+	public void close(
+		Message message, PollerHeader pollerHeader, String portletId,
+		String chunkId) {
+
+		_closed = true;
 
 		_pollerHeader = pollerHeader;
 		_portletId = portletId;
 		_chunkId = chunkId;
-	}
 
-	public synchronized void close() {
-		if (Validator.isNotNull(_responseMessage)) {
-			MessageBusUtil.sendMessage(
-				_responseMessage.getDestinationName(), _responseMessage);
-
-			_responseMessage = null;
-		}
-	}
-
-	public void createResponseMessage(Message message) {
 		String responseDestinationName = message.getResponseDestinationName();
 
 		if (Validator.isNull(responseDestinationName)) {
 			return;
 		}
 
-		_responseMessage = MessageBusUtil.createResponseMessage(message);
+		Message responseMessage = MessageBusUtil.createResponseMessage(message);
 
-		_responseMessage.setPayload(this);
+		responseMessage.setPayload(this);
+
+		MessageBusUtil.sendMessage(responseDestinationName, responseMessage);
 	}
 
+	@Override
 	public PollerHeader getPollerHeader() {
 		return _pollerHeader;
 	}
 
+	@Override
 	public String getPortletId() {
 		return _portletId;
 	}
 
+	@Override
 	public boolean isEmpty() {
 		return _parameterMap.isEmpty();
 	}
 
-	public synchronized void setParameter(String name, JSONArray value)
+	@Override
+	public void setParameter(String name, JSONArray value)
 		throws PollerResponseClosedException {
 
-		if (_responseMessage == null) {
+		if (_closed) {
 			throw new PollerResponseClosedException();
 		}
 
 		_parameterMap.put(name, value);
 	}
 
-	public synchronized void setParameter(String name, JSONObject value)
+	@Override
+	public void setParameter(String name, JSONObject value)
 		throws PollerResponseClosedException {
 
-		if (_responseMessage == null) {
+		if (_closed) {
 			throw new PollerResponseClosedException();
 		}
 
 		_parameterMap.put(name, value);
 	}
 
+	@Override
 	public void setParameter(String name, String value)
 		throws PollerResponseClosedException {
 
-		synchronized (this) {
-			if (_responseMessage == null) {
-				throw new PollerResponseClosedException();
-			}
-
-			_parameterMap.put(name, value);
+		if (_closed) {
+			throw new PollerResponseClosedException();
 		}
+
+		_parameterMap.put(name, value);
 	}
 
+	@Override
 	public JSONObject toJSONObject() {
 		JSONObject pollerResponseJSONObject =
 			JSONFactoryUtil.createJSONObject();
@@ -135,9 +135,10 @@ public class DefaultPollerResponse implements PollerResponse {
 	}
 
 	private String _chunkId;
-	private Map<String, Object> _parameterMap = new HashMap<String, Object>();
+	private volatile boolean _closed;
+	private Map<String, Object> _parameterMap =
+		new ConcurrentHashMap<String, Object>();
 	private PollerHeader _pollerHeader;
 	private String _portletId;
-	private Message _responseMessage;
 
 }

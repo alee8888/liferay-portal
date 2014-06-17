@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,42 +16,91 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchResourceActionException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.ResourceAction;
 import com.liferay.portal.model.impl.ResourceActionModelImpl;
-import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.ResourceActionLocalServiceUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class ResourceActionPersistenceTest {
 	@Before
-	public void setUp() throws Exception {
-		_persistence = (ResourceActionPersistence)PortalBeanLocatorUtil.locate(ResourceActionPersistence.class.getName());
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<ResourceAction> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<ResourceAction> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ResourceAction resourceAction = _persistence.create(pk);
 
@@ -78,20 +127,24 @@ public class ResourceActionPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ResourceAction newResourceAction = _persistence.create(pk);
 
-		newResourceAction.setName(ServiceTestUtil.randomString());
+		newResourceAction.setMvccVersion(RandomTestUtil.nextLong());
 
-		newResourceAction.setActionId(ServiceTestUtil.randomString());
+		newResourceAction.setName(RandomTestUtil.randomString());
 
-		newResourceAction.setBitwiseValue(ServiceTestUtil.nextLong());
+		newResourceAction.setActionId(RandomTestUtil.randomString());
 
-		_persistence.update(newResourceAction, false);
+		newResourceAction.setBitwiseValue(RandomTestUtil.nextLong());
+
+		_persistence.update(newResourceAction);
 
 		ResourceAction existingResourceAction = _persistence.findByPrimaryKey(newResourceAction.getPrimaryKey());
 
+		Assert.assertEquals(existingResourceAction.getMvccVersion(),
+			newResourceAction.getMvccVersion());
 		Assert.assertEquals(existingResourceAction.getResourceActionId(),
 			newResourceAction.getResourceActionId());
 		Assert.assertEquals(existingResourceAction.getName(),
@@ -100,6 +153,34 @@ public class ResourceActionPersistenceTest {
 			newResourceAction.getActionId());
 		Assert.assertEquals(existingResourceAction.getBitwiseValue(),
 			newResourceAction.getBitwiseValue());
+	}
+
+	@Test
+	public void testCountByName() {
+		try {
+			_persistence.countByName(StringPool.BLANK);
+
+			_persistence.countByName(StringPool.NULL);
+
+			_persistence.countByName((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByN_A() {
+		try {
+			_persistence.countByN_A(StringPool.BLANK, StringPool.BLANK);
+
+			_persistence.countByN_A(StringPool.NULL, StringPool.NULL);
+
+			_persistence.countByN_A((String)null, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -113,7 +194,7 @@ public class ResourceActionPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -123,6 +204,23 @@ public class ResourceActionPersistenceTest {
 		}
 		catch (NoSuchResourceActionException nsee) {
 		}
+	}
+
+	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("ResourceAction",
+			"mvccVersion", true, "resourceActionId", true, "name", true,
+			"actionId", true, "bitwiseValue", true);
 	}
 
 	@Test
@@ -136,11 +234,115 @@ public class ResourceActionPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ResourceAction missingResourceAction = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingResourceAction);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		ResourceAction newResourceAction1 = addResourceAction();
+		ResourceAction newResourceAction2 = addResourceAction();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newResourceAction1.getPrimaryKey());
+		primaryKeys.add(newResourceAction2.getPrimaryKey());
+
+		Map<Serializable, ResourceAction> resourceActions = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, resourceActions.size());
+		Assert.assertEquals(newResourceAction1,
+			resourceActions.get(newResourceAction1.getPrimaryKey()));
+		Assert.assertEquals(newResourceAction2,
+			resourceActions.get(newResourceAction2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, ResourceAction> resourceActions = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(resourceActions.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		ResourceAction newResourceAction = addResourceAction();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newResourceAction.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, ResourceAction> resourceActions = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, resourceActions.size());
+		Assert.assertEquals(newResourceAction,
+			resourceActions.get(newResourceAction.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, ResourceAction> resourceActions = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(resourceActions.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		ResourceAction newResourceAction = addResourceAction();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newResourceAction.getPrimaryKey());
+
+		Map<Serializable, ResourceAction> resourceActions = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, resourceActions.size());
+		Assert.assertEquals(newResourceAction,
+			resourceActions.get(newResourceAction.getPrimaryKey()));
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = ResourceActionLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
+				@Override
+				public void performAction(Object object) {
+					ResourceAction resourceAction = (ResourceAction)object;
+
+					Assert.assertNotNull(resourceAction);
+
+					count.increment();
+				}
+			});
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -169,7 +371,7 @@ public class ResourceActionPersistenceTest {
 				ResourceAction.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("resourceActionId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<ResourceAction> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -210,7 +412,7 @@ public class ResourceActionPersistenceTest {
 				"resourceActionId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("resourceActionId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -238,20 +440,25 @@ public class ResourceActionPersistenceTest {
 	}
 
 	protected ResourceAction addResourceAction() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		ResourceAction resourceAction = _persistence.create(pk);
 
-		resourceAction.setName(ServiceTestUtil.randomString());
+		resourceAction.setMvccVersion(RandomTestUtil.nextLong());
 
-		resourceAction.setActionId(ServiceTestUtil.randomString());
+		resourceAction.setName(RandomTestUtil.randomString());
 
-		resourceAction.setBitwiseValue(ServiceTestUtil.nextLong());
+		resourceAction.setActionId(RandomTestUtil.randomString());
 
-		_persistence.update(resourceAction, false);
+		resourceAction.setBitwiseValue(RandomTestUtil.nextLong());
+
+		_persistence.update(resourceAction);
 
 		return resourceAction;
 	}
 
-	private ResourceActionPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(ResourceActionPersistenceTest.class);
+	private ModelListener<ResourceAction>[] _modelListeners;
+	private ResourceActionPersistence _persistence = (ResourceActionPersistence)PortalBeanLocatorUtil.locate(ResourceActionPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

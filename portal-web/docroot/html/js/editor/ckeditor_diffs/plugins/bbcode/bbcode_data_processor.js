@@ -65,6 +65,10 @@
 
 	var REGEX_PX = /px$/i;
 
+	var REGEX_SINGLE_QUOTE = /'/g;
+
+	var STR_EMPTY = '';
+
 	var STR_MAILTO = 'mailto:';
 
 	var TAG_BLOCKQUOTE = 'blockquote';
@@ -89,36 +93,20 @@
 
 	var TAG_TD = 'td';
 
-	var TEMPLATE_IMAGE = '<img src="{image}">';
+	var tplImage = new CKEDITOR.template('<img src="{image}" />');
 
-	CKEDITOR.plugins.add(
-		'bbcode_data_processor',
-		{
-			requires: ['htmlwriter'],
+	var tplImageOpenTag = new CKEDITOR.template('[img={width}x{height}]');
 
-			init: function(editor) {
-				editor.dataProcessor = new CKEDITOR.htmlDataProcessor(editor);
+	var emoticonImages;
+	var emoticonPath;
+	var emoticonSymbols;
+	var newThreadURL;
 
-				editor.on(
-					'paste',
-					function(event) {
-						var data = event.data;
+	var BBCodeDataProcessor = function() {};
 
-						var htmlData = data.html;
+	BBCodeDataProcessor.prototype = {
+		constructor: BBCodeDataProcessor,
 
-						htmlData = CKEDITOR.htmlDataProcessor.prototype.toDataFormat(htmlData);
-
-						data.html = htmlData;
-					},
-					editor.element.$
-				);
-
-				editor.fire('customDataProcessorLoaded');
-			}
-		}
-	);
-
-	CKEDITOR.htmlDataProcessor.prototype = {
 		toDataFormat: function(html, fixForBody ) {
 			var instance = this;
 
@@ -138,14 +126,14 @@
 
 			data = instance._bbcodeConverter.convert(data);
 
-			var emoticonImages = CKEDITOR.config.smiley_images;
-			var emoticonSymbols = CKEDITOR.config.smiley_symbols;
-			var imagePath = CKEDITOR.config.smiley_path;
-
 			var length = emoticonSymbols.length;
 
 			for (var i = 0; i < length; i++) {
-				var image = TEMPLATE_IMAGE.replace('{image}', imagePath + emoticonImages[i]);
+				var image = tplImage.output(
+					{
+						image: emoticonPath + emoticonImages[i]
+					}
+				);
 
 				var escapedSymbol = emoticonSymbols[i].replace(REGEX_ESCAPE_REGEX, '\\$&');
 
@@ -198,7 +186,7 @@
 
 			instance._handle(node);
 
-			var endResult = instance._endResult.join('');
+			var endResult = instance._endResult.join(STR_EMPTY);
 
 			instance._endResult = null;
 
@@ -247,10 +235,10 @@
 			if (imagePath) {
 				var image = imagePath.substring(imagePath.lastIndexOf('/') + 1);
 
-				var imageIndex = instance._getImageIndex(CKEDITOR.config.smiley_images, image);
+				var imageIndex = instance._getImageIndex(emoticonImages, image);
 
 				if (imageIndex >= 0) {
-					emoticonSymbol = CKEDITOR.config.smiley_symbols[imageIndex];
+					emoticonSymbol = emoticonSymbols[imageIndex];
 				}
 			}
 
@@ -335,27 +323,6 @@
 			return index;
 		},
 
-		_isAllWS: function(node) {
-			return node.isElementContentWhitespace || !(REGEX_NOT_WHITESPACE.test(node.data));
-		},
-
-		_isIgnorable: function(node) {
-			var instance = this;
-
-			var nodeType = node.nodeType;
-
-			return (node.isElementContentWhitespace || nodeType == 8) ||
-				((nodeType == 3) && instance._isAllWS(node));
-		},
-
-		_isLastItemNewLine: function() {
-			var instance = this;
-
-			var endResult = instance._endResult;
-
-			return (endResult && REGEX_LASTCHAR_NEWLINE_WHITESPACE.test(endResult.slice(-1)));
-		},
-
 		_handle: function(node) {
 			var instance = this;
 
@@ -378,20 +345,18 @@
 
 				var child = children[i];
 
-				if (instance._inPRE || !instance._isIgnorable(child)) {
-					instance._handleElementStart(child, listTagsIn, listTagsOut);
-					instance._handleStyles(child, stylesTagsIn, stylesTagsOut);
+				instance._handleElementStart(child, listTagsIn, listTagsOut);
+				instance._handleStyles(child, stylesTagsIn, stylesTagsOut);
 
-					pushTagList.call(instance, listTagsIn);
-					pushTagList.call(instance, stylesTagsIn);
+				pushTagList.call(instance, listTagsIn);
+				pushTagList.call(instance, stylesTagsIn);
 
-					instance._handle(child);
+				instance._handle(child);
 
-					instance._handleElementEnd(child, listTagsIn, listTagsOut);
+				instance._handleElementEnd(child, listTagsIn, listTagsOut);
 
-					pushTagList.call(instance, stylesTagsOut.reverse());
-					pushTagList.call(instance, listTagsOut);
-				}
+				pushTagList.call(instance, stylesTagsOut.reverse());
+				pushTagList.call(instance, listTagsOut);
 			}
 
 			instance._handleData(node.data, node);
@@ -437,12 +402,15 @@
 
 			if (data) {
 				if (!instance._allowNewLine(element)) {
-					data = data.replace(REGEX_NEWLINE, '');
+					data = data.replace(REGEX_NEWLINE, STR_EMPTY);
 				}
 				else if (instance._checkParentElement(element, TAG_LINK) &&
-					data.indexOf(STR_MAILTO) == 0) {
+					data.indexOf(STR_MAILTO) === 0) {
 
 					data = data.substring(STR_MAILTO.length);
+				}
+				else if (instance._checkParentElement(element, TAG_CITE)) {
+					data = Liferay.BBCodeUtil.escape(data);
 				}
 
 				instance._endResult.push(data);
@@ -527,28 +495,51 @@
 			else {
 				var attrSrc = element.getAttribute('src');
 
-				listTagsIn.push('[img]');
+				var domElement = new CKEDITOR.dom.element(element);
 
+				var height = domElement.getStyle('height').replace('px', '') || 'auto';
+				var width = domElement.getStyle('width').replace('px', '') || 'auto';
+
+				var openTag = '[img]';
+
+				if ((height !== 'auto') || (width !== 'auto')) {
+					openTag = tplImageOpenTag.output(
+						{
+							height: height,
+							width: width
+						}
+					);
+				}
+
+				listTagsIn.push(openTag);
 				listTagsIn.push(attrSrc);
 
 				listTagsOut.push('[/img]');
 			}
 		},
 
+		_handleLineThrough: function(element, listTagsIn, listTagsOut) {
+			listTagsIn.push('[s]');
+
+			listTagsOut.push('[/s]');
+		},
+
 		_handleLink: function(element, listTagsIn, listTagsOut) {
 			var hrefAttribute = element.getAttribute('href');
 
-			var decodedLink = decodeURIComponent(hrefAttribute);
+			if (hrefAttribute) {
+				var decodedLink = decodeURIComponent(hrefAttribute);
 
-			if (CKEDITOR.config.newThreadURL === decodedLink) {
-				hrefAttribute = decodedLink;
+				if (decodedLink.indexOf(newThreadURL) >= 0) {
+					hrefAttribute = newThreadURL;
+				}
+
+				var linkHandler = MAP_LINK_HANDLERS[hrefAttribute.indexOf(STR_MAILTO)] || 'url';
+
+				listTagsIn.push('[' + linkHandler + '=', hrefAttribute, ']');
+
+				listTagsOut.push('[/' + linkHandler + ']');
 			}
-
-			var linkHandler = MAP_LINK_HANDLERS[hrefAttribute.indexOf(STR_MAILTO)] || 'url';
-
-			listTagsIn.push('[' + linkHandler + '=', hrefAttribute, ']');
-
-			listTagsOut.push('[/' + linkHandler + ']');
 		},
 
 		_handleListItem: function(element, listTagsIn, listTagsOut) {
@@ -559,12 +550,6 @@
 			}
 
 			listTagsIn.push('[*]');
-		},
-
-		_handleLineThrough: function(element, listTagsIn, listTagsOut) {
-			listTagsIn.push('[s]');
-
-			listTagsOut.push('[/s]');
 		},
 
 		_handleOrderedList: function(element, listTagsIn, listTagsOut) {
@@ -696,7 +681,7 @@
 			var fontFamily = style.fontFamily;
 
 			if (fontFamily) {
-				stylesTagsIn.push('[font=', fontFamily, ']');
+				stylesTagsIn.push('[font=', fontFamily.replace(REGEX_SINGLE_QUOTE, STR_EMPTY), ']');
 
 				stylesTagsOut.push('[/font]');
 			}
@@ -824,6 +809,14 @@
 			listTagsOut.push('[/list]');
 		},
 
+		_isLastItemNewLine: function() {
+			var instance = this;
+
+			var endResult = instance._endResult;
+
+			return (endResult && REGEX_LASTCHAR_NEWLINE_WHITESPACE.test(endResult.slice(-1)));
+		},
+
 		_pushTagList: function(tagsList) {
 			var instance = this;
 
@@ -842,4 +835,38 @@
 
 		_inPRE: false
 	};
+
+	CKEDITOR.plugins.add(
+		'bbcode_data_processor',
+		{
+			requires: ['htmlwriter'],
+
+			init: function(editor) {
+				var editorConfig = editor.config;
+
+				emoticonImages = editorConfig.smiley_images;
+				emoticonPath = editorConfig.smiley_path;
+				emoticonSymbols = editorConfig.smiley_symbols;
+				newThreadURL = editorConfig.newThreadURL;
+
+				editor.dataProcessor = new BBCodeDataProcessor(editor);
+
+				editor.on(
+					'paste',
+					function(event) {
+						var data = event.data;
+
+						var htmlData = data.dataValue;
+
+						htmlData = editor.dataProcessor.toDataFormat(htmlData);
+
+						data.dataValue = htmlData;
+					},
+					editor.element.$
+				);
+
+				editor.fire('customDataProcessorLoaded');
+			}
+		}
+	);
 })();

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,7 +24,7 @@ import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.scheduler.JobState;
 import com.liferay.portal.kernel.scheduler.JobStateSerializeUtil;
 import com.liferay.portal.kernel.scheduler.SchedulerEngine;
-import com.liferay.portal.kernel.scheduler.SchedulerEngineUtil;
+import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
 import com.liferay.portal.kernel.scheduler.StorageType;
 import com.liferay.portal.kernel.util.MethodHandler;
 import com.liferay.portal.kernel.util.MethodKey;
@@ -45,6 +45,7 @@ import org.quartz.Scheduler;
  */
 public class MessageSenderJob implements Job {
 
+	@Override
 	public void execute(JobExecutionContext jobExecutionContext) {
 		try {
 			doExecute(jobExecutionContext);
@@ -77,8 +78,8 @@ public class MessageSenderJob implements Job {
 
 		message.put(SchedulerEngine.DESTINATION_NAME, destinationName);
 
-		Map<String, Object> jobStateMap =
-			(Map<String, Object>)jobDataMap.get(SchedulerEngine.JOB_STATE);
+		Map<String, Object> jobStateMap = (Map<String, Object>)jobDataMap.get(
+			SchedulerEngine.JOB_STATE);
 
 		JobState jobState = JobStateSerializeUtil.deserialize(jobStateMap);
 
@@ -126,7 +127,7 @@ public class MessageSenderJob implements Job {
 	private static Log _log = LogFactoryUtil.getLog(MessageSenderJob.class);
 
 	private static MethodKey _deleteJobMethodKey = new MethodKey(
-		SchedulerEngineUtil.class.getName(), "delete", String.class,
-		String.class, StorageType.class);
+		SchedulerEngineHelperUtil.class, "delete", String.class, String.class,
+		StorageType.class);
 
 }

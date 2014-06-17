@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,14 +15,16 @@
 package com.liferay.portlet.blogs.model.impl;
 
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.service.UserLocalServiceUtil;
 
 import com.liferay.portlet.blogs.model.BlogsStatsUser;
 import com.liferay.portlet.blogs.model.BlogsStatsUserModel;
@@ -96,26 +98,32 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 	public BlogsStatsUserModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _statsUserId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setStatsUserId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_statsUserId);
+		return _statsUserId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return BlogsStatsUser.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return BlogsStatsUser.class.getName();
 	}
@@ -133,6 +141,9 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 		attributes.put("ratingsTotalEntries", getRatingsTotalEntries());
 		attributes.put("ratingsTotalScore", getRatingsTotalScore());
 		attributes.put("ratingsAverageScore", getRatingsAverageScore());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -196,26 +207,38 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 		}
 	}
 
+	@Override
 	public long getStatsUserId() {
 		return _statsUserId;
 	}
 
+	@Override
 	public void setStatsUserId(long statsUserId) {
 		_statsUserId = statsUserId;
 	}
 
-	public String getStatsUserUuid() throws SystemException {
-		return PortalUtil.getUserValue(getStatsUserId(), "uuid", _statsUserUuid);
+	@Override
+	public String getStatsUserUuid() {
+		try {
+			User user = UserLocalServiceUtil.getUserById(getStatsUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
+		}
 	}
 
+	@Override
 	public void setStatsUserUuid(String statsUserUuid) {
-		_statsUserUuid = statsUserUuid;
 	}
 
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
 
+	@Override
 	public void setGroupId(long groupId) {
 		_columnBitmask |= GROUPID_COLUMN_BITMASK;
 
@@ -232,10 +255,12 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 		return _originalGroupId;
 	}
 
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_columnBitmask |= COMPANYID_COLUMN_BITMASK;
 
@@ -252,10 +277,12 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 		return _originalCompanyId;
 	}
 
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
 
+	@Override
 	public void setUserId(long userId) {
 		_columnBitmask |= USERID_COLUMN_BITMASK;
 
@@ -268,22 +295,32 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 		_userId = userId;
 	}
 
-	public String getUserUuid() throws SystemException {
-		return PortalUtil.getUserValue(getUserId(), "uuid", _userUuid);
+	@Override
+	public String getUserUuid() {
+		try {
+			User user = UserLocalServiceUtil.getUserById(getUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
+		}
 	}
 
+	@Override
 	public void setUserUuid(String userUuid) {
-		_userUuid = userUuid;
 	}
 
 	public long getOriginalUserId() {
 		return _originalUserId;
 	}
 
+	@Override
 	public int getEntryCount() {
 		return _entryCount;
 	}
 
+	@Override
 	public void setEntryCount(int entryCount) {
 		_columnBitmask = -1L;
 
@@ -300,10 +337,12 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 		return _originalEntryCount;
 	}
 
+	@Override
 	public Date getLastPostDate() {
 		return _lastPostDate;
 	}
 
+	@Override
 	public void setLastPostDate(Date lastPostDate) {
 		_columnBitmask |= LASTPOSTDATE_COLUMN_BITMASK;
 
@@ -318,43 +357,38 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 		return _originalLastPostDate;
 	}
 
+	@Override
 	public int getRatingsTotalEntries() {
 		return _ratingsTotalEntries;
 	}
 
+	@Override
 	public void setRatingsTotalEntries(int ratingsTotalEntries) {
 		_ratingsTotalEntries = ratingsTotalEntries;
 	}
 
+	@Override
 	public double getRatingsTotalScore() {
 		return _ratingsTotalScore;
 	}
 
+	@Override
 	public void setRatingsTotalScore(double ratingsTotalScore) {
 		_ratingsTotalScore = ratingsTotalScore;
 	}
 
+	@Override
 	public double getRatingsAverageScore() {
 		return _ratingsAverageScore;
 	}
 
+	@Override
 	public void setRatingsAverageScore(double ratingsAverageScore) {
 		_ratingsAverageScore = ratingsAverageScore;
 	}
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public BlogsStatsUser toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (BlogsStatsUser)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -368,6 +402,16 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public BlogsStatsUser toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (BlogsStatsUser)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -389,6 +433,7 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 		return blogsStatsUserImpl;
 	}
 
+	@Override
 	public int compareTo(BlogsStatsUser blogsStatsUser) {
 		int value = 0;
 
@@ -413,18 +458,15 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof BlogsStatsUser)) {
 			return false;
 		}
 
-		BlogsStatsUser blogsStatsUser = null;
-
-		try {
-			blogsStatsUser = (BlogsStatsUser)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		BlogsStatsUser blogsStatsUser = (BlogsStatsUser)obj;
 
 		long primaryKey = blogsStatsUser.getPrimaryKey();
 
@@ -439,6 +481,16 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -525,6 +577,7 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(31);
 
@@ -575,11 +628,10 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 	}
 
 	private static ClassLoader _classLoader = BlogsStatsUser.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			BlogsStatsUser.class
 		};
 	private long _statsUserId;
-	private String _statsUserUuid;
 	private long _groupId;
 	private long _originalGroupId;
 	private boolean _setOriginalGroupId;
@@ -587,7 +639,6 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 	private long _originalCompanyId;
 	private boolean _setOriginalCompanyId;
 	private long _userId;
-	private String _userUuid;
 	private long _originalUserId;
 	private boolean _setOriginalUserId;
 	private int _entryCount;
@@ -599,5 +650,5 @@ public class BlogsStatsUserModelImpl extends BaseModelImpl<BlogsStatsUser>
 	private double _ratingsTotalScore;
 	private double _ratingsAverageScore;
 	private long _columnBitmask;
-	private BlogsStatsUser _escapedModelProxy;
+	private BlogsStatsUser _escapedModel;
 }

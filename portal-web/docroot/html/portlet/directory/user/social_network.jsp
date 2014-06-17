@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,12 +20,11 @@
 Contact selContact = (Contact)request.getAttribute("user.selContact");
 
 String facebook = selContact.getFacebookSn();
-String mySpace = selContact.getMySpaceSn();
 String twitter = selContact.getTwitterSn();
 %>
 
-<c:if test="<%= Validator.isNotNull(facebook) || Validator.isNotNull(mySpace) || Validator.isNotNull(twitter) %>">
-	<h3><liferay-ui:message key="social-network" /></h3>
+<c:if test="<%= Validator.isNotNull(facebook) || Validator.isNotNull(twitter) %>">
+	<h3 class="icon-group"><liferay-ui:message key="social-network" /></h3>
 
 	<dl class="property-list">
 		<c:if test="<%= Validator.isNotNull(facebook) %>">
@@ -34,15 +33,6 @@ String twitter = selContact.getTwitterSn();
 			</dt>
 			<dd>
 				<%= HtmlUtil.escape(facebook) %>
-			</dd>
-		</c:if>
-
-		<c:if test="<%= Validator.isNotNull(mySpace) %>">
-			<dt>
-				<liferay-ui:message key="myspace" />
-			</dt>
-			<dd>
-				<%= HtmlUtil.escape(mySpace) %>
 			</dd>
 		</c:if>
 

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,8 +17,6 @@
 <%@ include file="/html/portlet/rss/init.jsp" %>
 
 <%
-String tabs2 = ParamUtil.getString(request, "tabs2");
-
 String redirect = ParamUtil.getString(request, "redirect");
 
 String typeSelection = ParamUtil.getString(request, "typeSelection");
@@ -47,7 +45,7 @@ configurationRenderURL.setParameter("portletResource", portletResource);
 <aui:form action="<%= configurationURL %>" method="post" name="fm">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
 	<aui:input name="redirect" type="hidden" value="<%= configurationURL.toString() %>" />
-	<aui:input name="typeSelection" type="hidden" />
+	<aui:input name="typeSelection" type="hidden" value="<%= typeSelection %>" />
 	<aui:input name="articleGroupId" type="hidden" />
 	<aui:input name="articleId" type="hidden" />
 	<aui:input name="assetOrder" type="hidden" />
@@ -71,7 +69,7 @@ configurationRenderURL.setParameter("portletResource", portletResource);
 						String url = (String)enu.nextElement();
 					%>
 
-						<strong><%= url %></strong><%= (enu.hasMoreElements()) ? ", " : "." %>
+						<strong><%= HtmlUtil.escape(url) %></strong><%= (enu.hasMoreElements()) ? ", " : "." %>
 
 					<%
 					}
@@ -159,35 +157,47 @@ configurationRenderURL.setParameter("portletResource", portletResource);
 							<aui:option label="right" selected='<%= feedImageAlignment.equals("right") %>' />
 						</aui:select>
 
-						<aui:field-wrapper label="header-web-content">
-							<c:if test="<%= Validator.isNotNull(headerArticleId) %>">
+						<div class="form-group">
 
-								<%
-								JournalArticle headerArticle = JournalArticleLocalServiceUtil.getArticle(headerArticleGroupId, headerArticleId);
-								%>
+							<%
+							JournalArticle headerArticle = null;
 
-								<%= HtmlUtil.escape(headerArticle.getTitle(locale)) %>
-							</c:if>
+							if (Validator.isNotNull(headerArticleId)) {
+								try {
+									headerArticle = JournalArticleLocalServiceUtil.getArticle(headerArticleGroupId, headerArticleId);
+								}
+								catch (NoSuchArticleException nsae) {
+								}
+							}
+							%>
+
+							<aui:input name="headerWebContent" type="resource" value="<%= (headerArticle != null) ? headerArticle.getTitle(locale) : StringPool.BLANK %>" />
 
 							<aui:button name="selectButton" onClick='<%= renderResponse.getNamespace() + "selectionForHeader();" %>' value="select" />
 
 							<aui:button name="removeButton" onClick='<%= renderResponse.getNamespace() + "removeSelectionForHeader();" %>' value="remove" />
-						</aui:field-wrapper>
+						</div>
 
-						<aui:field-wrapper label="footer-web-content">
-							<c:if test="<%= Validator.isNotNull(footerArticleId) %>">
+						<div class="form-group">
 
-								<%
-								JournalArticle footerArticle = JournalArticleLocalServiceUtil.getArticle(footerArticleGroupId, footerArticleId);
-								%>
+							<%
+							JournalArticle footerArticle = null;
 
-								<%= HtmlUtil.escape(footerArticle.getTitle(locale)) %>
-							</c:if>
+							if (Validator.isNotNull(footerArticleId)) {
+								try {
+									footerArticle = JournalArticleLocalServiceUtil.getArticle(footerArticleGroupId, footerArticleId);
+								}
+								catch (NoSuchArticleException nsae) {
+								}
+							}
+							%>
+
+							<aui:input name="footerWebContent" type="resource" value="<%= (footerArticle != null) ? footerArticle.getTitle(locale) : StringPool.BLANK %>" />
 
 							<aui:button name="selectButton" onClick='<%= renderResponse.getNamespace() + "selectionForFooter();" %>' value="select" />
 
 							<aui:button name="removeButton" onClick='<%= renderResponse.getNamespace() + "removeSelectionForFooter();" %>' value="remove" />
-						</aui:field-wrapper>
+						</div>
 					</aui:fieldset>
 				</liferay-ui:panel>
 			</liferay-ui:panel-container>
@@ -225,11 +235,13 @@ configurationRenderURL.setParameter("portletResource", portletResource);
 <aui:script>
 	function <portlet:namespace />removeSelectionForFooter() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'remove-footer-article';
+
 		submitForm(document.<portlet:namespace />fm, '<%= configurationActionURL.toString() %>');
 	}
 
 	function <portlet:namespace />removeSelectionForHeader() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'remove-header-article';
+
 		submitForm(document.<portlet:namespace />fm, '<%= configurationActionURL.toString() %>');
 	}
 
@@ -244,24 +256,28 @@ configurationRenderURL.setParameter("portletResource", portletResource);
 		document.<portlet:namespace />fm.<portlet:namespace />articleGroupId.value = articleGroupId;
 		document.<portlet:namespace />fm.<portlet:namespace />articleId.value = articleId;
 		document.<portlet:namespace />fm.<portlet:namespace />typeSelection.value = '';
+
 		submitForm(document.<portlet:namespace />fm, '<%= configurationActionURL.toString() %>');
 	}
 
 	function <portlet:namespace />saveSettings() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.UPDATE %>';
 		document.<portlet:namespace />fm.<portlet:namespace />typeSelection.value = '';
+
 		submitForm(document.<portlet:namespace />fm, '<%= configurationActionURL.toString() %>');
 	}
 
 	function <portlet:namespace />selectionForHeader() {
 		document.<portlet:namespace />fm.<portlet:namespace />typeSelection.value = '<%= JournalArticle.class.getName() %>';
 		document.<portlet:namespace />fm.<portlet:namespace />assetOrder.value = 0;
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />selectionForFooter() {
 		document.<portlet:namespace />fm.<portlet:namespace />typeSelection.value = '<%= JournalArticle.class.getName() %>';
 		document.<portlet:namespace />fm.<portlet:namespace />assetOrder.value = 1;
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 </aui:script>
@@ -270,7 +286,8 @@ configurationRenderURL.setParameter("portletResource", portletResource);
 	new Liferay.AutoFields(
 		{
 			contentBox: 'fieldset.subscriptions',
-			fieldIndexes: '<portlet:namespace />subscriptionIndexes'
+			fieldIndexes: '<portlet:namespace />subscriptionIndexes',
+			namespace: '<portlet:namespace />'
 		}
 	).render();
 </aui:script>

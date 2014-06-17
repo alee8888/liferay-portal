@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,7 +20,10 @@ import com.liferay.portal.model.CacheModel;
 
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import java.util.Date;
 
@@ -32,10 +35,10 @@ import java.util.Date;
  * @generated
  */
 public class DLFileShortcutCacheModel implements CacheModel<DLFileShortcut>,
-	Serializable {
+	Externalizable {
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(33);
+		StringBundler sb = new StringBundler(35);
 
 		sb.append("{uuid=");
 		sb.append(uuid);
@@ -59,6 +62,8 @@ public class DLFileShortcutCacheModel implements CacheModel<DLFileShortcut>,
 		sb.append(folderId);
 		sb.append(", toFileEntryId=");
 		sb.append(toFileEntryId);
+		sb.append(", treePath=");
+		sb.append(treePath);
 		sb.append(", active=");
 		sb.append(active);
 		sb.append(", status=");
@@ -74,6 +79,7 @@ public class DLFileShortcutCacheModel implements CacheModel<DLFileShortcut>,
 		return sb.toString();
 	}
 
+	@Override
 	public DLFileShortcut toEntityModel() {
 		DLFileShortcutImpl dlFileShortcutImpl = new DLFileShortcutImpl();
 
@@ -113,6 +119,14 @@ public class DLFileShortcutCacheModel implements CacheModel<DLFileShortcut>,
 		dlFileShortcutImpl.setRepositoryId(repositoryId);
 		dlFileShortcutImpl.setFolderId(folderId);
 		dlFileShortcutImpl.setToFileEntryId(toFileEntryId);
+
+		if (treePath == null) {
+			dlFileShortcutImpl.setTreePath(StringPool.BLANK);
+		}
+		else {
+			dlFileShortcutImpl.setTreePath(treePath);
+		}
+
 		dlFileShortcutImpl.setActive(active);
 		dlFileShortcutImpl.setStatus(status);
 		dlFileShortcutImpl.setStatusByUserId(statusByUserId);
@@ -136,6 +150,76 @@ public class DLFileShortcutCacheModel implements CacheModel<DLFileShortcut>,
 		return dlFileShortcutImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		uuid = objectInput.readUTF();
+		fileShortcutId = objectInput.readLong();
+		groupId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		userId = objectInput.readLong();
+		userName = objectInput.readUTF();
+		createDate = objectInput.readLong();
+		modifiedDate = objectInput.readLong();
+		repositoryId = objectInput.readLong();
+		folderId = objectInput.readLong();
+		toFileEntryId = objectInput.readLong();
+		treePath = objectInput.readUTF();
+		active = objectInput.readBoolean();
+		status = objectInput.readInt();
+		statusByUserId = objectInput.readLong();
+		statusByUserName = objectInput.readUTF();
+		statusDate = objectInput.readLong();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		if (uuid == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(uuid);
+		}
+
+		objectOutput.writeLong(fileShortcutId);
+		objectOutput.writeLong(groupId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(userId);
+
+		if (userName == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(userName);
+		}
+
+		objectOutput.writeLong(createDate);
+		objectOutput.writeLong(modifiedDate);
+		objectOutput.writeLong(repositoryId);
+		objectOutput.writeLong(folderId);
+		objectOutput.writeLong(toFileEntryId);
+
+		if (treePath == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(treePath);
+		}
+
+		objectOutput.writeBoolean(active);
+		objectOutput.writeInt(status);
+		objectOutput.writeLong(statusByUserId);
+
+		if (statusByUserName == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(statusByUserName);
+		}
+
+		objectOutput.writeLong(statusDate);
+	}
+
 	public String uuid;
 	public long fileShortcutId;
 	public long groupId;
@@ -147,6 +231,7 @@ public class DLFileShortcutCacheModel implements CacheModel<DLFileShortcut>,
 	public long repositoryId;
 	public long folderId;
 	public long toFileEntryId;
+	public String treePath;
 	public boolean active;
 	public int status;
 	public long statusByUserId;

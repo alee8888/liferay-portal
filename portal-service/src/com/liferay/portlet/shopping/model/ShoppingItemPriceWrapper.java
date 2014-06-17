@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.shopping.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,24 +27,28 @@ import java.util.Map;
  * This class is a wrapper for {@link ShoppingItemPrice}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ShoppingItemPrice
+ * @author Brian Wing Shun Chan
+ * @see ShoppingItemPrice
  * @generated
  */
+@ProviderType
 public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	ModelWrapper<ShoppingItemPrice> {
 	public ShoppingItemPriceWrapper(ShoppingItemPrice shoppingItemPrice) {
 		_shoppingItemPrice = shoppingItemPrice;
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return ShoppingItemPrice.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return ShoppingItemPrice.class.getName();
 	}
 
+	@Override
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
@@ -59,6 +66,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 		return attributes;
 	}
 
+	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
 		Long itemPriceId = (Long)attributes.get("itemPriceId");
 
@@ -127,6 +135,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @return the primary key of this shopping item price
 	*/
+	@Override
 	public long getPrimaryKey() {
 		return _shoppingItemPrice.getPrimaryKey();
 	}
@@ -136,6 +145,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @param primaryKey the primary key of this shopping item price
 	*/
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_shoppingItemPrice.setPrimaryKey(primaryKey);
 	}
@@ -145,6 +155,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @return the item price ID of this shopping item price
 	*/
+	@Override
 	public long getItemPriceId() {
 		return _shoppingItemPrice.getItemPriceId();
 	}
@@ -154,6 +165,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @param itemPriceId the item price ID of this shopping item price
 	*/
+	@Override
 	public void setItemPriceId(long itemPriceId) {
 		_shoppingItemPrice.setItemPriceId(itemPriceId);
 	}
@@ -163,6 +175,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @return the item ID of this shopping item price
 	*/
+	@Override
 	public long getItemId() {
 		return _shoppingItemPrice.getItemId();
 	}
@@ -172,6 +185,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @param itemId the item ID of this shopping item price
 	*/
+	@Override
 	public void setItemId(long itemId) {
 		_shoppingItemPrice.setItemId(itemId);
 	}
@@ -181,6 +195,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @return the min quantity of this shopping item price
 	*/
+	@Override
 	public int getMinQuantity() {
 		return _shoppingItemPrice.getMinQuantity();
 	}
@@ -190,6 +205,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @param minQuantity the min quantity of this shopping item price
 	*/
+	@Override
 	public void setMinQuantity(int minQuantity) {
 		_shoppingItemPrice.setMinQuantity(minQuantity);
 	}
@@ -199,6 +215,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @return the max quantity of this shopping item price
 	*/
+	@Override
 	public int getMaxQuantity() {
 		return _shoppingItemPrice.getMaxQuantity();
 	}
@@ -208,6 +225,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @param maxQuantity the max quantity of this shopping item price
 	*/
+	@Override
 	public void setMaxQuantity(int maxQuantity) {
 		_shoppingItemPrice.setMaxQuantity(maxQuantity);
 	}
@@ -217,6 +235,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @return the price of this shopping item price
 	*/
+	@Override
 	public double getPrice() {
 		return _shoppingItemPrice.getPrice();
 	}
@@ -226,6 +245,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @param price the price of this shopping item price
 	*/
+	@Override
 	public void setPrice(double price) {
 		_shoppingItemPrice.setPrice(price);
 	}
@@ -235,6 +255,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @return the discount of this shopping item price
 	*/
+	@Override
 	public double getDiscount() {
 		return _shoppingItemPrice.getDiscount();
 	}
@@ -244,6 +265,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @param discount the discount of this shopping item price
 	*/
+	@Override
 	public void setDiscount(double discount) {
 		_shoppingItemPrice.setDiscount(discount);
 	}
@@ -253,6 +275,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @return the taxable of this shopping item price
 	*/
+	@Override
 	public boolean getTaxable() {
 		return _shoppingItemPrice.getTaxable();
 	}
@@ -262,6 +285,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @return <code>true</code> if this shopping item price is taxable; <code>false</code> otherwise
 	*/
+	@Override
 	public boolean isTaxable() {
 		return _shoppingItemPrice.isTaxable();
 	}
@@ -271,6 +295,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @param taxable the taxable of this shopping item price
 	*/
+	@Override
 	public void setTaxable(boolean taxable) {
 		_shoppingItemPrice.setTaxable(taxable);
 	}
@@ -280,6 +305,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @return the shipping of this shopping item price
 	*/
+	@Override
 	public double getShipping() {
 		return _shoppingItemPrice.getShipping();
 	}
@@ -289,6 +315,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @param shipping the shipping of this shopping item price
 	*/
+	@Override
 	public void setShipping(double shipping) {
 		_shoppingItemPrice.setShipping(shipping);
 	}
@@ -298,6 +325,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @return the use shipping formula of this shopping item price
 	*/
+	@Override
 	public boolean getUseShippingFormula() {
 		return _shoppingItemPrice.getUseShippingFormula();
 	}
@@ -307,6 +335,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @return <code>true</code> if this shopping item price is use shipping formula; <code>false</code> otherwise
 	*/
+	@Override
 	public boolean isUseShippingFormula() {
 		return _shoppingItemPrice.isUseShippingFormula();
 	}
@@ -316,6 +345,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @param useShippingFormula the use shipping formula of this shopping item price
 	*/
+	@Override
 	public void setUseShippingFormula(boolean useShippingFormula) {
 		_shoppingItemPrice.setUseShippingFormula(useShippingFormula);
 	}
@@ -325,6 +355,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @return the status of this shopping item price
 	*/
+	@Override
 	public int getStatus() {
 		return _shoppingItemPrice.getStatus();
 	}
@@ -334,42 +365,64 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 	*
 	* @param status the status of this shopping item price
 	*/
+	@Override
 	public void setStatus(int status) {
 		_shoppingItemPrice.setStatus(status);
 	}
 
+	@Override
 	public boolean isNew() {
 		return _shoppingItemPrice.isNew();
 	}
 
+	@Override
 	public void setNew(boolean n) {
 		_shoppingItemPrice.setNew(n);
 	}
 
+	@Override
 	public boolean isCachedModel() {
 		return _shoppingItemPrice.isCachedModel();
 	}
 
+	@Override
 	public void setCachedModel(boolean cachedModel) {
 		_shoppingItemPrice.setCachedModel(cachedModel);
 	}
 
+	@Override
 	public boolean isEscapedModel() {
 		return _shoppingItemPrice.isEscapedModel();
 	}
 
+	@Override
 	public java.io.Serializable getPrimaryKeyObj() {
 		return _shoppingItemPrice.getPrimaryKeyObj();
 	}
 
+	@Override
 	public void setPrimaryKeyObj(java.io.Serializable primaryKeyObj) {
 		_shoppingItemPrice.setPrimaryKeyObj(primaryKeyObj);
 	}
 
+	@Override
 	public com.liferay.portlet.expando.model.ExpandoBridge getExpandoBridge() {
 		return _shoppingItemPrice.getExpandoBridge();
 	}
 
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portal.model.BaseModel<?> baseModel) {
+		_shoppingItemPrice.setExpandoBridgeAttributes(baseModel);
+	}
+
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portlet.expando.model.ExpandoBridge expandoBridge) {
+		_shoppingItemPrice.setExpandoBridgeAttributes(expandoBridge);
+	}
+
+	@Override
 	public void setExpandoBridgeAttributes(
 		com.liferay.portal.service.ServiceContext serviceContext) {
 		_shoppingItemPrice.setExpandoBridgeAttributes(serviceContext);
@@ -380,6 +433,7 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 		return new ShoppingItemPriceWrapper((ShoppingItemPrice)_shoppingItemPrice.clone());
 	}
 
+	@Override
 	public int compareTo(
 		com.liferay.portlet.shopping.model.ShoppingItemPrice shoppingItemPrice) {
 		return _shoppingItemPrice.compareTo(shoppingItemPrice);
@@ -390,12 +444,19 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 		return _shoppingItemPrice.hashCode();
 	}
 
+	@Override
 	public com.liferay.portal.model.CacheModel<com.liferay.portlet.shopping.model.ShoppingItemPrice> toCacheModel() {
 		return _shoppingItemPrice.toCacheModel();
 	}
 
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingItemPrice toEscapedModel() {
 		return new ShoppingItemPriceWrapper(_shoppingItemPrice.toEscapedModel());
+	}
+
+	@Override
+	public com.liferay.portlet.shopping.model.ShoppingItemPrice toUnescapedModel() {
+		return new ShoppingItemPriceWrapper(_shoppingItemPrice.toUnescapedModel());
 	}
 
 	@Override
@@ -403,26 +464,60 @@ public class ShoppingItemPriceWrapper implements ShoppingItemPrice,
 		return _shoppingItemPrice.toString();
 	}
 
+	@Override
 	public java.lang.String toXmlString() {
 		return _shoppingItemPrice.toXmlString();
 	}
 
-	public void persist()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void persist() {
 		_shoppingItemPrice.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ShoppingItemPriceWrapper)) {
+			return false;
+		}
+
+		ShoppingItemPriceWrapper shoppingItemPriceWrapper = (ShoppingItemPriceWrapper)obj;
+
+		if (Validator.equals(_shoppingItemPrice,
+					shoppingItemPriceWrapper._shoppingItemPrice)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
-	 * @deprecated Renamed to {@link #getWrappedModel}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ShoppingItemPrice getWrappedShoppingItemPrice() {
 		return _shoppingItemPrice;
 	}
 
+	@Override
 	public ShoppingItemPrice getWrappedModel() {
 		return _shoppingItemPrice;
 	}
 
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _shoppingItemPrice.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _shoppingItemPrice.isFinderCacheEnabled();
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		_shoppingItemPrice.resetOriginalValues();
 	}

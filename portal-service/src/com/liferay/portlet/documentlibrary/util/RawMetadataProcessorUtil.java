@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,9 +15,9 @@
 package com.liferay.portlet.documentlibrary.util;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
+import com.liferay.portlet.documentlibrary.model.DLProcessorConstants;
 
 /**
  * Document library processor responsible for the generation of raw metadata
@@ -37,11 +37,19 @@ import com.liferay.portal.kernel.repository.model.FileVersion;
 public class RawMetadataProcessorUtil {
 
 	public static void cleanUp(FileEntry fileEntry) {
-		getRawMetadataProcessor().cleanUp(fileEntry);
+		RawMetadataProcessor rawMetadataProcessor = getRawMetadataProcessor();
+
+		if (rawMetadataProcessor != null) {
+			rawMetadataProcessor.cleanUp(fileEntry);
+		}
 	}
 
 	public static void cleanUp(FileVersion fileVersion) {
-		getRawMetadataProcessor().cleanUp(fileVersion);
+		RawMetadataProcessor rawMetadataProcessor = getRawMetadataProcessor();
+
+		if (rawMetadataProcessor != null) {
+			rawMetadataProcessor.cleanUp(fileVersion);
+		}
 	}
 
 	/**
@@ -50,24 +58,40 @@ public class RawMetadataProcessorUtil {
 	 * @param  fileVersion the file version from which the raw metatada is to be
 	 *         generated
 	 * @throws PortalException if an error occurred in the metadata extraction
-	 * @throws SystemException if a system exception occurred
 	 */
 	public static void generateMetadata(FileVersion fileVersion)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		getRawMetadataProcessor().generateMetadata(fileVersion);
+		RawMetadataProcessor rawMetadataProcessor = getRawMetadataProcessor();
+
+		if (rawMetadataProcessor != null) {
+			rawMetadataProcessor.generateMetadata(fileVersion);
+		}
 	}
 
 	public static RawMetadataProcessor getRawMetadataProcessor() {
-		return _rawMetadataProcessor;
+		return (RawMetadataProcessor)DLProcessorRegistryUtil.getDLProcessor(
+			DLProcessorConstants.RAW_METADATA_PROCESSOR);
 	}
 
 	public static boolean isSupported(FileVersion fileVersion) {
-		return getRawMetadataProcessor().isSupported(fileVersion);
+		RawMetadataProcessor rawMetadataProcessor = getRawMetadataProcessor();
+
+		if (rawMetadataProcessor == null) {
+			return false;
+		}
+
+		return rawMetadataProcessor.isSupported(fileVersion);
 	}
 
 	public static boolean isSupported(String mimeType) {
-		return getRawMetadataProcessor().isSupported(mimeType);
+		RawMetadataProcessor rawMetadataProcessor = getRawMetadataProcessor();
+
+		if (rawMetadataProcessor == null) {
+			return false;
+		}
+
+		return rawMetadataProcessor.isSupported(mimeType);
 	}
 
 	/**
@@ -81,12 +105,15 @@ public class RawMetadataProcessorUtil {
 	 * @param  fileVersion the file version from which the raw metatada is to be
 	 *         extracted and persisted
 	 * @throws PortalException if an error occurred in the metadata extraction
-	 * @throws SystemException if a system exception occurred
 	 */
 	public static void saveMetadata(FileVersion fileVersion)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		getRawMetadataProcessor().saveMetadata(fileVersion);
+		RawMetadataProcessor rawMetadataProcessor = getRawMetadataProcessor();
+
+		if (rawMetadataProcessor != null) {
+			rawMetadataProcessor.saveMetadata(fileVersion);
+		}
 	}
 
 	/**
@@ -100,15 +127,19 @@ public class RawMetadataProcessorUtil {
 	 *        to be generated
 	 */
 	public static void trigger(FileVersion fileVersion) {
-		getRawMetadataProcessor().trigger(fileVersion);
+		RawMetadataProcessor rawMetadataProcessor = getRawMetadataProcessor();
+
+		if (rawMetadataProcessor != null) {
+			rawMetadataProcessor.trigger(fileVersion);
+		}
 	}
 
+	/**
+	 * @deprecated As of 6.2.0
+	 */
+	@Deprecated
 	public void setRawMetadataProcessor(
 		RawMetadataProcessor rawMetadataProcessor) {
-
-		_rawMetadataProcessor = rawMetadataProcessor;
 	}
-
-	private static RawMetadataProcessor _rawMetadataProcessor;
 
 }

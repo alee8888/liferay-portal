@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,22 +29,26 @@ public class AntivirusScannerWrapper implements AntivirusScanner {
 		_antivirusScanner = antivirusScanner;
 	}
 
+	@Override
 	public boolean isActive() {
 		return _antivirusScanner.isActive();
 	}
 
+	@Override
 	public void scan(byte[] bytes)
 		throws AntivirusScannerException, SystemException {
 
 		_antivirusScanner.scan(bytes);
 	}
 
+	@Override
 	public void scan(File file)
 		throws AntivirusScannerException, SystemException {
 
 		_antivirusScanner.scan(file);
 	}
 
+	@Override
 	public void scan(InputStream inputStream)
 		throws AntivirusScannerException, SystemException {
 

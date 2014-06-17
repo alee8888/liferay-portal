@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.security.auth.AuthTokenUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
@@ -47,20 +48,21 @@ public class UpdateEmailAddressAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(request, Constants.CMD);
 
 		if (Validator.isNull(cmd)) {
-			return mapping.findForward("portal.update_email_address");
+			return actionMapping.findForward("portal.update_email_address");
 		}
 
 		try {
 			updateEmailAddress(request);
 
-			return mapping.findForward(ActionConstants.COMMON_REFERER_JSP);
+			return actionMapping.findForward(
+				ActionConstants.COMMON_REFERER_JSP);
 		}
 		catch (Exception e) {
 			if (e instanceof DuplicateUserEmailAddressException ||
@@ -69,25 +71,27 @@ public class UpdateEmailAddressAction extends Action {
 
 				SessionErrors.add(request, e.getClass());
 
-				return mapping.findForward("portal.update_email_address");
+				return actionMapping.findForward("portal.update_email_address");
 			}
 			else if (e instanceof NoSuchUserException ||
 					 e instanceof PrincipalException) {
 
 				SessionErrors.add(request, e.getClass());
 
-				return mapping.findForward("portal.error");
+				return actionMapping.findForward("portal.error");
 			}
-			else {
-				PortalUtil.sendError(e, request, response);
 
-				return null;
-			}
+			PortalUtil.sendError(e, request, response);
+
+			return null;
 		}
 	}
 
 	protected void updateEmailAddress(HttpServletRequest request)
 		throws Exception {
+
+		AuthTokenUtil.checkCSRFToken(
+			request, UpdateEmailAddressAction.class.getName());
 
 		long userId = PortalUtil.getUserId(request);
 		String password = AdminUtil.getUpdateUserPassword(request, userId);

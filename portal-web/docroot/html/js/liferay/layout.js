@@ -20,25 +20,25 @@ AUI.add(
 
 			OVER_NESTED_PORTLET: false,
 
-			PROXY_NODE: A.Node.create('<div class="lfr-portlet-proxy aui-portal-layout-proxy"></div>'),
+			PORTLET_TOPPER: A.Node.create('<div class="portlet-topper"></div>'),
+
+			PROXY_NODE: A.Node.create('<div class="lfr-portlet-proxy sortable-layout-proxy"></div>'),
 
 			PROXY_NODE_ITEM: A.Node.create(
-				'<div class="lfr-portlet-proxy aui-portal-layout-proxy">' +
+				'<div class="lfr-portlet-proxy sortable-layout-proxy">' +
 					'<div class="portlet-topper">' +
 						'<span class="portlet-title"></span>' +
 					'</div>' +
 				'</div>'
 			),
 
-			PORTLET_TOPPER: A.Node.create('<div class="portlet-topper"></div>'),
-
 			options: LAYOUT_CONFIG,
 
 			bindDragDropListeners: function() {
 				var layoutHandler = Layout.getLayoutHandler();
 
-				layoutHandler.on('drag:end', A.bind(Layout._onPortletDragEnd, Layout));
-				layoutHandler.on('drag:start', A.bind(Layout._onPortletDragStart, Layout));
+				layoutHandler.on('drag:end', A.bind('_onPortletDragEnd', Layout));
+				layoutHandler.on('drag:start', A.bind('_onPortletDragStart', Layout));
 			},
 
 			closeNestedPortlets: function(portlet) {
@@ -49,28 +49,6 @@ AUI.add(
 						Liferay.Portlet.close(portlet, true);
 					}
 				);
-			},
-
-			getActiveDropContainer: function() {
-				var options = Layout.options;
-
-				return A.all(options.dropContainer + ':not(.' + options.disabledDropContainerClass + ')').item(0);
-			},
-
-			getActiveDropNodes: function() {
-				var options = Layout.options;
-
-				var dropNodes = [];
-
-				A.all(options.dropContainer).each(
-					function(dropContainer) {
-						if (!dropContainer.hasClass(options.disabledDropContainerClass)) {
-							dropNodes.push(dropContainer.get('parentNode'));
-						}
-					}
-				);
-
-				return A.all(dropNodes);
 			},
 
 			findIndex: function(node) {
@@ -118,6 +96,28 @@ AUI.add(
 				if (layoutHandler) {
 					return layoutHandler.fire.apply(layoutHandler, arguments);
 				}
+			},
+
+			getActiveDropContainer: function() {
+				var options = Layout.options;
+
+				return A.all(options.dropContainer + ':not(.' + options.disabledDropContainerClass + ')').item(0);
+			},
+
+			getActiveDropNodes: function() {
+				var options = Layout.options;
+
+				var dropNodes = [];
+
+				A.all(options.dropContainer).each(
+					function(dropContainer) {
+						if (!dropContainer.hasClass(options.disabledDropContainerClass)) {
+							dropNodes.push(dropContainer.get('parentNode'));
+						}
+					}
+				);
+
+				return A.all(dropNodes);
 			},
 
 			getLayoutHandler: function() {
@@ -351,6 +351,8 @@ AUI.add(
 			function(options) {
 				options = options || Layout.options;
 
+				options.handles = A.Array(options.handles);
+
 				Layout.PROXY_NODE.append(Layout.PORTLET_TOPPER);
 
 				var layoutContainer = options.container;
@@ -408,6 +410,7 @@ AUI.add(
 			function(options) {
 				var data = {
 					doAsUserId: themeDisplay.getDoAsUserIdEncoded(),
+					p_auth: Liferay.authToken,
 					p_l_id: themeDisplay.getPlid()
 				};
 
@@ -456,12 +459,17 @@ AUI.add(
 			);
 
 			if (layoutContainer) {
-				layoutContainer.once(
-					'mousemove',
-					function() {
-						Liferay.fire('initLayout');
-					}
-				);
+				if (!A.UA.touch) {
+					layoutContainer.once(
+						'mousemove',
+						function() {
+							Liferay.fire('initLayout');
+						}
+					);
+				}
+				else {
+					Liferay.fire('initLayout');
+				}
 			}
 		}
 

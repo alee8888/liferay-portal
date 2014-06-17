@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,8 +36,8 @@
 		<aui:form action="<%= portletURL %>" method="post" name="fm">
 			<aui:input name="redirect" type="hidden" value="<%= redirectURL %>" />
 
-			<div class="portlet-msg-info">
-				<liferay-ui:message arguments="<%= InvitationUtil.getEmailMessageMaxRecipients() %>" key="enter-up-to-x-email-addresses-of-friends-you-would-like-to-invite" />
+			<div class="alert alert-info">
+				<liferay-ui:message arguments="<%= InvitationUtil.getEmailMessageMaxRecipients() %>" key="enter-up-to-x-email-addresses-of-friends-you-would-like-to-invite" translateArguments="<%= false %>" />
 			</div>
 
 			<%
@@ -50,7 +50,7 @@
 			%>
 
 				<c:if test='<%= (invalidEmailAddresses != null) && invalidEmailAddresses.contains("emailAddress" + i) %>'>
-					<div class="portlet-msg-error">
+					<div class="alert alert-danger">
 						<liferay-ui:message key="please-enter-a-valid-email-address" />
 					</div>
 				</c:if>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,27 +19,14 @@ import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.File;
-import java.io.InputStream;
 
 /**
  * @author Alexander Chow
  */
 public class DLAppUtil {
-
-	public static String appendTrashNamespace(String title) {
-		StringBundler sb = new StringBundler(3);
-
-		sb.append(title);
-		sb.append(StringPool.SLASH);
-		sb.append(System.currentTimeMillis());
-
-		return sb.toString();
-	}
 
 	public static String getExtension(String title, String sourceFileName) {
 		String extension = FileUtil.getExtension(sourceFileName);
@@ -52,29 +39,14 @@ public class DLAppUtil {
 	}
 
 	public static String getMimeType(
-		String sourceFileName, String mimeType, String title, File file,
-		InputStream is) {
+		String sourceFileName, String mimeType, String title, File file) {
 
 		if (Validator.isNull(mimeType) ||
-			!mimeType.equals(ContentTypes.APPLICATION_OCTET_STREAM)) {
+			mimeType.equals(ContentTypes.APPLICATION_OCTET_STREAM)) {
 
-			return mimeType;
-		}
+			String extension = getExtension(title, sourceFileName);
 
-		if (Validator.isNull(title)) {
-			title = sourceFileName;
-		}
-
-		String extension = getExtension(title, sourceFileName);
-
-		String titleWithExtension = DLUtil.getTitleWithExtension(
-			title, extension);
-
-		if (file != null) {
-			mimeType = MimeTypesUtil.getContentType(file, titleWithExtension);
-		}
-		else {
-			mimeType = MimeTypesUtil.getContentType(is, titleWithExtension);
+			mimeType = MimeTypesUtil.getContentType(file, "A." + extension);
 		}
 
 		return mimeType;
@@ -89,16 +61,6 @@ public class DLAppUtil {
 			previousFileVersion.getVersion());
 
 		return (currentVersion - previousVersion) >= 1;
-	}
-
-	public static String stripTrashNamespace(String title) {
-		int index = title.indexOf(StringPool.SLASH);
-
-		if (index >= 0) {
-			title = title.substring(0, index);
-		}
-
-		return title;
 	}
 
 }

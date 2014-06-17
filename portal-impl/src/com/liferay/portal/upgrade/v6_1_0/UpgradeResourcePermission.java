@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portal.upgrade.v6_1_0;
 
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.RoleConstants;
@@ -32,14 +33,14 @@ public class UpgradeResourcePermission extends UpgradeProcess {
 		sb.append("update ResourcePermission set scope = ");
 		sb.append(ResourceConstants.SCOPE_GROUP_TEMPLATE);
 		sb.append(", primKey = '");
-		sb.append(String.valueOf(GroupConstants.DEFAULT_PARENT_GROUP_ID));
+		sb.append(GroupConstants.DEFAULT_PARENT_GROUP_ID);
 		sb.append("' where scope = ");
 		sb.append(ResourceConstants.SCOPE_COMPANY);
 		sb.append(" and primKey = CAST_TEXT(companyId) and exists (select ");
 		sb.append("roleId from Role_ where Role_.roleId = ");
 		sb.append("ResourcePermission.roleId and Role_.type_ = ");
 		sb.append(RoleConstants.TYPE_PROVIDER);
-		sb.append(")");
+		sb.append(StringPool.CLOSE_PARENTHESIS);
 
 		runSQL(sb.toString());
 	}

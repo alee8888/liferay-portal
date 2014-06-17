@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,18 @@
 
 package com.liferay.portal.util;
 
+import com.liferay.portal.bean.BeanLocatorImpl;
 import com.liferay.portal.cache.CacheRegistryImpl;
 import com.liferay.portal.configuration.ConfigurationFactoryImpl;
 import com.liferay.portal.dao.db.DBFactoryImpl;
 import com.liferay.portal.dao.jdbc.DataSourceFactoryImpl;
+import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.cache.CacheRegistryUtil;
 import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
 import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataSourceFactoryUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.log.SanitizerLogWrapper;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.JavaDetector;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -31,10 +34,15 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.TimeZoneUtil;
 import com.liferay.portal.log.Log4jLogFactoryImpl;
+import com.liferay.portal.module.framework.ModuleFrameworkUtilAdapter;
+import com.liferay.portal.security.lang.DoPrivilegedUtil;
+import com.liferay.portal.security.lang.SecurityManagerUtil;
 import com.liferay.portal.spring.util.SpringUtil;
 import com.liferay.util.log4j.Log4JUtil;
 
 import com.sun.syndication.io.XmlReader;
+
+import java.util.List;
 
 import org.apache.commons.lang.time.StopWatch;
 
@@ -48,13 +56,9 @@ public class InitUtil {
 			return;
 		}
 
-		StopWatch stopWatch = null;
+		StopWatch stopWatch = new StopWatch();
 
-		if (_PRINT_TIME) {
-			stopWatch = new StopWatch();
-
-			stopWatch.start();
-		}
+		stopWatch.start();
 
 		// Set the default locale used by Liferay. This locale is no longer set
 		// at the VM level. See LEP-2584.
@@ -75,10 +79,8 @@ public class InitUtil {
 		// Shared class loader
 
 		try {
-			Thread currentThread = Thread.currentThread();
-
 			PortalClassLoaderUtil.setClassLoader(
-				currentThread.getContextClassLoader());
+				ClassLoaderUtil.getContextClassLoader());
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -107,26 +109,45 @@ public class InitUtil {
 			e.printStackTrace();
 		}
 
-		// Cache registry
+		// Log sanitizer
 
-		CacheRegistryUtil.setCacheRegistry(new CacheRegistryImpl());
-
-		// Configuration factory
-
-		ConfigurationFactoryUtil.setConfigurationFactory(
-			new ConfigurationFactoryImpl());
-
-		// Data source factory
-
-		DataSourceFactoryUtil.setDataSourceFactory(new DataSourceFactoryImpl());
-
-		// DB factory
-
-		DBFactoryUtil.setDBFactory(new DBFactoryImpl());
+		SanitizerLogWrapper.init();
 
 		// Java properties
 
 		JavaDetector.isJDK5();
+
+		// Security manager
+
+		SecurityManagerUtil.init();
+
+		if (SecurityManagerUtil.ENABLED) {
+			com.liferay.portal.kernel.util.PropsUtil.setProps(
+				DoPrivilegedUtil.wrap(
+					com.liferay.portal.kernel.util.PropsUtil.getProps()));
+
+			LogFactoryUtil.setLogFactory(
+				DoPrivilegedUtil.wrap(LogFactoryUtil.getLogFactory()));
+		}
+
+		// Cache registry
+
+		CacheRegistryUtil.setCacheRegistry(
+			DoPrivilegedUtil.wrap(new CacheRegistryImpl()));
+
+		// Configuration factory
+
+		ConfigurationFactoryUtil.setConfigurationFactory(
+			DoPrivilegedUtil.wrap(new ConfigurationFactoryImpl()));
+
+		// Data source factory
+
+		DataSourceFactoryUtil.setDataSourceFactory(
+			DoPrivilegedUtil.wrap(new DataSourceFactoryImpl()));
+
+		// DB factory
+
+		DBFactoryUtil.setDBFactory(DoPrivilegedUtil.wrap(new DBFactoryImpl()));
 
 		// ROME
 
@@ -141,10 +162,16 @@ public class InitUtil {
 	}
 
 	public synchronized static void initWithSpring() {
-		initWithSpring(false);
+		initWithSpring(false, null);
 	}
 
 	public synchronized static void initWithSpring(boolean force) {
+		initWithSpring(force, null);
+	}
+
+	public synchronized static void initWithSpring(
+		boolean force, List<String> extraConfigLocations) {
+
 		if (force) {
 			_initialized = false;
 		}
@@ -162,9 +189,77 @@ public class InitUtil {
 
 		init();
 
-		SpringUtil.loadContext();
+		SpringUtil.loadContext(extraConfigLocations);
 
 		_initialized = true;
+	}
+
+	public synchronized static void initWithSpring(
+		List<String> extraConfigLocations) {
+
+		initWithSpring(false, extraConfigLocations);
+	}
+
+	public synchronized static void initWithSpringAndModuleFramework() {
+		initWithSpringAndModuleFramework(false, null);
+	}
+
+	public synchronized static void initWithSpringAndModuleFramework(
+		boolean force, List<String> extraConfigLocations) {
+
+		if (force) {
+			_initialized = false;
+		}
+
+		if (_initialized) {
+			return;
+		}
+
+		if (!_neverInitialized) {
+			PropsUtil.reload();
+		}
+		else {
+			_neverInitialized = false;
+		}
+
+		try {
+			PropsValues.LIFERAY_WEB_PORTAL_CONTEXT_TEMPDIR = System.getProperty(
+				SystemProperties.TMP_DIR);
+
+			init();
+
+			ModuleFrameworkUtilAdapter.startFramework();
+
+			SpringUtil.loadContext(extraConfigLocations);
+
+			BeanLocatorImpl beanLocatorImpl =
+				(BeanLocatorImpl)PortalBeanLocatorUtil.getBeanLocator();
+
+			ModuleFrameworkUtilAdapter.registerContext(
+				beanLocatorImpl.getApplicationContext());
+
+			ModuleFrameworkUtilAdapter.startRuntime();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		_initialized = true;
+	}
+
+	public synchronized static void initWithSpringAndModuleFramework(
+		List<String> extraConfigLocations) {
+
+		initWithSpringAndModuleFramework(false, extraConfigLocations);
+	}
+
+	public synchronized static void stopModuleFramework() {
+		try {
+			ModuleFrameworkUtilAdapter.stopFramework();
+		}
+		catch (Exception e) {
+			new RuntimeException(e);
+		}
 	}
 
 	private static final boolean _PRINT_TIME = false;

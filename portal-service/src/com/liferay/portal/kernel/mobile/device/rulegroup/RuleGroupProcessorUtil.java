@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,8 @@
 
 package com.liferay.portal.kernel.mobile.device.rulegroup;
 
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.mobile.device.rulegroup.rule.RuleHandler;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance;
 
@@ -27,13 +27,15 @@ import java.util.Collection;
 public class RuleGroupProcessorUtil {
 
 	public static MDRRuleGroupInstance evaluateRuleGroups(
-			ThemeDisplay themeDisplay)
-		throws SystemException {
+		ThemeDisplay themeDisplay) {
 
 		return getRuleGroupProcessor().evaluateRuleGroups(themeDisplay);
 	}
 
 	public static RuleGroupProcessor getRuleGroupProcessor() {
+		PortalRuntimePermission.checkGetBeanProperty(
+			RuleGroupProcessorUtil.class);
+
 		return _ruleGroupProcessor;
 	}
 
@@ -58,6 +60,8 @@ public class RuleGroupProcessorUtil {
 	}
 
 	public void setRuleGroupProcessor(RuleGroupProcessor ruleGroupProcessor) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_ruleGroupProcessor = ruleGroupProcessor;
 	}
 

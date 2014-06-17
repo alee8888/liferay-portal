@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,8 +15,14 @@
 package com.liferay.portal.spring.context;
 
 import com.liferay.portal.kernel.spring.util.SpringFactoryUtil;
+import com.liferay.portal.spring.aop.ChainableMethodAdviceInjectorCollector;
 
+import java.util.Map;
+
+import org.springframework.aop.framework.autoproxy.AbstractAutoProxyCreator;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanIsAbstractException;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -27,11 +33,50 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 public class PortletBeanFactoryPostProcessor
 	implements BeanFactoryPostProcessor {
 
+	@Override
 	public void postProcessBeanFactory(
 		ConfigurableListableBeanFactory configurableListableBeanFactory) {
 
-		configurableListableBeanFactory.setBeanClassLoader(
-			PortletApplicationContext.getBeanClassLoader());
+		ChainableMethodAdviceInjectorCollector.collect(
+			configurableListableBeanFactory);
+
+		ClassLoader classLoader = getClassLoader();
+
+		configurableListableBeanFactory.setBeanClassLoader(classLoader);
+
+		ListableBeanFactory parentListableBeanFactory =
+			(ListableBeanFactory)
+				configurableListableBeanFactory.getParentBeanFactory();
+
+		if (parentListableBeanFactory != null) {
+			Map<String, BeanPostProcessor> beanPostProcessors =
+				parentListableBeanFactory.getBeansOfType(
+					BeanPostProcessor.class, true, false);
+
+			for (BeanPostProcessor beanPostProcessor :
+					beanPostProcessors.values()) {
+
+				if (beanPostProcessor instanceof BeanFactoryAware) {
+					BeanFactoryAware beanFactoryAware =
+						(BeanFactoryAware)beanPostProcessor;
+
+					beanFactoryAware.setBeanFactory(
+						configurableListableBeanFactory);
+				}
+
+				if (beanPostProcessor instanceof
+						AbstractAutoProxyCreator) {
+
+					AbstractAutoProxyCreator abstractAutoProxyCreator =
+						(AbstractAutoProxyCreator)beanPostProcessor;
+
+					abstractAutoProxyCreator.setProxyClassLoader(classLoader);
+				}
+
+				configurableListableBeanFactory.addBeanPostProcessor(
+					beanPostProcessor);
+			}
+		}
 
 		String[] names =
 			configurableListableBeanFactory.getBeanDefinitionNames();
@@ -53,6 +98,10 @@ public class PortletBeanFactoryPostProcessor
 				continue;
 			}
 		}
+	}
+
+	protected ClassLoader getClassLoader() {
+		return PortletApplicationContext.getBeanClassLoader();
 	}
 
 }

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,14 +17,22 @@
 <%@ include file="/html/portlet/user_groups_admin/init.jsp" %>
 
 <%
-String target = ParamUtil.getString(request, "target");
+String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectUserGroup");
+
+User selUser = PortalUtil.getSelectedUser(request);
 
 PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("struts_action", "/user_groups_admin/select_user_group");
+
+if (selUser != null) {
+	portletURL.setParameter("p_u_i_d", String.valueOf(selUser.getUserId()));
+}
+
+portletURL.setParameter("eventName", eventName);
 %>
 
-<aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
+<aui:form action="<%= portletURL.toString() %>" method="post" name="selectUserGroupFm">
 	<liferay-ui:header
 		title="user-groups"
 	/>
@@ -37,7 +45,7 @@ portletURL.setParameter("struts_action", "/user_groups_admin/select_user_group")
 		/>
 
 		<%
-		UserGroupSearchTerms searchTerms = (UserGroupSearchTerms)searchContainer.getSearchTerms();
+		UserGroupDisplayTerms searchTerms = (UserGroupDisplayTerms)searchContainer.getSearchTerms();
 		%>
 
 		<liferay-ui:search-container-results>
@@ -48,61 +56,79 @@ portletURL.setParameter("struts_action", "/user_groups_admin/select_user_group")
 
 				userGroups = UsersAdminUtil.filterUserGroups(permissionChecker, userGroups);
 
-				total = userGroups.size();
+				searchContainer.setTotal(userGroups.size());
+
 				results = ListUtil.subList(userGroups, searchContainer.getStart(), searchContainer.getEnd());
 			}
 			else {
-				results = UserGroupLocalServiceUtil.search(company.getCompanyId(), searchTerms.getKeywords(), null, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
 				total = UserGroupLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getKeywords(), null);
+
+				searchContainer.setTotal(total);
+
+				results = UserGroupLocalServiceUtil.search(company.getCompanyId(), searchTerms.getKeywords(), null, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
 			}
 
-			pageContext.setAttribute("results", results);
-			pageContext.setAttribute("total", total);
+			searchContainer.setResults(results);
 			%>
 
 		</liferay-ui:search-container-results>
 
 		<liferay-ui:search-container-row
 			className="com.liferay.portal.model.UserGroup"
-			escapedModel="<%= true %>"
+			escapedModel="<%= false %>"
 			keyProperty="userGroupId"
 			modelVar="userGroup"
 		>
-
-			<%
-			StringBundler sb = new StringBundler(10);
-
-			sb.append("javascript:opener.");
-			sb.append(renderResponse.getNamespace());
-			sb.append("selectUserGroup('");
-			sb.append(userGroup.getUserGroupId());
-			sb.append("', '");
-			sb.append(UnicodeFormatter.toString(userGroup.getName()));
-			sb.append("', '");
-			sb.append(target);
-			sb.append("');");
-			sb.append("window.close();");
-
-			String rowHREF = sb.toString();
-			%>
-
 			<liferay-ui:search-container-column-text
-				href="<%= rowHREF %>"
 				name="name"
-				property="name"
+				value="<%= HtmlUtil.escape(userGroup.getName()) %>"
 			/>
 
 			<liferay-ui:search-container-column-text
-				href="<%= rowHREF %>"
 				name="description"
-				value="<%= LanguageUtil.get(pageContext, userGroup.getDescription()) %>"
+				value="<%= HtmlUtil.escape(userGroup.getDescription()) %>"
 			/>
+
+			<liferay-ui:search-container-column-text>
+				<c:if test="<%= (UserGroupMembershipPolicyUtil.isMembershipAllowed((selUser != null) ? selUser.getUserId() : 0, userGroup.getUserGroupId())) %>">
+
+					<%
+					Map<String, Object> data = new HashMap<String, Object>();
+
+					data.put("usergroupid", userGroup.getUserGroupId());
+					data.put("usergroupname", userGroup.getName());
+
+					boolean disabled = false;
+
+					for (long curUserGroupId : selUser.getUserGroupIds()) {
+						if (curUserGroupId == userGroup.getUserGroupId()) {
+							disabled = true;
+
+							break;
+						}
+					}
+					%>
+
+					<aui:button cssClass="selector-button" data="<%= data %>" disabled="<%= disabled %>" value="choose" />
+				</c:if>
+			</liferay-ui:search-container-column-text>
 		</liferay-ui:search-container-row>
 
 		<liferay-ui:search-iterator />
 	</liferay-ui:search-container>
 </aui:form>
 
-<aui:script>
-	Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
+<aui:script use="aui-base">
+	var Util = Liferay.Util;
+
+	var openingLiferay = Util.getOpener().Liferay;
+
+	openingLiferay.fire(
+		'<portlet:namespace />enableRemovedUserGroups',
+		{
+			selectors: A.all('.selector-button:disabled')
+		}
+	);
+
+	Util.selectEntityHandler('#<portlet:namespace />selectUserGroupFm', '<%= HtmlUtil.escapeJS(eventName) %>');
 </aui:script>

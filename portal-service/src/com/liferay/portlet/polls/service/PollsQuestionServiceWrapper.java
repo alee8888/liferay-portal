@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.polls.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link PollsQuestionService}.
- * </p>
+ * Provides a wrapper for {@link PollsQuestionService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       PollsQuestionService
+ * @author Brian Wing Shun Chan
+ * @see PollsQuestionService
  * @generated
  */
+@ProviderType
 public class PollsQuestionServiceWrapper implements PollsQuestionService,
 	ServiceWrapper<PollsQuestionService> {
 	public PollsQuestionServiceWrapper(
@@ -37,6 +38,7 @@ public class PollsQuestionServiceWrapper implements PollsQuestionService,
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _pollsQuestionService.getBeanIdentifier();
 	}
@@ -46,10 +48,12 @@ public class PollsQuestionServiceWrapper implements PollsQuestionService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_pollsQuestionService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public com.liferay.portlet.polls.model.PollsQuestion addQuestion(
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
 		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
@@ -57,27 +61,27 @@ public class PollsQuestionServiceWrapper implements PollsQuestionService,
 		int expirationDateHour, int expirationDateMinute, boolean neverExpire,
 		java.util.List<com.liferay.portlet.polls.model.PollsChoice> choices,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _pollsQuestionService.addQuestion(titleMap, descriptionMap,
 			expirationDateMonth, expirationDateDay, expirationDateYear,
 			expirationDateHour, expirationDateMinute, neverExpire, choices,
 			serviceContext);
 	}
 
+	@Override
 	public void deleteQuestion(long questionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_pollsQuestionService.deleteQuestion(questionId);
 	}
 
+	@Override
 	public com.liferay.portlet.polls.model.PollsQuestion getQuestion(
 		long questionId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _pollsQuestionService.getQuestion(questionId);
 	}
 
+	@Override
 	public com.liferay.portlet.polls.model.PollsQuestion updateQuestion(
 		long questionId,
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
@@ -86,8 +90,7 @@ public class PollsQuestionServiceWrapper implements PollsQuestionService,
 		int expirationDateHour, int expirationDateMinute, boolean neverExpire,
 		java.util.List<com.liferay.portlet.polls.model.PollsChoice> choices,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _pollsQuestionService.updateQuestion(questionId, titleMap,
 			descriptionMap, expirationDateMonth, expirationDateDay,
 			expirationDateYear, expirationDateHour, expirationDateMinute,
@@ -95,24 +98,28 @@ public class PollsQuestionServiceWrapper implements PollsQuestionService,
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PollsQuestionService getWrappedPollsQuestionService() {
 		return _pollsQuestionService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPollsQuestionService(
 		PollsQuestionService pollsQuestionService) {
 		_pollsQuestionService = pollsQuestionService;
 	}
 
+	@Override
 	public PollsQuestionService getWrappedService() {
 		return _pollsQuestionService;
 	}
 
+	@Override
 	public void setWrappedService(PollsQuestionService pollsQuestionService) {
 		_pollsQuestionService = pollsQuestionService;
 	}

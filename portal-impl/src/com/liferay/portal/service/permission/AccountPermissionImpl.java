@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portal.service.permission;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.Account;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.PermissionChecker;
@@ -26,6 +25,7 @@ import com.liferay.portal.service.AccountLocalServiceUtil;
  */
 public class AccountPermissionImpl implements AccountPermission {
 
+	@Override
 	public void check(
 			PermissionChecker permissionChecker, Account account,
 			String actionId)
@@ -36,16 +36,18 @@ public class AccountPermissionImpl implements AccountPermission {
 		}
 	}
 
+	@Override
 	public void check(
 			PermissionChecker permissionChecker, long accountId,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (!contains(permissionChecker, accountId, actionId)) {
 			throw new PrincipalException();
 		}
 	}
 
+	@Override
 	public boolean contains(
 		PermissionChecker permissionChecker, Account account, String actionId) {
 
@@ -56,10 +58,11 @@ public class AccountPermissionImpl implements AccountPermission {
 			groupId, Account.class.getName(), account.getAccountId(), actionId);
 	}
 
+	@Override
 	public boolean contains(
 			PermissionChecker permissionChecker, long accountId,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Account account = AccountLocalServiceUtil.getAccount(accountId);
 

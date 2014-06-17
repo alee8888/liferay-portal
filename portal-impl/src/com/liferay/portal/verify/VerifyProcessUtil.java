@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,7 +21,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.NotificationThreadLocal;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
-import com.liferay.portal.service.persistence.BatchSessionUtil;
+import com.liferay.portal.staging.StagingAdvicesThreadLocal;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 
@@ -33,7 +33,7 @@ import com.liferay.portal.util.PropsValues;
 public class VerifyProcessUtil {
 
 	public static boolean verifyProcess(
-			boolean ranUpgradeProcess, boolean verified)
+			boolean ranUpgradeProcess, boolean newBuildNumber, boolean verified)
 		throws VerifyException {
 
 		int verifyFrequency = GetterUtil.getInteger(
@@ -41,7 +41,7 @@ public class VerifyProcessUtil {
 
 		if ((verifyFrequency == VerifyProcess.ALWAYS) ||
 			((verifyFrequency == VerifyProcess.ONCE) && !verified) ||
-			ranUpgradeProcess) {
+			ranUpgradeProcess || newBuildNumber) {
 
 			return _verifyProcess(ranUpgradeProcess);
 		}
@@ -54,8 +54,6 @@ public class VerifyProcessUtil {
 
 		boolean ranVerifyProcess = false;
 
-		boolean tempIndexOnStartUp = PropsValues.INDEX_ON_STARTUP;
-
 		if (ranUpgradeProcess && PropsValues.INDEX_ON_UPGRADE) {
 			PropsUtil.set(PropsKeys.INDEX_ON_STARTUP, Boolean.TRUE.toString());
 
@@ -66,8 +64,8 @@ public class VerifyProcessUtil {
 
 		SearchEngineUtil.setIndexReadOnly(true);
 
-		BatchSessionUtil.setEnabled(true);
 		NotificationThreadLocal.setEnabled(false);
+		StagingAdvicesThreadLocal.setEnabled(false);
 		WorkflowThreadLocal.setEnabled(false);
 
 		try {
@@ -84,15 +82,10 @@ public class VerifyProcessUtil {
 			}
 		}
 		finally {
-			PropsUtil.set(
-				PropsKeys.INDEX_ON_STARTUP, String.valueOf(tempIndexOnStartUp));
-
-			PropsValues.INDEX_ON_STARTUP = tempIndexOnStartUp;
-
 			SearchEngineUtil.setIndexReadOnly(tempIndexReadOnly);
 
-			BatchSessionUtil.setEnabled(false);
 			NotificationThreadLocal.setEnabled(true);
+			StagingAdvicesThreadLocal.setEnabled(true);
 			WorkflowThreadLocal.setEnabled(true);
 		}
 
@@ -107,8 +100,9 @@ public class VerifyProcessUtil {
 		}
 
 		try {
-			VerifyProcess verifyProcess = (VerifyProcess)Class.forName(
-				verifyProcessClassName).newInstance();
+			Class<?> clazz = Class.forName(verifyProcessClassName);
+
+			VerifyProcess verifyProcess = (VerifyProcess)clazz.newInstance();
 
 			if (_log.isDebugEnabled()) {
 				_log.debug("Running verification " + verifyProcessClassName);

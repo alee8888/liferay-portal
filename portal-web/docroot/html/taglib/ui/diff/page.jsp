@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,7 @@
  */
 --%>
 
-<%@ include file="/html/taglib/init.jsp" %>
-
-<%@ page import="com.liferay.portal.kernel.util.Diff" %>
-<%@ page import="com.liferay.portal.kernel.util.DiffResult" %>
+<%@ include file="/html/taglib/ui/diff/init.jsp" %>
 
 <%
 String sourceName = (String)request.getAttribute("liferay-ui:diff:sourceName");
@@ -30,12 +27,12 @@ List<DiffResult> targetResults = diffResults[1];
 
 <c:choose>
 	<c:when test="<%= !sourceResults.isEmpty() %>">
-		<table class="taglib-search-iterator" id="taglib-diff-results">
+		<table class="table table-bordered table-hover table-striped" id="taglib-diff-results">
 		<tr>
-			<td>
+			<td class="table-cell">
 				<%= sourceName %>
 			</td>
-			<td>
+			<td class="table-cell">
 				<%= targetName %>
 			</td>
 		</tr>
@@ -46,16 +43,17 @@ List<DiffResult> targetResults = diffResults[1];
 			DiffResult targetResult = targetResults.get(i);
 		%>
 
-			<tr class="portlet-section-header results-header">
-				<th>
+			<tr>
+				<th class="table-header">
 					<liferay-ui:message key="line" /> <%= sourceResult.getLineNumber() %>
 				</th>
-				<th>
+				<th class="table-header">
 					<liferay-ui:message key="line" /> <%= targetResult.getLineNumber() %>
 				</th>
 			</tr>
+
 			<tr>
-				<td class="lfr-top" width="50%">
+				<td class="table-cell" width="50%">
 					<table class="taglib-diff-table">
 
 					<%
@@ -98,7 +96,7 @@ List<DiffResult> targetResults = diffResults[1];
 		</table>
 	</c:when>
 	<c:otherwise>
-		<%= LanguageUtil.format(pageContext, "there-are-no-differences-between-x-and-x", new Object[] {sourceName, targetName}) %>
+		<%= LanguageUtil.format(pageContext, "there-are-no-differences-between-x-and-x", new Object[] {sourceName, targetName}, false) %>
 	</c:otherwise>
 </c:choose>
 

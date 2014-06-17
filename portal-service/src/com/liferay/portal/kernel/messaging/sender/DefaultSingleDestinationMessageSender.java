@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,8 +26,9 @@ public class DefaultSingleDestinationMessageSender
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public DefaultSingleDestinationMessageSender(
 		String destinationName, MessageSender messageSender) {
 
@@ -35,10 +36,12 @@ public class DefaultSingleDestinationMessageSender
 		_messageSender = messageSender;
 	}
 
+	@Override
 	public void send(Message message) {
 		_messageSender.send(_destinationName, message);
 	}
 
+	@Override
 	public void send(Object payload) {
 		Message message = new Message();
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,15 +16,16 @@ package com.liferay.portal.kernel.util;
 
 import com.liferay.portal.kernel.cal.Duration;
 import com.liferay.portal.kernel.cal.Recurrence;
-import com.liferay.portal.kernel.test.TestCase;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+import org.junit.Assert;
+
 /**
  * @author Douglas Wong
  */
-public abstract class RecurrenceTestCase extends TestCase {
+public abstract class RecurrenceTestCase {
 
 	public static final int APRIL = Calendar.APRIL;
 
@@ -67,7 +68,7 @@ public abstract class RecurrenceTestCase extends TestCase {
 	protected void assertRecurrenceEquals(
 		boolean expected, Recurrence recurrence, Calendar calendar) {
 
-		assertEquals(expected, recurrence.isInRecurrence(calendar));
+		Assert.assertEquals(expected, recurrence.isInRecurrence(calendar));
 	}
 
 	protected Calendar getCalendar(

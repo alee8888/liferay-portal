@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,20 +15,26 @@
 package com.liferay.portal.service;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
+import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.DateUtil;
+import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.AuditedModel;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.model.PortletPreferencesIds;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.security.permission.ResourceActionsUtil;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 
 import java.io.Serializable;
@@ -39,8 +45,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Contains context information about a given API call.
@@ -57,6 +65,7 @@ import javax.servlet.http.HttpServletRequest;
  * @author Brian Wing Shun Chan
  * @author Jorge Ferrer
  */
+@JSON
 public class ServiceContext implements Cloneable, Serializable {
 
 	/**
@@ -92,6 +101,7 @@ public class ServiceContext implements Cloneable, Serializable {
 		serviceContext.setCreateDate(getCreateDate());
 		serviceContext.setCurrentURL(getCurrentURL());
 		serviceContext.setExpandoBridgeAttributes(getExpandoBridgeAttributes());
+		serviceContext.setFailOnPortalException(isFailOnPortalException());
 		serviceContext.setGroupPermissions(getGroupPermissions());
 		serviceContext.setGuestPermissions(getGuestPermissions());
 		serviceContext.setHeaders(getHeaders());
@@ -100,6 +110,11 @@ public class ServiceContext implements Cloneable, Serializable {
 		serviceContext.setLayoutFullURL(getLayoutFullURL());
 		serviceContext.setLayoutURL(getLayoutURL());
 		serviceContext.setModifiedDate(getModifiedDate());
+		serviceContext.setPathFriendlyURLPrivateGroup(
+			getPathFriendlyURLPrivateGroup());
+		serviceContext.setPathFriendlyURLPrivateUser(
+			getPathFriendlyURLPrivateUser());
+		serviceContext.setPathFriendlyURLPublic(getPathFriendlyURLPublic());
 		serviceContext.setPathMain(getPathMain());
 		serviceContext.setPlid(getPlid());
 		serviceContext.setPortalURL(getPortalURL());
@@ -123,14 +138,14 @@ public class ServiceContext implements Cloneable, Serializable {
 	 * update this logic updating the logic in the JSP.
 	 */
 	public void deriveDefaultPermissions(long repositoryId, String modelName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		long parentGroupId = PortalUtil.getParentGroupId(repositoryId);
+		long siteGroupId = PortalUtil.getSiteGroupId(repositoryId);
 
-		Group parentGroup = GroupLocalServiceUtil.getGroup(parentGroupId);
+		Group siteGroup = GroupLocalServiceUtil.getGroup(siteGroupId);
 
 		Role defaultGroupRole = RoleLocalServiceUtil.getDefaultGroupRole(
-			parentGroupId);
+			siteGroupId);
 
 		List<String> groupPermissions = new ArrayList<String>();
 		List<String> guestPermissions = new ArrayList<String>();
@@ -152,7 +167,7 @@ public class ServiceContext implements Cloneable, Serializable {
 				if (roleName.equals(RoleConstants.GUEST) &&
 					!guestUnsupportedActions.contains(action) &&
 					guestDefaultActions.contains(action) &&
-					parentGroup.hasPublicLayouts()) {
+					siteGroup.hasPublicLayouts()) {
 
 					guestPermissions.add(action);
 				}
@@ -179,8 +194,9 @@ public class ServiceContext implements Cloneable, Serializable {
 	 *             a parameter to a method which manipulates a resource to which
 	 *             default community permissions apply; <code>false</code>
 	 *             otherwise
-	 * @deprecated As of 6.1, renamed to {@link #isAddGroupPermissions()}
+	 * @deprecated As of 6.1.0, renamed to {@link #isAddGroupPermissions()}
 	 */
+	@Deprecated
 	public boolean getAddCommunityPermissions() {
 		return isAddGroupPermissions();
 	}
@@ -256,8 +272,9 @@ public class ServiceContext implements Cloneable, Serializable {
 	 * resource.
 	 *
 	 * @return     the community permissions
-	 * @deprecated As of 6.1, renamed to {@link #getGroupPermissions()}
+	 * @deprecated As of 6.1.0, renamed to {@link #getGroupPermissions()}
 	 */
+	@Deprecated
 	public String[] getCommunityPermissions() {
 		return getGroupPermissions();
 	}
@@ -370,9 +387,8 @@ public class ServiceContext implements Cloneable, Serializable {
 	 *         context
 	 * @throws PortalException if a default user for the company could not be
 	 *         found
-	 * @throws SystemException if a system exception occurred
 	 */
-	public long getGuestOrUserId() throws PortalException, SystemException {
+	public long getGuestOrUserId() throws PortalException {
 		long userId = getUserId();
 
 		if (userId > 0) {
@@ -417,7 +433,11 @@ public class ServiceContext implements Cloneable, Serializable {
 	 * @return the language ID
 	 */
 	public String getLanguageId() {
-		return _languageId;
+		if (_languageId != null) {
+			return _languageId;
+		}
+
+		return LocaleUtil.toLanguageId(LocaleUtil.getMostRelevantLocale());
 	}
 
 	/**
@@ -438,6 +458,32 @@ public class ServiceContext implements Cloneable, Serializable {
 	 */
 	public String getLayoutURL() {
 		return _layoutURL;
+	}
+
+	@JSON(include = false)
+	public LiferayPortletRequest getLiferayPortletRequest() {
+		if (_request == null) {
+			return null;
+		}
+
+		LiferayPortletRequest liferayPortletRequest =
+			(LiferayPortletRequest)_request.getAttribute(
+				JavaConstants.JAVAX_PORTLET_REQUEST);
+
+		return liferayPortletRequest;
+	}
+
+	@JSON(include = false)
+	public LiferayPortletResponse getLiferayPortletResponse() {
+		if (_request == null) {
+			return null;
+		}
+
+		LiferayPortletResponse liferayPortletResponse =
+			(LiferayPortletResponse)_request.getAttribute(
+				JavaConstants.JAVAX_PORTLET_RESPONSE);
+
+		return liferayPortletResponse;
 	}
 
 	public Locale getLocale() {
@@ -473,6 +519,18 @@ public class ServiceContext implements Cloneable, Serializable {
 		else {
 			return new Date();
 		}
+	}
+
+	public String getPathFriendlyURLPrivateGroup() {
+		return _pathFriendlyURLPrivateGroup;
+	}
+
+	public String getPathFriendlyURLPrivateUser() {
+		return _pathFriendlyURLPrivateUser;
+	}
+
+	public String getPathFriendlyURLPublic() {
+		return _pathFriendlyURLPublic;
 	}
 
 	/**
@@ -519,12 +577,11 @@ public class ServiceContext implements Cloneable, Serializable {
 	 * @see    com.liferay.portal.model.PortletPreferencesIds
 	 */
 	public String getPortletId() {
-		if (_portletPreferencesIds != null) {
-			return _portletPreferencesIds.getPortletId();
-		}
-		else {
+		if (_portletPreferencesIds == null) {
 			return null;
 		}
+
+		return _portletPreferencesIds.getPortletId();
 	}
 
 	/**
@@ -563,8 +620,35 @@ public class ServiceContext implements Cloneable, Serializable {
 		return _remoteHost;
 	}
 
+	@JSON(include = false)
 	public HttpServletRequest getRequest() {
 		return _request;
+	}
+
+	@JSON(include = false)
+	public HttpServletResponse getResponse() {
+		LiferayPortletResponse liferayPortletResponse =
+			getLiferayPortletResponse();
+
+		if (liferayPortletResponse == null) {
+			return null;
+		}
+
+		return PortalUtil.getHttpServletResponse(liferayPortletResponse);
+	}
+
+	public String getRootPortletId() {
+		String portletId = getPortletId();
+
+		if (portletId == null) {
+			return null;
+		}
+
+		return PortletConstants.getRootPortletId(portletId);
+	}
+
+	public Group getScopeGroup() throws PortalException {
+		return GroupLocalServiceUtil.getGroup(_scopeGroupId);
 	}
 
 	/**
@@ -576,6 +660,18 @@ public class ServiceContext implements Cloneable, Serializable {
 	 */
 	public long getScopeGroupId() {
 		return _scopeGroupId;
+	}
+
+	public ThemeDisplay getThemeDisplay() {
+		if (_request == null) {
+			return null;
+		}
+
+		return (ThemeDisplay)_request.getAttribute(WebKeys.THEME_DISPLAY);
+	}
+
+	public TimeZone getTimeZone() {
+		return _timeZone;
 	}
 
 	/**
@@ -613,11 +709,9 @@ public class ServiceContext implements Cloneable, Serializable {
 	}
 
 	/**
-	 * Returns the UUID (universally unique identifier) of this service
-	 * context's current entity.
+	 * Returns the UUID of this service context's current entity.
 	 *
-	 * @return the UUID (universally unique identifier) of this service
-	 *         context's current entity
+	 * @return the UUID of this service context's current entity
 	 */
 	public String getUuid() {
 		String uuid = _uuid;
@@ -676,7 +770,9 @@ public class ServiceContext implements Cloneable, Serializable {
 	 *         command; <code>false</code> otherwise
 	 */
 	public boolean isCommandAdd() {
-		if (Validator.equals(_command, Constants.ADD)) {
+		if (Validator.equals(_command, Constants.ADD) ||
+			Validator.equals(_command, Constants.ADD_MULTIPLE)) {
+
 			return true;
 		}
 		else {
@@ -706,6 +802,39 @@ public class ServiceContext implements Cloneable, Serializable {
 	}
 
 	/**
+	 * Returns <code>true</code> if portal exceptions should be handled as
+	 * failures, possibly halting processing, or <code>false</code> if the
+	 * exceptions should be handled differently, possibly allowing processing to
+	 * continue in some manner. Services may check this flag to execute desired
+	 * behavior.
+	 *
+	 * <p>
+	 * Batch invocation of such services (exposed as a JSON web services) can
+	 * result in execution of all service invocations, in spite of portal
+	 * exceptions.
+	 * </p>
+	 *
+	 * <p>
+	 * If this flag is set to <code>false</code>, services can implement logic
+	 * that allows processing to continue, while collecting information
+	 * regarding the exceptions for returning to the caller. For example, the
+	 * {@link
+	 * com.liferay.portlet.asset.service.impl.AssetVocabularyServiceImpl#deleteVocabularies(
+	 * long[], ServiceContext)} method uses the list it returns to give
+	 * information on vocabularies it fails to delete; it returns an empty list
+	 * if all deletions are successful.
+	 * </p>
+	 *
+	 * @return <code>true</code> if portal exceptions are to be handled as
+	 *         failures; <code>false</code> if portal exceptions can be handled
+	 *         differently, possibly allowing processing to continue in some
+	 *         manner
+	 */
+	public boolean isFailOnPortalException() {
+		return _failOnPortalException;
+	}
+
+	/**
 	 * Returns whether the primary entity of this service context is to be
 	 * indexed/re-indexed.
 	 *
@@ -727,6 +856,121 @@ public class ServiceContext implements Cloneable, Serializable {
 		return _signedIn;
 	}
 
+	public void merge(ServiceContext serviceContext) {
+		setAddGroupPermissions(serviceContext.isAddGroupPermissions());
+		setAddGuestPermissions(serviceContext.isAddGuestPermissions());
+
+		if (serviceContext.getAssetCategoryIds() != null) {
+			setAssetCategoryIds(serviceContext.getAssetCategoryIds());
+		}
+
+		if (serviceContext.getAssetLinkEntryIds() != null) {
+			setAssetLinkEntryIds(serviceContext.getAssetLinkEntryIds());
+		}
+
+		if (serviceContext.getAssetTagNames() != null) {
+			setAssetTagNames(serviceContext.getAssetTagNames());
+		}
+
+		if (serviceContext.getAttributes() != null) {
+			setAttributes(serviceContext.getAttributes());
+		}
+
+		if (Validator.isNotNull(serviceContext.getCommand())) {
+			setCommand(serviceContext.getCommand());
+		}
+
+		if (serviceContext.getCompanyId() > 0) {
+			setCompanyId(serviceContext.getCompanyId());
+		}
+
+		if (serviceContext.getCreateDate() != null) {
+			setCreateDate(serviceContext.getCreateDate());
+		}
+
+		if (Validator.isNotNull(serviceContext.getCurrentURL())) {
+			setCurrentURL(serviceContext.getCurrentURL());
+		}
+
+		if (serviceContext.getExpandoBridgeAttributes() != null) {
+			setExpandoBridgeAttributes(
+				serviceContext.getExpandoBridgeAttributes());
+		}
+
+		if (serviceContext.getGroupPermissions() != null) {
+			setGroupPermissions(serviceContext.getGroupPermissions());
+		}
+
+		if (serviceContext.getGuestPermissions() != null) {
+			setGuestPermissions(serviceContext.getGuestPermissions());
+		}
+
+		if (serviceContext.getHeaders() != null) {
+			setHeaders(serviceContext.getHeaders());
+		}
+
+		setFailOnPortalException(serviceContext.isFailOnPortalException());
+		setLanguageId(serviceContext.getLanguageId());
+
+		if (Validator.isNotNull(serviceContext.getLayoutFullURL())) {
+			setLayoutFullURL(serviceContext.getLayoutFullURL());
+		}
+
+		if (Validator.isNotNull(serviceContext.getLayoutURL())) {
+			setLayoutURL(serviceContext.getLayoutURL());
+		}
+
+		if (serviceContext.getModifiedDate() != null) {
+			setModifiedDate(serviceContext.getModifiedDate());
+		}
+
+		if (Validator.isNotNull(serviceContext.getPathMain())) {
+			setPathMain(serviceContext.getPathMain());
+		}
+
+		if (serviceContext.getPlid() > 0) {
+			setPlid(serviceContext.getPlid());
+		}
+
+		if (Validator.isNotNull(serviceContext.getPortalURL())) {
+			setPortalURL(serviceContext.getPortalURL());
+		}
+
+		if (serviceContext.getPortletPreferencesIds() != null) {
+			setPortletPreferencesIds(serviceContext.getPortletPreferencesIds());
+		}
+
+		if (Validator.isNotNull(serviceContext.getRemoteAddr())) {
+			setRemoteAddr(serviceContext.getRemoteAddr());
+		}
+
+		if (Validator.isNotNull(serviceContext.getRemoteHost())) {
+			setRemoteHost(serviceContext.getRemoteHost());
+		}
+
+		if (serviceContext.getScopeGroupId() > 0) {
+			setScopeGroupId(serviceContext.getScopeGroupId());
+		}
+
+		setSignedIn(serviceContext.isSignedIn());
+
+		if (Validator.isNotNull(serviceContext.getUserDisplayURL())) {
+			setUserDisplayURL(serviceContext.getUserDisplayURL());
+		}
+
+		if (serviceContext.getUserId() > 0) {
+			setUserId(serviceContext.getUserId());
+		}
+
+		if (Validator.isNotNull(serviceContext.getUuid())) {
+			setUuid(serviceContext.getUuid());
+		}
+
+		if (serviceContext.getWorkflowAction() > 0) {
+			setWorkflowAction(serviceContext.getWorkflowAction());
+		}
+	}
+
 	/**
 	 * Removes the mapping of the serializable object to the name of the
 	 * standard parameter of this service context.
@@ -745,9 +989,10 @@ public class ServiceContext implements Cloneable, Serializable {
 	 *
 	 * @param      addCommunityPermissions indicates whether or not to apply
 	 *             default community permissions
-	 * @deprecated As of 6.1, renamed to {@link
+	 * @deprecated As of 6.1.0, renamed to {@link
 	 *             #setAddGroupPermissions(boolean)}
 	 */
+	@Deprecated
 	public void setAddCommunityPermissions(boolean addCommunityPermissions) {
 		setAddGroupPermissions(addCommunityPermissions);
 	}
@@ -854,8 +1099,10 @@ public class ServiceContext implements Cloneable, Serializable {
 	 *
 	 * @param      communityPermissions the community permissions (optionally
 	 *             <code>null</code>)
-	 * @deprecated As of 6.1, renamed to {@link #setGroupPermissions(String[])}
+	 * @deprecated As of 6.1.0, renamed to {@link
+	 *             #setGroupPermissions(String[])}
 	 */
+	@Deprecated
 	public void setCommunityPermissions(String[] communityPermissions) {
 		setGroupPermissions(communityPermissions);
 	}
@@ -911,10 +1158,24 @@ public class ServiceContext implements Cloneable, Serializable {
 	}
 
 	/**
+	 * Sets whether portal exceptions should be handled as failures, possibly
+	 * halting processing, or if exceptions should be handled differently,
+	 * possibly allowing processing to continue in some manner.
+	 *
+	 * @param failOnPortalException whether portal exceptions should be handled
+	 *        as failures, or if portal exceptions should be handled
+	 *        differently, possibly allowing processing to continue in some
+	 *        manner
+	 * @see   #isFailOnPortalException()
+	 */
+	public void setFailOnPortalException(boolean failOnPortalException) {
+		_failOnPortalException = failOnPortalException;
+	}
+
+	/**
 	 * Sets the date when an <code>aui:form</code> was generated in this service
 	 * context. The form date can be used in detecting situations in which an
 	 * entity has been modified while another client was editing that entity.
-	 * </p>
 	 *
 	 * <p>
 	 * Example:
@@ -925,7 +1186,7 @@ public class ServiceContext implements Cloneable, Serializable {
 	 * article. Person1 publishes changes to the article first. When person2
 	 * attempts to publish changes to that article, the service implementation
 	 * finds that a modification to that article has already been published some
-	 * time after person2 started editing the article. Since the the article
+	 * time after person2 started editing the article. Since the article
 	 * modification date was found to be later than the form date for person2,
 	 * person2 could be alerted to the modification and make a backup copy of
 	 * his edits before synchronizing with the published changes by person1.
@@ -1026,6 +1287,22 @@ public class ServiceContext implements Cloneable, Serializable {
 	 */
 	public void setModifiedDate(Date modifiedDate) {
 		_modifiedDate = modifiedDate;
+	}
+
+	public void setPathFriendlyURLPrivateGroup(
+		String pathFriendlyURLPrivateGroup) {
+
+		_pathFriendlyURLPrivateGroup = pathFriendlyURLPrivateGroup;
+	}
+
+	public void setPathFriendlyURLPrivateUser(
+		String pathFriendlyURLPrivateUser) {
+
+		_pathFriendlyURLPrivateUser = pathFriendlyURLPrivateUser;
+	}
+
+	public void setPathFriendlyURLPublic(String pathFriendlyURLPublic) {
+		_pathFriendlyURLPublic = pathFriendlyURLPublic;
 	}
 
 	/**
@@ -1134,6 +1411,10 @@ public class ServiceContext implements Cloneable, Serializable {
 		_signedIn = signedIn;
 	}
 
+	public void setTimeZone(TimeZone timeZone) {
+		_timeZone = timeZone;
+	}
+
 	/**
 	 * Sets the complete URL of this service context's current user's profile
 	 * page.
@@ -1154,11 +1435,9 @@ public class ServiceContext implements Cloneable, Serializable {
 	}
 
 	/**
-	 * Sets the UUID (universally unique identifier) of this service context's
-	 * current entity.
+	 * Sets the UUID of this service context's current entity.
 	 *
-	 * @param uuid the UUID (universally unique identifier) of the current
-	 *        entity
+	 * @param uuid the UUID of the current entity
 	 */
 	public void setUuid(String uuid) {
 		_uuid = uuid;
@@ -1169,7 +1448,7 @@ public class ServiceContext implements Cloneable, Serializable {
 	 * as parameter to a method that processes a workflow action.
 	 *
 	 * @param workflowAction workflow action to take (default is {@link
-	 *        com.liferay.portal.kernel.workflow.WorkflowConstants.ACTION_PUBLISH})
+	 *        com.liferay.portal.kernel.workflow.WorkflowConstants#ACTION_PUBLISH})
 	 */
 	public void setWorkflowAction(int workflowAction) {
 		_workflowAction = workflowAction;
@@ -1214,6 +1493,7 @@ public class ServiceContext implements Cloneable, Serializable {
 	private String _currentURL;
 	private boolean _deriveDefaultPermissions;
 	private Map<String, Serializable> _expandoBridgeAttributes;
+	private boolean _failOnPortalException = true;
 	private Date _formDate;
 	private String[] _groupPermissions;
 	private String[] _guestPermissions;
@@ -1223,6 +1503,9 @@ public class ServiceContext implements Cloneable, Serializable {
 	private String _layoutFullURL;
 	private String _layoutURL;
 	private Date _modifiedDate;
+	private String _pathFriendlyURLPrivateGroup;
+	private String _pathFriendlyURLPrivateUser;
+	private String _pathFriendlyURLPublic;
 	private String _pathMain;
 	private long _plid;
 	private String _portalURL;
@@ -1232,6 +1515,7 @@ public class ServiceContext implements Cloneable, Serializable {
 	private transient HttpServletRequest _request;
 	private long _scopeGroupId;
 	private boolean _signedIn;
+	private TimeZone _timeZone;
 	private String _userDisplayURL;
 	private long _userId;
 	private String _uuid;

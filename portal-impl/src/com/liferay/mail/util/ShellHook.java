@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,14 +17,14 @@ package com.liferay.mail.util;
 import com.liferay.mail.model.Filter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.ProcessUtil;
+import com.liferay.portal.kernel.process.ProcessUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.util.PropsUtil;
 
 import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * @author Michael Lawrence
@@ -37,6 +37,7 @@ public class ShellHook implements Hook {
 	public void addFilters(long companyId, long userId, List<String> filters) {
 	}
 
+	@Override
 	public void addForward(
 		long companyId, long userId, List<Filter> filters,
 		List<String> emailAddresses, boolean leaveCopy) {
@@ -49,6 +50,7 @@ public class ShellHook implements Hook {
 		);
 	}
 
+	@Override
 	public void addUser(
 		long companyId, long userId, String password, String firstName,
 		String middleName, String lastName, String emailAddress) {
@@ -61,6 +63,7 @@ public class ShellHook implements Hook {
 		);
 	}
 
+	@Override
 	public void addVacationMessage(
 		long companyId, long userId, String emailAddress,
 		String vacationMessage) {
@@ -73,6 +76,7 @@ public class ShellHook implements Hook {
 		);
 	}
 
+	@Override
 	public void deleteEmailAddress(long companyId, long userId) {
 		execute(
 			new String[] {
@@ -81,6 +85,7 @@ public class ShellHook implements Hook {
 		);
 	}
 
+	@Override
 	public void deleteUser(long companyId, long userId) {
 		execute(
 			new String[] {
@@ -89,6 +94,7 @@ public class ShellHook implements Hook {
 		);
 	}
 
+	@Override
 	public void updateBlocked(
 		long companyId, long userId, List<String> blocked) {
 
@@ -100,6 +106,7 @@ public class ShellHook implements Hook {
 		);
 	}
 
+	@Override
 	public void updateEmailAddress(
 		long companyId, long userId, String emailAddress) {
 
@@ -111,6 +118,7 @@ public class ShellHook implements Hook {
 		);
 	}
 
+	@Override
 	public void updatePassword(long companyId, long userId, String password) {
 		execute(
 			new String[] {
@@ -119,7 +127,7 @@ public class ShellHook implements Hook {
 		);
 	}
 
-	protected void execute(String cmdLine[]) {
+	protected void execute(String[] cmdLine) {
 		for (int i = 0; i < cmdLine.length; i++) {
 			if (cmdLine[i].trim().length() == 0) {
 				cmdLine[i] = StringPool.UNDERLINE;
@@ -127,24 +135,10 @@ public class ShellHook implements Hook {
 		}
 
 		try {
-	 		Runtime rt = Runtime.getRuntime();
+			Future<?> future = ProcessUtil.execute(
+				ProcessUtil.LOGGING_OUTPUT_PROCESSOR, cmdLine);
 
-			Process p = rt.exec(cmdLine);
-
-			ProcessUtil.close(p);
-
-			int exitValue = p.exitValue();
-
-			if (exitValue != 0) {
-				StringBundler sb = new StringBundler(cmdLine.length * 2);
-
-				for (int i = 0; i < cmdLine.length; i++) {
-					sb.append(cmdLine[i]);
-					sb.append(StringPool.SPACE);
-				}
-
-				throw new IllegalArgumentException(sb.toString());
-			}
+			future.get();
 		}
 		catch (Exception e) {
 			_log.error(e);

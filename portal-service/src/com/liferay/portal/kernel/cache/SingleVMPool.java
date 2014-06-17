@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,52 +24,12 @@ public interface SingleVMPool {
 
 	public void clear();
 
-	public void clear(String name);
+	public PortalCache<? extends Serializable, ?> getCache(String name);
 
-	/**
-	 * @deprecated
-	 */
-	public Object get(PortalCache portalCache, String key);
+	public PortalCache<? extends Serializable, ?> getCache(
+		String name, boolean blocking);
 
-	public Object get(String name, String key);
-
-	public PortalCache getCache(String name);
-
-	public PortalCache getCache(String name, boolean blocking);
-
-	/**
-	 * @deprecated
-	 */
-	public void put(PortalCache portalCache, String key, Object value);
-
-	/**
-	 * @deprecated
-	 */
-	public void put(
-		PortalCache portalCache, String key, Object value, int timeToLive);
-
-	/**
-	 * @deprecated
-	 */
-	public void put(PortalCache portalCache, String key, Serializable value);
-
-	/**
-	 * @deprecated
-	 */
-	public void put(
-		PortalCache portalCache, String key, Serializable value,
-		int timeToLive);
-
-	public void put(String name, String key, Object value);
-
-	public void put(String name, String key, Serializable value);
-
-	/**
-	 * @deprecated
-	 */
-	public void remove(PortalCache portalCache, String key);
-
-	public void remove(String name, String key);
+	public PortalCacheManager<? extends Serializable, ?> getCacheManager();
 
 	public void removeCache(String name);
 

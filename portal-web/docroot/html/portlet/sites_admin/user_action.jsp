@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,10 +22,13 @@ ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_
 User user2 = (User)row.getObject();
 
 Group group = (Group)row.getParameter("group");
+
+boolean organizationUser = GetterUtil.getBoolean(row.getParameter("organizationUser"));
+boolean userGroupUser = GetterUtil.getBoolean(row.getParameter("userGroupUser"));
 %>
 
-<liferay-ui:icon-menu>
-	<c:if test="<%= permissionChecker.isGroupOwner(group.getGroupId()) %>">
+<liferay-ui:icon-menu showWhenSingleIcon="<%= true %>">
+	<c:if test="<%= GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.ASSIGN_USER_ROLES) %>">
 		<portlet:renderURL var="assignURL">
 			<portlet:param name="struts_action" value="/sites_admin/edit_site_assignments" />
 			<portlet:param name="tabs1" value="users" />
@@ -35,11 +38,13 @@ Group group = (Group)row.getParameter("group");
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			image="assign_user_roles"
+			iconCssClass="icon-signin"
 			message="assign-site-roles"
 			url="<%= assignURL %>"
 		/>
+	</c:if>
 
+	<c:if test="<%= GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.ASSIGN_MEMBERS) && !(organizationUser || userGroupUser) && !SiteMembershipPolicyUtil.isMembershipProtected(permissionChecker, user2.getUserId(), group.getGroupId()) && !SiteMembershipPolicyUtil.isMembershipRequired(user2.getUserId(), group.getGroupId()) %>">
 		<portlet:actionURL var="removeURL">
 			<portlet:param name="struts_action" value="/sites_admin/edit_site_assignments" />
 			<portlet:param name="<%= Constants.CMD %>" value="group_users" />
@@ -49,7 +54,7 @@ Group group = (Group)row.getParameter("group");
 		</portlet:actionURL>
 
 		<liferay-ui:icon
-			image="assign_user_roles"
+			iconCssClass="icon-signout"
 			message="remove-membership"
 			url="<%= removeURL %>"
 		/>

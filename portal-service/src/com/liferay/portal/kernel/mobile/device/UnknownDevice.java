@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,50 +28,67 @@ public class UnknownDevice extends AbstractDevice {
 		return _instance;
 	}
 
+	@Override
 	public String getBrand() {
 		return VersionableName.UNKNOWN.getName();
 	}
 
+	@Override
 	public String getBrowser() {
 		return VersionableName.UNKNOWN.getName();
 	}
 
+	@Override
 	public String getBrowserVersion() {
 		return VersionableName.UNKNOWN.getName();
 	}
 
+	@Override
 	public Map<String, Capability> getCapabilities() {
 		return Collections.emptyMap();
 	}
 
+	@Override
 	public String getCapability(String name) {
 		return null;
 	}
 
+	@Override
 	public String getModel() {
 		return VersionableName.UNKNOWN.getName();
 	}
 
+	@Override
 	public String getOS() {
 		return VersionableName.UNKNOWN.getName();
 	}
 
+	@Override
 	public String getOSVersion() {
 		return VersionableName.UNKNOWN.getName();
 	}
 
+	@Override
 	public String getPointingMethod() {
 		return VersionableName.UNKNOWN.getName();
 	}
 
-	public Dimensions getScreenSize() {
+	@Override
+	public Dimensions getScreenPhysicalSize() {
 		return Dimensions.UNKNOWN;
 	}
 
+	@Override
+	public Dimensions getScreenResolution() {
+		return Dimensions.UNKNOWN;
+	}
+
+	@Override
 	public boolean hasQwertyKeyboard() {
 		return true;
 	}
 
+	@Override
 	public boolean isTablet() {
 		return false;
 	}

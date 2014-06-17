@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.usersadmin;
 
+import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.Role;
@@ -34,8 +35,9 @@ import java.util.List;
  */
 public class UsersControlPanelEntry extends BaseControlPanelEntry {
 
-	public boolean isVisible(
-			PermissionChecker permissionChecker, Portlet portlet)
+	@Override
+	protected boolean hasPermissionImplicitlyGranted(
+			PermissionChecker permissionChecker, Group group, Portlet portlet)
 		throws Exception {
 
 		List<UserGroupRole> userGroupRoles =
@@ -60,14 +62,13 @@ public class UsersControlPanelEntry extends BaseControlPanelEntry {
 
 		for (Organization organization : organizations) {
 			if (OrganizationPermissionUtil.contains(
-					permissionChecker, organization.getOrganizationId(),
-					ActionKeys.MANAGE_USERS)) {
+					permissionChecker, organization, ActionKeys.MANAGE_USERS)) {
 
 				return true;
 			}
 
 			if (OrganizationPermissionUtil.contains(
-					permissionChecker, organization.getOrganizationId(),
+					permissionChecker, organization,
 					ActionKeys.MANAGE_SUBORGANIZATIONS)) {
 
 				return true;

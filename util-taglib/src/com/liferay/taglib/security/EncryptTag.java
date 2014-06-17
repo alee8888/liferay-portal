@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -114,8 +114,9 @@ public class EncryptTag extends TagSupport {
 					}
 					else {
 						try {
-							sb.append(HttpUtil.encodeURL(
-								Encryptor.encrypt(key, value)));
+							sb.append(
+								HttpUtil.encodeURL(
+									Encryptor.encrypt(key, value)));
 						}
 						catch (EncryptorException ee) {
 							_log.error(ee.getMessage());
@@ -143,7 +144,9 @@ public class EncryptTag extends TagSupport {
 			// Target
 
 			if (Validator.isNotNull(_target)) {
-				sb.append("target=\"" + _target + "\"");
+				sb.append("target=\"");
+				sb.append(_target);
+				sb.append("\"");
 			}
 
 			// Close anchor

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,40 +15,36 @@
 package com.liferay.portlet.journal.asset;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
-import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portal.util.WebKeys;
-import com.liferay.portlet.PortletURLFactoryUtil;
 import com.liferay.portlet.asset.model.AssetRenderer;
 import com.liferay.portlet.asset.model.BaseAssetRendererFactory;
+import com.liferay.portlet.asset.model.BaseDDMStructureClassTypeReader;
+import com.liferay.portlet.asset.model.ClassTypeReader;
+import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
+import com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalServiceUtil;
+import com.liferay.portlet.dynamicdatamapping.service.permission.DDMStructurePermission;
 import com.liferay.portlet.journal.NoSuchArticleException;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalArticleResource;
-import com.liferay.portlet.journal.model.JournalStructure;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalArticleResourceLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalArticleServiceUtil;
-import com.liferay.portlet.journal.service.JournalStructureLocalServiceUtil;
 import com.liferay.portlet.journal.service.permission.JournalArticlePermission;
 import com.liferay.portlet.journal.service.permission.JournalPermission;
-import com.liferay.portlet.journal.service.permission.JournalStructurePermission;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
-
-import javax.servlet.http.HttpServletRequest;
+import javax.portlet.WindowState;
+import javax.portlet.WindowStateException;
 
 /**
  * @author Julio Camarero
@@ -59,19 +55,23 @@ import javax.servlet.http.HttpServletRequest;
 public class JournalArticleAssetRendererFactory
 	extends BaseAssetRendererFactory {
 
-	public static final String CLASS_NAME = JournalArticle.class.getName();
-
 	public static final String TYPE = "content";
 
+	public JournalArticleAssetRendererFactory() {
+		setLinkable(true);
+		setSupportsClassTypes(true);
+	}
+
+	@Override
 	public AssetRenderer getAssetRenderer(long classPK, int type)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		JournalArticle article = null;
 
 		try {
 			article = JournalArticleLocalServiceUtil.getArticle(classPK);
 		}
-		catch (NoSuchArticleException nsae) {
+		catch (NoSuchArticleException nsae1) {
 			JournalArticleResource articleResource =
 				JournalArticleResourceLocalServiceUtil.getArticleResource(
 					classPK);
@@ -84,7 +84,7 @@ public class JournalArticleAssetRendererFactory
 						articleResource.getGroupId(),
 						articleResource.getArticleId());
 				}
-				catch (NoSuchArticleException nsae1) {
+				catch (NoSuchArticleException nsae2) {
 					approvedArticleAvailable = false;
 				}
 			}
@@ -97,12 +97,17 @@ public class JournalArticleAssetRendererFactory
 			}
 		}
 
-		return new JournalArticleAssetRenderer(article);
+		JournalArticleAssetRenderer journalArticleAssetRenderer =
+			new JournalArticleAssetRenderer(article);
+
+		journalArticleAssetRenderer.setAssetRendererType(type);
+
+		return journalArticleAssetRenderer;
 	}
 
 	@Override
 	public AssetRenderer getAssetRenderer(long groupId, String urlTitle)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		JournalArticle article =
 			JournalArticleServiceUtil.getDisplayArticleByUrlTitle(
@@ -111,70 +116,87 @@ public class JournalArticleAssetRendererFactory
 		return new JournalArticleAssetRenderer(article);
 	}
 
+	@Override
 	public String getClassName() {
-		return CLASS_NAME;
+		return JournalArticle.class.getName();
 	}
 
 	@Override
-	public Map<Long, String> getClassTypes(long[] groupIds, Locale locale)
-		throws Exception {
-
-		Map<Long, String> classTypes = new HashMap<Long, String>();
-
-		for (long groupId : groupIds) {
-			List<JournalStructure> structures =
-				JournalStructureLocalServiceUtil.getStructures(groupId);
-
-			for (JournalStructure structure : structures) {
-				classTypes.put(structure.getId(), structure.getName(locale));
-			}
-		}
-
-		return classTypes;
+	public ClassTypeReader getClassTypeReader() {
+		return new BaseDDMStructureClassTypeReader(getClassName());
 	}
 
+	@Override
+	public String getIconCssClass() {
+		return "icon-file-2";
+	}
+
+	@Override
 	public String getType() {
 		return TYPE;
 	}
 
 	@Override
+	public String getTypeName(Locale locale, long subtypeId) {
+		try {
+			DDMStructure ddmStructure =
+				DDMStructureLocalServiceUtil.getStructure(subtypeId);
+
+			return ddmStructure.getName(locale);
+		}
+		catch (Exception e) {
+			return super.getTypeName(locale, subtypeId);
+		}
+	}
+
+	@Override
 	public PortletURL getURLAdd(
-			LiferayPortletRequest liferayPortletRequest,
-			LiferayPortletResponse liferayPortletResponse)
-		throws PortalException, SystemException {
+		LiferayPortletRequest liferayPortletRequest,
+		LiferayPortletResponse liferayPortletResponse) {
 
-		HttpServletRequest request =
-			liferayPortletRequest.getHttpServletRequest();
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		if (!JournalPermission.contains(
-				themeDisplay.getPermissionChecker(),
-				themeDisplay.getScopeGroupId(), ActionKeys.ADD_ARTICLE)) {
-
-			return null;
-		}
-
-		long classTypeId = GetterUtil.getLong(
-			liferayPortletRequest.getAttribute(
-				WebKeys.ASSET_RENDERER_FACTORY_CLASS_TYPE_ID));
-
-		if ((classTypeId > 0) &&
-			!JournalStructurePermission.contains(
-				themeDisplay.getPermissionChecker(), classTypeId,
-				ActionKeys.VIEW)) {
-
-			return null;
-		}
-
-		PortletURL portletURL = PortletURLFactoryUtil.create(
-			request, PortletKeys.JOURNAL, getControlPanelPlid(themeDisplay),
-			PortletRequest.RENDER_PHASE);
+		PortletURL portletURL = liferayPortletResponse.createRenderURL(
+			PortletKeys.JOURNAL);
 
 		portletURL.setParameter("struts_action", "/journal/edit_article");
 
 		return portletURL;
+	}
+
+	@Override
+	public PortletURL getURLView(
+		LiferayPortletResponse liferayPortletResponse,
+		WindowState windowState) {
+
+		LiferayPortletURL liferayPortletURL =
+			liferayPortletResponse.createLiferayPortletURL(
+				PortletKeys.JOURNAL, PortletRequest.RENDER_PHASE);
+
+		try {
+			liferayPortletURL.setWindowState(windowState);
+		}
+		catch (WindowStateException wse) {
+		}
+
+		return liferayPortletURL;
+	}
+
+	@Override
+	public boolean hasAddPermission(
+			PermissionChecker permissionChecker, long groupId, long classTypeId)
+		throws Exception {
+
+		if (classTypeId == 0) {
+			return false;
+		}
+
+		if (!DDMStructurePermission.contains(
+				permissionChecker, classTypeId, ActionKeys.VIEW)) {
+
+			return false;
+		}
+
+		return JournalPermission.contains(
+			permissionChecker, groupId, ActionKeys.ADD_ARTICLE);
 	}
 
 	@Override
@@ -187,15 +209,8 @@ public class JournalArticleAssetRendererFactory
 	}
 
 	@Override
-	public boolean isLinkable() {
-		return _LINKABLE;
-	}
-
-	@Override
 	protected String getIconPath(ThemeDisplay themeDisplay) {
 		return themeDisplay.getPathThemeImages() + "/common/history.png";
 	}
-
-	private static final boolean _LINKABLE = true;
 
 }

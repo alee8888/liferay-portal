@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.theme.ThemeCompanyLimit;
 import com.liferay.portal.theme.ThemeGroupLimit;
@@ -29,11 +31,12 @@ import javax.servlet.ServletContext;
  * @author Brian Wing Shun Chan
  * @author Raymond Augé
  */
+@ProviderType
 public interface Theme extends Comparable<Theme>, Plugin, Serializable {
 
 	public void addSetting(
-		 String key, String value, boolean configurable, String type,
-		 String[] options, String script);
+		String key, String value, boolean configurable, String type,
+		String[] options, String script);
 
 	public List<ColorScheme> getColorSchemes();
 
@@ -100,9 +103,13 @@ public interface Theme extends Comparable<Theme>, Plugin, Serializable {
 
 	public boolean isCompanyAvailable(long companyId);
 
+	public boolean isControlPanelTheme();
+
 	public boolean isGroupAvailable(long groupId);
 
 	public boolean isLoadFromServletContext();
+
+	public boolean isPageTheme();
 
 	public boolean isWapTheme();
 
@@ -111,6 +118,8 @@ public interface Theme extends Comparable<Theme>, Plugin, Serializable {
 	public boolean resourceExists(
 			ServletContext servletContext, String portletId, String path)
 		throws Exception;
+
+	public void setControlPanelTheme(boolean controlPanelTheme);
 
 	public void setCssPath(String cssPath);
 
@@ -121,6 +130,8 @@ public interface Theme extends Comparable<Theme>, Plugin, Serializable {
 	public void setLoadFromServletContext(boolean loadFromServletContext);
 
 	public void setName(String name);
+
+	public void setPageTheme(boolean pageTheme);
 
 	public void setRootPath(String rootPath);
 

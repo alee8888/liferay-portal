@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,9 +23,13 @@ tabs1URL.setParameter("struts_action", "/directory/view");
 
 String tabs1Names = ParamUtil.getString(request, "tabs1Names", "users,organizations,user-groups");
 
+tabs1Names = HtmlUtil.escape(tabs1Names);
+
 String tabs1Values = tabs1Names;
 
-String redirect = ParamUtil.getString(request, "redirect");
+String viewUsersRedirect = ParamUtil.getString(request, "viewUsersRedirect");
+
+String redirect = ParamUtil.getString(request, "redirect", viewUsersRedirect);
 String backURL = ParamUtil.getString(request, "backURL", redirect);
 %>
 

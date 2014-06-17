@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,49 +14,22 @@
  */
 --%>
 
-<%@ include file="/html/taglib/init.jsp" %>
-
-<%@ page import="com.liferay.portlet.social.model.SocialActivity" %>
-<%@ page import="com.liferay.portlet.social.model.SocialActivityFeedEntry" %>
-<%@ page import="com.liferay.portlet.social.service.SocialActivityInterpreterLocalServiceUtil" %>
-<%@ page import="com.liferay.portlet.social.service.SocialActivityLocalServiceUtil" %>
-<%@ page import="com.liferay.util.RSSUtil" %>
-
-<%@ page import="com.sun.syndication.feed.synd.SyndContent" %>
-<%@ page import="com.sun.syndication.feed.synd.SyndEntry" %>
-<%@ page import="com.sun.syndication.feed.synd.SyndFeed" %>
-
-<%
-String className = (String)request.getAttribute("liferay-ui:social-activities:className");
-long classPK = GetterUtil.getLong((String)request.getAttribute("liferay-ui:social-activities:classPK"));
-List<SocialActivity> activities = (List<SocialActivity>)request.getAttribute("liferay-ui:social-activities:activities");
-boolean feedEnabled = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:social-activities:feedEnabled"));
-String feedTitle = (String)request.getAttribute("liferay-ui:social-activities:feedTitle");
-String feedLink = (String)request.getAttribute("liferay-ui:social-activities:feedLink");
-String feedLinkMessage = (String)request.getAttribute("liferay-ui:social-activities:feedLinkMessage");
-
-if (activities == null) {
-	activities = SocialActivityLocalServiceUtil.getActivities(0, className, classPK, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-}
-
-Format dateFormatDate = FastDateFormatFactoryUtil.getSimpleDateFormat("MMMM d", locale, timeZone);
-Format timeFormatDate = FastDateFormatFactoryUtil.getTime(locale, timeZone);
-%>
+<%@ include file="/html/taglib/ui/social_activities/init.jsp" %>
 
 <div class="taglib-social-activities">
 	<table>
 
 	<%
-	boolean hasActivities = false;
+	ServiceContext serviceContext = ServiceContextFactory.getInstance(request);
 
-	boolean firstDaySeparator = true;
+	boolean hasActivities = false;
 
 	Date now = new Date();
 
 	int daysBetween = -1;
 
 	for (SocialActivity activity : activities) {
-		SocialActivityFeedEntry activityFeedEntry = SocialActivityInterpreterLocalServiceUtil.interpret(activity, themeDisplay);
+		SocialActivityFeedEntry activityFeedEntry = SocialActivityInterpreterLocalServiceUtil.interpret(selector, activity, serviceContext);
 
 		if (activityFeedEntry == null) {
 			continue;
@@ -124,16 +97,15 @@ Format timeFormatDate = FastDateFormatFactoryUtil.getTime(locale, timeZone);
 <c:if test="<%= feedEnabled && !activities.isEmpty() %>">
 	<div class="separator"><!-- --></div>
 
-	<liferay-ui:icon
-		image="rss"
-		label="<%= true %>"
+	<liferay-ui:rss
+		delta="<%= feedDelta %>"
+		displayStyle="<%= feedDisplayStyle %>"
+		feedType="<%= feedType %>"
 		message="<%= feedLinkMessage %>"
-		method="get"
-		target="_blank"
+		name="<%= feedTitle %>"
 		url="<%= feedLink %>"
 	/>
 </c:if>
 
 <%!
-private static Log _log = LogFactoryUtil.getLog("portal-web.docroot.html.taglib.ui.social_activities.page_jsp");
 %>

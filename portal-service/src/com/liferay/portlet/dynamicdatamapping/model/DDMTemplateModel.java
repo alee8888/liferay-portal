@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,12 +14,15 @@
 
 package com.liferay.portlet.dynamicdatamapping.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.LocalizedModel;
+import com.liferay.portal.model.StagedGroupedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -43,8 +46,9 @@ import java.util.Map;
  * @see com.liferay.portlet.dynamicdatamapping.model.impl.DDMTemplateModelImpl
  * @generated
  */
+@ProviderType
 public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
-	GroupedModel {
+	LocalizedModel, StagedGroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -71,6 +75,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 * @return the uuid of this d d m template
 	 */
 	@AutoEscape
+	@Override
 	public String getUuid();
 
 	/**
@@ -78,6 +83,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @param uuid the uuid of this d d m template
 	 */
+	@Override
 	public void setUuid(String uuid);
 
 	/**
@@ -99,6 +105,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @return the group ID of this d d m template
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -106,6 +113,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @param groupId the group ID of this d d m template
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -113,6 +121,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @return the company ID of this d d m template
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -120,6 +129,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @param companyId the company ID of this d d m template
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -127,6 +137,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @return the user ID of this d d m template
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -134,21 +145,23 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @param userId the user ID of this d d m template
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
 	 * Returns the user uuid of this d d m template.
 	 *
 	 * @return the user uuid of this d d m template
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getUserUuid() throws SystemException;
+	@Override
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this d d m template.
 	 *
 	 * @param userUuid the user uuid of this d d m template
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -157,6 +170,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 * @return the user name of this d d m template
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -164,6 +178,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @param userName the user name of this d d m template
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -171,6 +186,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @return the create date of this d d m template
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -178,6 +194,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @param createDate the create date of this d d m template
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -185,6 +202,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @return the modified date of this d d m template
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -192,6 +210,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @param modifiedDate the modified date of this d d m template
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -199,6 +218,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @return the fully qualified class name of this d d m template
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -208,6 +228,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @return the class name ID of this d d m template
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -215,6 +236,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @param classNameId the class name ID of this d d m template
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -222,6 +244,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @return the class p k of this d d m template
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -229,6 +252,7 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 *
 	 * @param classPK the class p k of this d d m template
 	 */
+	@Override
 	public void setClassPK(long classPK);
 
 	/**
@@ -506,35 +530,144 @@ public interface DDMTemplateModel extends AttachedModel, BaseModel<DDMTemplate>,
 	 */
 	public void setScript(String script);
 
+	/**
+	 * Returns the cacheable of this d d m template.
+	 *
+	 * @return the cacheable of this d d m template
+	 */
+	public boolean getCacheable();
+
+	/**
+	 * Returns <code>true</code> if this d d m template is cacheable.
+	 *
+	 * @return <code>true</code> if this d d m template is cacheable; <code>false</code> otherwise
+	 */
+	public boolean isCacheable();
+
+	/**
+	 * Sets whether this d d m template is cacheable.
+	 *
+	 * @param cacheable the cacheable of this d d m template
+	 */
+	public void setCacheable(boolean cacheable);
+
+	/**
+	 * Returns the small image of this d d m template.
+	 *
+	 * @return the small image of this d d m template
+	 */
+	public boolean getSmallImage();
+
+	/**
+	 * Returns <code>true</code> if this d d m template is small image.
+	 *
+	 * @return <code>true</code> if this d d m template is small image; <code>false</code> otherwise
+	 */
+	public boolean isSmallImage();
+
+	/**
+	 * Sets whether this d d m template is small image.
+	 *
+	 * @param smallImage the small image of this d d m template
+	 */
+	public void setSmallImage(boolean smallImage);
+
+	/**
+	 * Returns the small image ID of this d d m template.
+	 *
+	 * @return the small image ID of this d d m template
+	 */
+	public long getSmallImageId();
+
+	/**
+	 * Sets the small image ID of this d d m template.
+	 *
+	 * @param smallImageId the small image ID of this d d m template
+	 */
+	public void setSmallImageId(long smallImageId);
+
+	/**
+	 * Returns the small image u r l of this d d m template.
+	 *
+	 * @return the small image u r l of this d d m template
+	 */
+	@AutoEscape
+	public String getSmallImageURL();
+
+	/**
+	 * Sets the small image u r l of this d d m template.
+	 *
+	 * @param smallImageURL the small image u r l of this d d m template
+	 */
+	public void setSmallImageURL(String smallImageURL);
+
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
+	public String[] getAvailableLanguageIds();
+
+	@Override
+	public String getDefaultLanguageId();
+
+	@Override
+	public void prepareLocalizedFieldsForImport() throws LocaleException;
+
+	@Override
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException;
+
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(DDMTemplate ddmTemplate);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<DDMTemplate> toCacheModel();
 
+	@Override
 	public DDMTemplate toEscapedModel();
 
+	@Override
+	public DDMTemplate toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,6 +23,7 @@ import com.liferay.portal.security.permission.PermissionChecker;
  */
 public class RolePermissionImpl implements RolePermission {
 
+	@Override
 	public void check(
 			PermissionChecker permissionChecker, long roleId, String actionId)
 		throws PrincipalException {
@@ -32,6 +33,7 @@ public class RolePermissionImpl implements RolePermission {
 		}
 	}
 
+	@Override
 	public boolean contains(
 		PermissionChecker permissionChecker, long groupId, long roleId,
 		String actionId) {
@@ -40,6 +42,7 @@ public class RolePermissionImpl implements RolePermission {
 			groupId, Role.class.getName(), roleId, actionId);
 	}
 
+	@Override
 	public boolean contains(
 		PermissionChecker permissionChecker, long roleId, String actionId) {
 

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,9 +26,16 @@ String signature = ParamUtil.getString(request, "signature");
 
 			<%
 			JSONWebServiceActionMapping jsonWebServiceActionMapping = JSONWebServiceActionsManagerUtil.getJSONWebServiceActionMapping(signature);
+
+			String invocationPath = jsonWebServiceActionMapping.getPath();
+
+			if (Validator.isNotNull(contextPath)) {
+				invocationPath = invocationPath.substring(1);
+				invocationPath = jsonWebServiceActionMapping.getContextPath() + StringPool.PERIOD + invocationPath;
+			}
 			%>
 
-			<h2><%= jsonWebServiceActionMapping.getServletContextPath() + jsonWebServiceActionMapping.getPath() %></h2>
+			<h2><%= invocationPath %></h2>
 
 			<dl class="lfr-api-http-method">
 				<dt>
@@ -51,22 +58,55 @@ String signature = ParamUtil.getString(request, "signature");
 
 			<div class="lfr-api-param">
 				<span class="lfr-api-param-name">
-					<%= actionClassName.substring(0, pos) %>.<span class="class-name"><%= actionClassName.substring(pos + 1) %></span>#<span class="method-name"><%= actionMethod.getName() %></span>
+					<%= actionClassName.substring(0, pos) %>.<span class="class-name"><%= actionClassName.substring(pos + 1) %></span>
 				</span>
 
 				<%
-				JavadocMethod javadocMethod = JavadocManagerUtil.lookupJavadocMethod(jsonWebServiceActionMapping.getActionMethod());
+				Class<?> serviceClass = actionClass;
 
-				String comment = null;
+				if (actionClassName.contains(".service.") && actionClassName.endsWith("ServiceUtil")) {
+					String implClassName = StringUtil.replace(actionClassName, new String[] {".service.", "ServiceUtil"}, new String[] {".service.impl.", "ServiceImpl"});
 
-				if (javadocMethod != null) {
-					comment = javadocMethod.getComment();
+					try {
+						serviceClass = JavadocUtil.loadClass(actionClass.getClassLoader(), implClassName);
+					}
+					catch (Exception e) {
+					}
+				}
+
+				JavadocClass javadocClass = JavadocManagerUtil.lookupJavadocClass(serviceClass);
+
+				String javadocClassComment = null;
+
+				if (javadocClass != null) {
+					javadocClassComment = javadocClass.getComment();
 				}
 				%>
 
-				<c:if test="<%= Validator.isNotNull(comment) %>">
+				<c:if test="<%= Validator.isNotNull(javadocClassComment) %>">
 					<p class="lfr-api-param-comment">
-						<%= comment %>
+						<%= javadocClassComment %>
+					</p>
+				</c:if>
+			</div>
+			<div class="lfr-api-param">
+				<span class="lfr-api-param-name">
+					<span class="method-name"><%= actionMethod.getName() %></span>
+				</span>
+
+				<%
+				JavadocMethod javadocMethod = JavadocManagerUtil.lookupJavadocMethod(actionMethod);
+
+				String javadocMethodComment = null;
+
+				if (javadocMethod != null) {
+					javadocMethodComment = javadocMethod.getComment();
+				}
+				%>
+
+				<c:if test="<%= Validator.isNotNull(javadocMethodComment) %>">
+					<p class="lfr-api-param-comment">
+						<%= javadocMethodComment %>
 					</p>
 				</c:if>
 			</div>
@@ -76,6 +116,26 @@ String signature = ParamUtil.getString(request, "signature");
 			<h3><liferay-ui:message key="parameters" /></h3>
 
 			<%
+			if (PropsValues.JSON_SERVICE_AUTH_TOKEN_ENABLED) {
+			%>
+
+				<div class="lfr-api-param">
+					<span class="lfr-api-param-name">
+						p_auth
+					</span>
+
+					<span class="lfr-action-label lfr-api-param-type">
+						String
+					</span>
+
+					<p class="lfr-api-param-comment">
+						authentication token used to validate the request
+					</p>
+				</div>
+
+			<%
+			}
+
 			MethodParameter[] methodParameters = jsonWebServiceActionMapping.getMethodParameters();
 
 			for (int i = 0; i < methodParameters.length; i++) {
@@ -130,10 +190,20 @@ String signature = ParamUtil.getString(request, "signature");
 
 				<%
 				Class<?> returnTypeClass = actionMethod.getReturnType();
+
+				String returnTypeName = StringPool.BLANK;
+
+				while (returnTypeClass.isArray()) {
+					returnTypeClass = returnTypeClass.getComponentType();
+
+					returnTypeName += "[]";
+				}
+
+				returnTypeName = returnTypeClass.getName() + returnTypeName;
 				%>
 
 				<span class="lfr-api-param-name">
-					<%= returnTypeClass.getName() %>
+					<%= returnTypeName %>
 				</span>
 
 				<%
@@ -205,7 +275,7 @@ String signature = ParamUtil.getString(request, "signature");
 			}
 			%>
 
-			<div class="aui-helper-hidden lfr-api-results" id="serviceResults">
+			<div class="hide lfr-api-results" id="serviceResults">
 				<liferay-ui:tabs
 					names="result,javascript-example,curl-example,url-example"
 					refresh="<%= false %>"
@@ -233,9 +303,17 @@ String signature = ParamUtil.getString(request, "signature");
 				};
 			</aui:script>
 
-			<aui:form action='<%= jsonWebServiceActionMapping.getServletContextPath() + "/api/secure/jsonws" + jsonWebServiceActionMapping.getPath() %>' enctype="<%= enctype %>" method="<%= jsonWebServiceActionMapping.getMethod() %>" name="execute">
+			<aui:form action="<%= jsonWSPath + invocationPath %>" enctype="<%= enctype %>" method="<%= jsonWebServiceActionMapping.getMethod() %>" name="execute">
 
 				<%
+				if (PropsValues.JSON_SERVICE_AUTH_TOKEN_ENABLED) {
+				%>
+
+					<aui:input id='<%= "field" + methodParameters.length %>' label="p_auth" name="p_auth" readonly="true" suffix="String" value="<%= AuthTokenUtil.getToken(request) %>" />
+
+				<%
+				}
+
 				for (int i = 0; i < methodParameters.length; i++) {
 					MethodParameter methodParameter = methodParameters[i];
 
@@ -259,7 +337,7 @@ String signature = ParamUtil.getString(request, "signature");
 					if (methodParameterTypeClass.equals(File.class)) {
 				%>
 
-						<aui:input id='<%= "field" + i %>' label="<%= methodParameterName %>" name="<%= methodParameterName %>"  suffix="<%= methodParameterTypeClassName %>" type="file" />
+						<aui:input id='<%= "field" + i %>' label="<%= methodParameterName %>" name="<%= methodParameterName %>" suffix="<%= methodParameterTypeClassName %>" type="file" />
 
 					<%
 					}
@@ -271,7 +349,7 @@ String signature = ParamUtil.getString(request, "signature");
 
 							<aui:input id='<%= "fieldFalse" + i %>' inlineField="<%= true %>" label="false" name="<%= methodParameterName %>" type="radio" value="<%= false %>" />
 
-							<span class="aui-suffix"><%= methodParameterTypeClassName %></span>
+							<span class="suffix"><%= methodParameterTypeClassName %></span>
 						</aui:field-wrapper>
 
 					<%
@@ -290,21 +368,21 @@ String signature = ParamUtil.getString(request, "signature");
 					}
 				%>
 
-				<aui:script>
+					<aui:script>
 
-					<%
-					String jsObjectType = "other";
+						<%
+						String jsObjectType = "other";
 
-					if (methodParameterTypeClass.isArray()) {
-						jsObjectType = "array";
-					}
-					else if (methodParameterTypeClass.equals(String.class)) {
-						jsObjectType = "string";
-					}
-					%>
+						if (methodParameterTypeClass.isArray()) {
+							jsObjectType = "array";
+						}
+						else if (methodParameterTypeClass.equals(String.class)) {
+							jsObjectType = "string";
+						}
+						%>
 
-					Liferay.TPL_DATA_TYPES['<%= jsObjectType %>']['<%= methodParameterName %>'] = true;
-				</aui:script>
+						Liferay.TPL_DATA_TYPES['<%= jsObjectType %>']['<%= methodParameterName %>'] = true;
+					</aui:script>
 
 				<%
 				}
@@ -314,17 +392,7 @@ String signature = ParamUtil.getString(request, "signature");
 			</aui:form>
 		</div>
 
-		<%
-		String servletContextPath = jsonWebServiceActionMapping.getServletContextPath();
-
-		String jsServicePath = servletContextPath + jsonWebServiceActionMapping.getPath();
-
-		if (Validator.isNotNull(servletContextPath)) {
-			jsServicePath = StringUtil.replace(jsServicePath, servletContextPath + StringPool.FORWARD_SLASH, servletContextPath + StringPool.POUND);
-		}
-		%>
-
-		<aui:script use="aui-io,aui-template,querystring-parse">
+		<aui:script use="aui-io,aui-template-deprecated,querystring-parse">
 			var REGEX_QUERY_STRING = new RegExp('([^?=&]+)(?:=([^&]*))?', 'g');
 
 			var form = A.one('#execute');
@@ -338,24 +406,31 @@ String signature = ParamUtil.getString(request, "signature");
 			var stringType = tplDataTypes.string;
 			var arrayType = tplDataTypes.array;
 
-			var formatDataType = function(key, value) {
+			var formatDataType = function(key, value, includeNull) {
 				value = decodeURIComponent(value.replace(/\+/g, ' '));
 
 				if (stringType[key]) {
 					value = '\'' + value + '\'';
 				}
 				else if (arrayType[key]) {
-					value = '[' + value + ']';
+					if (!value && includeNull) {
+						value = 'null';
+					}
+					else if (value) {
+						value = '[' + value + ']';
+					}
 				}
 
 				return value;
 			};
 
 			curlTpl.formatDataType = formatDataType;
-			scriptTpl.formatDataType = formatDataType;
+			scriptTpl.formatDataType = A.rbind(formatDataType, scriptTpl, true);
 
 			urlTpl.toURIParam = function(value) {
-				return A.Lang.String.uncamelize(value, '-').toLowerCase();
+				value = A.Lang.String.uncamelize(value, '-');
+
+				return value.toLowerCase();
 			};
 
 			var curlExample = A.one('#curlExample');
@@ -377,7 +452,7 @@ String signature = ParamUtil.getString(request, "signature");
 					var formEl = form.getDOM();
 
 					Liferay.Service(
-						'<%= jsServicePath %>',
+						'<%= invocationPath %>',
 						formEl,
 						function(obj) {
 							serviceOutput.html(A.JSON.stringify(obj, null, 2));
@@ -390,17 +465,26 @@ String signature = ParamUtil.getString(request, "signature");
 
 					var formQueryString = A.IO.prototype._serialize(formEl);
 
-					var data = [];
+					var curlData = [];
+					var scriptData = [];
 
 					var ignoreFields = {
-						formDate: true
+						formDate: true,
+						p_auth: true
 					};
 
 					formQueryString.replace(
 						REGEX_QUERY_STRING,
 						function(match, key, value) {
-							if (value && !ignoreFields[key]) {
-								data.push(
+							if (!ignoreFields[key]) {
+								curlData.push(
+									{
+										key: key,
+										value: value
+									}
+								);
+
+								scriptData.push(
 									{
 										key: key,
 										value: value
@@ -410,22 +494,65 @@ String signature = ParamUtil.getString(request, "signature");
 						}
 					);
 
-					var tplData = {
-						data: data
+					var tplCurlData = {
+						data: curlData
 					};
 
-					curlTpl.render(tplData, curlExample);
-					scriptTpl.render(tplData, jsExample);
-					urlTpl.render(tplData, urlExample);
+					var tplScriptData = {
+						data: scriptData
+					};
+
+					curlTpl.render(tplCurlData, curlExample);
+					scriptTpl.render(tplScriptData, jsExample);
+
+					var urlTplData = {
+						data : [],
+						extraData: []
+					};
+
+					var extraFields = {
+						p_auth: true
+					};
+
+					formQueryString.replace(
+						REGEX_QUERY_STRING,
+						function(match, key, value) {
+							if (!ignoreFields[key]) {
+								if (!value) {
+									key = '-' + key;
+								}
+
+								if (extraFields[key]) {
+									urlTplData.extraData.push(
+										{
+											key: key,
+											value: value
+										}
+									);
+								}
+								else {
+									urlTplData.data.push(
+										{
+											key: key,
+											value: value
+										}
+									);
+
+								}
+							}
+						}
+					);
+
+					urlTpl.render(urlTplData, urlExample);
 
 					serviceResults.show();
 				}
 			);
 		</aui:script>
 
-<textarea class="aui-helper-hidden" id="scriptTpl">
+<textarea class="hide" id="scriptTpl">
 Liferay.Service(
-  '<%= jsServicePath %>',
+  '<%= invocationPath %>',
   <tpl if="data.length">{
 <%= StringPool.FOUR_SPACES %><tpl for="data">{key}: {[this.formatDataType(values.key, values.value)]}<tpl if="!$last">,
 <%= StringPool.FOUR_SPACES %></tpl></tpl>
@@ -436,19 +563,19 @@ Liferay.Service(
 );
 </textarea>
 
-<textarea class="aui-helper-hidden" id="curlTpl">
-curl <%= themeDisplay.getPortalURL() + themeDisplay.getPathContext() + jsonWebServiceActionMapping.getServletContextPath() %>/api/secure/jsonws<%= jsonWebServiceActionMapping.getPath() %> \\
+<textarea class="hide" id="curlTpl">
+curl <%= themeDisplay.getPortalURL() + jsonWSPath + invocationPath %> \\
   -u test@liferay.com:test <tpl if="data.length">\\
   <tpl for="data">-d {key}={[this.formatDataType(values.key, values.value)]} <tpl if="!$last">\\
   </tpl></tpl></tpl>
 </textarea>
 
-<textarea class="aui-helper-hidden" id="urlTpl">
-<%= themeDisplay.getPortalURL() + themeDisplay.getPathContext() + jsonWebServiceActionMapping.getServletContextPath() %>/api/secure/jsonws<%= jsonWebServiceActionMapping.getPath() %><tpl if="data.length">/<tpl for="data">{key:this.toURIParam}/{value}<tpl if="!$last">/</tpl></tpl></tpl>
+<textarea class="hide" id="urlTpl">
+<%= themeDisplay.getPortalURL() + jsonWSPath + invocationPath %><tpl if="data.length">/<tpl for="data">{key:this.toURIParam}<tpl if="value.length">/{value}</tpl><tpl if="!$last">/</tpl></tpl></tpl><tpl if="extraData.length">?<tpl for="extraData">{key:this.toURIParam}={value}<tpl if="!$last">&amp;</tpl></tpl></tpl>
 </textarea>
 	</c:when>
 	<c:otherwise>
-		<div class="portlet-msg-info">
+		<div class="alert alert-info">
 			<liferay-ui:message key="please-select-a-method-on-the-left" />
 		</div>
 	</c:otherwise>

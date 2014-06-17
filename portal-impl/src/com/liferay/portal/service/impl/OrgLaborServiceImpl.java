@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portal.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.OrgLabor;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.base.OrgLaborServiceBaseImpl;
@@ -28,12 +27,13 @@ import java.util.List;
  */
 public class OrgLaborServiceImpl extends OrgLaborServiceBaseImpl {
 
+	@Override
 	public OrgLabor addOrgLabor(
 			long organizationId, int typeId, int sunOpen, int sunClose,
 			int monOpen, int monClose, int tueOpen, int tueClose, int wedOpen,
 			int wedClose, int thuOpen, int thuClose, int friOpen, int friClose,
 			int satOpen, int satClose)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		OrganizationPermissionUtil.check(
 			getPermissionChecker(), organizationId, ActionKeys.UPDATE);
@@ -44,9 +44,8 @@ public class OrgLaborServiceImpl extends OrgLaborServiceBaseImpl {
 			friClose, satOpen, satClose);
 	}
 
-	public void deleteOrgLabor(long orgLaborId)
-		throws PortalException, SystemException {
-
+	@Override
+	public void deleteOrgLabor(long orgLaborId) throws PortalException {
 		OrgLabor orgLabor = orgLaborPersistence.findByPrimaryKey(orgLaborId);
 
 		OrganizationPermissionUtil.check(
@@ -56,9 +55,8 @@ public class OrgLaborServiceImpl extends OrgLaborServiceBaseImpl {
 		orgLaborLocalService.deleteOrgLabor(orgLaborId);
 	}
 
-	public OrgLabor getOrgLabor(long orgLaborId)
-		throws PortalException, SystemException {
-
+	@Override
+	public OrgLabor getOrgLabor(long orgLaborId) throws PortalException {
 		OrgLabor orgLabor = orgLaborPersistence.findByPrimaryKey(orgLaborId);
 
 		OrganizationPermissionUtil.check(
@@ -68,8 +66,9 @@ public class OrgLaborServiceImpl extends OrgLaborServiceBaseImpl {
 		return orgLabor;
 	}
 
+	@Override
 	public List<OrgLabor> getOrgLabors(long organizationId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		OrganizationPermissionUtil.check(
 			getPermissionChecker(), organizationId, ActionKeys.VIEW);
@@ -77,12 +76,13 @@ public class OrgLaborServiceImpl extends OrgLaborServiceBaseImpl {
 		return orgLaborLocalService.getOrgLabors(organizationId);
 	}
 
+	@Override
 	public OrgLabor updateOrgLabor(
 			long orgLaborId, int typeId, int sunOpen, int sunClose, int monOpen,
 			int monClose, int tueOpen, int tueClose, int wedOpen, int wedClose,
 			int thuOpen, int thuClose, int friOpen, int friClose, int satOpen,
 			int satClose)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		OrgLabor orgLabor = orgLaborPersistence.findByPrimaryKey(orgLaborId);
 

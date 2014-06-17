@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,13 +16,18 @@ package com.liferay.portal.repository.util;
 
 import com.liferay.portal.kernel.repository.BaseRepository;
 import com.liferay.portal.kernel.repository.RepositoryException;
+import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.util.PropsValues;
 
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author Mika Koivisto
+ * @author     Mika Koivisto
+ * @deprecated As of 7.0.0, replaced by {@link
+ *             com.liferay.portal.repository.util.ExternalRepositoryFactoryUtil}
  */
+@Deprecated
 public class RepositoryFactoryUtil {
 
 	public static BaseRepository getInstance(String className)
@@ -46,7 +51,9 @@ public class RepositoryFactoryUtil {
 	}
 
 	public static String[] getRepositoryClassNames() {
-		return _repositoryFactories.keySet().toArray(new String[] {});
+		Set<String> classNames = _repositoryFactories.keySet();
+
+		return classNames.toArray(new String[classNames.size()]);
 	}
 
 	public static void registerRepositoryFactory(
@@ -64,9 +71,11 @@ public class RepositoryFactoryUtil {
 			new ConcurrentHashMap<String, RepositoryFactory>();
 
 	static {
+		ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
+
 		for (String className : PropsValues.DL_REPOSITORY_IMPL) {
 			RepositoryFactory repositoryFactory = new RepositoryFactoryImpl(
-				className);
+				className, classLoader);
 
 			_repositoryFactories.put(className, repositoryFactory);
 		}

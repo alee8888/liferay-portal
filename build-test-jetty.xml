@@ -8,17 +8,7 @@
 
 		<record action="start" name="log" />
 
-		<antcall target="run-simple-server">
-			<param name="simple.server.dir" value="${app.server.jetty.dir}" />
-			<param name="simple.server.bin.dir" value="${app.server.jetty.bin.dir}" />
-			<param name="simple.server.deploy.dir" value="${app.server.jetty.deploy.dir}" />
-			<param name="simple.server.lib.global.dir" value="${app.server.jetty.lib.global.dir}" />
-			<param name="simple.server.portal.dir" value="${app.server.jetty.portal.dir}" />
-			<param name="simple.server.start.executable" value="run${file.suffix.bat}" />
-			<param name="simple.server.start.executable.arg.line" value="" />
-			<param name="simple.server.stop.executable" value="shutdown${file.suffix.bat}" />
-			<param name="simple.server.stop.executable.arg.line" value="" />
-		</antcall>
+		<antcall target="run-simple-server" />
 
 		<record action="stop" name="log" />
 
@@ -26,6 +16,10 @@
 	</target>
 
 	<target name="run-selenium-jetty">
+		<app-server-properties-update>
+			app.server.type=jetty
+		</app-server-properties-update>
+
 		<if>
 			<not>
 				<isset property="build.app.server" />
@@ -40,9 +34,19 @@
 			<replacevalue>set "JAVA_OPTS=-DSTOP.PORT=8079 -DSTOP.KEY=secret -D</replacevalue>
 		</replace>
 
+		<replace file="${app.server.jetty.bin.dir}/run.sh">
+			<replacetoken>export JAVA_OPTS="-D</replacetoken>
+			<replacevalue>export JAVA_OPTS="-DSTOP.PORT=8079 -DSTOP.KEY=secret -D</replacevalue>
+		</replace>
+
 		<copy
 			file="${app.server.jetty.bin.dir}/run.bat"
 			tofile="${app.server.jetty.bin.dir}/shutdown.bat"
+		/>
+
+		<copy
+			file="${app.server.jetty.bin.dir}/run.sh"
+			tofile="${app.server.jetty.bin.dir}/shutdown.sh"
 		/>
 
 		<replace file="${app.server.jetty.bin.dir}/shutdown.bat">
@@ -50,13 +54,26 @@
 			<replacevalue>"%JAVA_HOME%/bin/java" %JAVA_OPTS% -jar ../start.jar --stop</replacevalue>
 		</replace>
 
+		<replace file="${app.server.jetty.bin.dir}/shutdown.sh">
+			<replacetoken>$JAVA_HOME/bin/java $JAVA_OPTS -jar ../start.jar</replacetoken>
+			<replacevalue>$JAVA_HOME/bin/java $JAVA_OPTS -jar ../start.jar --stop</replacevalue>
+		</replace>
+
+		<chmod perm="a+x">
+			<fileset dir="${app.server.jetty.bin.dir}">
+				<include name="*.sh" />
+			</fileset>
+		</chmod>
+
 		<antcall target="revert-test-properties" />
+
+		<ant dir="portal-impl" target="build-selenium-new-test-case" />
 
 		<antcall target="prepare-virtual-host-name-properties" />
 
 		<antcall target="start-selenium" />
 
-		<antcall target="run-jetty">
+		<antcall target="run-jetty" inheritAll="false">
 			<param name="test.class" value="${test.name}" />
 		</antcall>
 

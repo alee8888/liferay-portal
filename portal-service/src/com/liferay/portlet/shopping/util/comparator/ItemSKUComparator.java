@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -49,7 +49,10 @@ public class ItemSKUComparator extends OrderByComparator {
 		int value = categoryId1.compareTo(categoryId2);
 
 		if (value == 0) {
-			value = item1.getSku().compareTo(item2.getSku());
+			String sku1 = item1.getSku();
+			String sku2 = item2.getSku();
+
+			value = sku1.compareTo(sku2);
 		}
 
 		if (_ascending) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,14 @@
 
 package com.liferay.portlet.dynamicdatamapping.util;
 
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.xml.Document;
-import com.liferay.portal.kernel.xml.DocumentException;
+import com.liferay.portal.kernel.xml.XPath;
+import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
+import com.liferay.portlet.dynamicdatamapping.storage.Fields;
 
-import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Bruno Basto
@@ -25,8 +29,26 @@ import java.io.IOException;
  */
 public interface DDMXML {
 
-	public String formatXML(Document document) throws IOException;
+	public String formatXML(Document document);
 
-	public String formatXML(String xml) throws DocumentException, IOException;
+	public String formatXML(String xml);
+
+	public Fields getFields(DDMStructure structure, String xml)
+		throws PortalException;
+
+	public Fields getFields(
+			DDMStructure structure, XPath xPath, String xml,
+			List<String> fieldNames)
+		throws PortalException;
+
+	public String getXML(Document document, Fields fields);
+
+	public String getXML(Fields fields);
+
+	public String updateXMLDefaultLocale(
+		String xml, Locale contentDefaultLocale,
+		Locale contentNewDefaultLocale);
+
+	public String validateXML(String xml) throws PortalException;
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.cache.CacheRegistry;
 import com.liferay.portal.kernel.cache.CacheRegistryItem;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,8 +26,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author Brian Wing Shun Chan
  */
+@DoPrivileged
 public class CacheRegistryImpl implements CacheRegistry {
 
+	@Override
 	public void clear() {
 		for (Map.Entry<String, CacheRegistryItem> entry :
 				_cacheRegistryItems.entrySet()) {
@@ -42,6 +45,7 @@ public class CacheRegistryImpl implements CacheRegistry {
 		}
 	}
 
+	@Override
 	public void clear(String name) {
 		CacheRegistryItem cacheRegistryItem = _cacheRegistryItems.get(name);
 
@@ -57,10 +61,12 @@ public class CacheRegistryImpl implements CacheRegistry {
 		}
 	}
 
+	@Override
 	public boolean isActive() {
 		return _active;
 	}
 
+	@Override
 	public void register(CacheRegistryItem cacheRegistryItem) {
 		String name = cacheRegistryItem.getRegistryName();
 
@@ -78,6 +84,7 @@ public class CacheRegistryImpl implements CacheRegistry {
 		}
 	}
 
+	@Override
 	public void setActive(boolean active) {
 		_active = active;
 
@@ -86,6 +93,7 @@ public class CacheRegistryImpl implements CacheRegistry {
 		}
 	}
 
+	@Override
 	public void unregister(String name) {
 		if (_log.isDebugEnabled()) {
 			_log.debug("Unregistering " + name);

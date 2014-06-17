@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -61,10 +61,8 @@ public class RangeFacet extends BaseFacet {
 			end = range[1];
 		}
 
-		String fieldName = getFieldName();
-
 		String rangeParam = GetterUtil.getString(
-			searchContext.getAttribute(fieldName));
+			searchContext.getAttribute(getFieldId()));
 
 		if (!isStatic() && Validator.isNotNull(rangeParam)) {
 			String[] range = RangeParserUtil.parserRange(rangeParam);
@@ -78,7 +76,7 @@ public class RangeFacet extends BaseFacet {
 		}
 
 		if (Validator.isNotNull(start) && Validator.isNotNull(end) &&
-			(start.compareTo(end) >= 0)) {
+			(start.compareTo(end) > 0)) {
 
 			throw new IllegalArgumentException(
 				"End value must be greater than start value");
@@ -97,7 +95,7 @@ public class RangeFacet extends BaseFacet {
 		}
 
 		TermRangeQuery facetTermRangeQuery = TermRangeQueryFactoryUtil.create(
-			searchContext, fieldName, startString, endString, true, true);
+			searchContext, getFieldName(), startString, endString, true, true);
 
 		return BooleanClauseFactoryUtil.create(
 			searchContext, facetTermRangeQuery,

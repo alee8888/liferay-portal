@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portal.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.LayoutBranch;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.ServiceContext;
@@ -29,10 +28,11 @@ import com.liferay.portal.service.permission.LayoutBranchPermissionUtil;
  */
 public class LayoutBranchServiceImpl extends LayoutBranchServiceBaseImpl {
 
+	@Override
 	public LayoutBranch addLayoutBranch(
 			long layoutRevisionId, String name, String description,
 			boolean master, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		long groupId = serviceContext.getScopeGroupId();
 
@@ -43,19 +43,19 @@ public class LayoutBranchServiceImpl extends LayoutBranchServiceBaseImpl {
 			layoutRevisionId, name, description, false, serviceContext);
 	}
 
-	public void deleteLayoutBranch(long layoutBranchId)
-		throws PortalException, SystemException {
-
+	@Override
+	public void deleteLayoutBranch(long layoutBranchId) throws PortalException {
 		LayoutBranchPermissionUtil.check(
 			getPermissionChecker(), layoutBranchId, ActionKeys.DELETE);
 
 		layoutBranchLocalService.deleteLayoutBranch(layoutBranchId);
 	}
 
+	@Override
 	public LayoutBranch updateLayoutBranch(
 			long layoutBranchId, String name, String description,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LayoutBranchPermissionUtil.check(
 			getPermissionChecker(), layoutBranchId, ActionKeys.UPDATE);

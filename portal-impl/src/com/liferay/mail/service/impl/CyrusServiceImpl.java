@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,84 +21,79 @@ import com.liferay.mail.service.CyrusService;
 import com.liferay.mail.service.persistence.CyrusUserUtil;
 import com.liferay.mail.service.persistence.CyrusVirtualUtil;
 import com.liferay.portal.kernel.bean.IdentifiableBean;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 
 /**
  * @author Alexander Chow
  */
+@DoPrivileged
 public class CyrusServiceImpl implements CyrusService, IdentifiableBean {
 
-	public void addUser(long userId, String emailAddress, String password)
-		throws SystemException {
+	@Override
+	public void addUser(long userId, String emailAddress, String password) {
 
-		// User
+		CyrusUser cyrusUser = new CyrusUser(userId, password);
 
-		CyrusUser user = new CyrusUser(userId, password);
+		CyrusUserUtil.update(cyrusUser);
 
-		CyrusUserUtil.update(user);
+		CyrusVirtual cyrusVirtual = new CyrusVirtual(emailAddress, userId);
 
-		// Virtual
-
-		CyrusVirtual virtual = new CyrusVirtual(emailAddress, userId);
-
-		CyrusVirtualUtil.update(virtual);
+		CyrusVirtualUtil.update(cyrusVirtual);
 	}
 
-	public void deleteEmailAddress(long companyId, long userId)
-		throws SystemException {
+	@Override
+	public void deleteEmailAddress(long companyId, long userId) {
 
 		CyrusVirtualUtil.removeByUserId(userId);
 	}
 
-	public void deleteUser(long userId) throws SystemException {
-
-		// User
-
+	@Override
+	public void deleteUser(long userId) {
 		try {
 			CyrusUserUtil.remove(userId);
 		}
 		catch (NoSuchCyrusUserException nscue) {
 		}
 
-		// Virtual
-
 		CyrusVirtualUtil.removeByUserId(userId);
 	}
 
+	@Override
 	public String getBeanIdentifier() {
 		return _beanIdentifier;
 	}
 
+	@Override
 	public void setBeanIdentifier(String beanIdentifier) {
 		_beanIdentifier = beanIdentifier;
 	}
 
+	@Override
 	public void updateEmailAddress(
-			long companyId, long userId, String emailAddress)
-		throws SystemException {
+		long companyId, long userId, String emailAddress) {
 
 		CyrusVirtualUtil.removeByUserId(userId);
 
-		CyrusVirtual virtual = new CyrusVirtual(emailAddress, userId);
+		CyrusVirtual cyrusVirtual = new CyrusVirtual(emailAddress, userId);
 
-		CyrusVirtualUtil.update(virtual);
+		CyrusVirtualUtil.update(cyrusVirtual);
 	}
 
-	public void updatePassword(long companyId, long userId, String password)
-		throws SystemException {
+	@Override
+	public void updatePassword(long companyId, long userId, String password) {
 
-		CyrusUser user = null;
+		CyrusUser cyrusUser = null;
 
 		try {
-			user = CyrusUserUtil.findByPrimaryKey(userId);
+			cyrusUser = CyrusUserUtil.findByPrimaryKey(userId);
 		}
 		catch (NoSuchCyrusUserException nscue) {
-			user = new CyrusUser(userId, password);
+			cyrusUser = new CyrusUser(userId, password);
 		}
 
-		user.setPassword(password);
+		cyrusUser.setPassword(password);
 
-		CyrusUserUtil.update(user);
+		CyrusUserUtil.update(cyrusUser);
 	}
 
 	private String _beanIdentifier;

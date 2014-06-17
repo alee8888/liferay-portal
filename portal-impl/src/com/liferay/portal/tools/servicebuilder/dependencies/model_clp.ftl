@@ -1,5 +1,7 @@
 package ${packagePath}.model;
 
+import ${packagePath}.service.ClpSerializer;
+
 <#if entity.hasLocalService() && entity.hasColumns()>
 	import ${packagePath}.service.${entity.name}LocalServiceUtil;
 </#if>
@@ -8,25 +10,38 @@ package ${packagePath}.model;
 	import ${packagePath}.service.persistence.${entity.name}PK;
 </#if>
 
+import com.liferay.portal.LocaleException;
+import com.liferay.portal.NoSuchModelException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.DateUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.BaseModel;
+import com.liferay.portal.model.ContainerModel;
+import com.liferay.portal.model.TrashedModel;
+import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.BaseModelImpl;
+import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.portlet.trash.model.TrashEntry;
+import com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil;
 
 import java.io.Serializable;
 
-import java.lang.reflect.Proxy;
+import java.lang.reflect.Method;
 
 import java.sql.Blob;
 
@@ -34,20 +49,25 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements ${entity.name} {
 
 	public ${entity.name}Clp() {
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return ${entity.name}.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return ${entity.name}.class.getName();
 	}
 
+	@Override
 	public ${entity.PKClassName} getPrimaryKey() {
 		<#if entity.hasCompoundPK()>
 			return new ${entity.PKClassName}(
@@ -66,6 +86,7 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 		</#if>
 	}
 
+	@Override
 	public void setPrimaryKey(${entity.PKClassName} primaryKey) {
 		<#if entity.hasCompoundPK()>
 			<#list entity.PKList as column>
@@ -76,6 +97,7 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 		</#if>
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
 		<#if entity.hasCompoundPK()>
 			return new ${entity.PKClassName}(
@@ -90,22 +112,11 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 
 			);
 		<#else>
-			return
-
-			<#if entity.hasPrimitivePK()>
-				new ${serviceBuilder.getPrimitiveObj("${entity.PKClassName}")} (
-			</#if>
-
-			_${entity.PKList[0].name}
-
-			<#if entity.hasPrimitivePK()>
-				)
-			</#if>
-
-			;
+			return _${entity.PKList[0].name};
 		</#if>
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(
 
@@ -124,6 +135,7 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 		);
 	}
 
+	@Override
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
@@ -131,9 +143,13 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 			attributes.put("${column.name}", get${column.methodName}());
 		</#list>
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
+	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
 		<#list entity.regularColList as column>
 			<#if column.isPrimitiveType()>
@@ -156,10 +172,14 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 				set${column.methodName}(${column.name});
 			}
 		</#list>
+
+		_entityCacheEnabled = GetterUtil.getBoolean("entityCacheEnabled");
+		_finderCacheEnabled = GetterUtil.getBoolean("finderCacheEnabled");
 	}
 
 	<#list entity.regularColList as column>
 		<#if column.name == "classNameId">
+			@Override
 			public String getClassName() {
 				if (getClassNameId() <= 0) {
 					return StringPool.BLANK;
@@ -168,6 +188,7 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 				return PortalUtil.getClassName(getClassNameId());
 			}
 
+			@Override
 			public void setClassName(String className) {
 				long classNameId = 0;
 
@@ -179,61 +200,86 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 			}
 		</#if>
 
+		@Override
 		public ${column.type} get${column.methodName}() {
 			return _${column.name};
 		}
 
 		<#if column.localized>
+			@Override
 			public String get${column.methodName}(Locale locale) {
 				String languageId = LocaleUtil.toLanguageId(locale);
 
 				return get${column.methodName}(languageId);
 			}
 
+			@Override
 			public String get${column.methodName}(Locale locale, boolean useDefault) {
 				String languageId = LocaleUtil.toLanguageId(locale);
 
 				return get${column.methodName}(languageId, useDefault);
 			}
 
+			@Override
 			public String get${column.methodName}(String languageId) {
 				return LocalizationUtil.getLocalization(get${column.methodName}(), languageId);
 			}
 
+			@Override
 			public String get${column.methodName}(String languageId, boolean useDefault) {
 				return LocalizationUtil.getLocalization(get${column.methodName}(), languageId, useDefault);
 			}
 
+			@Override
 			public String get${column.methodName}CurrentLanguageId() {
 				return _${column.name}CurrentLanguageId;
 			}
 
+			@Override
 			public String get${column.methodName}CurrentValue() {
 				Locale locale = getLocale(_${column.name}CurrentLanguageId);
 
 				return get${column.methodName}(locale);
 			}
 
+			@Override
 			public Map<Locale, String> get${column.methodName}Map() {
 				return LocalizationUtil.getLocalizationMap(get${column.methodName}());
 			}
 		</#if>
 
 		<#if column.type== "boolean">
+			@Override
 			public ${column.type} is${column.methodName}() {
 				return _${column.name};
 			}
 		</#if>
 
+		@Override
 		public void set${column.methodName}(${column.type} ${column.name}) {
 			_${column.name} = ${column.name};
+
+			if (_${entity.varName}RemoteModel != null) {
+				try {
+					Class<?> clazz = _${entity.varName}RemoteModel.getClass();
+
+					Method method = clazz.getMethod("set${column.methodName}", ${column.type}.class);
+
+					method.invoke(_${entity.varName}RemoteModel, ${column.name});
+				}
+				catch (Exception e) {
+					throw new UnsupportedOperationException(e);
+				}
+			}
 		}
 
 		<#if column.localized>
+			@Override
 			public void set${column.methodName}(String ${column.name}, Locale locale) {
 				set${column.methodName}(${column.name}, locale, LocaleUtil.getDefault());
 			}
 
+			@Override
 			public void set${column.methodName}(String ${column.name}, Locale locale, Locale defaultLocale) {
 				String languageId = LocaleUtil.toLanguageId(locale);
 				String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
@@ -246,14 +292,17 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 				}
 			}
 
+			@Override
 			public void set${column.methodName}CurrentLanguageId(String languageId) {
 				_${column.name}CurrentLanguageId = languageId;
 			}
 
+			@Override
 			public void set${column.methodName}Map(Map<Locale, String> ${column.name}Map) {
 				set${column.methodName}Map(${column.name}Map, LocaleUtil.getDefault());
 			}
 
+			@Override
 			public void set${column.methodName}Map(Map<Locale, String> ${column.name}Map, Locale defaultLocale) {
 				if (${column.name}Map == null) {
 					return;
@@ -281,6 +330,7 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 		</#if>
 
 		<#if (column.name == "resourcePrimKey") && entity.isResourcedModel()>
+			@Override
 			public boolean isResourceMain() {
 				return _resourceMain;
 			}
@@ -291,18 +341,27 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 		</#if>
 
 		<#if column.userUuid>
-			public String get${column.methodUserUuidName}() throws SystemException {
-				return PortalUtil.getUserValue(get${column.methodName}(), "uuid", _${column.userUuidName});
+			@Override
+			public String get${column.methodUserUuidName}() {
+				try {
+					User user = UserLocalServiceUtil.getUserById(get${column.methodName}());
+
+					return user.getUuid();
+				}
+				catch (PortalException pe) {
+					return StringPool.BLANK;
+				}
 			}
 
+			@Override
 			public void set${column.methodUserUuidName}(String ${column.userUuidName}) {
-				_${column.userUuidName} = ${column.userUuidName};
 			}
 		</#if>
 	</#list>
 
 	<#list methods as method>
 		<#if !method.isConstructor() && !method.isStatic() && method.isPublic() && !(entity.isResourcedModel() && (method.name == "isResourceMain") && (method.parameters?size == 0))>
+			@Override
 			public ${serviceBuilder.getTypeGenericsName(method.returns)} ${method.name} (
 
 			<#assign parameters = method.parameters>
@@ -330,19 +389,241 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 			</#list>-->
 
 			{
-				throw new UnsupportedOperationException();
+				try {
+					String methodName = "${method.name}";
+
+					Class<?>[] parameterTypes = new Class<?>[] {
+						<#list parameters as parameter>
+							${parameter.type.getValue()}.class
+							<#if parameter_has_next>
+								,
+							</#if>
+						</#list>
+					};
+
+					Object[] parameterValues = new Object[] {
+						<#list parameters as parameter>
+							${parameter.name}
+							<#if parameter_has_next>
+								,
+							</#if>
+						</#list>
+					};
+
+					<#if serviceBuilder.getTypeGenericsName(method.returns) != "void">
+						<#assign returnTypeObj = serviceBuilder.getPrimitiveObj(serviceBuilder.getTypeGenericsName(method.returns))>
+
+						${returnTypeObj} returnObj = (${returnTypeObj})
+					</#if>
+
+					invokeOnRemoteModel(methodName, parameterTypes, parameterValues);
+
+					<#if serviceBuilder.getTypeGenericsName(method.returns) != "void">
+						return returnObj;
+					</#if>
+				}
+				catch (Exception e) {
+					throw new UnsupportedOperationException(e);
+				}
 			}
 		</#if>
 	</#list>
 
+	<#if entity.isContainerModel()>
+		<#assign hasParentContainerModelId = entity.hasColumn("parentContainerModelId")>
+
+		<#list entity.columnList as column>
+			<#if column.isContainerModel() && (column.name != "containerModelId")>
+				public long getContainerModelId() {
+					return get${column.methodName}();
+				}
+
+				public void setContainerModelId(long containerModelId) {
+					_${column.name} = containerModelId;
+				}
+			</#if>
+
+			<#if column.isParentContainerModel() && (column.name != "parentContainerModelId")>
+				<#assign hasParentContainerModelId = true>
+
+				public long getParentContainerModelId() {
+					return get${column.methodName}();
+				}
+
+				public void setParentContainerModelId(long parentContainerModelId) {
+					_${column.name} = parentContainerModelId;
+				}
+			</#if>
+		</#list>
+
+		public String getContainerModelName() {
+			<#if entity.hasColumn("name")>
+				return String.valueOf(getName());
+			<#else>
+				return String.valueOf(getContainerModelId());
+			</#if>
+		}
+
+		<#if !hasParentContainerModelId>
+			public long getParentContainerModelId() {
+				return 0;
+			}
+
+			public void setParentContainerModelId(long parentContainerModelId) {
+			}
+		</#if>
+	</#if>
+
+	<#if entity.isStagedModel()>
+		@Override
+		public StagedModelType getStagedModelType() {
+			<#if entity.isTypedModel()>
+				return new StagedModelType(PortalUtil.getClassNameId(${entity.name}.class.getName()), getClassNameId());
+			<#else>
+				return new StagedModelType(PortalUtil.getClassNameId(${entity.name}.class.getName()));
+			</#if>
+		}
+	</#if>
+
+	<#if entity.isTrashEnabled()>
+		<#if !entity.isWorkflowEnabled()>
+			@Override
+			public int getStatus() {
+				return 0;
+			}
+		</#if>
+
+		@Override
+		public TrashEntry getTrashEntry() throws PortalException {
+			if (!isInTrash()) {
+				return null;
+			}
+
+			TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(), getTrashEntryClassPK());
+
+			if (trashEntry != null) {
+				return trashEntry;
+			}
+
+			TrashHandler trashHandler = getTrashHandler();
+
+			if (!Validator.isNull(trashHandler.getContainerModelClassName())) {
+				ContainerModel containerModel = null;
+
+				try {
+					containerModel = trashHandler.getParentContainerModel(this);
+				}
+				catch (NoSuchModelException nsme) {
+	            	return null;
+				}
+
+				while (containerModel != null) {
+					if (containerModel instanceof TrashedModel) {
+						TrashedModel trashedModel = (TrashedModel)containerModel;
+
+						return trashedModel.getTrashEntry();
+					}
+
+					trashHandler = TrashHandlerRegistryUtil.getTrashHandler(trashHandler.getContainerModelClassName());
+
+					if (trashHandler == null) {
+						return null;
+					}
+
+					containerModel = trashHandler.getContainerModel(containerModel.getParentContainerModelId());
+				}
+			}
+
+			return null;
+		}
+
+		@Override
+		public long getTrashEntryClassPK() {
+			return getPrimaryKey();
+		}
+
+		@Override
+		public TrashHandler getTrashHandler() {
+			return TrashHandlerRegistryUtil.getTrashHandler(getModelClassName());
+		}
+
+		@Override
+		public boolean isInTrash() {
+			if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		@Override
+		public boolean isInTrashContainer() {
+			TrashHandler trashHandler = getTrashHandler();
+
+			if ((trashHandler == null) || Validator.isNull(trashHandler.getContainerModelClassName())) {
+				return false;
+			}
+
+			try {
+				ContainerModel containerModel = trashHandler.getParentContainerModel(this);
+
+				if (containerModel == null) {
+					return false;
+				}
+
+				if (containerModel instanceof TrashedModel) {
+					return ((TrashedModel)containerModel).isInTrash();
+				}
+			}
+			catch (Exception e) {
+			}
+
+			return false;
+		}
+
+		@Override
+		public boolean isInTrashExplicitly() {
+			if (!isInTrash()) {
+				return false;
+			}
+
+			TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(), getTrashEntryClassPK());
+
+			if (trashEntry != null) {
+				return true;
+			}
+
+			return false;
+		}
+
+		@Override
+		public boolean isInTrashImplicitly() {
+			if (!isInTrash()) {
+				return false;
+			}
+
+			TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(), getTrashEntryClassPK());
+
+			if (trashEntry != null) {
+				return false;
+			}
+
+			return true;
+		}
+	</#if>
+
 	<#if entity.isWorkflowEnabled()>
 		/**
-		 * @deprecated {@link #isApproved}
+		 * @deprecated As of 6.1.0, replaced by {@link #isApproved}
 		 */
+		@Deprecated
+		@Override
 		public boolean getApproved() {
 			return isApproved();
 		}
 
+		@Override
 		public boolean isApproved() {
 			if (getStatus() == WorkflowConstants.STATUS_APPROVED) {
 				return true;
@@ -352,6 +633,17 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 			}
 		}
 
+		@Override
+		public boolean isDenied() {
+			if (getStatus() == WorkflowConstants.STATUS_DENIED) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		@Override
 		public boolean isDraft() {
 			if (getStatus() == WorkflowConstants.STATUS_DRAFT) {
 				return true;
@@ -361,6 +653,7 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 			}
 		}
 
+		@Override
 		public boolean isExpired() {
 			if (getStatus() == WorkflowConstants.STATUS_EXPIRED) {
 				return true;
@@ -370,8 +663,39 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 			}
 		}
 
+		@Override
+		public boolean isInactive() {
+			if (getStatus() == WorkflowConstants.STATUS_INACTIVE) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		@Override
+		public boolean isIncomplete() {
+			if (getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		@Override
 		public boolean isPending() {
 			if (getStatus() == WorkflowConstants.STATUS_PENDING) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		@Override
+		public boolean isScheduled() {
+			if (getStatus() == WorkflowConstants.STATUS_SCHEDULED) {
 				return true;
 			}
 			else {
@@ -388,8 +712,46 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 		_${entity.varName}RemoteModel = ${entity.varName}RemoteModel;
 	}
 
+	public Object invokeOnRemoteModel(String methodName, Class<?>[] parameterTypes, Object[] parameterValues) throws Exception {
+		Object[] remoteParameterValues = new Object[parameterValues.length];
+
+		for (int i = 0; i < parameterValues.length; i++) {
+			if (parameterValues[i] != null) {
+				remoteParameterValues[i] = ClpSerializer.translateInput(parameterValues[i]);
+			}
+		}
+
+		Class<?> remoteModelClass = _${entity.varName}RemoteModel.getClass();
+
+		ClassLoader remoteModelClassLoader = remoteModelClass.getClassLoader();
+
+		Class<?>[] remoteParameterTypes = new Class[parameterTypes.length];
+
+		for (int i = 0; i < parameterTypes.length; i++) {
+			if (parameterTypes[i].isPrimitive()) {
+				remoteParameterTypes[i] = parameterTypes[i];
+			}
+			else {
+				String parameterTypeName = parameterTypes[i].getName();
+
+				remoteParameterTypes[i] = remoteModelClassLoader.loadClass(parameterTypeName);
+			}
+		}
+
+		Method method = remoteModelClass.getMethod(methodName, remoteParameterTypes);
+
+		Object returnValue = method.invoke(_${entity.varName}RemoteModel, remoteParameterValues);
+
+		if (returnValue != null) {
+			returnValue = ClpSerializer.translateOutput(returnValue);
+		}
+
+		return returnValue;
+	}
+
 	<#if entity.hasLocalService() && entity.hasColumns()>
-		public void persist() throws SystemException {
+		@Override
+		public void persist() {
 			if (this.isNew()) {
 				${entity.name}LocalServiceUtil.add${entity.name}(this);
 			}
@@ -399,9 +761,85 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 		}
 	</#if>
 
+	<#if entity.isLocalizedModel()>
+		@Override
+		public String[] getAvailableLanguageIds() {
+			Set<String> availableLanguageIds = new TreeSet<String>();
+
+			<#list entity.regularColList as column>
+				<#if column.localized>
+					Map<Locale, String> ${column.name}Map = get${column.methodName}Map();
+
+					for (Map.Entry<Locale, String> entry : ${column.name}Map.entrySet()) {
+						Locale locale = entry.getKey();
+						String value = entry.getValue();
+
+						if (Validator.isNotNull(value)) {
+							availableLanguageIds.add(LocaleUtil.toLanguageId(locale));
+						}
+					}
+				</#if>
+			</#list>
+
+			return availableLanguageIds.toArray(new String[availableLanguageIds.size()]);
+		}
+
+		@Override
+		public String getDefaultLanguageId() {
+			<#list entity.regularColList as column>
+				<#if column.localized>
+					String xml = get${column.methodName}();
+
+					if (xml == null) {
+						return StringPool.BLANK;
+					}
+
+					<#if entity.isGroupedModel()>
+						Locale defaultLocale = LocaleUtil.getSiteDefault();
+					<#else>
+						Locale defaultLocale = LocaleUtil.getDefault();
+					</#if>
+
+					return LocalizationUtil.getDefaultLanguageId(xml, defaultLocale);
+					<#break>
+				</#if>
+			</#list>
+		}
+
+		@Override
+		public void prepareLocalizedFieldsForImport() throws LocaleException {
+			prepareLocalizedFieldsForImport(null);
+		}
+
+		@Override
+		@SuppressWarnings("unused")
+		public void prepareLocalizedFieldsForImport(Locale defaultImportLocale) throws LocaleException {
+			<#if entity.isGroupedModel()>
+				Locale defaultLocale = LocaleUtil.getSiteDefault();
+			<#else>
+				Locale defaultLocale = LocaleUtil.getDefault();
+			</#if>
+
+			String modelDefaultLanguageId = getDefaultLanguageId();
+
+			<#list entity.regularColList as column>
+				<#if column.localized>
+					String ${column.name} = get${column.methodName}(defaultLocale);
+
+					if (Validator.isNull(${column.name})) {
+						set${column.methodName}(get${column.methodName}(modelDefaultLanguageId), defaultLocale);
+					}
+					else {
+					  set${column.methodName}(get${column.methodName}(defaultLocale), defaultLocale, defaultLocale);
+					}
+				</#if>
+			</#list>
+		}
+	</#if>
+
 	@Override
 	public ${entity.name} toEscapedModel() {
-		return (${entity.name})Proxy.newProxyInstance(${entity.name}.class.getClassLoader(), new Class[] {${entity.name}.class}, new AutoEscapeBeanHandler(this));
+		return (${entity.name})ProxyUtil.newProxyInstance(${entity.name}.class.getClassLoader(), new Class[] {${entity.name}.class}, new AutoEscapeBeanHandler(this));
 	}
 
 	@Override
@@ -423,6 +861,7 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 		return clone;
 	}
 
+	@Override
 	public int compareTo(${entity.name} ${entity.varName}) {
 		<#if entity.isOrdered()>
 			int value = 0;
@@ -453,7 +892,7 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 						<#if column.isCaseSensitive()>
 							value = get${column.methodName}().compareTo(${entity.varName}.get${column.methodName}());
 						<#else>
-							value = get${column.methodName}().toLowerCase().compareTo(${entity.varName}.get${column.methodName}().toLowerCase());
+							value = get${column.methodName}().compareToIgnoreCase(${entity.varName}.get${column.methodName}());
 						</#if>
 					</#if>
 				</#if>
@@ -489,18 +928,15 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ${entity.name}Clp)) {
 			return false;
 		}
 
-		${entity.name}Clp ${entity.varName} = null;
-
-		try {
-			${entity.varName} = (${entity.name}Clp)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		${entity.name}Clp ${entity.varName} = (${entity.name}Clp)obj;
 
 		${entity.PKClassName} primaryKey = ${entity.varName}.getPrimaryKey();
 
@@ -531,6 +967,16 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return _entityCacheEnabled;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _finderCacheEnabled;
+	}
+
+	@Override
 	public String toString() {
 		StringBundler sb = new StringBundler(${entity.regularColList?size * 2 + 1});
 
@@ -551,6 +997,7 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(${entity.regularColList?size * 3 + 4});
 
@@ -579,12 +1026,10 @@ public class ${entity.name}Clp extends BaseModelImpl<${entity.name}> implements 
 		<#if (column.name == "resourcePrimKey") && entity.isResourcedModel()>
 			private boolean _resourceMain;
 		</#if>
-
-		<#if column.userUuid>
-			private String _${column.userUuidName};
-		</#if>
 	</#list>
 
 	private BaseModel<?> _${entity.varName}RemoteModel;
+	private boolean _entityCacheEnabled;
+	private boolean _finderCacheEnabled;
 
 }

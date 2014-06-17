@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,14 +14,16 @@
 
 package com.liferay.portal.kernel.servlet.filters.compoundsessionid;
 
+import com.liferay.portal.kernel.servlet.PersistentHttpServletRequestWrapper;
+
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpSession;
 
 /**
  * @author Michael C. Han
  */
-public class CompoundSessionIdServletRequest extends HttpServletRequestWrapper {
+public class CompoundSessionIdServletRequest
+	extends PersistentHttpServletRequestWrapper {
 
 	public CompoundSessionIdServletRequest(HttpServletRequest request) {
 		super(request);

@@ -13,9 +13,9 @@
 ##
 
     build.namespace=${portletShortName}
-    build.number=${buildNumber}
+    build.number=${buildNumber?c}
     build.date=${currentTimeMillis?c}
-    build.auto.upgrade=true
+    build.auto.upgrade=true<#if !osgiModule>
 
 ##
 ## Spring
@@ -27,16 +27,6 @@
     # portalContextConfigLocation parameter in web.xml.
     #
     spring.configs=\
-        WEB-INF/classes/META-INF/base-spring.xml,\
-        \
-        WEB-INF/classes/META-INF/hibernate-spring.xml,\
-        WEB-INF/classes/META-INF/infrastructure-spring.xml,\
-        \
-        WEB-INF/classes/META-INF/cluster-spring.xml,\
-        \
         WEB-INF/classes/META-INF/portlet-spring.xml,\
         \
-        WEB-INF/classes/META-INF/dynamic-data-source-spring.xml,\
-        WEB-INF/classes/META-INF/shard-data-source-spring.xml,\
-        \
-        WEB-INF/classes/META-INF/ext-spring.xml
+        WEB-INF/classes/META-INF/ext-spring.xml</#if>

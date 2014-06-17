@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,9 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -21,6 +24,7 @@ import com.liferay.portlet.expando.model.ExpandoBridge;
 
 import java.io.Serializable;
 
+import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 
@@ -37,7 +41,9 @@ import java.util.Map;
  * @see com.liferay.portal.model.impl.RoleModelImpl
  * @generated
  */
-public interface RoleModel extends AttachedModel, BaseModel<Role> {
+@ProviderType
+public interface RoleModel extends AttachedModel, BaseModel<Role>, LocalizedModel,
+	MVCCModel, StagedAuditedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -59,6 +65,39 @@ public interface RoleModel extends AttachedModel, BaseModel<Role> {
 	public void setPrimaryKey(long primaryKey);
 
 	/**
+	 * Returns the mvcc version of this role.
+	 *
+	 * @return the mvcc version of this role
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this role.
+	 *
+	 * @param mvccVersion the mvcc version of this role
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
+	 * Returns the uuid of this role.
+	 *
+	 * @return the uuid of this role
+	 */
+	@AutoEscape
+	@Override
+	public String getUuid();
+
+	/**
+	 * Sets the uuid of this role.
+	 *
+	 * @param uuid the uuid of this role
+	 */
+	@Override
+	public void setUuid(String uuid);
+
+	/**
 	 * Returns the role ID of this role.
 	 *
 	 * @return the role ID of this role
@@ -77,6 +116,7 @@ public interface RoleModel extends AttachedModel, BaseModel<Role> {
 	 *
 	 * @return the company ID of this role
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -84,13 +124,96 @@ public interface RoleModel extends AttachedModel, BaseModel<Role> {
 	 *
 	 * @param companyId the company ID of this role
 	 */
+	@Override
 	public void setCompanyId(long companyId);
+
+	/**
+	 * Returns the user ID of this role.
+	 *
+	 * @return the user ID of this role
+	 */
+	@Override
+	public long getUserId();
+
+	/**
+	 * Sets the user ID of this role.
+	 *
+	 * @param userId the user ID of this role
+	 */
+	@Override
+	public void setUserId(long userId);
+
+	/**
+	 * Returns the user uuid of this role.
+	 *
+	 * @return the user uuid of this role
+	 */
+	@Override
+	public String getUserUuid();
+
+	/**
+	 * Sets the user uuid of this role.
+	 *
+	 * @param userUuid the user uuid of this role
+	 */
+	@Override
+	public void setUserUuid(String userUuid);
+
+	/**
+	 * Returns the user name of this role.
+	 *
+	 * @return the user name of this role
+	 */
+	@AutoEscape
+	@Override
+	public String getUserName();
+
+	/**
+	 * Sets the user name of this role.
+	 *
+	 * @param userName the user name of this role
+	 */
+	@Override
+	public void setUserName(String userName);
+
+	/**
+	 * Returns the create date of this role.
+	 *
+	 * @return the create date of this role
+	 */
+	@Override
+	public Date getCreateDate();
+
+	/**
+	 * Sets the create date of this role.
+	 *
+	 * @param createDate the create date of this role
+	 */
+	@Override
+	public void setCreateDate(Date createDate);
+
+	/**
+	 * Returns the modified date of this role.
+	 *
+	 * @return the modified date of this role
+	 */
+	@Override
+	public Date getModifiedDate();
+
+	/**
+	 * Sets the modified date of this role.
+	 *
+	 * @param modifiedDate the modified date of this role
+	 */
+	@Override
+	public void setModifiedDate(Date modifiedDate);
 
 	/**
 	 * Returns the fully qualified class name of this role.
 	 *
 	 * @return the fully qualified class name of this role
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -100,6 +223,7 @@ public interface RoleModel extends AttachedModel, BaseModel<Role> {
 	 *
 	 * @return the class name ID of this role
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -107,6 +231,7 @@ public interface RoleModel extends AttachedModel, BaseModel<Role> {
 	 *
 	 * @param classNameId the class name ID of this role
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -114,6 +239,7 @@ public interface RoleModel extends AttachedModel, BaseModel<Role> {
 	 *
 	 * @return the class p k of this role
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -121,6 +247,7 @@ public interface RoleModel extends AttachedModel, BaseModel<Role> {
 	 *
 	 * @param classPK the class p k of this role
 	 */
+	@Override
 	public void setClassPK(long classPK);
 
 	/**
@@ -367,35 +494,73 @@ public interface RoleModel extends AttachedModel, BaseModel<Role> {
 	 */
 	public void setSubtype(String subtype);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
+	public String[] getAvailableLanguageIds();
+
+	@Override
+	public String getDefaultLanguageId();
+
+	@Override
+	public void prepareLocalizedFieldsForImport() throws LocaleException;
+
+	@Override
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException;
+
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(Role role);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<Role> toCacheModel();
 
+	@Override
 	public Role toEscapedModel();
 
+	@Override
+	public Role toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

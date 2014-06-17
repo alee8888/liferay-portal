@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
@@ -38,6 +39,10 @@ import com.liferay.portlet.messageboards.MailingListOutUserNameException;
 import com.liferay.portlet.messageboards.NoSuchCategoryException;
 import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.service.MBCategoryServiceUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -57,8 +62,9 @@ public class EditCategoryAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -68,7 +74,10 @@ public class EditCategoryAction extends PortletAction {
 				updateCategory(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteCategories(actionRequest);
+				deleteCategories(actionRequest, false);
+			}
+			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
+				deleteCategories(actionRequest, true);
 			}
 			else if (cmd.equals(Constants.SUBSCRIBE)) {
 				subscribeCategory(actionRequest);
@@ -107,8 +116,9 @@ public class EditCategoryAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -120,37 +130,56 @@ public class EditCategoryAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.message_boards.error");
+				return actionMapping.findForward(
+					"portlet.message_boards.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.message_boards.edit_category"));
 	}
 
-	protected void deleteCategories(ActionRequest actionRequest)
+	protected void deleteCategories(
+			ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
+		long[] deleteCategoryIds = null;
+
 		long categoryId = ParamUtil.getLong(actionRequest, "mbCategoryId");
 
 		if (categoryId > 0) {
-			MBCategoryServiceUtil.deleteCategory(
-				themeDisplay.getScopeGroupId(), categoryId);
+			deleteCategoryIds = new long[] {categoryId};
 		}
 		else {
-			long[] deleteCategoryIds = StringUtil.split(
+			deleteCategoryIds = StringUtil.split(
 				ParamUtil.getString(actionRequest, "deleteCategoryIds"), 0L);
+		}
 
-			for (int i = 0; i < deleteCategoryIds.length; i++) {
-				MBCategoryServiceUtil.deleteCategory(
-					themeDisplay.getScopeGroupId(), deleteCategoryIds[i]);
+		List<TrashedModel> trashedModels = new ArrayList<TrashedModel>();
+
+		for (long deleteCategoryId : deleteCategoryIds) {
+			if (moveToTrash) {
+				MBCategory category = MBCategoryServiceUtil.moveCategoryToTrash(
+					deleteCategoryId);
+
+				trashedModels.add(category);
 			}
+			else {
+				MBCategoryServiceUtil.deleteCategory(
+					themeDisplay.getScopeGroupId(), deleteCategoryId);
+			}
+		}
+
+		if (moveToTrash && !trashedModels.isEmpty()) {
+			TrashUtil.addTrashSessionMessages(actionRequest, trashedModels);
+
+			hideDefaultSuccessMessage(actionRequest);
 		}
 	}
 

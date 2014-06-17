@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.kernel.dao.orm;
+
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 
 import java.util.Collection;
 import java.util.Map;
@@ -65,6 +67,9 @@ public class RestrictionsFactoryUtil {
 	}
 
 	public static RestrictionsFactory getRestrictionsFactory() {
+		PortalRuntimePermission.checkGetBeanProperty(
+			RestrictionsFactoryUtil.class);
+
 		return _restrictionsFactory;
 	}
 
@@ -83,7 +88,7 @@ public class RestrictionsFactoryUtil {
 		return getRestrictionsFactory().ilike(propertyName, value);
 	}
 
-	public static Criterion in(String propertyName, Collection<Object> values) {
+	public static Criterion in(String propertyName, Collection<?> values) {
 		return getRestrictionsFactory().in(propertyName, values);
 	}
 
@@ -176,8 +181,26 @@ public class RestrictionsFactoryUtil {
 		return getRestrictionsFactory().sizeNe(propertyName, size);
 	}
 
+	public static Criterion sqlRestriction(String sql) {
+		return getRestrictionsFactory().sqlRestriction(sql);
+	}
+
+	public static Criterion sqlRestriction(
+		String sql, Object value, Type type) {
+
+		return getRestrictionsFactory().sqlRestriction(sql, value, type);
+	}
+
+	public static Criterion sqlRestriction(
+		String sql, Object[] values, Type[] types) {
+
+		return getRestrictionsFactory().sqlRestriction(sql, values, types);
+	}
+
 	public void setRestrictionsFactory(
 		RestrictionsFactory restrictionsFactory) {
+
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
 
 		_restrictionsFactory = restrictionsFactory;
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,8 +15,9 @@
 package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSON;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -26,7 +27,9 @@ import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.model.RepositoryModel;
 import com.liferay.portal.model.RepositorySoap;
+import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -65,6 +68,7 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	 */
 	public static final String TABLE_NAME = "Repository";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "uuid_", Types.VARCHAR },
 			{ "repositoryId", Types.BIGINT },
 			{ "groupId", Types.BIGINT },
@@ -80,8 +84,10 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 			{ "typeSettings", Types.CLOB },
 			{ "dlFolderId", Types.BIGINT }
 		};
-	public static final String TABLE_SQL_CREATE = "create table Repository (uuid_ VARCHAR(75) null,repositoryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,name VARCHAR(75) null,description STRING null,portletId VARCHAR(75) null,typeSettings TEXT null,dlFolderId LONG)";
+	public static final String TABLE_SQL_CREATE = "create table Repository (mvccVersion LONG default 0,uuid_ VARCHAR(75) null,repositoryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,name VARCHAR(75) null,description STRING null,portletId VARCHAR(200) null,typeSettings TEXT null,dlFolderId LONG)";
 	public static final String TABLE_SQL_DROP = "drop table Repository";
+	public static final String ORDER_BY_JPQL = " ORDER BY repository.repositoryId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY Repository.repositoryId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -96,7 +102,10 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 			true);
 	public static long COMPANYID_COLUMN_BITMASK = 1L;
 	public static long GROUPID_COLUMN_BITMASK = 2L;
-	public static long UUID_COLUMN_BITMASK = 4L;
+	public static long NAME_COLUMN_BITMASK = 4L;
+	public static long PORTLETID_COLUMN_BITMASK = 8L;
+	public static long UUID_COLUMN_BITMASK = 16L;
+	public static long REPOSITORYID_COLUMN_BITMASK = 32L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -105,8 +114,13 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	 * @return the normal model instance
 	 */
 	public static Repository toModel(RepositorySoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		Repository model = new RepositoryImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setUuid(soapModel.getUuid());
 		model.setRepositoryId(soapModel.getRepositoryId());
 		model.setGroupId(soapModel.getGroupId());
@@ -132,6 +146,10 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	 * @return the normal model instances
 	 */
 	public static List<Repository> toModels(RepositorySoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<Repository> models = new ArrayList<Repository>(soapModels.length);
 
 		for (RepositorySoap soapModel : soapModels) {
@@ -147,26 +165,32 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	public RepositoryModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _repositoryId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setRepositoryId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_repositoryId);
+		return _repositoryId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return Repository.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return Repository.class.getName();
 	}
@@ -175,6 +199,7 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("repositoryId", getRepositoryId());
 		attributes.put("groupId", getGroupId());
@@ -190,11 +215,20 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 		attributes.put("typeSettings", getTypeSettings());
 		attributes.put("dlFolderId", getDlFolderId());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -281,6 +315,18 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	}
 
 	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -290,6 +336,7 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 		}
 	}
 
+	@Override
 	public void setUuid(String uuid) {
 		if (_originalUuid == null) {
 			_originalUuid = _uuid;
@@ -303,19 +350,23 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	}
 
 	@JSON
+	@Override
 	public long getRepositoryId() {
 		return _repositoryId;
 	}
 
+	@Override
 	public void setRepositoryId(long repositoryId) {
 		_repositoryId = repositoryId;
 	}
 
 	@JSON
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
 
+	@Override
 	public void setGroupId(long groupId) {
 		_columnBitmask |= GROUPID_COLUMN_BITMASK;
 
@@ -333,10 +384,12 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	}
 
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_columnBitmask |= COMPANYID_COLUMN_BITMASK;
 
@@ -354,23 +407,34 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	}
 
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
 
+	@Override
 	public void setUserId(long userId) {
 		_userId = userId;
 	}
 
-	public String getUserUuid() throws SystemException {
-		return PortalUtil.getUserValue(getUserId(), "uuid", _userUuid);
+	@Override
+	public String getUserUuid() {
+		try {
+			User user = UserLocalServiceUtil.getUserById(getUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
+		}
 	}
 
+	@Override
 	public void setUserUuid(String userUuid) {
-		_userUuid = userUuid;
 	}
 
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -380,28 +444,34 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 		}
 	}
 
+	@Override
 	public void setUserName(String userName) {
 		_userName = userName;
 	}
 
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
 
+	@Override
 	public void setCreateDate(Date createDate) {
 		_createDate = createDate;
 	}
 
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
 
+	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		_modifiedDate = modifiedDate;
 	}
 
+	@Override
 	public String getClassName() {
 		if (getClassNameId() <= 0) {
 			return StringPool.BLANK;
@@ -410,6 +480,7 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 		return PortalUtil.getClassName(getClassNameId());
 	}
 
+	@Override
 	public void setClassName(String className) {
 		long classNameId = 0;
 
@@ -421,15 +492,18 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	}
 
 	@JSON
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
 
+	@Override
 	public void setClassNameId(long classNameId) {
 		_classNameId = classNameId;
 	}
 
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -439,11 +513,23 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 		}
 	}
 
+	@Override
 	public void setName(String name) {
+		_columnBitmask |= NAME_COLUMN_BITMASK;
+
+		if (_originalName == null) {
+			_originalName = _name;
+		}
+
 		_name = name;
 	}
 
+	public String getOriginalName() {
+		return GetterUtil.getString(_originalName);
+	}
+
 	@JSON
+	@Override
 	public String getDescription() {
 		if (_description == null) {
 			return StringPool.BLANK;
@@ -453,11 +539,13 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 		}
 	}
 
+	@Override
 	public void setDescription(String description) {
 		_description = description;
 	}
 
 	@JSON
+	@Override
 	public String getPortletId() {
 		if (_portletId == null) {
 			return StringPool.BLANK;
@@ -467,11 +555,23 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 		}
 	}
 
+	@Override
 	public void setPortletId(String portletId) {
+		_columnBitmask |= PORTLETID_COLUMN_BITMASK;
+
+		if (_originalPortletId == null) {
+			_originalPortletId = _portletId;
+		}
+
 		_portletId = portletId;
 	}
 
+	public String getOriginalPortletId() {
+		return GetterUtil.getString(_originalPortletId);
+	}
+
 	@JSON
+	@Override
 	public String getTypeSettings() {
 		if (_typeSettings == null) {
 			return StringPool.BLANK;
@@ -481,32 +581,30 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 		}
 	}
 
+	@Override
 	public void setTypeSettings(String typeSettings) {
 		_typeSettings = typeSettings;
 	}
 
 	@JSON
+	@Override
 	public long getDlFolderId() {
 		return _dlFolderId;
 	}
 
+	@Override
 	public void setDlFolderId(long dlFolderId) {
 		_dlFolderId = dlFolderId;
 	}
 
-	public long getColumnBitmask() {
-		return _columnBitmask;
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(PortalUtil.getClassNameId(
+				Repository.class.getName()), getClassNameId());
 	}
 
-	@Override
-	public Repository toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Repository)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
+	public long getColumnBitmask() {
+		return _columnBitmask;
 	}
 
 	@Override
@@ -523,9 +621,20 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	}
 
 	@Override
+	public Repository toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Repository)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		RepositoryImpl repositoryImpl = new RepositoryImpl();
 
+		repositoryImpl.setMvccVersion(getMvccVersion());
 		repositoryImpl.setUuid(getUuid());
 		repositoryImpl.setRepositoryId(getRepositoryId());
 		repositoryImpl.setGroupId(getGroupId());
@@ -546,6 +655,7 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 		return repositoryImpl;
 	}
 
+	@Override
 	public int compareTo(Repository repository) {
 		long primaryKey = repository.getPrimaryKey();
 
@@ -562,18 +672,15 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof Repository)) {
 			return false;
 		}
 
-		Repository repository = null;
-
-		try {
-			repository = (Repository)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		Repository repository = (Repository)obj;
 
 		long primaryKey = repository.getPrimaryKey();
 
@@ -591,6 +698,16 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		RepositoryModelImpl repositoryModelImpl = this;
 
@@ -604,12 +721,18 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 
 		repositoryModelImpl._setOriginalCompanyId = false;
 
+		repositoryModelImpl._originalName = repositoryModelImpl._name;
+
+		repositoryModelImpl._originalPortletId = repositoryModelImpl._portletId;
+
 		repositoryModelImpl._columnBitmask = 0;
 	}
 
 	@Override
 	public CacheModel<Repository> toCacheModel() {
 		RepositoryCacheModel repositoryCacheModel = new RepositoryCacheModel();
+
+		repositoryCacheModel.mvccVersion = getMvccVersion();
 
 		repositoryCacheModel.uuid = getUuid();
 
@@ -694,9 +817,11 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(29);
+		StringBundler sb = new StringBundler(31);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", uuid=");
 		sb.append(getUuid());
 		sb.append(", repositoryId=");
 		sb.append(getRepositoryId());
@@ -729,13 +854,18 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(46);
+		StringBundler sb = new StringBundler(49);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.Repository");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>uuid</column-name><column-value><![CDATA[");
 		sb.append(getUuid());
@@ -799,9 +929,10 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	}
 
 	private static ClassLoader _classLoader = Repository.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			Repository.class
 		};
+	private long _mvccVersion;
 	private String _uuid;
 	private String _originalUuid;
 	private long _repositoryId;
@@ -812,16 +943,17 @@ public class RepositoryModelImpl extends BaseModelImpl<Repository>
 	private long _originalCompanyId;
 	private boolean _setOriginalCompanyId;
 	private long _userId;
-	private String _userUuid;
 	private String _userName;
 	private Date _createDate;
 	private Date _modifiedDate;
 	private long _classNameId;
 	private String _name;
+	private String _originalName;
 	private String _description;
 	private String _portletId;
+	private String _originalPortletId;
 	private String _typeSettings;
 	private long _dlFolderId;
 	private long _columnBitmask;
-	private Repository _escapedModelProxy;
+	private Repository _escapedModel;
 }

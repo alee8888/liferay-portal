@@ -10,6 +10,7 @@
 >
 	<bean id="counterHibernateSessionFactory" class="com.liferay.portal.spring.hibernate.PortalHibernateConfiguration">
 		<property name="dataSource" ref="counterDataSource" />
+		<property name="mvccEnabled" value="false" />
 	</bean>
 	<bean id="counterSessionFactory" class="com.liferay.portal.dao.orm.hibernate.SessionFactoryImpl">
 		<property name="sessionFactoryClassLoader">
@@ -25,6 +26,10 @@
 			<bean class="com.liferay.portal.kernel.util.PortalClassLoaderUtil" factory-method="getClassLoader" />
 		</property>
 		<property name="sessionFactoryImplementor" ref="liferayHibernateSessionFactory" />
+	</bean>
+	<bean id="counterTransactionManager" class="com.liferay.portal.spring.transaction.TransactionManagerFactory" factory-method="createTransactionManager">
+		<constructor-arg ref="counterDataSource" />
+		<constructor-arg ref="counterHibernateSessionFactory" />
 	</bean>
 	<bean id="liferayTransactionManager" class="com.liferay.portal.spring.transaction.TransactionManagerFactory" factory-method="createTransactionManager">
 		<constructor-arg ref="liferayDataSource" />

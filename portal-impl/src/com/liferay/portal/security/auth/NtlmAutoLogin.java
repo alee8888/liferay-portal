@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,6 @@
 
 package com.liferay.portal.security.auth;
 
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.ldap.PortalLDAPImporterUtil;
 import com.liferay.portal.util.PortalUtil;
@@ -29,54 +25,44 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author Bruno Farache
  */
-public class NtlmAutoLogin implements AutoLogin {
+public class NtlmAutoLogin extends BaseAutoLogin {
 
-	public String[] login(
-		HttpServletRequest request, HttpServletResponse response) {
+	@Override
+	protected String[] doLogin(
+			HttpServletRequest request, HttpServletResponse response)
+		throws Exception {
 
-		String[] credentials = null;
+		long companyId = PortalUtil.getCompanyId(request);
 
-		try {
-			long companyId = PortalUtil.getCompanyId(request);
-
-			if (!AuthSettingsUtil.isNtlmEnabled(companyId)) {
-				return credentials;
-			}
-
-			String screenName = (String)request.getAttribute(
-				WebKeys.NTLM_REMOTE_USER);
-
-			if (screenName == null) {
-				return credentials;
-			}
-
-			request.removeAttribute(WebKeys.NTLM_REMOTE_USER);
-
-			User user = PortalLDAPImporterUtil.importLDAPUserByScreenName(
-				companyId, screenName);
-
-			if (user != null) {
-				String redirect = ParamUtil.getString(request, "redirect");
-
-				if (Validator.isNotNull(redirect)) {
-					request.setAttribute(
-						AutoLogin.AUTO_LOGIN_REDIRECT_AND_CONTINUE, redirect);
-				}
-
-				credentials = new String[3];
-
-				credentials[0] = String.valueOf(user.getUserId());
-				credentials[1] = user.getPassword();
-				credentials[2] = Boolean.TRUE.toString();
-			}
+		if (!AuthSettingsUtil.isNtlmEnabled(companyId)) {
+			return null;
 		}
-		catch (Exception e) {
-			_log.error(e, e);
+
+		String screenName = (String)request.getAttribute(
+			WebKeys.NTLM_REMOTE_USER);
+
+		if (screenName == null) {
+			return null;
 		}
+
+		request.removeAttribute(WebKeys.NTLM_REMOTE_USER);
+
+		User user = PortalLDAPImporterUtil.importLDAPUserByScreenName(
+			companyId, screenName);
+
+		if (user == null) {
+			return null;
+		}
+
+		addRedirect(request);
+
+		String[] credentials = new String[3];
+
+		credentials[0] = String.valueOf(user.getUserId());
+		credentials[1] = user.getPassword();
+		credentials[2] = Boolean.TRUE.toString();
 
 		return credentials;
 	}
-
-	private static Log _log = LogFactoryUtil.getLog(NtlmAutoLogin.class);
 
 }

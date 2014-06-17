@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,7 +18,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.ratings.NoSuchStatsException;
 import com.liferay.portlet.ratings.model.RatingsStats;
 import com.liferay.portlet.ratings.service.base.RatingsStatsLocalServiceBaseImpl;
@@ -31,8 +30,8 @@ import java.util.List;
 public class RatingsStatsLocalServiceImpl
 	extends RatingsStatsLocalServiceBaseImpl {
 
-	public RatingsStats addStats(long classNameId, long classPK)
-		throws SystemException {
+	@Override
+	public RatingsStats addStats(long classNameId, long classPK) {
 
 		long statsId = counterLocalService.increment();
 
@@ -45,7 +44,7 @@ public class RatingsStatsLocalServiceImpl
 		stats.setAverageScore(0.0);
 
 		try {
-			ratingsStatsPersistence.update(stats, false);
+			ratingsStatsPersistence.update(stats);
 		}
 		catch (SystemException se) {
 			if (_log.isWarnEnabled()) {
@@ -65,39 +64,40 @@ public class RatingsStatsLocalServiceImpl
 		return stats;
 	}
 
-	public void deleteStats(String className, long classPK)
-		throws SystemException {
+	@Override
+	public void deleteStats(String className, long classPK) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		try {
 			ratingsStatsPersistence.removeByC_C(classNameId, classPK);
 		}
 		catch (NoSuchStatsException nsse) {
-			_log.warn(nsse);
+			if (_log.isWarnEnabled()) {
+				_log.warn(nsse);
+			}
 		}
 
 		ratingsEntryPersistence.removeByC_C(classNameId, classPK);
 	}
 
-	public RatingsStats getStats(long statsId)
-		throws PortalException, SystemException {
-
+	@Override
+	public RatingsStats getStats(long statsId) throws PortalException {
 		return ratingsStatsPersistence.findByPrimaryKey(statsId);
 	}
 
-	public List<RatingsStats> getStats(String className, List<Long> classPKs)
-		throws SystemException {
+	@Override
+	public List<RatingsStats> getStats(String className, List<Long> classPKs) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return ratingsStatsFinder.findByC_C(classNameId, classPKs);
 	}
 
-	public RatingsStats getStats(String className, long classPK)
-		throws SystemException {
+	@Override
+	public RatingsStats getStats(String className, long classPK) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		RatingsStats stats = ratingsStatsPersistence.fetchByC_C(
 			classNameId, classPK);

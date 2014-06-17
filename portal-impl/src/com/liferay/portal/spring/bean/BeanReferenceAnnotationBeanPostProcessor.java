@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -45,16 +45,24 @@ import org.springframework.util.ReflectionUtils;
 public class BeanReferenceAnnotationBeanPostProcessor
 	implements BeanFactoryAware, BeanPostProcessor {
 
+	public BeanReferenceAnnotationBeanPostProcessor() {
+		if (_log.isDebugEnabled()) {
+			_log.debug("Creating instance " + this.hashCode());
+		}
+	}
+
 	public void destroy() {
 		_beans.clear();
 	}
 
+	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName)
 		throws BeansException {
 
 		return bean;
 	}
 
+	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName)
 		throws BeansException {
 
@@ -77,6 +85,7 @@ public class BeanReferenceAnnotationBeanPostProcessor
 		return bean;
 	}
 
+	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		_beanFactory = beanFactory;
 	}
@@ -152,6 +161,9 @@ public class BeanReferenceAnnotationBeanPostProcessor
 			}
 
 			ReflectionUtils.makeAccessible(field);
+
+			BeanReferenceRefreshUtil.registerRefreshPoint(
+				targetBean, field, referencedBeanName);
 
 			try {
 				field.set(targetBean, referencedBean);

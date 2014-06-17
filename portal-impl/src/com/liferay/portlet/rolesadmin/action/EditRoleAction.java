@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,12 +20,16 @@ import com.liferay.portal.RequiredRoleException;
 import com.liferay.portal.RoleNameException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.Role;
 import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.RoleServiceUtil;
+import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.util.PortalUtil;
 
@@ -49,21 +53,32 @@ public class EditRoleAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
 		try {
+			Role role = null;
+
 			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
-				updateRole(actionRequest);
+				role = updateRole(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
 				deleteRole(actionRequest);
 			}
 
-			sendRedirect(actionRequest, actionResponse);
+			String redirect = ParamUtil.getString(actionRequest, "redirect");
+
+			if (role != null) {
+				redirect = HttpUtil.setParameter(
+					redirect, actionResponse.getNamespace() + "roleId",
+					role.getRoleId());
+			}
+
+			sendRedirect(actionRequest, actionResponse, redirect);
 		}
 		catch (Exception e) {
 			if (e instanceof PrincipalException) {
@@ -95,8 +110,9 @@ public class EditRoleAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -108,14 +124,14 @@ public class EditRoleAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.roles_admin.error");
+				return actionMapping.findForward("portlet.roles_admin.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.roles_admin.edit_role"));
 	}
 
@@ -125,7 +141,7 @@ public class EditRoleAction extends PortletAction {
 		RoleServiceUtil.deleteRole(roleId);
 	}
 
-	protected void updateRole(ActionRequest actionRequest) throws Exception {
+	protected Role updateRole(ActionRequest actionRequest) throws Exception {
 		long roleId = ParamUtil.getLong(actionRequest, "roleId");
 
 		String name = ParamUtil.getString(actionRequest, "name");
@@ -136,19 +152,24 @@ public class EditRoleAction extends PortletAction {
 		int type = ParamUtil.getInteger(
 			actionRequest, "type", RoleConstants.TYPE_REGULAR);
 		String subtype = ParamUtil.getString(actionRequest, "subtype");
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			Role.class.getName(), actionRequest);
 
 		if (roleId <= 0) {
 
 			// Add role
 
-			RoleServiceUtil.addRole(name, titleMap, descriptionMap, type);
+			return RoleServiceUtil.addRole(
+				null, 0, name, titleMap, descriptionMap, type, subtype,
+				serviceContext);
 		}
 		else {
 
 			// Update role
 
-			RoleServiceUtil.updateRole(
-				roleId, name, titleMap, descriptionMap, subtype);
+			return RoleServiceUtil.updateRole(
+				roleId, name, titleMap, descriptionMap, subtype,
+				serviceContext);
 		}
 	}
 

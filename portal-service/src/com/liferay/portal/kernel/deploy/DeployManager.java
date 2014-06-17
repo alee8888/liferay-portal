@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,9 +14,8 @@
 
 package com.liferay.portal.kernel.deploy;
 
+import com.liferay.portal.kernel.deploy.auto.context.AutoDeploymentContext;
 import com.liferay.portal.kernel.plugin.PluginPackage;
-
-import java.io.File;
 
 import java.util.List;
 import java.util.Properties;
@@ -28,9 +27,8 @@ import java.util.Properties;
  */
 public interface DeployManager {
 
-	public void deploy(File file) throws Exception;
-
-	public void deploy(File file, String context) throws Exception;
+	public void deploy(AutoDeploymentContext autoDeploymentContext)
+		throws Exception;
 
 	public String getDeployDir() throws Exception;
 
@@ -40,7 +38,13 @@ public interface DeployManager {
 
 	public List<PluginPackage> getInstalledPluginPackages();
 
+	public List<String[]> getLevelsRequiredDeploymentContexts();
+
+	public List<String[]> getLevelsRequiredDeploymentWARFileNames();
+
 	public boolean isDeployed(String context);
+
+	public boolean isRequiredDeploymentContext(String context);
 
 	public PluginPackage readPluginPackageProperties(
 		String displayName, Properties properties);

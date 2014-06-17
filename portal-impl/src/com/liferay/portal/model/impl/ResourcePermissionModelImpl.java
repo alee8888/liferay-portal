@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -61,6 +61,7 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	 */
 	public static final String TABLE_NAME = "ResourcePermission";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "resourcePermissionId", Types.BIGINT },
 			{ "companyId", Types.BIGINT },
 			{ "name", Types.VARCHAR },
@@ -70,8 +71,10 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 			{ "ownerId", Types.BIGINT },
 			{ "actionIds", Types.BIGINT }
 		};
-	public static final String TABLE_SQL_CREATE = "create table ResourcePermission (resourcePermissionId LONG not null primary key,companyId LONG,name VARCHAR(255) null,scope INTEGER,primKey VARCHAR(255) null,roleId LONG,ownerId LONG,actionIds LONG)";
+	public static final String TABLE_SQL_CREATE = "create table ResourcePermission (mvccVersion LONG default 0,resourcePermissionId LONG not null primary key,companyId LONG,name VARCHAR(255) null,scope INTEGER,primKey VARCHAR(255) null,roleId LONG,ownerId LONG,actionIds LONG)";
 	public static final String TABLE_SQL_DROP = "drop table ResourcePermission";
+	public static final String ORDER_BY_JPQL = " ORDER BY resourcePermission.resourcePermissionId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY ResourcePermission.resourcePermissionId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -84,13 +87,12 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	public static final boolean COLUMN_BITMASK_ENABLED = GetterUtil.getBoolean(com.liferay.portal.util.PropsUtil.get(
 				"value.object.column.bitmask.enabled.com.liferay.portal.model.ResourcePermission"),
 			true);
-	public static long ACTIONIDS_COLUMN_BITMASK = 1L;
-	public static long COMPANYID_COLUMN_BITMASK = 2L;
-	public static long NAME_COLUMN_BITMASK = 4L;
-	public static long OWNERID_COLUMN_BITMASK = 8L;
-	public static long PRIMKEY_COLUMN_BITMASK = 16L;
-	public static long ROLEID_COLUMN_BITMASK = 32L;
-	public static long SCOPE_COLUMN_BITMASK = 64L;
+	public static long COMPANYID_COLUMN_BITMASK = 1L;
+	public static long NAME_COLUMN_BITMASK = 2L;
+	public static long PRIMKEY_COLUMN_BITMASK = 4L;
+	public static long ROLEID_COLUMN_BITMASK = 8L;
+	public static long SCOPE_COLUMN_BITMASK = 16L;
+	public static long RESOURCEPERMISSIONID_COLUMN_BITMASK = 32L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -99,8 +101,13 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	 * @return the normal model instance
 	 */
 	public static ResourcePermission toModel(ResourcePermissionSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		ResourcePermission model = new ResourcePermissionImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setResourcePermissionId(soapModel.getResourcePermissionId());
 		model.setCompanyId(soapModel.getCompanyId());
 		model.setName(soapModel.getName());
@@ -121,6 +128,10 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	 */
 	public static List<ResourcePermission> toModels(
 		ResourcePermissionSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<ResourcePermission> models = new ArrayList<ResourcePermission>(soapModels.length);
 
 		for (ResourcePermissionSoap soapModel : soapModels) {
@@ -136,26 +147,32 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	public ResourcePermissionModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _resourcePermissionId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setResourcePermissionId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_resourcePermissionId);
+		return _resourcePermissionId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return ResourcePermission.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return ResourcePermission.class.getName();
 	}
@@ -164,6 +181,7 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("resourcePermissionId", getResourcePermissionId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("name", getName());
@@ -173,11 +191,20 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 		attributes.put("ownerId", getOwnerId());
 		attributes.put("actionIds", getActionIds());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long resourcePermissionId = (Long)attributes.get("resourcePermissionId");
 
 		if (resourcePermissionId != null) {
@@ -228,19 +255,34 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	}
 
 	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
 	public long getResourcePermissionId() {
 		return _resourcePermissionId;
 	}
 
+	@Override
 	public void setResourcePermissionId(long resourcePermissionId) {
 		_resourcePermissionId = resourcePermissionId;
 	}
 
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_columnBitmask |= COMPANYID_COLUMN_BITMASK;
 
@@ -258,6 +300,7 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	}
 
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -267,6 +310,7 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 		}
 	}
 
+	@Override
 	public void setName(String name) {
 		_columnBitmask |= NAME_COLUMN_BITMASK;
 
@@ -282,10 +326,12 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	}
 
 	@JSON
+	@Override
 	public int getScope() {
 		return _scope;
 	}
 
+	@Override
 	public void setScope(int scope) {
 		_columnBitmask |= SCOPE_COLUMN_BITMASK;
 
@@ -303,6 +349,7 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	}
 
 	@JSON
+	@Override
 	public String getPrimKey() {
 		if (_primKey == null) {
 			return StringPool.BLANK;
@@ -312,6 +359,7 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 		}
 	}
 
+	@Override
 	public void setPrimKey(String primKey) {
 		_columnBitmask |= PRIMKEY_COLUMN_BITMASK;
 
@@ -327,10 +375,12 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	}
 
 	@JSON
+	@Override
 	public long getRoleId() {
 		return _roleId;
 	}
 
+	@Override
 	public void setRoleId(long roleId) {
 		_columnBitmask |= ROLEID_COLUMN_BITMASK;
 
@@ -348,60 +398,29 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	}
 
 	@JSON
+	@Override
 	public long getOwnerId() {
 		return _ownerId;
 	}
 
+	@Override
 	public void setOwnerId(long ownerId) {
-		_columnBitmask |= OWNERID_COLUMN_BITMASK;
-
-		if (!_setOriginalOwnerId) {
-			_setOriginalOwnerId = true;
-
-			_originalOwnerId = _ownerId;
-		}
-
 		_ownerId = ownerId;
 	}
 
-	public long getOriginalOwnerId() {
-		return _originalOwnerId;
-	}
-
 	@JSON
+	@Override
 	public long getActionIds() {
 		return _actionIds;
 	}
 
+	@Override
 	public void setActionIds(long actionIds) {
-		_columnBitmask |= ACTIONIDS_COLUMN_BITMASK;
-
-		if (!_setOriginalActionIds) {
-			_setOriginalActionIds = true;
-
-			_originalActionIds = _actionIds;
-		}
-
 		_actionIds = actionIds;
-	}
-
-	public long getOriginalActionIds() {
-		return _originalActionIds;
 	}
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public ResourcePermission toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (ResourcePermission)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -418,9 +437,20 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	}
 
 	@Override
+	public ResourcePermission toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (ResourcePermission)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		ResourcePermissionImpl resourcePermissionImpl = new ResourcePermissionImpl();
 
+		resourcePermissionImpl.setMvccVersion(getMvccVersion());
 		resourcePermissionImpl.setResourcePermissionId(getResourcePermissionId());
 		resourcePermissionImpl.setCompanyId(getCompanyId());
 		resourcePermissionImpl.setName(getName());
@@ -435,6 +465,7 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 		return resourcePermissionImpl;
 	}
 
+	@Override
 	public int compareTo(ResourcePermission resourcePermission) {
 		long primaryKey = resourcePermission.getPrimaryKey();
 
@@ -451,18 +482,15 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ResourcePermission)) {
 			return false;
 		}
 
-		ResourcePermission resourcePermission = null;
-
-		try {
-			resourcePermission = (ResourcePermission)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		ResourcePermission resourcePermission = (ResourcePermission)obj;
 
 		long primaryKey = resourcePermission.getPrimaryKey();
 
@@ -477,6 +505,16 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -499,20 +537,14 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 
 		resourcePermissionModelImpl._setOriginalRoleId = false;
 
-		resourcePermissionModelImpl._originalOwnerId = resourcePermissionModelImpl._ownerId;
-
-		resourcePermissionModelImpl._setOriginalOwnerId = false;
-
-		resourcePermissionModelImpl._originalActionIds = resourcePermissionModelImpl._actionIds;
-
-		resourcePermissionModelImpl._setOriginalActionIds = false;
-
 		resourcePermissionModelImpl._columnBitmask = 0;
 	}
 
 	@Override
 	public CacheModel<ResourcePermission> toCacheModel() {
 		ResourcePermissionCacheModel resourcePermissionCacheModel = new ResourcePermissionCacheModel();
+
+		resourcePermissionCacheModel.mvccVersion = getMvccVersion();
 
 		resourcePermissionCacheModel.resourcePermissionId = getResourcePermissionId();
 
@@ -547,9 +579,11 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(17);
+		StringBundler sb = new StringBundler(19);
 
-		sb.append("{resourcePermissionId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", resourcePermissionId=");
 		sb.append(getResourcePermissionId());
 		sb.append(", companyId=");
 		sb.append(getCompanyId());
@@ -570,13 +604,18 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(28);
+		StringBundler sb = new StringBundler(31);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.ResourcePermission");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>resourcePermissionId</column-name><column-value><![CDATA[");
 		sb.append(getResourcePermissionId());
@@ -616,9 +655,10 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	}
 
 	private static ClassLoader _classLoader = ResourcePermission.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			ResourcePermission.class
 		};
+	private long _mvccVersion;
 	private long _resourcePermissionId;
 	private long _companyId;
 	private long _originalCompanyId;
@@ -634,11 +674,7 @@ public class ResourcePermissionModelImpl extends BaseModelImpl<ResourcePermissio
 	private long _originalRoleId;
 	private boolean _setOriginalRoleId;
 	private long _ownerId;
-	private long _originalOwnerId;
-	private boolean _setOriginalOwnerId;
 	private long _actionIds;
-	private long _originalActionIds;
-	private boolean _setOriginalActionIds;
 	private long _columnBitmask;
-	private ResourcePermission _escapedModelProxy;
+	private ResourcePermission _escapedModel;
 }

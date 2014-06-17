@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,6 +25,8 @@ PortletURL portletURL = renderResponse.createRenderURL();
 portletURL.setParameter("struts_action", "/blogs/view");
 %>
 
+<liferay-ui:trash-undo />
+
 <liferay-portlet:renderURL varImpl="searchURL">
 	<portlet:param name="struts_action" value="/blogs/search" />
 </liferay-portlet:renderURL>
@@ -32,25 +34,22 @@ portletURL.setParameter("struts_action", "/blogs/view");
 <aui:form action="<%= searchURL %>" method="get" name="fm1">
 	<liferay-portlet:renderURLParams varImpl="searchURL" />
 	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
-	<aui:input name="groupId" type="hidden" value="<%= String.valueOf(scopeGroupId) %>" />
 
 	<%
-	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, pageDelta, portletURL, null, null);
+	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, blogsPortletInstanceSettings.getPageDelta(), portletURL, null, null);
 
-	searchContainer.setDelta(pageDelta);
+	searchContainer.setDelta(blogsPortletInstanceSettings.getPageDelta());
 	searchContainer.setDeltaConfigurable(false);
 
 	int total = 0;
 	List results = null;
 
 	if ((assetCategoryId != 0) || Validator.isNotNull(assetTagName)) {
-		AssetEntryQuery assetEntryQuery = new AssetEntryQuery(BlogsEntry.class.getName(), searchContainer);
+		SearchContainerResults<AssetEntry> searchContainerResults = BlogsUtil.getSearchContainerResults(searchContainer);
 
-		assetEntryQuery.setExcludeZeroViewCount(false);
-		assetEntryQuery.setVisible(Boolean.TRUE);
+		searchContainer.setTotal(searchContainerResults.getTotal());
 
-		total = AssetEntryServiceUtil.getEntriesCount(assetEntryQuery);
-		results = AssetEntryServiceUtil.getEntries(assetEntryQuery);
+		results = searchContainerResults.getResults();
 	}
 	else {
 		int status = WorkflowConstants.STATUS_APPROVED;
@@ -60,18 +59,14 @@ portletURL.setParameter("struts_action", "/blogs/view");
 		}
 
 		total = BlogsEntryServiceUtil.getGroupEntriesCount(scopeGroupId, status);
+
+		searchContainer.setTotal(total);
+
 		results = BlogsEntryServiceUtil.getGroupEntries(scopeGroupId, status, searchContainer.getStart(), searchContainer.getEnd());
 	}
 
-	searchContainer.setTotal(total);
 	searchContainer.setResults(results);
 	%>
 
 	<%@ include file="/html/portlet/blogs/view_entries.jspf" %>
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm1.<portlet:namespace />keywords);
-	</aui:script>
-</c:if>

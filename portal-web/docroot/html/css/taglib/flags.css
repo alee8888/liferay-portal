@@ -1,7 +1,17 @@
 .taglib-flags {
 	display: inline-block;
-}
 
-.taglib-flags span a {
-	margin-right: 2px;
+	span a {
+		margin-right: 2px;
+	}
+
+	.icon-flag {
+		color: #999;
+	}
+
+	.flag-enable:hover {
+		.icon-flag {
+			color: #C00;
+		}
+	}
 }

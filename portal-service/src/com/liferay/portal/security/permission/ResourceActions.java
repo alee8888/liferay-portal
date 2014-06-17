@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,10 +15,14 @@
 package com.liferay.portal.security.permission;
 
 import com.liferay.portal.NoSuchResourceActionException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.Organization;
+import com.liferay.portal.model.PasswordPolicy;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.Role;
+import com.liferay.portal.model.User;
+import com.liferay.portal.model.UserGroup;
+import com.liferay.portlet.expando.model.ExpandoColumn;
 
 import java.io.InputStream;
 
@@ -32,6 +36,38 @@ import javax.servlet.jsp.PageContext;
  * @author Daeyoung Song
  */
 public interface ResourceActions {
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getActionNamePrefix}
+	 */
+	@Deprecated
+	public static final String ACTION_NAME_PREFIX = "action.";
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getModelResourceNamePrefix}
+	 */
+	@Deprecated
+	public static final String MODEL_RESOURCE_NAME_PREFIX = "model.resource.";
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #getOrganizationModelResources}
+	 */
+	@Deprecated
+	public static final String[] ORGANIZATION_MODEL_RESOURCES = {
+		Organization.class.getName(), PasswordPolicy.class.getName(),
+		User.class.getName()
+	};
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getPortalModelResources}
+	 */
+	@Deprecated
+	public static final String[] PORTAL_MODEL_RESOURCES = {
+		ExpandoColumn.class.getName(), Organization.class.getName(),
+		PasswordPolicy.class.getName(), Role.class.getName(),
+		User.class.getName(), UserGroup.class.getName()
+	};
 
 	public void checkAction(String name, String actionId)
 		throws NoSuchResourceActionException;
@@ -68,6 +104,8 @@ public interface ResourceActions {
 
 	public List<String> getModelResourceOwnerDefaultActions(String name);
 
+	public Double getModelResourceWeight(String name);
+
 	public String[] getOrganizationModelResources();
 
 	public String[] getPortalModelResources();
@@ -90,6 +128,8 @@ public interface ResourceActions {
 
 	public List<String> getPortletResourceLayoutManagerActions(String name);
 
+	public String getPortletRootModelResource(String portletName);
+
 	public List<String> getResourceActions(String name);
 
 	public List<String> getResourceActions(
@@ -101,15 +141,15 @@ public interface ResourceActions {
 		String portletResource, String modelResource);
 
 	/**
-	 * @deprecated {@link #getRoles(long, Group, String, int[])}
+	 * @deprecated As of 6.1.0, replaced by {@link #getRoles(long, Group,
+	 *             String, int[])}
 	 */
+	@Deprecated
 	public List<Role> getRoles(
-			long companyId, Group group, String modelResource)
-			throws SystemException;
+		long companyId, Group group, String modelResource);
 
 	public List<Role> getRoles(
-			long companyId, Group group, String modelResource, int[] roleTypes)
-		throws SystemException;
+		long companyId, Group group, String modelResource, int[] roleTypes);
 
 	public boolean hasModelResourceActions(String name);
 

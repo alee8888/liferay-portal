@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,37 +14,33 @@
 
 package com.liferay.portlet.shopping.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public interface ShoppingItemFinder {
 	public int countByG_C(long groupId,
-		java.util.List<java.lang.Long> categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.util.List<java.lang.Long> categoryIds);
 
-	public int countByFeatured(long groupId, long[] categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public int countByFeatured(long groupId, long[] categoryIds);
 
 	public int countByKeywords(long groupId, long[] categoryIds,
-		java.lang.String keywords)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.lang.String keywords);
 
-	public int countBySale(long groupId, long[] categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public int countBySale(long groupId, long[] categoryIds);
 
 	public int filterCountByG_C(long groupId,
-		java.util.List<java.lang.Long> categoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.util.List<java.lang.Long> categoryIds);
 
 	public java.util.List<com.liferay.portlet.shopping.model.ShoppingItem> findByFeatured(
-		long groupId, long[] categoryIds, int numOfItems)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long groupId, long[] categoryIds, int numOfItems);
 
 	public java.util.List<com.liferay.portlet.shopping.model.ShoppingItem> findByKeywords(
 		long groupId, long[] categoryIds, java.lang.String keywords, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException;
+		int end);
 
 	public java.util.List<com.liferay.portlet.shopping.model.ShoppingItem> findBySale(
-		long groupId, long[] categoryIds, int numOfItems)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long groupId, long[] categoryIds, int numOfItems);
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,30 +30,32 @@ public class FamilyNameFirstFullNameGenerator extends DefaultFullNameGenerator {
 		String middleName = StringPool.BLANK;
 		String lastName = StringPool.BLANK;
 
-		if (Validator.isNotNull(fullName)) {
-			String[] name = StringUtil.split(fullName, StringPool.SPACE);
+		if (Validator.isNull(fullName)) {
+			return new String[] {firstName, middleName, lastName};
+		}
 
-			if (name.length == 1) {
-				firstName = name[0];
+		String[] name = StringUtil.split(fullName, StringPool.SPACE);
 
-				return new String[] {firstName, middleName, lastName};
-			}
+		if (name.length == 1) {
+			firstName = name[0];
 
-			lastName = name[0];
-			firstName = name[1];
+			return new String[] {firstName, middleName, lastName};
+		}
 
-			if (name.length > 2) {
-				for (int i = 2; i < name.length; i++) {
-					if (Validator.isNull(name[i].trim())) {
-						continue;
-					}
+		lastName = name[0];
+		firstName = name[1];
 
-					if (i != 2) {
-						middleName += StringPool.SPACE;
-					}
-
-					middleName += name[i].trim();
+		if (name.length > 2) {
+			for (int i = 2; i < name.length; i++) {
+				if (Validator.isNull(name[i].trim())) {
+					continue;
 				}
+
+				if (i != 2) {
+					middleName += StringPool.SPACE;
+				}
+
+				middleName += name[i].trim();
 			}
 		}
 

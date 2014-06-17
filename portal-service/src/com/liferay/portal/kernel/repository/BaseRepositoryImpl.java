@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,9 +14,11 @@
 
 package com.liferay.portal.kernel.repository;
 
-import com.liferay.counter.service.CounterLocalService;
+import com.liferay.portal.NoSuchRepositoryEntryException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.repository.capabilities.Capability;
+import com.liferay.portal.kernel.repository.capabilities.CapabilityProvider;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.repository.search.RepositorySearchQueryBuilderUtil;
@@ -25,16 +27,20 @@ import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.SearchException;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.model.Lock;
 import com.liferay.portal.model.RepositoryEntry;
+import com.liferay.portal.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.service.CompanyLocalService;
+import com.liferay.portal.service.RepositoryEntryLocalService;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.UserLocalService;
 import com.liferay.portal.service.persistence.RepositoryEntryUtil;
 import com.liferay.portlet.asset.service.AssetEntryLocalService;
 import com.liferay.portlet.documentlibrary.service.DLAppHelperLocalService;
+import com.liferay.portlet.documentlibrary.util.DL;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -49,13 +55,15 @@ import java.util.List;
  *
  * @author Alexander Chow
  */
-public abstract class BaseRepositoryImpl implements BaseRepository {
+public abstract class BaseRepositoryImpl
+	implements BaseRepository, CapabilityProvider {
 
+	@Override
 	public FileEntry addFileEntry(
 			long folderId, String sourceFileName, String mimeType, String title,
 			String description, String changeLog, File file,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		InputStream is = null;
 		long size = 0;
@@ -82,110 +90,138 @@ public abstract class BaseRepositoryImpl implements BaseRepository {
 		}
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
+	 *             String, ServiceContext)}
+	 */
+	@Deprecated
+	@Override
+	public void checkInFileEntry(long fileEntryId, String lockUuid)
+		throws PortalException {
+
+		checkInFileEntry(fileEntryId, lockUuid, new ServiceContext());
+	}
+
+	@Override
 	public void deleteFileEntry(long folderId, String title)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		FileEntry fileEntry = getFileEntry(folderId, title);
 
 		deleteFileEntry(fileEntry.getFileEntryId());
 	}
 
+	@Override
 	public void deleteFileVersion(long fileEntryId, String version) {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public void deleteFolder(long parentFolderId, String title)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Folder folder = getFolder(parentFolderId, title);
 
 		deleteFolder(folder.getFolderId());
 	}
 
+	@Override
+	public <T extends Capability> T getCapability(Class<T> capabilityClass) {
+		throw new IllegalArgumentException(
+			String.format(
+				"Capability %s is not supported by repository %s",
+				capabilityClass.getName(), getRepositoryId()));
+	}
+
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public List<Object> getFileEntriesAndFileShortcuts(
 			long folderId, int status, int start, int end)
-		throws SystemException {
+		throws PortalException {
 
 		return new ArrayList<Object>(
 			getFileEntries(folderId, start, end, null));
 	}
 
+	@Override
 	public int getFileEntriesAndFileShortcutsCount(long folderId, int status)
-		throws SystemException {
+		throws PortalException {
 
 		return getFileEntriesCount(folderId);
 	}
 
+	@Override
 	public int getFileEntriesAndFileShortcutsCount(
 			long folderId, int status, String[] mimeTypes)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return getFileEntriesCount(folderId, mimeTypes);
 	}
 
+	@Override
 	public List<Folder> getFolders(
 			long parentFolderId, int status, boolean includeMountfolders,
 			int start, int end, OrderByComparator obc)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return getFolders(parentFolderId, includeMountfolders, start, end, obc);
 	}
 
 	public abstract List<Object> getFoldersAndFileEntries(
-			long folderId, int start, int end, OrderByComparator obc)
-		throws SystemException;
+		long folderId, int start, int end, OrderByComparator obc);
 
 	public abstract List<Object> getFoldersAndFileEntries(
 			long folderId, String[] mimeTypes, int start, int end,
 			OrderByComparator obc)
-		throws PortalException, SystemException;
+		throws PortalException;
 
+	@Override
 	public List<Object> getFoldersAndFileEntriesAndFileShortcuts(
-			long folderId, int status, boolean includeMountFolders, int start,
-			int end, OrderByComparator obc)
-		throws SystemException {
+		long folderId, int status, boolean includeMountFolders, int start,
+		int end, OrderByComparator obc) {
 
 		return getFoldersAndFileEntries(folderId, start, end, obc);
 	}
 
+	@Override
 	public List<Object> getFoldersAndFileEntriesAndFileShortcuts(
 			long folderId, int status, String[] mimeTypes,
 			boolean includeMountFolders, int start, int end,
 			OrderByComparator obc)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return getFoldersAndFileEntries(folderId, mimeTypes, start, end, obc);
 	}
 
+	@Override
 	public int getFoldersAndFileEntriesAndFileShortcutsCount(
-			long folderId, int status, boolean includeMountFolders)
-		throws SystemException {
+		long folderId, int status, boolean includeMountFolders) {
 
 		return getFoldersAndFileEntriesCount(folderId);
 	}
 
+	@Override
 	public int getFoldersAndFileEntriesAndFileShortcutsCount(
 			long folderId, int status, String[] mimeTypes,
 			boolean includeMountFolders)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return getFoldersAndFileEntriesCount(folderId, mimeTypes);
 	}
 
-	public abstract int getFoldersAndFileEntriesCount(long folderId)
-		throws SystemException;
+	public abstract int getFoldersAndFileEntriesCount(long folderId);
 
 	public abstract int getFoldersAndFileEntriesCount(
 			long folderId, String[] mimeTypes)
-		throws PortalException, SystemException;
+		throws PortalException;
 
+	@Override
 	public int getFoldersCount(
 			long parentFolderId, int status, boolean includeMountfolders)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return getFoldersCount(parentFolderId, includeMountfolders);
 	}
@@ -194,62 +230,67 @@ public abstract class BaseRepositoryImpl implements BaseRepository {
 		return _groupId;
 	}
 
+	@Override
 	public LocalRepository getLocalRepository() {
 		return _localRepository;
 	}
 
 	public Object[] getRepositoryEntryIds(String objectId)
-		throws SystemException {
+		throws PortalException {
+
+		boolean newRepositoryEntry = false;
 
 		RepositoryEntry repositoryEntry = RepositoryEntryUtil.fetchByR_M(
 			getRepositoryId(), objectId);
 
 		if (repositoryEntry == null) {
-			long repositoryEntryId = counterLocalService.increment();
+			repositoryEntry = repositoryEntryLocalService.addRepositoryEntry(
+				PrincipalThreadLocal.getUserId(), getGroupId(),
+				getRepositoryId(), objectId, new ServiceContext());
 
-			repositoryEntry = RepositoryEntryUtil.create(repositoryEntryId);
-
-			repositoryEntry.setGroupId(getGroupId());
-			repositoryEntry.setRepositoryId(getRepositoryId());
-			repositoryEntry.setMappedId(objectId);
-
-			RepositoryEntryUtil.update(repositoryEntry, false);
+			newRepositoryEntry = true;
 		}
 
 		return new Object[] {
-			repositoryEntry.getRepositoryEntryId(), repositoryEntry.getUuid()
+			repositoryEntry.getRepositoryEntryId(), repositoryEntry.getUuid(),
+			newRepositoryEntry
 		};
 	}
 
+	@Override
 	public List<FileEntry> getRepositoryFileEntries(
 			long userId, long rootFolderId, int start, int end,
 			OrderByComparator obc)
-		throws SystemException {
+		throws PortalException {
 
 		return getFileEntries(rootFolderId, start, end, obc);
 	}
 
+	@Override
 	public List<FileEntry> getRepositoryFileEntries(
 			long userId, long rootFolderId, String[] mimeTypes, int status,
 			int start, int end, OrderByComparator obc)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return getFileEntries(rootFolderId, mimeTypes, start, end, obc);
 	}
 
+	@Override
 	public int getRepositoryFileEntriesCount(long userId, long rootFolderId)
-		throws SystemException {
+		throws PortalException {
 
 		return getFileEntriesCount(rootFolderId);
 	}
 
+	@Override
 	public int getRepositoryFileEntriesCount(
 			long userId, long rootFolderId, String[] mimeTypes, int status)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return getFileEntriesCount(rootFolderId, mimeTypes);
 	}
 
+	@Override
 	public long getRepositoryId() {
 		return _repositoryId;
 	}
@@ -258,19 +299,48 @@ public abstract class BaseRepositoryImpl implements BaseRepository {
 		return _typeSettingsProperties;
 	}
 
+	@Override
 	public abstract void initRepository()
-		throws PortalException, SystemException;
+		throws PortalException;
 
-	public Lock lockFileEntry(long fileEntryId) {
-		throw new UnsupportedOperationException();
+	@Override
+	public <T extends Capability> boolean isCapabilityProvided(
+		Class<T> capabilityClass) {
+
+		return false;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
+	 *             ServiceContext)}
+	 */
+	@Deprecated
+	@Override
+	public Lock lockFileEntry(long fileEntryId) throws PortalException {
+		checkOutFileEntry(fileEntryId, new ServiceContext());
+
+		FileEntry fileEntry = getFileEntry(fileEntryId);
+
+		return fileEntry.getLock();
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
+	 *             String, long, ServiceContext)}
+	 */
+	@Deprecated
+	@Override
 	public Lock lockFileEntry(
-		long fileEntryId, String owner, long expirationTime) {
+			long fileEntryId, String owner, long expirationTime)
+		throws PortalException {
 
-		throw new UnsupportedOperationException();
+		FileEntry fileEntry = checkOutFileEntry(
+			fileEntryId, owner, expirationTime, new ServiceContext());
+
+		return fileEntry.getLock();
 	}
 
+	@Override
 	public Hits search(SearchContext searchContext) throws SearchException {
 		searchContext.setSearchEngineId(SearchEngineUtil.GENERIC_ENGINE_ID);
 
@@ -280,73 +350,76 @@ public abstract class BaseRepositoryImpl implements BaseRepository {
 		return search(searchContext, fullQuery);
 	}
 
+	@Override
 	public void setAssetEntryLocalService(
 		AssetEntryLocalService assetEntryLocalService) {
 
 		this.assetEntryLocalService = assetEntryLocalService;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_companyId = companyId;
 	}
 
+	@Override
 	public void setCompanyLocalService(
 		CompanyLocalService companyLocalService) {
 
 		this.companyLocalService = companyLocalService;
 	}
 
-	public void setCounterLocalService(
-		CounterLocalService counterLocalService) {
-
-		this.counterLocalService = counterLocalService;
-	}
-
+	@Override
 	public void setDLAppHelperLocalService(
 		DLAppHelperLocalService dlAppHelperLocalService) {
 
 		this.dlAppHelperLocalService = dlAppHelperLocalService;
 	}
 
+	@Override
 	public void setGroupId(long groupId) {
 		_groupId = groupId;
 	}
 
+	@Override
+	public void setRepositoryEntryLocalService(
+		RepositoryEntryLocalService repositoryEntryLocalService) {
+
+		this.repositoryEntryLocalService = repositoryEntryLocalService;
+	}
+
+	@Override
 	public void setRepositoryId(long repositoryId) {
 		_repositoryId = repositoryId;
 	}
 
+	@Override
 	public void setTypeSettingsProperties(
 		UnicodeProperties typeSettingsProperties) {
 
 		_typeSettingsProperties = typeSettingsProperties;
 	}
 
+	@Override
 	public void setUserLocalService(UserLocalService userLocalService) {
 		this.userLocalService = userLocalService;
 	}
 
-	public void unlockFileEntry(long fileEntryId) {
-		throw new UnsupportedOperationException();
-	}
-
-	public void unlockFileEntry(long fileEntryId, String lockUuid) {
-		throw new UnsupportedOperationException();
-	}
-
+	@Override
 	public void unlockFolder(long parentFolderId, String title, String lockUuid)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Folder folder = getFolder(parentFolderId, title);
 
 		unlockFolder(folder.getFolderId(), lockUuid);
 	}
 
+	@Override
 	public FileEntry updateFileEntry(
 			long fileEntryId, String sourceFileName, String mimeType,
 			String title, String description, String changeLog,
 			boolean majorVersion, File file, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		InputStream is = null;
 		long size = 0;
@@ -373,14 +446,60 @@ public abstract class BaseRepositoryImpl implements BaseRepository {
 		}
 	}
 
+	@Override
 	public boolean verifyFileEntryLock(long fileEntryId, String lockUuid) {
 		throw new UnsupportedOperationException();
 	}
 
+	protected void clearManualCheckInRequired(
+			long fileEntryId, ServiceContext serviceContext)
+		throws NoSuchRepositoryEntryException, SystemException {
+
+		boolean webDAVCheckInMode = GetterUtil.getBoolean(
+			serviceContext.getAttribute(DL.WEBDAV_CHECK_IN_MODE));
+
+		if (webDAVCheckInMode) {
+			return;
+		}
+
+		RepositoryEntry repositoryEntry = RepositoryEntryUtil.findByPrimaryKey(
+			fileEntryId);
+
+		boolean manualCheckInRequired =
+			repositoryEntry.getManualCheckInRequired();
+
+		if (!manualCheckInRequired) {
+			return;
+		}
+
+		repositoryEntry.setManualCheckInRequired(false);
+
+		RepositoryEntryUtil.update(repositoryEntry);
+	}
+
+	protected void setManualCheckInRequired(
+			long fileEntryId, ServiceContext serviceContext)
+		throws NoSuchRepositoryEntryException, SystemException {
+
+		boolean manualCheckInRequired = GetterUtil.getBoolean(
+			serviceContext.getAttribute(DL.MANUAL_CHECK_IN_REQUIRED));
+
+		if (!manualCheckInRequired) {
+			return;
+		}
+
+		RepositoryEntry repositoryEntry = RepositoryEntryUtil.findByPrimaryKey(
+			fileEntryId);
+
+		repositoryEntry.setManualCheckInRequired(manualCheckInRequired);
+
+		RepositoryEntryUtil.update(repositoryEntry);
+	}
+
 	protected AssetEntryLocalService assetEntryLocalService;
 	protected CompanyLocalService companyLocalService;
-	protected CounterLocalService counterLocalService;
 	protected DLAppHelperLocalService dlAppHelperLocalService;
+	protected RepositoryEntryLocalService repositoryEntryLocalService;
 	protected UserLocalService userLocalService;
 
 	private long _companyId;

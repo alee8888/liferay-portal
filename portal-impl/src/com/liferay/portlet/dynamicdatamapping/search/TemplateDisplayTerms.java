@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,11 +28,14 @@ public class TemplateDisplayTerms extends DisplayTerms {
 
 	public static final String NAME = "name";
 
+	public static final String TYPE = "type";
+
 	public TemplateDisplayTerms(PortletRequest portletRequest) {
 		super(portletRequest);
 
 		description = ParamUtil.getString(portletRequest, DESCRIPTION);
 		name = ParamUtil.getString(portletRequest, NAME);
+		type = ParamUtil.getString(portletRequest, TYPE);
 	}
 
 	public String getDescription() {
@@ -43,7 +46,12 @@ public class TemplateDisplayTerms extends DisplayTerms {
 		return name;
 	}
 
+	public String getType() {
+		return type;
+	}
+
 	protected String description;
 	protected String name;
+	protected String type;
 
 }

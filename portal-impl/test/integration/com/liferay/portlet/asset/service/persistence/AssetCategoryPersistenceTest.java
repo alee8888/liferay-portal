@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,45 +15,94 @@
 package com.liferay.portlet.asset.service.persistence;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.model.ModelListener;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.asset.NoSuchCategoryException;
 import com.liferay.portlet.asset.model.AssetCategory;
 import com.liferay.portlet.asset.model.impl.AssetCategoryModelImpl;
+import com.liferay.portlet.asset.service.AssetCategoryLocalServiceUtil;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class AssetCategoryPersistenceTest {
 	@Before
-	public void setUp() throws Exception {
-		_persistence = (AssetCategoryPersistence)PortalBeanLocatorUtil.locate(AssetCategoryPersistence.class.getName());
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<AssetCategory> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<AssetCategory> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		AssetCategory assetCategory = _persistence.create(pk);
 
@@ -80,37 +129,37 @@ public class AssetCategoryPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		AssetCategory newAssetCategory = _persistence.create(pk);
 
-		newAssetCategory.setUuid(ServiceTestUtil.randomString());
+		newAssetCategory.setUuid(RandomTestUtil.randomString());
 
-		newAssetCategory.setGroupId(ServiceTestUtil.nextLong());
+		newAssetCategory.setGroupId(RandomTestUtil.nextLong());
 
-		newAssetCategory.setCompanyId(ServiceTestUtil.nextLong());
+		newAssetCategory.setCompanyId(RandomTestUtil.nextLong());
 
-		newAssetCategory.setUserId(ServiceTestUtil.nextLong());
+		newAssetCategory.setUserId(RandomTestUtil.nextLong());
 
-		newAssetCategory.setUserName(ServiceTestUtil.randomString());
+		newAssetCategory.setUserName(RandomTestUtil.randomString());
 
-		newAssetCategory.setCreateDate(ServiceTestUtil.nextDate());
+		newAssetCategory.setCreateDate(RandomTestUtil.nextDate());
 
-		newAssetCategory.setModifiedDate(ServiceTestUtil.nextDate());
+		newAssetCategory.setModifiedDate(RandomTestUtil.nextDate());
 
-		newAssetCategory.setLeftCategoryId(ServiceTestUtil.nextLong());
+		newAssetCategory.setLeftCategoryId(RandomTestUtil.nextLong());
 
-		newAssetCategory.setRightCategoryId(ServiceTestUtil.nextLong());
+		newAssetCategory.setRightCategoryId(RandomTestUtil.nextLong());
 
-		newAssetCategory.setName(ServiceTestUtil.randomString());
+		newAssetCategory.setName(RandomTestUtil.randomString());
 
-		newAssetCategory.setTitle(ServiceTestUtil.randomString());
+		newAssetCategory.setTitle(RandomTestUtil.randomString());
 
-		newAssetCategory.setDescription(ServiceTestUtil.randomString());
+		newAssetCategory.setDescription(RandomTestUtil.randomString());
 
-		newAssetCategory.setVocabularyId(ServiceTestUtil.nextLong());
+		newAssetCategory.setVocabularyId(RandomTestUtil.nextLong());
 
-		_persistence.update(newAssetCategory, false);
+		_persistence.update(newAssetCategory);
 
 		AssetCategory existingAssetCategory = _persistence.findByPrimaryKey(newAssetCategory.getPrimaryKey());
 
@@ -149,6 +198,222 @@ public class AssetCategoryPersistenceTest {
 	}
 
 	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUUID_G() {
+		try {
+			_persistence.countByUUID_G(StringPool.BLANK,
+				RandomTestUtil.nextLong());
+
+			_persistence.countByUUID_G(StringPool.NULL, 0L);
+
+			_persistence.countByUUID_G((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				RandomTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(RandomTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByParentCategoryId() {
+		try {
+			_persistence.countByParentCategoryId(RandomTestUtil.nextLong());
+
+			_persistence.countByParentCategoryId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByVocabularyId() {
+		try {
+			_persistence.countByVocabularyId(RandomTestUtil.nextLong());
+
+			_persistence.countByVocabularyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_V() {
+		try {
+			_persistence.countByG_V(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
+
+			_persistence.countByG_V(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_VArrayable() {
+		try {
+			_persistence.countByG_V(RandomTestUtil.nextLong(),
+				new long[] { RandomTestUtil.nextLong(), 0L });
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByP_N() {
+		try {
+			_persistence.countByP_N(RandomTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByP_N(0L, StringPool.NULL);
+
+			_persistence.countByP_N(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByP_V() {
+		try {
+			_persistence.countByP_V(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
+
+			_persistence.countByP_V(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByN_V() {
+		try {
+			_persistence.countByN_V(StringPool.BLANK, RandomTestUtil.nextLong());
+
+			_persistence.countByN_V(StringPool.NULL, 0L);
+
+			_persistence.countByN_V((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_P_V() {
+		try {
+			_persistence.countByG_P_V(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), RandomTestUtil.nextLong());
+
+			_persistence.countByG_P_V(0L, 0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_LikeN_V() {
+		try {
+			_persistence.countByG_LikeN_V(RandomTestUtil.nextLong(),
+				StringPool.BLANK, RandomTestUtil.nextLong());
+
+			_persistence.countByG_LikeN_V(0L, StringPool.NULL, 0L);
+
+			_persistence.countByG_LikeN_V(0L, (String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_LikeN_VArrayable() {
+		try {
+			_persistence.countByG_LikeN_V(RandomTestUtil.nextLong(),
+				RandomTestUtil.randomString(),
+				new long[] { RandomTestUtil.nextLong(), 0L });
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByP_N_V() {
+		try {
+			_persistence.countByP_N_V(RandomTestUtil.nextLong(),
+				StringPool.BLANK, RandomTestUtil.nextLong());
+
+			_persistence.countByP_N_V(0L, StringPool.NULL, 0L);
+
+			_persistence.countByP_N_V(0L, (String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_P_N_V() {
+		try {
+			_persistence.countByG_P_N_V(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), StringPool.BLANK,
+				RandomTestUtil.nextLong());
+
+			_persistence.countByG_P_N_V(0L, 0L, StringPool.NULL, 0L);
+
+			_persistence.countByG_P_N_V(0L, 0L, (String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		AssetCategory newAssetCategory = addAssetCategory();
 
@@ -159,7 +424,7 @@ public class AssetCategoryPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -168,6 +433,37 @@ public class AssetCategoryPersistenceTest {
 		}
 		catch (NoSuchCategoryException nsee) {
 		}
+	}
+
+	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testFilterFindByGroupId() throws Exception {
+		try {
+			_persistence.filterFindByGroupId(0, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("AssetCategory", "uuid",
+			true, "categoryId", true, "groupId", true, "companyId", true,
+			"userId", true, "userName", true, "createDate", true,
+			"modifiedDate", true, "parentCategoryId", true, "leftCategoryId",
+			true, "rightCategoryId", true, "name", true, "title", true,
+			"description", true, "vocabularyId", true);
 	}
 
 	@Test
@@ -181,11 +477,115 @@ public class AssetCategoryPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		AssetCategory missingAssetCategory = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingAssetCategory);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		AssetCategory newAssetCategory1 = addAssetCategory();
+		AssetCategory newAssetCategory2 = addAssetCategory();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newAssetCategory1.getPrimaryKey());
+		primaryKeys.add(newAssetCategory2.getPrimaryKey());
+
+		Map<Serializable, AssetCategory> assetCategories = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, assetCategories.size());
+		Assert.assertEquals(newAssetCategory1,
+			assetCategories.get(newAssetCategory1.getPrimaryKey()));
+		Assert.assertEquals(newAssetCategory2,
+			assetCategories.get(newAssetCategory2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, AssetCategory> assetCategories = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(assetCategories.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		AssetCategory newAssetCategory = addAssetCategory();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newAssetCategory.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, AssetCategory> assetCategories = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, assetCategories.size());
+		Assert.assertEquals(newAssetCategory,
+			assetCategories.get(newAssetCategory.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, AssetCategory> assetCategories = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(assetCategories.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		AssetCategory newAssetCategory = addAssetCategory();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newAssetCategory.getPrimaryKey());
+
+		Map<Serializable, AssetCategory> assetCategories = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, assetCategories.size());
+		Assert.assertEquals(newAssetCategory,
+			assetCategories.get(newAssetCategory.getPrimaryKey()));
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = AssetCategoryLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
+				@Override
+				public void performAction(Object object) {
+					AssetCategory assetCategory = (AssetCategory)object;
+
+					Assert.assertNotNull(assetCategory);
+
+					count.increment();
+				}
+			});
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -214,7 +614,7 @@ public class AssetCategoryPersistenceTest {
 				AssetCategory.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("categoryId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<AssetCategory> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -253,7 +653,7 @@ public class AssetCategoryPersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("categoryId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("categoryId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -288,44 +688,44 @@ public class AssetCategoryPersistenceTest {
 	}
 
 	protected AssetCategory addAssetCategory() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		AssetCategory assetCategory = _persistence.create(pk);
 
-		assetCategory.setUuid(ServiceTestUtil.randomString());
+		assetCategory.setUuid(RandomTestUtil.randomString());
 
-		assetCategory.setGroupId(ServiceTestUtil.nextLong());
+		assetCategory.setGroupId(RandomTestUtil.nextLong());
 
-		assetCategory.setCompanyId(ServiceTestUtil.nextLong());
+		assetCategory.setCompanyId(RandomTestUtil.nextLong());
 
-		assetCategory.setUserId(ServiceTestUtil.nextLong());
+		assetCategory.setUserId(RandomTestUtil.nextLong());
 
-		assetCategory.setUserName(ServiceTestUtil.randomString());
+		assetCategory.setUserName(RandomTestUtil.randomString());
 
-		assetCategory.setCreateDate(ServiceTestUtil.nextDate());
+		assetCategory.setCreateDate(RandomTestUtil.nextDate());
 
-		assetCategory.setModifiedDate(ServiceTestUtil.nextDate());
+		assetCategory.setModifiedDate(RandomTestUtil.nextDate());
 
-		assetCategory.setLeftCategoryId(ServiceTestUtil.nextLong());
+		assetCategory.setLeftCategoryId(RandomTestUtil.nextLong());
 
-		assetCategory.setRightCategoryId(ServiceTestUtil.nextLong());
+		assetCategory.setRightCategoryId(RandomTestUtil.nextLong());
 
-		assetCategory.setName(ServiceTestUtil.randomString());
+		assetCategory.setName(RandomTestUtil.randomString());
 
-		assetCategory.setTitle(ServiceTestUtil.randomString());
+		assetCategory.setTitle(RandomTestUtil.randomString());
 
-		assetCategory.setDescription(ServiceTestUtil.randomString());
+		assetCategory.setDescription(RandomTestUtil.randomString());
 
-		assetCategory.setVocabularyId(ServiceTestUtil.nextLong());
+		assetCategory.setVocabularyId(RandomTestUtil.nextLong());
 
-		_persistence.update(assetCategory, false);
+		_persistence.update(assetCategory);
 
 		return assetCategory;
 	}
 
 	@Test
 	public void testMoveTree() throws Exception {
-		long groupId = ServiceTestUtil.nextLong();
+		long groupId = RandomTestUtil.nextLong();
 
 		AssetCategory rootAssetCategory = addAssetCategory(groupId, null);
 
@@ -349,7 +749,7 @@ public class AssetCategoryPersistenceTest {
 
 	@Test
 	public void testMoveTreeFromLeft() throws Exception {
-		long groupId = ServiceTestUtil.nextLong();
+		long groupId = RandomTestUtil.nextLong();
 
 		AssetCategory parentAssetCategory = addAssetCategory(groupId, null);
 
@@ -365,7 +765,7 @@ public class AssetCategoryPersistenceTest {
 
 		parentAssetCategory.setParentCategoryId(rootAssetCategory.getCategoryId());
 
-		_persistence.update(parentAssetCategory, false);
+		_persistence.update(parentAssetCategory);
 
 		rootAssetCategory = _persistence.fetchByPrimaryKey(rootAssetCategory.getPrimaryKey());
 		childAssetCategory = _persistence.fetchByPrimaryKey(childAssetCategory.getPrimaryKey());
@@ -386,7 +786,7 @@ public class AssetCategoryPersistenceTest {
 
 	@Test
 	public void testMoveTreeFromRight() throws Exception {
-		long groupId = ServiceTestUtil.nextLong();
+		long groupId = RandomTestUtil.nextLong();
 
 		AssetCategory rootAssetCategory = addAssetCategory(groupId, null);
 
@@ -402,7 +802,7 @@ public class AssetCategoryPersistenceTest {
 
 		parentAssetCategory.setParentCategoryId(rootAssetCategory.getCategoryId());
 
-		_persistence.update(parentAssetCategory, false);
+		_persistence.update(parentAssetCategory);
 
 		rootAssetCategory = _persistence.fetchByPrimaryKey(rootAssetCategory.getPrimaryKey());
 		childAssetCategory = _persistence.fetchByPrimaryKey(childAssetCategory.getPrimaryKey());
@@ -423,7 +823,7 @@ public class AssetCategoryPersistenceTest {
 
 	@Test
 	public void testMoveTreeIntoTreeFromLeft() throws Exception {
-		long groupId = ServiceTestUtil.nextLong();
+		long groupId = RandomTestUtil.nextLong();
 
 		AssetCategory parentAssetCategory = addAssetCategory(groupId, null);
 
@@ -449,7 +849,7 @@ public class AssetCategoryPersistenceTest {
 
 		parentAssetCategory.setParentCategoryId(rightRootChildAssetCategory.getCategoryId());
 
-		_persistence.update(parentAssetCategory, false);
+		_persistence.update(parentAssetCategory);
 
 		rootAssetCategory = _persistence.fetchByPrimaryKey(rootAssetCategory.getPrimaryKey());
 		leftRootChildAssetCategory = _persistence.fetchByPrimaryKey(leftRootChildAssetCategory.getPrimaryKey());
@@ -480,7 +880,7 @@ public class AssetCategoryPersistenceTest {
 
 	@Test
 	public void testMoveTreeIntoTreeFromRight() throws Exception {
-		long groupId = ServiceTestUtil.nextLong();
+		long groupId = RandomTestUtil.nextLong();
 
 		AssetCategory rootAssetCategory = addAssetCategory(groupId, null);
 
@@ -506,7 +906,7 @@ public class AssetCategoryPersistenceTest {
 
 		parentAssetCategory.setParentCategoryId(leftRootChildAssetCategory.getCategoryId());
 
-		_persistence.update(parentAssetCategory, false);
+		_persistence.update(parentAssetCategory);
 
 		rootAssetCategory = _persistence.fetchByPrimaryKey(rootAssetCategory.getPrimaryKey());
 		leftRootChildAssetCategory = _persistence.fetchByPrimaryKey(leftRootChildAssetCategory.getPrimaryKey());
@@ -537,43 +937,46 @@ public class AssetCategoryPersistenceTest {
 
 	protected AssetCategory addAssetCategory(long groupId, Long parentCategoryId)
 		throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		AssetCategory assetCategory = _persistence.create(pk);
 
-		assetCategory.setUuid(ServiceTestUtil.randomString());
+		assetCategory.setUuid(RandomTestUtil.randomString());
 		assetCategory.setGroupId(groupId);
 
-		assetCategory.setCompanyId(ServiceTestUtil.nextLong());
+		assetCategory.setCompanyId(RandomTestUtil.nextLong());
 
-		assetCategory.setUserId(ServiceTestUtil.nextLong());
+		assetCategory.setUserId(RandomTestUtil.nextLong());
 
-		assetCategory.setUserName(ServiceTestUtil.randomString());
+		assetCategory.setUserName(RandomTestUtil.randomString());
 
-		assetCategory.setCreateDate(ServiceTestUtil.nextDate());
+		assetCategory.setCreateDate(RandomTestUtil.nextDate());
 
-		assetCategory.setModifiedDate(ServiceTestUtil.nextDate());
+		assetCategory.setModifiedDate(RandomTestUtil.nextDate());
 
-		assetCategory.setLeftCategoryId(ServiceTestUtil.nextLong());
+		assetCategory.setLeftCategoryId(RandomTestUtil.nextLong());
 
-		assetCategory.setRightCategoryId(ServiceTestUtil.nextLong());
+		assetCategory.setRightCategoryId(RandomTestUtil.nextLong());
 
-		assetCategory.setName(ServiceTestUtil.randomString());
+		assetCategory.setName(RandomTestUtil.randomString());
 
-		assetCategory.setTitle(ServiceTestUtil.randomString());
+		assetCategory.setTitle(RandomTestUtil.randomString());
 
-		assetCategory.setDescription(ServiceTestUtil.randomString());
+		assetCategory.setDescription(RandomTestUtil.randomString());
 
-		assetCategory.setVocabularyId(ServiceTestUtil.nextLong());
+		assetCategory.setVocabularyId(RandomTestUtil.nextLong());
 
 		if (parentCategoryId != null) {
 			assetCategory.setParentCategoryId(parentCategoryId);
 		}
 
-		_persistence.update(assetCategory, false);
+		_persistence.update(assetCategory);
 
 		return assetCategory;
 	}
 
-	private AssetCategoryPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(AssetCategoryPersistenceTest.class);
+	private ModelListener<AssetCategory>[] _modelListeners;
+	private AssetCategoryPersistence _persistence = (AssetCategoryPersistence)PortalBeanLocatorUtil.locate(AssetCategoryPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

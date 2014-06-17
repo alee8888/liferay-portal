@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,9 +15,23 @@
 --%>
 
 <%
-if (Validator.isNull(searchTerms.getKeywords())) {
-	results = BlogsEntryLocalServiceUtil.getGroupEntries(scopeGroupId, WorkflowConstants.STATUS_ANY, searchContainer.getStart(), searchContainer.getEnd());
-	total = BlogsEntryLocalServiceUtil.getGroupEntriesCount(scopeGroupId, WorkflowConstants.STATUS_ANY);
+if ((assetCategoryId != 0) || Validator.isNotNull(assetTagName)) {
+	SearchContainerResults<AssetEntry> searchContainerResults = BlogsUtil.getSearchContainerResults(searchContainer);
+
+	searchContainer.setTotal(searchContainerResults.getTotal());
+
+	List<AssetEntry> assetEntries = searchContainerResults.getResults();
+
+	for (AssetEntry assetEntry : assetEntries) {
+		results.add(BlogsEntryLocalServiceUtil.getBlogsEntry(assetEntry.getClassPK()));
+	}
+}
+else if (Validator.isNull(searchTerms.getKeywords())) {
+	total = BlogsEntryServiceUtil.getGroupEntriesCount(scopeGroupId, WorkflowConstants.STATUS_ANY);
+
+	searchContainer.setTotal(total);
+
+	results = BlogsEntryServiceUtil.getGroupEntries(scopeGroupId, WorkflowConstants.STATUS_ANY, searchContainer.getStart(), searchContainer.getEnd());
 }
 else {
 	Indexer indexer = IndexerRegistryUtil.getIndexer(BlogsEntry.class);
@@ -30,7 +44,7 @@ else {
 
 	Hits hits = indexer.search(searchContext);
 
-	total = hits.getLength();
+	searchContainer.setTotal(hits.getLength());
 
 	for (int i = 0; i < hits.getDocs().length; i++) {
 		Document doc = hits.doc(i);
@@ -40,7 +54,7 @@ else {
 		BlogsEntry entry = null;
 
 		try {
-			entry = BlogsEntryLocalServiceUtil.getEntry(entryId);
+			entry = BlogsEntryServiceUtil.getEntry(entryId);
 
 			entry = entry.toEscapedModel();
 		}
@@ -56,8 +70,7 @@ else {
 	}
 }
 
-pageContext.setAttribute("results", results);
-pageContext.setAttribute("total", total);
+searchContainer.setResults(results);
 %>
 
 <%!

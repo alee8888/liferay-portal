@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,40 +34,28 @@ PortletURL portletURL = renderResponse.createRenderURL();
 portletURL.setParameter("struts_action", "/workflow_definitions/view");
 %>
 
-<liferay-util:include page="/html/portlet/workflow_definitions/toolbar.jsp">
-	<liferay-util:param name="toolbarItem" value="add" />
-</liferay-util:include>
-
 <liferay-ui:header
 	backURL="<%= redirect %>"
 	localizeTitle="<%= (workflowDefinition == null) %>"
-	title='<%= (workflowDefinition == null) ? "new-workflow-definition" : workflowDefinition.getName() %>'
+	title='<%= (workflowDefinition == null) ? "upload-definition" : workflowDefinition.getName() %>'
 />
 
 <portlet:actionURL var="editWorkflowDefinitionURL">
 	<portlet:param name="struts_action" value="/workflow_definitions/edit_workflow_definition" />
-	<portlet:param name="redirect" value="<%= redirect %>" />
 </portlet:actionURL>
 
 <aui:form action="<%= editWorkflowDefinitionURL %>" enctype="multipart/form-data" method="post">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= (workflowDefinition == null) ? Constants.ADD : Constants.UPDATE %>" />
+	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="name" type="hidden" value="<%= name %>" />
 	<aui:input name="version" type="hidden" value="<%= version %>" />
 
 	<liferay-ui:error exception="<%= WorkflowDefinitionFileException.class %>" message="please-enter-a-valid-file" />
 
 	<aui:fieldset>
-		<c:if test="<%= workflowDefinition != null %>">
-			<aui:field-wrapper helpMessage="the-definition-name-is-defined-in-the-workflow-definition-file" label="name">
-				<%= name %>
-			</aui:field-wrapper>
-		</c:if>
-
-		<span class="aui-field-label">
-			<liferay-ui:message key="title" />
-		</span>
-
-		<liferay-ui:input-localized name="title" xml='<%= BeanPropertiesUtil.getString(workflowDefinition, "title") %>' />
+		<aui:field-wrapper label="title">
+			<liferay-ui:input-localized name="title" xml='<%= BeanPropertiesUtil.getString(workflowDefinition, "title") %>' />
+		</aui:field-wrapper>
 
 		<aui:input name="file" type="file" />
 
@@ -80,5 +68,5 @@ portletURL.setParameter("struts_action", "/workflow_definitions/view");
 </aui:form>
 
 <%
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, (workflowDefinition == null) ? "new-workflow-definition" : workflowDefinition.getName()), currentURL);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, (workflowDefinition == null) ? "upload-definition" : workflowDefinition.getName()), currentURL);
 %>

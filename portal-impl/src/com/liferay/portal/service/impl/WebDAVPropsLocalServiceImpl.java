@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,11 +16,9 @@ package com.liferay.portal.service.impl;
 
 import com.liferay.portal.NoSuchWebDAVPropsException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.model.WebDAVProps;
 import com.liferay.portal.service.base.WebDAVPropsLocalServiceBaseImpl;
-import com.liferay.portal.util.PortalUtil;
 
 import java.util.Date;
 
@@ -30,10 +28,10 @@ import java.util.Date;
 public class WebDAVPropsLocalServiceImpl
 	extends WebDAVPropsLocalServiceBaseImpl {
 
-	public void deleteWebDAVProps(String className, long classPK)
-		throws SystemException {
+	@Override
+	public void deleteWebDAVProps(String className, long classPK) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		try {
 			webDAVPropsPersistence.removeByC_C(classNameId, classPK);
@@ -42,11 +40,11 @@ public class WebDAVPropsLocalServiceImpl
 		}
 	}
 
+	@Override
 	public WebDAVProps getWebDAVProps(
-			long companyId, String className, long classPK)
-		throws SystemException {
+		long companyId, String className, long classPK) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		WebDAVProps webDavProps = webDAVPropsPersistence.fetchByC_C(
 			classNameId, classPK);
@@ -63,14 +61,15 @@ public class WebDAVPropsLocalServiceImpl
 			webDavProps.setClassNameId(classNameId);
 			webDavProps.setClassPK(classPK);
 
-			webDAVPropsPersistence.update(webDavProps, false);
+			webDAVPropsLocalService.updateWebDAVProps(webDavProps);
 		}
 
 		return webDavProps;
 	}
 
+	@Override
 	public void storeWebDAVProps(WebDAVProps webDavProps)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		try {
 			webDavProps.store();
@@ -79,7 +78,7 @@ public class WebDAVPropsLocalServiceImpl
 			throw new WebDAVException("Problem trying to store WebDAVProps", e);
 		}
 
-		webDAVPropsPersistence.update(webDavProps, true);
+		webDAVPropsPersistence.update(webDavProps);
 	}
 
 }

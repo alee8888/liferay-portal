@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portlet.shopping.model.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -35,12 +34,15 @@ public class ShoppingCartImpl extends ShoppingCartBaseImpl {
 	public ShoppingCartImpl() {
 	}
 
+	@Override
 	public void addItemId(long itemId, String fields) {
-		setItemIds(StringUtil.add(
-			getItemIds(), itemId + fields, StringPool.COMMA, true));
+		setItemIds(
+			StringUtil.add(
+				getItemIds(), itemId + fields, StringPool.COMMA, true));
 	}
 
-	public ShoppingCoupon getCoupon() throws PortalException, SystemException {
+	@Override
+	public ShoppingCoupon getCoupon() throws PortalException {
 		ShoppingCoupon coupon = null;
 
 		if (Validator.isNotNull(getCouponCodes())) {
@@ -56,11 +58,13 @@ public class ShoppingCartImpl extends ShoppingCartBaseImpl {
 		return coupon;
 	}
 
-	public Map<ShoppingCartItem, Integer> getItems() throws SystemException {
+	@Override
+	public Map<ShoppingCartItem, Integer> getItems() {
 		return ShoppingCartLocalServiceUtil.getItems(
 			getGroupId(), getItemIds());
 	}
 
+	@Override
 	public int getItemsSize() {
 		return StringUtil.split(getItemIds()).length;
 	}

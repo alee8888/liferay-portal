@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.util.PropsValues;
 
@@ -46,9 +47,11 @@ import org.hibernate.dialect.SybaseDialect;
  * @author Alexander Chow
  * @author Brian Wing Shun Chan
  */
+@DoPrivileged
 @SuppressWarnings("deprecation")
 public class DBFactoryImpl implements DBFactory {
 
+	@Override
 	public DB getDB() {
 		if (_db == null) {
 			try {
@@ -69,6 +72,7 @@ public class DBFactoryImpl implements DBFactory {
 		return _db;
 	}
 
+	@Override
 	public DB getDB(Object dialect) {
 		DB db = null;
 
@@ -134,6 +138,7 @@ public class DBFactoryImpl implements DBFactory {
 		return db;
 	}
 
+	@Override
 	public DB getDB(String type) {
 		DB db = null;
 
@@ -183,6 +188,7 @@ public class DBFactoryImpl implements DBFactory {
 		return db;
 	}
 
+	@Override
 	public void setDB(Object dialect) {
 		_db = getDB(dialect);
 
@@ -203,6 +209,7 @@ public class DBFactoryImpl implements DBFactory {
 		}
 	}
 
+	@Override
 	public void setDB(String type) {
 		if (_db != null) {
 			return;

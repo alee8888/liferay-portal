@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,21 +25,17 @@ long reportedUserId = ParamUtil.getLong(request, "reportedUserId");
 %>
 
 <style type="text/css">
-	.portlet-flags .aui-form fieldset {
+	.portlet-flags .form fieldset {
 		border: none;
 		padding: 0;
 		width: 100%;
-	}
-
-	.portlet-flags .aui-form .aui-fieldset label {
-		font-weight: bold;
 	}
 </style>
 
 <div class="portlet-flags" id="<portlet:namespace />flagsPopup">
 	<aui:form method="post" name="flagsForm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "flag();" %>'>
 		<p>
-			<%= LanguageUtil.format(pageContext, "you-are-about-to-report-a-violation-of-our-x-terms-of-use.-all-reports-are-strictly-confidential", themeDisplay.getPathMain() + "/portal/terms_of_use") %>
+			<%= LanguageUtil.format(pageContext, "you-are-about-to-report-a-violation-of-our-x-terms-of-use.-all-reports-are-strictly-confidential", themeDisplay.getPathMain() + "/portal/terms_of_use", false) %>
 		</p>
 
 		<aui:fieldset>
@@ -59,7 +55,7 @@ long reportedUserId = ParamUtil.getLong(request, "reportedUserId");
 				<aui:option label="other" />
 			</aui:select>
 
-			<span class="aui-helper-hidden" id="<portlet:namespace />otherReasonContainer">
+			<span class="hide" id="<portlet:namespace />otherReasonContainer">
 				<aui:input name="otherReason" />
 			</span>
 
@@ -74,17 +70,17 @@ long reportedUserId = ParamUtil.getLong(request, "reportedUserId");
 	</aui:form>
 </div>
 
-<div class="aui-helper-hidden" id="<portlet:namespace />confirmation">
+<div class="hide" id="<portlet:namespace />confirmation">
 	<p><strong><liferay-ui:message key="thank-you-for-your-report" /></strong></p>
 
-	<p><%= LanguageUtil.format(pageContext, "although-we-cannot-disclose-our-final-decision,-we-do-review-every-report-and-appreciate-your-effort-to-make-sure-x-is-a-safe-environment-for-everyone", company.getName()) %></p>
+	<p><%= LanguageUtil.format(pageContext, "although-we-cannot-disclose-our-final-decision,-we-do-review-every-report-and-appreciate-your-effort-to-make-sure-x-is-a-safe-environment-for-everyone", HtmlUtil.escape(company.getName()), false) %></p>
 </div>
 
-<div class="aui-helper-hidden" id="<portlet:namespace />error">
+<div class="hide" id="<portlet:namespace />error">
 	<p><strong><liferay-ui:message key="an-error-occurred-while-sending-the-report.-please-try-again-in-a-few-minutes" /></strong></p>
 </div>
 
-<aui:script use="aui-dialog">
+<aui:script use="liferay-util-window">
 	function <portlet:namespace />flag() {
 		var reasonNode = A.one('#<portlet:namespace />reason');
 		var reason = (reasonNode && reasonNode.val()) || '';
@@ -106,23 +102,28 @@ long reportedUserId = ParamUtil.getLong(request, "reportedUserId");
 		var confirmationMessage = (confirmationMessageNode && confirmationMessageNode.html()) || '';
 
 		var setDialogContent = function(message) {
-			var dialog = A.DialogManager.findByChild(flagsPopupNode);
+			var dialog = Liferay.Util.Window.getByChild(flagsPopupNode);
 
 			dialog.setStdModContent('body', message);
 		};
 
+		var data = Liferay.Util.ns(
+			'<portlet:namespace />',
+			{
+				className: '<%= HtmlUtil.escape(className) %>',
+				classPK: '<%= classPK %>',
+				contentTitle: '<%= HtmlUtil.escape(contentTitle) %>',
+				contentURL: '<%= HtmlUtil.escape(contentURL) %>',
+				reason: reason,
+				reportedUserId: '<%= reportedUserId %>',
+				reporterEmailAddress: reporterEmailAddress
+			}
+		);
+
 		A.io.request(
 			'<liferay-portlet:actionURL portletName="<%= PortletKeys.FLAGS %>" windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>"><portlet:param name="struts_action" value="/flags/edit_entry" /></liferay-portlet:actionURL>',
 			{
-				data: {
-					className: '<%= HtmlUtil.escape(className) %>',
-					classPK: '<%= classPK %>',
-					contentTitle: '<%= HtmlUtil.escape(contentTitle) %>',
-					contentURL: '<%= HtmlUtil.escape(contentURL) %>',
-					reason: reason,
-					reportedUserId: '<%= reportedUserId %>',
-					reporterEmailAddress: reporterEmailAddress
-				},
+				data: data,
 				on: {
 					failure: function() {
 						setDialogContent(errorMessage);
@@ -134,6 +135,8 @@ long reportedUserId = ParamUtil.getLong(request, "reportedUserId");
 			}
 		);
 	}
+
+	Liferay.Util.focusFormField('#<portlet:namespace />reason');
 
 	Liferay.Util.toggleSelectBox('<portlet:namespace />reason', 'other', '<portlet:namespace />otherReasonContainer');
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -44,11 +44,15 @@ public class Normalizer {
 		return false;
 	}
 
-	private static final String _NORMALIZED_TEXT = "l";
+	private static final String[] _NORMALIZED_TEXT = new String[] {
+		"l", "'", "\""
+	};
 
-	private static final String _UNICODE_TEXT = "\u0142";
+	private static final String[] _UNICODE_TEXT = new String[] {
+		"\u0142", "\u02B9", "\u02BA"
+	};
 
 	private static Transliterator _transliterator = Transliterator.getInstance(
-		"NFD; [:Nonspacing Mark:] Remove; NFC");
+		"Greek-Latin; Cyrillic-Latin; NFD; [:Nonspacing Mark:] Remove; NFC");
 
 }

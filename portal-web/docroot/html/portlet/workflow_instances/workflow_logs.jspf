@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,15 +30,29 @@ for (WorkflowLog workflowLog : workflowLogs) {
 	}
 %>
 
-	<div class="task-activity task-type-<%= workflowLog.getType() %>">
+	<div class="task-activity">
 		<div class="task-activity-date">
+			<c:choose>
+				<c:when test="<%= workflowLog.getType() == WorkflowLog.TASK_COMPLETION %>">
+					<liferay-ui:icon iconCssClass="icon-file-alt" />
+				</c:when>
+				<c:when test="<%= workflowLog.getType() == WorkflowLog.TASK_UPDATE %>">
+					<liferay-ui:icon iconCssClass="icon-time" />
+				</c:when>
+				<c:when test="<%= workflowLog.getType() == WorkflowLog.TRANSITION %>">
+				</c:when>
+				<c:otherwise>
+					<liferay-ui:icon iconCssClass="icon-signin" />
+				</c:otherwise>
+			</c:choose>
+
 			<%= dateFormatDateTime.format(workflowLog.getCreateDate()) %>
 		</div>
 
 		<c:choose>
 			<c:when test="<%= workflowLog.getType() == WorkflowLog.TASK_COMPLETION %>">
 				<div>
-					<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(actorName), workflowLog.getState()} %>" key="x-completed-the-task-x" />
+					<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(actorName), HtmlUtil.escape(workflowLog.getState())} %>" key="x-completed-the-task-x" translateArguments="<%= false %>" />
 				</div>
 			</c:when>
 			<c:when test="<%= workflowLog.getType() == WorkflowLog.TASK_UPDATE %>">
@@ -48,14 +62,14 @@ for (WorkflowLog workflowLog : workflowLogs) {
 			</c:when>
 			<c:when test="<%= workflowLog.getType() == WorkflowLog.TRANSITION %>">
 				<div>
-					<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(actorName), workflowLog.getPreviousState(), workflowLog.getState()} %>" key="x-changed-the-state-from-x-to-x" />
+					<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(actorName), HtmlUtil.escape(workflowLog.getPreviousState()), HtmlUtil.escape(workflowLog.getState())} %>" key="x-changed-the-state-from-x-to-x" translateArguments="<%= false %>" />
 				</div>
 			</c:when>
 			<c:otherwise>
 				<c:choose>
 					<c:when test="<%= (curUser != null) && (workflowLog.getAuditUserId() == curUser.getUserId()) %>">
 						<div>
-							<liferay-ui:message arguments="<%= HtmlUtil.escape(curUser.getFullName()) %>" key='<%= curUser.isMale() ? "x-assigned-the-task-to-himself" : "x-assigned-the-task-to-herself" %>' />
+							<liferay-ui:message arguments="<%= HtmlUtil.escape(curUser.getFullName()) %>" key='<%= curUser.isMale() ? "x-assigned-the-task-to-himself" : "x-assigned-the-task-to-herself" %>' translateArguments="<%= false %>" />
 						</div>
 					</c:when>
 					<c:otherwise>
@@ -66,10 +80,10 @@ for (WorkflowLog workflowLog : workflowLogs) {
 						%>
 
 							<div>
-								<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(assignerName), HtmlUtil.escape(actorName)} %>" key="x-assigned-the-task-to-x" />
+								<liferay-ui:message arguments="<%= new Object[] {HtmlUtil.escape(assignerName), HtmlUtil.escape(actorName)} %>" key="x-assigned-the-task-to-x" translateArguments="<%= false %>" />
 
 								<c:if test="<%= workflowLog.getPreviousUserId() != 0 %>">
-									<liferay-ui:message arguments="<%= PortalUtil.getUserName(workflowLog.getPreviousUserId(), StringPool.BLANK) %>" key="previous-assignee-was-x" />
+									<liferay-ui:message arguments="<%= HtmlUtil.escape(PortalUtil.getUserName(workflowLog.getPreviousUserId(), StringPool.BLANK)) %>" key="previous-assignee-was-x" translateArguments="<%= false %>" />
 								</c:if>
 							</div>
 
@@ -79,7 +93,7 @@ for (WorkflowLog workflowLog : workflowLogs) {
 						%>
 
 							<div>
-								<liferay-ui:message arguments="<%= HtmlUtil.escape(actorName) %>" key="task-initially-assigned-to-the-x-role" />
+								<liferay-ui:message arguments="<%= HtmlUtil.escape(actorName) %>" key="task-initially-assigned-to-the-x-role" translateArguments="<%= false %>" />
 							</div>
 
 						<%

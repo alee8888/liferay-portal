@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,11 +27,11 @@ DDLRecordSet recordSet = (DDLRecordSet)row.getObject();
 
 DDLRecordSet selRecordSet = (DDLRecordSet)request.getAttribute("record_set_action.jsp-selRecordSet");
 
-String chooseCallback = (String)request.getAttribute("record_set_action.jsp-chooseCallback");
+boolean hasViewPermission = portletName.equals(PortletKeys.DYNAMIC_DATA_LISTS) && DDLRecordSetPermission.contains(permissionChecker, recordSet, ActionKeys.VIEW);
 %>
 
-<liferay-ui:icon-menu>
-	<c:if test="<%= portletName.equals(PortletKeys.DYNAMIC_DATA_LISTS) && DDLRecordSetPermission.contains(permissionChecker, recordSet, ActionKeys.VIEW) %>">
+<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>">
+	<c:if test="<%= hasViewPermission %>">
 		<portlet:renderURL var="viewRecordSetURL">
 			<portlet:param name="struts_action" value="/dynamic_data_lists/view_record_set" />
 			<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.VIEW %>" />
@@ -40,12 +40,11 @@ String chooseCallback = (String)request.getAttribute("record_set_action.jsp-choo
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			image="view"
+			iconCssClass="icon-search"
+			message="view[action]"
 			url="<%= viewRecordSetURL %>"
 		/>
-	</c:if>
 
-	<c:if test="<%= portletName.equals(PortletKeys.DYNAMIC_DATA_LISTS) && DDLRecordSetPermission.contains(permissionChecker, recordSet, ActionKeys.VIEW) %>">
 		<portlet:renderURL var="viewRecordSetURL">
 			<portlet:param name="struts_action" value="/dynamic_data_lists/view_record_set" />
 			<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.VIEW %>" />
@@ -55,7 +54,7 @@ String chooseCallback = (String)request.getAttribute("record_set_action.jsp-choo
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			image="view_tasks"
+			iconCssClass="icon-table"
 			message="spreadsheet-view"
 			url="<%= viewRecordSetURL %>"
 		/>
@@ -70,12 +69,13 @@ String chooseCallback = (String)request.getAttribute("record_set_action.jsp-choo
 		</liferay-portlet:renderURL>
 
 		<liferay-ui:icon
-			image="edit"
+			iconCssClass="icon-edit"
+			message="edit"
 			url="<%= editRecordSetURL %>"
 		/>
 	</c:if>
 
-	<c:if test="<%= portletName.equals(PortletKeys.DYNAMIC_DATA_LISTS) && DDLRecordSetPermission.contains(permissionChecker, recordSet, ActionKeys.VIEW) %>">
+	<c:if test="<%= hasViewPermission %>">
 		<portlet:resourceURL var="exportRecordSetURL">
 			<portlet:param name="struts_action" value="/dynamic_data_lists/export" />
 			<portlet:param name="recordSetId" value="<%= String.valueOf(recordSet.getRecordSetId()) %>" />
@@ -93,7 +93,8 @@ String chooseCallback = (String)request.getAttribute("record_set_action.jsp-choo
 		%>
 
 		<liferay-ui:icon
-			image="export"
+			iconCssClass="icon-arrow-down"
+			message="export"
 			url="<%= sb.toString() %>"
 		/>
 	</c:if>
@@ -104,11 +105,15 @@ String chooseCallback = (String)request.getAttribute("record_set_action.jsp-choo
 			modelResourceDescription="<%= recordSet.getName(locale) %>"
 			resourcePrimKey="<%= String.valueOf(recordSet.getRecordSetId()) %>"
 			var="permissionsRecordSetURL"
+			windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 		/>
 
 		<liferay-ui:icon
-			image="permissions"
+			iconCssClass="icon-lock"
+			message="permissions"
+			method="get"
 			url="<%= permissionsRecordSetURL %>"
+			useDialog="<%= true %>"
 		/>
 	</c:if>
 

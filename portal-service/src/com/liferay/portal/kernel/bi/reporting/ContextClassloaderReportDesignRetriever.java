@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,6 +29,7 @@ public class ContextClassloaderReportDesignRetriever
 		_reportName = reportName;
 	}
 
+	@Override
 	public InputStream getInputStream() {
 		Thread currentThread = Thread.currentThread();
 
@@ -37,10 +38,12 @@ public class ContextClassloaderReportDesignRetriever
 		return contextClassLoader.getResourceAsStream(_reportName);
 	}
 
+	@Override
 	public Date getModifiedDate() {
 		return new Date();
 	}
 
+	@Override
 	public String getReportName() {
 		return _reportName;
 	}

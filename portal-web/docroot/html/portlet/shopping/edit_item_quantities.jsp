@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,8 +19,8 @@
 <%
 String[] fieldsQuantities = StringUtil.split(ParamUtil.getString(request, "fieldsQuantities"));
 
-List names = new ArrayList();
-List values = new ArrayList();
+List<String> names = new ArrayList<String>();
+List<String[]> values = new ArrayList<String[]>();
 
 for (int i = 0; i < 9; i++) {
 	String n = request.getParameter("n" + i);
@@ -36,9 +36,7 @@ for (int i = 0; i < 9; i++) {
 
 int rowsCount = 1;
 
-for (int i = 0; i < values.size(); i++) {
-	String[] vArray = (String[])values.get(i);
-
+for (String[] vArray : values) {
 	rowsCount = rowsCount * vArray.length;
 }
 %>
@@ -49,11 +47,11 @@ for (int i = 0; i < values.size(); i++) {
 		<tr>
 
 			<%
-			for (int i = 0; i < names.size(); i++) {
+			for (String name : names) {
 			%>
 
 				<td>
-					<strong><%= names.get(i) %></strong>
+					<strong><%= HtmlUtil.escape(name) %></strong>
 				</td>
 
 			<%
@@ -76,12 +74,12 @@ for (int i = 0; i < values.size(); i++) {
 					int numOfRepeats = 1;
 
 					for (int k = j + 1; k < values.size(); k++) {
-						String[] vArray = (String[])values.get(k);
+						String[] vArray = values.get(k);
 
 						numOfRepeats = numOfRepeats * vArray.length;
 					}
 
-					String[] vArray = (String[])values.get(j);
+					String[] vArray = values.get(j);
 
 					int arrayPos;
 
@@ -90,7 +88,7 @@ for (int i = 0; i < values.size(); i++) {
 				%>
 
 					<td>
-						<%= vArray[arrayPos] %>
+						<%= HtmlUtil.escape(vArray[arrayPos]) %>
 					</td>
 
 				<%
@@ -104,7 +102,7 @@ for (int i = 0; i < values.size(); i++) {
 				%>
 
 				<td>
-					<aui:input label="" name='<%= "fieldsQuantity" + i %>' size="4" type="text" value="<%= fieldsQuantity %>" />
+					<aui:input label="" name='<%= "fieldsQuantity" + i %>' size="4" title="quantity" type="text" value="<%= fieldsQuantity %>" />
 				</td>
 			</tr>
 
@@ -124,13 +122,13 @@ for (int i = 0; i < values.size(); i++) {
 
 <aui:script>
 	function <portlet:namespace />updateItemQuantities() {
-		var itemQuantities = "";
+		var itemQuantities = '';
 
 		<%
 		for (int i = 0; i < rowsCount; i++) {
 		%>
 
-			itemQuantities = itemQuantities + document.<portlet:namespace />fm.<portlet:namespace />fieldsQuantity<%= i %>.value + ",";
+			itemQuantities = itemQuantities + document.<portlet:namespace />fm.<portlet:namespace />fieldsQuantity<%= i %>.value + ',';
 
 		<%
 		}

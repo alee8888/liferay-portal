@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -69,26 +69,28 @@ public class PortletURLListenerFactory {
 			portletURLGenerationListeners.get(
 				portletURLListener.getListenerClass());
 
-		if (portletURLGenerationListener == null) {
-			if (portletApp.isWARFile()) {
-				PortletContextBag portletContextBag = PortletContextBagPool.get(
-					portletApp.getServletContextName());
-
-				portletURLGenerationListener =
-					portletContextBag.getPortletURLListeners().get(
-						portletURLListener.getListenerClass());
-
-				portletURLGenerationListener = _init(
-					portletURLListener, portletURLGenerationListener);
-			}
-			else {
-				portletURLGenerationListener = _init(portletURLListener);
-			}
-
-			portletURLGenerationListeners.put(
-				portletURLListener.getListenerClass(),
-				portletURLGenerationListener);
+		if (portletURLGenerationListener != null) {
+			return portletURLGenerationListener;
 		}
+
+		if (portletApp.isWARFile()) {
+			PortletContextBag portletContextBag = PortletContextBagPool.get(
+				portletApp.getServletContextName());
+
+			portletURLGenerationListener =
+				portletContextBag.getPortletURLListeners().get(
+					portletURLListener.getListenerClass());
+
+			portletURLGenerationListener = _init(
+				portletURLListener, portletURLGenerationListener);
+		}
+		else {
+			portletURLGenerationListener = _init(portletURLListener);
+		}
+
+		portletURLGenerationListeners.put(
+			portletURLListener.getListenerClass(),
+			portletURLGenerationListener);
 
 		return portletURLGenerationListener;
 	}

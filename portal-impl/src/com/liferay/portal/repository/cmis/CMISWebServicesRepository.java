@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,6 @@ package com.liferay.portal.repository.cmis;
 
 import com.liferay.portal.InvalidRepositoryException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.cmis.CMISRepositoryHandler;
 import com.liferay.portal.kernel.repository.cmis.Session;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -36,14 +35,14 @@ import org.apache.chemistry.opencmis.commons.enums.BindingType;
 public class CMISWebServicesRepository extends CMISRepositoryHandler {
 
 	@Override
-	public Session getSession() throws PortalException, SystemException {
+	public Session getSession() throws PortalException {
 		Map<String, String> parameters = new HashMap<String, String>();
 
 		parameters.put(
 			SessionParameter.BINDING_TYPE, BindingType.WEBSERVICES.value());
 		parameters.put(SessionParameter.COMPRESSION, Boolean.TRUE.toString());
 
-		Locale locale = LocaleUtil.getDefault();
+		Locale locale = LocaleUtil.getSiteDefault();
 
 		parameters.put(
 			SessionParameter.LOCALE_ISO3166_COUNTRY, locale.getCountry());
@@ -93,10 +92,12 @@ public class CMISWebServicesRepository extends CMISRepositoryHandler {
 		return CMISRepositoryUtil.createSession(parameters);
 	}
 
+	@Override
 	public String[] getSupportedConfigurations() {
 		return _SUPPORTED_CONFIGURATIONS;
 	}
 
+	@Override
 	public String[][] getSupportedParameters() {
 		return _SUPPORTED_PARAMETERS;
 	}

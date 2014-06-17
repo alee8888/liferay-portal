@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,7 @@
  */
 --%>
 
-<%@ include file="/html/taglib/init.jsp" %>
-
-<%@ page import="com.liferay.portal.kernel.cal.DayAndPosition" %>
-<%@ page import="com.liferay.portlet.calendar.model.CalEvent" %>
+<%@ include file="/html/taglib/ui/input_repeat/init.jsp" %>
 
 <%
 String cssClass = GetterUtil.getString((String)request.getAttribute("liferay-ui:input-repeat:cssClass"));
@@ -146,7 +143,6 @@ if (Validator.isNull(yearlyMonth0Param) && (event != null)) {
 	}
 }
 
-
 int yearlyDay0 = ParamUtil.getInteger(request, "yearlyDay0", 15);
 String yearlyDay0Param = ParamUtil.getString(request, "yearlyDay0");
 if (Validator.isNull(yearlyDay0Param) && (event != null)) {
@@ -216,7 +212,7 @@ boolean weeklyPosSa = _getWeeklyDayPos(request, Calendar.SATURDAY, event, recurr
 %>
 
 <aui:fieldset cssClass='<%= "taglib-input-repeat " + cssClass %>'>
-	<aui:column columnWidth="25" first="<%= true %>" id="eventsContainer">
+	<aui:col id="eventsContainer" width="<%= 25 %>">
 		<aui:field-wrapper label="repeat" name="recurrenceType">
 
 			<aui:input checked="<%= recurrenceType == Recurrence.NO_RECURRENCE %>" id="recurrenceTypeNever" label="never" name="recurrenceType" type="radio" value="<%= Recurrence.NO_RECURRENCE %>" />
@@ -229,14 +225,14 @@ boolean weeklyPosSa = _getWeeklyDayPos(request, Calendar.SATURDAY, event, recurr
 
 			<aui:input checked="<%= recurrenceType == Recurrence.YEARLY %>" id="recurrenceTypeYearly" label="yearly" name="recurrenceType" type="radio" value="<%= Recurrence.YEARLY %>" />
 		</aui:field-wrapper>
-	</aui:column>
+	</aui:col>
 
-	<aui:column columnWidth="75" last="<%= true %>">
-		<div class='<%= recurrenceType != Recurrence.NO_RECURRENCE ? "aui-helper-hidden" : StringPool.BLANK %>' id="<portlet:namespace />recurrenceTypeNeverTable">
+	<aui:col last="<%= true %>" width="<%= 75 %>">
+		<div class='<%= recurrenceType != Recurrence.NO_RECURRENCE ? "hide" : StringPool.BLANK %>' id="<portlet:namespace />recurrenceTypeNeverTable">
 			<liferay-ui:message key="do-not-repeat-this-event" />
 		</div>
 
-		<div class='<%= recurrenceType != Recurrence.DAILY ? "aui-helper-hidden" : StringPool.BLANK %>' id="<portlet:namespace />recurrenceTypeDailyTable">
+		<div class='<%= recurrenceType != Recurrence.DAILY ? "hide" : StringPool.BLANK %>' id="<portlet:namespace />recurrenceTypeDailyTable">
 			<aui:input checked="<%= dailyType == 0 %>" cssClass="input-container" inlineField="<%= true %>" label="recur-every" name="dailyType" type="radio" value="0" />
 
 			<aui:input inlineField="<%= true %>" inlineLabel="right" label="day-s" maxlength="3" name="dailyInterval" size="3" type="text" value="<%= dailyInterval %>" />
@@ -244,40 +240,40 @@ boolean weeklyPosSa = _getWeeklyDayPos(request, Calendar.SATURDAY, event, recurr
 			<aui:input checked="<%= (dailyType == 1) %>" label="every-weekday" name="dailyType" type="radio" value="1" />
 		</div>
 
-		<div class='<%= recurrenceType != Recurrence.WEEKLY ? "aui-helper-hidden" : StringPool.BLANK %>' id="<portlet:namespace />recurrenceTypeWeeklyTable">
+		<div class='<%= recurrenceType != Recurrence.WEEKLY ? "hide" : StringPool.BLANK %>' id="<portlet:namespace />recurrenceTypeWeeklyTable">
 			<aui:input inlineField="<%= true %>" inlineLabel="left" label="recur-every" maxlength="2" name="weeklyInterval" size="2" suffix="weeks-on" type="text" value="<%= weeklyInterval %>" />
 
 			<%
 			String[] days = CalendarUtil.getDays(locale);
 			%>
 
-			<aui:layout cssClass="weekdays">
-				<aui:column>
+			<aui:row cssClass="weekdays">
+				<aui:col width="<%= 25 %>">
 					<aui:input inlineLabel="right" label="<%= days[0] %>" name='<%= "weeklyDayPos" + Calendar.SUNDAY %>' type="checkbox" value="<%= weeklyPosSu %>" />
 
 					<aui:input inlineLabel="right" label="<%= days[4] %>" name='<%= "weeklyDayPos" + Calendar.THURSDAY %>' type="checkbox" value="<%= weeklyPosTh %>" />
-				</aui:column>
+				</aui:col>
 
-				<aui:column>
+				<aui:col width="<%= 25 %>">
 					<aui:input inlineLabel="right" label="<%= days[1] %>" name='<%= "weeklyDayPos" + Calendar.MONDAY %>' type="checkbox" value="<%= weeklyPosMo %>" />
 
 					<aui:input inlineLabel="right" label="<%= days[5] %>" name='<%= "weeklyDayPos" + Calendar.FRIDAY %>' type="checkbox" value="<%= weeklyPosFr %>" />
-				</aui:column>
+				</aui:col>
 
-				<aui:column>
+				<aui:col width="<%= 25 %>">
 					<aui:input inlineLabel="right" label="<%= days[2] %>" name='<%= "weeklyDayPos" + Calendar.TUESDAY %>' type="checkbox" value="<%= weeklyPosTu %>" />
 
 					<aui:input inlineLabel="right" label="<%= days[6] %>" name='<%= "weeklyDayPos" + Calendar.SATURDAY %>' type="checkbox" value="<%= weeklyPosSa %>" />
-				</aui:column>
+				</aui:col>
 
-				<aui:column>
+				<aui:col width="<%= 25 %>">
 					<aui:input inlineLabel="right" label="<%= days[3] %>" name='<%= "weeklyDayPos" + Calendar.WEDNESDAY %>' type="checkbox" value="<%= weeklyPosWe %>" />
-				</aui:column>
-			</aui:layout>
+				</aui:col>
+			</aui:row>
 		</div>
 
-		<div class='<%= recurrenceType != Recurrence.MONTHLY ? "aui-helper-hidden" : StringPool.BLANK %>' id="<portlet:namespace />recurrenceTypeMonthlyTable">
-			<span class="aui-field-row">
+		<div class='<%= recurrenceType != Recurrence.MONTHLY ? "hide" : StringPool.BLANK %>' id="<portlet:namespace />recurrenceTypeMonthlyTable">
+			<span class="field-row">
 				<aui:input checked="<%= monthlyType == 0 %>" cssClass="input-container" inlineField="<%= true %>" label="day" name="monthlyType" type="radio" value="0" />
 
 				<aui:input inlineField="<%= true %>" inlineLabel="right" label="of-every" maxlength="2" name="monthlyDay0" size="2" type="text" value="<%= monthlyDay0 %>" />
@@ -285,25 +281,25 @@ boolean weeklyPosSa = _getWeeklyDayPos(request, Calendar.SATURDAY, event, recurr
 				<aui:input inlineField="<%= true %>" inlineLabel="right" label="month-s" maxlength="2" name="monthlyInterval0" size="2" type="text" value="<%= monthlyInterval0 %>" />
 			</span>
 
-			<span class="aui-field-row">
+			<span class="field-row">
 				<aui:input checked="<%= (monthlyType == 1) %>" cssClass="input-container" inlineField="<%= true %>" label="the" name="monthlyType" type="radio" value="1" />
 
-				<aui:select cssClass="input-container" inlineField="<%= true %>" inlineLabel="left" label="" name="monthlyPos">
-					<aui:option label="first" selected="<%= monthlyPos == 1 %>" value="1" />
-					<aui:option label="second" selected="<%= monthlyPos == 2 %>" value="2" />
-					<aui:option label="third" selected="<%= monthlyPos == 3 %>" value="3" />
-					<aui:option label="fourth" selected="<%= monthlyPos == 4 %>" value="4" />
-					<aui:option label="last" selected="<%= monthlyPos == -1 %>" value="-1" />
+				<aui:select cssClass="input-container" inlineField="<%= true %>" inlineLabel="left" label="" name="monthlyPos" title="month-position" value="<%= monthlyPos %>">
+					<aui:option label="first" value="1" />
+					<aui:option label="second" value="2" />
+					<aui:option label="third" value="3" />
+					<aui:option label="fourth" value="4" />
+					<aui:option label="last" value="-1" />
 				</aui:select>
 
-				<aui:select cssClass="input-container" inlineField="<%= true %>" label="" name="monthlyDay1">
-					<aui:option label="<%= days[0] %>" selected="<%= monthlyDay1 == Calendar.SUNDAY %>" value="<%= Calendar.SUNDAY %>" />
-					<aui:option label="<%= days[1] %>" selected="<%= monthlyDay1 == Calendar.MONDAY %>" value="<%= Calendar.MONDAY %>" />
-					<aui:option label="<%= days[2] %>" selected="<%= monthlyDay1 == Calendar.TUESDAY %>" value="<%= Calendar.TUESDAY %>" />
-					<aui:option label="<%= days[3] %>" selected="<%= monthlyDay1 == Calendar.WEDNESDAY %>" value="<%= Calendar.WEDNESDAY %>" />
-					<aui:option label="<%= days[4] %>" selected="<%= monthlyDay1 == Calendar.THURSDAY %>" value="<%= Calendar.THURSDAY %>" />
-					<aui:option label="<%= days[5] %>" selected="<%= monthlyDay1 == Calendar.FRIDAY %>" value="<%= Calendar.FRIDAY %>" />
-					<aui:option label="<%= days[6] %>" selected="<%= monthlyDay1 == Calendar.SATURDAY %>" value="<%= Calendar.SATURDAY %>" />
+				<aui:select cssClass="input-container" inlineField="<%= true %>" label="" name="monthlyDay1" title="first-day-of-week" value="<%= monthlyDay1 %>">
+					<aui:option label="<%= days[0] %>" value="<%= Calendar.SUNDAY %>" />
+					<aui:option label="<%= days[1] %>" value="<%= Calendar.MONDAY %>" />
+					<aui:option label="<%= days[2] %>"  value="<%= Calendar.TUESDAY %>" />
+					<aui:option label="<%= days[3] %>" value="<%= Calendar.WEDNESDAY %>" />
+					<aui:option label="<%= days[4] %>" value="<%= Calendar.THURSDAY %>" />
+					<aui:option label="<%= days[5] %>" value="<%= Calendar.FRIDAY %>" />
+					<aui:option label="<%= days[6] %>" value="<%= Calendar.SATURDAY %>" />
 				</aui:select>
 
 				<aui:input inlineField="<%= true %>" inlineLabel="left" label="of-every" maxlength="2" name="monthlyInterval1" size="2" suffix="month-s" type="text" value="<%= monthlyInterval1 %>" />
@@ -315,11 +311,11 @@ boolean weeklyPosSa = _getWeeklyDayPos(request, Calendar.SATURDAY, event, recurr
 		String[] months = CalendarUtil.getMonths(locale);
 		%>
 
-		<div class='<%= recurrenceType != Recurrence.YEARLY ? "aui-helper-hidden" : StringPool.BLANK %>' id="<portlet:namespace />recurrenceTypeYearlyTable">
-			<span class="aui-field-row">
+		<div class='<%= recurrenceType != Recurrence.YEARLY ? "hide" : StringPool.BLANK %>' id="<portlet:namespace />recurrenceTypeYearlyTable">
+			<span class="field-row">
 				<aui:input checked="<%= yearlyType == 0 %>" cssClass="input-container" inlineField="<%= true %>" label="every" name="yearlyType" type="radio" value="0" />
 
-				<aui:select cssClass="input-container" inlineField="<%= true %>" inlineLabel="left" label="" name="yearlyMonth0">
+				<aui:select cssClass="input-container" inlineField="<%= true %>" inlineLabel="left" label="" name="yearlyMonth0" title="first-month-of-year">
 
 				<%
 				for (int i = 0; i < 12; i++) {
@@ -338,10 +334,10 @@ boolean weeklyPosSa = _getWeeklyDayPos(request, Calendar.SATURDAY, event, recurr
 				<aui:input inlineField="<%= true %>" inlineLabel="right" label="year-s" maxlength="2" name="yearlyInterval0" size="2" type="text" value="<%= yearlyInterval0 %>" />
 			</span>
 
-			<span class="aui-field-row">
+			<span class="field-row">
 				<aui:input checked="<%= yearlyType == 1 %>" cssClass="input-container" inlineField="<%= true %>" label="the" name="yearlyType" type="radio" value="1" />
 
-				<aui:select cssClass="input-container" inlineField="<%= true %>" label="" name="yearlyPos">
+				<aui:select cssClass="input-container" inlineField="<%= true %>" label="" name="yearlyPos" title="year-position">
 					<aui:option label="first" selected="<%= yearlyPos == 1 %>" value="1" />
 					<aui:option label="second" selected="<%= yearlyPos == 2 %>" value="2" />
 					<aui:option label="third" selected="<%= yearlyPos == 3 %>" value="3" />
@@ -376,7 +372,7 @@ boolean weeklyPosSa = _getWeeklyDayPos(request, Calendar.SATURDAY, event, recurr
 				<aui:input inlineField="<%= true %>" inlineLabel="right" label="year-s" maxlength="2" name="yearlyInterval1" size="2" type="text" value="<%= yearlyInterval1 %>" />
 			</span>
 		</div>
-	</aui:column>
+	</aui:col>
 </aui:fieldset>
 
 <aui:script use="aui-base">
@@ -395,7 +391,7 @@ boolean weeklyPosSa = _getWeeklyDayPos(request, Calendar.SATURDAY, event, recurr
 				}
 			);
 		},
-		'.aui-field-input-choice'
+		'.field'
 	);
 </aui:script>
 

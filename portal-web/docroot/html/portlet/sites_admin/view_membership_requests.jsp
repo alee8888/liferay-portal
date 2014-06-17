@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,13 +36,16 @@ else {
 Group group = (Group)request.getAttribute(WebKeys.GROUP);
 %>
 
-<liferay-ui:success key="membership_reply_sent" message="your-reply-will-be-sent-to-the-user-by-email" />
+<liferay-ui:success key="membershipReplySent" message="your-reply-will-be-sent-to-the-user-by-email" />
 
-<liferay-ui:header
-	backURL="<%= redirect %>"
-	localizeTitle="<%= false %>"
-	title='<%= group.getDescriptiveName(locale) + StringPool.COLON + StringPool.SPACE + LanguageUtil.get(pageContext, "manage-memberships") %>'
-/>
+<c:if test="<%= !layout.isTypeControlPanel() %>">
+	<liferay-ui:header
+		backURL="<%= redirect %>"
+		escapeXml="<%= false %>"
+		localizeTitle="<%= false %>"
+		title='<%= HtmlUtil.escape(group.getDescriptiveName(locale)) + StringPool.COLON + StringPool.SPACE + LanguageUtil.get(pageContext, "manage-memberships") %>'
+	/>
+</c:if>
 
 <liferay-util:include page="/html/portlet/sites_admin/edit_site_assignments_toolbar.jsp">
 	<liferay-util:param name="toolbarItem" value="view-membership-requests" />
@@ -60,93 +63,83 @@ portletURL.setParameter("struts_action", "/sites_admin/view_membership_requests"
 portletURL.setParameter("redirect", redirect);
 portletURL.setParameter("tabs1", tabs1);
 portletURL.setParameter("groupId", String.valueOf(group.getGroupId()));
-
-List<String> headerNames = new ArrayList<String>();
-
-headerNames.add("date");
-headerNames.add("user");
-headerNames.add("user-comments");
-
-if (!tabs1.equals("pending")) {
-	headerNames.add("reply-date");
-	headerNames.add("replier");
-	headerNames.add("reply-comments");
-}
-
-headerNames.add(StringPool.BLANK);
-
-SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.get(pageContext, "no-requests-were-found"));
-
-searchContainer.setHeaderNames(headerNames);
-
-List results = MembershipRequestLocalServiceUtil.search(group.getGroupId(), statusId, searchContainer.getStart(), searchContainer.getEnd());
-
-int total = MembershipRequestLocalServiceUtil.searchCount(group.getGroupId(), statusId);
-
-searchContainer.setTotal(total);
-
-List resultRows = searchContainer.getResultRows();
-
-for (int i = 0; i < results.size(); i++) {
-	MembershipRequest membershipRequest = (MembershipRequest)results.get(i);
-
-	long userId = 0L;
-
-	User user2 = UserLocalServiceUtil.getUserById(membershipRequest.getUserId());
-
-	ResultRow row = new ResultRow(new Object[] {user2, group, membershipRequest}, userId, i);
-
-	// Date
-
-	row.addText(dateFormatDate.format(membershipRequest.getCreateDate()));
-
-	// User
-
-	StringBundler sb = new StringBundler(4);
-
-	sb.append(HtmlUtil.escape(user2.getFullName()));
-	sb.append(" (");
-	sb.append(user2.getEmailAddress());
-	sb.append(")");
-
-	row.addText(sb.toString());
-
-	// Comments
-
-	row.addText(membershipRequest.getComments());
-
-	if (!tabs1.equals("pending")) {
-
-		// Reply Date
-
-		row.addText(dateFormatDate.format(membershipRequest.getReplyDate()));
-
-		// Replier
-
-		User user3 = UserLocalServiceUtil.getUserById(membershipRequest.getReplierUserId());
-
-		if (user3.isDefaultUser()) {
-			Company user3Company = CompanyLocalServiceUtil.getCompanyById(user3.getCompanyId());
-
-			row.addText(HtmlUtil.escape(user3Company.getName()));
-		}
-		else {
-			row.addText(HtmlUtil.escape(user3.getFullName()));
-		}
-
-		// Reply comments
-
-		row.addText(membershipRequest.getReplyComments());
-	}
-
-	// Actions
-
-	row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/sites_admin/membership_request_action.jsp");
-
-	// Add result row
-
-	resultRows.add(row);
-}
 %>
 
-<liferay-ui:search-iterator searchContainer="<%= searchContainer %>" />
+<liferay-ui:search-container
+	emptyResultsMessage="no-requests-were-found"
+	iteratorURL="<%= portletURL %>"
+	total="<%= MembershipRequestLocalServiceUtil.searchCount(group.getGroupId(), statusId) %>"
+>
+	<liferay-ui:search-container-results
+		results="<%= MembershipRequestLocalServiceUtil.search(group.getGroupId(), statusId, searchContainer.getStart(), searchContainer.getEnd()) %>"
+	/>
+
+	<liferay-ui:search-container-row
+		className="com.liferay.portal.model.MembershipRequest"
+		modelVar="membershipRequest"
+	>
+
+		<%
+		User membershipRequestUser = UserLocalServiceUtil.getUserById(membershipRequest.getUserId());
+
+		row.setObject(new Object[] {membershipRequestUser, group, membershipRequest});
+		%>
+
+		<liferay-ui:search-container-column-date
+			name="date"
+			value="<%= membershipRequest.getCreateDate() %>"
+		/>
+
+		<liferay-ui:search-container-column-text
+			name="user"
+		>
+			<%= HtmlUtil.escape(membershipRequestUser.getFullName()) %> (<%= membershipRequestUser.getEmailAddress() %>)
+		</liferay-ui:search-container-column-text>
+
+		<liferay-ui:search-container-column-text
+			name="user-comments"
+			value="<%= HtmlUtil.escape(membershipRequest.getComments()) %>"
+		/>
+
+		<c:if test='<%= !tabs1.equals("pending") %>'>
+			<liferay-ui:search-container-column-date
+				name="reply-date"
+				value="<%= membershipRequest.getReplyDate() %>"
+			/>
+
+			<%
+			User membershipRequestReplierUser = UserLocalServiceUtil.getUserById(membershipRequest.getReplierUserId());
+			%>
+
+			<liferay-ui:search-container-column-text
+				name="replier"
+			>
+				<c:choose>
+					<c:when test="<%= membershipRequestReplierUser.isDefaultUser() %>">
+
+						<%
+						Company membershipRequestReplierCompany = CompanyLocalServiceUtil.getCompanyById(membershipRequestReplierUser.getCompanyId());
+						%>
+
+						<%= HtmlUtil.escape(membershipRequestReplierCompany.getName()) %>
+					</c:when>
+					<c:otherwise>
+						<%= HtmlUtil.escape(membershipRequestReplierUser.getFullName()) %>
+					</c:otherwise>
+				</c:choose>
+			</liferay-ui:search-container-column-text>
+
+			<liferay-ui:search-container-column-text
+				name="reply-comments"
+				value="<%= HtmlUtil.escape(membershipRequestReplierUser.getFullName()) %>"
+			/>
+		</c:if>
+
+		<liferay-ui:search-container-column-jsp
+			cssClass="entry-action"
+			path="/html/portlet/sites_admin/membership_request_action.jsp"
+		/>
+	</liferay-ui:search-container-row>
+
+	<liferay-ui:search-iterator searchContainer="<%= searchContainer %>" />
+</liferay-ui:search-container>

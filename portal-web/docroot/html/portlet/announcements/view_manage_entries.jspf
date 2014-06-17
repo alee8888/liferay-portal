@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,13 +27,13 @@ if (distributionScopeArray.length == 2) {
 	classPK = GetterUtil.getLong(distributionScopeArray[1]);
 }
 
-if ((classNameId == 0) && (classPK == 0) && !permissionChecker.isOmniadmin()) {
+if ((classNameId == 0) && (classPK == 0) && !PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_GENERAL_ANNOUNCEMENTS)) {
 	throw new PrincipalException();
 }
 %>
 
 <aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
-	<aui:fieldset>
+	<aui:fieldset id="fieldSet">
 
 		<%
 		boolean submitOnChange = true;
@@ -43,7 +43,16 @@ if ((classNameId == 0) && (classPK == 0) && !permissionChecker.isOmniadmin()) {
 
 	</aui:fieldset>
 
-	<aui:button onClick='<%= renderResponse.getNamespace() + "addEntry()" %>' value="add-entry" />
+	<c:choose>
+		<c:when test="<%= distributionScopeArray.length > 0 %>">
+			<aui:button onClick='<%= renderResponse.getNamespace() + "addEntry()" %>' value="add-entry" />
+		</c:when>
+		<c:otherwise>
+			<div class="alert alert-info">
+				<liferay-ui:message key="please-select-a-distribution-scope" />
+			</div>
+		</c:otherwise>
+	</c:choose>
 
 	<c:if test="<%= Validator.isNotNull(distributionScope) %>">
 		<div class="separator"><!-- --></div>
@@ -97,19 +106,19 @@ if ((classNameId == 0) && (classPK == 0) && !permissionChecker.isOmniadmin()) {
 
 			// Modified date
 
-			row.addText(dateFormatDate.format(entry.getModifiedDate()), rowURL);
+			row.addDate(entry.getModifiedDate(), rowURL);
 
 			// Display date
 
-			row.addText(dateFormatDate.format(entry.getDisplayDate()), rowURL);
+			row.addDate(entry.getDisplayDate(), rowURL);
 
 			// Expiration date
 
-			row.addText(dateFormatDate.format(entry.getExpirationDate()), rowURL);
+			row.addDate(entry.getExpirationDate(), rowURL);
 
 			// Action
 
-			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/announcements/view_manage_entries_entry_action.jsp");
+			row.addJSP("/html/portlet/announcements/view_manage_entries_entry_action.jsp", "entry-action");
 
 			// Add result row
 
@@ -127,7 +136,8 @@ if ((classNameId == 0) && (classPK == 0) && !permissionChecker.isOmniadmin()) {
 	}
 
 	function <portlet:namespace />selectDistributionScope(distributionScope) {
-		var url = "<%= portletURL.toString() %>&<portlet:namespace />distributionScope=" + distributionScope;
+		var url = '<%= portletURL.toString() %>&<portlet:namespace />distributionScope=' + distributionScope;
+
 		submitForm(document.<portlet:namespace />fm, url);
 	}
 </aui:script>

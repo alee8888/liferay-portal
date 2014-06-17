@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,9 +18,11 @@ import com.liferay.portal.kernel.captcha.Captcha;
 import com.liferay.portal.kernel.captcha.CaptchaException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.util.ClassUtil;
 import com.liferay.portal.kernel.util.InstanceFactory;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
 
@@ -36,26 +38,31 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author Brian Wing Shun Chan
  */
+@DoPrivileged
 public class CaptchaImpl implements Captcha {
 
+	@Override
 	public void check(HttpServletRequest request) throws CaptchaException {
 		_initialize();
 
 		_captcha.check(request);
 	}
 
+	@Override
 	public void check(PortletRequest portletRequest) throws CaptchaException {
 		_initialize();
 
 		_captcha.check(portletRequest);
 	}
 
+	@Override
 	public String getTaglibPath() {
 		_initialize();
 
 		return _captcha.getTaglibPath();
 	}
 
+	@Override
 	public boolean isEnabled(HttpServletRequest request)
 		throws CaptchaException {
 
@@ -64,6 +71,7 @@ public class CaptchaImpl implements Captcha {
 		return _captcha.isEnabled(request);
 	}
 
+	@Override
 	public boolean isEnabled(PortletRequest portletRequest)
 		throws CaptchaException {
 
@@ -72,6 +80,7 @@ public class CaptchaImpl implements Captcha {
 		return _captcha.isEnabled(portletRequest);
 	}
 
+	@Override
 	public void serveImage(
 			HttpServletRequest request, HttpServletResponse response)
 		throws IOException {
@@ -81,6 +90,7 @@ public class CaptchaImpl implements Captcha {
 		_captcha.serveImage(request, response);
 	}
 
+	@Override
 	public void serveImage(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws IOException {
@@ -95,14 +105,15 @@ public class CaptchaImpl implements Captcha {
 
 		if (captcha == null) {
 			if (_log.isInfoEnabled()) {
-				_log.info("Restoring " + _originalCaptcha.getClass().getName());
+				_log.info(
+					"Restoring " + ClassUtil.getClassName(_originalCaptcha));
 			}
 
 			_captcha = _originalCaptcha;
 		}
 		else {
 			if (_log.isInfoEnabled()) {
-				_log.info("Setting " + captcha.getClass().getName());
+				_log.info("Setting " + ClassUtil.getClassName(captcha));
 			}
 
 			_captcha = captcha;
@@ -129,7 +140,7 @@ public class CaptchaImpl implements Captcha {
 				}
 
 				_captcha = (Captcha)InstanceFactory.newInstance(
-					PortalClassLoaderUtil.getClassLoader(), captchaClassName);
+					ClassLoaderUtil.getPortalClassLoader(), captchaClassName);
 
 				_originalCaptcha = _captcha;
 			}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,9 @@
 
 package com.liferay.portal.model.impl;
 
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.model.Repository;
 
 /**
  * @author Alexander Chow
@@ -22,6 +24,11 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 public class RepositoryImpl extends RepositoryBaseImpl {
 
 	public RepositoryImpl() {
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(Repository.class);
 	}
 
 	@Override
@@ -34,6 +41,7 @@ public class RepositoryImpl extends RepositoryBaseImpl {
 		}
 	}
 
+	@Override
 	public UnicodeProperties getTypeSettingsProperties() {
 		if (_typeSettingsProperties == null) {
 			_typeSettingsProperties = new UnicodeProperties(true);
@@ -51,6 +59,7 @@ public class RepositoryImpl extends RepositoryBaseImpl {
 		super.setTypeSettings(typeSettings);
 	}
 
+	@Override
 	public void setTypeSettingsProperties(
 		UnicodeProperties typeSettingsProperties) {
 

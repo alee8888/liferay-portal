@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,10 +15,8 @@
 package com.liferay.portal.theme;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.MethodCache;
-import com.liferay.portal.kernel.util.MethodKey;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -36,15 +34,12 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Shuyang Zhou
  */
 public class NavItem implements Serializable {
 
-	public static NavItem fromLayout(RequestVars vars, Layout layout) {
-		return new NavItem(vars, layout);
-	}
-
 	public static List<NavItem> fromLayouts(
-		RequestVars vars, List<Layout> layouts) {
+		HttpServletRequest request, List<Layout> layouts, Template template) {
 
 		if (layouts == null) {
 			return null;
@@ -53,25 +48,28 @@ public class NavItem implements Serializable {
 		List<NavItem> navItems = new ArrayList<NavItem>(layouts.size());
 
 		for (Layout layout : layouts) {
-			navItems.add(fromLayout(vars, layout));
+			navItems.add(new NavItem(request, layout, template));
 		}
 
 		return navItems;
 	}
 
-	public NavItem(RequestVars vars, Layout layout) {
-		_vars = vars;
+	public NavItem(
+		HttpServletRequest request, Layout layout, Template template) {
+
+		_request = request;
+		_themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
 		_layout = layout;
+		_template = template;
 	}
 
 	public List<NavItem> getChildren() throws Exception {
 		if (_children == null) {
-			ThemeDisplay themeDisplay = _vars.getThemeDisplay();
-
 			List<Layout> layouts = _layout.getChildren(
-				themeDisplay.getPermissionChecker());
+				_themeDisplay.getPermissionChecker());
 
-			_children = fromLayouts(_vars, layouts);
+			_children = fromLayouts(_request, layouts, _template);
 		}
 
 		return _children;
@@ -81,12 +79,16 @@ public class NavItem implements Serializable {
 		return _layout;
 	}
 
+	public long getLayoutId() {
+		return _layout.getLayoutId();
+	}
+
 	public String getName() {
 		return HtmlUtil.escape(getUnescapedName());
 	}
 
 	public String getRegularFullURL() throws Exception {
-		String portalURL = PortalUtil.getPortalURL(_vars.getRequest());
+		String portalURL = PortalUtil.getPortalURL(_request);
 
 		String regularURL = getRegularURL();
 
@@ -101,15 +103,15 @@ public class NavItem implements Serializable {
 	}
 
 	public String getRegularURL() throws Exception {
-		return _layout.getRegularURL(_vars.getRequest());
+		return _layout.getRegularURL(_request);
 	}
 
 	public String getResetLayoutURL() throws Exception {
-		return _layout.getResetLayoutURL(_vars.getRequest());
+		return _layout.getResetLayoutURL(_request);
 	}
 
 	public String getResetMaxStateURL() throws Exception {
-		return _layout.getResetMaxStateURL(_vars.getRequest());
+		return _layout.getResetMaxStateURL(_request);
 	}
 
 	public String getTarget() {
@@ -117,19 +119,21 @@ public class NavItem implements Serializable {
 	}
 
 	public String getTitle() {
-		return _layout.getTitle(_vars.getThemeDisplay().getLocale());
+		return _layout.getTitle(_themeDisplay.getLocale());
 	}
 
 	public String getUnescapedName() {
-		return _layout.getName(_vars.getThemeDisplay().getLocale());
+		return _layout.getName(_themeDisplay.getLocale());
 	}
 
 	public String getURL() throws Exception {
-		return HtmlUtil.escape(HtmlUtil.escapeHREF(getRegularFullURL()));
+		return HtmlUtil.escapeHREF(getRegularFullURL());
 	}
 
 	public boolean hasChildren() throws Exception {
-		if (getChildren().size() > 0) {
+		List<NavItem> children = getChildren();
+
+		if (!children.isEmpty()) {
 			return true;
 		}
 		else {
@@ -138,36 +142,28 @@ public class NavItem implements Serializable {
 	}
 
 	public void icon() throws Exception {
-		HttpServletRequest request = _vars.getRequest();
+		Object velocityTaglib = _template.get("theme");
 
-		Object velocityTaglib = request.getAttribute(WebKeys.VELOCITY_TAGLIB);
-
-		Method method = MethodCache.get(_methodKey);
+		Method method = (Method)_template.get("velocityTaglib_layoutIcon");
 
 		method.invoke(velocityTaglib, _layout);
 	}
 
-	public boolean isChildSelected() throws PortalException, SystemException {
-		ThemeDisplay themeDisplay = _vars.getThemeDisplay();
-
+	public boolean isChildSelected() throws PortalException {
 		return _layout.isChildSelected(
-			themeDisplay.isTilesSelectable(), themeDisplay.getLayout());
+			_themeDisplay.isTilesSelectable(), _themeDisplay.getLayout());
 	}
 
-	public boolean isSelected() {
-		ThemeDisplay themeDisplay = _vars.getThemeDisplay();
-
+	public boolean isSelected() throws Exception {
 		return _layout.isSelected(
-			themeDisplay.isTilesSelectable(), themeDisplay.getLayout(),
-			_vars.getAncestorPlid());
+			_themeDisplay.isTilesSelectable(), _themeDisplay.getLayout(),
+			_themeDisplay.getLayout().getAncestorPlid());
 	}
-
-	private static MethodKey _methodKey = new MethodKey(
-		"com.liferay.taglib.util.VelocityTaglib", "layoutIcon",
-		new Class[] {Layout.class});
 
 	private List<NavItem> _children;
 	private Layout _layout;
-	private RequestVars _vars;
+	private HttpServletRequest _request;
+	private Template _template;
+	private ThemeDisplay _themeDisplay;
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -33,14 +33,14 @@ public class PropertyComparator implements Comparator<Object> {
 		this(new String[] {propertyName}, true, false);
 	}
 
-	public PropertyComparator(String[] propertyNames) {
-		this(propertyNames, true, false);
-	}
-
 	public PropertyComparator(
 		String propertyName, boolean ascending, boolean caseSensitive) {
 
 		this(new String[] {propertyName}, ascending, caseSensitive);
+	}
+
+	public PropertyComparator(String[] propertyNames) {
+		this(propertyNames, true, false);
 	}
 
 	public PropertyComparator(
@@ -51,6 +51,7 @@ public class PropertyComparator implements Comparator<Object> {
 		_caseSensitive = caseSensitive;
 	}
 
+	@Override
 	public int compare(Object obj1, Object obj2) {
 		try {
 			for (String propertyName : _propertyNames) {
@@ -67,28 +68,28 @@ public class PropertyComparator implements Comparator<Object> {
 				}
 
 				if (property1 instanceof String) {
-					int result = 0;
+					int value = 0;
 
 					if (_caseSensitive) {
-						result = property1.toString().compareTo(
+						value = property1.toString().compareTo(
 							property2.toString());
 					}
 					else {
-						result = property1.toString().compareToIgnoreCase(
+						value = property1.toString().compareToIgnoreCase(
 							property2.toString());
 					}
 
-					if (result != 0) {
-						return result;
+					if (value != 0) {
+						return value;
 					}
 				}
 
 				if (property1 instanceof Comparable<?>) {
-					int result = ((Comparable<Object>)property1).compareTo(
+					int value = ((Comparable<Object>)property1).compareTo(
 						property2);
 
-					if (result != 0) {
-						return result;
+					if (value != 0) {
+						return value;
 					}
 				}
 			}

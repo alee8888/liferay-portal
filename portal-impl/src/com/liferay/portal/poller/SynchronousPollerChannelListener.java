@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -39,6 +39,7 @@ public class SynchronousPollerChannelListener implements ChannelListener {
 		_pollerResponseHeaderJSONObject = pollerResponseHeaderJSONObject;
 	}
 
+	@Override
 	public synchronized void channelListenerRemoved(long channelId) {
 		_complete = true;
 
@@ -77,6 +78,7 @@ public class SynchronousPollerChannelListener implements ChannelListener {
 		return jsonArray.toString();
 	}
 
+	@Override
 	public synchronized void notificationEventsAvailable(long channelId) {
 		_complete = true;
 

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,30 +17,36 @@
 <%@ include file="/html/taglib/ui/header/init.jsp" %>
 
 <%
-if (Validator.isNotNull(backLabel)) {
-	if (!backLabel.startsWith("&laquo; ")) {
-		backLabel = "&laquo; ".concat(LanguageUtil.format(pageContext, "back-to-x", HtmlUtil.escape(backLabel)));
-	}
-}
-else {
-	backLabel = "&laquo; ".concat(LanguageUtil.get(pageContext, "back"));
+if (Validator.isNull(backLabel)) {
+	backLabel = LanguageUtil.get(pageContext, "back");
 }
 
 if (Validator.isNotNull(backURL) && !backURL.equals("javascript:history.go(-1);")) {
-	backURL = HtmlUtil.escape(HtmlUtil.escapeHREF(PortalUtil.escapeRedirect(backURL)));
+	backURL = HtmlUtil.escapeHREF(PortalUtil.escapeRedirect(backURL));
 }
 
 String headerTitle = (localizeTitle) ? LanguageUtil.get(pageContext, title) : title;
 %>
 
-<div class="taglib-header <%= (cssClass != null) ? cssClass : "" %>">
+<div class="taglib-header <%= cssClass %>">
 	<c:if test="<%= showBackURL && Validator.isNotNull(backURL) %>">
 		<span class="header-back-to">
-			<a href="<%= backURL %>" id="<%= namespace %>TabsBack"><%= backLabel %></a>
+			<a class="icon-circle-arrow-left previous-level" href="<%= backURL %>" id="<%= namespace %>TabsBack" title="<%= HtmlUtil.escapeAttribute(backLabel) %>">
+				<span class="helper-hidden-accessible">
+					<c:choose>
+						<c:when test="<%= escapeXml %>">
+							<%= HtmlUtil.escape(backLabel) %>
+						</c:when>
+						<c:otherwise>
+							<%= backLabel %>
+						</c:otherwise>
+					</c:choose>
+				</span>
+			</a>
 		</span>
 	</c:if>
 
-	<h1 class="header-title">
+	<h3 class="header-title">
 		<span>
 			<c:choose>
 				<c:when test="<%= escapeXml %>">
@@ -51,5 +57,5 @@ String headerTitle = (localizeTitle) ? LanguageUtil.get(pageContext, title) : ti
 				</c:otherwise>
 			</c:choose>
 		</span>
-	</h1>
+	</h3>
 </div>

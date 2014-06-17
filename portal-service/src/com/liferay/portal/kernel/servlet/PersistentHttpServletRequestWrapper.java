@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,10 +21,20 @@ import javax.servlet.http.HttpServletRequestWrapper;
  * @author Shuyang Zhou
  */
 public class PersistentHttpServletRequestWrapper
-	extends HttpServletRequestWrapper {
+	extends HttpServletRequestWrapper implements Cloneable {
 
 	public PersistentHttpServletRequestWrapper(HttpServletRequest request) {
 		super(request);
+	}
+
+	@Override
+	public PersistentHttpServletRequestWrapper clone() {
+		try {
+			return (PersistentHttpServletRequestWrapper)super.clone();
+		}
+		catch (CloneNotSupportedException cnse) {
+			throw new RuntimeException(cnse);
+		}
 	}
 
 }

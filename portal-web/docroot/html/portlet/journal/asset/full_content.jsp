@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,22 +25,22 @@ JournalArticleResource articleResource = JournalArticleResourceLocalServiceUtil.
 String templateId = (String)request.getAttribute(WebKeys.JOURNAL_TEMPLATE_ID);
 String languageId = LanguageUtil.getLanguageId(request);
 int articlePage = ParamUtil.getInteger(request, "page", 1);
-String xmlRequest = PortletRequestUtil.toXML(renderRequest, renderResponse);
+String viewMode = ParamUtil.getString(request, "viewMode", Constants.VIEW);
 
 boolean workflowAssetPreview = ParamUtil.getBoolean(request, "workflowAssetPreview");
 
 JournalArticleDisplay articleDisplay = null;
 
 if (!workflowAssetPreview && article.isApproved()) {
-	articleDisplay = JournalContentUtil.getDisplay(articleResource.getGroupId(), articleResource.getArticleId(), article.getVersion(), templateId, null, languageId, themeDisplay, articlePage, xmlRequest);
+	articleDisplay = JournalContentUtil.getDisplay(articleResource.getGroupId(), articleResource.getArticleId(), article.getVersion(), templateId, viewMode, languageId, articlePage, new PortletRequestModel(renderRequest, renderResponse), themeDisplay);
 }
 else {
-	articleDisplay = JournalArticleLocalServiceUtil.getArticleDisplay(article, null, null, languageId, 1, null, themeDisplay);
+	articleDisplay = JournalArticleLocalServiceUtil.getArticleDisplay(article, null, viewMode, languageId, 1, (PortletRequestModel)null, themeDisplay);
 }
 %>
 
 <div class="journal-content-article">
-	<%= articleDisplay.getContent() %>
+	<%= RuntimePageUtil.processXML(request, response, articleDisplay.getContent()) %>
 </div>
 
 <c:if test="<%= articleDisplay.isPaginate() %>">

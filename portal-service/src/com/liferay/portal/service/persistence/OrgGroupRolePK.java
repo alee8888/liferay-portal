@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,6 +21,7 @@ import java.io.Serializable;
 
 /**
  * @author Brian Wing Shun Chan
+ * @generated
  */
 public class OrgGroupRolePK implements Comparable<OrgGroupRolePK>, Serializable {
 	public long organizationId;
@@ -60,6 +61,7 @@ public class OrgGroupRolePK implements Comparable<OrgGroupRolePK>, Serializable 
 		this.roleId = roleId;
 	}
 
+	@Override
 	public int compareTo(OrgGroupRolePK pk) {
 		if (pk == null) {
 			return -1;
@@ -114,18 +116,15 @@ public class OrgGroupRolePK implements Comparable<OrgGroupRolePK>, Serializable 
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof OrgGroupRolePK)) {
 			return false;
 		}
 
-		OrgGroupRolePK pk = null;
-
-		try {
-			pk = (OrgGroupRolePK)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		OrgGroupRolePK pk = (OrgGroupRolePK)obj;
 
 		if ((organizationId == pk.organizationId) && (groupId == pk.groupId) &&
 				(roleId == pk.roleId)) {

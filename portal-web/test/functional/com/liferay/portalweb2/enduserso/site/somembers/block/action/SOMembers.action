@@ -1,0 +1,13 @@
+<definition>
+	<command name="click">
+		<case locator-key1="MEMBERS_LIST_NAME">
+			<execute function="Click#pauseTextClickAt" />
+		</case>
+	</command>
+
+	<command name="type">
+		<case locator-key1="MEMBERS_LIST_SEARCH">
+			<execute function="Type#typePause" />
+		</case>
+	</command>
+</definition>

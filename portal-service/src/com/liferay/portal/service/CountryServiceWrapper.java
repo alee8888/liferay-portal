@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
- * <p>
- * This class is a wrapper for {@link CountryService}.
- * </p>
+ * Provides a wrapper for {@link CountryService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       CountryService
+ * @author Brian Wing Shun Chan
+ * @see CountryService
  * @generated
  */
+@ProviderType
 public class CountryServiceWrapper implements CountryService,
 	ServiceWrapper<CountryService> {
 	public CountryServiceWrapper(CountryService countryService) {
@@ -34,6 +35,7 @@ public class CountryServiceWrapper implements CountryService,
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _countryService.getBeanIdentifier();
 	}
@@ -43,89 +45,94 @@ public class CountryServiceWrapper implements CountryService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_countryService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public com.liferay.portal.model.Country addCountry(java.lang.String name,
 		java.lang.String a2, java.lang.String a3, java.lang.String number,
 		java.lang.String idd, boolean active)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _countryService.addCountry(name, a2, a3, number, idd, active);
 	}
 
-	public com.liferay.portal.model.Country fetchCountry(long countryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public com.liferay.portal.model.Country fetchCountry(long countryId) {
 		return _countryService.fetchCountry(countryId);
 	}
 
+	@Override
 	public com.liferay.portal.model.Country fetchCountryByA2(
-		java.lang.String a2)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String a2) {
 		return _countryService.fetchCountryByA2(a2);
 	}
 
+	@Override
 	public com.liferay.portal.model.Country fetchCountryByA3(
-		java.lang.String a3)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String a3) {
 		return _countryService.fetchCountryByA3(a3);
 	}
 
-	public java.util.List<com.liferay.portal.model.Country> getCountries()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public java.util.List<com.liferay.portal.model.Country> getCountries() {
 		return _countryService.getCountries();
 	}
 
+	@Override
 	public java.util.List<com.liferay.portal.model.Country> getCountries(
-		boolean active)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		boolean active) {
 		return _countryService.getCountries(active);
 	}
 
+	@Override
 	public com.liferay.portal.model.Country getCountry(long countryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _countryService.getCountry(countryId);
 	}
 
+	@Override
 	public com.liferay.portal.model.Country getCountryByA2(java.lang.String a2)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _countryService.getCountryByA2(a2);
 	}
 
+	@Override
 	public com.liferay.portal.model.Country getCountryByA3(java.lang.String a3)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _countryService.getCountryByA3(a3);
 	}
 
+	@Override
 	public com.liferay.portal.model.Country getCountryByName(
 		java.lang.String name)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _countryService.getCountryByName(name);
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public CountryService getWrappedCountryService() {
 		return _countryService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedCountryService(CountryService countryService) {
 		_countryService = countryService;
 	}
 
+	@Override
 	public CountryService getWrappedService() {
 		return _countryService;
 	}
 
+	@Override
 	public void setWrappedService(CountryService countryService) {
 		_countryService = countryService;
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -37,7 +37,7 @@ public class PwdAuthenticator {
 			String currentEncryptedPassword)
 		throws PwdEncryptorException, SystemException {
 
-		String encryptedPassword = PwdEncryptor.encrypt(
+		String encryptedPassword = PasswordEncryptorUtil.encrypt(
 			clearTextPassword, currentEncryptedPassword);
 
 		if (currentEncryptedPassword.equals(encryptedPassword)) {
@@ -57,7 +57,7 @@ public class PwdAuthenticator {
 				encryptedPassword = Base64.encode(
 					digester.digest(shardKey.getBytes(StringPool.UTF8)));
 
-				if (currentEncryptedPassword.equals(encryptedPassword)) {
+				if (clearTextPassword.equals(encryptedPassword)) {
 					return true;
 				}
 				else {

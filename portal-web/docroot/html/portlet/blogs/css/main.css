@@ -1,29 +1,34 @@
 .portlet-blogs {
+	.lfr-blogs-small-image-content {
+		background-color: #F5F5F5;
+		padding: 5px;
+
+			th {
+				padding: 5px;
+				white-space: nowrap;
+				width: 1%;
+			}
+		}
+
+	.lfr-blogs-small-image-content img {
+		margin-right: 1em;
+	}
+
 	.taglib-custom-attributes-list {
 		margin-bottom: 1em;
 	}
 
 	.taglib-custom-attributes-list label {
 		display: block;
-		font-weight: bold;
-	}
-
-	.edit-actions {
-		margin: 1.5em 0;
-	}
-
-	.entry {
-		clear: both;
 	}
 
 	.entry-author {
-		background: url(@theme_image_path@/portlet/edit_guest.png) no-repeat 0 50%;
 		border-right: 1px solid #999;
 		color: #999;
 		float: left;
 		font-weight: bold;
+		line-height: 20px;
 		margin-right: 10px;
-		padding-left: 25px;
 		padding-right: 10px;
 	}
 
@@ -32,9 +37,15 @@
 	}
 
 	.entry-date {
-		background: url(@theme_image_path@/common/date.png) no-repeat 0 50%;
 		color: #999;
-		padding-left: 25px;
+	}
+
+	.entry-footer:after {
+		clear: both;
+		content: '';
+		display: block;
+		height: 0;
+		visibility: hidden;
 	}
 
 	.taglib-asset-categories-summary, .taglib-asset-tags-summary {
@@ -44,65 +55,50 @@
 
 	.entry-title {
 		display: block;
-		font-size: 1.5em;
 		font-weight: bold;
 		margin-bottom: 0.5em;
 	}
 
-	.entry.draft {
-		background: #eee;
-		border: 1px solid #ccc;
+	.entry.draft, .entry.pending, .entry.scheduled {
+		background: #EEE;
+		border: 1px solid #CCC;
 		color: #555;
 		padding: 5px;
 
 		h3 {
-			background: url(@theme_image_path@/common/page.png) no-repeat 0 50%;
 			margin-top: 0;
-			padding-left: 20px;
 		}
 	}
 
 	.entry-navigation {
-		background: #eee;
-		border-top: 1px solid #ccc;
+		background: #EEE;
+		border-top: 1px solid #CCC;
 		margin: 15px 0 0;
 		overflow: hidden;
 		padding: 5px;
 
-		a, span {
-			background: url() no-repeat;
-		}
-
 		.previous {
-			background-image: url(@theme_image_path@/arrows/paging_previous.png);
 			float: left;
-			padding-left: 15px;
-		}
-
-		span.previous {
-			background-position: 0 100%;
 		}
 
 		.next {
-			background-image: url(@theme_image_path@/arrows/paging_next.png);
-			background-position: 100% 0;
 			float: right;
-			padding-right: 15px;
-		}
-
-		span.next {
-			background-position: 100% 100%;
 		}
 	}
 
 	.preview {
-		background: #ffc;
+		background: #FFC;
 		border: 1px dotted gray;
 		padding: 3px;
 	}
 
 	.search-form {
 		float: right
+	}
+
+	.search-root-entry {
+		color: #999;
+		float: right;
 	}
 
 	.stats {
@@ -113,6 +109,7 @@
 
 	.subscribe {
 		margin-bottom: 1.5em;
+		text-align: right;
 	}
 
 	.taglib-flags {
@@ -123,7 +120,19 @@
 	}
 
 	.taglib-ratings.stars {
-		margin-top: 0.5em;
+		float: left;
+	}
+
+	.taglib-social-bookmarks {
+		float: right;
+	}
+
+	.form-search:after {
+		clear: both;
+		content: '';
+		display: block;
+		height: 0;
+		visibility: hidden;
 	}
 
 	#blogsCommentsPanelContainer {

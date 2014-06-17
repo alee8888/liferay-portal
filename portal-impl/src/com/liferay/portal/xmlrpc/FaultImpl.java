@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,10 +29,12 @@ public class FaultImpl implements Fault {
 		_description = description;
 	}
 
+	@Override
 	public int getCode() {
 		return _code;
 	}
 
+	@Override
 	public String getDescription() {
 		return _description;
 	}
@@ -42,6 +44,7 @@ public class FaultImpl implements Fault {
 		return "XML-RPC fault " + _code + " " + _description;
 	}
 
+	@Override
 	public String toXml() throws XmlRpcException {
 		StringBundler sb = new StringBundler(17);
 

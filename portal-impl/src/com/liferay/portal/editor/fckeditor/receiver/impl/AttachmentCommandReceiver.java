@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,15 +16,13 @@ package com.liferay.portal.editor.fckeditor.receiver.impl;
 
 import com.liferay.portal.editor.fckeditor.command.CommandArgument;
 import com.liferay.portal.editor.fckeditor.exception.FCKException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.model.CompanyConstants;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portlet.documentlibrary.NoSuchDirectoryException;
-import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
 import com.liferay.portlet.wiki.model.WikiPage;
 import com.liferay.portlet.wiki.service.WikiPageLocalServiceUtil;
 import com.liferay.portlet.wiki.service.WikiPageServiceUtil;
@@ -80,6 +78,10 @@ public class AttachmentCommandReceiver extends BaseCommandReceiver {
 				nodeId, title, inputStreamOVPs);
 		}
 		catch (Exception e) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(e, e);
+			}
+
 			throw new FCKException(e);
 		}
 
@@ -99,6 +101,10 @@ public class AttachmentCommandReceiver extends BaseCommandReceiver {
 			_getFiles(commandArgument, document, rootNode);
 		}
 		catch (Exception e) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(e, e);
+			}
+
 			throw new FCKException(e);
 		}
 	}
@@ -124,44 +130,24 @@ public class AttachmentCommandReceiver extends BaseCommandReceiver {
 		WikiPage wikiPage = WikiPageLocalServiceUtil.getPage(
 			wikiPageResourcePrimKey);
 
-		long repositoryId = CompanyConstants.SYSTEM;
-
-		String dirName = wikiPage.getAttachmentsDir();
-
-		String[] fileNames = null;
-
-		try {
-			fileNames = DLStoreUtil.getFileNames(
-				wikiPage.getCompanyId(), repositoryId, dirName);
-		}
-		catch (NoSuchDirectoryException nsde) {
-			DLStoreUtil.addDirectory(
-				wikiPage.getCompanyId(), repositoryId, dirName);
-
-			fileNames = DLStoreUtil.getFileNames(
-				wikiPage.getCompanyId(), repositoryId, dirName);
-		}
-
 		String attachmentURLPrefix = ParamUtil.getString(
 			request, "attachmentURLPrefix");
 
-		for (String fileName : fileNames) {
-			byte[] fileEntry = DLStoreUtil.getFileAsBytes(
-				wikiPage.getCompanyId(), repositoryId, fileName);
-
-			String[] parts = StringUtil.split(fileName, StringPool.SLASH);
-
-			fileName = parts[3];
-
+		for (FileEntry fileEntry : wikiPage.getAttachmentsFileEntries()) {
 			Element fileElement = document.createElement("File");
 
 			filesElement.appendChild(fileElement);
 
-			fileElement.setAttribute("name", fileName);
-			fileElement.setAttribute("desc", fileName);
-			fileElement.setAttribute("size", getSize(fileEntry.length));
-			fileElement.setAttribute("url", attachmentURLPrefix + fileName);
+			fileElement.setAttribute("name", fileEntry.getTitle());
+			fileElement.setAttribute("desc", fileEntry.getTitle());
+			fileElement.setAttribute(
+				"size", String.valueOf(fileEntry.getSize()));
+			fileElement.setAttribute(
+				"url", attachmentURLPrefix + fileEntry.getTitle());
 		}
 	}
+
+	private static Log _log = LogFactoryUtil.getLog(
+		AttachmentCommandReceiver.class);
 
 }

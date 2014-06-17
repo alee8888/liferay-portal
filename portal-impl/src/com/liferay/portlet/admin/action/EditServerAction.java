@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,12 +25,13 @@ import com.liferay.portal.kernel.captcha.Captcha;
 import com.liferay.portal.kernel.captcha.CaptchaUtil;
 import com.liferay.portal.kernel.cluster.Address;
 import com.liferay.portal.kernel.cluster.ClusterExecutorUtil;
-import com.liferay.portal.kernel.cluster.ClusterLinkUtil;
+import com.liferay.portal.kernel.cluster.ClusterLink;
 import com.liferay.portal.kernel.cluster.ClusterRequest;
 import com.liferay.portal.kernel.concurrent.ThreadPoolExecutor;
 import com.liferay.portal.kernel.dao.shard.ShardUtil;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.executor.PortalExecutorManagerUtil;
+import com.liferay.portal.kernel.image.GhostscriptUtil;
 import com.liferay.portal.kernel.image.ImageMagickUtil;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncPrintWriter;
@@ -46,9 +47,11 @@ import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.messaging.proxy.MessageValuesThreadLocal;
 import com.liferay.portal.kernel.scripting.ScriptingException;
+import com.liferay.portal.kernel.scripting.ScriptingHelperUtil;
 import com.liferay.portal.kernel.scripting.ScriptingUtil;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
+import com.liferay.portal.kernel.servlet.DirectServletRegistryUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.CharPool;
@@ -57,6 +60,8 @@ import com.liferay.portal.kernel.util.InstancePool;
 import com.liferay.portal.kernel.util.MethodHandler;
 import com.liferay.portal.kernel.util.MethodKey;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.ProgressStatusConstants;
+import com.liferay.portal.kernel.util.ProgressTracker;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -66,13 +71,21 @@ import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.UnsyncPrintWriterPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.webcache.WebCachePoolUtil;
-import com.liferay.portal.kernel.xuggler.XugglerInstallStatus;
 import com.liferay.portal.kernel.xuggler.XugglerUtil;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.search.lucene.LuceneHelperUtil;
 import com.liferay.portal.search.lucene.LuceneIndexer;
 import com.liferay.portal.search.lucene.cluster.LuceneClusterUtil;
 import com.liferay.portal.security.auth.PrincipalException;
+import com.liferay.portal.security.lang.DoPrivilegedBean;
+import com.liferay.portal.security.membershippolicy.OrganizationMembershipPolicy;
+import com.liferay.portal.security.membershippolicy.OrganizationMembershipPolicyFactoryUtil;
+import com.liferay.portal.security.membershippolicy.RoleMembershipPolicy;
+import com.liferay.portal.security.membershippolicy.RoleMembershipPolicyFactoryUtil;
+import com.liferay.portal.security.membershippolicy.SiteMembershipPolicy;
+import com.liferay.portal.security.membershippolicy.SiteMembershipPolicyFactoryUtil;
+import com.liferay.portal.security.membershippolicy.UserGroupMembershipPolicy;
+import com.liferay.portal.security.membershippolicy.UserGroupMembershipPolicyFactoryUtil;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.PortletLocalServiceUtil;
 import com.liferay.portal.service.ServiceComponentLocalServiceUtil;
@@ -81,8 +94,8 @@ import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.upload.UploadServletRequestImpl;
 import com.liferay.portal.util.MaintenanceUtil;
+import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalInstances;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.ShutdownUtil;
@@ -111,9 +124,6 @@ import javax.portlet.PortletSession;
 import javax.portlet.PortletURL;
 import javax.portlet.WindowState;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
 import org.apache.log4j.Level;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
@@ -126,8 +136,9 @@ public class EditServerAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -145,7 +156,7 @@ public class EditServerAction extends PortletAction {
 			return;
 		}
 
-		PortletPreferences preferences = PrefsPropsUtil.getPreferences();
+		PortletPreferences portletPreferences = PrefsPropsUtil.getPreferences();
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
@@ -159,6 +170,9 @@ public class EditServerAction extends PortletAction {
 		}
 		else if (cmd.equals("cacheMulti")) {
 			cacheMulti();
+		}
+		else if (cmd.equals("cacheServlet")) {
+			cacheServlet();
 		}
 		else if (cmd.equals("cacheSingle")) {
 			cacheSingle();
@@ -185,6 +199,9 @@ public class EditServerAction extends PortletAction {
 		else if (cmd.equals("reindex")) {
 			reindex(actionRequest);
 		}
+		else if (cmd.equals("reindexDictionaries")) {
+			reindexDictionaries(actionRequest);
+		}
 		else if (cmd.equals("runScript")) {
 			runScript(portletConfig, actionRequest, actionResponse);
 		}
@@ -195,19 +212,22 @@ public class EditServerAction extends PortletAction {
 			threadDump();
 		}
 		else if (cmd.equals("updateCaptcha")) {
-			updateCaptcha(actionRequest, preferences);
+			updateCaptcha(actionRequest, portletPreferences);
 		}
 		else if (cmd.equals("updateExternalServices")) {
-			updateExternalServices(actionRequest, preferences);
+			updateExternalServices(actionRequest, portletPreferences);
 		}
 		else if (cmd.equals("updateFileUploads")) {
-			updateFileUploads(actionRequest, preferences);
+			updateFileUploads(actionRequest, portletPreferences);
 		}
 		else if (cmd.equals("updateLogLevels")) {
 			updateLogLevels(actionRequest);
 		}
 		else if (cmd.equals("updateMail")) {
-			updateMail(actionRequest, preferences);
+			updateMail(actionRequest, portletPreferences);
+		}
+		else if (cmd.equals("verifyMembershipPolicies")) {
+			verifyMembershipPolicies();
 		}
 		else if (cmd.equals("verifyPluginTables")) {
 			verifyPluginTables();
@@ -229,6 +249,10 @@ public class EditServerAction extends PortletAction {
 
 	protected void cacheMulti() throws Exception {
 		MultiVMPoolUtil.clear();
+	}
+
+	protected void cacheServlet() throws Exception {
+		DirectServletRegistryUtil.clearServlets();
 	}
 
 	protected void cacheSingle() throws Exception {
@@ -279,20 +303,17 @@ public class EditServerAction extends PortletAction {
 		if (path != null) {
 			PortletURL portletURL = actionResponseImpl.createRenderURL();
 
-			portletURL.setWindowState(WindowState.MAXIMIZED);
-
 			portletURL.setParameter("struts_action", path);
+			portletURL.setWindowState(WindowState.MAXIMIZED);
 
 			return portletURL.toString();
 		}
-		else {
-			MaintenanceUtil.maintain(portletSession.getId(), className);
 
-			MessageBusUtil.sendMessage(
-				DestinationNames.CONVERT_PROCESS, className);
+		MaintenanceUtil.maintain(portletSession.getId(), className);
 
-			return null;
-		}
+		MessageBusUtil.sendMessage(DestinationNames.CONVERT_PROCESS, className);
+
+		return null;
 	}
 
 	protected void gc() throws Exception {
@@ -311,20 +332,20 @@ public class EditServerAction extends PortletAction {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		HttpServletRequest request = PortalUtil.getHttpServletRequest(
-			actionRequest);
+		ProgressTracker progressTracker = new ProgressTracker(
+			WebKeys.XUGGLER_INSTALL_STATUS);
 
-		HttpSession session = request.getSession();
+		progressTracker.addProgress(
+			ProgressStatusConstants.DOWNLOADING, 15, "downloading-xuggler");
+		progressTracker.addProgress(
+			ProgressStatusConstants.COPYING, 70, "copying-xuggler-files");
 
-		XugglerInstallStatus xugglerInstallStatus = new XugglerInstallStatus();
-
-		session.setAttribute(
-			WebKeys.XUGGLER_INSTALL_STATUS, xugglerInstallStatus);
+		progressTracker.initialize(actionRequest);
 
 		String jarName = ParamUtil.getString(actionRequest, "jarName");
 
 		try {
-			XugglerUtil.installNativeLibraries(jarName, xugglerInstallStatus);
+			XugglerUtil.installNativeLibraries(jarName, progressTracker);
 
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
@@ -340,9 +361,8 @@ public class EditServerAction extends PortletAction {
 
 			writeJSON(actionRequest, actionResponse, jsonObject);
 		}
-		finally {
-			session.removeAttribute(WebKeys.XUGGLER_INSTALL_STATUS);
-		}
+
+		progressTracker.finish(actionRequest);
 	}
 
 	protected void reindex(ActionRequest actionRequest) throws Exception {
@@ -352,7 +372,7 @@ public class EditServerAction extends PortletAction {
 
 		if (LuceneHelperUtil.isLoadIndexFromClusterEnabled()) {
 			MessageValuesThreadLocal.setValue(
-				ClusterLinkUtil.CLUSTER_FORWARD_MESSAGE, true);
+				ClusterLink.CLUSTER_FORWARD_MESSAGE, true);
 		}
 
 		Set<String> usedSearchEngineIds = new HashSet<String>();
@@ -386,14 +406,24 @@ public class EditServerAction extends PortletAction {
 				return;
 			}
 
+			Set<String> searchEngineIds = new HashSet<String>();
+
+			for (Indexer indexer : indexers) {
+				searchEngineIds.add(indexer.getSearchEngineId());
+			}
+
+			for (String searchEngineId : searchEngineIds) {
+				for (long companyId : companyIds) {
+					SearchEngineUtil.deletePortletDocuments(
+						searchEngineId, companyId, portletId);
+				}
+			}
+
 			for (Indexer indexer : indexers) {
 				for (long companyId : companyIds) {
 					ShardUtil.pushCompanyService(companyId);
 
 					try {
-						SearchEngineUtil.deletePortletDocuments(
-							indexer.getSearchEngineId(), companyId, portletId);
-
 						indexer.reindex(
 							new String[] {String.valueOf(companyId)});
 
@@ -402,36 +432,49 @@ public class EditServerAction extends PortletAction {
 					catch (Exception e) {
 						_log.error(e, e);
 					}
-
-					ShardUtil.popCompanyService();
+					finally {
+						ShardUtil.popCompanyService();
+					}
 				}
 			}
 		}
 
-		if (LuceneHelperUtil.isLoadIndexFromClusterEnabled()) {
-			Set<BaseAsyncDestination> searchWriterDestinations =
-				new HashSet<BaseAsyncDestination>();
+		if (!LuceneHelperUtil.isLoadIndexFromClusterEnabled()) {
+			return;
+		}
 
-			MessageBus messageBus = MessageBusUtil.getMessageBus();
+		Set<BaseAsyncDestination> searchWriterDestinations =
+			new HashSet<BaseAsyncDestination>();
 
-			for (String usedSearchEngineId : usedSearchEngineIds) {
-				String searchWriterDestinationName =
-					SearchEngineUtil.getSearchWriterDestinationName(
-						usedSearchEngineId);
+		MessageBus messageBus = MessageBusUtil.getMessageBus();
 
-				Destination destination = messageBus.getDestination(
-					searchWriterDestinationName);
+		for (String usedSearchEngineId : usedSearchEngineIds) {
+			String searchWriterDestinationName =
+				SearchEngineUtil.getSearchWriterDestinationName(
+					usedSearchEngineId);
 
-				if (destination instanceof BaseAsyncDestination) {
-					BaseAsyncDestination baseAsyncDestination =
-						(BaseAsyncDestination)destination;
+			Destination destination = messageBus.getDestination(
+				searchWriterDestinationName);
 
-					searchWriterDestinations.add(baseAsyncDestination);
-				}
+			if (destination instanceof BaseAsyncDestination) {
+				BaseAsyncDestination baseAsyncDestination =
+					(BaseAsyncDestination)destination;
+
+				searchWriterDestinations.add(baseAsyncDestination);
 			}
+		}
 
-			submitClusterIndexLoadingSyncJob(
-				searchWriterDestinations, companyIds);
+		submitClusterIndexLoadingSyncJob(searchWriterDestinations, companyIds);
+	}
+
+	protected void reindexDictionaries(ActionRequest actionRequest)
+		throws Exception {
+
+		long[] companyIds = PortalInstances.getCompanyIds();
+
+		for (long companyId : companyIds) {
+			SearchEngineUtil.indexQuerySuggestionDictionaries(companyId);
+			SearchEngineUtil.indexSpellCheckerDictionaries(companyId);
 		}
 	}
 
@@ -445,8 +488,9 @@ public class EditServerAction extends PortletAction {
 
 		PortletContext portletContext = portletConfig.getPortletContext();
 
-		Map<String, Object> portletObjects = ScriptingUtil.getPortletObjects(
-			portletConfig, portletContext, actionRequest, actionResponse);
+		Map<String, Object> portletObjects =
+			ScriptingHelperUtil.getPortletObjects(
+				portletConfig, portletContext, actionRequest, actionResponse);
 
 		UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 			new UnsyncByteArrayOutputStream();
@@ -460,12 +504,13 @@ public class EditServerAction extends PortletAction {
 			SessionMessages.add(actionRequest, "language", language);
 			SessionMessages.add(actionRequest, "script", script);
 
-			ScriptingUtil.exec(null, portletObjects, language, script);
+			ScriptingUtil.exec(
+				null, portletObjects, language, script, StringPool.EMPTY_ARRAY);
 
 			unsyncPrintWriter.flush();
 
 			SessionMessages.add(
-				actionRequest, "script_output",
+				actionRequest, "scriptOutput",
 				unsyncByteArrayOutputStream.toString());
 		}
 		catch (ScriptingException se) {
@@ -477,15 +522,21 @@ public class EditServerAction extends PortletAction {
 	}
 
 	protected void shutdown(ActionRequest actionRequest) throws Exception {
-		long minutes =
-			ParamUtil.getInteger(actionRequest, "minutes") * Time.MINUTE;
-		String message = ParamUtil.getString(actionRequest, "message");
-
-		if (minutes <= 0) {
+		if (ShutdownUtil.isInProcess()) {
 			ShutdownUtil.cancel();
 		}
 		else {
-			ShutdownUtil.shutdown(minutes, message);
+			long minutes =
+				ParamUtil.getInteger(actionRequest, "minutes") * Time.MINUTE;
+
+			if (minutes <= 0) {
+				SessionErrors.add(actionRequest, "shutdownMinutes");
+			}
+			else {
+				String message = ParamUtil.getString(actionRequest, "message");
+
+				ShutdownUtil.shutdown(minutes, message);
+			}
 		}
 	}
 
@@ -567,7 +618,7 @@ public class EditServerAction extends PortletAction {
 	}
 
 	protected void updateCaptcha(
-			ActionRequest actionRequest, PortletPreferences preferences)
+			ActionRequest actionRequest, PortletPreferences portletPreferences)
 		throws Exception {
 
 		boolean reCaptchaEnabled = ParamUtil.getBoolean(
@@ -589,25 +640,37 @@ public class EditServerAction extends PortletAction {
 		validateCaptcha(actionRequest);
 
 		if (SessionErrors.isEmpty(actionRequest)) {
-			preferences.setValue(
+			portletPreferences.setValue(
 				PropsKeys.CAPTCHA_ENGINE_IMPL, captcha.getClass().getName());
-			preferences.setValue(
+			portletPreferences.setValue(
 				PropsKeys.CAPTCHA_ENGINE_RECAPTCHA_KEY_PRIVATE,
 				reCaptchaPrivateKey);
-			preferences.setValue(
+			portletPreferences.setValue(
 				PropsKeys.CAPTCHA_ENGINE_RECAPTCHA_KEY_PUBLIC,
 				reCaptchaPublicKey);
 
-			preferences.store();
+			portletPreferences.store();
 
-			CaptchaImpl captchaImpl = (CaptchaImpl)CaptchaUtil.getCaptcha();
+			CaptchaImpl captchaImpl = null;
+
+			Captcha currentCaptcha = CaptchaUtil.getCaptcha();
+
+			if (currentCaptcha instanceof DoPrivilegedBean) {
+				DoPrivilegedBean doPrivilegedBean =
+					(DoPrivilegedBean)currentCaptcha;
+
+				captchaImpl = (CaptchaImpl)doPrivilegedBean.getActualBean();
+			}
+			else {
+				captchaImpl = (CaptchaImpl)currentCaptcha;
+			}
 
 			captchaImpl.setCaptcha(captcha);
 		}
 	}
 
 	protected void updateExternalServices(
-			ActionRequest actionRequest, PortletPreferences preferences)
+			ActionRequest actionRequest, PortletPreferences portletPreferences)
 		throws Exception {
 
 		boolean imageMagickEnabled = ParamUtil.getBoolean(
@@ -621,16 +684,16 @@ public class EditServerAction extends PortletAction {
 		boolean xugglerEnabled = ParamUtil.getBoolean(
 			actionRequest, "xugglerEnabled");
 
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.IMAGEMAGICK_ENABLED, String.valueOf(imageMagickEnabled));
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.IMAGEMAGICK_GLOBAL_SEARCH_PATH, imageMagickPath);
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.OPENOFFICE_SERVER_ENABLED,
 			String.valueOf(openOfficeEnabled));
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.OPENOFFICE_SERVER_PORT, String.valueOf(openOfficePort));
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.XUGGLER_ENABLED, String.valueOf(xugglerEnabled));
 
 		Enumeration<String> enu = actionRequest.getParameterNames();
@@ -639,23 +702,27 @@ public class EditServerAction extends PortletAction {
 			String name = enu.nextElement();
 
 			if (name.startsWith("imageMagickLimit")) {
-				String key = name.substring(16, name.length()).toLowerCase();
+				String key = StringUtil.toLowerCase(
+					name.substring(16, name.length()));
 				String value = ParamUtil.getString(actionRequest, name);
 
-				preferences.setValue(
+				portletPreferences.setValue(
 					PropsKeys.IMAGEMAGICK_RESOURCE_LIMIT + key, value);
 			}
 		}
 
-		preferences.store();
+		portletPreferences.store();
 
+		GhostscriptUtil.reset();
 		ImageMagickUtil.reset();
 	}
 
 	protected void updateFileUploads(
-			ActionRequest actionRequest, PortletPreferences preferences)
+			ActionRequest actionRequest, PortletPreferences portletPreferences)
 		throws Exception {
 
+		long dlFileEntryPreviewableProcessorMaxSize = ParamUtil.getLong(
+			actionRequest, "dlFileEntryPreviewableProcessorMaxSize");
 		long dlFileEntryThumbnailMaxHeight = ParamUtil.getLong(
 			actionRequest, "dlFileEntryThumbnailMaxHeight");
 		long dlFileEntryThumbnailMaxWidth = ParamUtil.getLong(
@@ -688,45 +755,49 @@ public class EditServerAction extends PortletAction {
 		long usersImageMaxSize = ParamUtil.getLong(
 			actionRequest, "usersImageMaxSize");
 
-		preferences.setValue(
+		portletPreferences.setValue(
+			PropsKeys.DL_FILE_ENTRY_PREVIEWABLE_PROCESSOR_MAX_SIZE,
+			String.valueOf(dlFileEntryPreviewableProcessorMaxSize));
+		portletPreferences.setValue(
 			PropsKeys.DL_FILE_ENTRY_THUMBNAIL_MAX_HEIGHT,
 			String.valueOf(dlFileEntryThumbnailMaxHeight));
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.DL_FILE_ENTRY_THUMBNAIL_MAX_WIDTH,
 			String.valueOf(dlFileEntryThumbnailMaxWidth));
-		preferences.setValue(PropsKeys.DL_FILE_EXTENSIONS, dlFileExtensions);
-		preferences.setValue(
+		portletPreferences.setValue(
+			PropsKeys.DL_FILE_EXTENSIONS, dlFileExtensions);
+		portletPreferences.setValue(
 			PropsKeys.DL_FILE_MAX_SIZE, String.valueOf(dlFileMaxSize));
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.JOURNAL_IMAGE_EXTENSIONS, journalImageExtensions);
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.JOURNAL_IMAGE_SMALL_MAX_SIZE,
 			String.valueOf(journalImageSmallMaxSize));
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.SHOPPING_IMAGE_EXTENSIONS, shoppingImageExtensions);
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.SHOPPING_IMAGE_LARGE_MAX_SIZE,
 			String.valueOf(shoppingImageLargeMaxSize));
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.SHOPPING_IMAGE_MEDIUM_MAX_SIZE,
 			String.valueOf(shoppingImageMediumMaxSize));
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.SHOPPING_IMAGE_SMALL_MAX_SIZE,
 			String.valueOf(shoppingImageSmallMaxSize));
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.SC_IMAGE_MAX_SIZE, String.valueOf(scImageMaxSize));
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.SC_IMAGE_THUMBNAIL_MAX_HEIGHT,
 			String.valueOf(scImageThumbnailMaxHeight));
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.SC_IMAGE_THUMBNAIL_MAX_WIDTH,
 			String.valueOf(scImageThumbnailMaxWidth));
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE,
 			String.valueOf(uploadServletRequestImplMaxSize));
 
 		if (Validator.isNotNull(uploadServletRequestImplTempDir)) {
-			preferences.setValue(
+			portletPreferences.setValue(
 				PropsKeys.UPLOAD_SERVLET_REQUEST_IMPL_TEMP_DIR,
 				uploadServletRequestImplTempDir);
 
@@ -734,10 +805,10 @@ public class EditServerAction extends PortletAction {
 				new File(uploadServletRequestImplTempDir));
 		}
 
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.USERS_IMAGE_MAX_SIZE, String.valueOf(usersImageMaxSize));
 
-		preferences.store();
+		portletPreferences.store();
 	}
 
 	protected void updateLogLevels(ActionRequest actionRequest)
@@ -760,7 +831,7 @@ public class EditServerAction extends PortletAction {
 	}
 
 	protected void updateMail(
-			ActionRequest actionRequest, PortletPreferences preferences)
+			ActionRequest actionRequest, PortletPreferences portletPreferences)
 		throws Exception {
 
 		String advancedProperties = ParamUtil.getString(
@@ -790,28 +861,40 @@ public class EditServerAction extends PortletAction {
 			transportProtocol = Account.PROTOCOL_SMTPS;
 		}
 
-		preferences.setValue(PropsKeys.MAIL_SESSION_MAIL, "true");
-		preferences.setValue(
+		portletPreferences.setValue(PropsKeys.MAIL_SESSION_MAIL, "true");
+		portletPreferences.setValue(
 			PropsKeys.MAIL_SESSION_MAIL_ADVANCED_PROPERTIES,
 			advancedProperties);
-		preferences.setValue(PropsKeys.MAIL_SESSION_MAIL_POP3_HOST, pop3Host);
-		preferences.setValue(
-			PropsKeys.MAIL_SESSION_MAIL_POP3_PASSWORD, pop3Password);
-		preferences.setValue(
+		portletPreferences.setValue(
+			PropsKeys.MAIL_SESSION_MAIL_POP3_HOST, pop3Host);
+
+		if (!pop3Password.equals(Portal.TEMP_OBFUSCATION_VALUE)) {
+			portletPreferences.setValue(
+				PropsKeys.MAIL_SESSION_MAIL_POP3_PASSWORD, pop3Password);
+		}
+
+		portletPreferences.setValue(
 			PropsKeys.MAIL_SESSION_MAIL_POP3_PORT, String.valueOf(pop3Port));
-		preferences.setValue(PropsKeys.MAIL_SESSION_MAIL_POP3_USER, pop3User);
-		preferences.setValue(PropsKeys.MAIL_SESSION_MAIL_SMTP_HOST, smtpHost);
-		preferences.setValue(
-			PropsKeys.MAIL_SESSION_MAIL_SMTP_PASSWORD, smtpPassword);
-		preferences.setValue(
+		portletPreferences.setValue(
+			PropsKeys.MAIL_SESSION_MAIL_POP3_USER, pop3User);
+		portletPreferences.setValue(
+			PropsKeys.MAIL_SESSION_MAIL_SMTP_HOST, smtpHost);
+
+		if (!smtpPassword.equals(Portal.TEMP_OBFUSCATION_VALUE)) {
+			portletPreferences.setValue(
+				PropsKeys.MAIL_SESSION_MAIL_SMTP_PASSWORD, smtpPassword);
+		}
+
+		portletPreferences.setValue(
 			PropsKeys.MAIL_SESSION_MAIL_SMTP_PORT, String.valueOf(smtpPort));
-		preferences.setValue(PropsKeys.MAIL_SESSION_MAIL_SMTP_USER, smtpUser);
-		preferences.setValue(
+		portletPreferences.setValue(
+			PropsKeys.MAIL_SESSION_MAIL_SMTP_USER, smtpUser);
+		portletPreferences.setValue(
 			PropsKeys.MAIL_SESSION_MAIL_STORE_PROTOCOL, storeProtocol);
-		preferences.setValue(
+		portletPreferences.setValue(
 			PropsKeys.MAIL_SESSION_MAIL_TRANSPORT_PROTOCOL, transportProtocol);
 
-		preferences.store();
+		portletPreferences.store();
 
 		MailServiceUtil.clearSession();
 	}
@@ -839,6 +922,29 @@ public class EditServerAction extends PortletAction {
 		}
 	}
 
+	protected void verifyMembershipPolicies() throws Exception {
+		OrganizationMembershipPolicy organizationMembershipPolicy =
+			OrganizationMembershipPolicyFactoryUtil.
+				getOrganizationMembershipPolicy();
+
+		organizationMembershipPolicy.verifyPolicy();
+
+		RoleMembershipPolicy roleMembershipPolicy =
+			RoleMembershipPolicyFactoryUtil.getRoleMembershipPolicy();
+
+		roleMembershipPolicy.verifyPolicy();
+
+		SiteMembershipPolicy siteMembershipPolicy =
+			SiteMembershipPolicyFactoryUtil.getSiteMembershipPolicy();
+
+		siteMembershipPolicy.verifyPolicy();
+
+		UserGroupMembershipPolicy userGroupMembershipPolicy =
+			UserGroupMembershipPolicyFactoryUtil.getUserGroupMembershipPolicy();
+
+		userGroupMembershipPolicy.verifyPolicy();
+	}
+
 	protected void verifyPluginTables() throws Exception {
 		ServiceComponentLocalServiceUtil.verifyDB();
 	}
@@ -846,8 +952,8 @@ public class EditServerAction extends PortletAction {
 	private static Log _log = LogFactoryUtil.getLog(EditServerAction.class);
 
 	private static MethodKey _loadIndexesFromClusterMethodKey = new MethodKey(
-		LuceneClusterUtil.class.getName(), "loadIndexesFromCluster",
-		long[].class, Address.class);
+		LuceneClusterUtil.class, "loadIndexesFromCluster", long[].class,
+		Address.class);
 
 	private static class ClusterLoadingSyncJob implements Runnable {
 
@@ -859,6 +965,7 @@ public class EditServerAction extends PortletAction {
 			_master = master;
 		}
 
+		@Override
 		public void run() {
 			_countDownLatch.countDown();
 
@@ -885,19 +992,15 @@ public class EditServerAction extends PortletAction {
 			}
 
 			try {
-				boolean result = _countDownLatch.await(
-					PropsValues.LUCENE_CLUSTER_INDEX_LOADING_SYNC_TIMEOUT,
-					TimeUnit.MILLISECONDS);
+				if (_master) {
+					_countDownLatch.await();
+				}
+				else {
+					boolean result = _countDownLatch.await(
+						PropsValues.LUCENE_CLUSTER_INDEX_LOADING_SYNC_TIMEOUT,
+						TimeUnit.MILLISECONDS);
 
-				if (!result) {
-					if (_master) {
-						_log.error(
-							logPrefix + " timed out. Skip cluster index " +
-								"loading notification.");
-
-						return;
-					}
-					else {
+					if (!result) {
 						_log.error(
 							logPrefix + " timed out. You may need to " +
 								"re-trigger a reindex process.");

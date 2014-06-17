@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,9 +14,10 @@
 
 package com.liferay.portal.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 import com.liferay.portal.model.PasswordPolicy;
@@ -36,6 +37,7 @@ import java.util.List;
  * @see PasswordPolicyPersistenceImpl
  * @generated
  */
+@ProviderType
 public class PasswordPolicyUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -60,8 +62,7 @@ public class PasswordPolicyUtil {
 	/**
 	 * @see com.liferay.portal.service.persistence.BasePersistence#countWithDynamicQuery(DynamicQuery)
 	 */
-	public long countWithDynamicQuery(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public static long countWithDynamicQuery(DynamicQuery dynamicQuery) {
 		return getPersistence().countWithDynamicQuery(dynamicQuery);
 	}
 
@@ -69,7 +70,7 @@ public class PasswordPolicyUtil {
 	 * @see com.liferay.portal.service.persistence.BasePersistence#findWithDynamicQuery(DynamicQuery)
 	 */
 	public static List<PasswordPolicy> findWithDynamicQuery(
-		DynamicQuery dynamicQuery) throws SystemException {
+		DynamicQuery dynamicQuery) {
 		return getPersistence().findWithDynamicQuery(dynamicQuery);
 	}
 
@@ -77,8 +78,7 @@ public class PasswordPolicyUtil {
 	 * @see com.liferay.portal.service.persistence.BasePersistence#findWithDynamicQuery(DynamicQuery, int, int)
 	 */
 	public static List<PasswordPolicy> findWithDynamicQuery(
-		DynamicQuery dynamicQuery, int start, int end)
-		throws SystemException {
+		DynamicQuery dynamicQuery, int start, int end) {
 		return getPersistence().findWithDynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -87,26 +87,827 @@ public class PasswordPolicyUtil {
 	 */
 	public static List<PasswordPolicy> findWithDynamicQuery(
 		DynamicQuery dynamicQuery, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator orderByComparator) {
 		return getPersistence()
 				   .findWithDynamicQuery(dynamicQuery, start, end,
 			orderByComparator);
 	}
 
 	/**
-	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel, boolean)
+	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel)
 	 */
-	public static PasswordPolicy update(PasswordPolicy passwordPolicy,
-		boolean merge) throws SystemException {
-		return getPersistence().update(passwordPolicy, merge);
+	public static PasswordPolicy update(PasswordPolicy passwordPolicy) {
+		return getPersistence().update(passwordPolicy);
 	}
 
 	/**
-	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel, boolean, ServiceContext)
+	 * @see com.liferay.portal.service.persistence.BasePersistence#update(com.liferay.portal.model.BaseModel, ServiceContext)
 	 */
 	public static PasswordPolicy update(PasswordPolicy passwordPolicy,
-		boolean merge, ServiceContext serviceContext) throws SystemException {
-		return getPersistence().update(passwordPolicy, merge, serviceContext);
+		ServiceContext serviceContext) {
+		return getPersistence().update(passwordPolicy, serviceContext);
+	}
+
+	/**
+	* Returns all the password policies where uuid = &#63;.
+	*
+	* @param uuid the uuid
+	* @return the matching password policies
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> findByUuid(
+		java.lang.String uuid) {
+		return getPersistence().findByUuid(uuid);
+	}
+
+	/**
+	* Returns a range of all the password policies where uuid = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param uuid the uuid
+	* @param start the lower bound of the range of password policies
+	* @param end the upper bound of the range of password policies (not inclusive)
+	* @return the range of matching password policies
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> findByUuid(
+		java.lang.String uuid, int start, int end) {
+		return getPersistence().findByUuid(uuid, start, end);
+	}
+
+	/**
+	* Returns an ordered range of all the password policies where uuid = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param uuid the uuid
+	* @param start the lower bound of the range of password policies
+	* @param end the upper bound of the range of password policies (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the ordered range of matching password policies
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> findByUuid(
+		java.lang.String uuid, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		return getPersistence().findByUuid(uuid, start, end, orderByComparator);
+	}
+
+	/**
+	* Returns the first password policy in the ordered set where uuid = &#63;.
+	*
+	* @param uuid the uuid
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the first matching password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy findByUuid_First(
+		java.lang.String uuid,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence().findByUuid_First(uuid, orderByComparator);
+	}
+
+	/**
+	* Returns the first password policy in the ordered set where uuid = &#63;.
+	*
+	* @param uuid the uuid
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the first matching password policy, or <code>null</code> if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy fetchByUuid_First(
+		java.lang.String uuid,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		return getPersistence().fetchByUuid_First(uuid, orderByComparator);
+	}
+
+	/**
+	* Returns the last password policy in the ordered set where uuid = &#63;.
+	*
+	* @param uuid the uuid
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the last matching password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy findByUuid_Last(
+		java.lang.String uuid,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence().findByUuid_Last(uuid, orderByComparator);
+	}
+
+	/**
+	* Returns the last password policy in the ordered set where uuid = &#63;.
+	*
+	* @param uuid the uuid
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the last matching password policy, or <code>null</code> if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy fetchByUuid_Last(
+		java.lang.String uuid,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		return getPersistence().fetchByUuid_Last(uuid, orderByComparator);
+	}
+
+	/**
+	* Returns the password policies before and after the current password policy in the ordered set where uuid = &#63;.
+	*
+	* @param passwordPolicyId the primary key of the current password policy
+	* @param uuid the uuid
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the previous, current, and next password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a password policy with the primary key could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy[] findByUuid_PrevAndNext(
+		long passwordPolicyId, java.lang.String uuid,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence()
+				   .findByUuid_PrevAndNext(passwordPolicyId, uuid,
+			orderByComparator);
+	}
+
+	/**
+	* Returns all the password policies that the user has permission to view where uuid = &#63;.
+	*
+	* @param uuid the uuid
+	* @return the matching password policies that the user has permission to view
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> filterFindByUuid(
+		java.lang.String uuid) {
+		return getPersistence().filterFindByUuid(uuid);
+	}
+
+	/**
+	* Returns a range of all the password policies that the user has permission to view where uuid = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param uuid the uuid
+	* @param start the lower bound of the range of password policies
+	* @param end the upper bound of the range of password policies (not inclusive)
+	* @return the range of matching password policies that the user has permission to view
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> filterFindByUuid(
+		java.lang.String uuid, int start, int end) {
+		return getPersistence().filterFindByUuid(uuid, start, end);
+	}
+
+	/**
+	* Returns an ordered range of all the password policies that the user has permissions to view where uuid = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param uuid the uuid
+	* @param start the lower bound of the range of password policies
+	* @param end the upper bound of the range of password policies (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the ordered range of matching password policies that the user has permission to view
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> filterFindByUuid(
+		java.lang.String uuid, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		return getPersistence()
+				   .filterFindByUuid(uuid, start, end, orderByComparator);
+	}
+
+	/**
+	* Returns the password policies before and after the current password policy in the ordered set of password policies that the user has permission to view where uuid = &#63;.
+	*
+	* @param passwordPolicyId the primary key of the current password policy
+	* @param uuid the uuid
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the previous, current, and next password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a password policy with the primary key could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy[] filterFindByUuid_PrevAndNext(
+		long passwordPolicyId, java.lang.String uuid,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence()
+				   .filterFindByUuid_PrevAndNext(passwordPolicyId, uuid,
+			orderByComparator);
+	}
+
+	/**
+	* Removes all the password policies where uuid = &#63; from the database.
+	*
+	* @param uuid the uuid
+	*/
+	public static void removeByUuid(java.lang.String uuid) {
+		getPersistence().removeByUuid(uuid);
+	}
+
+	/**
+	* Returns the number of password policies where uuid = &#63;.
+	*
+	* @param uuid the uuid
+	* @return the number of matching password policies
+	*/
+	public static int countByUuid(java.lang.String uuid) {
+		return getPersistence().countByUuid(uuid);
+	}
+
+	/**
+	* Returns the number of password policies that the user has permission to view where uuid = &#63;.
+	*
+	* @param uuid the uuid
+	* @return the number of matching password policies that the user has permission to view
+	*/
+	public static int filterCountByUuid(java.lang.String uuid) {
+		return getPersistence().filterCountByUuid(uuid);
+	}
+
+	/**
+	* Returns all the password policies where uuid = &#63; and companyId = &#63;.
+	*
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @return the matching password policies
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> findByUuid_C(
+		java.lang.String uuid, long companyId) {
+		return getPersistence().findByUuid_C(uuid, companyId);
+	}
+
+	/**
+	* Returns a range of all the password policies where uuid = &#63; and companyId = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @param start the lower bound of the range of password policies
+	* @param end the upper bound of the range of password policies (not inclusive)
+	* @return the range of matching password policies
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> findByUuid_C(
+		java.lang.String uuid, long companyId, int start, int end) {
+		return getPersistence().findByUuid_C(uuid, companyId, start, end);
+	}
+
+	/**
+	* Returns an ordered range of all the password policies where uuid = &#63; and companyId = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @param start the lower bound of the range of password policies
+	* @param end the upper bound of the range of password policies (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the ordered range of matching password policies
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> findByUuid_C(
+		java.lang.String uuid, long companyId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		return getPersistence()
+				   .findByUuid_C(uuid, companyId, start, end, orderByComparator);
+	}
+
+	/**
+	* Returns the first password policy in the ordered set where uuid = &#63; and companyId = &#63;.
+	*
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the first matching password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy findByUuid_C_First(
+		java.lang.String uuid, long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence()
+				   .findByUuid_C_First(uuid, companyId, orderByComparator);
+	}
+
+	/**
+	* Returns the first password policy in the ordered set where uuid = &#63; and companyId = &#63;.
+	*
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the first matching password policy, or <code>null</code> if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy fetchByUuid_C_First(
+		java.lang.String uuid, long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		return getPersistence()
+				   .fetchByUuid_C_First(uuid, companyId, orderByComparator);
+	}
+
+	/**
+	* Returns the last password policy in the ordered set where uuid = &#63; and companyId = &#63;.
+	*
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the last matching password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy findByUuid_C_Last(
+		java.lang.String uuid, long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence()
+				   .findByUuid_C_Last(uuid, companyId, orderByComparator);
+	}
+
+	/**
+	* Returns the last password policy in the ordered set where uuid = &#63; and companyId = &#63;.
+	*
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the last matching password policy, or <code>null</code> if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy fetchByUuid_C_Last(
+		java.lang.String uuid, long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		return getPersistence()
+				   .fetchByUuid_C_Last(uuid, companyId, orderByComparator);
+	}
+
+	/**
+	* Returns the password policies before and after the current password policy in the ordered set where uuid = &#63; and companyId = &#63;.
+	*
+	* @param passwordPolicyId the primary key of the current password policy
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the previous, current, and next password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a password policy with the primary key could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy[] findByUuid_C_PrevAndNext(
+		long passwordPolicyId, java.lang.String uuid, long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence()
+				   .findByUuid_C_PrevAndNext(passwordPolicyId, uuid, companyId,
+			orderByComparator);
+	}
+
+	/**
+	* Returns all the password policies that the user has permission to view where uuid = &#63; and companyId = &#63;.
+	*
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @return the matching password policies that the user has permission to view
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> filterFindByUuid_C(
+		java.lang.String uuid, long companyId) {
+		return getPersistence().filterFindByUuid_C(uuid, companyId);
+	}
+
+	/**
+	* Returns a range of all the password policies that the user has permission to view where uuid = &#63; and companyId = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @param start the lower bound of the range of password policies
+	* @param end the upper bound of the range of password policies (not inclusive)
+	* @return the range of matching password policies that the user has permission to view
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> filterFindByUuid_C(
+		java.lang.String uuid, long companyId, int start, int end) {
+		return getPersistence().filterFindByUuid_C(uuid, companyId, start, end);
+	}
+
+	/**
+	* Returns an ordered range of all the password policies that the user has permissions to view where uuid = &#63; and companyId = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @param start the lower bound of the range of password policies
+	* @param end the upper bound of the range of password policies (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the ordered range of matching password policies that the user has permission to view
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> filterFindByUuid_C(
+		java.lang.String uuid, long companyId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		return getPersistence()
+				   .filterFindByUuid_C(uuid, companyId, start, end,
+			orderByComparator);
+	}
+
+	/**
+	* Returns the password policies before and after the current password policy in the ordered set of password policies that the user has permission to view where uuid = &#63; and companyId = &#63;.
+	*
+	* @param passwordPolicyId the primary key of the current password policy
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the previous, current, and next password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a password policy with the primary key could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy[] filterFindByUuid_C_PrevAndNext(
+		long passwordPolicyId, java.lang.String uuid, long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence()
+				   .filterFindByUuid_C_PrevAndNext(passwordPolicyId, uuid,
+			companyId, orderByComparator);
+	}
+
+	/**
+	* Removes all the password policies where uuid = &#63; and companyId = &#63; from the database.
+	*
+	* @param uuid the uuid
+	* @param companyId the company ID
+	*/
+	public static void removeByUuid_C(java.lang.String uuid, long companyId) {
+		getPersistence().removeByUuid_C(uuid, companyId);
+	}
+
+	/**
+	* Returns the number of password policies where uuid = &#63; and companyId = &#63;.
+	*
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @return the number of matching password policies
+	*/
+	public static int countByUuid_C(java.lang.String uuid, long companyId) {
+		return getPersistence().countByUuid_C(uuid, companyId);
+	}
+
+	/**
+	* Returns the number of password policies that the user has permission to view where uuid = &#63; and companyId = &#63;.
+	*
+	* @param uuid the uuid
+	* @param companyId the company ID
+	* @return the number of matching password policies that the user has permission to view
+	*/
+	public static int filterCountByUuid_C(java.lang.String uuid, long companyId) {
+		return getPersistence().filterCountByUuid_C(uuid, companyId);
+	}
+
+	/**
+	* Returns all the password policies where companyId = &#63;.
+	*
+	* @param companyId the company ID
+	* @return the matching password policies
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> findByCompanyId(
+		long companyId) {
+		return getPersistence().findByCompanyId(companyId);
+	}
+
+	/**
+	* Returns a range of all the password policies where companyId = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param companyId the company ID
+	* @param start the lower bound of the range of password policies
+	* @param end the upper bound of the range of password policies (not inclusive)
+	* @return the range of matching password policies
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> findByCompanyId(
+		long companyId, int start, int end) {
+		return getPersistence().findByCompanyId(companyId, start, end);
+	}
+
+	/**
+	* Returns an ordered range of all the password policies where companyId = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param companyId the company ID
+	* @param start the lower bound of the range of password policies
+	* @param end the upper bound of the range of password policies (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the ordered range of matching password policies
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> findByCompanyId(
+		long companyId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		return getPersistence()
+				   .findByCompanyId(companyId, start, end, orderByComparator);
+	}
+
+	/**
+	* Returns the first password policy in the ordered set where companyId = &#63;.
+	*
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the first matching password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy findByCompanyId_First(
+		long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence()
+				   .findByCompanyId_First(companyId, orderByComparator);
+	}
+
+	/**
+	* Returns the first password policy in the ordered set where companyId = &#63;.
+	*
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the first matching password policy, or <code>null</code> if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy fetchByCompanyId_First(
+		long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		return getPersistence()
+				   .fetchByCompanyId_First(companyId, orderByComparator);
+	}
+
+	/**
+	* Returns the last password policy in the ordered set where companyId = &#63;.
+	*
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the last matching password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy findByCompanyId_Last(
+		long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence()
+				   .findByCompanyId_Last(companyId, orderByComparator);
+	}
+
+	/**
+	* Returns the last password policy in the ordered set where companyId = &#63;.
+	*
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the last matching password policy, or <code>null</code> if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy fetchByCompanyId_Last(
+		long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		return getPersistence()
+				   .fetchByCompanyId_Last(companyId, orderByComparator);
+	}
+
+	/**
+	* Returns the password policies before and after the current password policy in the ordered set where companyId = &#63;.
+	*
+	* @param passwordPolicyId the primary key of the current password policy
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the previous, current, and next password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a password policy with the primary key could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy[] findByCompanyId_PrevAndNext(
+		long passwordPolicyId, long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence()
+				   .findByCompanyId_PrevAndNext(passwordPolicyId, companyId,
+			orderByComparator);
+	}
+
+	/**
+	* Returns all the password policies that the user has permission to view where companyId = &#63;.
+	*
+	* @param companyId the company ID
+	* @return the matching password policies that the user has permission to view
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> filterFindByCompanyId(
+		long companyId) {
+		return getPersistence().filterFindByCompanyId(companyId);
+	}
+
+	/**
+	* Returns a range of all the password policies that the user has permission to view where companyId = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param companyId the company ID
+	* @param start the lower bound of the range of password policies
+	* @param end the upper bound of the range of password policies (not inclusive)
+	* @return the range of matching password policies that the user has permission to view
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> filterFindByCompanyId(
+		long companyId, int start, int end) {
+		return getPersistence().filterFindByCompanyId(companyId, start, end);
+	}
+
+	/**
+	* Returns an ordered range of all the password policies that the user has permissions to view where companyId = &#63;.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	* </p>
+	*
+	* @param companyId the company ID
+	* @param start the lower bound of the range of password policies
+	* @param end the upper bound of the range of password policies (not inclusive)
+	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	* @return the ordered range of matching password policies that the user has permission to view
+	*/
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> filterFindByCompanyId(
+		long companyId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
+		return getPersistence()
+				   .filterFindByCompanyId(companyId, start, end,
+			orderByComparator);
+	}
+
+	/**
+	* Returns the password policies before and after the current password policy in the ordered set of password policies that the user has permission to view where companyId = &#63;.
+	*
+	* @param passwordPolicyId the primary key of the current password policy
+	* @param companyId the company ID
+	* @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	* @return the previous, current, and next password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a password policy with the primary key could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy[] filterFindByCompanyId_PrevAndNext(
+		long passwordPolicyId, long companyId,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence()
+				   .filterFindByCompanyId_PrevAndNext(passwordPolicyId,
+			companyId, orderByComparator);
+	}
+
+	/**
+	* Removes all the password policies where companyId = &#63; from the database.
+	*
+	* @param companyId the company ID
+	*/
+	public static void removeByCompanyId(long companyId) {
+		getPersistence().removeByCompanyId(companyId);
+	}
+
+	/**
+	* Returns the number of password policies where companyId = &#63;.
+	*
+	* @param companyId the company ID
+	* @return the number of matching password policies
+	*/
+	public static int countByCompanyId(long companyId) {
+		return getPersistence().countByCompanyId(companyId);
+	}
+
+	/**
+	* Returns the number of password policies that the user has permission to view where companyId = &#63;.
+	*
+	* @param companyId the company ID
+	* @return the number of matching password policies that the user has permission to view
+	*/
+	public static int filterCountByCompanyId(long companyId) {
+		return getPersistence().filterCountByCompanyId(companyId);
+	}
+
+	/**
+	* Returns the password policy where companyId = &#63; and defaultPolicy = &#63; or throws a {@link com.liferay.portal.NoSuchPasswordPolicyException} if it could not be found.
+	*
+	* @param companyId the company ID
+	* @param defaultPolicy the default policy
+	* @return the matching password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy findByC_DP(
+		long companyId, boolean defaultPolicy)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence().findByC_DP(companyId, defaultPolicy);
+	}
+
+	/**
+	* Returns the password policy where companyId = &#63; and defaultPolicy = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	*
+	* @param companyId the company ID
+	* @param defaultPolicy the default policy
+	* @return the matching password policy, or <code>null</code> if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy fetchByC_DP(
+		long companyId, boolean defaultPolicy) {
+		return getPersistence().fetchByC_DP(companyId, defaultPolicy);
+	}
+
+	/**
+	* Returns the password policy where companyId = &#63; and defaultPolicy = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	*
+	* @param companyId the company ID
+	* @param defaultPolicy the default policy
+	* @param retrieveFromCache whether to use the finder cache
+	* @return the matching password policy, or <code>null</code> if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy fetchByC_DP(
+		long companyId, boolean defaultPolicy, boolean retrieveFromCache) {
+		return getPersistence()
+				   .fetchByC_DP(companyId, defaultPolicy, retrieveFromCache);
+	}
+
+	/**
+	* Removes the password policy where companyId = &#63; and defaultPolicy = &#63; from the database.
+	*
+	* @param companyId the company ID
+	* @param defaultPolicy the default policy
+	* @return the password policy that was removed
+	*/
+	public static com.liferay.portal.model.PasswordPolicy removeByC_DP(
+		long companyId, boolean defaultPolicy)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence().removeByC_DP(companyId, defaultPolicy);
+	}
+
+	/**
+	* Returns the number of password policies where companyId = &#63; and defaultPolicy = &#63;.
+	*
+	* @param companyId the company ID
+	* @param defaultPolicy the default policy
+	* @return the number of matching password policies
+	*/
+	public static int countByC_DP(long companyId, boolean defaultPolicy) {
+		return getPersistence().countByC_DP(companyId, defaultPolicy);
+	}
+
+	/**
+	* Returns the password policy where companyId = &#63; and name = &#63; or throws a {@link com.liferay.portal.NoSuchPasswordPolicyException} if it could not be found.
+	*
+	* @param companyId the company ID
+	* @param name the name
+	* @return the matching password policy
+	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy findByC_N(
+		long companyId, java.lang.String name)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence().findByC_N(companyId, name);
+	}
+
+	/**
+	* Returns the password policy where companyId = &#63; and name = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	*
+	* @param companyId the company ID
+	* @param name the name
+	* @return the matching password policy, or <code>null</code> if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy fetchByC_N(
+		long companyId, java.lang.String name) {
+		return getPersistence().fetchByC_N(companyId, name);
+	}
+
+	/**
+	* Returns the password policy where companyId = &#63; and name = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	*
+	* @param companyId the company ID
+	* @param name the name
+	* @param retrieveFromCache whether to use the finder cache
+	* @return the matching password policy, or <code>null</code> if a matching password policy could not be found
+	*/
+	public static com.liferay.portal.model.PasswordPolicy fetchByC_N(
+		long companyId, java.lang.String name, boolean retrieveFromCache) {
+		return getPersistence().fetchByC_N(companyId, name, retrieveFromCache);
+	}
+
+	/**
+	* Removes the password policy where companyId = &#63; and name = &#63; from the database.
+	*
+	* @param companyId the company ID
+	* @param name the name
+	* @return the password policy that was removed
+	*/
+	public static com.liferay.portal.model.PasswordPolicy removeByC_N(
+		long companyId, java.lang.String name)
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
+		return getPersistence().removeByC_N(companyId, name);
+	}
+
+	/**
+	* Returns the number of password policies where companyId = &#63; and name = &#63;.
+	*
+	* @param companyId the company ID
+	* @param name the name
+	* @return the number of matching password policies
+	*/
+	public static int countByC_N(long companyId, java.lang.String name) {
+		return getPersistence().countByC_N(companyId, name);
 	}
 
 	/**
@@ -146,19 +947,16 @@ public class PasswordPolicyUtil {
 	* @param passwordPolicyId the primary key of the password policy
 	* @return the password policy that was removed
 	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a password policy with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.PasswordPolicy remove(
 		long passwordPolicyId)
-		throws com.liferay.portal.NoSuchPasswordPolicyException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
 		return getPersistence().remove(passwordPolicyId);
 	}
 
 	public static com.liferay.portal.model.PasswordPolicy updateImpl(
-		com.liferay.portal.model.PasswordPolicy passwordPolicy, boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().updateImpl(passwordPolicy, merge);
+		com.liferay.portal.model.PasswordPolicy passwordPolicy) {
+		return getPersistence().updateImpl(passwordPolicy);
 	}
 
 	/**
@@ -167,12 +965,10 @@ public class PasswordPolicyUtil {
 	* @param passwordPolicyId the primary key of the password policy
 	* @return the password policy
 	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a password policy with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.PasswordPolicy findByPrimaryKey(
 		long passwordPolicyId)
-		throws com.liferay.portal.NoSuchPasswordPolicyException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.NoSuchPasswordPolicyException {
 		return getPersistence().findByPrimaryKey(passwordPolicyId);
 	}
 
@@ -181,113 +977,23 @@ public class PasswordPolicyUtil {
 	*
 	* @param passwordPolicyId the primary key of the password policy
 	* @return the password policy, or <code>null</code> if a password policy with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.PasswordPolicy fetchByPrimaryKey(
-		long passwordPolicyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long passwordPolicyId) {
 		return getPersistence().fetchByPrimaryKey(passwordPolicyId);
 	}
 
-	/**
-	* Returns the password policy where companyId = &#63; and defaultPolicy = &#63; or throws a {@link com.liferay.portal.NoSuchPasswordPolicyException} if it could not be found.
-	*
-	* @param companyId the company ID
-	* @param defaultPolicy the default policy
-	* @return the matching password policy
-	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a matching password policy could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy findByC_DP(
-		long companyId, boolean defaultPolicy)
-		throws com.liferay.portal.NoSuchPasswordPolicyException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().findByC_DP(companyId, defaultPolicy);
-	}
-
-	/**
-	* Returns the password policy where companyId = &#63; and defaultPolicy = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
-	*
-	* @param companyId the company ID
-	* @param defaultPolicy the default policy
-	* @return the matching password policy, or <code>null</code> if a matching password policy could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy fetchByC_DP(
-		long companyId, boolean defaultPolicy)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().fetchByC_DP(companyId, defaultPolicy);
-	}
-
-	/**
-	* Returns the password policy where companyId = &#63; and defaultPolicy = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
-	*
-	* @param companyId the company ID
-	* @param defaultPolicy the default policy
-	* @param retrieveFromCache whether to use the finder cache
-	* @return the matching password policy, or <code>null</code> if a matching password policy could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy fetchByC_DP(
-		long companyId, boolean defaultPolicy, boolean retrieveFromCache)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence()
-				   .fetchByC_DP(companyId, defaultPolicy, retrieveFromCache);
-	}
-
-	/**
-	* Returns the password policy where companyId = &#63; and name = &#63; or throws a {@link com.liferay.portal.NoSuchPasswordPolicyException} if it could not be found.
-	*
-	* @param companyId the company ID
-	* @param name the name
-	* @return the matching password policy
-	* @throws com.liferay.portal.NoSuchPasswordPolicyException if a matching password policy could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy findByC_N(
-		long companyId, java.lang.String name)
-		throws com.liferay.portal.NoSuchPasswordPolicyException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().findByC_N(companyId, name);
-	}
-
-	/**
-	* Returns the password policy where companyId = &#63; and name = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
-	*
-	* @param companyId the company ID
-	* @param name the name
-	* @return the matching password policy, or <code>null</code> if a matching password policy could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy fetchByC_N(
-		long companyId, java.lang.String name)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().fetchByC_N(companyId, name);
-	}
-
-	/**
-	* Returns the password policy where companyId = &#63; and name = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
-	*
-	* @param companyId the company ID
-	* @param name the name
-	* @param retrieveFromCache whether to use the finder cache
-	* @return the matching password policy, or <code>null</code> if a matching password policy could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy fetchByC_N(
-		long companyId, java.lang.String name, boolean retrieveFromCache)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().fetchByC_N(companyId, name, retrieveFromCache);
+	public static java.util.Map<java.io.Serializable, com.liferay.portal.model.PasswordPolicy> fetchByPrimaryKeys(
+		java.util.Set<java.io.Serializable> primaryKeys) {
+		return getPersistence().fetchByPrimaryKeys(primaryKeys);
 	}
 
 	/**
 	* Returns all the password policies.
 	*
 	* @return the password policies
-	* @throws SystemException if a system exception occurred
 	*/
-	public static java.util.List<com.liferay.portal.model.PasswordPolicy> findAll()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static java.util.List<com.liferay.portal.model.PasswordPolicy> findAll() {
 		return getPersistence().findAll();
 	}
 
@@ -295,17 +1001,15 @@ public class PasswordPolicyUtil {
 	* Returns a range of all the password policies.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of password policies
 	* @param end the upper bound of the range of password policies (not inclusive)
 	* @return the range of password policies
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.PasswordPolicy> findAll(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int start, int end) {
 		return getPersistence().findAll(start, end);
 	}
 
@@ -313,96 +1017,33 @@ public class PasswordPolicyUtil {
 	* Returns an ordered range of all the password policies.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portal.model.impl.PasswordPolicyModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of password policies
 	* @param end the upper bound of the range of password policies (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of password policies
-	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portal.model.PasswordPolicy> findAll(
 		int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
 		return getPersistence().findAll(start, end, orderByComparator);
 	}
 
 	/**
-	* Removes the password policy where companyId = &#63; and defaultPolicy = &#63; from the database.
-	*
-	* @param companyId the company ID
-	* @param defaultPolicy the default policy
-	* @return the password policy that was removed
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy removeByC_DP(
-		long companyId, boolean defaultPolicy)
-		throws com.liferay.portal.NoSuchPasswordPolicyException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().removeByC_DP(companyId, defaultPolicy);
-	}
-
-	/**
-	* Removes the password policy where companyId = &#63; and name = &#63; from the database.
-	*
-	* @param companyId the company ID
-	* @param name the name
-	* @return the password policy that was removed
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portal.model.PasswordPolicy removeByC_N(
-		long companyId, java.lang.String name)
-		throws com.liferay.portal.NoSuchPasswordPolicyException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().removeByC_N(companyId, name);
-	}
-
-	/**
 	* Removes all the password policies from the database.
-	*
-	* @throws SystemException if a system exception occurred
 	*/
-	public static void removeAll()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static void removeAll() {
 		getPersistence().removeAll();
-	}
-
-	/**
-	* Returns the number of password policies where companyId = &#63; and defaultPolicy = &#63;.
-	*
-	* @param companyId the company ID
-	* @param defaultPolicy the default policy
-	* @return the number of matching password policies
-	* @throws SystemException if a system exception occurred
-	*/
-	public static int countByC_DP(long companyId, boolean defaultPolicy)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().countByC_DP(companyId, defaultPolicy);
-	}
-
-	/**
-	* Returns the number of password policies where companyId = &#63; and name = &#63;.
-	*
-	* @param companyId the company ID
-	* @param name the name
-	* @return the number of matching password policies
-	* @throws SystemException if a system exception occurred
-	*/
-	public static int countByC_N(long companyId, java.lang.String name)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getPersistence().countByC_N(companyId, name);
 	}
 
 	/**
 	* Returns the number of password policies.
 	*
 	* @return the number of password policies
-	* @throws SystemException if a system exception occurred
 	*/
-	public static int countAll()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countAll() {
 		return getPersistence().countAll();
 	}
 
@@ -418,8 +1059,9 @@ public class PasswordPolicyUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setPersistence(PasswordPolicyPersistence persistence) {
 	}
 

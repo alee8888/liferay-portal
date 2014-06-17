@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portal.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.service.base.ResourcePermissionServiceBaseImpl;
@@ -23,8 +22,8 @@ import com.liferay.portal.service.base.ResourcePermissionServiceBaseImpl;
 import java.util.Map;
 
 /**
- * Manages the creation and upkeep of resource permissions, and provides methods
- * for granting, revoking, and checking permissions.
+ * Provides the remote service for adding, granting, and revoking resource
+ * permissions. Its methods include permission checks.
  *
  * <p>
  * Before attempting to read any of the documentation for this class, first read
@@ -76,12 +75,12 @@ public class ResourcePermissionServiceImpl
 	 *         resource permissions, or if scope was set to individual scope or
 	 *         if a role with the primary key or a resource action with the name
 	 *         and action ID could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public void addResourcePermission(
 			long groupId, long companyId, String name, int scope,
 			String primKey, long roleId, String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		permissionService.checkPermission(
 			groupId, Role.class.getName(), roleId);
@@ -112,12 +111,12 @@ public class ResourcePermissionServiceImpl
 	 * @throws PortalException if the user did not have permission to remove
 	 *         resource permissions, or if a role with the primary key or a
 	 *         resource action with the name and action ID could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public void removeResourcePermission(
 			long groupId, long companyId, String name, int scope,
 			String primKey, long roleId, String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		permissionService.checkPermission(
 			groupId, Role.class.getName(), roleId);
@@ -142,12 +141,12 @@ public class ResourcePermissionServiceImpl
 	 * @throws PortalException if the user did not have permission to remove
 	 *         resource permissions, or if a role with the primary key or a
 	 *         resource action with the name and action ID could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public void removeResourcePermissions(
 			long groupId, long companyId, String name, int scope, long roleId,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		permissionService.checkPermission(
 			groupId, Role.class.getName(), roleId);
@@ -182,12 +181,12 @@ public class ResourcePermissionServiceImpl
 	 * @throws PortalException if the user did not have permission to set
 	 *         resource permissions, or if a role with the primary key or a
 	 *         resource action with the name and action ID could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public void setIndividualResourcePermissions(
 			long groupId, long companyId, String name, String primKey,
 			long roleId, String[] actionIds)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		permissionService.checkPermission(groupId, name, primKey);
 
@@ -221,12 +220,12 @@ public class ResourcePermissionServiceImpl
 	 * @throws PortalException if the user did not have permission to set
 	 *         resource permissions, or if a role with the primary key or a
 	 *         resource action with the name and action ID could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public void setIndividualResourcePermissions(
 			long groupId, long companyId, String name, String primKey,
 			Map<Long, String[]> roleIdsToActionIds)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		permissionService.checkPermission(groupId, name, primKey);
 

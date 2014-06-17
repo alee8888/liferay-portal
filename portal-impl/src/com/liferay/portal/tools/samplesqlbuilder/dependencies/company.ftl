@@ -1,30 +1,13 @@
-<#setting number_format = "0">
+<#assign companyModel = dataFactory.companyModel>
 
-insert into Company (companyId, accountId, webId, mx, active_) values (${companyId}, ${dataFactory.company.accountId}, 'liferay.com', 'liferay.com', TRUE);
+insert into Company values (${companyModel.mvccVersion}, ${companyModel.companyId}, ${companyModel.accountId}, '${companyModel.webId}', '${companyModel.key}', '${companyModel.mx}', '${companyModel.homeURL}', ${companyModel.logoId}, ${companyModel.system?string}, ${companyModel.maxUsers}, ${companyModel.active?string});
 
-${writerCompanyCSV.write(companyId + "\n")}
+<#assign accountModel = dataFactory.accountModel>
 
-insert into Account_ (accountId, companyId, userId, userName, createDate, modifiedDate, parentAccountId, name, legalName, legalId, legalType, sicCode, tickerSymbol, industry, type_, size_) values (${dataFactory.company.accountId}, ${companyId}, ${defaultUserId}, '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0, 'Liferay', 'Liferay, Inc.', '', '', '', '', '', '', '');
-insert into VirtualHost values (${counter.get()}, ${companyId}, 0, 'localhost');
+insert into Account_ values (${accountModel.mvccVersion}, ${accountModel.accountId}, ${accountModel.companyId}, ${accountModel.userId}, '${accountModel.userName}', '${dataFactory.getDateString(accountModel.createDate)}', '${dataFactory.getDateString(accountModel.modifiedDate)}', '${accountModel.parentAccountId}', '${accountModel.name}', '${accountModel.legalName}', '${accountModel.legalId}', '${accountModel.legalType}', '${accountModel.sicCode}', '${accountModel.tickerSymbol}', '${accountModel.industry}', '${accountModel.type}', '${accountModel.size}');
 
-<#assign contact = dataFactory.addContact("", "")>
-<#assign user = dataFactory.addUser(true, "")>
+<#assign virtualHostModel = dataFactory.virtualHostModel>
 
-${sampleSQLBuilder.insertUser(contact, null, null, null, null, null, null, user)}
+insert into VirtualHost values (${virtualHostModel.mvccVersion}, ${virtualHostModel.virtualHostId}, ${virtualHostModel.companyId}, ${virtualHostModel.layoutSetId}, '${virtualHostModel.hostname}');
 
-<#assign contact = dataFactory.addContact("Test", "Test")>
-<#assign user = dataFactory.addUser(false, "test")>
-
-<#assign userGroup = dataFactory.addGroup(counter.get(), dataFactory.userClassName.classNameId, user.userId, stringUtil.valueOf(user.userId), "/" + user.screenName, false)>
-
-<#assign groupIds = [dataFactory.guestGroup.groupId]>
-<#assign organizationIds = []>
-<#assign privateLayouts = []>
-<#assign publicLayouts = []>
-<#assign roleIds = [dataFactory.administratorRole.roleId]>
-
-${sampleSQLBuilder.insertUser(contact, userGroup, groupIds, organizationIds, privateLayouts, publicLayouts, roleIds, user)}
-
-<#assign mbSystemCategory = dataFactory.addMBCategory(0, 0, 0, 0, "", "", 0, 0)>
-
-${sampleSQLBuilder.insertMBCategory(mbSystemCategory)}
+${companyCSVWriter.write(companyModel.companyId + "\n")}

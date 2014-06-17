@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,7 +18,6 @@
 
 <%
 String redirect = ParamUtil.getString(request, "redirect");
-String backURL = ParamUtil.getString(request, "backURL");
 
 DDLRecord record = (DDLRecord)request.getAttribute(WebKeys.DYNAMIC_DATA_LISTS_RECORD);
 
@@ -26,22 +25,22 @@ long recordId = BeanParamUtil.getLong(record, request, "recordId");
 
 long recordSetId = BeanParamUtil.getLong(record, request, "recordSetId");
 
-long detailDDMTemplateId = ParamUtil.getLong(request, "detailDDMTemplateId");
+DDLRecordSet recordSet = DDLRecordSetServiceUtil.getRecordSet(recordSetId);
+
+long formDDMTemplateId = ParamUtil.getLong(request, "formDDMTemplateId");
+
+DDMStructure ddmStructure = recordSet.getDDMStructure(formDDMTemplateId);
 
 String version = ParamUtil.getString(request, "version", DDLRecordConstants.VERSION_DEFAULT);
 
 DDLRecordVersion recordVersion = record.getRecordVersion(version);
 
-boolean editable = ParamUtil.getBoolean(request, "editable");
-
-if (editable) {
-	recordVersion = record.getLatestRecordVersion();
-}
+DDLRecordVersion latestRecordVersion = record.getLatestRecordVersion();
 %>
 
 <liferay-ui:header
-	backURL="<%= backURL %>"
-	title='view-record'
+	backURL="<%= redirect %>"
+	title='<%= LanguageUtil.format(pageContext, "view-x", ddmStructure.getName(locale), false) %>'
 />
 
 <c:if test="<%= recordVersion != null %>">
@@ -53,10 +52,6 @@ if (editable) {
 <aui:fieldset>
 
 	<%
-	DDLRecordSet recordSet = DDLRecordSetLocalServiceUtil.getRecordSet(recordSetId);
-
-	DDMStructure ddmStructure = recordSet.getDDMStructure(detailDDMTemplateId);
-
 	Fields fields = null;
 
 	if (recordVersion != null) {
@@ -64,7 +59,13 @@ if (editable) {
 	}
 	%>
 
-	<%= DDMXSDUtil.getHTML(pageContext, ddmStructure.getXsd(), fields, "", true, locale) %>
+	<liferay-ddm:html
+		classNameId="<%= PortalUtil.getClassNameId(DDMStructure.class) %>"
+		classPK="<%= ddmStructure.getPrimaryKey() %>"
+		fields="<%= fields %>"
+		readOnly="<%= true %>"
+		requestedLocale="<%= locale %>"
+	/>
 
 	<%
 	boolean pending = false;
@@ -75,6 +76,18 @@ if (editable) {
 	%>
 
 	<aui:button-row>
+		<c:if test="<%= DDLRecordSetPermission.contains(permissionChecker, record.getRecordSet(), ActionKeys.UPDATE) && version.equals(latestRecordVersion.getVersion()) %>">
+			<portlet:renderURL var="editRecordURL" windowState="<%= WindowState.MAXIMIZED.toString() %>">
+				<portlet:param name="struts_action" value="/dynamic_data_lists/edit_record" />
+				<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.UPDATE %>" />
+				<portlet:param name="redirect" value="<%= redirect %>" />
+				<portlet:param name="recordId" value="<%= String.valueOf(record.getRecordId()) %>" />
+				<portlet:param name="formDDMTemplateId" value="<%= String.valueOf(formDDMTemplateId) %>" />
+			</portlet:renderURL>
+
+			<aui:button href="<%= editRecordURL %>" name="edit" value="edit" />
+		</c:if>
+
 		<aui:button href="<%= redirect %>" name="cancelButton" type="cancel" />
 	</aui:button-row>
 </aui:fieldset>
@@ -85,8 +98,6 @@ PortletURL portletURL = renderResponse.createRenderURL();
 portletURL.setParameter("struts_action", "/dynamic_data_lists/view_record_set");
 portletURL.setParameter("recordSetId", String.valueOf(recordSetId));
 
-DDLRecordSet recordSet = DDLRecordSetLocalServiceUtil.getRecordSet(recordSetId);
-
 PortalUtil.addPortletBreadcrumbEntry(request, recordSet.getName(locale), portletURL.toString());
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "view-record"), currentURL);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.format(pageContext, "view-x", ddmStructure.getName(locale), false), currentURL);
 %>

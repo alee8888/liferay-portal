@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,6 +22,8 @@ import java.sql.Connection;
 public interface SessionFactory {
 
 	public void closeSession(Session session) throws ORMException;
+
+	public Session getCurrentSession() throws ORMException;
 
 	public Dialect getDialect() throws ORMException;
 

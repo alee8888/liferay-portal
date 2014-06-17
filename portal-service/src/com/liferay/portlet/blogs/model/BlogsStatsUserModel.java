@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,8 @@
 
 package com.liferay.portlet.blogs.model;
 
-import com.liferay.portal.kernel.exception.SystemException;
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.service.ServiceContext;
@@ -38,6 +39,7 @@ import java.util.Date;
  * @see com.liferay.portlet.blogs.model.impl.BlogsStatsUserModelImpl
  * @generated
  */
+@ProviderType
 public interface BlogsStatsUserModel extends BaseModel<BlogsStatsUser> {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -77,9 +79,8 @@ public interface BlogsStatsUserModel extends BaseModel<BlogsStatsUser> {
 	 * Returns the stats user uuid of this blogs stats user.
 	 *
 	 * @return the stats user uuid of this blogs stats user
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getStatsUserUuid() throws SystemException;
+	public String getStatsUserUuid();
 
 	/**
 	 * Sets the stats user uuid of this blogs stats user.
@@ -134,9 +135,8 @@ public interface BlogsStatsUserModel extends BaseModel<BlogsStatsUser> {
 	 * Returns the user uuid of this blogs stats user.
 	 *
 	 * @return the user uuid of this blogs stats user
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getUserUuid() throws SystemException;
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this blogs stats user.
@@ -215,35 +215,60 @@ public interface BlogsStatsUserModel extends BaseModel<BlogsStatsUser> {
 	 */
 	public void setRatingsAverageScore(double ratingsAverageScore);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(BlogsStatsUser blogsStatsUser);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<BlogsStatsUser> toCacheModel();
 
+	@Override
 	public BlogsStatsUser toEscapedModel();
 
+	@Override
+	public BlogsStatsUser toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

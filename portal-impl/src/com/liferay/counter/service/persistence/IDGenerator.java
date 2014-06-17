@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,17 +27,15 @@ import org.hibernate.id.IdentifierGenerator;
  */
 public class IDGenerator implements IdentifierGenerator {
 
+	@Override
 	public Serializable generate(SessionImplementor session, Object object) {
-		try {
-			String name = object.getClass().getName();
+		Class<?> clazz = object.getClass();
 
-			int currentId = (int)CounterLocalServiceUtil.increment(name);
+		String name = clazz.getName();
 
-			return new Integer(currentId);
-		}
-		catch (SystemException se) {
-			throw new RuntimeException(se);
-		}
+		int currentId = (int)CounterLocalServiceUtil.increment(name);
+
+		return new Integer(currentId);
 	}
 
 }

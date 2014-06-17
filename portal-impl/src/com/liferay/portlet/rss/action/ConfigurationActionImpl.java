@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,7 +21,7 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portal.util.PortalUtil;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -56,9 +56,7 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 		String portletResource = ParamUtil.getString(
 			actionRequest, "portletResource");
 
-		PortletPreferences preferences =
-			PortletPreferencesFactoryUtil.getPortletSetup(
-				actionRequest, portletResource);
+		PortletPreferences preferences = actionRequest.getPreferences();
 
 		if (cmd.equals("remove-footer-article")) {
 			removeFooterArticle(actionRequest, preferences);
@@ -73,28 +71,30 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 			setHeaderArticle(actionRequest, preferences);
 		}
 
-		if (SessionErrors.isEmpty(actionRequest)) {
-			try {
-				preferences.store();
-			}
-			catch (ValidatorException ve) {
-				SessionErrors.add(
-					actionRequest, ValidatorException.class.getName(), ve);
-
-				return;
-			}
-
-			SessionMessages.add(
-				actionRequest,
-				portletConfig.getPortletName() +
-					SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
-				portletResource);
-
-			SessionMessages.add(
-				actionRequest,
-				portletConfig.getPortletName() +
-					SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
+		if (!SessionErrors.isEmpty(actionRequest)) {
+			return;
 		}
+
+		try {
+			preferences.store();
+		}
+		catch (ValidatorException ve) {
+			SessionErrors.add(
+				actionRequest, ValidatorException.class.getName(), ve);
+
+			return;
+		}
+
+		SessionMessages.add(
+			actionRequest,
+			PortalUtil.getPortletId(actionRequest) +
+				SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
+			portletResource);
+
+		SessionMessages.add(
+			actionRequest,
+			PortalUtil.getPortletId(actionRequest) +
+				SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
 	}
 
 	protected void removeFooterArticle(

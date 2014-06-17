@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.counter.service.persistence;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.counter.model.Counter;
 
@@ -30,6 +32,7 @@ import com.liferay.portal.service.persistence.BasePersistence;
  * @see CounterUtil
  * @generated
  */
+@ProviderType
 public interface CounterPersistence extends BasePersistence<Counter> {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -66,15 +69,12 @@ public interface CounterPersistence extends BasePersistence<Counter> {
 	* @param name the primary key of the counter
 	* @return the counter that was removed
 	* @throws com.liferay.counter.NoSuchCounterException if a counter with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public com.liferay.counter.model.Counter remove(java.lang.String name)
-		throws com.liferay.counter.NoSuchCounterException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.counter.NoSuchCounterException;
 
 	public com.liferay.counter.model.Counter updateImpl(
-		com.liferay.counter.model.Counter counter, boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.counter.model.Counter counter);
 
 	/**
 	* Returns the counter with the primary key or throws a {@link com.liferay.counter.NoSuchCounterException} if it could not be found.
@@ -82,81 +82,70 @@ public interface CounterPersistence extends BasePersistence<Counter> {
 	* @param name the primary key of the counter
 	* @return the counter
 	* @throws com.liferay.counter.NoSuchCounterException if a counter with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public com.liferay.counter.model.Counter findByPrimaryKey(
 		java.lang.String name)
-		throws com.liferay.counter.NoSuchCounterException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.counter.NoSuchCounterException;
 
 	/**
 	* Returns the counter with the primary key or returns <code>null</code> if it could not be found.
 	*
 	* @param name the primary key of the counter
 	* @return the counter, or <code>null</code> if a counter with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public com.liferay.counter.model.Counter fetchByPrimaryKey(
-		java.lang.String name)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		java.lang.String name);
+
+	@Override
+	public java.util.Map<java.io.Serializable, com.liferay.counter.model.Counter> fetchByPrimaryKeys(
+		java.util.Set<java.io.Serializable> primaryKeys);
 
 	/**
 	* Returns all the counters.
 	*
 	* @return the counters
-	* @throws SystemException if a system exception occurred
 	*/
-	public java.util.List<com.liferay.counter.model.Counter> findAll()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public java.util.List<com.liferay.counter.model.Counter> findAll();
 
 	/**
 	* Returns a range of all the counters.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.counter.model.impl.CounterModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of counters
 	* @param end the upper bound of the range of counters (not inclusive)
 	* @return the range of counters
-	* @throws SystemException if a system exception occurred
 	*/
 	public java.util.List<com.liferay.counter.model.Counter> findAll(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		int start, int end);
 
 	/**
 	* Returns an ordered range of all the counters.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.counter.model.impl.CounterModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of counters
 	* @param end the upper bound of the range of counters (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of counters
-	* @throws SystemException if a system exception occurred
 	*/
 	public java.util.List<com.liferay.counter.model.Counter> findAll(
 		int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator);
 
 	/**
 	* Removes all the counters from the database.
-	*
-	* @throws SystemException if a system exception occurred
 	*/
-	public void removeAll()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public void removeAll();
 
 	/**
 	* Returns the number of counters.
 	*
 	* @return the number of counters
-	* @throws SystemException if a system exception occurred
 	*/
-	public int countAll()
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public int countAll();
 }

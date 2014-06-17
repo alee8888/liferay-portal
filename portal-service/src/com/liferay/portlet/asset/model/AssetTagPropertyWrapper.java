@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.asset.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,24 +28,28 @@ import java.util.Map;
  * This class is a wrapper for {@link AssetTagProperty}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetTagProperty
+ * @author Brian Wing Shun Chan
+ * @see AssetTagProperty
  * @generated
  */
+@ProviderType
 public class AssetTagPropertyWrapper implements AssetTagProperty,
 	ModelWrapper<AssetTagProperty> {
 	public AssetTagPropertyWrapper(AssetTagProperty assetTagProperty) {
 		_assetTagProperty = assetTagProperty;
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return AssetTagProperty.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return AssetTagProperty.class.getName();
 	}
 
+	@Override
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
@@ -59,6 +66,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 		return attributes;
 	}
 
+	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
 		Long tagPropertyId = (Long)attributes.get("tagPropertyId");
 
@@ -120,6 +128,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @return the primary key of this asset tag property
 	*/
+	@Override
 	public long getPrimaryKey() {
 		return _assetTagProperty.getPrimaryKey();
 	}
@@ -129,6 +138,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @param primaryKey the primary key of this asset tag property
 	*/
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_assetTagProperty.setPrimaryKey(primaryKey);
 	}
@@ -138,6 +148,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @return the tag property ID of this asset tag property
 	*/
+	@Override
 	public long getTagPropertyId() {
 		return _assetTagProperty.getTagPropertyId();
 	}
@@ -147,6 +158,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @param tagPropertyId the tag property ID of this asset tag property
 	*/
+	@Override
 	public void setTagPropertyId(long tagPropertyId) {
 		_assetTagProperty.setTagPropertyId(tagPropertyId);
 	}
@@ -156,6 +168,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @return the company ID of this asset tag property
 	*/
+	@Override
 	public long getCompanyId() {
 		return _assetTagProperty.getCompanyId();
 	}
@@ -165,6 +178,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @param companyId the company ID of this asset tag property
 	*/
+	@Override
 	public void setCompanyId(long companyId) {
 		_assetTagProperty.setCompanyId(companyId);
 	}
@@ -174,6 +188,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @return the user ID of this asset tag property
 	*/
+	@Override
 	public long getUserId() {
 		return _assetTagProperty.getUserId();
 	}
@@ -183,6 +198,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @param userId the user ID of this asset tag property
 	*/
+	@Override
 	public void setUserId(long userId) {
 		_assetTagProperty.setUserId(userId);
 	}
@@ -191,10 +207,9 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	* Returns the user uuid of this asset tag property.
 	*
 	* @return the user uuid of this asset tag property
-	* @throws SystemException if a system exception occurred
 	*/
-	public java.lang.String getUserUuid()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public java.lang.String getUserUuid() {
 		return _assetTagProperty.getUserUuid();
 	}
 
@@ -203,6 +218,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @param userUuid the user uuid of this asset tag property
 	*/
+	@Override
 	public void setUserUuid(java.lang.String userUuid) {
 		_assetTagProperty.setUserUuid(userUuid);
 	}
@@ -212,6 +228,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @return the user name of this asset tag property
 	*/
+	@Override
 	public java.lang.String getUserName() {
 		return _assetTagProperty.getUserName();
 	}
@@ -221,6 +238,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @param userName the user name of this asset tag property
 	*/
+	@Override
 	public void setUserName(java.lang.String userName) {
 		_assetTagProperty.setUserName(userName);
 	}
@@ -230,6 +248,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @return the create date of this asset tag property
 	*/
+	@Override
 	public java.util.Date getCreateDate() {
 		return _assetTagProperty.getCreateDate();
 	}
@@ -239,6 +258,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @param createDate the create date of this asset tag property
 	*/
+	@Override
 	public void setCreateDate(java.util.Date createDate) {
 		_assetTagProperty.setCreateDate(createDate);
 	}
@@ -248,6 +268,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @return the modified date of this asset tag property
 	*/
+	@Override
 	public java.util.Date getModifiedDate() {
 		return _assetTagProperty.getModifiedDate();
 	}
@@ -257,6 +278,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @param modifiedDate the modified date of this asset tag property
 	*/
+	@Override
 	public void setModifiedDate(java.util.Date modifiedDate) {
 		_assetTagProperty.setModifiedDate(modifiedDate);
 	}
@@ -266,6 +288,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @return the tag ID of this asset tag property
 	*/
+	@Override
 	public long getTagId() {
 		return _assetTagProperty.getTagId();
 	}
@@ -275,6 +298,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @param tagId the tag ID of this asset tag property
 	*/
+	@Override
 	public void setTagId(long tagId) {
 		_assetTagProperty.setTagId(tagId);
 	}
@@ -284,6 +308,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @return the key of this asset tag property
 	*/
+	@Override
 	public java.lang.String getKey() {
 		return _assetTagProperty.getKey();
 	}
@@ -293,6 +318,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @param key the key of this asset tag property
 	*/
+	@Override
 	public void setKey(java.lang.String key) {
 		_assetTagProperty.setKey(key);
 	}
@@ -302,6 +328,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @return the value of this asset tag property
 	*/
+	@Override
 	public java.lang.String getValue() {
 		return _assetTagProperty.getValue();
 	}
@@ -311,42 +338,64 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	*
 	* @param value the value of this asset tag property
 	*/
+	@Override
 	public void setValue(java.lang.String value) {
 		_assetTagProperty.setValue(value);
 	}
 
+	@Override
 	public boolean isNew() {
 		return _assetTagProperty.isNew();
 	}
 
+	@Override
 	public void setNew(boolean n) {
 		_assetTagProperty.setNew(n);
 	}
 
+	@Override
 	public boolean isCachedModel() {
 		return _assetTagProperty.isCachedModel();
 	}
 
+	@Override
 	public void setCachedModel(boolean cachedModel) {
 		_assetTagProperty.setCachedModel(cachedModel);
 	}
 
+	@Override
 	public boolean isEscapedModel() {
 		return _assetTagProperty.isEscapedModel();
 	}
 
+	@Override
 	public java.io.Serializable getPrimaryKeyObj() {
 		return _assetTagProperty.getPrimaryKeyObj();
 	}
 
+	@Override
 	public void setPrimaryKeyObj(java.io.Serializable primaryKeyObj) {
 		_assetTagProperty.setPrimaryKeyObj(primaryKeyObj);
 	}
 
+	@Override
 	public com.liferay.portlet.expando.model.ExpandoBridge getExpandoBridge() {
 		return _assetTagProperty.getExpandoBridge();
 	}
 
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portal.model.BaseModel<?> baseModel) {
+		_assetTagProperty.setExpandoBridgeAttributes(baseModel);
+	}
+
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portlet.expando.model.ExpandoBridge expandoBridge) {
+		_assetTagProperty.setExpandoBridgeAttributes(expandoBridge);
+	}
+
+	@Override
 	public void setExpandoBridgeAttributes(
 		com.liferay.portal.service.ServiceContext serviceContext) {
 		_assetTagProperty.setExpandoBridgeAttributes(serviceContext);
@@ -357,6 +406,7 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 		return new AssetTagPropertyWrapper((AssetTagProperty)_assetTagProperty.clone());
 	}
 
+	@Override
 	public int compareTo(
 		com.liferay.portlet.asset.model.AssetTagProperty assetTagProperty) {
 		return _assetTagProperty.compareTo(assetTagProperty);
@@ -367,12 +417,19 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 		return _assetTagProperty.hashCode();
 	}
 
+	@Override
 	public com.liferay.portal.model.CacheModel<com.liferay.portlet.asset.model.AssetTagProperty> toCacheModel() {
 		return _assetTagProperty.toCacheModel();
 	}
 
+	@Override
 	public com.liferay.portlet.asset.model.AssetTagProperty toEscapedModel() {
 		return new AssetTagPropertyWrapper(_assetTagProperty.toEscapedModel());
+	}
+
+	@Override
+	public com.liferay.portlet.asset.model.AssetTagProperty toUnescapedModel() {
+		return new AssetTagPropertyWrapper(_assetTagProperty.toUnescapedModel());
 	}
 
 	@Override
@@ -380,26 +437,60 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 		return _assetTagProperty.toString();
 	}
 
+	@Override
 	public java.lang.String toXmlString() {
 		return _assetTagProperty.toXmlString();
 	}
 
-	public void persist()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void persist() {
 		_assetTagProperty.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AssetTagPropertyWrapper)) {
+			return false;
+		}
+
+		AssetTagPropertyWrapper assetTagPropertyWrapper = (AssetTagPropertyWrapper)obj;
+
+		if (Validator.equals(_assetTagProperty,
+					assetTagPropertyWrapper._assetTagProperty)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
-	 * @deprecated Renamed to {@link #getWrappedModel}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public AssetTagProperty getWrappedAssetTagProperty() {
 		return _assetTagProperty;
 	}
 
+	@Override
 	public AssetTagProperty getWrappedModel() {
 		return _assetTagProperty;
 	}
 
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _assetTagProperty.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _assetTagProperty.isFinderCacheEnabled();
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		_assetTagProperty.resetOriginalValues();
 	}

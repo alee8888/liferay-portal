@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portal.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.Plugin;
 import com.liferay.portal.security.permission.ActionKeys;
@@ -23,6 +22,7 @@ import com.liferay.portal.service.base.LayoutSetServiceBaseImpl;
 import com.liferay.portal.service.permission.GroupPermissionUtil;
 import com.liferay.portal.service.permission.PortalPermissionUtil;
 
+import java.io.File;
 import java.io.InputStream;
 
 /**
@@ -48,13 +48,13 @@ public class LayoutSetServiceImpl extends LayoutSetServiceBaseImpl {
 	 * @param  layoutSetPrototypeUuid the uuid of the layout set prototype to
 	 *         link with
 	 * @throws PortalException if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
 	 */
+	@Override
 	public void updateLayoutSetPrototypeLinkEnabled(
 			long groupId, boolean privateLayout,
 			boolean layoutSetPrototypeLinkEnabled,
 			String layoutSetPrototypeUuid)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		GroupPermissionUtil.check(
 			getPermissionChecker(), groupId, ActionKeys.UPDATE);
@@ -74,33 +74,58 @@ public class LayoutSetServiceImpl extends LayoutSetServiceBaseImpl {
 			layoutSetPrototypeUuid);
 	}
 
+	@Override
+	public void updateLogo(
+			long groupId, boolean privateLayout, boolean logo, byte[] bytes)
+		throws PortalException {
+
+		GroupPermissionUtil.check(
+			getPermissionChecker(), groupId, ActionKeys.MANAGE_LAYOUTS);
+
+		layoutSetLocalService.updateLogo(groupId, privateLayout, logo, bytes);
+	}
+
+	@Override
+	public void updateLogo(
+			long groupId, boolean privateLayout, boolean logo, File file)
+		throws PortalException {
+
+		GroupPermissionUtil.check(
+			getPermissionChecker(), groupId, ActionKeys.MANAGE_LAYOUTS);
+
+		layoutSetLocalService.updateLogo(groupId, privateLayout, logo, file);
+	}
+
+	@Override
 	public void updateLogo(
 			long groupId, boolean privateLayout, boolean logo,
 			InputStream inputStream)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		updateLogo(groupId, privateLayout, logo, inputStream, true);
 	}
 
+	@Override
 	public void updateLogo(
 			long groupId, boolean privateLayout, boolean logo,
 			InputStream inputStream, boolean cleanUpStream)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		GroupPermissionUtil.check(
-			getPermissionChecker(), groupId, ActionKeys.UPDATE);
+			getPermissionChecker(), groupId, ActionKeys.MANAGE_LAYOUTS);
 
 		layoutSetLocalService.updateLogo(
 			groupId, privateLayout, logo, inputStream, cleanUpStream);
 	}
 
+	@Override
 	public LayoutSet updateLookAndFeel(
 			long groupId, boolean privateLayout, String themeId,
 			String colorSchemeId, String css, boolean wapTheme)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		GroupPermissionUtil.check(
-			getPermissionChecker(), groupId, ActionKeys.UPDATE);
+			getPermissionChecker(), groupId, ActionKeys.MANAGE_LAYOUTS);
 
 		pluginSettingLocalService.checkPermission(
 			getUserId(), themeId, Plugin.TYPE_THEME);
@@ -109,20 +134,22 @@ public class LayoutSetServiceImpl extends LayoutSetServiceBaseImpl {
 			groupId, privateLayout, themeId, colorSchemeId, css, wapTheme);
 	}
 
+	@Override
 	public LayoutSet updateSettings(
 			long groupId, boolean privateLayout, String settings)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		GroupPermissionUtil.check(
-			getPermissionChecker(), groupId, ActionKeys.UPDATE);
+			getPermissionChecker(), groupId, ActionKeys.MANAGE_LAYOUTS);
 
 		return layoutSetLocalService.updateSettings(
 			groupId, privateLayout, settings);
 	}
 
+	@Override
 	public LayoutSet updateVirtualHost(
 			long groupId, boolean privateLayout, String virtualHost)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		GroupPermissionUtil.check(
 			getPermissionChecker(), groupId, ActionKeys.UPDATE);

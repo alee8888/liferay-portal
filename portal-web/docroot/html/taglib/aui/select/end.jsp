@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,27 +16,25 @@
 
 <%@ include file="/html/taglib/aui/select/init.jsp" %>
 
-			</select>
+	</select>
+
+	<c:if test="<%= Validator.isNotNull(suffix) %>">
+		<span class="suffix">
+			<liferay-ui:message key="<%= suffix %>" />
 		</span>
+	</c:if>
 
-		<c:if test="<%= Validator.isNotNull(suffix) %>">
-			<span class="aui-suffix">
-				<liferay-ui:message key="<%= suffix %>" />
-			</span>
-		</c:if>
+	<c:if test='<%= inlineLabel.equals("right") %>'>
+		<label <%= AUIUtil.buildLabel("select", inlineField, true, namespace + id) %>>
+			<liferay-ui:message key="<%= label %>" />
 
-		<c:if test='<%= inlineLabel.equals("right") %>'>
-			<label <%= AUIUtil.buildLabel(inlineLabel, true, id, false) %>>
-				<liferay-ui:message key="<%= label %>" />
+			<c:if test="<%= Validator.isNotNull(helpMessage) %>">
+				<liferay-ui:icon-help message="<%= helpMessage %>" />
+			</c:if>
 
-				<c:if test="<%= Validator.isNotNull(helpMessage) %>">
-					<liferay-ui:icon-help message="<%= helpMessage %>" />
-				</c:if>
-
-				<c:if test="<%= changesContext %>">
-					<span class="aui-helper-hidden-accessible"><liferay-ui:message key="changing-the-value-of-this-field-will-reload-the-page" />)</span>
-				</c:if>
-			</label>
-		</c:if>
-	</span>
-</span>
+			<c:if test="<%= changesContext %>">
+				<span class="hide-accessible"><liferay-ui:message key="changing-the-value-of-this-field-will-reload-the-page" />)</span>
+			</c:if>
+		</label>
+	</c:if>
+</div>

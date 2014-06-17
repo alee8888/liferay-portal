@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,9 +16,13 @@ package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.PasswordPolicyRel;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing PasswordPolicyRel in entity cache.
@@ -28,12 +32,24 @@ import java.io.Serializable;
  * @generated
  */
 public class PasswordPolicyRelCacheModel implements CacheModel<PasswordPolicyRel>,
-	Serializable {
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
+		StringBundler sb = new StringBundler(11);
 
-		sb.append("{passwordPolicyRelId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", passwordPolicyRelId=");
 		sb.append(passwordPolicyRelId);
 		sb.append(", passwordPolicyId=");
 		sb.append(passwordPolicyId);
@@ -46,9 +62,11 @@ public class PasswordPolicyRelCacheModel implements CacheModel<PasswordPolicyRel
 		return sb.toString();
 	}
 
+	@Override
 	public PasswordPolicyRel toEntityModel() {
 		PasswordPolicyRelImpl passwordPolicyRelImpl = new PasswordPolicyRelImpl();
 
+		passwordPolicyRelImpl.setMvccVersion(mvccVersion);
 		passwordPolicyRelImpl.setPasswordPolicyRelId(passwordPolicyRelId);
 		passwordPolicyRelImpl.setPasswordPolicyId(passwordPolicyId);
 		passwordPolicyRelImpl.setClassNameId(classNameId);
@@ -59,6 +77,26 @@ public class PasswordPolicyRelCacheModel implements CacheModel<PasswordPolicyRel
 		return passwordPolicyRelImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		passwordPolicyRelId = objectInput.readLong();
+		passwordPolicyId = objectInput.readLong();
+		classNameId = objectInput.readLong();
+		classPK = objectInput.readLong();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(passwordPolicyRelId);
+		objectOutput.writeLong(passwordPolicyId);
+		objectOutput.writeLong(classNameId);
+		objectOutput.writeLong(classPK);
+	}
+
+	public long mvccVersion;
 	public long passwordPolicyRelId;
 	public long passwordPolicyId;
 	public long classNameId;

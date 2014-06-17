@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,10 +36,23 @@ catch (CaptchaMaxChallengesException cmce) {
 
 <c:if test="<%= captchaEnabled %>">
 	<div class="taglib-captcha">
-		<img alt="<liferay-ui:message key="text-to-identify" />" class="captcha" src="<%= url %>" />
+		<img alt="<liferay-ui:message key="text-to-identify" />" class="captcha" id="<portlet:namespace />captcha" src="<%= url %>" />
+
+		<liferay-ui:icon cssClass="refresh" iconCssClass="icon-refresh" id="refreshCaptcha" label="<%= false %>" localizeMessage="<%= true %>" message="refresh-captcha" url="javascript:;" />
 
 		<aui:input label="text-verification" name="captchaText" size="10" type="text" value="">
 			<aui:validator name="required" />
 		</aui:input>
 	</div>
+
+	<aui:script use="aui-base">
+		A.one('#<portlet:namespace />refreshCaptcha').on(
+			'click',
+			function() {
+				var url = Liferay.Util.addParams('t=' + A.Lang.now(), '<%= url %>');
+
+				A.one('#<portlet:namespace />captcha').attr('src', url);
+			}
+		);
+	</aui:script>
 </c:if>

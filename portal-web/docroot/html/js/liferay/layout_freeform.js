@@ -13,14 +13,27 @@ AUI.add(
 						'drag:start': function(event) {
 							var instance = this;
 
-							var proxyNode = instance.get('proxyNode');
 							var node = DDM.activeDrag.get('node');
 							var nodeId = node.get('id');
+
+							var proxyNode = instance.get('proxyNode');
 
 							proxyNode.one('.portlet-topper').html(Layout._getPortletTitle(nodeId));
 						}
 					},
-					lazyStart: false
+					lazyStart: false,
+					on: {
+						'drag:end': function(event) {
+							var instance = this;
+
+							var node = event.target.get('node');
+
+							node.removeClass('yui3-dd-dragging');
+						}
+					},
+					proxy: {
+						positionProxy: true
+					}
 				}
 			);
 
@@ -29,6 +42,8 @@ AUI.add(
 			dragConfig.startCentered = false;
 
 			Layout.layoutHandler = new Layout.FreeFormLayout(freeformLayoutDefaults);
+
+			Layout.syncDraggableClassUI();
 		};
 
 		var FreeFormLayout = A.Component.create(
@@ -56,11 +71,13 @@ AUI.add(
 						}
 
 						Layout.getPortlets().each(
-							function(item, index, collection) {
+							function(item, index) {
 								instance._setupNodeResize(item);
 								instance._setupNodeStack(item);
 							}
 						);
+
+						Liferay.on('addPortlet', instance._onAddPortlet, instance);
 					},
 
 					alignPortlet: function(portletNode, referenceNode) {
@@ -86,6 +103,15 @@ AUI.add(
 								width: portletNode.getStyle('width')
 							}
 						);
+					},
+
+					_onAddPortlet: function(event) {
+						var instance = this;
+
+						var portlet = event.portlet;
+
+						instance._setupNodeResize(portlet);
+						instance._setupNodeStack(portlet);
 					},
 
 					_onPortletMouseDown: function(event) {
@@ -119,7 +145,7 @@ AUI.add(
 					_setupNodeResize: function(node) {
 						var instance = this;
 
-						var resizable = node.hasClass('aui-resize');
+						var resizable = node.hasClass('yui3-resize');
 
 						if (!resizable) {
 							var resize = new A.Resize(
@@ -156,17 +182,16 @@ AUI.add(
 										}
 									},
 									handles: 'r,br,b',
-									node: node,
-									proxy: true
+									node: node
 								}
-							);
+							).plug(A.Plugin.ResizeProxy);
 						}
 					},
 
 					_setupNodeStack: function(node) {
 						var instance = this;
 
-						node.on('mousedown', A.bind(instance._onPortletMouseDown, instance));
+						node.on('mousedown', A.bind('_onPortletMouseDown', instance));
 					},
 
 					_syncProxyNodeSize: function() {
@@ -191,6 +216,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-resize', 'liferay-layout-column']
+		requires: ['liferay-layout-column', 'resize']
 	}
 );

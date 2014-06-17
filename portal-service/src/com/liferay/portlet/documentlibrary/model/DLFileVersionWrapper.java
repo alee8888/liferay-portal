@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.documentlibrary.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,24 +29,28 @@ import java.util.Map;
  * This class is a wrapper for {@link DLFileVersion}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DLFileVersion
+ * @author Brian Wing Shun Chan
+ * @see DLFileVersion
  * @generated
  */
+@ProviderType
 public class DLFileVersionWrapper implements DLFileVersion,
 	ModelWrapper<DLFileVersion> {
 	public DLFileVersionWrapper(DLFileVersion dlFileVersion) {
 		_dlFileVersion = dlFileVersion;
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return DLFileVersion.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return DLFileVersion.class.getName();
 	}
 
+	@Override
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
@@ -57,6 +65,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 		attributes.put("repositoryId", getRepositoryId());
 		attributes.put("folderId", getFolderId());
 		attributes.put("fileEntryId", getFileEntryId());
+		attributes.put("treePath", getTreePath());
 		attributes.put("extension", getExtension());
 		attributes.put("mimeType", getMimeType());
 		attributes.put("title", getTitle());
@@ -66,6 +75,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 		attributes.put("fileEntryTypeId", getFileEntryTypeId());
 		attributes.put("version", getVersion());
 		attributes.put("size", getSize());
+		attributes.put("checksum", getChecksum());
 		attributes.put("status", getStatus());
 		attributes.put("statusByUserId", getStatusByUserId());
 		attributes.put("statusByUserName", getStatusByUserName());
@@ -74,6 +84,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 		return attributes;
 	}
 
+	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
 		String uuid = (String)attributes.get("uuid");
 
@@ -141,6 +152,12 @@ public class DLFileVersionWrapper implements DLFileVersion,
 			setFileEntryId(fileEntryId);
 		}
 
+		String treePath = (String)attributes.get("treePath");
+
+		if (treePath != null) {
+			setTreePath(treePath);
+		}
+
 		String extension = (String)attributes.get("extension");
 
 		if (extension != null) {
@@ -195,6 +212,12 @@ public class DLFileVersionWrapper implements DLFileVersion,
 			setSize(size);
 		}
 
+		String checksum = (String)attributes.get("checksum");
+
+		if (checksum != null) {
+			setChecksum(checksum);
+		}
+
 		Integer status = (Integer)attributes.get("status");
 
 		if (status != null) {
@@ -225,6 +248,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the primary key of this document library file version
 	*/
+	@Override
 	public long getPrimaryKey() {
 		return _dlFileVersion.getPrimaryKey();
 	}
@@ -234,6 +258,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param primaryKey the primary key of this document library file version
 	*/
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_dlFileVersion.setPrimaryKey(primaryKey);
 	}
@@ -243,6 +268,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the uuid of this document library file version
 	*/
+	@Override
 	public java.lang.String getUuid() {
 		return _dlFileVersion.getUuid();
 	}
@@ -252,6 +278,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param uuid the uuid of this document library file version
 	*/
+	@Override
 	public void setUuid(java.lang.String uuid) {
 		_dlFileVersion.setUuid(uuid);
 	}
@@ -261,6 +288,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the file version ID of this document library file version
 	*/
+	@Override
 	public long getFileVersionId() {
 		return _dlFileVersion.getFileVersionId();
 	}
@@ -270,6 +298,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param fileVersionId the file version ID of this document library file version
 	*/
+	@Override
 	public void setFileVersionId(long fileVersionId) {
 		_dlFileVersion.setFileVersionId(fileVersionId);
 	}
@@ -279,6 +308,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the group ID of this document library file version
 	*/
+	@Override
 	public long getGroupId() {
 		return _dlFileVersion.getGroupId();
 	}
@@ -288,6 +318,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param groupId the group ID of this document library file version
 	*/
+	@Override
 	public void setGroupId(long groupId) {
 		_dlFileVersion.setGroupId(groupId);
 	}
@@ -297,6 +328,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the company ID of this document library file version
 	*/
+	@Override
 	public long getCompanyId() {
 		return _dlFileVersion.getCompanyId();
 	}
@@ -306,6 +338,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param companyId the company ID of this document library file version
 	*/
+	@Override
 	public void setCompanyId(long companyId) {
 		_dlFileVersion.setCompanyId(companyId);
 	}
@@ -315,6 +348,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the user ID of this document library file version
 	*/
+	@Override
 	public long getUserId() {
 		return _dlFileVersion.getUserId();
 	}
@@ -324,6 +358,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param userId the user ID of this document library file version
 	*/
+	@Override
 	public void setUserId(long userId) {
 		_dlFileVersion.setUserId(userId);
 	}
@@ -332,10 +367,9 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	* Returns the user uuid of this document library file version.
 	*
 	* @return the user uuid of this document library file version
-	* @throws SystemException if a system exception occurred
 	*/
-	public java.lang.String getUserUuid()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public java.lang.String getUserUuid() {
 		return _dlFileVersion.getUserUuid();
 	}
 
@@ -344,6 +378,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param userUuid the user uuid of this document library file version
 	*/
+	@Override
 	public void setUserUuid(java.lang.String userUuid) {
 		_dlFileVersion.setUserUuid(userUuid);
 	}
@@ -353,6 +388,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the user name of this document library file version
 	*/
+	@Override
 	public java.lang.String getUserName() {
 		return _dlFileVersion.getUserName();
 	}
@@ -362,6 +398,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param userName the user name of this document library file version
 	*/
+	@Override
 	public void setUserName(java.lang.String userName) {
 		_dlFileVersion.setUserName(userName);
 	}
@@ -371,6 +408,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the create date of this document library file version
 	*/
+	@Override
 	public java.util.Date getCreateDate() {
 		return _dlFileVersion.getCreateDate();
 	}
@@ -380,6 +418,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param createDate the create date of this document library file version
 	*/
+	@Override
 	public void setCreateDate(java.util.Date createDate) {
 		_dlFileVersion.setCreateDate(createDate);
 	}
@@ -389,6 +428,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the modified date of this document library file version
 	*/
+	@Override
 	public java.util.Date getModifiedDate() {
 		return _dlFileVersion.getModifiedDate();
 	}
@@ -398,6 +438,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param modifiedDate the modified date of this document library file version
 	*/
+	@Override
 	public void setModifiedDate(java.util.Date modifiedDate) {
 		_dlFileVersion.setModifiedDate(modifiedDate);
 	}
@@ -407,6 +448,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the repository ID of this document library file version
 	*/
+	@Override
 	public long getRepositoryId() {
 		return _dlFileVersion.getRepositoryId();
 	}
@@ -416,6 +458,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param repositoryId the repository ID of this document library file version
 	*/
+	@Override
 	public void setRepositoryId(long repositoryId) {
 		_dlFileVersion.setRepositoryId(repositoryId);
 	}
@@ -425,6 +468,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the folder ID of this document library file version
 	*/
+	@Override
 	public long getFolderId() {
 		return _dlFileVersion.getFolderId();
 	}
@@ -434,6 +478,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param folderId the folder ID of this document library file version
 	*/
+	@Override
 	public void setFolderId(long folderId) {
 		_dlFileVersion.setFolderId(folderId);
 	}
@@ -443,6 +488,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the file entry ID of this document library file version
 	*/
+	@Override
 	public long getFileEntryId() {
 		return _dlFileVersion.getFileEntryId();
 	}
@@ -452,8 +498,29 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param fileEntryId the file entry ID of this document library file version
 	*/
+	@Override
 	public void setFileEntryId(long fileEntryId) {
 		_dlFileVersion.setFileEntryId(fileEntryId);
+	}
+
+	/**
+	* Returns the tree path of this document library file version.
+	*
+	* @return the tree path of this document library file version
+	*/
+	@Override
+	public java.lang.String getTreePath() {
+		return _dlFileVersion.getTreePath();
+	}
+
+	/**
+	* Sets the tree path of this document library file version.
+	*
+	* @param treePath the tree path of this document library file version
+	*/
+	@Override
+	public void setTreePath(java.lang.String treePath) {
+		_dlFileVersion.setTreePath(treePath);
 	}
 
 	/**
@@ -461,6 +528,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the extension of this document library file version
 	*/
+	@Override
 	public java.lang.String getExtension() {
 		return _dlFileVersion.getExtension();
 	}
@@ -470,6 +538,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param extension the extension of this document library file version
 	*/
+	@Override
 	public void setExtension(java.lang.String extension) {
 		_dlFileVersion.setExtension(extension);
 	}
@@ -479,6 +548,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the mime type of this document library file version
 	*/
+	@Override
 	public java.lang.String getMimeType() {
 		return _dlFileVersion.getMimeType();
 	}
@@ -488,6 +558,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param mimeType the mime type of this document library file version
 	*/
+	@Override
 	public void setMimeType(java.lang.String mimeType) {
 		_dlFileVersion.setMimeType(mimeType);
 	}
@@ -497,6 +568,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the title of this document library file version
 	*/
+	@Override
 	public java.lang.String getTitle() {
 		return _dlFileVersion.getTitle();
 	}
@@ -506,6 +578,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param title the title of this document library file version
 	*/
+	@Override
 	public void setTitle(java.lang.String title) {
 		_dlFileVersion.setTitle(title);
 	}
@@ -515,6 +588,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the description of this document library file version
 	*/
+	@Override
 	public java.lang.String getDescription() {
 		return _dlFileVersion.getDescription();
 	}
@@ -524,6 +598,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param description the description of this document library file version
 	*/
+	@Override
 	public void setDescription(java.lang.String description) {
 		_dlFileVersion.setDescription(description);
 	}
@@ -533,6 +608,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the change log of this document library file version
 	*/
+	@Override
 	public java.lang.String getChangeLog() {
 		return _dlFileVersion.getChangeLog();
 	}
@@ -542,6 +618,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param changeLog the change log of this document library file version
 	*/
+	@Override
 	public void setChangeLog(java.lang.String changeLog) {
 		_dlFileVersion.setChangeLog(changeLog);
 	}
@@ -551,6 +628,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the extra settings of this document library file version
 	*/
+	@Override
 	public java.lang.String getExtraSettings() {
 		return _dlFileVersion.getExtraSettings();
 	}
@@ -560,6 +638,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param extraSettings the extra settings of this document library file version
 	*/
+	@Override
 	public void setExtraSettings(java.lang.String extraSettings) {
 		_dlFileVersion.setExtraSettings(extraSettings);
 	}
@@ -569,6 +648,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the file entry type ID of this document library file version
 	*/
+	@Override
 	public long getFileEntryTypeId() {
 		return _dlFileVersion.getFileEntryTypeId();
 	}
@@ -578,6 +658,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param fileEntryTypeId the file entry type ID of this document library file version
 	*/
+	@Override
 	public void setFileEntryTypeId(long fileEntryTypeId) {
 		_dlFileVersion.setFileEntryTypeId(fileEntryTypeId);
 	}
@@ -587,6 +668,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the version of this document library file version
 	*/
+	@Override
 	public java.lang.String getVersion() {
 		return _dlFileVersion.getVersion();
 	}
@@ -596,6 +678,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param version the version of this document library file version
 	*/
+	@Override
 	public void setVersion(java.lang.String version) {
 		_dlFileVersion.setVersion(version);
 	}
@@ -605,6 +688,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the size of this document library file version
 	*/
+	@Override
 	public long getSize() {
 		return _dlFileVersion.getSize();
 	}
@@ -614,8 +698,29 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param size the size of this document library file version
 	*/
+	@Override
 	public void setSize(long size) {
 		_dlFileVersion.setSize(size);
+	}
+
+	/**
+	* Returns the checksum of this document library file version.
+	*
+	* @return the checksum of this document library file version
+	*/
+	@Override
+	public java.lang.String getChecksum() {
+		return _dlFileVersion.getChecksum();
+	}
+
+	/**
+	* Sets the checksum of this document library file version.
+	*
+	* @param checksum the checksum of this document library file version
+	*/
+	@Override
+	public void setChecksum(java.lang.String checksum) {
+		_dlFileVersion.setChecksum(checksum);
 	}
 
 	/**
@@ -623,6 +728,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the status of this document library file version
 	*/
+	@Override
 	public int getStatus() {
 		return _dlFileVersion.getStatus();
 	}
@@ -632,6 +738,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param status the status of this document library file version
 	*/
+	@Override
 	public void setStatus(int status) {
 		_dlFileVersion.setStatus(status);
 	}
@@ -641,6 +748,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the status by user ID of this document library file version
 	*/
+	@Override
 	public long getStatusByUserId() {
 		return _dlFileVersion.getStatusByUserId();
 	}
@@ -650,6 +758,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param statusByUserId the status by user ID of this document library file version
 	*/
+	@Override
 	public void setStatusByUserId(long statusByUserId) {
 		_dlFileVersion.setStatusByUserId(statusByUserId);
 	}
@@ -658,10 +767,9 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	* Returns the status by user uuid of this document library file version.
 	*
 	* @return the status by user uuid of this document library file version
-	* @throws SystemException if a system exception occurred
 	*/
-	public java.lang.String getStatusByUserUuid()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public java.lang.String getStatusByUserUuid() {
 		return _dlFileVersion.getStatusByUserUuid();
 	}
 
@@ -670,6 +778,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param statusByUserUuid the status by user uuid of this document library file version
 	*/
+	@Override
 	public void setStatusByUserUuid(java.lang.String statusByUserUuid) {
 		_dlFileVersion.setStatusByUserUuid(statusByUserUuid);
 	}
@@ -679,6 +788,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the status by user name of this document library file version
 	*/
+	@Override
 	public java.lang.String getStatusByUserName() {
 		return _dlFileVersion.getStatusByUserName();
 	}
@@ -688,6 +798,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param statusByUserName the status by user name of this document library file version
 	*/
+	@Override
 	public void setStatusByUserName(java.lang.String statusByUserName) {
 		_dlFileVersion.setStatusByUserName(statusByUserName);
 	}
@@ -697,6 +808,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return the status date of this document library file version
 	*/
+	@Override
 	public java.util.Date getStatusDate() {
 		return _dlFileVersion.getStatusDate();
 	}
@@ -706,13 +818,16 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @param statusDate the status date of this document library file version
 	*/
+	@Override
 	public void setStatusDate(java.util.Date statusDate) {
 		_dlFileVersion.setStatusDate(statusDate);
 	}
 
 	/**
-	* @deprecated Renamed to {@link #isApproved()}
+	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
+	@Deprecated
+	@Override
 	public boolean getApproved() {
 		return _dlFileVersion.getApproved();
 	}
@@ -722,8 +837,19 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return <code>true</code> if this document library file version is approved; <code>false</code> otherwise
 	*/
+	@Override
 	public boolean isApproved() {
 		return _dlFileVersion.isApproved();
+	}
+
+	/**
+	* Returns <code>true</code> if this document library file version is denied.
+	*
+	* @return <code>true</code> if this document library file version is denied; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isDenied() {
+		return _dlFileVersion.isDenied();
 	}
 
 	/**
@@ -731,6 +857,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return <code>true</code> if this document library file version is a draft; <code>false</code> otherwise
 	*/
+	@Override
 	public boolean isDraft() {
 		return _dlFileVersion.isDraft();
 	}
@@ -740,8 +867,29 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return <code>true</code> if this document library file version is expired; <code>false</code> otherwise
 	*/
+	@Override
 	public boolean isExpired() {
 		return _dlFileVersion.isExpired();
+	}
+
+	/**
+	* Returns <code>true</code> if this document library file version is inactive.
+	*
+	* @return <code>true</code> if this document library file version is inactive; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isInactive() {
+		return _dlFileVersion.isInactive();
+	}
+
+	/**
+	* Returns <code>true</code> if this document library file version is incomplete.
+	*
+	* @return <code>true</code> if this document library file version is incomplete; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isIncomplete() {
+		return _dlFileVersion.isIncomplete();
 	}
 
 	/**
@@ -749,42 +897,74 @@ public class DLFileVersionWrapper implements DLFileVersion,
 	*
 	* @return <code>true</code> if this document library file version is pending; <code>false</code> otherwise
 	*/
+	@Override
 	public boolean isPending() {
 		return _dlFileVersion.isPending();
 	}
 
+	/**
+	* Returns <code>true</code> if this document library file version is scheduled.
+	*
+	* @return <code>true</code> if this document library file version is scheduled; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isScheduled() {
+		return _dlFileVersion.isScheduled();
+	}
+
+	@Override
 	public boolean isNew() {
 		return _dlFileVersion.isNew();
 	}
 
+	@Override
 	public void setNew(boolean n) {
 		_dlFileVersion.setNew(n);
 	}
 
+	@Override
 	public boolean isCachedModel() {
 		return _dlFileVersion.isCachedModel();
 	}
 
+	@Override
 	public void setCachedModel(boolean cachedModel) {
 		_dlFileVersion.setCachedModel(cachedModel);
 	}
 
+	@Override
 	public boolean isEscapedModel() {
 		return _dlFileVersion.isEscapedModel();
 	}
 
+	@Override
 	public java.io.Serializable getPrimaryKeyObj() {
 		return _dlFileVersion.getPrimaryKeyObj();
 	}
 
+	@Override
 	public void setPrimaryKeyObj(java.io.Serializable primaryKeyObj) {
 		_dlFileVersion.setPrimaryKeyObj(primaryKeyObj);
 	}
 
+	@Override
 	public com.liferay.portlet.expando.model.ExpandoBridge getExpandoBridge() {
 		return _dlFileVersion.getExpandoBridge();
 	}
 
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portal.model.BaseModel<?> baseModel) {
+		_dlFileVersion.setExpandoBridgeAttributes(baseModel);
+	}
+
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portlet.expando.model.ExpandoBridge expandoBridge) {
+		_dlFileVersion.setExpandoBridgeAttributes(expandoBridge);
+	}
+
+	@Override
 	public void setExpandoBridgeAttributes(
 		com.liferay.portal.service.ServiceContext serviceContext) {
 		_dlFileVersion.setExpandoBridgeAttributes(serviceContext);
@@ -795,6 +975,7 @@ public class DLFileVersionWrapper implements DLFileVersion,
 		return new DLFileVersionWrapper((DLFileVersion)_dlFileVersion.clone());
 	}
 
+	@Override
 	public int compareTo(
 		com.liferay.portlet.documentlibrary.model.DLFileVersion dlFileVersion) {
 		return _dlFileVersion.compareTo(dlFileVersion);
@@ -805,12 +986,19 @@ public class DLFileVersionWrapper implements DLFileVersion,
 		return _dlFileVersion.hashCode();
 	}
 
+	@Override
 	public com.liferay.portal.model.CacheModel<com.liferay.portlet.documentlibrary.model.DLFileVersion> toCacheModel() {
 		return _dlFileVersion.toCacheModel();
 	}
 
+	@Override
 	public com.liferay.portlet.documentlibrary.model.DLFileVersion toEscapedModel() {
 		return new DLFileVersionWrapper(_dlFileVersion.toEscapedModel());
+	}
+
+	@Override
+	public com.liferay.portlet.documentlibrary.model.DLFileVersion toUnescapedModel() {
+		return new DLFileVersionWrapper(_dlFileVersion.toUnescapedModel());
 	}
 
 	@Override
@@ -818,55 +1006,109 @@ public class DLFileVersionWrapper implements DLFileVersion,
 		return _dlFileVersion.toString();
 	}
 
+	@Override
 	public java.lang.String toXmlString() {
 		return _dlFileVersion.toXmlString();
 	}
 
-	public void persist()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void persist() {
 		_dlFileVersion.persist();
 	}
 
+	@Override
+	public void updateTreePath(java.lang.String treePath) {
+		_dlFileVersion.updateTreePath(treePath);
+	}
+
+	@Override
+	public java.lang.String buildTreePath()
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _dlFileVersion.buildTreePath();
+	}
+
+	@Override
 	public java.io.InputStream getContentStream(boolean incrementCounter)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _dlFileVersion.getContentStream(incrementCounter);
 	}
 
+	@Override
 	public com.liferay.portal.kernel.util.UnicodeProperties getExtraSettingsProperties() {
 		return _dlFileVersion.getExtraSettingsProperties();
 	}
 
+	@Override
 	public com.liferay.portlet.documentlibrary.model.DLFileEntry getFileEntry()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _dlFileVersion.getFileEntry();
 	}
 
-	public com.liferay.portlet.documentlibrary.model.DLFolder getFolder() {
+	@Override
+	public com.liferay.portlet.documentlibrary.model.DLFolder getFolder()
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _dlFileVersion.getFolder();
 	}
 
+	@Override
 	public java.lang.String getIcon() {
 		return _dlFileVersion.getIcon();
 	}
 
+	@Override
 	public void setExtraSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties extraSettingsProperties) {
 		_dlFileVersion.setExtraSettingsProperties(extraSettingsProperties);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DLFileVersionWrapper)) {
+			return false;
+		}
+
+		DLFileVersionWrapper dlFileVersionWrapper = (DLFileVersionWrapper)obj;
+
+		if (Validator.equals(_dlFileVersion, dlFileVersionWrapper._dlFileVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _dlFileVersion.getStagedModelType();
+	}
+
 	/**
-	 * @deprecated Renamed to {@link #getWrappedModel}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DLFileVersion getWrappedDLFileVersion() {
 		return _dlFileVersion;
 	}
 
+	@Override
 	public DLFileVersion getWrappedModel() {
 		return _dlFileVersion;
 	}
 
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _dlFileVersion.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _dlFileVersion.isFinderCacheEnabled();
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		_dlFileVersion.resetOriginalValues();
 	}

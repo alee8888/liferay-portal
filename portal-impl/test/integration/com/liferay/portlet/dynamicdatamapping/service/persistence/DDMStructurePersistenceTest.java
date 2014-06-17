@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,45 +15,94 @@
 package com.liferay.portlet.dynamicdatamapping.service.persistence;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.model.ModelListener;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.dynamicdatamapping.NoSuchStructureException;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureModelImpl;
+import com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalServiceUtil;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class DDMStructurePersistenceTest {
 	@Before
-	public void setUp() throws Exception {
-		_persistence = (DDMStructurePersistence)PortalBeanLocatorUtil.locate(DDMStructurePersistence.class.getName());
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<DDMStructure> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<DDMStructure> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		DDMStructure ddmStructure = _persistence.create(pk);
 
@@ -80,39 +129,41 @@ public class DDMStructurePersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		DDMStructure newDDMStructure = _persistence.create(pk);
 
-		newDDMStructure.setUuid(ServiceTestUtil.randomString());
+		newDDMStructure.setUuid(RandomTestUtil.randomString());
 
-		newDDMStructure.setGroupId(ServiceTestUtil.nextLong());
+		newDDMStructure.setGroupId(RandomTestUtil.nextLong());
 
-		newDDMStructure.setCompanyId(ServiceTestUtil.nextLong());
+		newDDMStructure.setCompanyId(RandomTestUtil.nextLong());
 
-		newDDMStructure.setUserId(ServiceTestUtil.nextLong());
+		newDDMStructure.setUserId(RandomTestUtil.nextLong());
 
-		newDDMStructure.setUserName(ServiceTestUtil.randomString());
+		newDDMStructure.setUserName(RandomTestUtil.randomString());
 
-		newDDMStructure.setCreateDate(ServiceTestUtil.nextDate());
+		newDDMStructure.setCreateDate(RandomTestUtil.nextDate());
 
-		newDDMStructure.setModifiedDate(ServiceTestUtil.nextDate());
+		newDDMStructure.setModifiedDate(RandomTestUtil.nextDate());
 
-		newDDMStructure.setClassNameId(ServiceTestUtil.nextLong());
+		newDDMStructure.setParentStructureId(RandomTestUtil.nextLong());
 
-		newDDMStructure.setStructureKey(ServiceTestUtil.randomString());
+		newDDMStructure.setClassNameId(RandomTestUtil.nextLong());
 
-		newDDMStructure.setName(ServiceTestUtil.randomString());
+		newDDMStructure.setStructureKey(RandomTestUtil.randomString());
 
-		newDDMStructure.setDescription(ServiceTestUtil.randomString());
+		newDDMStructure.setName(RandomTestUtil.randomString());
 
-		newDDMStructure.setXsd(ServiceTestUtil.randomString());
+		newDDMStructure.setDescription(RandomTestUtil.randomString());
 
-		newDDMStructure.setStorageType(ServiceTestUtil.randomString());
+		newDDMStructure.setXsd(RandomTestUtil.randomString());
 
-		newDDMStructure.setType(ServiceTestUtil.nextInt());
+		newDDMStructure.setStorageType(RandomTestUtil.randomString());
 
-		_persistence.update(newDDMStructure, false);
+		newDDMStructure.setType(RandomTestUtil.nextInt());
+
+		_persistence.update(newDDMStructure);
 
 		DDMStructure existingDDMStructure = _persistence.findByPrimaryKey(newDDMStructure.getPrimaryKey());
 
@@ -134,6 +185,8 @@ public class DDMStructurePersistenceTest {
 		Assert.assertEquals(Time.getShortTimestamp(
 				existingDDMStructure.getModifiedDate()),
 			Time.getShortTimestamp(newDDMStructure.getModifiedDate()));
+		Assert.assertEquals(existingDDMStructure.getParentStructureId(),
+			newDDMStructure.getParentStructureId());
 		Assert.assertEquals(existingDDMStructure.getClassNameId(),
 			newDDMStructure.getClassNameId());
 		Assert.assertEquals(existingDDMStructure.getStructureKey(),
@@ -151,6 +204,190 @@ public class DDMStructurePersistenceTest {
 	}
 
 	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUUID_G() {
+		try {
+			_persistence.countByUUID_G(StringPool.BLANK,
+				RandomTestUtil.nextLong());
+
+			_persistence.countByUUID_G(StringPool.NULL, 0L);
+
+			_persistence.countByUUID_G((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				RandomTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(RandomTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByGroupIdArrayable() {
+		try {
+			_persistence.countByGroupId(new long[] { RandomTestUtil.nextLong(), 0L });
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByParentStructureId() {
+		try {
+			_persistence.countByParentStructureId(RandomTestUtil.nextLong());
+
+			_persistence.countByParentStructureId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByClassNameId() {
+		try {
+			_persistence.countByClassNameId(RandomTestUtil.nextLong());
+
+			_persistence.countByClassNameId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByStructureKey() {
+		try {
+			_persistence.countByStructureKey(StringPool.BLANK);
+
+			_persistence.countByStructureKey(StringPool.NULL);
+
+			_persistence.countByStructureKey((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_P() {
+		try {
+			_persistence.countByG_P(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
+
+			_persistence.countByG_P(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_C() {
+		try {
+			_persistence.countByG_C(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
+
+			_persistence.countByG_C(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_CArrayable() {
+		try {
+			_persistence.countByG_C(new long[] { RandomTestUtil.nextLong(), 0L },
+				RandomTestUtil.nextLong());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_C() {
+		try {
+			_persistence.countByC_C(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
+
+			_persistence.countByC_C(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_C_S() {
+		try {
+			_persistence.countByG_C_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByG_C_S(0L, 0L, StringPool.NULL);
+
+			_persistence.countByG_C_S(0L, 0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_N_D() {
+		try {
+			_persistence.countByG_N_D(RandomTestUtil.nextLong(),
+				StringPool.BLANK, StringPool.BLANK);
+
+			_persistence.countByG_N_D(0L, StringPool.NULL, StringPool.NULL);
+
+			_persistence.countByG_N_D(0L, (String)null, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		DDMStructure newDDMStructure = addDDMStructure();
 
@@ -161,7 +398,7 @@ public class DDMStructurePersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -170,6 +407,37 @@ public class DDMStructurePersistenceTest {
 		}
 		catch (NoSuchStructureException nsee) {
 		}
+	}
+
+	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testFilterFindByGroupId() throws Exception {
+		try {
+			_persistence.filterFindByGroupId(0, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("DDMStructure", "uuid",
+			true, "structureId", true, "groupId", true, "companyId", true,
+			"userId", true, "userName", true, "createDate", true,
+			"modifiedDate", true, "parentStructureId", true, "classNameId",
+			true, "structureKey", true, "name", true, "description", true,
+			"xsd", true, "storageType", true, "type", true);
 	}
 
 	@Test
@@ -183,11 +451,115 @@ public class DDMStructurePersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		DDMStructure missingDDMStructure = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingDDMStructure);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		DDMStructure newDDMStructure1 = addDDMStructure();
+		DDMStructure newDDMStructure2 = addDDMStructure();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newDDMStructure1.getPrimaryKey());
+		primaryKeys.add(newDDMStructure2.getPrimaryKey());
+
+		Map<Serializable, DDMStructure> ddmStructures = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, ddmStructures.size());
+		Assert.assertEquals(newDDMStructure1,
+			ddmStructures.get(newDDMStructure1.getPrimaryKey()));
+		Assert.assertEquals(newDDMStructure2,
+			ddmStructures.get(newDDMStructure2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, DDMStructure> ddmStructures = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(ddmStructures.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		DDMStructure newDDMStructure = addDDMStructure();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newDDMStructure.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, DDMStructure> ddmStructures = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, ddmStructures.size());
+		Assert.assertEquals(newDDMStructure,
+			ddmStructures.get(newDDMStructure.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, DDMStructure> ddmStructures = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(ddmStructures.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		DDMStructure newDDMStructure = addDDMStructure();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newDDMStructure.getPrimaryKey());
+
+		Map<Serializable, DDMStructure> ddmStructures = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, ddmStructures.size());
+		Assert.assertEquals(newDDMStructure,
+			ddmStructures.get(newDDMStructure.getPrimaryKey()));
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = DDMStructureLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
+				@Override
+				public void performAction(Object object) {
+					DDMStructure ddmStructure = (DDMStructure)object;
+
+					Assert.assertNotNull(ddmStructure);
+
+					count.increment();
+				}
+			});
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -216,7 +588,7 @@ public class DDMStructurePersistenceTest {
 				DDMStructure.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("structureId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<DDMStructure> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -255,7 +627,7 @@ public class DDMStructurePersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("structureId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("structureId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -282,48 +654,55 @@ public class DDMStructurePersistenceTest {
 
 		Assert.assertEquals(existingDDMStructureModelImpl.getGroupId(),
 			existingDDMStructureModelImpl.getOriginalGroupId());
+		Assert.assertEquals(existingDDMStructureModelImpl.getClassNameId(),
+			existingDDMStructureModelImpl.getOriginalClassNameId());
 		Assert.assertTrue(Validator.equals(
 				existingDDMStructureModelImpl.getStructureKey(),
 				existingDDMStructureModelImpl.getOriginalStructureKey()));
 	}
 
 	protected DDMStructure addDDMStructure() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		DDMStructure ddmStructure = _persistence.create(pk);
 
-		ddmStructure.setUuid(ServiceTestUtil.randomString());
+		ddmStructure.setUuid(RandomTestUtil.randomString());
 
-		ddmStructure.setGroupId(ServiceTestUtil.nextLong());
+		ddmStructure.setGroupId(RandomTestUtil.nextLong());
 
-		ddmStructure.setCompanyId(ServiceTestUtil.nextLong());
+		ddmStructure.setCompanyId(RandomTestUtil.nextLong());
 
-		ddmStructure.setUserId(ServiceTestUtil.nextLong());
+		ddmStructure.setUserId(RandomTestUtil.nextLong());
 
-		ddmStructure.setUserName(ServiceTestUtil.randomString());
+		ddmStructure.setUserName(RandomTestUtil.randomString());
 
-		ddmStructure.setCreateDate(ServiceTestUtil.nextDate());
+		ddmStructure.setCreateDate(RandomTestUtil.nextDate());
 
-		ddmStructure.setModifiedDate(ServiceTestUtil.nextDate());
+		ddmStructure.setModifiedDate(RandomTestUtil.nextDate());
 
-		ddmStructure.setClassNameId(ServiceTestUtil.nextLong());
+		ddmStructure.setParentStructureId(RandomTestUtil.nextLong());
 
-		ddmStructure.setStructureKey(ServiceTestUtil.randomString());
+		ddmStructure.setClassNameId(RandomTestUtil.nextLong());
 
-		ddmStructure.setName(ServiceTestUtil.randomString());
+		ddmStructure.setStructureKey(RandomTestUtil.randomString());
 
-		ddmStructure.setDescription(ServiceTestUtil.randomString());
+		ddmStructure.setName(RandomTestUtil.randomString());
 
-		ddmStructure.setXsd(ServiceTestUtil.randomString());
+		ddmStructure.setDescription(RandomTestUtil.randomString());
 
-		ddmStructure.setStorageType(ServiceTestUtil.randomString());
+		ddmStructure.setXsd(RandomTestUtil.randomString());
 
-		ddmStructure.setType(ServiceTestUtil.nextInt());
+		ddmStructure.setStorageType(RandomTestUtil.randomString());
 
-		_persistence.update(ddmStructure, false);
+		ddmStructure.setType(RandomTestUtil.nextInt());
+
+		_persistence.update(ddmStructure);
 
 		return ddmStructure;
 	}
 
-	private DDMStructurePersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(DDMStructurePersistenceTest.class);
+	private ModelListener<DDMStructure>[] _modelListeners;
+	private DDMStructurePersistence _persistence = (DDMStructurePersistence)PortalBeanLocatorUtil.locate(DDMStructurePersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

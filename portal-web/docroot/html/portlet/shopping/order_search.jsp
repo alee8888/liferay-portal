@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,17 +22,21 @@ OrderSearch searchContainer = (OrderSearch)request.getAttribute("liferay-ui:sear
 OrderDisplayTerms displayTerms = (OrderDisplayTerms)searchContainer.getDisplayTerms();
 %>
 
-<aui:fieldset>
-	<aui:column>
-		<aui:input name="<%= displayTerms.NUMBER %>" size="20" type="text" value="<%= displayTerms.getNumber() %>" />
+<aui:fieldset column="<%= true %>">
+	<aui:col width="<%= 33 %>">
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="<%= displayTerms.NUMBER %>" size="20" type="text" value="<%= displayTerms.getNumber() %>" />
 
-		<aui:select label="" name="<%= displayTerms.AND_OPERATOR %>">
+		<aui:select label="" name="<%= displayTerms.AND_OPERATOR %>" title="and-or-operator">
 			<aui:option label="and" selected="<%= displayTerms.isAndOperator() %>" value="1" />
 			<aui:option label="or" selected="<%= !displayTerms.isAndOperator() %>" value="0" />
 		</aui:select>
-	</aui:column>
+	</aui:col>
 
-	<aui:column>
+	<aui:col width="<%= 33 %>">
+		<%@ include file="/html/portlet/shopping/order_search_user_name.jspf" %>
+	</aui:col>
+
+	<aui:col width="<%= 33 %>">
 		<aui:select name="<%= displayTerms.STATUS %>" showEmptyOption="<%= true %>">
 
 			<%
@@ -46,27 +50,11 @@ OrderDisplayTerms displayTerms = (OrderDisplayTerms)searchContainer.getDisplayTe
 			%>
 
 		</aui:select>
-	</aui:column>
 
-	<aui:column>
-		<aui:input name="<%= displayTerms.FIRST_NAME %>" size="20" type="text" value="<%= displayTerms.getFirstName() %>" />
-	</aui:column>
-
-	<aui:column>
-		<aui:input name="<%= displayTerms.LAST_NAME %>" size="20" type="text" value="<%= displayTerms.getLastName() %>" />
-	</aui:column>
-
-	<aui:column>
 		<aui:input name="<%= displayTerms.EMAIL_ADDRESS %>" size="20" type="text" value="<%= displayTerms.getEmailAddress() %>" />
-	</aui:column>
+	</aui:col>
 </aui:fieldset>
 
 <aui:button-row>
 	<aui:button type="submit" value="search" />
 </aui:button-row>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace /><%= displayTerms.NUMBER %>);
-	</aui:script>
-</c:if>

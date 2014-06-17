@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,60 +16,62 @@
 
 <%@ include file="/html/taglib/ui/search_toggle/init.jsp" %>
 
-		<c:if test="<%= Validator.isNotNull(buttonLabel) %>">
-			<aui:button type="submit" value="<%= buttonLabel %>" />
-		</c:if>
-
-		<div class="<%= id %>toggle-link">
-			<aui:a href="javascript:;" tabindex="-1">&laquo; <liferay-ui:message key="basic" /></aui:a>
 		</div>
 	</div>
 </div>
 
-<aui:script>
-	var <%= id %>curClickValue = '<%= clickValue %>';
-</aui:script>
+<aui:script position="inline" use="aui-toggler,event-key">
+	var Util = Liferay.Util;
 
-<aui:script use="liferay-store">
-	var basicForm = A.one('#<%= id %>basic');
-	var advancedForm = A.one('#<%= id %>advanced');
+	var advancedNode = A.one('#<%= id %>advanced');
+	var advancedSearchNode = A.one('#<%= id + displayTerms.ADVANCED_SEARCH %>');
+	var closeAdvancedNode = A.one('#<portlet:namespace />closeAdvancedSearch');
+	var keywordsNode = A.one('#<%= id + displayTerms.KEYWORDS %>');
+	var simpleNode = A.one('#<%= id %>simple');
+	var toggleAdvancedNode = A.one('#<%= id %>toggleAdvanced');
 
-	var basicControls = basicForm.all('input:not(:submit), select');
-	var advancedControls = advancedForm.all('input:not(:submit), select');
+	var toggleDisabled = function(state) {
+		Util.toggleDisabled(simpleNode.all('input'), state);
+		Util.toggleDisabled(advancedNode.all('input'), !state);
+	};
 
-	if (<%= id %>curClickValue == 'basic') {
-		advancedControls.attr('disabled', 'disabled');
-	}
-	else {
-		basicControls.attr('disabled', 'disabled');
-	}
-
-	A.all('.<%= id %>toggle-link a').on(
-		'click',
-		function() {
-			basicForm.toggle();
-			advancedForm.toggle();
-
-			var advancedSearchObj = A.one('#<%= namespace %><%= id %><%= displayTerms.ADVANCED_SEARCH %>');
-
-			if (<%= id %>curClickValue == 'basic') {
-				<%= id %>curClickValue = 'advanced';
-
-				advancedSearchObj.val(true);
-
-				basicControls.attr('disabled', 'disabled');
-				advancedControls.attr('disabled', '');
+	var toggler = new A.Toggler(
+		{
+			animated: true,
+			content: advancedNode,
+			expanded: <%= displayTerms.isAdvancedSearch() %>,
+			header: toggleAdvancedNode,
+			transition: {
+				duration: 0.2,
+				easing: 'cubic-bezier(0, 0.1, 0, 1.0)'
 			}
-			else {
-				<%= id %>curClickValue = 'basic';
-
-				advancedSearchObj.val(false);
-
-				basicControls.attr('disabled', '');
-				advancedControls.attr('disabled', 'disabled');
-			}
-
-			Liferay.Store('<%= id %>', <%= id %>curClickValue);
 		}
 	);
+
+	toggler.on(
+		'expandedChange',
+		function() {
+			var expanded = !toggler.get('expanded');
+
+			advancedSearchNode.val(expanded);
+
+			toggleDisabled(expanded);
+
+			var inputNode = keywordsNode;
+
+			if (expanded) {
+				inputNode = advancedNode.one('input:text');
+			}
+
+			Util.focusFormField(inputNode);
+		}
+	);
+
+	closeAdvancedNode.on('click', A.fn(0, 'toggle', toggler));
 </aui:script>
+
+<c:if test="<%= autoFocus %>">
+	<aui:script>
+		Liferay.Util.focusFormField('#<%= id + displayTerms.KEYWORDS %>');
+	</aui:script>
+</c:if>

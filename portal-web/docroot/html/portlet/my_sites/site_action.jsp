@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,7 +24,7 @@ Group group = (Group)row.getObject();
 String tabs1 = (String)request.getAttribute("view.jsp-tabs1");
 %>
 
-<liferay-ui:icon-menu>
+<liferay-ui:icon-menu direction="down" extended="<%= false %>" icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>" showWhenSingleIcon='<%= tabs1.equals("my-sites") %>' triggerCssClass="btn btn-default">
 	<c:choose>
 		<c:when test='<%= tabs1.equals("my-sites") %>'>
 			<c:if test="<%= group.getPublicLayoutsPageCount() > 0 %>">
@@ -36,7 +36,7 @@ String tabs1 = (String)request.getAttribute("view.jsp-tabs1");
 				</portlet:actionURL>
 
 				<liferay-ui:icon
-					image="view"
+					iconCssClass="icon-search"
 					message="go-to-public-pages"
 					target="_blank"
 					url="<%= viewPublicPagesURL %>"
@@ -52,14 +52,14 @@ String tabs1 = (String)request.getAttribute("view.jsp-tabs1");
 				</portlet:actionURL>
 
 				<liferay-ui:icon
-					image="view"
+					iconCssClass="icon-search"
 					message="go-to-private-pages"
 					target="_blank"
 					url="<%= viewPrivatePagesURL %>"
 				/>
 			</c:if>
 
-			<c:if test="<%= ((group.getType() == GroupConstants.TYPE_SITE_OPEN) || (group.getType() == GroupConstants.TYPE_SITE_RESTRICTED)) && GroupLocalServiceUtil.hasUserGroup(user.getUserId(), group.getGroupId(), false) %>">
+			<c:if test="<%= ((group.getType() == GroupConstants.TYPE_SITE_OPEN) || (group.getType() == GroupConstants.TYPE_SITE_RESTRICTED)) && GroupLocalServiceUtil.hasUserGroup(user.getUserId(), group.getGroupId(), false) && !SiteMembershipPolicyUtil.isMembershipRequired(user.getUserId(), group.getGroupId()) && group.isManualMembership() %>">
 				<portlet:actionURL var="leaveURL">
 					<portlet:param name="struts_action" value="/sites_admin/edit_site_assignments" />
 					<portlet:param name="<%= Constants.CMD %>" value="group_users" />
@@ -69,14 +69,15 @@ String tabs1 = (String)request.getAttribute("view.jsp-tabs1");
 				</portlet:actionURL>
 
 				<liferay-ui:icon
-					image="leave"
+					iconCssClass="icon-external-link-sign"
+					message="leave"
 					url="<%= leaveURL %>"
 				/>
 			</c:if>
 		</c:when>
-		<c:otherwise>
+		<c:when test="<%= group.isManualMembership() %>">
 			<c:choose>
-				<c:when test="<%= !GroupLocalServiceUtil.hasUserGroup(user.getUserId(), group.getGroupId()) %>">
+				<c:when test="<%= !GroupLocalServiceUtil.hasUserGroup(user.getUserId(), group.getGroupId()) && SiteMembershipPolicyUtil.isMembershipAllowed(user.getUserId(), group.getGroupId()) %>">
 					<c:choose>
 						<c:when test="<%= group.getType() == GroupConstants.TYPE_SITE_OPEN %>">
 							<portlet:actionURL var="joinURL">
@@ -88,11 +89,12 @@ String tabs1 = (String)request.getAttribute("view.jsp-tabs1");
 							</portlet:actionURL>
 
 							<liferay-ui:icon
-								image="join"
+								iconCssClass="icon-group"
+								message="join"
 								url="<%= joinURL %>"
 							/>
 						</c:when>
-						<c:when test="<%= (group.getType() == GroupConstants.TYPE_SITE_RESTRICTED) && !MembershipRequestLocalServiceUtil.hasMembershipRequest(user.getUserId(), group.getGroupId(), MembershipRequestConstants.STATUS_PENDING) %>">
+						<c:when test="<%= (group.getType() == GroupConstants.TYPE_SITE_RESTRICTED) && !MembershipRequestLocalServiceUtil.hasMembershipRequest(user.getUserId(), group.getGroupId(), MembershipRequestConstants.STATUS_PENDING) && SiteMembershipPolicyUtil.isMembershipAllowed(user.getUserId(), group.getGroupId()) %>">
 							<portlet:renderURL var="membershipRequestURL">
 								<portlet:param name="struts_action" value="/sites_admin/post_membership_request" />
 								<portlet:param name="redirect" value="<%= currentURL %>" />
@@ -100,21 +102,21 @@ String tabs1 = (String)request.getAttribute("view.jsp-tabs1");
 							</portlet:renderURL>
 
 							<liferay-ui:icon
-								image="post"
+								iconCssClass="icon-pencil"
 								message="request-membership"
 								url="<%= membershipRequestURL %>"
 							/>
 						</c:when>
 						<c:when test="<%= MembershipRequestLocalServiceUtil.hasMembershipRequest(user.getUserId(), group.getGroupId(), MembershipRequestConstants.STATUS_PENDING) %>">
 							<liferay-ui:icon
-								image="checked"
+								iconCssClass="icon-check"
 								message="membership-requested"
 							/>
 						</c:when>
 					</c:choose>
 				</c:when>
 				<c:otherwise>
-					<c:if test="<%= ((group.getType() == GroupConstants.TYPE_SITE_OPEN) || (group.getType() == GroupConstants.TYPE_SITE_RESTRICTED)) && GroupLocalServiceUtil.hasUserGroup(user.getUserId(), group.getGroupId(), false) %>">
+					<c:if test="<%= ((group.getType() == GroupConstants.TYPE_SITE_OPEN) || (group.getType() == GroupConstants.TYPE_SITE_RESTRICTED)) && GroupLocalServiceUtil.hasUserGroup(user.getUserId(), group.getGroupId(), false) && !SiteMembershipPolicyUtil.isMembershipRequired(user.getUserId(), group.getGroupId()) %>">
 						<portlet:actionURL var="leaveURL">
 							<portlet:param name="struts_action" value="/sites_admin/edit_site_assignments" />
 							<portlet:param name="<%= Constants.CMD %>" value="group_users" />
@@ -124,12 +126,13 @@ String tabs1 = (String)request.getAttribute("view.jsp-tabs1");
 						</portlet:actionURL>
 
 						<liferay-ui:icon
-							image="leave"
+							iconCssClass="icon-external-link-sign"
+							message="leave"
 							url="<%= leaveURL %>"
 						/>
 					</c:if>
 				</c:otherwise>
 			</c:choose>
-		</c:otherwise>
+		</c:when>
 	</c:choose>
 </liferay-ui:icon-menu>

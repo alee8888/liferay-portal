@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.taglib.aui;
 
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.taglib.aui.base.BaseButtonTag;
 
@@ -25,6 +26,13 @@ import javax.servlet.http.HttpServletRequest;
  * @author Brian Wing Shun Chan
  */
 public class ButtonTag extends BaseButtonTag {
+
+	@Override
+	public void setIconAlign(String iconAlign) {
+		if (iconAlign != null) {
+			super.setIconAlign(StringUtil.toLowerCase(iconAlign));
+		}
+	}
 
 	@Override
 	protected boolean isCleanUpSetAttributes() {

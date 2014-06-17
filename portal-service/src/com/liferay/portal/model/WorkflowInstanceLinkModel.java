@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,9 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -37,8 +38,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.WorkflowInstanceLinkModelImpl
  * @generated
  */
+@ProviderType
 public interface WorkflowInstanceLinkModel extends AttachedModel,
-	BaseModel<WorkflowInstanceLink>, GroupedModel {
+	BaseModel<WorkflowInstanceLink>, GroupedModel, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -60,6 +62,22 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	public void setPrimaryKey(long primaryKey);
 
 	/**
+	 * Returns the mvcc version of this workflow instance link.
+	 *
+	 * @return the mvcc version of this workflow instance link
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this workflow instance link.
+	 *
+	 * @param mvccVersion the mvcc version of this workflow instance link
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
 	 * Returns the workflow instance link ID of this workflow instance link.
 	 *
 	 * @return the workflow instance link ID of this workflow instance link
@@ -78,6 +96,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @return the group ID of this workflow instance link
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -85,6 +104,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @param groupId the group ID of this workflow instance link
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -92,6 +112,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @return the company ID of this workflow instance link
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -99,6 +120,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @param companyId the company ID of this workflow instance link
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -106,6 +128,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @return the user ID of this workflow instance link
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -113,21 +136,23 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @param userId the user ID of this workflow instance link
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
 	 * Returns the user uuid of this workflow instance link.
 	 *
 	 * @return the user uuid of this workflow instance link
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getUserUuid() throws SystemException;
+	@Override
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this workflow instance link.
 	 *
 	 * @param userUuid the user uuid of this workflow instance link
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -136,6 +161,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 * @return the user name of this workflow instance link
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -143,6 +169,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @param userName the user name of this workflow instance link
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -150,6 +177,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @return the create date of this workflow instance link
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -157,6 +185,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @param createDate the create date of this workflow instance link
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -164,6 +193,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @return the modified date of this workflow instance link
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -171,6 +201,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @param modifiedDate the modified date of this workflow instance link
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -178,6 +209,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @return the fully qualified class name of this workflow instance link
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -187,6 +219,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @return the class name ID of this workflow instance link
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -194,6 +227,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @param classNameId the class name ID of this workflow instance link
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -201,6 +235,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @return the class p k of this workflow instance link
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -208,6 +243,7 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 *
 	 * @param classPK the class p k of this workflow instance link
 	 */
+	@Override
 	public void setClassPK(long classPK);
 
 	/**
@@ -224,35 +260,60 @@ public interface WorkflowInstanceLinkModel extends AttachedModel,
 	 */
 	public void setWorkflowInstanceId(long workflowInstanceId);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(WorkflowInstanceLink workflowInstanceLink);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<WorkflowInstanceLink> toCacheModel();
 
+	@Override
 	public WorkflowInstanceLink toEscapedModel();
 
+	@Override
+	public WorkflowInstanceLink toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

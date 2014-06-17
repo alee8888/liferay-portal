@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,8 +22,6 @@ String tabs2 = (String)request.getAttribute("edit_site_assignments.jsp-tabs2");
 
 int cur = (Integer)request.getAttribute("edit_site_assignments.jsp-cur");
 
-String redirect = ParamUtil.getString(request, "redirect");
-
 Group group = (Group)request.getAttribute("edit_site_assignments.jsp-group");
 
 PortletURL portletURL = (PortletURL)request.getAttribute("edit_site_assignments.jsp-portletURL");
@@ -33,7 +31,7 @@ PortletURL viewOrganizationsURL = renderResponse.createRenderURL();
 viewOrganizationsURL.setParameter("struts_action", "/sites_admin/edit_site_assignments");
 viewOrganizationsURL.setParameter("tabs1", "organizations");
 viewOrganizationsURL.setParameter("tabs2", tabs2);
-viewOrganizationsURL.setParameter("redirect", redirect);
+viewOrganizationsURL.setParameter("redirect", currentURL);
 viewOrganizationsURL.setParameter("groupId", String.valueOf(group.getGroupId()));
 
 OrganizationGroupChecker organizationGroupChecker = null;
@@ -48,9 +46,9 @@ if (tabs2.equals("current")) {
 	emptyResultsMessage ="no-organization-was-found-that-is-a-member-of-this-site";
 }
 
-OrganizationSearch organizationSearch = new OrganizationSearch(renderRequest, viewOrganizationsURL);
+SearchContainer searchContainer = new OrganizationSearch(renderRequest, viewOrganizationsURL);
 
-organizationSearch.setEmptyResultsMessage(emptyResultsMessage);
+searchContainer.setEmptyResultsMessage(emptyResultsMessage);
 %>
 
 <aui:input name="tabs1" type="hidden" value="organizations" />
@@ -59,7 +57,8 @@ organizationSearch.setEmptyResultsMessage(emptyResultsMessage);
 
 <liferay-ui:search-container
 	rowChecker="<%= organizationGroupChecker %>"
-	searchContainer="<%= organizationSearch %>"
+	searchContainer="<%= searchContainer %>"
+	var="organizationSearchContainer"
 >
 	<c:if test='<%= !tabs1.equals("summary") %>'>
 		<liferay-ui:search-form
@@ -70,13 +69,14 @@ organizationSearch.setEmptyResultsMessage(emptyResultsMessage);
 	</c:if>
 
 	<%
-	OrganizationSearchTerms searchTerms = (OrganizationSearchTerms)searchContainer.getSearchTerms();
+	OrganizationSearchTerms searchTerms = (OrganizationSearchTerms)organizationSearchContainer.getSearchTerms();
 
 	long parentOrganizationId = OrganizationConstants.ANY_PARENT_ORGANIZATION_ID;
 
-	LinkedHashMap organizationParams = new LinkedHashMap();
+	LinkedHashMap<String, Object> organizationParams = new LinkedHashMap<String, Object>();
 
 	if (tabs1.equals("summary") || tabs2.equals("current")) {
+		organizationParams.put("groupOrganization", new Long(group.getGroupId()));
 		organizationParams.put("organizationsGroups", new Long(group.getGroupId()));
 	}
 	%>
@@ -94,27 +94,19 @@ organizationSearch.setEmptyResultsMessage(emptyResultsMessage);
 		<liferay-ui:search-container-column-text
 			name="name"
 			orderable="<%= true %>"
-			property="name"
-		/>
-
-		<liferay-ui:search-container-column-text
-			buffer="buffer"
-			name="parent-organization"
 		>
 
-			<%
-			if (organization.getParentOrganizationId() > 0) {
-				try {
-					Organization parentOrganization = OrganizationLocalServiceUtil.getOrganization(organization.getParentOrganizationId());
+			<%= organization.getName() %>
 
-					buffer.append(HtmlUtil.escape(parentOrganization.getName()));
-				}
-				catch (Exception e) {
-				}
-			}
-			%>
-
+			<c:if test="<%= group.getOrganizationId() == organization.getOrganizationId() %>">
+				<liferay-ui:icon-help message='<%= LanguageUtil.format(pageContext, "this-site-belongs-to-x-which-is-an-organization-of-type-x", new String[] {organization.getName(), LanguageUtil.get(pageContext, organization.getType())}, false) + StringPool.SPACE + LanguageUtil.format(pageContext, "all-users-of-x-are-automatically-members-of-the-site", organization.getName(), false) %>' />
+			</c:if>
 		</liferay-ui:search-container-column-text>
+
+		<liferay-ui:search-container-column-text
+			name="parent-organization"
+			value="<%= HtmlUtil.escape(organization.getParentOrganizationName()) %>"
+		/>
 
 		<liferay-ui:search-container-column-text
 			name="type"
@@ -141,72 +133,59 @@ organizationSearch.setEmptyResultsMessage(emptyResultsMessage);
 	</liferay-ui:search-container-row>
 
 	<liferay-util:buffer var="formButton">
-		<c:choose>
-			<c:when test='<%= tabs2.equals("current") %>'>
+		<c:if test="<%= GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.ASSIGN_MEMBERS) %>">
+			<c:choose>
+				<c:when test='<%= tabs2.equals("current") %>'>
 
-				<%
-				viewOrganizationsURL.setParameter("tabs2", "available");
-				%>
+					<%
+					viewOrganizationsURL.setParameter("tabs2", "available");
+					%>
 
-				<aui:button-row>
-					<aui:button href="<%= viewOrganizationsURL.toString() %>" value="assign-organizations" />
-				</aui:button-row>
+					<liferay-ui:icon
+						iconCssClass="icon-globe"
+						label="<%= true %>"
+						message="assign-organizations"
+						url="<%= viewOrganizationsURL.toString() %>"
+					/>
 
-				<%
-				viewOrganizationsURL.setParameter("tabs2", "current");
-				%>
+					<%
+					viewOrganizationsURL.setParameter("tabs2", "current");
+					%>
 
-			</c:when>
-			<c:otherwise>
+				</c:when>
+				<c:otherwise>
 
-				<%
-				portletURL.setParameter("tabs2", "current");
+					<%
+					portletURL.setParameter("tabs2", "current");
+					portletURL.setParameter("cur", String.valueOf(cur));
 
-				String taglibOnClick = renderResponse.getNamespace() + "updateGroupOrganizations('" + portletURL.toString() + StringPool.AMPERSAND + renderResponse.getNamespace() + "cur=" + cur + "');";
-				%>
+					String taglibOnClick = renderResponse.getNamespace() + "updateGroupOrganizations('" + portletURL.toString() + "');";
+					%>
 
-				<aui:button-row>
-					<aui:button onClick="<%= taglibOnClick %>" value="save" />
-				</aui:button-row>
-			</c:otherwise>
-		</c:choose>
+					<aui:button-row>
+						<aui:button onClick="<%= taglibOnClick %>" primary="<%= true %>" value="save" />
+					</aui:button-row>
+				</c:otherwise>
+			</c:choose>
+		</c:if>
 	</liferay-util:buffer>
 
 	<c:choose>
 		<c:when test='<%= tabs1.equals("summary") && (total > 0) %>'>
-			<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" persistState="<%= true %>" title='<%= LanguageUtil.format(pageContext, (total > 1) ? "x-organizations" : "x-organization", total) %>'>
-				<aui:input inlineField="<%= true %>" label="" name='<%= DisplayTerms.KEYWORDS + "_organizations" %>' size="30" value="" />
-
-				<aui:button type="submit" value="search" />
-
-				<br /><br />
+			<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" persistState="<%= true %>" title='<%= LanguageUtil.format(pageContext, (total > 1) ? "x-organizations" : "x-organization", total, false) %>'>
+				<span class="form-search">
+					<liferay-ui:input-search name='<%= DisplayTerms.KEYWORDS + "_organizations" %>' />
+				</span>
 
 				<liferay-ui:search-iterator paginate="<%= false %>" />
 
-				<c:if test="<%= total > organizationSearch.getDelta() %>">
+				<c:if test="<%= total > searchContainer.getDelta() %>">
 					<a href="<%= viewOrganizationsURL %>"><liferay-ui:message key="view-more" /> &raquo;</a>
 				</c:if>
 			</liferay-ui:panel>
-
-			<div class="separator"><!-- --></div>
 		</c:when>
 		<c:when test='<%= !tabs1.equals("summary") %>'>
-
-			<%
-			Organization groupOrganization = null;
-
-			if (group.isOrganization()) {
-				groupOrganization = OrganizationLocalServiceUtil.getOrganization(group.getOrganizationId());
-			}
-			%>
-
-			<c:if test='<%= tabs2.equals("current") && (groupOrganization != null) %>'>
-				<div class="organizations-msg-info portlet-msg">
-					<liferay-ui:message arguments="<%= new String[] {groupOrganization.getName(), LanguageUtil.get(pageContext, groupOrganization.getType())} %>" key="this-site-belongs-to-x-which-is-an-organization-of-type-x" />
-				</div>
-			</c:if>
-
-			<c:if test="<%= total > organizationSearch.getDelta() %>">
+			<c:if test="<%= PropsValues.SEARCH_CONTAINER_SHOW_PAGINATION_TOP && (results.size() > PropsValues.SEARCH_CONTAINER_SHOW_PAGINATION_TOP_DELTA) %>">
 				<%= formButton %>
 			</c:if>
 

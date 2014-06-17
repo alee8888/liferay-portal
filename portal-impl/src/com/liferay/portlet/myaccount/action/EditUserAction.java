@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -42,8 +42,9 @@ public class EditUserAction
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		if (redirectToLogin(actionRequest, actionResponse)) {
@@ -51,13 +52,15 @@ public class EditUserAction
 		}
 
 		super.processAction(
-			mapping, form, portletConfig, actionRequest, actionResponse);
+			actionMapping, actionForm, portletConfig, actionRequest,
+			actionResponse);
 	}
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		User user = PortalUtil.getUser(renderRequest);
@@ -71,7 +74,8 @@ public class EditUserAction
 			"p_u_i_d", String.valueOf(user.getUserId()));
 
 		return super.render(
-			mapping, form, portletConfig, renderRequest, renderResponse);
+			actionMapping, actionForm, portletConfig, renderRequest,
+			renderResponse);
 	}
 
 	@Override

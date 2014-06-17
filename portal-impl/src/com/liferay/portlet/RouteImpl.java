@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -39,40 +39,49 @@ public class RouteImpl implements Route {
 		_stringParser.setStringEncoder(_urlEncoder);
 	}
 
+	@Override
 	public void addGeneratedParameter(String name, String pattern) {
 		StringParser stringParser = new StringParser(pattern);
 
 		_generatedParameters.put(name, stringParser);
 	}
 
+	@Override
 	public void addIgnoredParameter(String name) {
 		_ignoredParameters.add(name);
 	}
 
+	@Override
 	public void addImplicitParameter(String name, String value) {
 		_implicitParameters.put(name, value);
 	}
 
+	@Override
 	public void addOverriddenParameter(String name, String value) {
 		_overriddenParameters.put(name, value);
 	}
 
+	@Override
 	public Map<String, StringParser> getGeneratedParameters() {
 		return _generatedParameters;
 	}
 
+	@Override
 	public Set<String> getIgnoredParameters() {
 		return _ignoredParameters;
 	}
 
+	@Override
 	public Map<String, String> getImplicitParameters() {
 		return _implicitParameters;
 	}
 
+	@Override
 	public Map<String, String> getOverriddenParameters() {
 		return _overriddenParameters;
 	}
 
+	@Override
 	public String parametersToUrl(Map<String, String> parameters) {
 		InheritableMap<String, String> allParameters =
 			new InheritableMap<String, String>();
@@ -112,8 +121,8 @@ public class RouteImpl implements Route {
 
 		for (String name : _generatedParameters.keySet()) {
 
-			// Virtual parameters will never be placed in the query string,
-			// so parameters is modified directly instead of allParameters
+			// Virtual parameters will never be placed in the query string, so
+			// parameters is modified directly instead of allParameters
 
 			parameters.remove(name);
 		}
@@ -129,6 +138,7 @@ public class RouteImpl implements Route {
 		return url;
 	}
 
+	@Override
 	public boolean urlToParameters(String url, Map<String, String> parameters) {
 		if (!_stringParser.parse(url, parameters)) {
 			return false;

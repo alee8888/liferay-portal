@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,20 +29,21 @@ public class ShardPollerProcessorWrapper implements PollerProcessor {
 		_pollerProcessor = pollerProcessor;
 	}
 
-	public void receive(
-			PollerRequest pollerRequest, PollerResponse pollerResponse)
+	@Override
+	public PollerResponse receive(PollerRequest pollerRequest)
 		throws PollerException {
 
 		try {
 			ShardUtil.pushCompanyService(pollerRequest.getCompanyId());
 
-			_pollerProcessor.receive(pollerRequest, pollerResponse);
+			return _pollerProcessor.receive(pollerRequest);
 		}
 		finally {
 			ShardUtil.popCompanyService();
 		}
 	}
 
+	@Override
 	public void send(PollerRequest pollerRequest) throws PollerException {
 		try {
 			ShardUtil.pushCompanyService(pollerRequest.getCompanyId());

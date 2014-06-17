@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -44,7 +44,7 @@ String defaultMessage = (String)request.getAttribute("liferay-ui:toggle:defaultM
 </c:choose>
 
 <aui:script>
-	var <%= stateVar %> = "<%= defaultStateValue %>";
+	var <%= stateVar %> = '<%= defaultStateValue %>';
 
 	Liferay.provide(
 		window,
@@ -56,41 +56,57 @@ String defaultMessage = (String)request.getAttribute("liferay-ui:toggle:defaultM
 				state = <%= stateVar %>;
 			}
 
-			if (state == "") {
-				<%= stateVar %> = "none";
+			if (state == '') {
+				<%= stateVar %> = 'none';
 
-				document.getElementById("<%= id %>").style.display = "none";
+				document.getElementById('<%= id %>').style.display = 'none';
 
 				<c:choose>
 					<c:when test="<%= Validator.isNotNull(showMessage) %>">
-						document.getElementById("<%= id %>_message").innerHTML = "<%= showMessage %>";
+						document.getElementById('<%= id %>_message').innerHTML = '<%= showMessage %>';
 					</c:when>
 					<c:otherwise>
-						document.getElementById("<%= id %>_image").src = "<%= showImage %>";
+						document.getElementById('<%= id %>_image').src = '<%= showImage %>';
 					</c:otherwise>
 				</c:choose>
 
 				if ((saveState == null) || saveState) {
 					Liferay.Store('<%= id %>', 'none');
 				}
+
+				Liferay.fire(
+					'toggle:stateChange',
+					{
+						id: '<%= id %>',
+						state: 0
+					}
+				);
 			}
 			else {
-				<%= stateVar %> = "";
+				<%= stateVar %> = '';
 
-				document.getElementById("<%= id %>").style.display = "";
+				document.getElementById('<%= id %>').style.display = '';
 
 				<c:choose>
 					<c:when test="<%= Validator.isNotNull(showMessage) %>">
-						document.getElementById("<%= id %>_message").innerHTML = "<%= hideMessage %>";
+						document.getElementById('<%= id %>_message').innerHTML = '<%= hideMessage %>';
 					</c:when>
 					<c:otherwise>
-						document.getElementById("<%= id %>_image").src = "<%= hideImage %>";
+						document.getElementById('<%= id %>_image').src = '<%= hideImage %>';
 					</c:otherwise>
 				</c:choose>
 
 				if ((saveState == null) || saveState) {
 					Liferay.Store('<%= id %>', 'block');
 				}
+
+				Liferay.fire(
+					'toggle:stateChange',
+					{
+						id: '<%= id %>',
+						state: 1
+					}
+				);
 			}
 		},
 		['liferay-store']

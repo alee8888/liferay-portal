@@ -1,0 +1,204 @@
+<html>
+<head>
+<title>CPCategories</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">CPCategories</td></tr>
+</thead>
+<tbody>
+<tr>
+	<td>PAGE_NAME</td>
+	<td></td>
+	<td>CPCategories</td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUCCESS_MESSAGE</td>
+	<td>//div[contains(@class,'lfr-message-response') and contains(@class,'alert') and contains(@class,'alert-success')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_VOCABULARY_BUTTON</td>
+	<td>//li[@id='_147_addVocabularyButton']/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_CATEGORY_BUTTON</td>
+	<td>//li[@id='_147_addCategoryButton']/a</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ACTIONS_BUTTON</td>
+	<td>//li[contains(@class,'dropdown')]/a[contains(.,'Actions')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ALL_VOCABULARIES_CHECKBOX</td>
+	<td>//input[@id='_147_checkAllVocabulariesCheckbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ALL_CATEGORIES_CHECKBOX</td>
+	<td>//input[@id='_147_checkAllCategoriesCheckbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUBCATEGORY_CHECKBOX</td>
+	<td>//ul[@class='tree-container']/li[contains(.,'${key_subcategoryName}')]/div/i[@class='tree-node-checkbox-container icon-check']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO_MESSAGE</td>
+	<td>//div[@id='vocabularyCategoryMessages']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO_MESSAGE_ALERT</td>
+	<td>//div[contains(@class,'message-response') and contains(@class,'alert')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONFIRMATION</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--ACTIONS_MENULIST-->
+<tr>
+	<td>ACTIONS_MENULIST_DELETE</td>
+	<td>//ul[contains(@class,'dropdown-menu')]/li/a[contains(.,'Delete')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--CATEGORY_DETAILS-->
+<tr>
+	<td>CATEGORY_DETAILS_HEADER</td>
+	<td>//h3[@class='header-title']/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CATEGORY_DETAILS_EDIT_BUTTON</td>
+	<td>//button[@id='editCategoryButton']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CATEGORY_DETAILS_DELETE_BUTTON</td>
+	<td>//button[@id='deleteCategoryButton']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CATEGORY_DETAILS_PERMISSIONS_BUTTON</td>
+	<td>//button[@id='updateCategoryPermissions']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CATEGORY_DETAILS_ADD_SUBCATEGORY_BUTTON</td>
+	<td>//button[@id='addSubCategoryButton']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CATEGORY_DETAILS_DROPDOWN_TREE</td>
+	<td>//i[contains(@class,'tree-hitarea') and contains(@class,'icon-plus')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CATEGORY_DETAILS_PROPERTY_KEY</td>
+	<td>//span[@class='property-key']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CATEGORY_DETAILS_PROPERTY_VALUE</td>
+	<td>//span[@class='property-value']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CATEGORY_DETAILS_PROPERTY_KEY_2</td>
+	<td>//div[@class='category-field']/span[contains(.,'${propertiesKeyField} ${i} Key')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CATEGORY_DETAILS_PROPERTY_VALUE_2</td>
+	<td>//div[@class='category-field']/span[contains(.,'${propertiesKeyField} ${i} Value')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--SUBCATEGORY_DETAILS-->
+<tr>
+	<td>SUBCATEGORY_DETAILS_HEADER</td>
+	<td>//h3[@class='header-title']/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUBCATEGORY_DETAILS_EDIT_BUTTON</td>
+	<td>//button[@id='editCategoryButton']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUBCATEGORY_DETAILS_DELETE_BUTTON</td>
+	<td>//button[@id='deleteCategoryButton']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUBCATEGORY_DETAILS_ADD_SUBCATEGORY_BUTTON</td>
+	<td>//button[@id='addSubCategoryButton']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--VOCABULARY_ENTRY-->
+<tr>
+	<td>VOCABULARY_ENTRY_GENERIC</td>
+	<td>//li[contains(.,'Topic')]/a/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VOCABULARY_ENTRY</td>
+	<td>//li[contains(.,'${key_vocabularyName}')]/a/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VOCABULARY_ENTRY_EDIT_ICON</td>
+	<td>//li[contains(.,'${key_vocabularyName}')]/a/span[contains(@class,'vocabulary-item-actions-trigger')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--VOCABULARY_CATEGORY-->
+<tr>
+	<td>VOCABULARY_CATEGORY</td>
+	<td>//div[@id='categoriesTreeContainer']/ul/li[contains(.,'${key_categoryName}')]/div/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VOCABULARY_CATEGORY_SUBCATEGORY</td>
+	<td>//ul[@class='tree-container']/li/div/span[contains(.,'${key_subcategoryName}')]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

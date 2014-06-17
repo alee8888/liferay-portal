@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,8 +23,8 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portlet.dynamicdatamapping.service.http.DDMTemplateServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portlet.dynamicdatamapping.service.http.DDMTemplateServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portlet.dynamicdatamapping.service.http.DDMTemplateServiceSoap
  * @generated
  */
 public class DDMTemplateSoap implements Serializable {
@@ -48,6 +48,10 @@ public class DDMTemplateSoap implements Serializable {
 		soapModel.setMode(model.getMode());
 		soapModel.setLanguage(model.getLanguage());
 		soapModel.setScript(model.getScript());
+		soapModel.setCacheable(model.getCacheable());
+		soapModel.setSmallImage(model.getSmallImage());
+		soapModel.setSmallImageId(model.getSmallImageId());
+		soapModel.setSmallImageURL(model.getSmallImageURL());
 
 		return soapModel;
 	}
@@ -236,6 +240,46 @@ public class DDMTemplateSoap implements Serializable {
 		_script = script;
 	}
 
+	public boolean getCacheable() {
+		return _cacheable;
+	}
+
+	public boolean isCacheable() {
+		return _cacheable;
+	}
+
+	public void setCacheable(boolean cacheable) {
+		_cacheable = cacheable;
+	}
+
+	public boolean getSmallImage() {
+		return _smallImage;
+	}
+
+	public boolean isSmallImage() {
+		return _smallImage;
+	}
+
+	public void setSmallImage(boolean smallImage) {
+		_smallImage = smallImage;
+	}
+
+	public long getSmallImageId() {
+		return _smallImageId;
+	}
+
+	public void setSmallImageId(long smallImageId) {
+		_smallImageId = smallImageId;
+	}
+
+	public String getSmallImageURL() {
+		return _smallImageURL;
+	}
+
+	public void setSmallImageURL(String smallImageURL) {
+		_smallImageURL = smallImageURL;
+	}
+
 	private String _uuid;
 	private long _templateId;
 	private long _groupId;
@@ -253,4 +297,8 @@ public class DDMTemplateSoap implements Serializable {
 	private String _mode;
 	private String _language;
 	private String _script;
+	private boolean _cacheable;
+	private boolean _smallImage;
+	private long _smallImageId;
+	private String _smallImageURL;
 }

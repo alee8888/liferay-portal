@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,9 @@
 
 package com.liferay.portlet.trash.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
@@ -40,6 +41,7 @@ import java.util.Date;
  * @see com.liferay.portlet.trash.model.impl.TrashEntryModelImpl
  * @generated
  */
+@ProviderType
 public interface TrashEntryModel extends AttachedModel, BaseModel<TrashEntry> {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -121,9 +123,8 @@ public interface TrashEntryModel extends AttachedModel, BaseModel<TrashEntry> {
 	 * Returns the user uuid of this trash entry.
 	 *
 	 * @return the user uuid of this trash entry
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getUserUuid() throws SystemException;
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this trash entry.
@@ -166,6 +167,7 @@ public interface TrashEntryModel extends AttachedModel, BaseModel<TrashEntry> {
 	 *
 	 * @return the fully qualified class name of this trash entry
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -175,6 +177,7 @@ public interface TrashEntryModel extends AttachedModel, BaseModel<TrashEntry> {
 	 *
 	 * @return the class name ID of this trash entry
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -182,6 +185,7 @@ public interface TrashEntryModel extends AttachedModel, BaseModel<TrashEntry> {
 	 *
 	 * @param classNameId the class name ID of this trash entry
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -189,6 +193,7 @@ public interface TrashEntryModel extends AttachedModel, BaseModel<TrashEntry> {
 	 *
 	 * @return the class p k of this trash entry
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -196,7 +201,22 @@ public interface TrashEntryModel extends AttachedModel, BaseModel<TrashEntry> {
 	 *
 	 * @param classPK the class p k of this trash entry
 	 */
+	@Override
 	public void setClassPK(long classPK);
+
+	/**
+	 * Returns the system event set key of this trash entry.
+	 *
+	 * @return the system event set key of this trash entry
+	 */
+	public long getSystemEventSetKey();
+
+	/**
+	 * Sets the system event set key of this trash entry.
+	 *
+	 * @param systemEventSetKey the system event set key of this trash entry
+	 */
+	public void setSystemEventSetKey(long systemEventSetKey);
 
 	/**
 	 * Returns the type settings of this trash entry.
@@ -227,35 +247,60 @@ public interface TrashEntryModel extends AttachedModel, BaseModel<TrashEntry> {
 	 */
 	public void setStatus(int status);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(TrashEntry trashEntry);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<TrashEntry> toCacheModel();
 
+	@Override
 	public TrashEntry toEscapedModel();
 
+	@Override
+	public TrashEntry toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

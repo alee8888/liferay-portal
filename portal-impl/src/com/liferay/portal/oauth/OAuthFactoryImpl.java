@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,12 +21,15 @@ import com.liferay.portal.kernel.oauth.OAuthRequest;
 import com.liferay.portal.kernel.oauth.Token;
 import com.liferay.portal.kernel.oauth.Verb;
 import com.liferay.portal.kernel.oauth.Verifier;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 
 /**
  * @author Brian Wing Shun Chan
  */
+@DoPrivileged
 public class OAuthFactoryImpl implements OAuthFactory {
 
+	@Override
 	public OAuthManager createOAuthManager(
 			String key, String secret, String accessURL, String requestURL,
 			String callbackURL, String scope)
@@ -41,6 +44,7 @@ public class OAuthFactoryImpl implements OAuthFactory {
 		}
 	}
 
+	@Override
 	public OAuthRequest createOAuthRequest(Verb verb, String url)
 		throws OAuthException {
 
@@ -54,6 +58,7 @@ public class OAuthFactoryImpl implements OAuthFactory {
 		}
 	}
 
+	@Override
 	public Token createToken(String token, String secret)
 		throws OAuthException {
 
@@ -65,6 +70,7 @@ public class OAuthFactoryImpl implements OAuthFactory {
 		}
 	}
 
+	@Override
 	public Verifier createVerifier(String verifier) throws OAuthException {
 		try {
 			return new VerifierImpl(new org.scribe.model.Verifier(verifier));

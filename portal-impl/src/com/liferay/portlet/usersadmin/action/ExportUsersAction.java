@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,8 +16,11 @@ package com.liferay.portlet.usersadmin.action;
 
 import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.search.Hits;
+import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CSVUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -25,12 +28,12 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.ProgressTracker;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.service.permission.PortalPermissionUtil;
+import com.liferay.portal.service.permission.PortletPermissionUtil;
 import com.liferay.portal.struts.ActionConstants;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.theme.ThemeDisplay;
@@ -42,7 +45,9 @@ import com.liferay.portlet.ActionResponseImpl;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.usersadmin.search.UserSearch;
 import com.liferay.portlet.usersadmin.search.UserSearchTerms;
+import com.liferay.portlet.usersadmin.util.UsersAdminUtil;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -65,8 +70,9 @@ public class ExportUsersAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		try {
@@ -126,9 +132,25 @@ public class ExportUsersAction extends PortletAction {
 	}
 
 	protected List<User> getUsers(
-			ActionRequest actionRequest, ActionResponse actionResponse,
-			ThemeDisplay themeDisplay)
+			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PermissionChecker permissionChecker =
+			themeDisplay.getPermissionChecker();
+
+		boolean exportAllUsers = PortalPermissionUtil.contains(
+			permissionChecker, ActionKeys.EXPORT_USER);
+
+		if (!exportAllUsers &&
+			!PortletPermissionUtil.contains(
+				permissionChecker, PortletKeys.USERS_ADMIN,
+				ActionKeys.EXPORT_USER)) {
+
+			return Collections.emptyList();
+		}
 
 		PortletURL portletURL =
 			((ActionResponseImpl)actionResponse).createRenderURL(
@@ -139,8 +161,6 @@ public class ExportUsersAction extends PortletAction {
 		UserSearchTerms searchTerms =
 			(UserSearchTerms)userSearch.getSearchTerms();
 
-		searchTerms.setStatus(WorkflowConstants.STATUS_APPROVED);
-
 		LinkedHashMap<String, Object> params =
 			new LinkedHashMap<String, Object>();
 
@@ -148,6 +168,16 @@ public class ExportUsersAction extends PortletAction {
 
 		if (organizationId > 0) {
 			params.put("usersOrgs", new Long(organizationId));
+		}
+		else if (!exportAllUsers) {
+			User user = themeDisplay.getUser();
+
+			Long[] organizationIds = ArrayUtil.toArray(
+				user.getOrganizationIds(true));
+
+			if (organizationIds.length > 0) {
+				params.put("usersOrgs", organizationIds);
+			}
 		}
 
 		long roleId = searchTerms.getRoleId();
@@ -160,6 +190,32 @@ public class ExportUsersAction extends PortletAction {
 
 		if (userGroupId > 0) {
 			params.put("usersUserGroups", new Long(userGroupId));
+		}
+
+		if (PropsValues.USERS_INDEXER_ENABLED &&
+			PropsValues.USERS_SEARCH_WITH_INDEX) {
+
+			params.put("expandoAttributes", searchTerms.getKeywords());
+
+			Hits hits = null;
+
+			if (searchTerms.isAdvancedSearch()) {
+				hits = UserLocalServiceUtil.search(
+					themeDisplay.getCompanyId(), searchTerms.getFirstName(),
+					searchTerms.getMiddleName(), searchTerms.getLastName(),
+					searchTerms.getScreenName(), searchTerms.getEmailAddress(),
+					searchTerms.getStatus(), params,
+					searchTerms.isAndOperator(), QueryUtil.ALL_POS,
+					QueryUtil.ALL_POS, (Sort)null);
+			}
+			else {
+				hits = UserLocalServiceUtil.search(
+					themeDisplay.getCompanyId(), searchTerms.getKeywords(),
+					searchTerms.getStatus(), params, QueryUtil.ALL_POS,
+					QueryUtil.ALL_POS, (Sort)null);
+			}
+
+			return UsersAdminUtil.getUsers(hits);
 		}
 
 		if (searchTerms.isAdvancedSearch()) {
@@ -182,37 +238,23 @@ public class ExportUsersAction extends PortletAction {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		List<User> users = getUsers(actionRequest, actionResponse);
 
-		PermissionChecker permissionChecker =
-			themeDisplay.getPermissionChecker();
-
-		if (!PortalPermissionUtil.contains(
-				permissionChecker, ActionKeys.EXPORT_USER)) {
-
+		if (users.isEmpty()) {
 			return StringPool.BLANK;
 		}
 
 		String exportProgressId = ParamUtil.getString(
 			actionRequest, "exportProgressId");
 
-		ProgressTracker progressTracker = new ProgressTracker(
-			actionRequest, exportProgressId);
+		ProgressTracker progressTracker = new ProgressTracker(exportProgressId);
 
-		progressTracker.start();
-
-		List<User> users = getUsers(
-			actionRequest, actionResponse, themeDisplay);
+		progressTracker.start(actionRequest);
 
 		int percentage = 10;
 		int total = users.size();
 
-		progressTracker.updateProgress(percentage);
-
-		if (total == 0) {
-			return StringPool.BLANK;
-		}
+		progressTracker.setPercent(percentage);
 
 		StringBundler sb = new StringBundler(users.size());
 
@@ -223,10 +265,10 @@ public class ExportUsersAction extends PortletAction {
 
 			percentage = Math.min(10 + (i * 90) / total, 99);
 
-			progressTracker.updateProgress(percentage);
+			progressTracker.setPercent(percentage);
 		}
 
-		progressTracker.finish();
+		progressTracker.finish(actionRequest);
 
 		return sb.toString();
 	}

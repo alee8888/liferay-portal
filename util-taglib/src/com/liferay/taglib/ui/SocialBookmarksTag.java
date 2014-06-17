@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,6 +24,10 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class SocialBookmarksTag extends IncludeTag {
 
+	public void setContentId(String contentId) {
+		_contentId = contentId;
+	}
+
 	public void setDisplayStyle(String displayStyle) {
 		_displayStyle = displayStyle;
 	}
@@ -46,6 +50,7 @@ public class SocialBookmarksTag extends IncludeTag {
 
 	@Override
 	protected void cleanUp() {
+		_contentId = null;
 		_displayStyle = null;
 		_target = null;
 		_title = null;
@@ -61,16 +66,20 @@ public class SocialBookmarksTag extends IncludeTag {
 	@Override
 	protected void setAttributes(HttpServletRequest request) {
 		request.setAttribute(
-			"liferay-ui:social-bookmark:displayStyle", _displayStyle);
+			"liferay-ui:social-bookmark:contentId", _contentId);
 		request.setAttribute("liferay-ui:social-bookmark:target", _target);
 		request.setAttribute("liferay-ui:social-bookmark:title", _title);
 		request.setAttribute("liferay-ui:social-bookmark:types", _types);
 		request.setAttribute("liferay-ui:social-bookmark:url", _url);
+
+		request.setAttribute(
+			"liferay-ui:social-bookmarks:displayStyle", _displayStyle);
 	}
 
 	private static final String _PAGE =
 		"/html/taglib/ui/social_bookmarks/page.jsp";
 
+	private String _contentId;
 	private String _displayStyle;
 	private String _target;
 	private String _title;

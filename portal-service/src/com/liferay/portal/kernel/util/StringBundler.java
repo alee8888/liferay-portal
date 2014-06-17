@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,19 +17,20 @@ package com.liferay.portal.kernel.util;
 import com.liferay.portal.kernel.memory.SoftReferenceThreadLocal;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.Writer;
 
 import java.lang.reflect.Constructor;
 
 /**
  * <p>
- * See http://issues.liferay.com/browse/LPS-6072.
+ * See https://issues.liferay.com/browse/LPS-6072.
  * </p>
  *
  * @author Shuyang Zhou
  * @author Brian Wing Shun Chan
  */
-public class StringBundler {
+public class StringBundler implements Serializable {
 
 	public StringBundler() {
 		_array = new String[_DEFAULT_ARRAY_CAPACITY];
@@ -128,7 +129,7 @@ public class StringBundler {
 	}
 
 	public StringBundler append(String[] stringArray) {
-		if ((stringArray == null) || (stringArray.length == 0)) {
+		if (ArrayUtil.isEmpty(stringArray)) {
 			return this;
 		}
 
@@ -165,6 +166,10 @@ public class StringBundler {
 
 	public int capacity() {
 		return _array.length;
+	}
+
+	public String[] getStrings() {
+		return _array;
 	}
 
 	public int index() {
@@ -331,6 +336,8 @@ public class StringBundler {
 	private static final int _UNSAFE_CREATE_LIMIT = GetterUtil.getInteger(
 		System.getProperty(
 			StringBundler.class.getName() + ".unsafe.create.limit"));
+
+	private static final long serialVersionUID = 1L;
 
 	private static ThreadLocal<StringBuilder> _stringBuilderThreadLocal;
 	private static Constructor<String> _stringConstructor;

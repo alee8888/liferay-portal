@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,10 @@
 
 package com.liferay.portal.kernel.util;
 
+import com.liferay.portal.kernel.deploy.hot.HotDeployUtil;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -60,7 +63,16 @@ public class PortalLifecycleUtil {
 			(method == PortalLifecycle.METHOD_INIT)) {
 
 			if (_portalLifecyclesInit == null) {
-				portalLifecycle.portalInit();
+				Thread currentThread = Thread.currentThread();
+
+				String servletContextName = ClassLoaderPool.getContextName(
+					currentThread.getContextClassLoader());
+
+				if (!HotDeployUtil.registerDependentPortalLifecycle(
+						servletContextName, portalLifecycle)) {
+
+					portalLifecycle.portalInit();
+				}
 			}
 			else {
 				_portalLifecyclesInit.add(portalLifecycle);
@@ -80,10 +92,24 @@ public class PortalLifecycleUtil {
 		}
 	}
 
+	public static void reset() {
+		_inFlushDestroys = false;
+
+		if (_portalLifecyclesInit == null) {
+			_portalLifecyclesInit = Collections.synchronizedList(
+				new ArrayList<PortalLifecycle>());
+		}
+		else {
+			_portalLifecyclesInit.clear();
+		}
+
+		_portalLifecyclesDestroy.clear();
+	}
+
 	private static boolean _inFlushDestroys;
 	private static List<PortalLifecycle> _portalLifecyclesDestroy =
-		new ArrayList<PortalLifecycle>();
+		Collections.synchronizedList(new ArrayList<PortalLifecycle>());
 	private static List<PortalLifecycle> _portalLifecyclesInit =
-		new ArrayList<PortalLifecycle>();
+		Collections.synchronizedList(new ArrayList<PortalLifecycle>());
 
 }

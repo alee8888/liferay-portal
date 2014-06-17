@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -32,46 +32,60 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 	var itemsInStock = true;
 
 	function <portlet:namespace />checkout() {
-		if (<%= (ShoppingUtil.meetsMinOrder(shoppingPrefs, items)) ? "true" : "false" %>) {
+		if (<%= ShoppingUtil.meetsMinOrder(shoppingSettings, items) ? "true" : "false" %>) {
 			if (!itemsInStock) {
-				if (confirm("<%= UnicodeLanguageUtil.get(pageContext, "your-cart-has-items-that-are-out-of-stock") %>")) {
-					document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.CHECKOUT %>";
-					document.<portlet:namespace />fm.<portlet:namespace />redirect.value = "<portlet:actionURL><portlet:param name="struts_action" value="/shopping/checkout" /></portlet:actionURL>";
+				if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "your-cart-has-items-that-are-out-of-stock") %>')) {
+					document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.CHECKOUT %>';
+					document.<portlet:namespace />fm.<portlet:namespace />redirect.value = '<portlet:actionURL><portlet:param name="struts_action" value="/shopping/checkout" /></portlet:actionURL>';
 					<portlet:namespace />updateCart();
 				}
 			}
 			else {
-				document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.CHECKOUT %>";
-				document.<portlet:namespace />fm.<portlet:namespace />redirect.value = "<portlet:actionURL><portlet:param name="struts_action" value="/shopping/checkout" /></portlet:actionURL>";
+				document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.CHECKOUT %>';
+				document.<portlet:namespace />fm.<portlet:namespace />redirect.value = '<portlet:actionURL><portlet:param name="struts_action" value="/shopping/checkout" /></portlet:actionURL>';
 				<portlet:namespace />updateCart();
 			}
 		}
 		else {
-			alert("<%= UnicodeLanguageUtil.format(pageContext, "your-order-cannot-be-processed-because-it-falls-below-the-minimum-required-amount-of-x", currencyFormat.format(shoppingPrefs.getMinOrder()), false) %>");
+			alert('<%= UnicodeLanguageUtil.format(pageContext, "your-order-cannot-be-processed-because-it-falls-below-the-minimum-required-amount-of-x", currencyFormat.format(shoppingSettings.getMinOrder()), false) %>');
 		}
 	}
 
 	function <portlet:namespace />emptyCart() {
-		document.<portlet:namespace />fm.<portlet:namespace />itemIds.value = "";
-		document.<portlet:namespace />fm.<portlet:namespace />couponCodes.value = "";
+		document.<portlet:namespace />fm.<portlet:namespace />itemIds.value = '';
+		document.<portlet:namespace />fm.<portlet:namespace />couponCodes.value = '';
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />updateCart() {
-		var itemIds = "";
+		var itemIds = '';
 		var count = 0;
+		var invalidSKUs = '';
 
 		<%
 		int itemsCount= 0;
 
 		for (ShoppingCartItem cartItem : items.keySet()) {
 			ShoppingItem item = cartItem.getItem();
+
+			ShoppingItemPrice[] itemPrices = (ShoppingItemPrice[])ShoppingItemPriceLocalServiceUtil.getItemPrices(item.getItemId()).toArray(new ShoppingItemPrice[0]);
+
+			int maxQuantity = _getMaxQuantity(itemPrices);
 		%>
 
 			count = document.<portlet:namespace />fm.<portlet:namespace />item_<%= item.getItemId() %>_<%= itemsCount %>_count.value;
 
+			if ((count == '') || isNaN(count) || (count < 0) || ((count > <%= maxQuantity %>) && (<%= maxQuantity %> > 0))) {
+				if (invalidSKUs != '') {
+					invalidSKUs += ', ';
+				}
+
+				invalidSKUs += '<%= HtmlUtil.escapeJS(item.getSku()) %>';
+			}
+
 			for (var i = 0; i < count; i++) {
-				itemIds += "<%= cartItem.getCartItemId() %>,";
+				itemIds += '<%= HtmlUtil.escapeJS(cartItem.getCartItemId()) %>,';
 			}
 
 			count = 0;
@@ -82,7 +96,13 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 		%>
 
 		document.<portlet:namespace />fm.<portlet:namespace />itemIds.value = itemIds;
-		submitForm(document.<portlet:namespace />fm);
+
+		if (invalidSKUs == '') {
+			submitForm(document.<portlet:namespace />fm);
+		}
+		else {
+			alert('<%= UnicodeLanguageUtil.get(pageContext, "please-enter-valid-quantities-for-the-following-skus") %>' + invalidSKUs);
+		}
 	}
 </aui:script>
 
@@ -125,7 +145,7 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 			ShoppingItem item = ShoppingItemServiceUtil.getItem(badItemIds[i]);
 		%>
 
-			<strong><%= item.getSku() %></strong><c:if test="<%= i + 1 < badItemIds.length %>">,</c:if>
+			<strong><%= HtmlUtil.escape(item.getSku()) %></strong><c:if test="<%= i + 1 < badItemIds.length %>">,</c:if>
 
 		<%
 		}
@@ -186,13 +206,13 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 
 		// SKU and small image
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(10);
 
 		if (item.isSmallImage()) {
 			sb.append("<br />");
 			sb.append("<img alt=\"");
 			sb.append(item.getSku());
-			sb.append("\" border=\"0\" src=\"");
+			sb.append("\" src=\"");
 
 			if (Validator.isNotNull(item.getSmallImageURL())) {
 				sb.append(item.getSmallImageURL());
@@ -246,14 +266,14 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 			if (ShoppingUtil.isInStock(item, itemFields, fieldsArray, count)) {
 				sb.append(LanguageUtil.get(pageContext, "availability"));
 				sb.append(": ");
-				sb.append("<div class=\"portlet-msg-success\">");
+				sb.append("<div class=\"alert alert-success\">");
 				sb.append(LanguageUtil.get(pageContext, "in-stock"));
 				sb.append("</div>");
 			}
 			else {
 				sb.append(LanguageUtil.get(pageContext, "availability"));
 				sb.append(": ");
-				sb.append("<div class=\"portlet-msg-error\">");
+				sb.append("<div class=\"alert alert-danger\">");
 				sb.append(LanguageUtil.get(pageContext, "out-of-stock"));
 				sb.append("</div>");
 
@@ -274,9 +294,9 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 			String fieldValue = fieldsArray[j].substring(pos + 1);
 
 			sb.append("<br />");
-			sb.append(fieldName);
+			sb.append(HtmlUtil.escape(fieldName));
 			sb.append(": ");
-			sb.append(fieldValue);
+			sb.append(HtmlUtil.escape(fieldValue));
 		}
 
 		if (itemPrices.length > 0) {
@@ -310,16 +330,16 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 				sb.append("<strike>");
 				sb.append(currencyFormat.format(itemPrice.getPrice()));
 				sb.append("</strike> ");
-				sb.append("<div class=\"portlet-msg-success\">");
+				sb.append("<div class=\"alert alert-success\">");
 				sb.append(currencyFormat.format(ShoppingUtil.calculateActualPrice(itemPrice)));
 				sb.append("</div> / ");
 				sb.append(LanguageUtil.get(pageContext, "you-save"));
 				sb.append(": ");
-				sb.append("<div class=\"portlet-msg-error\">");
+				sb.append("<div class=\"alert alert-danger\">");
 				sb.append(currencyFormat.format(ShoppingUtil.calculateDiscountPrice(itemPrice)));
 				sb.append(" (");
 				sb.append(percentFormat.format(itemPrice.getDiscount()));
-				sb.append(")");
+				sb.append(StringPool.CLOSE_PARENTHESIS);
 				sb.append("</div>");
 			}
 		}
@@ -330,7 +350,9 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 
 		sb.setIndex(0);
 
-		if (minQuantityMultiple && (item.getMinQuantity() > 0)) {
+		int maxQuantity = _getMaxQuantity(itemPrices);
+
+		if (minQuantityMultiple && (item.getMinQuantity() > 1) && (maxQuantity != 0)) {
 			sb.append("<select name=\"");
 			sb.append(renderResponse.getNamespace());
 			sb.append("item_");
@@ -341,7 +363,7 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 
 			sb.append("<option value=\"0\">0</option>");
 
-			for (int j = 1; j <= 10; j++) {
+			for (int j = 1; j <= (maxQuantity / item.getMinQuantity()); j++) {
 				int curQuantity = item.getMinQuantity() * j;
 
 				sb.append("<option ");
@@ -385,7 +407,7 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 	}
 	%>
 
-	<liferay-ui:search-iterator searchContainer="<%= searchContainer %>" />
+	<liferay-ui:search-iterator paginate="<%= false %>" searchContainer="<%= searchContainer %>" />
 
 	<aui:fieldset>
 
@@ -395,35 +417,36 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 		double discountSubtotal = ShoppingUtil.calculateDiscountSubtotal(items);
 		%>
 
-		<aui:field-wrapper label="subtotal">
-			<c:if test="<%= subtotal == actualSubtotal %>">
-				<%= currencyFormat.format(subtotal) %>
-			</c:if>
-
-			<c:if test="<%= subtotal != actualSubtotal %>">
-				<strike><%= currencyFormat.format(subtotal) %></strike> <div class="portlet-msg-success"><%= currencyFormat.format(actualSubtotal) %></div>
-			</c:if>
-		</aui:field-wrapper>
+			<c:choose>
+				<c:when test="<%= subtotal == actualSubtotal %>">
+					<aui:input name="subtotal" type="resource" value="<%= currencyFormat.format(subtotal) %>" />
+				</c:when>
+				<c:otherwise>
+					<aui:field-wrapper label="subtotal">
+						<div class="alert alert-success">
+							<strike><%= currencyFormat.format(subtotal) %></strike> <%= currencyFormat.format(actualSubtotal) %>
+						</div>
+					</aui:field-wrapper>
+				</c:otherwise>
+			</c:choose>
 
 		<c:if test="<%= subtotal != actualSubtotal %>">
 			<aui:field-wrapper label="you-save">
-				<div class="portlet-msg-error">
+				<div class="alert alert-danger">
 					<%= currencyFormat.format(discountSubtotal) %> (<%= percentFormat.format(ShoppingUtil.calculateDiscountPercent(items)) %>)
 				</div>
 			</aui:field-wrapper>
 		</c:if>
 
 		<c:choose>
-			<c:when test="<%= !shoppingPrefs.useAlternativeShipping() %>">
-				<aui:field-wrapper label="shipping">
-					<%= currencyFormat.format(ShoppingUtil.calculateShipping(items)) %>
-				</aui:field-wrapper>
+			<c:when test="<%= !shoppingSettings.useAlternativeShipping() %>">
+				<aui:input name="shipping" type="resource" value="<%= currencyFormat.format(ShoppingUtil.calculateShipping(items)) %>" />
 			</c:when>
 			<c:otherwise>
 				<aui:select label="shipping" name="alternativeShipping">
 
 					<%
-					String[][] alternativeShipping = shoppingPrefs.getAlternativeShipping();
+					String[][] alternativeShipping = shoppingSettings.getAlternativeShipping();
 
 					for (int i = 0; i < 10; i++) {
 						String altShippingName = alternativeShipping[0][i];
@@ -457,7 +480,6 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 		<aui:input label="coupon-code" name="couponCodes" size="30" style="text-transform: uppercase;" type="text" value="<%= cart.getCouponCodes() %>" />
 
 		<c:if test="<%= coupon != null %>">
-
 			<portlet:renderURL var="viewCouponURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
 				<portlet:param name="struts_action" value="/shopping/view_coupon" />
 				<portlet:param name="couponId" value="<%= String.valueOf(coupon.getCouponId()) %>" />
@@ -470,7 +492,7 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 			<aui:a href='<%= "javascript:" + taglibOpenCouponWindow %>' label='<%= "(" + LanguageUtil.get(pageContext, "description") + ")" %>' style="font-size: xx-small;" />
 
 			<aui:field-wrapper label="coupon-discount">
-				<div class="portlet-msg-error">
+				<div class="alert alert-danger">
 					<%= currencyFormat.format(ShoppingUtil.calculateCouponDiscount(items, coupon)) %>
 				</div>
 			</aui:field-wrapper>
@@ -478,22 +500,22 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 	</aui:fieldset>
 
 	<%
-	String[] ccTypes = shoppingPrefs.getCcTypes();
+	String[] ccTypes = shoppingSettings.getCcTypes();
 
-	if (shoppingPrefs.usePayPal()) {
+	if (shoppingSettings.usePayPal()) {
 	%>
 
-		<img alt="paypal" src="<%= themeDisplay.getPathThemeImages() %>/shopping/cc_paypal.png" />
+		<img alt="<liferay-ui:message key="paypal" />" src="<%= themeDisplay.getPathThemeImages() %>/shopping/cc_paypal.png" />
 
 		<br /><br />
 
 	<%
 	}
-	else if (!shoppingPrefs.usePayPal() && (ccTypes.length > 0)) {
+	else if (!shoppingSettings.usePayPal() && (ccTypes.length > 0)) {
 		for (int i = 0; i < ccTypes.length; i++) {
 	%>
 
-			<img alt="<%= ccTypes[i] %>" src="<%= themeDisplay.getPathThemeImages() %>/shopping/cc_<%= ccTypes[i] %>.png" />
+			<img alt="<%= HtmlUtil.escapeAttribute(ccTypes[i]) %>" src="<%= themeDisplay.getPathThemeImages() %>/shopping/cc_<%= HtmlUtil.escapeAttribute(ccTypes[i]) %>.png" />
 
 	<%
 		}
@@ -513,3 +535,21 @@ boolean minQuantityMultiple = PrefsPropsUtil.getBoolean(company.getCompanyId(), 
 		<aui:button onClick='<%= renderResponse.getNamespace() + "checkout();" %>' value="checkout" />
 	</aui:button-row>
 </aui:form>
+
+<%!
+private static int _getMaxQuantity(ShoppingItemPrice[] itemPrices) {
+	int maxQuantity = 0;
+
+	for (ShoppingItemPrice itemPrice : itemPrices) {
+		if (itemPrice.getMaxQuantity() == 0) {
+			return 0;
+		}
+
+		if (maxQuantity < itemPrice.getMaxQuantity()) {
+			maxQuantity = itemPrice.getMaxQuantity();
+		}
+	}
+
+	return maxQuantity;
+}
+%>

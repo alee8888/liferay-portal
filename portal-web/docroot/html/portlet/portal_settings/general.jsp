@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,60 +35,65 @@ String defaultLogoutPagePath = PrefsPropsUtil.getString(company.getCompanyId(), 
 
 <liferay-ui:error-marker key="errorSection" value="general" />
 
-<h3><liferay-ui:message key="main-configuration" /></h3>
+<h3><liferay-ui:message key="general" /></h3>
+
+<h4><liferay-ui:message key="main-configuration" /></h4>
 
 <aui:model-context bean="<%= account %>" model="<%= Account.class %>" />
 
-<aui:fieldset column="<%= true %>" cssClass="aui-w50">
-	<liferay-ui:error exception="<%= AccountNameException.class %>" message="please-enter-a-valid-name" />
+<aui:row>
+	<aui:col width="<%= 50 %>">
+		<liferay-ui:error exception="<%= AccountNameException.class %>" message="please-enter-a-valid-name" />
 
-	<aui:input name="name" />
+		<aui:input name="name" />
 
-	<liferay-ui:error exception="<%= CompanyMxException.class %>" message="please-enter-a-valid-mail-domain" />
+		<liferay-ui:error exception="<%= CompanyMxException.class %>" message="please-enter-a-valid-mail-domain" />
 
-	<aui:input bean="<%= company %>" disabled="<%= !PropsValues.MAIL_MX_UPDATE %>" label="mail-domain" model="<%= Company.class %>" name="mx" />
+		<aui:input bean="<%= company %>" disabled="<%= !PropsValues.MAIL_MX_UPDATE %>" label="mail-domain" model="<%= Company.class %>" name="mx" />
 
-	<liferay-ui:error exception="<%= CompanyVirtualHostException.class %>" message="please-enter-a-valid-virtual-host" />
+		<liferay-ui:error exception="<%= CompanyVirtualHostException.class %>" message="please-enter-a-valid-virtual-host" />
 
-	<aui:input bean="<%= virtualHost %>" fieldParam="virtualHostname" label="virtual-host" model="<%= VirtualHost.class %>" name="hostname" />
-</aui:fieldset>
+		<aui:input bean="<%= virtualHost %>" fieldParam="virtualHostname" label="virtual-host" model="<%= VirtualHost.class %>" name="hostname" />
+	</aui:col>
+	<aui:col width="<%= 50 %>">
+		<aui:input label="cdn-host-http" name='<%= "settings--" + PropsKeys.CDN_HOST_HTTP + "--" %>' type="text" value="<%= cdnHostHttp %>" />
 
-<aui:fieldset column="<%= true %>" cssClass="aui-w50">
-	<aui:input label="cdn-host-http" name='<%= "settings--" + PropsKeys.CDN_HOST_HTTP + "--" %>' type="text" value="<%= cdnHostHttp %>" />
+		<aui:input label="cdn-host-https" name='<%= "settings--" + PropsKeys.CDN_HOST_HTTPS + "--" %>' type="text" value="<%= cdnHostHttps %>" />
 
-	<aui:input label="cdn-host-https" name='<%= "settings--" + PropsKeys.CDN_HOST_HTTPS + "--" %>' type="text" value="<%= cdnHostHttps %>" />
+		<aui:input label="cdn-dynamic-resources-enabled" name='<%= "settings--" + PropsKeys.CDN_DYNAMIC_RESOURCES_ENABLED + "--" %>' type="checkbox" value="<%= cdnDynamicResourcesEnabled %>" />
+	</aui:col>
+</aui:row>
 
-	<aui:input label="cdn-dynamic-resources-enabled" name='<%= "settings--" + PropsKeys.CDN_DYNAMIC_RESOURCES_ENABLED + "--" %>' type="checkbox" value="<%= cdnDynamicResourcesEnabled %>" />
-</aui:fieldset>
+<h4><liferay-ui:message key="navigation" /></h4>
 
-<h3><liferay-ui:message key="navigation" /></h3>
+<aui:row>
+	<aui:col width="<%= 50 %>">
+		<aui:input bean="<%= company %>" helpMessage="home-url-help" label="home-url" model="<%= Company.class %>" name="homeURL" />
 
-<aui:fieldset column="<%= true %>" cssClass="aui-w50">
-	<aui:input bean="<%= company %>" helpMessage="home-url-help" label="home-url" model="<%= Company.class %>" name="homeURL" />
-</aui:fieldset>
+		<aui:input helpMessage="default-landing-page-help" label="default-landing-page" name='<%= "settings--" + PropsKeys.DEFAULT_LANDING_PAGE_PATH + "--" %>' type="text" value="<%= defaultLandingPagePath %>" />
+	</aui:col>
+	<aui:col width="<%= 50 %>">
+		<aui:input helpMessage="default-logout-page-help" label="default-logout-page" name='<%= "settings--" + PropsKeys.DEFAULT_LOGOUT_PAGE_PATH + "--" %>' type="text" value="<%= defaultLogoutPagePath %>" />
+	</aui:col>
+</aui:row>
 
-<aui:fieldset column="<%= true %>" cssClass="aui-w50">
-	<aui:input helpMessage="default-landing-page-help" label="default-landing-page" name='<%= "settings--" + PropsKeys.DEFAULT_LANDING_PAGE_PATH + "--" %>' type="text" value="<%= defaultLandingPagePath %>" />
+<h4><liferay-ui:message key="additional-information" /></h4>
 
-	<aui:input helpMessage="default-logout-page-help" label="default-logout-page" name='<%= "settings--" + PropsKeys.DEFAULT_LOGOUT_PAGE_PATH + "--" %>' type="text" value="<%= defaultLogoutPagePath %>" />
-</aui:fieldset>
+<aui:row>
+	<aui:col width="<%= 50 %>">
+		<aui:input name="legalName" />
 
-<h3><liferay-ui:message key="additional-information" /></h3>
+		<aui:input name="legalId" />
 
-<aui:fieldset column="<%= true %>" cssClass="aui-w50">
-	<aui:input name="legalName" />
+		<aui:input name="legalType" />
 
-	<aui:input name="legalId" />
+		<aui:input name="sicCode" />
+	</aui:col>
+	<aui:col width="<%= 50 %>">
+		<aui:input name="tickerSymbol" />
 
-	<aui:input name="legalType" />
-</aui:fieldset>
+		<aui:input name="industry" />
 
-<aui:fieldset column="<%= true %>" cssClass="aui-w50">
-	<aui:input name="sicCode" />
-
-	<aui:input name="tickerSymbol" />
-
-	<aui:input name="industry" />
-
-	<aui:input name="type" />
-</aui:fieldset>
+		<aui:input name="type" />
+	</aui:col>
+</aui:row>

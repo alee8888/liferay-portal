@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portlet.announcements.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portlet.announcements.model.AnnouncementsFlag;
 import com.liferay.portlet.announcements.service.base.AnnouncementsFlagLocalServiceBaseImpl;
 
@@ -29,8 +28,8 @@ import java.util.List;
 public class AnnouncementsFlagLocalServiceImpl
 	extends AnnouncementsFlagLocalServiceBaseImpl {
 
-	public AnnouncementsFlag addFlag(long userId, long entryId, int value)
-		throws SystemException {
+	@Override
+	public AnnouncementsFlag addFlag(long userId, long entryId, int value) {
 
 		long flagId = counterLocalService.increment();
 
@@ -41,25 +40,26 @@ public class AnnouncementsFlagLocalServiceImpl
 		flag.setEntryId(entryId);
 		flag.setValue(value);
 
-		announcementsFlagPersistence.update(flag, false);
+		announcementsFlagPersistence.update(flag);
 
 		return flag;
 	}
 
-	public void deleteFlag(AnnouncementsFlag flag) throws SystemException {
+	@Override
+	public void deleteFlag(AnnouncementsFlag flag) {
 		announcementsFlagPersistence.remove(flag);
 	}
 
-	public void deleteFlag(long flagId)
-		throws PortalException, SystemException {
-
+	@Override
+	public void deleteFlag(long flagId) throws PortalException {
 		AnnouncementsFlag flag = announcementsFlagPersistence.findByPrimaryKey(
 			flagId);
 
 		deleteFlag(flag);
 	}
 
-	public void deleteFlags(long entryId) throws SystemException {
+	@Override
+	public void deleteFlags(long entryId) {
 		List<AnnouncementsFlag> flags =
 			announcementsFlagPersistence.findByEntryId(entryId);
 
@@ -68,8 +68,9 @@ public class AnnouncementsFlagLocalServiceImpl
 		}
 	}
 
+	@Override
 	public AnnouncementsFlag getFlag(long userId, long entryId, int value)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return announcementsFlagPersistence.findByU_E_V(userId, entryId, value);
 	}

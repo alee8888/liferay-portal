@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DefaultMonitoringProcessor
 	implements DataSampleProcessor<DataSample>, MonitoringProcessor {
 
+	@Override
 	public Level getLevel(String namespace) {
 		Level level = _levels.get(namespace);
 
@@ -40,10 +41,12 @@ public class DefaultMonitoringProcessor
 		return level;
 	}
 
+	@Override
 	public Set<String> getNamespaces() {
 		return _levels.keySet();
 	}
 
+	@Override
 	public void processDataSample(DataSample dataSample)
 		throws MonitoringException {
 
@@ -92,6 +95,7 @@ public class DefaultMonitoringProcessor
 		_dataSampleProcessors.putAll(dataSampleProcessors);
 	}
 
+	@Override
 	public void setLevel(String namespace, Level level) {
 		_levels.put(namespace, level);
 	}

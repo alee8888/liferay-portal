@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -50,6 +50,10 @@ public class TextSearchEntry extends SearchEntry {
 		return _name;
 	}
 
+	public String getName(PageContext pageContext) {
+		return getName();
+	}
+
 	public String getTarget() {
 		return _target;
 	}
@@ -61,7 +65,7 @@ public class TextSearchEntry extends SearchEntry {
 	@Override
 	public void print(PageContext pageContext) throws Exception {
 		if (_href == null) {
-			pageContext.getOut().print(_name);
+			pageContext.getOut().print(getName(pageContext));
 		}
 		else {
 			StringBundler sb = new StringBundler();
@@ -82,7 +86,14 @@ public class TextSearchEntry extends SearchEntry {
 			}
 
 			sb.append(" href=\"");
-			sb.append(HtmlUtil.escape(_href));
+
+			if (_href.startsWith("javascript:")) {
+				sb.append(_href);
+			}
+			else {
+				sb.append(HtmlUtil.escape(_href));
+			}
+
 			sb.append("\"");
 
 			if (Validator.isNotNull(_target)) {
@@ -98,7 +109,7 @@ public class TextSearchEntry extends SearchEntry {
 			}
 
 			sb.append(">");
-			sb.append(_name);
+			sb.append(getName(pageContext));
 			sb.append("</a>");
 
 			JspWriter jspWriter = pageContext.getOut();

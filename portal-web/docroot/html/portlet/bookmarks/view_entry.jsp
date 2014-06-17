@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,8 @@
 <%@ include file="/html/portlet/bookmarks/init.jsp" %>
 
 <%
+String redirect = ParamUtil.getString(request, "redirect");
+
 BookmarksEntry entry = (BookmarksEntry)request.getAttribute(WebKeys.BOOKMARKS_ENTRY);
 
 entry = entry.toEscapedModel();
@@ -30,20 +32,39 @@ AssetEntry layoutAssetEntry = AssetEntryLocalServiceUtil.getEntry(BookmarksEntry
 request.setAttribute(WebKeys.LAYOUT_ASSET_ENTRY, layoutAssetEntry);
 
 request.setAttribute("view_entry.jsp-entry", entry);
+
+BookmarksUtil.addPortletBreadcrumbEntries(entry, request, renderResponse);
 %>
 
 <liferay-util:include page="/html/portlet/bookmarks/top_links.jsp" />
 
-<c:if test="<%= folder != null %>">
-	<liferay-ui:header
-		escapeXml="<%= false %>"
-		localizeTitle="<%= false %>"
-		title="<%= entry.getName() %>"
-	/>
-</c:if>
+<c:choose>
+	<c:when test="<%= Validator.isNull(redirect) %>">
+		<portlet:renderURL var="backURL">
+			<portlet:param name="struts_action" value="/bookmarks/view" />
+			<portlet:param name="folderId" value="<%= (folder != null) ? String.valueOf(folder.getFolderId()) : String.valueOf(BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID) %>" />
+		</portlet:renderURL>
 
-<aui:layout>
-	<aui:column columnWidth="<%= 75 %>" cssClass="lfr-asset-column lfr-asset-column-details" first="<%= true %>">
+		<liferay-ui:header
+			backLabel='<%= (folder != null) ? folder.getName() : "home" %>'
+			backURL="<%= backURL.toString() %>"
+			escapeXml="<%= false %>"
+			localizeTitle="<%= false %>"
+			title="<%= entry.getName() %>"
+		/>
+	</c:when>
+	<c:otherwise>
+		<liferay-ui:header
+			backURL="<%= redirect %>"
+			escapeXml="<%= false %>"
+			localizeTitle="<%= false %>"
+			title="<%= entry.getName() %>"
+		/>
+	</c:otherwise>
+</c:choose>
+
+<aui:row>
+	<aui:col cssClass="lfr-asset-column lfr-asset-column-details" width="<%= 75 %>">
 		<div class="lfr-asset-categories">
 			<liferay-ui:asset-categories-summary
 				className="<%= BookmarksEntry.class.getName() %>"
@@ -77,20 +98,20 @@ request.setAttribute("view_entry.jsp-entry", entry);
 		</liferay-ui:custom-attributes-available>
 
 		<div class="lfr-asset-metadata">
-			<div class="lfr-asset-icon lfr-asset-author">
-				<%= LanguageUtil.format(pageContext, "created-by-x", HtmlUtil.escape(PortalUtil.getUserName(entry.getUserId(), themeDisplay.getScopeGroupName()))) %>
+			<div class="icon-user lfr-asset-icon">
+				<%= LanguageUtil.format(pageContext, "created-by-x", HtmlUtil.escape(PortalUtil.getUserName(entry.getUserId(), themeDisplay.getScopeGroupName())), false) %>
 			</div>
 
-			<div class="lfr-asset-icon lfr-asset-date">
+			<div class="icon-calendar lfr-asset-icon">
 				<%= dateFormatDate.format(entry.getCreateDate()) %>
 			</div>
 
-			<div class="lfr-asset-icon lfr-asset-downloads last">
+			<div class="last lfr-asset-icon lfr-asset-downloads">
 				<%= entry.getVisits() %> <liferay-ui:message key="visits" />
 			</div>
 		</div>
 
-		<c:if test="<%= enableRelatedAssets %>">
+		<c:if test="<%= bookmarksSettings.isEnableRelatedAssets() %>">
 			<div class="entry-links">
 				<liferay-ui:asset-links
 					assetEntryId="<%= layoutAssetEntry.getEntryId() %>"
@@ -104,9 +125,9 @@ request.setAttribute("view_entry.jsp-entry", entry);
 				classPK="<%= entryId %>"
 			/>
 		</div>
-	</aui:column>
+	</aui:col>
 
-	<aui:column columnWidth="<%= 25 %>" cssClass="lfr-asset-column lfr-asset-column-actions" last="<%= true %>">
+	<aui:col cssClass="lfr-asset-column lfr-asset-column-actions" last="<%= true %>" width="<%= 25 %>">
 		<div class="lfr-asset-summary">
 			<liferay-ui:icon
 				cssClass="lfr-asset-avatar"
@@ -128,9 +149,5 @@ request.setAttribute("view_entry.jsp-entry", entry);
 		%>
 
 		<liferay-util:include page="/html/portlet/bookmarks/entry_action.jsp" />
-	</aui:column>
-</aui:layout>
-
-<%
-BookmarksUtil.addPortletBreadcrumbEntries(entry, request, renderResponse);
-%>
+	</aui:col>
+</aui:row>

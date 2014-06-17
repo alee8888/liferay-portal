@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,35 +34,46 @@ else {
 	portletURL = new PortletURLImpl(request, PortletKeys.SEARCH, plid, PortletRequest.RENDER_PHASE);
 }
 
-portletURL.setWindowState(WindowState.MAXIMIZED);
-portletURL.setPortletMode(PortletMode.VIEW);
-
 portletURL.setParameter("struts_action", "/search/search");
 portletURL.setParameter("redirect", currentURL);
+portletURL.setPortletMode(PortletMode.VIEW);
+portletURL.setWindowState(WindowState.MAXIMIZED);
 
 pageContext.setAttribute("portletURL", portletURL);
 %>
 
-<form action="<%= portletURL.toString() %>" method="get" name="<%= randomNamespace %><%= namespace %>fm" onSubmit="<%= randomNamespace %><%= namespace %>search(); return false;">
-<liferay-portlet:renderURLParams varImpl="portletURL" />
+<form action="<%= HtmlUtil.escapeAttribute(portletURL.toString()) %>" method="get" name="<%= randomNamespace %><%= namespace %>fm" onSubmit="<%= randomNamespace %><%= namespace %>search(); return false;">
+	<liferay-portlet:renderURLParams varImpl="portletURL" />
 
-<input name="<%= namespace %>keywords" size="30" type="text" value="<%= HtmlUtil.escapeAttribute(keywords) %>" />
+	<aui:fieldset>
+		<aui:input inlineField="<%= true %>" label="" name='<%= namespace + "keywords" %>' size="30" title="search" type="text" useNamespace="<%= false %>" value="<%= HtmlUtil.escapeAttribute(keywords) %>" />
 
-<select name="<%= namespace %>groupId">
-	<option value="0" <%= (groupId == 0) ? "selected" : "" %>><liferay-ui:message key="everything" /></option>
-	<option value="<%= group.getGroupId() %>" <%= (groupId != 0) ? "selected" : "" %>><liferay-ui:message key='<%= "this-" + (group.isOrganization() ? "organization" : "site") %>' /></option>
-</select>
+		<%
+		String taglibOnClick = "Liferay.Util.focusFormField('#" + namespace + "keywords');";
+		%>
 
-<input align="absmiddle" border="0" src="<%= themeDisplay.getPathThemeImages() %>/common/search.png" title="<liferay-ui:message key="search" />" type="image" />
+		<liferay-ui:quick-access-entry label="skip-to-search" onClick="<%= taglibOnClick %>" />
 
-<aui:script>
-	function <%= randomNamespace %><%= namespace %>search() {
-		var keywords = document.<%= randomNamespace %><%= namespace %>fm.<%= namespace %>keywords.value;
+		<aui:select inlineField="<%= true %>" label="" name='<%= namespace + "groupId" %>' title="scope" useNamespace="<%= false %>">
+			<aui:option label="everything" selected="<%= (groupId == 0) %>" value="0" />
+			<aui:option label='<%= "this-" + (group.isOrganization() ? "organization" : "site") %>' selected="<%= (groupId != 0) %>" value="<%= group.getGroupId() %>" />
+		</aui:select>
 
-		keywords = keywords.replace(/^\s+|\s+$/, '');
+		<liferay-ui:icon
+			iconCssClass="icon-search"
+			onClick='<%= "submitForm(document." + randomNamespace + namespace + "fm);" %>'
+			url="javascript:;"
+		/>
+	</aui:fieldset>
 
-		if (keywords != '') {
-			document.<%= randomNamespace %><%= namespace %>fm.submit();
+	<aui:script>
+		function <%= randomNamespace %><%= namespace %>search() {
+			var keywords = document.<%= randomNamespace %><%= namespace %>fm.<%= namespace %>keywords.value;
+
+			keywords = keywords.replace(/^\s+|\s+$/, '');
+
+			if (keywords != '') {
+				submitForm(document.<%= randomNamespace %><%= namespace %>fm);
+			}
 		}
-	}
-</aui:script>
+	</aui:script>

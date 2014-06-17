@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -49,6 +49,7 @@ public class DocumentComparator implements Comparator<Document> {
 		_columns.add(orderBy);
 	}
 
+	@Override
 	public int compare(Document doc1, Document doc2) {
 		for (DocumentComparatorOrderBy orderBy : _columns) {
 			String value1 = doc1.get(orderBy.getName());

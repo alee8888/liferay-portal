@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,6 +24,15 @@ import com.liferay.portal.kernel.util.StringBundler;
  */
 public abstract class AbstractDevice implements Device {
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getScreenResolution()}
+	 */
+	@Deprecated
+	@Override
+	public Dimensions getScreenSize() {
+		return getScreenResolution();
+	}
+
 	@Override
 	public String toString() {
 		StringBundler sb = new StringBundler(23);
@@ -34,7 +43,7 @@ public abstract class AbstractDevice implements Device {
 		sb.append(getBrowser());
 		sb.append(", browserVersion=");
 		sb.append(getBrowserVersion());
-		sb.append(", capabiltiies=");
+		sb.append(", capabilities=");
 		sb.append(getCapabilities());
 		sb.append(", model=");
 		sb.append(getModel());
@@ -46,8 +55,10 @@ public abstract class AbstractDevice implements Device {
 		sb.append(getPointingMethod());
 		sb.append(", qwertyKeyboard=");
 		sb.append(hasQwertyKeyboard());
-		sb.append(", screenSize=");
-		sb.append(getScreenSize());
+		sb.append(", screenPhysicalSize=");
+		sb.append(getScreenPhysicalSize());
+		sb.append(", screenResolution=");
+		sb.append(getScreenResolution());
 		sb.append(", tablet=");
 		sb.append(isTablet());
 		sb.append("}");

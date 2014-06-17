@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,12 +18,7 @@
 
 <%@ page import="com.liferay.portal.kernel.search.Document" %><%@
 page import="com.liferay.portal.kernel.search.DocumentComparator" %><%@
-page import="com.liferay.portal.kernel.search.Indexer" %><%@
-page import="com.liferay.portal.kernel.search.IndexerRegistryUtil" %><%@
-page import="com.liferay.portal.kernel.search.SearchContext" %><%@
-page import="com.liferay.portal.kernel.search.SearchContextFactory" %><%@
 page import="com.liferay.portal.plugin.PluginPackageUtil" %><%@
-page import="com.liferay.portal.service.permission.PortalPermissionUtil" %><%@
 page import="com.liferay.portlet.softwarecatalog.DuplicateProductEntryModuleIdException" %><%@
 page import="com.liferay.portlet.softwarecatalog.DuplicateProductVersionDirectDownloadURLException" %><%@
 page import="com.liferay.portlet.softwarecatalog.FrameworkVersionNameException" %><%@
@@ -43,6 +38,7 @@ page import="com.liferay.portlet.softwarecatalog.ProductVersionChangeLogExceptio
 page import="com.liferay.portlet.softwarecatalog.ProductVersionDownloadURLException" %><%@
 page import="com.liferay.portlet.softwarecatalog.ProductVersionFrameworkVersionException" %><%@
 page import="com.liferay.portlet.softwarecatalog.ProductVersionNameException" %><%@
+page import="com.liferay.portlet.softwarecatalog.RequiredLicenseException" %><%@
 page import="com.liferay.portlet.softwarecatalog.UnavailableProductVersionDirectDownloadURLException" %><%@
 page import="com.liferay.portlet.softwarecatalog.model.SCFrameworkVersion" %><%@
 page import="com.liferay.portlet.softwarecatalog.model.SCLicense" %><%@

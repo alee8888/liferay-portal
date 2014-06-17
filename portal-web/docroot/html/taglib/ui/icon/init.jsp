@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,9 +16,9 @@
 
 <%@ include file="/html/taglib/init.jsp" %>
 
-<%
-String id = (String)request.getAttribute("liferay-ui:icon:id");
+<%@ page import="java.net.URL" %>
 
+<%
 IntegerWrapper iconListIconCount = (IntegerWrapper)request.getAttribute("liferay-ui:icon-list:icon-count");
 
 if (iconListIconCount != null) {
@@ -26,7 +26,6 @@ if (iconListIconCount != null) {
 }
 
 boolean iconListShowWhenSingleIcon = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:icon-list:showWhenSingleIcon"));
-
 Boolean iconListSingleIcon = (Boolean)request.getAttribute("liferay-ui:icon-list:single-icon");
 
 IntegerWrapper iconMenuIconCount = (IntegerWrapper)request.getAttribute("liferay-ui:icon-menu:icon-count");
@@ -35,25 +34,64 @@ if (iconMenuIconCount != null) {
 	iconMenuIconCount.increment();
 }
 
+boolean iconMenuShowWhenSingleIcon = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:icon-menu:showWhenSingleIcon"));
 Boolean iconMenuSingleIcon = (Boolean)request.getAttribute("liferay-ui:icon-menu:single-icon");
 
-boolean iconMenuShowWhenSingleIcon = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:icon-menu:showWhenSingleIcon"));
-
+String alt = (String)request.getAttribute("liferay-ui:icon:alt");
+String ariaRole = (String)request.getAttribute("liferay-ui:icon:ariaRole");
+String iconCssClass = (String)request.getAttribute("liferay-ui:icon:iconCssClass");
+String id = (String)request.getAttribute("liferay-ui:icon:id");
 String image = (String)request.getAttribute("liferay-ui:icon:image");
 String imageHover = (String)request.getAttribute("liferay-ui:icon:imageHover");
-
-boolean auiImage = (image != null) && image.startsWith(_AUI_PATH);
-
-String alt = (String)request.getAttribute("liferay-ui:icon:alt");
-
 String message = (String)request.getAttribute("liferay-ui:icon:message");
+String cssClass = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:cssClass"));
+Map<String, Object> data = (Map<String, Object>)request.getAttribute("liferay-ui:icon:data");
+boolean label = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:icon:label"));
+String lang = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:lang"));
+String linkCssClass = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:linkCssClass"));
+boolean localizeMessage = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:icon:localizeMessage"));
+String method = (String)request.getAttribute("liferay-ui:icon:method");
+String onClick = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:onClick"));
+String src = (String)request.getAttribute("liferay-ui:icon:src");
+String srcHover = (String)request.getAttribute("liferay-ui:icon:srcHover");
+boolean toolTip = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:icon:toolTip"));
+String target = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:target"));
+String url = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:url"));
+boolean useDialog = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:icon:useDialog"));
+
+if (data == null) {
+	data = new HashMap<String, Object>(1);
+}
+
+if ((iconListIconCount != null) || (iconListSingleIcon != null)) {
+	label = true;
+}
+
+if ((iconMenuIconCount != null) || (iconMenuSingleIcon != null)) {
+	label = true;
+}
 
 if (message == null) {
 	message = StringUtil.replace(image, StringPool.UNDERLINE, StringPool.DASH);
+	message = StringUtil.replace(message, "../aui/", StringPool.BLANK);
 }
 
-String src = (String)request.getAttribute("liferay-ui:icon:src");
-String srcHover = (String)request.getAttribute("liferay-ui:icon:srcHover");
+if (useDialog && Validator.isNull(data.get("title"))) {
+	data.put("title", HtmlUtil.stripHtml(localizeMessage ? LanguageUtil.get(pageContext, message) : message));
+}
+
+if (Validator.isNull(method)) {
+	int pos = url.indexOf("p_p_lifecycle=0");
+
+	if (pos != -1) {
+		method = "get";
+	}
+	else {
+		method = "post";
+	}
+}
+
+boolean auiImage = (image != null) && image.startsWith(_AUI_PATH);
 
 if (Validator.isNull(src)) {
 	if (auiImage) {
@@ -82,41 +120,10 @@ if (Validator.isNull(srcHover) && Validator.isNotNull(imageHover)) {
 	srcHover = sb.toString();
 }
 
-String url = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:url"));
-
-String method = (String)request.getAttribute("liferay-ui:icon:method");
-
-if (Validator.isNull(method)) {
-	method = "post";
-}
-
-String target = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:target"));
-boolean label = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:icon:label"));
-String lang = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:lang"));
-boolean localizeMessage = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:icon:localizeMessage"));
-boolean toolTip = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:icon:toolTip"));
-String cssClass = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:cssClass"));
-Map<String, Object> data = (Map<String, Object>)request.getAttribute("liferay-ui:icon:data");
-String onClick = GetterUtil.getString((String)request.getAttribute("liferay-ui:icon:onClick"));
-
-if ((iconListIconCount != null) || (iconListSingleIcon != null)) {
-	label = true;
-}
-
-if ((iconMenuIconCount != null) || (iconMenuSingleIcon != null)) {
-	label = true;
-}
-
 String details = null;
 
 if (alt != null) {
-	StringBundler sb = new StringBundler(3);
-
-	sb.append(" alt=\"");
-	sb.append(LanguageUtil.get(pageContext, alt));
-	sb.append("\"");
-
-	details = sb.toString();
+	details = " alt=\"" + LanguageUtil.get(pageContext, alt) + "\"";
 }
 else if (label) {
 	details = " alt=\"\"";
@@ -144,5 +151,5 @@ else {
 %>
 
 <%!
-private static String _AUI_PATH = "../aui/";
+private static final String _AUI_PATH = "../aui/";
 %>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -67,6 +67,16 @@ public class ErrorTag extends TagSupport {
 					Validator.isNotNull(errorMarkerValue)) {
 
 					request.setAttribute(errorMarkerKey, errorMarkerValue);
+
+					Object exception = getException(portletRequest);
+
+					if (exception instanceof Exception) {
+						request.setAttribute(
+							"liferay-ui:error:exception", exception);
+					}
+
+					request.setAttribute(
+						"liferay-ui:error:focusField", _focusField);
 				}
 			}
 
@@ -99,15 +109,7 @@ public class ErrorTag extends TagSupport {
 			}
 
 			if (SessionErrors.contains(portletRequest, _key)) {
-				Object value = null;
-
-				if (_exception != null) {
-					value = SessionErrors.get(
-						portletRequest, _exception.getName());
-				}
-				else {
-					value = SessionErrors.get(portletRequest, _key);
-				}
+				Object value = getException(portletRequest);
 
 				PortalIncludeUtil.include(pageContext, getStartPage());
 
@@ -135,6 +137,10 @@ public class ErrorTag extends TagSupport {
 		if (_exception != null) {
 			_key = _exception.getName();
 		}
+	}
+
+	public void setFocusField(String focusField) {
+		_focusField = focusField;
 	}
 
 	public void setKey(String key) {
@@ -166,6 +172,19 @@ public class ErrorTag extends TagSupport {
 		}
 	}
 
+	protected Object getException(PortletRequest portletRequest) {
+		Object value = null;
+
+		if (_exception != null) {
+			value = SessionErrors.get(portletRequest, _exception.getName());
+		}
+		else {
+			value = SessionErrors.get(portletRequest, _key);
+		}
+
+		return value;
+	}
+
 	protected String getStartPage() {
 		if (Validator.isNull(_startPage)) {
 			return _START_PAGE;
@@ -181,6 +200,7 @@ public class ErrorTag extends TagSupport {
 
 	private String _endPage;
 	private Class<?> _exception;
+	private String _focusField;
 	private String _key;
 	private String _message;
 	private String _rowBreak = StringPool.BLANK;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,13 +22,11 @@ import com.liferay.portal.security.auth.HttpPrincipal;
 import com.liferay.portal.service.TeamServiceUtil;
 
 /**
- * <p>
- * This class provides a HTTP utility for the
+ * Provides the HTTP utility for the
  * {@link com.liferay.portal.service.TeamServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it requires an additional
  * {@link com.liferay.portal.security.auth.HttpPrincipal} parameter.
- * </p>
  *
  * <p>
  * The benefits of using the HTTP utility is that it is fast and allows for
@@ -45,20 +43,19 @@ import com.liferay.portal.service.TeamServiceUtil;
  * The HTTP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       TeamServiceSoap
- * @see       com.liferay.portal.security.auth.HttpPrincipal
- * @see       com.liferay.portal.service.TeamServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see TeamServiceSoap
+ * @see com.liferay.portal.security.auth.HttpPrincipal
+ * @see com.liferay.portal.service.TeamServiceUtil
  * @generated
  */
 public class TeamServiceHttp {
 	public static com.liferay.portal.model.Team addTeam(
 		HttpPrincipal httpPrincipal, long groupId, java.lang.String name,
 		java.lang.String description)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
-			MethodKey methodKey = new MethodKey(TeamServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(TeamServiceUtil.class,
 					"addTeam", _addTeamParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
@@ -74,10 +71,6 @@ public class TeamServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -91,10 +84,9 @@ public class TeamServiceHttp {
 	}
 
 	public static void deleteTeam(HttpPrincipal httpPrincipal, long teamId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
-			MethodKey methodKey = new MethodKey(TeamServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(TeamServiceUtil.class,
 					"deleteTeam", _deleteTeamParameterTypes1);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, teamId);
@@ -105,10 +97,6 @@ public class TeamServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -123,10 +111,9 @@ public class TeamServiceHttp {
 
 	public static java.util.List<com.liferay.portal.model.Team> getGroupTeams(
 		HttpPrincipal httpPrincipal, long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
-			MethodKey methodKey = new MethodKey(TeamServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(TeamServiceUtil.class,
 					"getGroupTeams", _getGroupTeamsParameterTypes2);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId);
@@ -139,10 +126,6 @@ public class TeamServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -159,10 +142,9 @@ public class TeamServiceHttp {
 
 	public static com.liferay.portal.model.Team getTeam(
 		HttpPrincipal httpPrincipal, long teamId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
-			MethodKey methodKey = new MethodKey(TeamServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(TeamServiceUtil.class,
 					"getTeam", _getTeamParameterTypes3);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, teamId);
@@ -175,10 +157,6 @@ public class TeamServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -195,10 +173,9 @@ public class TeamServiceHttp {
 
 	public static com.liferay.portal.model.Team getTeam(
 		HttpPrincipal httpPrincipal, long groupId, java.lang.String name)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
-			MethodKey methodKey = new MethodKey(TeamServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(TeamServiceUtil.class,
 					"getTeam", _getTeamParameterTypes4);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, groupId,
@@ -212,10 +189,6 @@ public class TeamServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -232,10 +205,9 @@ public class TeamServiceHttp {
 
 	public static java.util.List<com.liferay.portal.model.Team> getUserTeams(
 		HttpPrincipal httpPrincipal, long userId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
-			MethodKey methodKey = new MethodKey(TeamServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(TeamServiceUtil.class,
 					"getUserTeams", _getUserTeamsParameterTypes5);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, userId);
@@ -248,10 +220,6 @@ public class TeamServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -268,10 +236,9 @@ public class TeamServiceHttp {
 
 	public static java.util.List<com.liferay.portal.model.Team> getUserTeams(
 		HttpPrincipal httpPrincipal, long userId, long groupId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
-			MethodKey methodKey = new MethodKey(TeamServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(TeamServiceUtil.class,
 					"getUserTeams", _getUserTeamsParameterTypes6);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, userId,
@@ -287,10 +254,6 @@ public class TeamServiceHttp {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
 				}
 
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
-				}
-
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
 			}
 
@@ -304,11 +267,9 @@ public class TeamServiceHttp {
 	}
 
 	public static boolean hasUserTeam(HttpPrincipal httpPrincipal, long userId,
-		long teamId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		long teamId) throws com.liferay.portal.kernel.exception.PortalException {
 		try {
-			MethodKey methodKey = new MethodKey(TeamServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(TeamServiceUtil.class,
 					"hasUserTeam", _hasUserTeamParameterTypes7);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, userId,
@@ -322,10 +283,6 @@ public class TeamServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);
@@ -343,10 +300,9 @@ public class TeamServiceHttp {
 	public static com.liferay.portal.model.Team updateTeam(
 		HttpPrincipal httpPrincipal, long teamId, java.lang.String name,
 		java.lang.String description)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		try {
-			MethodKey methodKey = new MethodKey(TeamServiceUtil.class.getName(),
+			MethodKey methodKey = new MethodKey(TeamServiceUtil.class,
 					"updateTeam", _updateTeamParameterTypes8);
 
 			MethodHandler methodHandler = new MethodHandler(methodKey, teamId,
@@ -360,10 +316,6 @@ public class TeamServiceHttp {
 			catch (Exception e) {
 				if (e instanceof com.liferay.portal.kernel.exception.PortalException) {
 					throw (com.liferay.portal.kernel.exception.PortalException)e;
-				}
-
-				if (e instanceof com.liferay.portal.kernel.exception.SystemException) {
-					throw (com.liferay.portal.kernel.exception.SystemException)e;
 				}
 
 				throw new com.liferay.portal.kernel.exception.SystemException(e);

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,7 @@
 package com.liferay.portlet.login.action;
 
 import com.liferay.portal.DuplicateUserEmailAddressException;
-import com.liferay.portal.NoSuchUserException;
+import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.User;
@@ -35,9 +36,13 @@ import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.OpenIdUtil;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PropsUtil;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.ActionResponseImpl;
 import com.liferay.util.PwdGenerator;
+
+import java.net.URL;
 
 import java.util.Calendar;
 import java.util.List;
@@ -82,8 +87,9 @@ public class OpenIdAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
@@ -107,9 +113,7 @@ public class OpenIdAction extends PortletAction {
 					themeDisplay, actionRequest, actionResponse);
 
 				if (Validator.isNull(redirect)) {
-					redirect =
-						PortalUtil.getPortalURL(actionRequest) +
-							themeDisplay.getURLSignIn();
+					redirect = themeDisplay.getURLSignIn();
 				}
 
 				sendRedirect(actionRequest, actionResponse, redirect);
@@ -141,20 +145,21 @@ public class OpenIdAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		if (!OpenIdUtil.isEnabled(themeDisplay.getCompanyId())) {
-			return mapping.findForward("portlet.login.login");
+			return actionMapping.findForward("portlet.login.login");
 		}
 
 		renderResponse.setTitle(themeDisplay.translate("open-id"));
 
-		return mapping.findForward("portlet.login.open_id");
+		return actionMapping.findForward("portlet.login.open_id");
 	}
 
 	protected String getFirstValue(List<String> values) {
@@ -163,6 +168,21 @@ public class OpenIdAction extends PortletAction {
 		}
 
 		return values.get(0);
+	}
+
+	protected String getOpenIdProvider(URL endpointURL) {
+		String hostName = endpointURL.getHost();
+
+		for (String openIdProvider : PropsValues.OPEN_ID_PROVIDERS) {
+			String openIdURLString = PropsUtil.get(
+				PropsKeys.OPEN_ID_URL, new Filter(openIdProvider));
+
+			if (hostName.equals(openIdURLString)) {
+				return openIdProvider;
+			}
+		}
+
+		return _OPEN_ID_PROVIDER_DEFAULT;
 	}
 
 	@Override
@@ -177,148 +197,183 @@ public class OpenIdAction extends PortletAction {
 
 		HttpServletRequest request = PortalUtil.getHttpServletRequest(
 			actionRequest);
+
+		request = PortalUtil.getOriginalServletRequest(request);
+
 		HttpSession session = request.getSession();
 
-		ConsumerManager manager = OpenIdUtil.getConsumerManager();
+		ConsumerManager consumerManager = OpenIdUtil.getConsumerManager();
 
-		ParameterList params = new ParameterList(
-			actionRequest.getParameterMap());
+		ParameterList parameterList = new ParameterList(
+			request.getParameterMap());
 
-		DiscoveryInformation discovered =
+		DiscoveryInformation discoveryInformation =
 			(DiscoveryInformation)session.getAttribute(WebKeys.OPEN_ID_DISCO);
 
-		if (discovered == null) {
+		if (discoveryInformation == null) {
 			return null;
 		}
 
-		String receivingUrl = ParamUtil.getString(
-			actionRequest, "openid.return_to");
+		String receivingURL = ParamUtil.getString(request, "openid.return_to");
 
-		VerificationResult verification = manager.verify(
-			receivingUrl, params, discovered);
+		VerificationResult verificationResult = consumerManager.verify(
+			receivingURL, parameterList, discoveryInformation);
 
-		Identifier verified = verification.getVerifiedId();
+		Identifier identifier = verificationResult.getVerifiedId();
 
-		if (verified == null) {
+		if (identifier == null) {
 			return null;
 		}
 
-		AuthSuccess authSuccess = (AuthSuccess)verification.getAuthResponse();
+		AuthSuccess authSuccess =
+			(AuthSuccess)verificationResult.getAuthResponse();
 
 		String firstName = null;
 		String lastName = null;
 		String emailAddress = null;
 
 		if (authSuccess.hasExtension(SRegMessage.OPENID_NS_SREG)) {
-			MessageExtension ext = authSuccess.getExtension(
+			MessageExtension messageExtension = authSuccess.getExtension(
 				SRegMessage.OPENID_NS_SREG);
 
-			if (ext instanceof SRegResponse) {
-				SRegResponse sregResp = (SRegResponse)ext;
+			if (messageExtension instanceof SRegResponse) {
+				SRegResponse sregResp = (SRegResponse)messageExtension;
 
 				String fullName = GetterUtil.getString(
-					sregResp.getAttributeValue("fullname"));
+					sregResp.getAttributeValue(_OPEN_ID_SREG_ATTR_FULLNAME));
 
-				int pos = fullName.indexOf(CharPool.SPACE);
+				String[] names = splitFullName(fullName);
 
-				if ((pos != -1) && ((pos + 1) < fullName.length())) {
-					firstName = fullName.substring(0, pos);
-					lastName = fullName.substring(pos + 1);
+				if (names != null) {
+					firstName = names[0];
+					lastName = names[1];
 				}
 
-				emailAddress = sregResp.getAttributeValue("email");
+				emailAddress = sregResp.getAttributeValue(
+					_OPEN_ID_SREG_ATTR_EMAIL);
 			}
 		}
 
 		if (authSuccess.hasExtension(AxMessage.OPENID_NS_AX)) {
-			MessageExtension ext = authSuccess.getExtension(
+			MessageExtension messageExtension = authSuccess.getExtension(
 				AxMessage.OPENID_NS_AX);
 
-			if (ext instanceof FetchResponse) {
-				FetchResponse fetchResp = (FetchResponse)ext;
+			if (messageExtension instanceof FetchResponse) {
+				FetchResponse fetchResponse = (FetchResponse)messageExtension;
 
-				if (Validator.isNull(firstName)) {
-					firstName = getFirstValue(
-						fetchResp.getAttributeValues("firstName"));
-				}
+				String openIdProvider = getOpenIdProvider(
+					discoveryInformation.getOPEndpoint());
 
-				if (Validator.isNull(lastName)) {
-					lastName = getFirstValue(
-						fetchResp.getAttributeValues("lastName"));
-				}
+				String[] openIdAXTypes = PropsUtil.getArray(
+					PropsKeys.OPEN_ID_AX_SCHEMA, new Filter(openIdProvider));
 
-				if (Validator.isNull(emailAddress)) {
-					emailAddress = getFirstValue(
-						fetchResp.getAttributeValues("email"));
+				for (String openIdAXType : openIdAXTypes) {
+					if (openIdAXType.equals(_OPEN_ID_AX_ATTR_EMAIL)) {
+						if (Validator.isNull(emailAddress)) {
+							emailAddress = getFirstValue(
+								fetchResponse.getAttributeValues(
+									_OPEN_ID_AX_ATTR_EMAIL));
+						}
+					}
+					else if (openIdAXType.equals(_OPEN_ID_AX_ATTR_FIRST_NAME)) {
+						if (Validator.isNull(firstName)) {
+							firstName = getFirstValue(
+								fetchResponse.getAttributeValues(
+									_OPEN_ID_AX_ATTR_FIRST_NAME));
+						}
+					}
+					else if (openIdAXType.equals(_OPEN_ID_AX_ATTR_FULL_NAME)) {
+						String fullName = fetchResponse.getAttributeValue(
+							_OPEN_ID_AX_ATTR_FULL_NAME);
+
+						String[] names = splitFullName(fullName);
+
+						if (names != null) {
+							if (Validator.isNull(firstName)) {
+								firstName = names[0];
+							}
+
+							if (Validator.isNull(lastName)) {
+								lastName = names[1];
+							}
+						}
+					}
+					else if (openIdAXType.equals(_OPEN_ID_AX_ATTR_LAST_NAME)) {
+						if (Validator.isNull(lastName)) {
+							lastName = getFirstValue(
+								fetchResponse.getAttributeValues(
+									_OPEN_ID_AX_ATTR_LAST_NAME));
+						}
+					}
 				}
 			}
 		}
 
 		String openId = OpenIdUtil.normalize(authSuccess.getIdentity());
 
-		User user = null;
+		User user = UserLocalServiceUtil.fetchUserByOpenId(
+			themeDisplay.getCompanyId(), openId);
 
-		try {
-			user = UserLocalServiceUtil.getUserByOpenId(
-				themeDisplay.getCompanyId(), openId);
+		if (user != null) {
+			session.setAttribute(
+				WebKeys.OPEN_ID_LOGIN, new Long(user.getUserId()));
+
+			return null;
 		}
-		catch (NoSuchUserException nsue) {
-			if (Validator.isNull(firstName) || Validator.isNull(lastName) ||
-				Validator.isNull(emailAddress)) {
 
-				SessionMessages.add(request, "missingOpenIdUserInformation");
+		if (Validator.isNull(firstName) || Validator.isNull(lastName) ||
+			Validator.isNull(emailAddress)) {
 
-				if (_log.isInfoEnabled()) {
-					_log.info(
-						"The OpenID provider did not send the required " +
-							"attributes to create an account");
-				}
+			SessionMessages.add(request, "openIdUserInformationMissing");
 
-				String createAccountURL = PortalUtil.getCreateAccountURL(
-					request, themeDisplay);
-
-				createAccountURL = HttpUtil.setParameter(
-					createAccountURL, "openId", openId);
-
-				session.setAttribute(
-					WebKeys.OPEN_ID_LOGIN_PENDING, Boolean.TRUE);
-
-				return createAccountURL;
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					"The OpenID provider did not send the required " +
+						"attributes to create an account");
 			}
 
-			long creatorUserId = 0;
-			long companyId = themeDisplay.getCompanyId();
-			boolean autoPassword = false;
-			String password1 = PwdGenerator.getPassword();
-			String password2 = password1;
-			boolean autoScreenName = true;
-			String screenName = StringPool.BLANK;
-			long facebookId = 0;
-			Locale locale = themeDisplay.getLocale();
-			String middleName = StringPool.BLANK;
-			int prefixId = 0;
-			int suffixId = 0;
-			boolean male = true;
-			int birthdayMonth = Calendar.JANUARY;
-			int birthdayDay = 1;
-			int birthdayYear = 1970;
-			String jobTitle = StringPool.BLANK;
-			long[] groupIds = null;
-			long[] organizationIds = null;
-			long[] roleIds = null;
-			long[] userGroupIds = null;
-			boolean sendEmail = false;
+			String createAccountURL = PortalUtil.getCreateAccountURL(
+				request, themeDisplay);
 
-			ServiceContext serviceContext = new ServiceContext();
+			createAccountURL = HttpUtil.setParameter(
+				createAccountURL, "openId", openId);
 
-			user = UserLocalServiceUtil.addUser(
-				creatorUserId, companyId, autoPassword, password1, password2,
-				autoScreenName, screenName, emailAddress, facebookId, openId,
-				locale, firstName, middleName, lastName, prefixId, suffixId,
-				male, birthdayMonth, birthdayDay, birthdayYear, jobTitle,
-				groupIds, organizationIds, roleIds, userGroupIds, sendEmail,
-				serviceContext);
+			session.setAttribute(WebKeys.OPEN_ID_LOGIN_PENDING, Boolean.TRUE);
+
+			return createAccountURL;
 		}
+
+		long creatorUserId = 0;
+		long companyId = themeDisplay.getCompanyId();
+		boolean autoPassword = false;
+		String password1 = PwdGenerator.getPassword();
+		String password2 = password1;
+		boolean autoScreenName = true;
+		String screenName = StringPool.BLANK;
+		long facebookId = 0;
+		Locale locale = themeDisplay.getLocale();
+		String middleName = StringPool.BLANK;
+		int prefixId = 0;
+		int suffixId = 0;
+		boolean male = true;
+		int birthdayMonth = Calendar.JANUARY;
+		int birthdayDay = 1;
+		int birthdayYear = 1970;
+		String jobTitle = StringPool.BLANK;
+		long[] groupIds = null;
+		long[] organizationIds = null;
+		long[] roleIds = null;
+		long[] userGroupIds = null;
+		boolean sendEmail = false;
+
+		ServiceContext serviceContext = new ServiceContext();
+
+		user = UserLocalServiceUtil.addUser(
+			creatorUserId, companyId, autoPassword, password1, password2,
+			autoScreenName, screenName, emailAddress, facebookId, openId,
+			locale, firstName, middleName, lastName, prefixId, suffixId, male,
+			birthdayMonth, birthdayDay, birthdayYear, jobTitle, groupIds,
+			organizationIds, roleIds, userGroupIds, sendEmail, serviceContext);
 
 		session.setAttribute(WebKeys.OPEN_ID_LOGIN, new Long(user.getUserId()));
 
@@ -343,9 +398,9 @@ public class OpenIdAction extends PortletAction {
 
 		PortletURL portletURL = actionResponseImpl.createActionURL();
 
-		portletURL.setParameter("struts_action", "/login/open_id");
+		portletURL.setParameter("saveLastPath", Boolean.FALSE.toString());
 		portletURL.setParameter(Constants.CMD, Constants.READ);
-		portletURL.setParameter("saveLastPath", "0");
+		portletURL.setParameter("struts_action", "/login/open_id");
 
 		ConsumerManager manager = OpenIdUtil.getConsumerManager();
 
@@ -358,46 +413,91 @@ public class OpenIdAction extends PortletAction {
 		AuthRequest authRequest = manager.authenticate(
 			discovered, portletURL.toString(), themeDisplay.getPortalURL());
 
-		try {
-			UserLocalServiceUtil.getUserByOpenId(
-				themeDisplay.getCompanyId(), openId);
+		if (UserLocalServiceUtil.fetchUserByOpenId(
+				themeDisplay.getCompanyId(), openId) != null) {
+
+			response.sendRedirect(authRequest.getDestinationUrl(true));
+
+			return;
 		}
-		catch (NoSuchUserException nsue) {
-			String screenName = OpenIdUtil.getScreenName(openId);
 
-			try {
-				User user = UserLocalServiceUtil.getUserByScreenName(
-					themeDisplay.getCompanyId(), screenName);
+		String screenName = OpenIdUtil.getScreenName(openId);
 
-				UserLocalServiceUtil.updateOpenId(user.getUserId(), openId);
-			}
-			catch (NoSuchUserException nsue2) {
-				FetchRequest fetch = FetchRequest.createFetchRequest();
+		User user = UserLocalServiceUtil.fetchUserByScreenName(
+			themeDisplay.getCompanyId(), screenName);
 
-				fetch.addAttribute(
-					"email", "http://schema.openid.net/contact/email", true);
-				fetch.addAttribute(
-					"firstName", "http://schema.openid.net/namePerson/first",
-					true);
-				fetch.addAttribute(
-					"lastName", "http://schema.openid.net/namePerson/last",
-					true);
+		if (user != null) {
+			UserLocalServiceUtil.updateOpenId(user.getUserId(), openId);
 
-				authRequest.addExtension(fetch);
+			response.sendRedirect(authRequest.getDestinationUrl(true));
 
-				SRegRequest sregRequest = SRegRequest.createFetchRequest();
-
-				sregRequest.addAttribute("fullname", true);
-				sregRequest.addAttribute("email", true);
-
-				authRequest.addExtension(sregRequest);
-			}
+			return;
 		}
+
+		FetchRequest fetchRequest = FetchRequest.createFetchRequest();
+
+		String openIdProvider = getOpenIdProvider(discovered.getOPEndpoint());
+
+		String[] openIdAXTypes = PropsUtil.getArray(
+			PropsKeys.OPEN_ID_AX_SCHEMA, new Filter(openIdProvider));
+
+		for (String openIdAXType : openIdAXTypes) {
+			fetchRequest.addAttribute(
+				openIdAXType,
+				PropsUtil.get(
+					_OPEN_ID_AX_TYPE.concat(openIdAXType),
+					new Filter(openIdProvider)),
+				true);
+		}
+
+		authRequest.addExtension(fetchRequest);
+
+		SRegRequest sRegRequest = SRegRequest.createFetchRequest();
+
+		sRegRequest.addAttribute(_OPEN_ID_SREG_ATTR_EMAIL, true);
+		sRegRequest.addAttribute(_OPEN_ID_SREG_ATTR_FULLNAME, true);
+
+		authRequest.addExtension(sRegRequest);
 
 		response.sendRedirect(authRequest.getDestinationUrl(true));
 	}
 
+	protected String[] splitFullName(String fullName) {
+		if (Validator.isNull(fullName)) {
+			return null;
+		}
+
+		int pos = fullName.indexOf(CharPool.SPACE);
+
+		if ((pos != -1) && ((pos + 1) < fullName.length())) {
+			String[] names = new String[2];
+
+			names[0] = fullName.substring(0, pos);
+			names[1] = fullName.substring(pos + 1);
+
+			return names;
+		}
+
+		return null;
+	}
+
 	private static final boolean _CHECK_METHOD_ON_PROCESS_ACTION = false;
+
+	private static final String _OPEN_ID_AX_ATTR_EMAIL = "email";
+
+	private static final String _OPEN_ID_AX_ATTR_FIRST_NAME = "firstname";
+
+	private static final String _OPEN_ID_AX_ATTR_FULL_NAME = "fullname";
+
+	private static final String _OPEN_ID_AX_ATTR_LAST_NAME = "lastname";
+
+	private static final String _OPEN_ID_AX_TYPE = "open.id.ax.type.";
+
+	private static final String _OPEN_ID_PROVIDER_DEFAULT = "default";
+
+	private static final String _OPEN_ID_SREG_ATTR_EMAIL = "email";
+
+	private static final String _OPEN_ID_SREG_ATTR_FULLNAME = "fullname";
 
 	private static Log _log = LogFactoryUtil.getLog(OpenIdAction.class);
 

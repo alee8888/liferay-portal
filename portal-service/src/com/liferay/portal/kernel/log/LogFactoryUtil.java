@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.log;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -21,6 +23,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * @author Brian Wing Shun Chan
  * @author Shuyang Zhou
+ * @author Raymond Augé
  */
 public class LogFactoryUtil {
 
@@ -38,7 +41,12 @@ public class LogFactoryUtil {
 		LogWrapper logWrapper = _logWrappers.get(name);
 
 		if (logWrapper == null) {
-			logWrapper = new LogWrapper(_logFactory.getLog(name));
+			if (SanitizerLogWrapper.isEnabled()) {
+				logWrapper = new SanitizerLogWrapper(_logFactory.getLog(name));
+			}
+			else {
+				logWrapper = new LogWrapper(_logFactory.getLog(name));
+			}
 
 			LogWrapper previousLogWrapper = _logWrappers.putIfAbsent(
 				name, logWrapper);
@@ -51,7 +59,15 @@ public class LogFactoryUtil {
 		return logWrapper;
 	}
 
+	public static LogFactory getLogFactory() {
+		PortalRuntimePermission.checkGetBeanProperty(LogFactoryUtil.class);
+
+		return _logFactory;
+	}
+
 	public static void setLogFactory(LogFactory logFactory) {
+		PortalRuntimePermission.checkSetBeanProperty(LogFactoryUtil.class);
+
 		for (Map.Entry<String, LogWrapper> entry : _logWrappers.entrySet()) {
 			String name = entry.getKey();
 
@@ -68,6 +84,7 @@ public class LogFactoryUtil {
 	}
 
 	private static volatile LogFactory _logFactory = new Jdk14LogFactoryImpl();
+
 	private static final ConcurrentMap<String, LogWrapper> _logWrappers =
 		new ConcurrentHashMap<String, LogWrapper>();
 

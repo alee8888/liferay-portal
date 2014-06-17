@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,7 @@
 package com.liferay.portal.deploy.auto;
 
 import com.liferay.portal.deploy.DeployUtil;
-import com.liferay.portal.kernel.deploy.auto.AutoDeployException;
+import com.liferay.portal.kernel.deploy.auto.AutoDeployer;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -24,8 +24,6 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.tools.deploy.PortletDeployer;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsValues;
-
-import java.io.File;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,24 +77,7 @@ public class PortletAutoDeployer
 			checkArguments();
 		}
 		catch (Exception e) {
-			_log.error(e);
-		}
-	}
-
-	public void autoDeploy(File file, String context)
-		throws AutoDeployException {
-
-		List<String> wars = new ArrayList<String>();
-
-		wars.add(file.getName());
-
-		this.wars = wars;
-
-		try {
-			deployFile(file, context);
-		}
-		catch (Exception e) {
-			throw new AutoDeployException(e);
+			_log.error(e, e);
 		}
 	}
 

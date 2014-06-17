@@ -1,7 +1,7 @@
 <%--
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,7 +23,7 @@ String redirect = ParamUtil.getString(request, "redirect");
 String saveCallback = ParamUtil.getString(request, "saveCallback");
 
 if (Validator.isNotNull(saveCallback)) {
-	saveCallback = "Liferay.Util.getOpener()." + saveCallback + "(Liferay.Util.getWindow());";
+	saveCallback = "Liferay.Util.getOpener()['" + HtmlUtil.escapeJS(saveCallback) + "'](Liferay.Util.getWindow());";
 
 	redirect = null;
 }
@@ -36,11 +36,11 @@ List<MDRRuleGroupInstance> ruleGroupInstances = MDRRuleGroupInstanceServiceUtil.
 
 <liferay-ui:header
 	backURL="<%= redirect %>"
-	title="manage-rule-group-priorities"
+	title="manage-rule-priorities"
 />
 
-<div class="portlet-msg-info">
-	<liferay-ui:message key="to-manage-priorities,-drag-the-rule-group-to-the-desired-position" />
+<div class="alert alert-info">
+	<liferay-ui:message key="to-manage-priorities,-drag-the-rule-to-the-desired-position" />
 </div>
 
 <div class="separator"><!-- --></div>
@@ -64,9 +64,9 @@ List<MDRRuleGroupInstance> ruleGroupInstances = MDRRuleGroupInstanceServiceUtil.
 		%>
 
 			<div class="rule-group-instance <%= (i == 0) ? "rule-group-instance-first" : StringPool.BLANK %>" data-rule-group-instance-id="<%= ruleGroupInstance.getRuleGroupInstanceId() %>">
-				<span class="rule-group-instance-handle aui-icon aui-icon-grip-dotted-vertical"></span>
+				<span class="rule-group-instance-handle icon icon-grip-dotted-vertical"></span>
 
-				<span class="rule-group-instance-label"><%= ruleGroup.getName(locale) %></span>
+				<span class="rule-group-instance-label"><%= HtmlUtil.escape(ruleGroup.getName(locale)) %></span>
 
 				<span class="rule-group-instance-priority">
 					<liferay-ui:message key="priority" />:
@@ -92,7 +92,7 @@ List<MDRRuleGroupInstance> ruleGroupInstances = MDRRuleGroupInstanceServiceUtil.
 	Liferay.provide(
 		window,
 		'<portlet:namespace />saveRuleGroupInstancesPriorities',
-		function(){
+		function() {
 			var A = AUI();
 
 			var nodes = A.all('#<portlet:namespace />ruleGroupInstancesPriorities .rule-group-instance');

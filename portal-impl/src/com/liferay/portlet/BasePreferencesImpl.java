@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portlet;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.xml.simple.Element;
 import com.liferay.util.xml.XMLFormatter;
 
@@ -36,10 +37,9 @@ import javax.portlet.ValidatorException;
 public abstract class BasePreferencesImpl implements Serializable {
 
 	public BasePreferencesImpl(
-		long companyId, long ownerId, int ownerType, String xml,
+		long ownerId, int ownerType, String xml,
 		Map<String, Preference> preferences) {
 
-		_companyId = companyId;
 		_ownerId = ownerId;
 		_ownerType = ownerType;
 		_originalXML = xml;
@@ -92,7 +92,7 @@ public abstract class BasePreferencesImpl implements Serializable {
 			values = preference.getValues();
 		}
 
-		if ((values != null) && (values.length > 0)) {
+		if (ArrayUtil.isNotEmpty(values)) {
 			return getActualValue(values[0]);
 		}
 		else {
@@ -115,7 +115,7 @@ public abstract class BasePreferencesImpl implements Serializable {
 			values = preference.getValues();
 		}
 
-		if ((values != null) && (values.length > 0)) {
+		if (ArrayUtil.isNotEmpty(values)) {
 			return getActualValues(values);
 		}
 		else {
@@ -206,6 +206,12 @@ public abstract class BasePreferencesImpl implements Serializable {
 		}
 	}
 
+	public int size() {
+		Map<String, Preference> preferences = getPreferences();
+
+		return preferences.size();
+	}
+
 	public abstract void store() throws IOException, ValidatorException;
 
 	protected String getActualValue(String value) {
@@ -240,10 +246,6 @@ public abstract class BasePreferencesImpl implements Serializable {
 		}
 
 		return actualValues;
-	}
-
-	protected long getCompanyId() {
-		return _companyId;
 	}
 
 	protected Map<String, Preference> getModifiedPreferences() {
@@ -326,7 +328,6 @@ public abstract class BasePreferencesImpl implements Serializable {
 
 	private static final String _NULL_VALUE = "NULL_VALUE";
 
-	private long _companyId;
 	private Map<String, Preference> _modifiedPreferences;
 	private Map<String, Preference> _originalPreferences;
 	private String _originalXML;

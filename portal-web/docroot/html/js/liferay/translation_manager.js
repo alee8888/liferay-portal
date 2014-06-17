@@ -5,7 +5,7 @@ AUI.add(
 		var Lang = A.Lang;
 		var Node = A.Node;
 
-		var CSS_HELPER_HIDDEN = 'aui-helper-hidden';
+		var CSS_HELPER_HIDDEN = 'hide';
 
 		var CSS_ACTIONS = 'lfr-actions';
 
@@ -15,7 +15,7 @@ AUI.add(
 
 		var CSS_CHANGE_DEFAULT_LOCALE = 'lfr-translation-manager-change-default-locale';
 
-		var CSS_COMPONENT = 'lfr-component';
+		var CSS_COMPONENT = 'list-unstyled';
 
 		var CSS_DEFAULT_LOCALE = 'lfr-translation-manager-default-locale';
 
@@ -39,10 +39,6 @@ AUI.add(
 
 		var CSS_TRANSLATION_ITEM = 'lfr-translation-manager-translation-item';
 
-		var LOCALIZABLE_FIELD_ATTRS = ['label', 'predefinedValue', 'tip'];
-
-		var MSG_CHANGE_DEFAULT_LANGUAGE = Liferay.Language.get('changing-the-default-language-will-delete-all-unsaved-content');
-
 		var MSG_DEACTIVATE_LANGUAGE = Liferay.Language.get('are-you-sure-you-want-to-deactivate-this-language');
 
 		var STR_BLANK = '';
@@ -55,11 +51,11 @@ AUI.add(
 
 		var TPL_DEFAULT_LOCALE_LABEL_NODE = '<label>' + Liferay.Language.get('default-language') + ':</label>';
 
-		var TPL_DEFAULT_LOCALE_NODE = '<select class="' + [CSS_HELPER_HIDDEN, 'aui-field-input', 'aui-field-input-select', 'aui-field-input-menu'].join(STR_SPACE) + '"></select>';
+		var TPL_DEFAULT_LOCALE_NODE = '<select class="' + [CSS_HELPER_HIDDEN, 'field-input-menu'].join(STR_SPACE) + '"></select>';
 
 		var TPL_LOCALE_IMAGE = '<img src="' + themeDisplay.getPathThemeImages() + '/language/{locale}.png" />';
 
-		var TPL_AVAILABLE_TRANSLATION_LINK = '<span class="' + CSS_TRANSLATION + ' {cssClass}" locale="{locale}">' + TPL_LOCALE_IMAGE + '{displayName} <a class="' + CSS_DELETE_TRANSLATION + ' aui-icon aui-icon-close" href="javascript:;">x</a></span>';
+		var TPL_AVAILABLE_TRANSLATION_LINK = '<span class="' + CSS_TRANSLATION + ' {cssClass}" locale="{locale}">' + TPL_LOCALE_IMAGE + '{displayName} <a class="' + CSS_DELETE_TRANSLATION + ' icon icon-remove" href="javascript:;"></a></span>';
 
 		var TPL_AVAILABLE_TRANSLATIONS_LINKS_NODE = '<span class="' + CSS_AVAILABLE_TRANSLATIONS_LINKS + '"></span>';
 
@@ -75,20 +71,18 @@ AUI.add(
 
 		var TranslationManager = A.Component.create(
 			{
-				NAME: 'translationmanager',
-
 				ATTRS: {
 					availableLocales: {
 						validator: Lang.isArray,
 						valueFn: '_valueAvailableLocales'
 					},
 
-					availableTranslationsNode: {
-						valueFn: '_valueAvailableTranslationsNode'
-					},
-
 					availableTranslationsLinksNode: {
 						valueFn: '_valueAvailableTranslationsLinksNode'
+					},
+
+					availableTranslationsNode: {
+						valueFn: '_valueAvailableTranslationsNode'
 					},
 
 					changeDefaultLocaleNode: {
@@ -131,14 +125,19 @@ AUI.add(
 
 					portletNamespace: {
 						value: STR_BLANK
+					},
+
+					readOnly: {
+						validator: Lang.isBoolean,
+						value: false
 					}
 				},
 
 				CSS_PREFIX: 'lfr-translation-manager',
 
 				HTML_PARSER: {
-					availableTranslationsNode: STR_DOT + CSS_AVAILABLE_TRANSLATIONS,
 					availableTranslationsLinksNode: STR_DOT + CSS_AVAILABLE_TRANSLATIONS_LINKS,
+					availableTranslationsNode: STR_DOT + CSS_AVAILABLE_TRANSLATIONS,
 					changeDefaultLocaleNode: STR_DOT + CSS_CHANGE_DEFAULT_LOCALE,
 					defaultLocaleLabelNode: STR_DOT + CSS_DEFAULT_LOCALE_LABEL,
 					defaultLocaleNode: STR_DOT + CSS_DEFAULT_LOCALE,
@@ -146,7 +145,9 @@ AUI.add(
 					iconMenuNode: STR_DOT + CSS_ICON_MENU
 				},
 
-				UI_ATTRS: ['availableLocales', 'defaultLocale', 'editingLocale'],
+				NAME: 'translationmanager',
+
+				UI_ATTRS: ['availableLocales', 'defaultLocale', 'editingLocale', 'readOnly'],
 
 				prototype: {
 					renderUI: function() {
@@ -214,6 +215,13 @@ AUI.add(
 
 							instance.set('availableLocales', availableLocales);
 						}
+
+						instance.fire(
+							'addAvailableLocale',
+							{
+								locale: locale
+							}
+						);
 					},
 
 					deleteAvailableLocale: function(locale) {
@@ -224,6 +232,13 @@ AUI.add(
 						AArray.removeItem(availableLocales, locale);
 
 						instance.set('availableLocales', availableLocales);
+
+						instance.fire(
+							'deleteAvailableLocale',
+							{
+								locale: locale
+							}
+						);
 					},
 
 					toggleDefaultLocales: function() {
@@ -250,10 +265,7 @@ AUI.add(
 					_afterDefaultLocaleChange: function(event) {
 						var instance = this;
 
-						var defaultLocale = event.newVal;
-
-						instance.set('availableLocales', [defaultLocale]);
-						instance.set('editingLocale', defaultLocale);
+						instance.set('editingLocale', event.newVal);
 					},
 
 					_getFormattedBuffer: function(tpl) {
@@ -268,7 +280,7 @@ AUI.add(
 
 						A.each(
 							instance._locales,
-							function(item, index, collection) {
+							function(item, index) {
 								tplBuffer[0] = item;
 								tplBuffer[1] = localesMap[item];
 
@@ -296,15 +308,13 @@ AUI.add(
 					_onClickTranslation: function(event) {
 						var instance = this;
 
-						var availableLocales = instance.get('availableLocales');
-
 						var locale = event.currentTarget.attr('locale');
 
 						if (event.target.hasClass(CSS_DELETE_TRANSLATION)) {
 							if (confirm(MSG_DEACTIVATE_LANGUAGE)) {
 								instance.deleteAvailableLocale(locale);
 
-								if (locale == instance.get('editingLocale')) {
+								if (locale === instance.get('editingLocale')) {
 									instance._resetEditingLocale();
 								}
 							}
@@ -326,14 +336,6 @@ AUI.add(
 						instance.set('editingLocale', locale);
 
 						instance._getMenuOverlay().hide();
-					},
-
-					_onDefaultLocaleChange: function(event) {
-						var instance = this;
-
-						if (!confirm(MSG_CHANGE_DEFAULT_LANGUAGE)) {
-							event.preventDefault();
-						}
 					},
 
 					_onDefaultLocaleNodeChange: function(event) {
@@ -368,6 +370,7 @@ AUI.add(
 						var defaultLocale = instance.get('defaultLocale');
 						var editingLocale = instance.get('editingLocale');
 						var localesMap = instance.get('localesMap');
+						var readOnly = instance.get('readOnly');
 
 						var buffer = [];
 
@@ -379,21 +382,21 @@ AUI.add(
 
 						AArray.each(
 							val,
-							function(item, index, collection) {
+							function(item, index) {
 								if (defaultLocale !== item) {
 									tplBuffer.cssClass = (editingLocale === item) ? CSS_TRANSLATION_EDITING : STR_BLANK;
 
 									tplBuffer.displayName = localesMap[item];
 									tplBuffer.locale = item;
 
-									html = Lang.sub(TPL_AVAILABLE_TRANSLATION_LINK, tplBuffer);
+									var html = Lang.sub(TPL_AVAILABLE_TRANSLATION_LINK, tplBuffer);
 
 									buffer.push(html);
 								}
 							}
 						);
 
-						instance._availableTranslationsNode.toggle(!!buffer.length);
+						instance._availableTranslationsNode.toggle(!!buffer.length && !readOnly);
 
 						instance._availableTranslationsLinksNode.setContent(buffer.join(STR_BLANK));
 					},
@@ -415,6 +418,8 @@ AUI.add(
 
 							instance._defaultLocaleTextNode.setContent(content);
 						}
+
+						instance._uiSetAvailableLocales(instance.get('availableLocales'));
 					},
 
 					_uiSetEditingLocale: function(val) {
@@ -430,7 +435,7 @@ AUI.add(
 
 						var localeNode;
 
-						if (val == instance.get('defaultLocale')) {
+						if (val === instance.get('defaultLocale')) {
 							localeNode = defaultLocaleTextNode;
 						}
 						else {
@@ -442,22 +447,28 @@ AUI.add(
 						}
 					},
 
+					_uiSetReadOnly: function(val) {
+						var instance = this;
+
+						instance._iconMenuNode.toggle(!val);
+					},
+
 					_valueAvailableLocales: function() {
 						var instance = this;
 
 						return [instance.get('defaultLocale')];
 					},
 
-					_valueAvailableTranslationsNode: function() {
-						var instance = this;
-
-						return Node.create(TPL_AVAILABLE_TRANSLATIONS_NODE);
-					},
-
 					_valueAvailableTranslationsLinksNode: function() {
 						var instance = this;
 
 						return Node.create(TPL_AVAILABLE_TRANSLATIONS_LINKS_NODE);
+					},
+
+					_valueAvailableTranslationsNode: function() {
+						var instance = this;
+
+						return Node.create(TPL_AVAILABLE_TRANSLATIONS_NODE);
 					},
 
 					_valueChangeDefaultLocaleNode: function() {
@@ -530,6 +541,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-base']
+		requires: ['aui-base', 'liferay-menu']
 	}
 );

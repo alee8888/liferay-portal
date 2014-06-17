@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,16 +17,13 @@ package com.liferay.portlet.documentlibrary.service.impl;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryMetadata;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
 import com.liferay.portlet.documentlibrary.service.base.DLFileEntryMetadataLocalServiceBaseImpl;
 import com.liferay.portlet.dynamicdatamapping.StorageException;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
-import com.liferay.portlet.dynamicdatamapping.storage.FieldConstants;
 import com.liferay.portlet.dynamicdatamapping.storage.Fields;
 import com.liferay.portlet.dynamicdatamapping.storage.StorageEngineUtil;
-import com.liferay.portlet.dynamicdatamapping.util.DDMUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -37,8 +34,9 @@ import java.util.Map;
 public class DLFileEntryMetadataLocalServiceImpl
 	extends DLFileEntryMetadataLocalServiceBaseImpl {
 
+	@Override
 	public void deleteFileEntryMetadata(long fileEntryId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		List<DLFileEntryMetadata> fileEntryMetadatas =
 			dlFileEntryMetadataPersistence.findByFileEntryId(fileEntryId);
@@ -48,33 +46,84 @@ public class DLFileEntryMetadataLocalServiceImpl
 		}
 	}
 
+	@Override
+	public void deleteFileVersionFileEntryMetadata(long fileVersionId)
+		throws PortalException {
+
+		List<DLFileEntryMetadata> fileEntryMetadatas =
+			dlFileEntryMetadataPersistence.findByFileVersionId(fileVersionId);
+
+		for (DLFileEntryMetadata fileEntryMetadata : fileEntryMetadatas) {
+			deleteFileEntryMetadata(fileEntryMetadata);
+		}
+	}
+
+	@Override
+	public DLFileEntryMetadata fetchFileEntryMetadata(
+		long fileEntryMetadataId) {
+
+		return dlFileEntryMetadataPersistence.fetchByPrimaryKey(
+			fileEntryMetadataId);
+	}
+
+	@Override
+	public DLFileEntryMetadata fetchFileEntryMetadata(
+		long ddmStructureId, long fileVersionId) {
+
+		return dlFileEntryMetadataPersistence.fetchByD_F(
+			ddmStructureId, fileVersionId);
+	}
+
+	@Override
 	public DLFileEntryMetadata getFileEntryMetadata(long fileEntryMetadataId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return dlFileEntryMetadataPersistence.findByPrimaryKey(
 			fileEntryMetadataId);
 	}
 
+	@Override
 	public DLFileEntryMetadata getFileEntryMetadata(
 			long ddmStructureId, long fileVersionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return dlFileEntryMetadataPersistence.findByD_F(
 			ddmStructureId, fileVersionId);
 	}
 
-	public long getFileEntryMetadataCount(long fileEntryId, long fileVersionId)
-		throws SystemException {
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #getFileVersionFileEntryMetadatasCount(long)}
+	 */
+	@Deprecated
+	@Override
+	public long getFileEntryMetadataCount(
+		long fileEntryId, long fileVersionId) {
 
-		return dlFileEntryMetadataPersistence.countByF_V(
-			fileEntryId, fileVersionId);
+		return getFileVersionFileEntryMetadatasCount(fileVersionId);
 	}
 
+	@Override
+	public List<DLFileEntryMetadata> getFileVersionFileEntryMetadatas(
+		long fileVersionId) {
+
+		return dlFileEntryMetadataPersistence.findByFileVersionId(
+			fileVersionId);
+	}
+
+	@Override
+	public long getFileVersionFileEntryMetadatasCount(long fileVersionId) {
+
+		return dlFileEntryMetadataPersistence.countByFileVersionId(
+			fileVersionId);
+	}
+
+	@Override
 	public void updateFileEntryMetadata(
 			long companyId, List<DDMStructure> ddmStructures,
 			long fileEntryTypeId, long fileEntryId, long fileVersionId,
 			Map<String, Fields> fieldsMap, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		for (DDMStructure ddmStructure : ddmStructures) {
 			Fields fields = fieldsMap.get(ddmStructure.getStructureKey());
@@ -87,10 +136,11 @@ public class DLFileEntryMetadataLocalServiceImpl
 		}
 	}
 
+	@Override
 	public void updateFileEntryMetadata(
 			long fileEntryTypeId, long fileEntryId, long fileVersionId,
 			Map<String, Fields> fieldsMap, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DLFileEntryType fileEntryType =
 			dlFileEntryTypeLocalService.getFileEntryType(fileEntryTypeId);
@@ -104,7 +154,7 @@ public class DLFileEntryMetadataLocalServiceImpl
 
 	protected void deleteFileEntryMetadata(
 			DLFileEntryMetadata fileEntryMetadata)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		// FileEntry metadata
 
@@ -132,7 +182,8 @@ public class DLFileEntryMetadataLocalServiceImpl
 
 		if (fileEntryMetadata != null) {
 			StorageEngineUtil.update(
-				fileEntryMetadata.getDDMStorageId(), fields, serviceContext);
+				fileEntryMetadata.getDDMStorageId(), fields, true,
+				serviceContext);
 		}
 		else {
 
@@ -154,33 +205,16 @@ public class DLFileEntryMetadataLocalServiceImpl
 			fileEntryMetadata.setFileEntryId(fileEntryId);
 			fileEntryMetadata.setFileVersionId(fileVersionId);
 
-			dlFileEntryMetadataPersistence.update(fileEntryMetadata, false);
+			dlFileEntryMetadataPersistence.update(fileEntryMetadata);
 
 			// Dynamic data mapping structure link
 
-			long classNameId = PortalUtil.getClassNameId(
+			long classNameId = classNameLocalService.getClassNameId(
 				DLFileEntryMetadata.class);
 
 			ddmStructureLinkLocalService.addStructureLink(
 				classNameId, fileEntryMetadata.getFileEntryMetadataId(),
 				ddmStructure.getStructureId(), serviceContext);
-		}
-
-		try {
-			String namespace = String.valueOf(ddmStructure.getStructureId());
-
-			for (String fieldName : ddmStructure.getFieldNames()) {
-				String fieldDataType = ddmStructure.getFieldDataType(fieldName);
-
-				if (fieldDataType.equals(FieldConstants.FILE_UPLOAD)) {
-					DDMUtil.uploadFieldFile(
-						fileEntryMetadata.getDDMStructureId(),
-						fileEntryMetadata.getDDMStorageId(), fileEntryMetadata,
-						fieldName, namespace, serviceContext);
-				}
-			}
-		}
-		catch (Exception e) {
 		}
 	}
 

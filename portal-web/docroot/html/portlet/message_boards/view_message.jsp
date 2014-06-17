@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,8 @@
 <%
 MBMessageDisplay messageDisplay = (MBMessageDisplay)request.getAttribute(WebKeys.MESSAGE_BOARDS_MESSAGE);
 
+MBMessage message = messageDisplay.getMessage();
+
 MBCategory category = messageDisplay.getCategory();
 
 String displayStyle = BeanPropertiesUtil.getString(category, "displayStyle", MBCategoryConstants.DEFAULT_DISPLAY_STYLE);
@@ -26,7 +28,13 @@ String displayStyle = BeanPropertiesUtil.getString(category, "displayStyle", MBC
 if (Validator.isNull(displayStyle)) {
 	displayStyle = MBCategoryConstants.DEFAULT_DISPLAY_STYLE;
 }
+
+if ((message != null) && layout.isTypeControlPanel()) {
+	MBUtil.addPortletBreadcrumbEntries(message, request, renderResponse);
+}
 %>
+
+<liferay-util:include page="/html/portlet/message_boards/top_links.jsp" />
 
 <div class="displayStyle-<%= displayStyle %>">
 	<liferay-util:include page='<%= "/html/portlet/message_boards/view_message_" + displayStyle + ".jsp" %>' />

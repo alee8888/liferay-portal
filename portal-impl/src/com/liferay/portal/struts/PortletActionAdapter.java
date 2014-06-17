@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -109,6 +109,16 @@ public class PortletActionAdapter extends PortletAction {
 
 	public void setOriginalPortletAction(PortletAction portletAction) {
 		_originalPortletAction = portletAction;
+	}
+
+	@Override
+	protected boolean isCheckMethodOnProcessAction() {
+		if (_originalPortletAction != null) {
+			return _originalPortletAction.isCheckMethodOnProcessAction();
+		}
+		else {
+			return super.isCheckMethodOnProcessAction();
+		}
 	}
 
 	private PortletAction _originalPortletAction;

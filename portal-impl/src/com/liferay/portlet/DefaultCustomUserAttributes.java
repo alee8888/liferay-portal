@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,7 @@ package com.liferay.portlet;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.Randomizer;
+import com.liferay.portal.kernel.security.RandomUtil;
 
 import java.util.Map;
 
@@ -37,6 +37,7 @@ public class DefaultCustomUserAttributes implements CustomUserAttributes {
 		return new DefaultCustomUserAttributes();
 	}
 
+	@Override
 	public String getValue(String name, Map<String, String> userInfo) {
 		if (name == null) {
 			return null;
@@ -53,7 +54,7 @@ public class DefaultCustomUserAttributes implements CustomUserAttributes {
 		if (name.equals("user.name.random")) {
 			String[] names = new String[] {"Aaa", "Bbb", "Ccc"};
 
-			return names[Randomizer.getInstance().nextInt(3)];
+			return names[RandomUtil.nextInt(3)];
 		}
 		else {
 			return null;

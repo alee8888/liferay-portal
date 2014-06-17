@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,8 +17,8 @@ package com.liferay.portal.service.impl;
 import com.liferay.portal.LayoutSetBranchNameException;
 import com.liferay.portal.NoSuchLayoutSetBranchException;
 import com.liferay.portal.RequiredLayoutSetBranchException;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.staging.StagingUtil;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
@@ -40,6 +40,7 @@ import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.LayoutSetBranchLocalServiceBaseImpl;
+import com.liferay.portal.util.comparator.LayoutSetBranchCreateDateComparator;
 
 import java.text.Format;
 
@@ -55,11 +56,12 @@ import java.util.Locale;
 public class LayoutSetBranchLocalServiceImpl
 	extends LayoutSetBranchLocalServiceBaseImpl {
 
+	@Override
 	public LayoutSetBranch addLayoutSetBranch(
 			long userId, long groupId, boolean privateLayout, String name,
 			String description, boolean master, long copyLayoutSetBranchId,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		// Layout branch
 
@@ -119,7 +121,6 @@ public class LayoutSetBranchLocalServiceImpl
 		layoutSetBranch.setName(name);
 		layoutSetBranch.setDescription(description);
 		layoutSetBranch.setMaster(master);
-		layoutSetBranch.setLogo(logo);
 		layoutSetBranch.setLogoId(logoId);
 
 		if (logo) {
@@ -142,7 +143,7 @@ public class LayoutSetBranchLocalServiceImpl
 		layoutSetBranch.setCss(css);
 		layoutSetBranch.setSettings(settings);
 
-		layoutSetBranchPersistence.update(layoutSetBranch, false);
+		layoutSetBranchPersistence.update(layoutSetBranch);
 
 		// Resources
 
@@ -245,20 +246,27 @@ public class LayoutSetBranchLocalServiceImpl
 			}
 		}
 
+		LayoutSet layoutSet = layoutSetBranch.getLayoutSet();
+
+		StagingUtil.setRecentLayoutSetBranchId(
+			user, layoutSet.getLayoutSetId(),
+			layoutSetBranch.getLayoutSetBranchId());
+
 		return layoutSetBranch;
 	}
 
 	@Override
 	public LayoutSetBranch deleteLayoutSetBranch(
 			LayoutSetBranch layoutSetBranch)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return deleteLayoutSetBranch(layoutSetBranch, false);
 	}
 
+	@Override
 	public LayoutSetBranch deleteLayoutSetBranch(
 			LayoutSetBranch layoutSetBranch, boolean includeMaster)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		// Layout branch
 
@@ -290,7 +298,7 @@ public class LayoutSetBranchLocalServiceImpl
 
 	@Override
 	public LayoutSetBranch deleteLayoutSetBranch(long layoutSetBranchId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LayoutSetBranch layoutSetBranch =
 			layoutSetBranchPersistence.findByPrimaryKey(layoutSetBranchId);
@@ -298,15 +306,17 @@ public class LayoutSetBranchLocalServiceImpl
 		return deleteLayoutSetBranch(layoutSetBranch, false);
 	}
 
+	@Override
 	public void deleteLayoutSetBranches(long groupId, boolean privateLayout)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		deleteLayoutSetBranches(groupId, privateLayout, false);
 	}
 
+	@Override
 	public void deleteLayoutSetBranches(
 			long groupId, boolean privateLayout, boolean includeMaster)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		List<LayoutSetBranch> layoutSetBranches =
 			layoutSetBranchPersistence.findByG_P(groupId, privateLayout);
@@ -316,45 +326,61 @@ public class LayoutSetBranchLocalServiceImpl
 		}
 	}
 
+	@Override
+	public LayoutSetBranch fetchLayoutSetBranch(
+		long groupId, boolean privateLayout, String name) {
+
+		return layoutSetBranchPersistence.fetchByG_P_N(
+			groupId, privateLayout, name);
+	}
+
+	@Override
 	public LayoutSetBranch getLayoutSetBranch(
 			long groupId, boolean privateLayout, String name)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return layoutSetBranchPersistence.findByG_P_N(
 			groupId, privateLayout, name);
 	}
 
+	@Override
 	public List<LayoutSetBranch> getLayoutSetBranches(
-			long groupId, boolean privateLayout)
-		throws SystemException {
+		long groupId, boolean privateLayout) {
 
-		return layoutSetBranchPersistence.findByG_P(groupId, privateLayout);
+		return layoutSetBranchPersistence.findByG_P(
+			groupId, privateLayout, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+			new LayoutSetBranchCreateDateComparator(true));
 	}
 
+	@Override
 	public LayoutSetBranch getMasterLayoutSetBranch(
 			long groupId, boolean privateLayout)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		return layoutSetBranchFinder.findByMaster(groupId, privateLayout);
+		return layoutSetBranchPersistence.findByG_P_M_First(
+			groupId, privateLayout, true, null);
 	}
 
 	/**
-	 * @deprecated {@link #getUserLayoutSetBranch(long, long, boolean, long,
-	 *             long)}
+	 * @deprecated As of 6.2.0, replaced by {@link #getUserLayoutSetBranch(long,
+	 *             long, boolean, long, long)}
 	 */
+	@Deprecated
+	@Override
 	public LayoutSetBranch getUserLayoutSetBranch(
 			long userId, long groupId, boolean privateLayout,
 			long layoutSetBranchId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return getUserLayoutSetBranch(
 			userId, groupId, privateLayout, 0, layoutSetBranchId);
 	}
 
+	@Override
 	public LayoutSetBranch getUserLayoutSetBranch(
 			long userId, long groupId, boolean privateLayout, long layoutSetId,
 			long layoutSetBranchId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (layoutSetBranchId <= 0) {
 			User user = userPersistence.findByPrimaryKey(userId);
@@ -371,20 +397,22 @@ public class LayoutSetBranchLocalServiceImpl
 		}
 
 		if (layoutSetBranchId > 0) {
-			try {
-				return getLayoutSetBranch(layoutSetBranchId);
-			}
-			catch (NoSuchLayoutSetBranchException nslsbe) {
+			LayoutSetBranch layoutSetBranch = fetchLayoutSetBranch(
+				layoutSetBranchId);
+
+			if (layoutSetBranch != null) {
+				return layoutSetBranch;
 			}
 		}
 
 		return getMasterLayoutSetBranch(groupId, privateLayout);
 	}
 
+	@Override
 	public LayoutSetBranch mergeLayoutSetBranch(
 			long layoutSetBranchId, long mergeLayoutSetBranchId,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LayoutSetBranch layoutSetBranch =
 			layoutSetBranchPersistence.findByPrimaryKey(layoutSetBranchId);
@@ -417,7 +445,8 @@ public class LayoutSetBranchLocalServiceImpl
 			sb.append(
 				LanguageUtil.format(
 					locale, "merged-from-x-x",
-					new String[] {mergeLayoutSetBranch.getName(), nowString}));
+					new String[] {mergeLayoutSetBranch.getName(), nowString},
+					false));
 
 			LayoutBranch layoutBranch =
 				layoutBranchLocalService.addLayoutBranch(
@@ -446,10 +475,11 @@ public class LayoutSetBranchLocalServiceImpl
 		return layoutSetBranch;
 	}
 
+	@Override
 	public LayoutSetBranch updateLayoutSetBranch(
 			long layoutSetBranchId, String name, String description,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LayoutSetBranch layoutSetBranch =
 			layoutSetBranchPersistence.findByPrimaryKey(layoutSetBranchId);
@@ -462,15 +492,14 @@ public class LayoutSetBranchLocalServiceImpl
 		layoutSetBranch.setName(name);
 		layoutSetBranch.setDescription(description);
 
-		layoutSetBranchPersistence.update(layoutSetBranch, false);
+		layoutSetBranchPersistence.update(layoutSetBranch);
 
 		return layoutSetBranch;
 	}
 
 	protected String getLayoutBranchName(
-			long layoutSetBranchId, Locale locale, String mergeBranchName,
-			String mergeLayoutSetBranchName, long plid)
-		throws SystemException {
+		long layoutSetBranchId, Locale locale, String mergeBranchName,
+		String mergeLayoutSetBranchName, long plid) {
 
 		LayoutBranch layoutBranch = layoutBranchPersistence.fetchByL_P_N(
 			layoutSetBranchId, plid, mergeBranchName);
@@ -506,7 +535,7 @@ public class LayoutSetBranchLocalServiceImpl
 	protected void validate(
 			long layoutSetBranchId, long groupId, boolean privateLayout,
 			String name, boolean master)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (Validator.isNull(name) || (name.length() < 4)) {
 			throw new LayoutSetBranchNameException(
@@ -534,7 +563,8 @@ public class LayoutSetBranchLocalServiceImpl
 		if (master) {
 			try {
 				LayoutSetBranch masterLayoutSetBranch =
-					layoutSetBranchFinder.findByMaster(groupId, privateLayout);
+					layoutSetBranchPersistence.findByG_P_M_First(
+						groupId, privateLayout, true, null);
 
 				if (layoutSetBranchId !=
 						masterLayoutSetBranch.getLayoutSetBranchId()) {

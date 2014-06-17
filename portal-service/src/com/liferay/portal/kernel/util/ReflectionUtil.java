@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,10 +17,17 @@ package com.liferay.portal.kernel.util;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  * @author Miguel Pastor
+ * @author Shuyang Zhou
  */
 public class ReflectionUtil {
 
@@ -49,6 +56,14 @@ public class ReflectionUtil {
 			field.setAccessible(true);
 		}
 
+		int modifiers = field.getModifiers();
+
+		if ((modifiers & Modifier.FINAL) == Modifier.FINAL) {
+			Field modifiersField = getDeclaredField(Field.class, "modifiers");
+
+			modifiersField.setInt(field, modifiers & ~Modifier.FINAL);
+		}
+
 		return field;
 	}
 
@@ -63,6 +78,30 @@ public class ReflectionUtil {
 		}
 
 		return method;
+	}
+
+	public static Class<?>[] getInterfaces(Object object) {
+		return getInterfaces(object, null);
+	}
+
+	public static Class<?>[] getInterfaces(
+		Object object, ClassLoader classLoader) {
+
+		List<Class<?>> interfaceClasses = new UniqueList<Class<?>>();
+
+		Class<?> clazz = object.getClass();
+
+		_getInterfaces(interfaceClasses, clazz, classLoader);
+
+		Class<?> superClass = clazz.getSuperclass();
+
+		while (superClass != null) {
+			_getInterfaces(interfaceClasses, superClass, classLoader);
+
+			superClass = superClass.getSuperclass();
+		}
+
+		return interfaceClasses.toArray(new Class<?>[interfaceClasses.size()]);
 	}
 
 	public static Class<?>[] getParameterTypes(Object[] arguments) {
@@ -108,6 +147,27 @@ public class ReflectionUtil {
 		return parameterTypes;
 	}
 
+	public static Set<Method> getVisibleMethods(Class<?> clazz) {
+		Set<Method> visibleMethods = new HashSet<Method>(
+			Arrays.asList(clazz.getMethods()));
+
+		visibleMethods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+
+		while ((clazz = clazz.getSuperclass()) != null) {
+			for (Method method : clazz.getDeclaredMethods()) {
+				int modifiers = method.getModifiers();
+
+				if (!Modifier.isPrivate(modifiers) &
+					!Modifier.isPublic(modifiers)) {
+
+					visibleMethods.add(method);
+				}
+			}
+		}
+
+		return visibleMethods;
+	}
+
 	public static boolean isAnnotationDeclaredInClass(
 		Class<? extends Annotation> annotationClass, Class<?> clazz) {
 
@@ -124,6 +184,25 @@ public class ReflectionUtil {
 		}
 
 		return false;
+	}
+
+	private static void _getInterfaces(
+		List<Class<?>> interfaceClasses, Class<?> clazz,
+		ClassLoader classLoader) {
+
+		for (Class<?> interfaceClass : clazz.getInterfaces()) {
+			try {
+				if (classLoader != null) {
+					interfaceClasses.add(
+						classLoader.loadClass(interfaceClass.getName()));
+				}
+				else {
+					interfaceClasses.add(interfaceClass);
+				}
+			}
+			catch (ClassNotFoundException cnfe) {
+			}
+		}
 	}
 
 }

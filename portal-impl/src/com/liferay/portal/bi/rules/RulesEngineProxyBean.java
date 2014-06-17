@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.bi.rules.Query;
 import com.liferay.portal.kernel.bi.rules.RulesEngine;
 import com.liferay.portal.kernel.bi.rules.RulesResourceRetriever;
 import com.liferay.portal.kernel.messaging.proxy.BaseProxyBean;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 
 import java.util.List;
 import java.util.Map;
@@ -26,8 +27,10 @@ import java.util.Map;
 /**
  * @author Michael C. Han
  */
+@DoPrivileged
 public class RulesEngineProxyBean extends BaseProxyBean implements RulesEngine {
 
+	@Override
 	public void add(
 		String domainName, RulesResourceRetriever RulesResourceRetriever,
 		ClassLoader... clientClassLoaders) {
@@ -35,10 +38,12 @@ public class RulesEngineProxyBean extends BaseProxyBean implements RulesEngine {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public boolean containsRuleDomain(String domainName) {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public void execute(
 		RulesResourceRetriever RulesResourceRetriever, List<Fact<?>> facts,
 		ClassLoader... clientClassLoaders) {
@@ -46,6 +51,7 @@ public class RulesEngineProxyBean extends BaseProxyBean implements RulesEngine {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public Map<String, ?> execute(
 		RulesResourceRetriever RulesResourceRetriever, List<Fact<?>> facts,
 		Query query, ClassLoader... clientClassLoaders) {
@@ -53,6 +59,7 @@ public class RulesEngineProxyBean extends BaseProxyBean implements RulesEngine {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public void execute(
 		String domainName, List<Fact<?>> facts,
 		ClassLoader... clientClassLoaders) {
@@ -60,6 +67,7 @@ public class RulesEngineProxyBean extends BaseProxyBean implements RulesEngine {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public Map<String, ?> execute(
 		String domainName, List<Fact<?>> facts, Query query,
 		ClassLoader... clientClassLoaders) {
@@ -67,10 +75,12 @@ public class RulesEngineProxyBean extends BaseProxyBean implements RulesEngine {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public void remove(String domainName) {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public void update(
 		String domainName, RulesResourceRetriever RulesResourceRetriever,
 		ClassLoader... clientClassLoaders) {

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -42,39 +42,55 @@ String newTitle = ParamUtil.get(request, "newTitle", StringPool.BLANK);
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="nodeId" type="hidden" value="<%= node.getNodeId() %>" />
 	<aui:input name="title" type="hidden" value="<%= title %>" />
+	<aui:input name="workflowAction" type="hidden" value="<%= WorkflowConstants.ACTION_PUBLISH %>" />
 
 	<liferay-ui:tabs
 		names="rename,change-parent"
 		refresh="<%= false %>"
 	>
+
+		<%
+		boolean pending = false;
+
+		if (WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(themeDisplay.getCompanyId(), scopeGroupId, WikiPage.class.getName())) {
+			WikiPage latestWikiPage = WikiPageServiceUtil.getPage(wikiPage.getNodeId(), wikiPage.getTitle(), null);
+
+			pending = latestWikiPage.isPending();
+		}
+		%>
+
 		<liferay-ui:section>
-			<div class="portlet-msg-info">
+			<div class="alert alert-info">
 				<liferay-ui:message key="use-the-form-below-to-rename-a-page,-moving-all-of-its-history-to-the-new-name" />
 			</div>
 
 			<aui:fieldset>
-				<aui:field-wrapper label="current-title">
-					<%= wikiPage.getTitle() %>
-				</aui:field-wrapper>
+				<aui:input name="currentTitle" type="resource" value="<%= wikiPage.getTitle() %>" />
 
 				<aui:input name="newTitle" value="<%= newTitle %>" />
 
+				<c:if test="<%= pending %>">
+					<div class="alert alert-info">
+						<liferay-ui:message key="there-is-a-publication-workflow-in-process" />
+					</div>
+				</c:if>
+
 				<aui:button-row>
-					<aui:button onClick='<%= renderResponse.getNamespace() + "renamePage();" %>' value="rename" />
+					<aui:button disabled="<%= pending %>" onClick='<%= renderResponse.getNamespace() + "renamePage();" %>' value="rename" />
 
 					<aui:button href="<%= redirect %>" type="cancel" />
 				</aui:button-row>
 			</aui:fieldset>
 		</liferay-ui:section>
 		<liferay-ui:section>
-			<div class="portlet-msg-info">
+			<div class="alert alert-info">
 				<liferay-ui:message key="use-the-form-below-to-move-a-page-and-all-of-its-history-to-be-the-child-of-a-new-parent-page" />
 			</div>
 
 			<%
 			String parentText = StringPool.BLANK;
 
-			WikiPage parentPage = wikiPage.getParentPage();
+			WikiPage parentPage = wikiPage.getViewableParentPage();
 
 			if (parentPage == null) {
 				parentText = StringPool.OPEN_PARENTHESIS + LanguageUtil.get(pageContext, "none") + StringPool.CLOSE_PARENTHESIS;
@@ -82,12 +98,12 @@ String newTitle = ParamUtil.get(request, "newTitle", StringPool.BLANK);
 			else {
 				parentText = parentPage.getTitle();
 
-				parentPage = parentPage.getParentPage();
+				parentPage = parentPage.getViewableParentPage();
 
 				while (parentPage != null) {
 					parentText = parentPage.getTitle() + " &raquo; " + parentText;
 
-					parentPage = parentPage.getParentPage();
+					parentPage = parentPage.getViewableParentPage();
 				}
 			}
 
@@ -99,9 +115,7 @@ String newTitle = ParamUtil.get(request, "newTitle", StringPool.BLANK);
 			%>
 
 			<aui:fieldset>
-				<aui:field-wrapper label="current-parent">
-					<%= parentText %>
-				</aui:field-wrapper>
+				<aui:input name="currentParent" type="resource" value="<%= parentText %>" />
 
 				<%
 				boolean newParentAvailable = true;
@@ -143,8 +157,21 @@ String newTitle = ParamUtil.get(request, "newTitle", StringPool.BLANK);
 				}
 				%>
 
+				<c:if test="<%= pending %>">
+					<div class="alert alert-info">
+						<liferay-ui:message key="there-is-a-publication-workflow-in-process" />
+					</div>
+				</c:if>
+
 				<aui:button-row>
-					<aui:button disabled="<%= !newParentAvailable %>" type="submit" value="change-parent" />
+					<c:choose>
+						<c:when test="<%= WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(themeDisplay.getCompanyId(), scopeGroupId, WikiPage.class.getName()) %>">
+							<aui:button disabled="<%= pending %>" name="publishButton" onClick='<%= renderResponse.getNamespace() + "publishPage();" %>' value="submit-for-publication" />
+						</c:when>
+						<c:otherwise>
+							<aui:button disabled="<%= !newParentAvailable %>" type="submit" value="change-parent" />
+						</c:otherwise>
+					</c:choose>
 
 					<aui:button href="<%= redirect %>" type="cancel" />
 				</aui:button-row>
@@ -155,13 +182,19 @@ String newTitle = ParamUtil.get(request, "newTitle", StringPool.BLANK);
 
 <aui:script>
 	function <portlet:namespace />changeParent() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "changeParent";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'changeParent';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
 
+	function <portlet:namespace />publishPage() {
+		document.<portlet:namespace />fm.<portlet:namespace />workflowAction.value = '<%= WorkflowConstants.ACTION_PUBLISH %>';
+
+		<portlet:namespace />changeParent();
+	}
+
 	function <portlet:namespace />renamePage() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "rename";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'rename';
 
 		submitForm(document.<portlet:namespace />fm);
 	}

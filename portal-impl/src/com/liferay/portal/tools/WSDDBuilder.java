@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,7 +20,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
-import com.liferay.portal.util.InitUtil;
+import com.liferay.portal.tools.servicebuilder.ServiceBuilder;
 import com.liferay.util.ant.Java2WsddTask;
 
 import java.io.File;
@@ -36,7 +36,7 @@ public class WSDDBuilder {
 	public static void main(String[] args) throws Exception {
 		Map<String, String> arguments = ArgumentsUtil.parseArguments(args);
 
-		InitUtil.initWithSpring();
+		ToolDependencies.wireBasic();
 
 		WSDDBuilder wsddBuilder = new WSDDBuilder();
 
@@ -60,7 +60,9 @@ public class WSDDBuilder {
 			FileUtil.write(_serverConfigFileName, serverConfigContent);
 		}
 
-		Document document = SAXReaderUtil.read(new File(_fileName), true);
+		String content = ServiceBuilder.getContent(_fileName);
+
+		Document document = SAXReaderUtil.read(content, true);
 
 		Element rootElement = document.getRootElement();
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,35 +14,42 @@
 
 package com.liferay.portlet.journal.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public class JournalFolderFinderUtil {
-	public static int countF_A_ByG_F(long groupId, long folderId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().countF_A_ByG_F(groupId, folderId);
+	public static int countF_A_ByG_F(long groupId, long folderId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder().countF_A_ByG_F(groupId, folderId, queryDefinition);
 	}
 
-	public static int filterCountF_A_ByG_F(long groupId, long folderId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().filterCountF_A_ByG_F(groupId, folderId);
+	public static int filterCountF_A_ByG_F(long groupId, long folderId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder()
+				   .filterCountF_A_ByG_F(groupId, folderId, queryDefinition);
 	}
 
-	public static java.util.List<java.lang.Object> filterFindF_AByG_F(
-		long groupId, long folderId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().filterFindF_AByG_F(groupId, folderId, start, end, obc);
+	public static java.util.List<java.lang.Object> filterFindF_A_ByG_F(
+		long groupId, long folderId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder()
+				   .filterFindF_A_ByG_F(groupId, folderId, queryDefinition);
 	}
 
-	public static java.util.List<java.lang.Object> findF_AByG_F(long groupId,
-		long folderId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().findF_AByG_F(groupId, folderId, start, end, obc);
+	public static java.util.List<com.liferay.portlet.journal.model.JournalFolder> findF_ByNoAssets() {
+		return getFinder().findF_ByNoAssets();
+	}
+
+	public static java.util.List<java.lang.Object> findF_A_ByG_F(long groupId,
+		long folderId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder().findF_A_ByG_F(groupId, folderId, queryDefinition);
 	}
 
 	public static JournalFolderFinder getFinder() {

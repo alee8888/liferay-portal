@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,31 +14,11 @@
 
 package com.liferay.portal.kernel.util;
 
-import java.io.Reader;
-
 /**
- * <p>
- * This class can compare two different versions of HTML code. It detects
- * changes to an entire HTML page such as removal or addition of characters or
- * images.
- * </p>
- *
- * @author Julio Camarero
+ * @author     Julio Camarero
+ * @deprecated As of 7.0.0, moved to {@link
+ *             com.liferay.portal.kernel.diff.DiffHtmlUtil}
  */
-public class DiffHtmlUtil {
-
-	public static String diff(Reader source, Reader target) throws Exception {
-		return getDiffHtml().diff(source, target);
-	}
-
-	public static DiffHtml getDiffHtml() {
-		return _diffHtml;
-	}
-
-	public void setDiffHtml(DiffHtml diffHtml) {
-		_diffHtml = diffHtml;
-	}
-
-	private static DiffHtml _diffHtml;
-
+@Deprecated
+public class DiffHtmlUtil extends com.liferay.portal.kernel.diff.DiffHtmlUtil {
 }

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,8 +24,8 @@ DDMStructure structure = (DDMStructure)request.getAttribute(WebKeys.DYNAMIC_DATA
 long classNameId = PortalUtil.getClassNameId(DDMStructure.class);
 long classPK = BeanParamUtil.getLong(structure, request, "structureId");
 
-boolean copyDetailTemplates = ParamUtil.getBoolean(request, "copyDetailTemplates");
-boolean copyListTemplates = ParamUtil.getBoolean(request, "copyListTemplates");
+boolean copyFormTemplates = ParamUtil.getBoolean(request, "copyFormTemplates");
+boolean copyDisplayTemplates = ParamUtil.getBoolean(request, "copyDisplayTemplates");
 %>
 
 <portlet:actionURL var="copyStructureURL">
@@ -47,14 +47,20 @@ boolean copyListTemplates = ParamUtil.getBoolean(request, "copyListTemplates");
 	<aui:fieldset>
 		<aui:input name="name" />
 
-		<aui:input checked="<%= copyDetailTemplates %>" label="copy-detail-templates" name="copyDetailTemplates" type="checkbox" />
+		<aui:input name="description" />
 
-		<aui:input checked="<%= copyListTemplates %>" label="copy-list-templates" name="copyListTemplates" type="checkbox" />
+		<c:if test="<%= Validator.isNull(templateTypeValue) || templateTypeValue.equals(DDMTemplateConstants.TEMPLATE_TYPE_FORM) %>">
+			<aui:input checked="<%= copyFormTemplates %>" label='<%= Validator.isNull(templateTypeValue) ? "copy-form-templates" : "copy-templates" %>' name="copyFormTemplates" type="checkbox" />
+		</c:if>
+
+		<c:if test="<%= Validator.isNull(templateTypeValue) || templateTypeValue.equals(DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY) %>">
+			<aui:input checked="<%= copyDisplayTemplates %>" label='<%= Validator.isNull(templateTypeValue) ? "copy-display-templates" : "copy-templates" %>' name="copyDisplayTemplates" type="checkbox" />
+		</c:if>
 	</aui:fieldset>
 
 	<aui:button-row>
 		<aui:button type="submit" value="copy" />
 
-		<aui:button onClick="Liferay.Util.getWindow().close();" value="close" />
+		<aui:button onClick="Liferay.Util.getWindow().hide();" value="close" />
 	</aui:button-row>
 </aui:form>

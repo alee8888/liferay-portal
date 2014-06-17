@@ -23,7 +23,7 @@
 		var tabSection = event.tabSection;
 
 		if (tabItem) {
-			tabItem.radioClass(['aui-selected', 'aui-state-active', 'aui-tab-active', 'current']);
+			tabItem.radioClass('active');
 		}
 
 		if (tabSection) {
@@ -116,45 +116,36 @@
 			if (!cached) {
 				cached = new A.Tooltip(
 					{
-						trigger: obj,
-						zIndex: 10000
+						cssClass: 'tooltip-help',
+						opacity: 1,
+						stickDuration: 300,
+						visible: false,
+						zIndex: Liferay.zIndex.TOOLTIP
 					}
 				).render();
 
 				instance._cached = cached;
 			}
 
-			var trigger = cached.get(TRIGGER);
-			var bodyContent = cached.get(BODY_CONTENT);
-
-			var newElement = (trigger.indexOf(obj) == -1);
+			obj = A.one(obj);
 
 			if (text == null) {
-				obj = A.one(obj);
-
 				text = instance._getText(obj.guid());
 			}
 
-			if (newElement || (bodyContent != text)) {
-				cached.set(TRIGGER, obj);
-				cached.set(BODY_CONTENT, text);
+			cached.set(BODY_CONTENT, text);
+			cached.set(TRIGGER, obj);
 
-				trigger = obj;
+			obj.detach('hover');
 
-				cached.show();
-			}
+			obj.on(
+				'hover',
+				A.bind('_onBoundingBoxMouseenter', cached),
+				A.bind('_onBoundingBoxMouseleave', cached)
+			);
 
-			var tooltipHeight = cached.get('boundingBox').outerHeight(true);
-
-			var triggerTop = cached.get('currentNode').getY();
-
-			if (triggerTop - tooltipHeight < 0) {
-				cached.align(trigger, ['tl', 'bl']);
-			}
-			else {
-				cached.refreshAlign();
-			}
+			cached.show();
 		},
-		['aui-tooltip']
+		['aui-tooltip-base']
 	);
 })(AUI(), Liferay);

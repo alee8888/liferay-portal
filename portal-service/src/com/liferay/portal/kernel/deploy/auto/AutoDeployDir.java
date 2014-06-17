@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,14 +14,17 @@
 
 package com.liferay.portal.kernel.deploy.auto;
 
+import com.liferay.portal.kernel.deploy.auto.context.AutoDeploymentContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.File;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,23 +38,52 @@ public class AutoDeployDir {
 
 	public static final String DEFAULT_NAME = "defaultAutoDeployDir";
 
+	public static void deploy(
+			AutoDeploymentContext autoDeploymentContext,
+			List<AutoDeployListener> autoDeployListeners)
+		throws AutoDeployException {
+
+		List<String> duplicateApplicableAutoDeployListenerClassNames =
+			new ArrayList<String>();
+
+		for (AutoDeployListener autoDeployListener : autoDeployListeners) {
+			if (autoDeployListener.deploy(autoDeploymentContext) !=
+					AutoDeployer.CODE_NOT_APPLICABLE) {
+
+				Class<?> autoDeployListenerClass =
+					autoDeployListener.getClass();
+
+				duplicateApplicableAutoDeployListenerClassNames.add(
+					autoDeployListenerClass.getName());
+			}
+		}
+
+		if (duplicateApplicableAutoDeployListenerClassNames.size() > 1) {
+			StringBundler sb = new StringBundler(5);
+
+			sb.append("The auto deploy listeners ");
+			sb.append(
+				StringUtil.merge(
+					duplicateApplicableAutoDeployListenerClassNames, ", "));
+			sb.append(" all deployed ");
+			sb.append(autoDeploymentContext.getFile());
+			sb.append(", but only one should have.");
+
+			throw new AutoDeployException(sb.toString());
+		}
+	}
+
 	public AutoDeployDir(
 		String name, File deployDir, File destDir, long interval,
-		int blacklistThreshold, List<AutoDeployListener> autoDeployListeners) {
+		List<AutoDeployListener> autoDeployListeners) {
 
 		_name = name;
 		_deployDir = deployDir;
 		_destDir = destDir;
 		_interval = interval;
-		_blacklistThreshold = blacklistThreshold;
 		_autoDeployListeners = new CopyOnWriteArrayList<AutoDeployListener>(
 			autoDeployListeners);
-		_inProcessFiles = new HashMap<String, IntegerWrapper>();
-		_blacklistFiles = new HashSet<String>();
-	}
-
-	public int getBlacklistThreshold() {
-		return _blacklistThreshold;
+		_blacklistFileTimestamps = new HashMap<String, Long>();
 	}
 
 	public File getDeployDir() {
@@ -91,7 +123,9 @@ public class AutoDeployDir {
 			}
 		}
 
-		if (_interval > 0) {
+		if ((_interval > 0) &&
+			((_autoDeployScanner == null) || !_autoDeployScanner.isAlive())) {
+
 			try {
 				Thread currentThread = Thread.currentThread();
 
@@ -130,6 +164,15 @@ public class AutoDeployDir {
 		_autoDeployListeners.remove(autoDeployListener);
 	}
 
+	protected AutoDeploymentContext buildAutoDeploymentContext(File file) {
+		AutoDeploymentContext autoDeploymentContext =
+			new AutoDeploymentContext();
+
+		autoDeploymentContext.setFile(file);
+
+		return autoDeploymentContext;
+	}
+
 	protected void processFile(File file) {
 		String fileName = file.getName();
 
@@ -145,74 +188,84 @@ public class AutoDeployDir {
 			return;
 		}
 
-		if (_blacklistFiles.contains(fileName)) {
+		if (_blacklistFileTimestamps.containsKey(fileName) &&
+			(_blacklistFileTimestamps.get(fileName) == file.lastModified())) {
+
 			if (_log.isDebugEnabled()) {
 				_log.debug(
 					"Skip processing of " + fileName + " because it is " +
-						"blacklisted. You must restart the server to remove " +
-							"the file from the blacklist.");
+						"blacklisted");
 			}
 
 			return;
 		}
 
-		IntegerWrapper attempt = _inProcessFiles.get(fileName);
-
-		if (attempt == null) {
-			attempt = new IntegerWrapper(1);
-
-			_inProcessFiles.put(fileName, attempt);
-
-			if (_log.isInfoEnabled()) {
-				_log.info("Processing " + fileName);
-			}
-		}
-		else {
-			if (_log.isInfoEnabled()) {
-				_log.info(
-					"Processing " + fileName + ". This is attempt " +
-						attempt.getValue() + ".");
-			}
+		if (_log.isInfoEnabled()) {
+			_log.info("Processing " + fileName);
 		}
 
 		try {
-			for (AutoDeployListener autoDeployListener : _autoDeployListeners) {
-				autoDeployListener.deploy(file, null);
-			}
+			AutoDeploymentContext autoDeploymentContext =
+				buildAutoDeploymentContext(file);
+
+			deploy(autoDeploymentContext, _autoDeployListeners);
 
 			if (file.delete()) {
-				_inProcessFiles.remove(fileName);
+				return;
 			}
-			else {
-				_log.error("Auto deploy failed to remove " + fileName);
 
-				if (_log.isInfoEnabled()) {
-					_log.info("Add " + fileName + " to the blacklist");
-				}
-
-				_blacklistFiles.add(fileName);
-			}
+			_log.error("Auto deploy failed to remove " + fileName);
 		}
 		catch (Exception e) {
 			_log.error(e, e);
-
-			attempt.increment();
-
-			if (attempt.getValue() >= _blacklistThreshold) {
-				if (_log.isInfoEnabled()) {
-					_log.info("Add " + fileName + " to the blacklist");
-				}
-
-				_blacklistFiles.add(fileName);
-			}
 		}
+
+		if (_log.isInfoEnabled()) {
+			_log.info("Add " + fileName + " to the blacklist");
+		}
+
+		_blacklistFileTimestamps.put(fileName, file.lastModified());
 	}
 
 	protected void scanDirectory() {
 		File[] files = _deployDir.listFiles();
 
+		if (files == null) {
+			return;
+		}
+
+		Set<String> blacklistedFileNames = _blacklistFileTimestamps.keySet();
+
+		Iterator<String> iterator = blacklistedFileNames.iterator();
+
+		while (iterator.hasNext()) {
+			String blacklistedFileName = iterator.next();
+
+			boolean blacklistedFileExists = false;
+
+			for (File file : files) {
+				if (StringUtil.equalsIgnoreCase(
+						blacklistedFileName, file.getName())) {
+
+					blacklistedFileExists = true;
+				}
+			}
+
+			if (!blacklistedFileExists) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Remove blacklisted file " + blacklistedFileName +
+							" because it was deleted");
+				}
+
+				iterator.remove();
+			}
+		}
+
 		for (File file : files) {
-			String fileName = file.getName().toLowerCase();
+			String fileName = file.getName();
+
+			fileName = StringUtil.toLowerCase(fileName);
 
 			if (file.isFile() &&
 				(fileName.endsWith(".jar") || fileName.endsWith(".lpkg") ||
@@ -226,13 +279,12 @@ public class AutoDeployDir {
 
 	private static Log _log = LogFactoryUtil.getLog(AutoDeployDir.class);
 
+	private static AutoDeployScanner _autoDeployScanner;
+
 	private List<AutoDeployListener> _autoDeployListeners;
-	private AutoDeployScanner _autoDeployScanner;
-	private Set<String> _blacklistFiles;
-	private int _blacklistThreshold;
+	private Map<String, Long> _blacklistFileTimestamps;
 	private File _deployDir;
 	private File _destDir;
-	private Map<String, IntegerWrapper> _inProcessFiles;
 	private long _interval;
 	private String _name;
 

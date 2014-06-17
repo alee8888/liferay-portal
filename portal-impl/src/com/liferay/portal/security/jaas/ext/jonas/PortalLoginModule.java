@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,8 +16,9 @@ package com.liferay.portal.security.jaas.ext.jonas;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ClassResolverUtil;
 import com.liferay.portal.kernel.util.InstanceFactory;
-import com.liferay.portal.kernel.util.MethodCache;
+import com.liferay.portal.kernel.util.MethodKey;
 import com.liferay.portal.security.jaas.ext.BasicLoginModule;
 
 import java.lang.reflect.Method;
@@ -38,33 +39,38 @@ public class PortalLoginModule extends BasicLoginModule {
 	public boolean commit() throws LoginException {
 		boolean commitValue = super.commit();
 
-		if (commitValue) {
-			Subject subject = getSubject();
+		if (!commitValue) {
+			return false;
+		}
 
-			Set<Principal> principals = subject.getPrincipals();
+		Subject subject = getSubject();
 
-			principals.add(getPrincipal());
+		Set<Principal> principals = subject.getPrincipals();
 
-			Set<Object> privateCredentials = subject.getPrivateCredentials();
+		principals.add(getPrincipal());
 
-			privateCredentials.add(getPassword());
+		Set<Object> privateCredentials = subject.getPrivateCredentials();
 
-			try {
-				Principal group = (Principal)InstanceFactory.newInstance(
-					_JGROUP, String.class, "Roles");
-				Object role = InstanceFactory.newInstance(
-					_JROLE, String.class, "users");
+		privateCredentials.add(getPassword());
 
-				Method method = MethodCache.get(
-					_JGROUP, "addMember", new Class[] {role.getClass()});
+		try {
+			Principal group = (Principal)InstanceFactory.newInstance(
+				_JGROUP, String.class, "Roles");
+			Object role = InstanceFactory.newInstance(
+				_JROLE, String.class, "users");
 
-				method.invoke(group, new Object[] {role});
+			MethodKey methodKey = new MethodKey(
+				ClassResolverUtil.resolveByContextClassLoader(_JGROUP),
+				"addMember", role.getClass());
 
-				principals.add(group);
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
+			Method method = methodKey.getMethod();
+
+			method.invoke(group, new Object[] {role});
+
+			principals.add(group);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
 		}
 
 		return commitValue;

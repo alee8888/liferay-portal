@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,8 +19,6 @@ import com.liferay.portal.model.Portlet;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.permission.GroupPermissionUtil;
-import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.PortletCategoryKeys;
 import com.liferay.portlet.BaseControlPanelEntry;
 
 /**
@@ -29,41 +27,21 @@ import com.liferay.portlet.BaseControlPanelEntry;
  */
 public class GroupPagesControlPanelEntry extends BaseControlPanelEntry {
 
-	public boolean isVisible(
-			PermissionChecker permissionChecker, Portlet portlet)
+	@Override
+	protected boolean hasAccessPermissionDenied(
+			PermissionChecker permissionChecker, Group group, Portlet portlet)
 		throws Exception {
 
-		return false;
+		return group.isCompany();
 	}
 
 	@Override
-	public boolean isVisible(
-			Portlet portlet, String category, ThemeDisplay themeDisplay)
+	protected boolean hasPermissionImplicitlyGranted(
+			PermissionChecker permissionChecker, Group group, Portlet portlet)
 		throws Exception {
 
-		String controlPanelCategory = themeDisplay.getControlPanelCategory();
-
-		if (controlPanelCategory.equals(PortletCategoryKeys.CONTENT)) {
-			return false;
-		}
-
-		boolean visible = super.isVisible(portlet, category, themeDisplay);
-
-		if (!visible) {
-			visible = GroupPermissionUtil.contains(
-				themeDisplay.getPermissionChecker(),
-				themeDisplay.getScopeGroupId(), ActionKeys.MANAGE_LAYOUTS);
-		}
-
-		if (visible) {
-			Group scopeGroup = themeDisplay.getScopeGroup();
-
-			if (scopeGroup.isCompany()) {
-				visible = false;
-			}
-		}
-
-		return visible;
+		return GroupPermissionUtil.contains(
+			permissionChecker, group, ActionKeys.MANAGE_LAYOUTS);
 	}
 
 }

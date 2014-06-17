@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,15 +19,6 @@
 <%
 String redirect = ParamUtil.getString(request, "redirect");
 
-String originalRedirect = ParamUtil.getString(request, "originalRedirect", StringPool.BLANK);
-
-if (originalRedirect.equals(StringPool.BLANK)) {
-	originalRedirect = redirect;
-}
-else {
-	redirect = originalRedirect;
-}
-
 boolean followRedirect = false;
 
 WikiNode node = (WikiNode)request.getAttribute(WebKeys.WIKI_NODE);
@@ -44,8 +35,6 @@ String content = BeanParamUtil.getString(wikiPage, request, "content");
 String format = BeanParamUtil.getString(wikiPage, request, "format", WikiPageConstants.DEFAULT_FORMAT);
 String parentTitle = BeanParamUtil.getString(wikiPage, request, "parentTitle");
 
-String[] attachments = new String[0];
-
 boolean preview = ParamUtil.getBoolean(request, "preview");
 
 boolean newPage = ParamUtil.getBoolean(request, "newPage");
@@ -56,8 +45,12 @@ if (wikiPage == null) {
 
 boolean editable = false;
 
+boolean copyPageAttachments = ParamUtil.getBoolean(request, "copyPageAttachments", true);
+
+List<FileEntry> attachmentsFileEntries = null;
+
 if (wikiPage != null) {
-	attachments = wikiPage.getAttachmentsFiles();
+	attachmentsFileEntries = wikiPage.getAttachmentsFileEntries();
 
 	if (WikiPagePermission.contains(permissionChecker, wikiPage, ActionKeys.UPDATE)) {
 		editable = true;
@@ -148,6 +141,13 @@ if (Validator.isNull(redirect)) {
 		wikiPage = new WikiPageImpl();
 	}
 
+	try {
+		content = SanitizerUtil.sanitize(themeDisplay.getCompanyId(), scopeGroupId, themeDisplay.getUserId(), WikiPage.class.getName(), 0, "text/" + format, content);
+	}
+	catch (SanitizerException se) {
+		content = StringPool.BLANK;
+	}
+
 	wikiPage.setContent(content);
 	wikiPage.setFormat(format);
 	%>
@@ -168,14 +168,13 @@ if (Validator.isNull(redirect)) {
 <aui:form action="<%= editPageActionURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "savePage();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
-	<aui:input name="originalRedirect" type="hidden" value="<%= originalRedirect %>" />
 	<aui:input name="nodeId" type="hidden" value="<%= nodeId %>" />
 	<aui:input name="newPage" type="hidden" value="<%= newPage %>" />
 
 	<aui:model-context bean="<%= !newPage ? wikiPage : templatePage %>" model="<%= WikiPage.class %>" />
 
 	<c:if test="<%= (wikiPage != null) && (!wikiPage.isNew()) %>">
-		<aui:workflow-status status="<%= wikiPage.getStatus() %>" version="<%= String.valueOf(wikiPage.getVersion()) %>" />
+		<aui:workflow-status showIcon="<%= false %>" showLabel="<%= false %>" status="<%= wikiPage.getStatus() %>" version="<%= String.valueOf(wikiPage.getVersion()) %>" />
 	</c:if>
 
 	<c:if test="<%= !editTitle %>">
@@ -187,6 +186,11 @@ if (Validator.isNull(redirect)) {
 
 	<c:if test="<%= wikiPage != null %>">
 		<aui:input name="version" type="hidden" value="<%= wikiPage.getVersion() %>" />
+	</c:if>
+
+	<c:if test="<%= templatePage != null %>">
+		<aui:input name="templateNodeId" type="hidden" value="<%= String.valueOf(templateNodeId) %>" />
+		<aui:input name="templateTitle" type="hidden" value="<%= templateTitle %>" />
 	</c:if>
 
 	<aui:input name="workflowAction" type="hidden" value="<%= WorkflowConstants.ACTION_SAVE_DRAFT %>" />
@@ -211,16 +215,16 @@ if (Validator.isNull(redirect)) {
 					/>
 				</c:if>
 
-				<div class="portlet-msg-info">
+				<div class="alert alert-info">
 					<liferay-ui:message key="this-page-does-not-exist-yet-use-the-form-below-to-create-it" />
 				</div>
 			</c:when>
 			<c:otherwise>
-				<div class="portlet-msg-error">
+				<div class="alert alert-danger">
 					<liferay-ui:message key="this-page-does-not-exist-yet-and-the-title-is-not-valid" />
 				</div>
 
-				<input type="button" value="<liferay-ui:message key="cancel" />" onClick="document.location = '<%= HtmlUtil.escape(PortalUtil.escapeRedirect(redirect)) %>'" />
+				<input onClick="document.location = '<%= HtmlUtil.escape(PortalUtil.escapeRedirect(redirect)) %>'" type="button" value="<liferay-ui:message key="cancel" />" />
 			</c:otherwise>
 		</c:choose>
 	</c:if>
@@ -229,13 +233,11 @@ if (Validator.isNull(redirect)) {
 		<c:when test="<%= editable %>">
 			<aui:fieldset>
 				<c:if test="<%= editTitle %>">
-					<aui:input name="title" size="30" value="<%= title %>" />
+					<aui:input autoFocus="<%= !preview %>" name="title" size="30" value="<%= title %>" />
 				</c:if>
 
 				<c:if test="<%= Validator.isNotNull(parentTitle) %>">
-					<aui:field-wrapper label="parent">
-						<%= parentTitle %>
-					</aui:field-wrapper>
+					<aui:input name="parent" type="resource" value="<%= parentTitle %>" />
 				</c:if>
 
 				<c:choose>
@@ -273,9 +275,21 @@ if (Validator.isNull(redirect)) {
 			<c:if test="<%= wikiPage != null %>">
 				<liferay-ui:custom-attributes-available className="<%= WikiPage.class.getName() %>">
 					<aui:fieldset>
+
+						<%
+						long classPK = 0;
+
+						if (templatePage != null) {
+							classPK = templatePage.getPrimaryKey();
+						}
+						else if (page != null) {
+							classPK = wikiPage.getPrimaryKey();
+						}
+						%>
+
 						<liferay-ui:custom-attribute-list
 							className="<%= WikiPage.class.getName() %>"
-							classPK="<%= (page != null) ? wikiPage.getPrimaryKey() : 0 %>"
+							classPK="<%= classPK %>"
 							editable="<%= true %>"
 							label="<%= true %>"
 						/>
@@ -284,28 +298,31 @@ if (Validator.isNull(redirect)) {
 			</c:if>
 
 			<aui:fieldset>
-				<c:if test="<%= attachments.length > 0 %>">
+				<c:if test="<%= (attachmentsFileEntries != null) && !attachmentsFileEntries.isEmpty() || ((templatePage != null) && (templatePage.getAttachmentsFileEntriesCount() > 0)) %>">
 					<aui:field-wrapper label="attachments">
+						<c:if test="<%= (templatePage != null) && (templatePage.getAttachmentsFileEntriesCount() > 0) %>">
 
-						<%
-						for (int i = 0; i < attachments.length; i++) {
-							String fileName = FileUtil.getShortFileName(attachments[i]);
-							long fileSize = DLStoreUtil.getFileSize(company.getCompanyId(), CompanyConstants.SYSTEM, attachments[i]);
-						%>
+							<%
+							attachmentsFileEntries = templatePage.getAttachmentsFileEntries();
+							%>
 
-							<portlet:actionURL var="getPageAttachmentURL" windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>">
-								<portlet:param name="struts_action" value="/wiki/get_page_attachment" />
-								<portlet:param name="nodeId" value="<%= String.valueOf(node.getNodeId()) %>" />
-								<portlet:param name="title" value="<%= wikiPage.getTitle() %>" />
-								<portlet:param name="fileName" value="<%= fileName %>" />
-							</portlet:actionURL>
+							<aui:input name="copyPageAttachments" type="checkbox" value="<%= copyPageAttachments %>" />
+						</c:if>
 
-							<aui:a href="<%= getPageAttachmentURL %>"><%= fileName %></aui:a> (<%=TextFormatter.formatStorageSize(fileSize, locale) %>)<%= (i < (attachments.length - 1)) ? ", " : "" %>
+						<c:if test="<%= attachmentsFileEntries != null %>">
 
-						<%
-						}
-						%>
+							<%
+							for (int i = 0; i < attachmentsFileEntries.size(); i++) {
+								FileEntry attachmentsFileEntry = attachmentsFileEntries.get(i);
+							%>
 
+								<aui:a href="<%= (templatePage != null) && (templatePage.getAttachmentsFileEntriesCount() > 0) ? PortletFileRepositoryUtil.getDownloadPortletFileEntryURL(themeDisplay, attachmentsFileEntry, StringPool.BLANK) : null %>"><%= attachmentsFileEntry.getTitle() %></aui:a> (<%= TextFormatter.formatStorageSize(attachmentsFileEntry.getSize(), locale) %>)<%= (i < (attachmentsFileEntries.size() - 1)) ? ", " : "" %>
+
+							<%
+							}
+							%>
+
+						</c:if>
 					</aui:field-wrapper>
 				</c:if>
 
@@ -379,13 +396,13 @@ if (Validator.isNull(redirect)) {
 				%>
 
 				<c:if test="<%= !newPage && approved %>">
-					<div class="portlet-msg-info">
+					<div class="alert alert-info">
 						<liferay-ui:message key="a-new-version-will-be-created-automatically-if-this-content-is-modified" />
 					</div>
 				</c:if>
 
 				<c:if test="<%= pending %>">
-					<div class="portlet-msg-info">
+					<div class="alert alert-info">
 						<liferay-ui:message key="there-is-a-publication-workflow-in-process" />
 					</div>
 				</c:if>
@@ -406,14 +423,21 @@ if (Validator.isNull(redirect)) {
 					}
 					%>
 
-					<aui:button name="saveButton" type="submit" value="<%= saveButtonLabel %>" />
+					<aui:button name="saveButton" primary="<%= false %>" type="submit" value="<%= saveButtonLabel %>" />
 
 					<aui:button name="previewButton" onClick='<%= renderResponse.getNamespace() + "previewPage();" %>' value="preview" />
 
-					<aui:button disabled="<%= pending %>" name="publishButton" onClick='<%= renderResponse.getNamespace() + "publishPage();" %>' value="<%= publishButtonLabel %>" />
+					<aui:button disabled="<%= pending %>" name="publishButton" onClick='<%= renderResponse.getNamespace() + "publishPage();" %>' primary="<%= true %>" value="<%= publishButtonLabel %>" />
 
-					<c:if test="<%= !newPage && wikiPage.isDraft() && WikiPagePermission.contains(permissionChecker, wikiPage, ActionKeys.DELETE) %>">
-						<aui:button name="discardDraftButton" onClick='<%= renderResponse.getNamespace() + "discardDraftPage();" %>' value="discard-draft" />
+					<c:if test="<%= !newPage && WikiPagePermission.contains(permissionChecker, wikiPage, ActionKeys.DELETE) %>">
+						<c:choose>
+							<c:when test="<%= !wikiPage.isDraft() && TrashUtil.isTrashEnabled(scopeGroupId) %>">
+								<aui:button name="moveToTrashButton" onClick='<%= renderResponse.getNamespace() + "moveToTrashPage();" %>' value="move-to-the-recycle-bin" />
+							</c:when>
+							<c:when test="<%= wikiPage.isDraft() %>">
+								<aui:button name="discardDraftButton" onClick='<%= renderResponse.getNamespace() + "discardDraftPage();" %>' value="discard-draft" />
+							</c:when>
+						</c:choose>
 					</c:if>
 
 					<aui:button href="<%= redirect %>" type="cancel" />
@@ -422,13 +446,13 @@ if (Validator.isNull(redirect)) {
 		</c:when>
 		<c:otherwise>
 			<c:if test="<%= (wikiPage != null) && !wikiPage.isApproved() %>">
-				<div class="portlet-msg-info">
+				<div class="alert alert-info">
 
 					<%
 					Format dateFormatDate = FastDateFormatFactoryUtil.getDateTime(locale, timeZone);
 					%>
 
-					<%= LanguageUtil.format(pageContext, "this-page-cannot-be-edited-because-user-x-is-modifying-it-and-the-results-have-not-been-published-yet", new Object[] {wikiPage.getUserName(), dateFormatDate.format(wikiPage.getModifiedDate())}) %>
+					<%= LanguageUtil.format(pageContext, "this-page-cannot-be-edited-because-user-x-is-modifying-it-and-the-results-have-not-been-published-yet", new Object[] {HtmlUtil.escape(wikiPage.getUserName()), dateFormatDate.format(wikiPage.getModifiedDate())}, false) %>
 				</div>
 			</c:if>
 		</c:otherwise>
@@ -455,27 +479,36 @@ if (Validator.isNull(redirect)) {
 			document.<portlet:namespace />fm.<portlet:namespace />content.value = window.<portlet:namespace />editor.getHTML();
 		}
 
-		submitForm(document.<portlet:namespace />fm);
+		submitForm(document.<portlet:namespace />fm, null, null, false);
 	}
 
 	function <portlet:namespace />discardDraftPage() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= Constants.DELETE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.DELETE %>';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />getSuggestionsContent() {
-		var content = '';
+		return document.<portlet:namespace />fm.<portlet:namespace />title.value + ' ' + window.<portlet:namespace />editor.getHTML();
+	}
 
-		content += document.<portlet:namespace />fm.<portlet:namespace />title.value + ' ';
-		content += window.<portlet:namespace />editor.getHTML();
+	function <portlet:namespace />moveToTrashPage() {
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.MOVE_TO_TRASH %>';
 
-		return content;
+		<portlet:renderURL var="nodeURL">
+			<portlet:param name="struts_action" value="/wiki/view" />
+			<portlet:param name="title" value="<%= WikiPageConstants.FRONT_PAGE %>" />
+			<portlet:param name="tag" value="<%= StringPool.BLANK %>" />
+		</portlet:renderURL>
+
+		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = '<%= nodeURL.toString() %>';
+
+		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />previewPage() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "";
-		document.<portlet:namespace />fm.<portlet:namespace />preview.value = "true";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '';
+		document.<portlet:namespace />fm.<portlet:namespace />preview.value = 'true';
 
 		if (window.<portlet:namespace />editor) {
 			document.<portlet:namespace />fm.<portlet:namespace />content.value = window.<portlet:namespace />editor.getHTML();
@@ -485,13 +518,13 @@ if (Validator.isNull(redirect)) {
 	}
 
 	function <portlet:namespace />publishPage() {
-		document.<portlet:namespace />fm.<portlet:namespace />workflowAction.value = "<%= WorkflowConstants.ACTION_PUBLISH %>";
+		document.<portlet:namespace />fm.<portlet:namespace />workflowAction.value = '<%= WorkflowConstants.ACTION_PUBLISH %>';
 
 		<portlet:namespace />savePage();
 	}
 
 	function <portlet:namespace />savePage() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= newPage ? Constants.ADD : Constants.UPDATE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= newPage ? Constants.ADD : Constants.UPDATE %>';
 
 		if (window.<portlet:namespace />editor) {
 			document.<portlet:namespace />fm.<portlet:namespace />content.value = window.<portlet:namespace />editor.getHTML();
@@ -501,12 +534,6 @@ if (Validator.isNull(redirect)) {
 	}
 
 	window.<portlet:namespace />currentFormatIndex = document.<portlet:namespace />fm.<portlet:namespace />format.selectedIndex;
-
-	<c:if test="<%= editable && !preview %>">
-		if (!window.<portlet:namespace />editor) {
-			Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace /><%= editTitle ? "title" : "content" %>);
-		}
-	</c:if>
 </aui:script>
 
 <%

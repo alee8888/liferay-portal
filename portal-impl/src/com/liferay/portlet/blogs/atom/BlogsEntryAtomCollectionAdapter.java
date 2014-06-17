@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -48,10 +48,12 @@ import java.util.List;
 public class BlogsEntryAtomCollectionAdapter
 	extends BaseAtomCollectionAdapter<BlogsEntry> {
 
+	@Override
 	public String getCollectionName() {
 		return _COLLECTION_NAME;
 	}
 
+	@Override
 	public List<String> getEntryAuthors(BlogsEntry blogsEntry) {
 		List<String> authors = new ArrayList<String>();
 
@@ -60,28 +62,34 @@ public class BlogsEntryAtomCollectionAdapter
 		return authors;
 	}
 
+	@Override
 	public AtomEntryContent getEntryContent(
 		BlogsEntry blogsEntry, AtomRequestContext atomRequestContext) {
 
 		return new AtomEntryContent(blogsEntry.getContent());
 	}
 
+	@Override
 	public String getEntryId(BlogsEntry blogsEntry) {
 		return String.valueOf(blogsEntry.getEntryId());
 	}
 
+	@Override
 	public String getEntrySummary(BlogsEntry blogsEntry) {
 		return blogsEntry.getDescription();
 	}
 
+	@Override
 	public String getEntryTitle(BlogsEntry blogsEntry) {
 		return blogsEntry.getTitle();
 	}
 
+	@Override
 	public Date getEntryUpdated(BlogsEntry blogsEntry) {
 		return blogsEntry.getModifiedDate();
 	}
 
+	@Override
 	public String getFeedTitle(AtomRequestContext atomRequestContext) {
 		return AtomUtil.createFeedTitleFromPortletName(
 			atomRequestContext, PortletKeys.BLOGS);
@@ -185,10 +193,10 @@ public class BlogsEntryAtomCollectionAdapter
 		serviceContext.setScopeGroupId(groupId);
 
 		return BlogsEntryServiceUtil.addEntry(
-			title, summary, content, displayDateMonth, displayDateDay,
-			displayDateYear, displayDateHour, displayDateMinute, allowPingbacks,
-			allowTrackbacks, trackbacks, false, null, null, null,
-			serviceContext);
+			title, StringPool.BLANK, summary, content, displayDateMonth,
+			displayDateDay, displayDateYear, displayDateHour, displayDateMinute,
+			allowPingbacks, allowTrackbacks, trackbacks, false, null, null,
+			null, serviceContext);
 	}
 
 	@Override
@@ -244,7 +252,6 @@ public class BlogsEntryAtomCollectionAdapter
 		finally {
 			StreamUtil.cleanUp(smallImageInputStream);
 		}
-
 	}
 
 	private static final String _COLLECTION_NAME = "blogs";

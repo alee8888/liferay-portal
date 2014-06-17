@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,10 +27,16 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.ParseException;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.facet.config.FacetConfiguration;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.Layout;
 import com.liferay.portal.service.GroupLocalServiceUtil;
+import com.liferay.portal.service.LayoutLocalServiceUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Raymond Augé
@@ -41,6 +47,39 @@ public class ScopeFacet extends MultiValueFacet {
 		super(searchContext);
 
 		setFieldName(Field.GROUP_ID);
+	}
+
+	protected long[] addScopeGroup(long groupId) {
+		try {
+			List<Long> groupIds = new ArrayList<Long>();
+
+			groupIds.add(groupId);
+
+			List<Layout> publicLayouts =
+				LayoutLocalServiceUtil.getScopeGroupLayouts(groupId, false);
+
+			for (Layout layout :publicLayouts) {
+				Group group = layout.getScopeGroup();
+
+				groupIds.add(group.getGroupId());
+			}
+
+			List<Layout> privateLayouts =
+				LayoutLocalServiceUtil.getScopeGroupLayouts(groupId, true);
+
+			for (Layout layout : privateLayouts) {
+				Group group = layout.getScopeGroup();
+
+				groupIds.add(group.getGroupId());
+			}
+
+			return ArrayUtil.toLongArray(groupIds);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		return new long[] {groupId};
 	}
 
 	@Override
@@ -63,7 +102,7 @@ public class ScopeFacet extends MultiValueFacet {
 			}
 		}
 
-		if ((groupIds == null) || (groupIds.length == 0)) {
+		if (ArrayUtil.isEmpty(groupIds)) {
 			groupIds = searchContext.getGroupIds();
 		}
 
@@ -71,10 +110,12 @@ public class ScopeFacet extends MultiValueFacet {
 			searchContext.getAttribute("groupId"));
 
 		if (Validator.isNotNull(groupIdParam)) {
-			groupIds = new long[] {GetterUtil.getLong(groupIdParam)};
+			long groupId = GetterUtil.getLong(groupIdParam);
+
+			groupIds = addScopeGroup(groupId);
 		}
 
-		if ((groupIds == null) || (groupIds.length == 0) ||
+		if (ArrayUtil.isEmpty(groupIds) ||
 			((groupIds.length == 1) && (groupIds[0] == 0))) {
 
 			return null;

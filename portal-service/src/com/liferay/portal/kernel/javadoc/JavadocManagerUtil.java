@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.javadoc;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+
 import java.lang.reflect.Method;
 
 /**
@@ -22,6 +24,8 @@ import java.lang.reflect.Method;
 public class JavadocManagerUtil {
 
 	public static JavadocManager getJavadocManager() {
+		PortalRuntimePermission.checkGetBeanProperty(JavadocManagerUtil.class);
+
 		return _javadocManager;
 	}
 
@@ -29,6 +33,10 @@ public class JavadocManagerUtil {
 		String servletContextName, ClassLoader classLoader) {
 
 		getJavadocManager().load(servletContextName, classLoader);
+	}
+
+	public static JavadocClass lookupJavadocClass(Class<?> clazz) {
+		return getJavadocManager().lookupJavadocClass(clazz);
 	}
 
 	public static JavadocMethod lookupJavadocMethod(Method method) {
@@ -40,6 +48,8 @@ public class JavadocManagerUtil {
 	}
 
 	public void setJavadocManager(JavadocManager javadocManager) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_javadocManager = javadocManager;
 	}
 

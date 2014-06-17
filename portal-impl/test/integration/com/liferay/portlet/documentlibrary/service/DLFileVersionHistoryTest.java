@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,16 +15,16 @@
 package com.liferay.portlet.documentlibrary.service;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portlet.documentlibrary.InvalidFileVersionException;
 import com.liferay.portlet.documentlibrary.model.DLFileVersion;
+import com.liferay.portlet.documentlibrary.util.test.DLAppTestUtil;
 
 import java.util.List;
 
@@ -35,52 +35,52 @@ import org.junit.runner.RunWith;
 /**
  * @author Alexander Chow
  */
-@ExecutionTestListeners(listeners = {EnvironmentExecutionTestListener.class})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class DLFileVersionHistoryTest extends BaseDLAppTestCase {
 
 	@Test
 	public void testDeleteOneVersion() throws Exception {
-		testDeleteVersion(false, false);
+		deleteVersion(false, false);
 	}
 
 	@Test
 	public void testDeleteOneVersionOnePWC() throws Exception {
-		testDeleteVersion(false, true);
+		deleteVersion(false, true);
 	}
 
 	@Test
 	public void testDeleteTwoVersions() throws Exception {
-		testDeleteVersion(true, false);
+		deleteVersion(true, false);
 	}
 
 	@Test
 	public void testDeleteTwoVersionsOnePWC() throws Exception {
-		testDeleteVersion(true, true);
+		deleteVersion(true, true);
 	}
 
 	@Test
 	public void testRevertOneVersion() throws Exception {
-		testRevertVersion(false, false);
+		revertVersion(false, false);
 	}
 
 	@Test
 	public void testRevertOneVersionOnePWC() throws Exception {
-		testRevertVersion(false, true);
+		revertVersion(false, true);
 	}
 
 	@Test
 	public void testRevertTwoVersions() throws Exception {
-		testRevertVersion(true, false);
+		revertVersion(true, false);
 	}
 
 	@Test
 	public void testRevertTwoVersionsOnePWC() throws Exception {
-		testRevertVersion(true, true);
+		revertVersion(true, true);
 	}
 
 	protected void assertFileEntryTitle(String fileName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		FileEntry fileEntry = DLAppServiceUtil.getFileEntry(
 			_fileEntry.getFileEntryId());
@@ -89,7 +89,7 @@ public class DLFileVersionHistoryTest extends BaseDLAppTestCase {
 	}
 
 	protected void assertLatestFileVersionTitle(String fileName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DLFileVersion latestDLFileVersion =
 			DLFileVersionLocalServiceUtil.getLatestFileVersion(
@@ -100,7 +100,7 @@ public class DLFileVersionHistoryTest extends BaseDLAppTestCase {
 
 	protected void deleteFileVersion(
 			String version, String fileName, boolean pwc)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DLAppServiceUtil.deleteFileVersion(
 			_fileEntry.getFileEntryId(), version);
@@ -115,64 +115,25 @@ public class DLFileVersionHistoryTest extends BaseDLAppTestCase {
 		}
 	}
 
-	protected void failDeleteFileVersion(String version)
-		throws PortalException, SystemException {
-
-		try {
-			deleteFileVersion(version, null, true);
-
-			Assert.fail();
-		}
-		catch (InvalidFileVersionException ifve) {
-		}
-	}
-
-	protected void failRevertFileVersion(String version)
-		throws PortalException, SystemException {
-
-		try {
-			revertFileVersion(version, null);
-
-			Assert.fail();
-		}
-		catch (InvalidFileVersionException ifve) {
-		}
-	}
-
-	protected int getFileVersionsCount() throws SystemException {
-		List<FileVersion> fileVersions = _fileEntry.getFileVersions(
-			WorkflowConstants.STATUS_ANY);
-
-		return fileVersions.size();
-	}
-
-	protected void revertFileVersion(String version, String fileName)
-		throws PortalException, SystemException {
-
-		DLAppServiceUtil.revertFileEntry(
-			_fileEntry.getFileEntryId(), version, new ServiceContext());
-
-		if (fileName != null) {
-			assertLatestFileVersionTitle(fileName);
-		}
-	}
-
-	protected void testDeleteVersion(boolean versioned, boolean leaveCheckedOut)
+	protected void deleteVersion(boolean versioned, boolean leaveCheckedOut)
 		throws Exception {
 
-		_fileEntry = addFileEntry(false, _VERSION_1_0);
+		_fileEntry = DLAppTestUtil.addFileEntry(
+			group.getGroupId(), parentFolder.getFolderId(), _VERSION_1_0);
 
 		long fileEntryId = _fileEntry.getFileEntryId();
 
 		if (versioned) {
-			updateFileEntry(fileEntryId, null, _VERSION_1_1);
+			DLAppTestUtil.updateFileEntry(
+				group.getGroupId(), fileEntryId, null, _VERSION_1_1);
 		}
 
 		if (leaveCheckedOut) {
 			DLAppServiceUtil.checkOutFileEntry(
 				fileEntryId, new ServiceContext());
 
-			updateFileEntry(fileEntryId, null, _VERSION_PWC);
+			DLAppTestUtil.updateFileEntry(
+				group.getGroupId(), fileEntryId, null, _VERSION_PWC);
 		}
 
 		if (versioned && leaveCheckedOut) {
@@ -209,22 +170,67 @@ public class DLFileVersionHistoryTest extends BaseDLAppTestCase {
 		}
 	}
 
-	protected void testRevertVersion(boolean versioned, boolean leaveCheckedOut)
+	protected void failDeleteFileVersion(String version)
+		throws PortalException {
+
+		try {
+			deleteFileVersion(version, null, true);
+
+			Assert.fail();
+		}
+		catch (InvalidFileVersionException ifve) {
+		}
+	}
+
+	protected void failRevertFileVersion(String version)
+		throws PortalException {
+
+		try {
+			revertFileVersion(version, null);
+
+			Assert.fail();
+		}
+		catch (InvalidFileVersionException ifve) {
+		}
+	}
+
+	protected int getFileVersionsCount() {
+		List<FileVersion> fileVersions = _fileEntry.getFileVersions(
+			WorkflowConstants.STATUS_ANY);
+
+		return fileVersions.size();
+	}
+
+	protected void revertFileVersion(String version, String fileName)
+		throws PortalException {
+
+		DLAppServiceUtil.revertFileEntry(
+			_fileEntry.getFileEntryId(), version, new ServiceContext());
+
+		if (fileName != null) {
+			assertLatestFileVersionTitle(fileName);
+		}
+	}
+
+	protected void revertVersion(boolean versioned, boolean leaveCheckedOut)
 		throws Exception {
 
-		_fileEntry = addFileEntry(false, _VERSION_1_0);
+		_fileEntry = DLAppTestUtil.addFileEntry(
+			group.getGroupId(), parentFolder.getFolderId(), _VERSION_1_0);
 
 		long fileEntryId = _fileEntry.getFileEntryId();
 
 		if (versioned) {
-			updateFileEntry(fileEntryId, null, _VERSION_1_1);
+			DLAppTestUtil.updateFileEntry(
+				group.getGroupId(), fileEntryId, null, _VERSION_1_1);
 		}
 
 		if (leaveCheckedOut) {
 			DLAppServiceUtil.checkOutFileEntry(
 				fileEntryId, new ServiceContext());
 
-			updateFileEntry(fileEntryId, null, _VERSION_PWC);
+			DLAppTestUtil.updateFileEntry(
+				group.getGroupId(), fileEntryId, null, _VERSION_PWC);
 		}
 
 		if (versioned && leaveCheckedOut) {

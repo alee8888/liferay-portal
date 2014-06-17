@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.PortalServiceUtil;
@@ -21,13 +23,11 @@ import com.liferay.portal.service.PortalServiceUtil;
 import java.rmi.RemoteException;
 
 /**
- * <p>
- * This class provides a SOAP utility for the
+ * Provides the SOAP utility for the
  * {@link com.liferay.portal.service.PortalServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it is difficult for SOAP to
  * support certain types.
- * </p>
  *
  * <p>
  * The benefits of using the SOAP utility is that it is cross platform
@@ -37,9 +37,8 @@ import java.rmi.RemoteException;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -47,11 +46,12 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PortalServiceHttp
- * @see       com.liferay.portal.service.PortalServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see PortalServiceHttp
+ * @see com.liferay.portal.service.PortalServiceUtil
  * @generated
  */
+@ProviderType
 public class PortalServiceSoap {
 	public static java.lang.String getAutoDeployDirectory()
 		throws RemoteException {
@@ -140,10 +140,10 @@ public class PortalServiceSoap {
 		}
 	}
 
-	public static void testCounterIncrement_Rollback()
+	public static void testAutoSyncHibernateSessionStateOnTxCreation()
 		throws RemoteException {
 		try {
-			PortalServiceUtil.testCounterIncrement_Rollback();
+			PortalServiceUtil.testAutoSyncHibernateSessionStateOnTxCreation();
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -155,6 +155,19 @@ public class PortalServiceSoap {
 	public static void testDeleteClassName() throws RemoteException {
 		try {
 			PortalServiceUtil.testDeleteClassName();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static int testGetBuildNumber() throws RemoteException {
+		try {
+			int returnValue = PortalServiceUtil.testGetBuildNumber();
+
+			return returnValue;
 		}
 		catch (Exception e) {
 			_log.error(e, e);

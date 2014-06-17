@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,46 +35,52 @@ boolean rightReorder = GetterUtil.getBoolean((String)request.getAttribute("lifer
 
 List leftList = (List)request.getAttribute("liferay-ui:input-move-boxes:leftList");
 List rightList = (List)request.getAttribute("liferay-ui:input-move-boxes:rightList");
+
+Map<String, Object> data = new HashMap<String, Object>();
 %>
 
 <div class="taglib-move-boxes <%= cssClass %> <%= leftReorder ? "left-reorder" : StringPool.BLANK %> <%= rightReorder ? "right-reorder" : StringPool.BLANK %>" id="<%= randomNamespace + "input-move-boxes" %>">
-	<aui:layout>
-		<aui:column cssClass="left-selector-column">
+	<aui:row cssClass="selector-container">
+		<aui:col cssClass="left-selector-column" width="<%= 30 %>">
 			<aui:select cssClass="choice-selector left-selector" label="<%= leftTitle %>" multiple="<%= true %>" name="<%= leftBoxName %>" onChange="<%= Validator.isNotNull(leftOnChange) ? leftOnChange : StringPool.BLANK %>" size="10">
 
 				<%
+				data.put("selected", true);
+
 				for (int i = 0; i < leftList.size(); i++) {
 					KeyValuePair kvp = (KeyValuePair)leftList.get(i);
 				%>
 
-					<aui:option label="<%= kvp.getValue() %>" value="<%= kvp.getKey() %>" />
+					<aui:option data="<%= data %>" label="<%= kvp.getValue() %>" value="<%= kvp.getKey() %>" />
 
 				<%
 				}
 				%>
 
 			</aui:select>
-		</aui:column>
+		</aui:col>
 
-		<aui:column cssClass="move-arrow-buttons"></aui:column>
+		<aui:col cssClass="move-arrow-buttons" span="<%= 1 %>"></aui:col>
 
-		<aui:column cssClass="right-selector-column">
+		<aui:col cssClass="right-selector-column" width="<%= 30 %>">
 			<aui:select cssClass="choice-selector right-selector" label="<%= rightTitle %>" multiple="<%= true %>" name="<%= rightBoxName %>" onChange="<%= Validator.isNotNull(rightOnChange) ? rightOnChange : StringPool.BLANK %>" size="10">
 
 				<%
+				data.put("selected", false);
+
 				for (int i = 0; i < rightList.size(); i++) {
 					KeyValuePair kvp = (KeyValuePair)rightList.get(i);
 				%>
 
-					<option value="<%= kvp.getKey() %>"><%= kvp.getValue() %></option>
+					<aui:option data="<%= data %>" label="<%= kvp.getValue() %>" value="<%= kvp.getKey() %>" />
 
 				<%
 				}
 				%>
 
 				</aui:select>
-		</aui:column>
-	</aui:layout>
+		</aui:col>
+	</aui:row>
 </div>
 
 <aui:script use="liferay-input-move-boxes">
@@ -82,12 +88,12 @@ List rightList = (List)request.getAttribute("liferay-ui:input-move-boxes:rightLi
 		{
 			contentBox: '#<%= randomNamespace + "input-move-boxes" %>',
 			strings: {
-				LEFT_MOVE_DOWN: '<%= UnicodeLanguageUtil.format(pageContext, "move-selected-item-in-x-one-position-down", new Object[] {leftTitle}) %>',
-				LEFT_MOVE_UP: '<%= UnicodeLanguageUtil.format(pageContext, "move-selected-item-in-x-one-position-up", new Object[] {leftTitle}) %>',
-				MOVE_LEFT: '<%= UnicodeLanguageUtil.format(pageContext, "move-selected-items-from-x-to-x", new Object[] {leftTitle, rightTitle}) %>',
-				MOVE_RIGHT: '<%= UnicodeLanguageUtil.format(pageContext, "move-selected-items-from-x-to-x", new Object[] {rightTitle, leftTitle}) %>',
-				RIGHT_MOVE_DOWN: '<%= UnicodeLanguageUtil.format(pageContext, "move-selected-item-in-x-one-position-down", new Object[] {rightTitle}) %>',
-				RIGHT_MOVE_UP: '<%= UnicodeLanguageUtil.format(pageContext, "move-selected-item-in-x-one-position-up", new Object[] {rightTitle}) %>'
+				LEFT_MOVE_DOWN: '<%= UnicodeLanguageUtil.format(pageContext, "move-selected-item-in-x-one-position-down", leftTitle, false) %>',
+				LEFT_MOVE_UP: '<%= UnicodeLanguageUtil.format(pageContext, "move-selected-item-in-x-one-position-up", leftTitle, false) %>',
+				MOVE_LEFT: '<%= UnicodeLanguageUtil.format(pageContext, "move-selected-items-from-x-to-x", new Object[] {leftTitle, rightTitle}, false) %>',
+				MOVE_RIGHT: '<%= UnicodeLanguageUtil.format(pageContext, "move-selected-items-from-x-to-x", new Object[] {rightTitle, leftTitle}, false) %>',
+				RIGHT_MOVE_DOWN: '<%= UnicodeLanguageUtil.format(pageContext, "move-selected-item-in-x-one-position-down", rightTitle, false) %>',
+				RIGHT_MOVE_UP: '<%= UnicodeLanguageUtil.format(pageContext, "move-selected-item-in-x-one-position-up", rightTitle, false) %>'
 			}
 		}
 	).render();

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,14 +14,17 @@
 
 package com.liferay.portal.theme;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.mobile.device.Device;
 import com.liferay.portal.kernel.staging.StagingUtil;
 import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.Mergeable;
 import com.liferay.portal.kernel.util.StringPool;
@@ -41,6 +44,7 @@ import com.liferay.portal.model.User;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance;
 
 import java.io.Serializable;
@@ -53,9 +57,32 @@ import java.util.TimeZone;
 
 import javax.portlet.PortletURL;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
+ * Provides general configuration methods for the portal, providing access to
+ * the portal's pages, sites, themes, locales, URLs, and more. This class is an
+ * information context object that holds data commonly referred to for various
+ * kinds of front-end information.
+ *
+ * <p>
+ * Liferay makes the <code>ThemeDisplay</code> available as a request attribute
+ * and in various scripting and templating scopes. A typical way to obtain
+ * <code>ThemeDisplay</code> is from a request:
+ * </p>
+ *
+ * <p>
+ * <pre>
+ * <code>
+ * themeDisplay = (ThemeDisplay) request.getAttribute(WebKeys.THEME_DISPLAY);
+ * </code>
+ * </pre>
+ * </p>
+ *
  * @author Brian Wing Shun Chan
  */
+@JSON
+@ProviderType
 public class ThemeDisplay
 	implements Cloneable, Mergeable<ThemeDisplay>, Serializable {
 
@@ -67,6 +94,7 @@ public class ThemeDisplay
 		_portletDisplay.setThemeDisplay(this);
 	}
 
+	@Override
 	public Object clone() throws CloneNotSupportedException {
 		ThemeDisplay themeDisplay = (ThemeDisplay)super.clone();
 
@@ -85,6 +113,52 @@ public class ThemeDisplay
 		return _account;
 	}
 
+	/**
+	 * Returns the content delivery network (CDN) base URL, or the current
+	 * portal URL if the CDN base URL is <code>null</code>. The CDN base URL can
+	 * be configured by setting the <code>cdn.host.http</code> or
+	 * <code>cdn.host.https</code> property in a
+	 * <code>portal-ext.properties</code> file.
+	 *
+	 * @return the CDN base URL, or the current portal URL if the CDN base URL
+	 *         is <code>null</code>
+	 */
+	public String getCDNBaseURL() {
+		if (_cdnBaseURL != null) {
+			return _cdnBaseURL;
+		}
+
+		String host = getCDNHost();
+
+		if (Validator.isNull(host)) {
+			String portalURL = getPortalURL();
+
+			try {
+				portalURL = PortalUtil.getPortalURL(getLayout(), this);
+			}
+			catch (Exception e) {
+				_log.error(e, e);
+			}
+
+			host = portalURL;
+		}
+
+		_cdnBaseURL = host;
+
+		return _cdnBaseURL;
+	}
+
+	/**
+	 * Returns the content delivery network (CDN) dynamic resources host, or the
+	 * current portal URL if the CDN dynamic resources host is
+	 * <code>null</code>. By setting the
+	 * <code>cdn.dynamic.resources.enabled</code> property to <code>true</code>
+	 * in a <code>portal-ext.properties</code> file, the CDN can be used for
+	 * dynamic resources, like minified CSS and JS files.
+	 *
+	 * @return the CDN dynamic resources host, or the current portal URL if the
+	 *         CDN dynamic resources host is <code>null</code>
+	 */
 	public String getCDNDynamicResourcesHost() {
 		return _cdnDynamicResourcesHost;
 	}
@@ -97,10 +171,26 @@ public class ThemeDisplay
 		return _colorScheme;
 	}
 
+	/**
+	 * Returns the color scheme ID as defined in the theme's
+	 * <code>liferay-look-and-feel.xml</code>.
+	 *
+	 * @return the color scheme ID as defined in the theme's
+	 *         <code>liferay-look-and-feel.xml</code>
+	 */
 	public String getColorSchemeId() {
 		return _colorScheme.getColorSchemeId();
 	}
 
+	/**
+	 * Returns the portal instance bean.
+	 *
+	 * <p>
+	 * Company is Liferay's technical name for a portal instance.
+	 * <p>
+	 *
+	 * @return the portal instance bean
+	 */
 	public Company getCompany() {
 		return _company;
 	}
@@ -109,18 +199,54 @@ public class ThemeDisplay
 		return _companyGroupId;
 	}
 
+	/**
+	 * Returns the portal instance ID.
+	 *
+	 * <p>
+	 * Company is Liferay's technical name for a portal instance.
+	 * <p>
+	 *
+	 * @return the portal instance ID
+	 */
 	public long getCompanyId() {
 		return _company.getCompanyId();
 	}
 
+	/**
+	 * Returns the server's relative path to the portal instance's logo.
+	 *
+	 * <p>
+	 * Company is Liferay's technical name for a portal instance.
+	 * <p>
+	 *
+	 * @return the server's relative path to the portal instance's logo
+	 */
 	public String getCompanyLogo() {
 		return _companyLogo;
 	}
 
+	/**
+	 * Returns the height of the portal instance's logo in pixels.
+	 *
+	 * <p>
+	 * Company is Liferay's technical name for a portal instance.
+	 * <p>
+	 *
+	 * @return the height of the portal instance's logo in pixels
+	 */
 	public int getCompanyLogoHeight() {
 		return _companyLogoHeight;
 	}
 
+	/**
+	 * Returns the width of the portal instance's logo in pixels.
+	 *
+	 * <p>
+	 * Company is Liferay's technical name for a portal instance.
+	 * <p>
+	 *
+	 * @return the width of the portal instance's logo in pixels
+	 */
 	public int getCompanyLogoWidth() {
 		return _companyLogoWidth;
 	}
@@ -133,7 +259,13 @@ public class ThemeDisplay
 		return _controlPanelCategory;
 	}
 
-	public User getDefaultUser() throws PortalException, SystemException {
+	/**
+	 * Returns the portal instance's default user.
+	 *
+	 * @return the portal instance's default user
+	 * @throws PortalException if a portal exception occurred
+	 */
+	public User getDefaultUser() throws PortalException {
 		if (_defaultUser == null) {
 			_defaultUser = _company.getDefaultUser();
 		}
@@ -141,10 +273,22 @@ public class ThemeDisplay
 		return _defaultUser;
 	}
 
-	public long getDefaultUserId() throws PortalException, SystemException {
+	/**
+	 * Returns the ID of the portal instance's default user.
+	 *
+	 * @return the ID of the portal instance's default user
+	 * @throws PortalException if a portal exception occurred
+	 */
+	public long getDefaultUserId() throws PortalException {
 		return getDefaultUser().getUserId();
 	}
 
+	/**
+	 * Returns the information about the detected device, such as the device's
+	 * brand, browser, operating system, screen resolution, etc.
+	 *
+	 * @return the information about the detected device
+	 */
 	public Device getDevice() {
 		return _device;
 	}
@@ -153,6 +297,14 @@ public class ThemeDisplay
 		return _doAsGroupId;
 	}
 
+	/**
+	 * Returns the encrypted ID of the "do as" user, which can be used by an
+	 * administrative user to impersonate another user, on that user's behalf.
+	 *
+	 * @return the encrypted ID of the "do as" user, which can be used by an
+	 *         administrative user to impersonate another user, on that user's
+	 *         behalf
+	 */
 	public String getDoAsUserId() {
 		return _doAsUserId;
 	}
@@ -165,30 +317,105 @@ public class ThemeDisplay
 		return _facebookCanvasPageURL;
 	}
 
+	/**
+	 * Returns the current internationalization language's code.
+	 *
+	 * <p>
+	 * For example:
+	 * </p>
+	 *
+	 * <p>
+	 * English (U.K.) returns <code>en_GB</code>
+	 * </p>
+	 *
+	 * @return the current internationalization language's code
+	 */
 	public String getI18nLanguageId() {
 		return _i18nLanguageId;
 	}
 
+	/**
+	 * Returns the path element for the current internationalization language.
+	 *
+	 * <p>
+	 * For example, the German localization returns <code>/de</code>. Liferay's
+	 * UI language can be changed by adding the language code into the URL path.
+	 * The following URL uses the German localization:
+	 * <code>http://localhost:8080/de/web/guest/home</code>.
+	 * </p>
+	 *
+	 * @return the path element for the current internationalization language
+	 */
 	public String getI18nPath() {
 		return _i18nPath;
 	}
 
+	/**
+	 * Returns the current language's code.
+	 *
+	 * <p>
+	 * For example:
+	 * </p>
+	 *
+	 * <p>
+	 * English (U.K.) returns <code>en_GB</code>
+	 * </p>
+	 *
+	 * @return the current language's code
+	 */
 	public String getLanguageId() {
 		return _languageId;
 	}
 
+	/**
+	 * Returns the site's page.
+	 *
+	 * <p>
+	 * Layout is Liferay's technical name for a page
+	 * </p>
+	 *
+	 * @return the site's page
+	 */
 	public Layout getLayout() {
 		return _layout;
 	}
 
+	/**
+	 * Returns the site's top-level pages.
+	 *
+	 * <p>
+	 * Layout is Liferay's technical name for a page
+	 * </p>
+	 *
+	 * @return the site's top-level pages
+	 */
 	public List<Layout> getLayouts() {
 		return _layouts;
 	}
 
+	/**
+	 * Returns the current layout set, being either a public layout set or a
+	 * private layout set.
+	 *
+	 * <p>
+	 * A site can have public and private pages (layouts), which are contained
+	 * in a public layout set and a private page set, respectively.
+	 * </p>
+	 *
+	 * @return the current layout set, being either a public layout set or a
+	 *         private layout set
+	 */
 	public LayoutSet getLayoutSet() {
 		return _layoutSet;
 	}
 
+	/**
+	 * Returns the path to the site's configured logo, or <code>null</code> if
+	 * there is no configured logo.
+	 *
+	 * @return the path to the site's configured logo, or <code>null</code> if
+	 *         there is no configured logo
+	 */
 	public String getLayoutSetLogo() {
 		return _layoutSetLogo;
 	}
@@ -197,10 +424,35 @@ public class ThemeDisplay
 		return _layoutTypePortlet;
 	}
 
+	/**
+	 * Returns the numeric portlet lifecycle indicator.
+	 *
+	 * <p>
+	 * For example:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * returns "0" for RENDER phase
+	 * returns "1" for ACTION phase
+	 * returns "2" for RESOURCE phase
+	 * returns "3" for EVENT phase
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @return the numeric portlet lifecycle indicator
+	 */
 	public String getLifecycle() {
 		return _lifecycle;
 	}
 
+	/**
+	 * Returns the locale used for displaying content.
+	 *
+	 * @return the locale used for displaying content
+	 */
 	public Locale getLocale() {
 		return _locale;
 	}
@@ -209,21 +461,28 @@ public class ThemeDisplay
 		return _mdrRuleGroupInstance;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0 renamed to {@link #getSiteGroup}
+	 */
+	@Deprecated
 	public Group getParentGroup() {
-		return _parentGroup;
+		return getSiteGroup();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0 renamed to {@link #getSiteGroupId}
+	 */
+	@Deprecated
 	public long getParentGroupId() {
-		return _parentGroupId;
+		return getSiteGroupId();
 	}
 
-	public String getParentGroupName() throws PortalException, SystemException {
-		if (_parentGroup == null) {
-			return StringPool.BLANK;
-		}
-		else {
-			return _parentGroup.getDescriptiveName();
-		}
+	/**
+	 * @deprecated As of 6.2.0 renamed to {@link #getSiteGroupName}
+	 */
+	@Deprecated
+	public String getParentGroupName() throws PortalException {
+		return getSiteGroupName();
 	}
 
 	public String getPathApplet() {
@@ -234,6 +493,12 @@ public class ThemeDisplay
 		return _pathCms;
 	}
 
+	/**
+	 * Returns the base URL for the color scheme's images, which can be
+	 * configured in the theme's <code>liferay-look-and-feel.xml</code>.
+	 *
+	 * @return the base URL for the color scheme's images
+	 */
 	public String getPathColorSchemeImages() {
 		return _pathColorSchemeImages;
 	}
@@ -246,26 +511,62 @@ public class ThemeDisplay
 		return _pathFlash;
 	}
 
+	/**
+	 * Returns the URL for the site's private layout set. This method typically
+	 * returns <code>/group</code>.
+	 *
+	 * @return the URL for the site's private layout set
+	 */
 	public String getPathFriendlyURLPrivateGroup() {
 		return _pathFriendlyURLPrivateGroup;
 	}
 
+	/**
+	 * Returns the URL for the user's private page set. This method typically
+	 * returns <code>/user</code>.
+	 *
+	 * @return the URL for the user's private page set
+	 */
 	public String getPathFriendlyURLPrivateUser() {
 		return _pathFriendlyURLPrivateUser;
 	}
 
+	/**
+	 * Returns the URL for the site's public page set. This method typically
+	 * returns <code>/web</code>.
+	 *
+	 * @return the URL for the site's public page set
+	 */
 	public String getPathFriendlyURLPublic() {
 		return _pathFriendlyURLPublic;
 	}
 
+	/**
+	 * Returns the URL for the portal instance's images. This method typically
+	 * returns <code>/image</code>.
+	 *
+	 * @return the URL for the portal instance's images
+	 */
 	public String getPathImage() {
 		return _pathImage;
 	}
 
+	/**
+	 * Returns the URL for the portal instance's JavaScript resources. This
+	 * method typically returns <code>/html/js</code>.
+	 *
+	 * @return the URL for the portal instance's JavaScript resources
+	 */
 	public String getPathJavaScript() {
 		return _pathJavaScript;
 	}
 
+	/**
+	 * Returns the URL for the portal instance's main servlet. This method
+	 * typically returns <code>/c</code>.
+	 *
+	 * @return the URL for the portal instance's main servlet
+	 */
 	public String getPathMain() {
 		return _pathMain;
 	}
@@ -274,54 +575,114 @@ public class ThemeDisplay
 		return _pathSound;
 	}
 
+	/**
+	 * Returns the URL for the theme's CSS directory.
+	 *
+	 * @return the URL for the theme's CSS directory
+	 */
 	public String getPathThemeCss() {
 		return _pathThemeCss;
 	}
 
 	/**
-	 * @deprecated Use <code>getPathThemeImages</code>.
+	 * @deprecated As of 6.2.0, replaced by {@link #getPathThemeImages}
 	 */
+	@Deprecated
 	public String getPathThemeImage() {
 		return getPathThemeImages();
 	}
 
+	/**
+	 * Returns the URL for the theme's images.
+	 *
+	 * @return the URL for the theme's images
+	 */
 	public String getPathThemeImages() {
 		return _pathThemeImages;
 	}
 
+	/**
+	 * Returns the URL for the theme's JavaScript directory.
+	 *
+	 * @return the URL for the theme's JavaScript directory
+	 */
 	public String getPathThemeJavaScript() {
 		return _pathThemeJavaScript;
 	}
 
+	/**
+	 * Returns the base URL for the theme.
+	 *
+	 * @return the base URL for the theme
+	 */
 	public String getPathThemeRoot() {
 		return _pathThemeRoot;
 	}
 
+	/**
+	 * Returns the URL for the theme's templates.
+	 *
+	 * @return the URL for the theme's templates
+	 */
 	public String getPathThemeTemplates() {
 		return _pathThemeTemplates;
 	}
 
+	/**
+	 * Returns the permission checker, which is used to ensure users making
+	 * resource requests have the necessary access permissions.
+	 *
+	 * @return the permission checker
+	 */
+	@JSON(include = false)
 	public PermissionChecker getPermissionChecker() {
 		return _permissionChecker;
 	}
 
+	/**
+	 * Returns the primary key of the page.
+	 *
+	 * <p>
+	 * Historically, "plid" was short for "portlet layout ID", which is the
+	 * primary key (ID) of the current layout (page).
+	 * </p>
+	 *
+	 * @return the primary key of the page
+	 */
 	public long getPlid() {
 		return _plid;
 	}
 
+	/**
+	 * Returns the portal instance's base URL, which can be configured by
+	 * setting the <code>web.server.host</code> property in a
+	 * <code>portal-ext.properties</code> file.
+	 *
+	 * @return the portal instance's base URL
+	 */
 	public String getPortalURL() {
 		return _portalURL;
 	}
 
+	@JSON(include = false)
 	public PortletDisplay getPortletDisplay() {
 		return _portletDisplay;
 	}
 
 	/**
-	 * @deprecated Use <code>getScopeGroupId</code>.
+	 * @deprecated As of 6.2.0, replaced by {@link #getScopeGroupId}
 	 */
+	@Deprecated
 	public long getPortletGroupId() {
 		return getScopeGroupId();
+	}
+
+	public String getPpid() {
+		return _ppid;
+	}
+
+	public String getProtocol() {
+		return HttpUtil.getProtocol(_secure);
 	}
 
 	public String getRealCompanyLogo() {
@@ -336,42 +697,87 @@ public class ThemeDisplay
 		return _realCompanyLogoWidth;
 	}
 
+	/**
+	 * Returns the logged in user. Since administrative users are able to
+	 * impersonate other users, this method reveals the identity of the user who
+	 * actually logged in.
+	 *
+	 * @return the logged in user
+	 * @see    #getUser()
+	 */
 	public User getRealUser() {
 		return _realUser;
 	}
 
+	/**
+	 * Returns the ID of the logged in user.
+	 *
+	 * @return the ID of the logged in user
+	 * @see    #getRealUser()
+	 */
 	public long getRealUserId() {
 		return _realUser.getUserId();
+	}
+
+	public long getRefererGroupId() {
+		return _refererGroupId;
 	}
 
 	public long getRefererPlid() {
 		return _refererPlid;
 	}
 
+	/**
+	 * Returns the currently served HTTP servlet request.
+	 *
+	 * @return the currently served HTTP servlet request
+	 */
+	@JSON(include = false)
+	public HttpServletRequest getRequest() {
+		return _request;
+	}
+
+	/**
+	 * Returns the scoped or sub-scoped active group (e.g. site).
+	 *
+	 * @return the scoped or sub-scoped active group
+	 */
 	public Group getScopeGroup() {
 		return _scopeGroup;
 	}
 
+	/**
+	 * Returns the ID of the scoped or sub-scoped active group (e.g. site).
+	 *
+	 * @return the ID of the scoped or sub-scoped active group
+	 */
 	public long getScopeGroupId() {
 		return _scopeGroupId;
 	}
 
-	public long getScopeGroupIdOrLiveGroupId()
-		throws PortalException, SystemException {
-
-		return StagingUtil.getLiveGroupId(_scopeGroupId);
+	/**
+	 * @deprecated As of 6.2.0 renamed to {@link #getSiteGroupIdOrLiveGroupId}
+	 */
+	@Deprecated
+	public long getScopeGroupIdOrLiveGroupId() throws PortalException {
+		return getSiteGroupIdOrLiveGroupId();
 	}
 
-	public String getScopeGroupName() throws PortalException, SystemException {
+	/**
+	 * Returns the name of the scoped or sub-scoped active group (e.g. site).
+	 *
+	 * @return the name of the scoped or sub-scoped active group
+	 * @throws PortalException if a portal exception occurred
+	 */
+	public String getScopeGroupName() throws PortalException {
 		if (_scopeGroup == null) {
 			return StringPool.BLANK;
 		}
-		else {
-			return _scopeGroup.getDescriptiveName();
-		}
+
+		return _scopeGroup.getDescriptiveName();
 	}
 
-	public Layout getScopeLayout() throws PortalException, SystemException {
+	public Layout getScopeLayout() throws PortalException {
 		if (_layout.hasScopeGroup()) {
 			return _layout;
 		}
@@ -383,16 +789,66 @@ public class ThemeDisplay
 		}
 	}
 
+	/**
+	 * Returns the portal instance's server name, which can be configured by
+	 * setting the <code>web.server.host</code> property in a
+	 * <code>portal-ext.properties</code> file.
+	 *
+	 * @return the server name, which can be configured by setting the
+	 *         <code>web.server.host</code> property in a
+	 *         <code>portal-ext.properties</code> file
+	 */
 	public String getServerName() {
 		return _serverName;
 	}
 
+	/**
+	 * Returns the server port, which can be configured by setting the
+	 * <code>web.server.http.port</code> or <code>web.server.https.port</code>
+	 * property in a <code>portal-ext.properties</code> file.
+	 *
+	 * @return the server port, which can be configured by setting the
+	 *         <code>web.server.http.port</code> or
+	 *         <code>web.server.https.port</code> property in a
+	 *         <code>portal-ext.properties</code> file
+	 */
 	public int getServerPort() {
 		return _serverPort;
 	}
 
+	/**
+	 * Returns the session ID, or a blank string if the session ID is not
+	 * available to the application.
+	 *
+	 * @return the session ID, or returns a blank string if the session ID is
+	 *         not available to the application
+	 */
 	public String getSessionId() {
 		return _sessionId;
+	}
+
+	public Locale getSiteDefaultLocale() {
+		return _siteDefaultLocale;
+	}
+
+	public Group getSiteGroup() {
+		return _siteGroup;
+	}
+
+	public long getSiteGroupId() {
+		return _siteGroupId;
+	}
+
+	public long getSiteGroupIdOrLiveGroupId() throws PortalException {
+		return StagingUtil.getLiveGroupId(_siteGroupId);
+	}
+
+	public String getSiteGroupName() throws PortalException {
+		if (_siteGroup == null) {
+			return StringPool.BLANK;
+		}
+
+		return _siteGroup.getDescriptiveName();
 	}
 
 	public Theme getTheme() {
@@ -403,6 +859,14 @@ public class ThemeDisplay
 		return _theme.getThemeId();
 	}
 
+	/**
+	 * Returns the theme's configurable settings, which are declared in
+	 * <code>liferay-look-and-feel.xml</code> and are configurable in the user
+	 * interface.
+	 *
+	 * @param  key the theme's key
+	 * @return the theme's configurable settings
+	 */
 	public String getThemeSetting(String key) {
 		Theme theme = getTheme();
 
@@ -413,6 +877,13 @@ public class ThemeDisplay
 		return layout.getThemeSetting(key, device);
 	}
 
+	/**
+	 * Returns the theme's configurable settings, which are declared in
+	 * <code>liferay-look-and-feel.xml</code> and are configurable in the user
+	 * interface.
+	 *
+	 * @return a list of the theme's configurable settings
+	 */
 	public Properties getThemeSettings() {
 		Theme theme = getTheme();
 
@@ -473,17 +944,28 @@ public class ThemeDisplay
 	}
 
 	public String getURLLayoutTemplates() {
+		if (Validator.isNull(_urlLayoutTemplates)) {
+			return _urlPageSettings + "#layout";
+		}
+
 		return _urlLayoutTemplates;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getURLSiteAdministration()}
+	 */
+	@Deprecated
+	@JSON(include = false)
 	public PortletURL getURLManageSiteMemberships() {
 		return _urlManageSiteMemberships;
 	}
 
+	@JSON(include = false)
 	public PortletURL getURLMyAccount() {
 		return _urlMyAccount;
 	}
 
+	@JSON(include = false)
 	public PortletURL getURLPageSettings() {
 		return _urlPageSettings;
 	}
@@ -492,6 +974,7 @@ public class ThemeDisplay
 		return _urlPortal;
 	}
 
+	@JSON(include = false)
 	public PortletURL getURLPublishToLive() {
 		return _urlPublishToLive;
 	}
@@ -504,26 +987,59 @@ public class ThemeDisplay
 		return _urlSignOut;
 	}
 
-	public String getURLSiteContent() {
-		return _urlSiteContent;
+	public String getURLSiteAdministration() {
+		return _urlSiteAdministration;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getURLSiteAdministration()}
+	 */
+	@Deprecated
+	public String getURLSiteContent() {
+		return getURLSiteAdministration();
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #isShowSiteAdministrationIcon()}
+	 */
+	@Deprecated
+	@JSON(include = false)
 	public PortletURL getURLSiteMapSettings() {
 		return _urlSiteMapSettings;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getURLSiteAdministration()}
+	 */
+	@Deprecated
+	@JSON(include = false)
 	public PortletURL getURLSiteSettings() {
 		return _urlSiteSettings;
 	}
 
+	@JSON(include = false)
 	public PortletURL getURLUpdateManager() {
 		return _urlUpdateManager;
 	}
 
+	/**
+	 * The user for which the current request is being handled. Note, that an
+	 * administrative user can impersonate another user.
+	 *
+	 * @return the user for which the current request is being handled
+	 * @see    #getRealUser()
+	 */
 	public User getUser() {
 		return _user;
 	}
 
+	/**
+	 * Returns the ID of the user for which the current request is being
+	 * handled. Note that an administrative user can impersonate another user.
+	 *
+	 * @return the ID of the user for which the current request is being handled
+	 */
 	public long getUserId() {
 		return _user.getUserId();
 	}
@@ -548,13 +1064,21 @@ public class ThemeDisplay
 		return _i18n;
 	}
 
+	/**
+	 * Returns <code>true</code> if the user is being impersonated by an
+	 * administrative user.
+	 *
+	 * @return <code>true</code> if the user is being impersonated by an
+	 *         administrative user; <code>false</code> otherwise
+	 * @see    #getRealUser()
+	 * @see    #getUser()
+	 */
 	public boolean isImpersonated() {
 		if (getUserId() == getRealUserId()) {
 			return false;
 		}
-		else {
-			return true;
-		}
+
+		return true;
 	}
 
 	public boolean isIncludedJs(String js) {
@@ -565,22 +1089,12 @@ public class ThemeDisplay
 
 			return true;
 		}
-		else if (isIncludeServiceJs() &&
-				 js.startsWith(path + "/liferay/service.js")) {
 
-			return true;
-		}
-		else {
-			return false;
-		}
+		return false;
 	}
 
 	public boolean isIncludePortletCssJs() {
 		return _includePortletCssJs;
-	}
-
-	public boolean isIncludeServiceJs() {
-		return _includeServiceJs;
 	}
 
 	public boolean isIsolated() {
@@ -589,6 +1103,10 @@ public class ThemeDisplay
 
 	public boolean isLifecycleAction() {
 		return _lifecycleAction;
+	}
+
+	public boolean isLifecycleEvent() {
+		return _lifecycleEvent;
 	}
 
 	public boolean isLifecycleRender() {
@@ -623,6 +1141,11 @@ public class ThemeDisplay
 		return _showLayoutTemplatesIcon;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #isShowSiteAdministrationIcon()}
+	 */
+	@Deprecated
 	public boolean isShowManageSiteMembershipsIcon() {
 		return _showManageSiteMembershipsIcon;
 	}
@@ -651,14 +1174,33 @@ public class ThemeDisplay
 		return _showSignOutIcon;
 	}
 
-	public boolean isShowSiteContentIcon() {
-		return _showSiteContentIcon;
+	public boolean isShowSiteAdministrationIcon() {
+		return _showSiteAdministrationIcon;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #isShowSiteAdministrationIcon()}
+	 */
+	@Deprecated
+	public boolean isShowSiteContentIcon() {
+		return isShowSiteAdministrationIcon();
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #isShowSiteAdministrationIcon()}
+	 */
+	@Deprecated
 	public boolean isShowSiteMapSettingsIcon() {
 		return _showSiteMapSettingsIcon;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #isShowSiteAdministrationIcon()}
+	 */
+	@Deprecated
 	public boolean isShowSiteSettingsIcon() {
 		return _showSiteSettingsIcon;
 	}
@@ -711,13 +1253,13 @@ public class ThemeDisplay
 		return _widget;
 	}
 
+	@Override
 	public ThemeDisplay merge(ThemeDisplay themeDisplay) {
 		if ((themeDisplay == null) || (themeDisplay == this)) {
 			return this;
 		}
 
 		_includePortletCssJs = themeDisplay._includePortletCssJs;
-		_includeServiceJs = themeDisplay._includeServiceJs;
 
 		return this;
 	}
@@ -734,6 +1276,10 @@ public class ThemeDisplay
 		_ajax = ajax;
 	}
 
+	public void setCDNBaseURL(String cdnBase) {
+		_cdnBaseURL = cdnBase;
+	}
+
 	public void setCDNDynamicResourcesHost(String cdnDynamicResourcesHost) {
 		_cdnDynamicResourcesHost = cdnDynamicResourcesHost;
 	}
@@ -742,11 +1288,9 @@ public class ThemeDisplay
 		_cdnHost = cdnHost;
 	}
 
-	public void setCompany(Company company)
-		throws PortalException, SystemException {
-
+	public void setCompany(Company company) throws PortalException {
 		_company = company;
-		_companyGroupId = company.getGroup().getGroupId();
+		_companyGroupId = company.getGroupId();
 
 		setAccount(company.getAccount());
 	}
@@ -825,10 +1369,6 @@ public class ThemeDisplay
 		_includePortletCssJs = includePortletCssJs;
 	}
 
-	public void setIncludeServiceJs(boolean includeServiceJs) {
-		_includeServiceJs = includeServiceJs;
-	}
-
 	public void setIsolated(boolean isolated) {
 		_isolated = isolated;
 	}
@@ -865,6 +1405,10 @@ public class ThemeDisplay
 		_lifecycleAction = lifecycleAction;
 	}
 
+	public void setLifecycleEvent(boolean lifecycleEvent) {
+		_lifecycleEvent = lifecycleEvent;
+	}
+
 	public void setLifecycleRender(boolean lifecycleRender) {
 		_lifecycleRender = lifecycleRender;
 	}
@@ -883,37 +1427,54 @@ public class ThemeDisplay
 		_theme = theme;
 		_colorScheme = colorScheme;
 
-		if ((theme != null) && (colorScheme != null)) {
-			String themeStaticResourcePath = theme.getStaticResourcePath();
-
-			String host = getCDNHost();
-
-			if (Validator.isNull(host)) {
-				host = getPortalURL();
-			}
-
-			setPathColorSchemeImages(
-				host + themeStaticResourcePath +
-					colorScheme.getColorSchemeImagesPath());
-
-			String dynamicResourcesHost = getCDNDynamicResourcesHost();
-
-			if (Validator.isNull(dynamicResourcesHost)) {
-				dynamicResourcesHost = getPortalURL();
-			}
-
-			setPathThemeCss(
-				dynamicResourcesHost + themeStaticResourcePath +
-					theme.getCssPath());
-
-			setPathThemeImages(
-				host + themeStaticResourcePath + theme.getImagesPath());
-			setPathThemeJavaScript(
-				host + themeStaticResourcePath + theme.getJavaScriptPath());
-			setPathThemeRoot(themeStaticResourcePath + theme.getRootPath());
-			setPathThemeTemplates(
-				host + themeStaticResourcePath + theme.getTemplatesPath());
+		if ((theme == null) || (colorScheme == null)) {
+			return;
 		}
+
+		String themeStaticResourcePath = theme.getStaticResourcePath();
+
+		String cdnBaseURL = getCDNBaseURL();
+
+		setPathColorSchemeImages(
+			cdnBaseURL + themeStaticResourcePath +
+				colorScheme.getColorSchemeImagesPath());
+
+		String dynamicResourcesHost = getCDNDynamicResourcesHost();
+
+		if (Validator.isNull(dynamicResourcesHost)) {
+			String portalURL = getPortalURL();
+
+			try {
+				portalURL = PortalUtil.getPortalURL(getLayout(), this);
+			}
+			catch (Exception e) {
+				_log.error(e, e);
+			}
+
+			dynamicResourcesHost = portalURL;
+		}
+
+		setPathThemeCss(
+			dynamicResourcesHost + themeStaticResourcePath +
+				theme.getCssPath());
+
+		setPathThemeImages(
+			cdnBaseURL + themeStaticResourcePath + theme.getImagesPath());
+		setPathThemeJavaScript(
+			cdnBaseURL + themeStaticResourcePath +
+				theme.getJavaScriptPath());
+
+		String rootPath = theme.getRootPath();
+
+		if (rootPath.equals(StringPool.SLASH)) {
+			setPathThemeRoot(themeStaticResourcePath);
+		}
+		else {
+			setPathThemeRoot(themeStaticResourcePath + rootPath);
+		}
+
+		setPathThemeTemplates(
+			cdnBaseURL + themeStaticResourcePath + theme.getTemplatesPath());
 	}
 
 	public void setMDRRuleGroupInstance(
@@ -922,17 +1483,12 @@ public class ThemeDisplay
 		_mdrRuleGroupInstance = mdrRuleGroupInstance;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0 renamed to {@link #setSiteGroupId(long)}
+	 */
+	@Deprecated
 	public void setParentGroupId(long parentGroupId) {
-		_parentGroupId = parentGroupId;
-
-		if (_parentGroupId > 0) {
-			try {
-				_parentGroup = GroupLocalServiceUtil.getGroup(_parentGroupId);
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
-		}
+		setSiteGroupId(parentGroupId);
 	}
 
 	public void setPathApplet(String pathApplet) {
@@ -1026,6 +1582,10 @@ public class ThemeDisplay
 		_portalURL = portalURL;
 	}
 
+	public void setPpid(String ppid) {
+		_ppid = ppid;
+	}
+
 	public void setRealCompanyLogo(String realCompanyLogo) {
 		_realCompanyLogo = realCompanyLogo;
 	}
@@ -1042,8 +1602,16 @@ public class ThemeDisplay
 		_realUser = realUser;
 	}
 
+	public void setRefererGroupId(long refererGroupId) {
+		_refererGroupId = refererGroupId;
+	}
+
 	public void setRefererPlid(long refererPlid) {
 		_refererPlid = refererPlid;
+	}
+
+	public void setRequest(HttpServletRequest request) {
+		_request = request;
 	}
 
 	public void setScopeGroupId(long scopeGroupId) {
@@ -1129,8 +1697,19 @@ public class ThemeDisplay
 		_showSignOutIcon = showSignOutIcon;
 	}
 
+	public void setShowSiteAdministrationIcon(
+		boolean showSiteAdministrationIcon) {
+
+		_showSiteAdministrationIcon = showSiteAdministrationIcon;
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #setShowSiteAdministrationIcon(boolean)}
+	 */
+	@Deprecated
 	public void setShowSiteContentIcon(boolean showSiteContentIcon) {
-		_showSiteContentIcon = showSiteContentIcon;
+		setShowSiteAdministrationIcon(showSiteContentIcon);
 	}
 
 	public void setShowSiteMapSettingsIcon(boolean showSiteMapSettingsIcon) {
@@ -1147,6 +1726,25 @@ public class ThemeDisplay
 
 	public void setSignedIn(boolean signedIn) {
 		_signedIn = signedIn;
+	}
+
+	public void setSiteDefaultLocale(Locale siteDefaultLocale) {
+		_siteDefaultLocale = siteDefaultLocale;
+
+		LocaleThreadLocal.setSiteDefaultLocale(siteDefaultLocale);
+	}
+
+	public void setSiteGroupId(long siteGroupId) {
+		_siteGroupId = siteGroupId;
+
+		if (_siteGroupId > 0) {
+			try {
+				_siteGroup = GroupLocalServiceUtil.getGroup(_siteGroupId);
+			}
+			catch (Exception e) {
+				_log.error(e, e);
+			}
+		}
 	}
 
 	public void setStateExclusive(boolean stateExclusive) {
@@ -1249,8 +1847,17 @@ public class ThemeDisplay
 		_urlSignOut = urlSignOut;
 	}
 
+	public void setURLSiteAdministration(String urlSiteAdministration) {
+		_urlSiteAdministration = urlSiteAdministration;
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #setURLSiteAdministration(String)}
+	 */
+	@Deprecated
 	public void setURLSiteContent(String urlSiteContent) {
-		_urlSiteContent = urlSiteContent;
+		setURLSiteAdministration(urlSiteContent);
 	}
 
 	public void setURLSiteMapSettings(PortletURL urlSiteMapSettings) {
@@ -1265,7 +1872,7 @@ public class ThemeDisplay
 		_urlUpdateManager = urlUpdateManager;
 	}
 
-	public void setUser(User user) throws PortalException, SystemException {
+	public void setUser(User user) throws PortalException {
 		_user = user;
 
 		setContact(user.getContact());
@@ -1279,11 +1886,7 @@ public class ThemeDisplay
 		return LanguageUtil.get(getLocale(), key);
 	}
 
-	public String translate(String pattern, Object argument) {
-		return LanguageUtil.format(getLocale(), pattern, argument);
-	}
-
-	public String translate(String pattern, Object[] arguments) {
+	public String translate(String pattern, Object... arguments) {
 		return LanguageUtil.format(getLocale(), pattern, arguments);
 	}
 
@@ -1292,6 +1895,7 @@ public class ThemeDisplay
 	private Account _account;
 	private boolean _addSessionIdToURL;
 	private boolean _ajax;
+	private String _cdnBaseURL;
 	private String _cdnDynamicResourcesHost = StringPool.BLANK;
 	private String _cdnHost = StringPool.BLANK;
 	private ColorScheme _colorScheme;
@@ -1314,7 +1918,6 @@ public class ThemeDisplay
 	private String _i18nLanguageId;
 	private String _i18nPath;
 	private boolean _includePortletCssJs;
-	private boolean _includeServiceJs;
 	private boolean _isolated;
 	private String _languageId;
 	private Layout _layout;
@@ -1324,12 +1927,11 @@ public class ThemeDisplay
 	private LayoutTypePortlet _layoutTypePortlet;
 	private String _lifecycle;
 	private boolean _lifecycleAction;
+	private boolean _lifecycleEvent;
 	private boolean _lifecycleRender;
 	private boolean _lifecycleResource;
 	private Locale _locale;
 	private MDRRuleGroupInstance _mdrRuleGroupInstance;
-	private Group _parentGroup;
-	private long _parentGroupId;
 	private String _pathApplet = StringPool.BLANK;
 	private String _pathCms = StringPool.BLANK;
 	private String _pathColorSchemeImages = StringPool.BLANK;
@@ -1351,11 +1953,14 @@ public class ThemeDisplay
 	private long _plid;
 	private String _portalURL = StringPool.BLANK;
 	private PortletDisplay _portletDisplay = new PortletDisplay();
+	private String _ppid = StringPool.BLANK;
 	private String _realCompanyLogo = StringPool.BLANK;
 	private int _realCompanyLogoHeight;
 	private int _realCompanyLogoWidth;
 	private User _realUser;
+	private long _refererGroupId;
 	private long _refererPlid;
+	private transient HttpServletRequest _request;
 	private Group _scopeGroup;
 	private long _scopeGroupId;
 	private boolean _secure;
@@ -1374,11 +1979,14 @@ public class ThemeDisplay
 	private boolean _showPortalIcon;
 	private boolean _showSignInIcon;
 	private boolean _showSignOutIcon;
-	private boolean _showSiteContentIcon;
+	private boolean _showSiteAdministrationIcon;
 	private boolean _showSiteMapSettingsIcon;
 	private boolean _showSiteSettingsIcon;
 	private boolean _showStagingIcon;
 	private boolean _signedIn;
+	private Locale _siteDefaultLocale;
+	private Group _siteGroup;
+	private long _siteGroupId;
 	private boolean _stateExclusive;
 	private boolean _stateMaximized;
 	private boolean _statePopUp;
@@ -1404,7 +2012,7 @@ public class ThemeDisplay
 	private transient PortletURL _urlPublishToLive = null;
 	private String _urlSignIn = StringPool.BLANK;
 	private String _urlSignOut = StringPool.BLANK;
-	private String _urlSiteContent = StringPool.BLANK;
+	private String _urlSiteAdministration = StringPool.BLANK;
 	private transient PortletURL _urlSiteMapSettings = null;
 	private transient PortletURL _urlSiteSettings = null;
 	private transient PortletURL _urlUpdateManager = null;

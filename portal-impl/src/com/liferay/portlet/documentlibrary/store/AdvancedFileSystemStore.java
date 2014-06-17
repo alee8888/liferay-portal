@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portlet.documentlibrary.store;
 
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -30,7 +31,7 @@ import java.util.List;
 
 /**
  * <p>
- * See http://issues.liferay.com/browse/LPS-1976.
+ * See https://issues.liferay.com/browse/LPS-1976.
  * </p>
  *
  * @author Jorge Ferrer
@@ -54,7 +55,7 @@ public class AdvancedFileSystemStore extends FileSystemStore {
 					repositoryDir.getPath() + StringPool.SLASH + directory));
 		}
 
-		return fileNames.toArray(new String[0]);
+		return fileNames.toArray(new String[fileNames.size()]);
 	}
 
 	@Override
@@ -84,7 +85,15 @@ public class AdvancedFileSystemStore extends FileSystemStore {
 					FileUtil.stripExtension(fileNameVersion) +
 						StringPool.PERIOD + _HOOK_EXTENSION);
 
-			fileNameVersionFile.renameTo(newFileNameVersionFile);
+			boolean renamed = FileUtil.move(
+				fileNameVersionFile, newFileNameVersionFile);
+
+			if (!renamed) {
+				throw new SystemException(
+					"File name version file was not renamed from " +
+						fileNameVersionFile.getPath() + " to " +
+							newFileNameVersionFile.getPath());
+			}
 		}
 	}
 
@@ -95,7 +104,7 @@ public class AdvancedFileSystemStore extends FileSystemStore {
 			return;
 		}
 
-		for (int i = 0;i < fileNameFragmentLength;i += 2) {
+		for (int i = 0; i < fileNameFragmentLength; i += 2) {
 			if ((i + 2) < fileNameFragmentLength) {
 				sb.append(fileNameFragment.substring(i, i + 2));
 				sb.append(StringPool.SLASH);
@@ -173,7 +182,7 @@ public class AdvancedFileSystemStore extends FileSystemStore {
 		if (fileNameFragment.startsWith("DLFE-")) {
 			fileNameFragment = fileNameFragment.substring(5);
 
-			sb.append("DLFE" + StringPool.SLASH);
+			sb.append("DLFE/");
 		}
 
 		buildPath(sb, fileNameFragment);
@@ -183,6 +192,12 @@ public class AdvancedFileSystemStore extends FileSystemStore {
 		File fileNameDir = new File(
 			repositoryDir + StringPool.SLASH + sb.toString() +
 				StringPool.SLASH + fileNameFragment + ext);
+
+		File parentFile = fileNameDir.getParentFile();
+
+		if (!parentFile.exists()) {
+			parentFile.mkdirs();
+		}
 
 		return fileNameDir;
 	}
@@ -207,7 +222,7 @@ public class AdvancedFileSystemStore extends FileSystemStore {
 			if (fileNameFragment.startsWith("DLFE-")) {
 				fileNameFragment = fileNameFragment.substring(5);
 
-				sb.append("DLFE" + StringPool.SLASH);
+				sb.append("DLFE/");
 			}
 
 			buildPath(sb, fileNameFragment);

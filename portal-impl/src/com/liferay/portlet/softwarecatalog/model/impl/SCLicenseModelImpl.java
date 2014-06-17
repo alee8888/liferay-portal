@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -87,6 +87,7 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 			true);
 	public static long ACTIVE_COLUMN_BITMASK = 1L;
 	public static long RECOMMENDED_COLUMN_BITMASK = 2L;
+	public static long NAME_COLUMN_BITMASK = 4L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -95,6 +96,10 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	 * @return the normal model instance
 	 */
 	public static SCLicense toModel(SCLicenseSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		SCLicense model = new SCLicenseImpl();
 
 		model.setLicenseId(soapModel.getLicenseId());
@@ -114,6 +119,10 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	 * @return the normal model instances
 	 */
 	public static List<SCLicense> toModels(SCLicenseSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<SCLicense> models = new ArrayList<SCLicense>(soapModels.length);
 
 		for (SCLicenseSoap soapModel : soapModels) {
@@ -141,26 +150,32 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	public SCLicenseModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _licenseId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setLicenseId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_licenseId);
+		return _licenseId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return SCLicense.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return SCLicense.class.getName();
 	}
@@ -175,6 +190,9 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		attributes.put("openSource", getOpenSource());
 		attributes.put("active", getActive());
 		attributes.put("recommended", getRecommended());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -219,15 +237,18 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	}
 
 	@JSON
+	@Override
 	public long getLicenseId() {
 		return _licenseId;
 	}
 
+	@Override
 	public void setLicenseId(long licenseId) {
 		_licenseId = licenseId;
 	}
 
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -237,6 +258,7 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		}
 	}
 
+	@Override
 	public void setName(String name) {
 		_columnBitmask = -1L;
 
@@ -244,6 +266,7 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	}
 
 	@JSON
+	@Override
 	public String getUrl() {
 		if (_url == null) {
 			return StringPool.BLANK;
@@ -253,32 +276,39 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		}
 	}
 
+	@Override
 	public void setUrl(String url) {
 		_url = url;
 	}
 
 	@JSON
+	@Override
 	public boolean getOpenSource() {
 		return _openSource;
 	}
 
+	@Override
 	public boolean isOpenSource() {
 		return _openSource;
 	}
 
+	@Override
 	public void setOpenSource(boolean openSource) {
 		_openSource = openSource;
 	}
 
 	@JSON
+	@Override
 	public boolean getActive() {
 		return _active;
 	}
 
+	@Override
 	public boolean isActive() {
 		return _active;
 	}
 
+	@Override
 	public void setActive(boolean active) {
 		_columnBitmask |= ACTIVE_COLUMN_BITMASK;
 
@@ -296,14 +326,17 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	}
 
 	@JSON
+	@Override
 	public boolean getRecommended() {
 		return _recommended;
 	}
 
+	@Override
 	public boolean isRecommended() {
 		return _recommended;
 	}
 
+	@Override
 	public void setRecommended(boolean recommended) {
 		_columnBitmask |= RECOMMENDED_COLUMN_BITMASK;
 
@@ -325,17 +358,6 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	}
 
 	@Override
-	public SCLicense toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (SCLicense)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
 			SCLicense.class.getName(), getPrimaryKey());
@@ -346,6 +368,16 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public SCLicense toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (SCLicense)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -364,6 +396,7 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		return scLicenseImpl;
 	}
 
+	@Override
 	public int compareTo(SCLicense scLicense) {
 		int value = 0;
 
@@ -378,18 +411,15 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SCLicense)) {
 			return false;
 		}
 
-		SCLicense scLicense = null;
-
-		try {
-			scLicense = (SCLicense)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		SCLicense scLicense = (SCLicense)obj;
 
 		long primaryKey = scLicense.getPrimaryKey();
 
@@ -404,6 +434,16 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -473,6 +513,7 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(22);
 
@@ -511,7 +552,7 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	}
 
 	private static ClassLoader _classLoader = SCLicense.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			SCLicense.class
 		};
 	private long _licenseId;
@@ -525,5 +566,5 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	private boolean _originalRecommended;
 	private boolean _setOriginalRecommended;
 	private long _columnBitmask;
-	private SCLicense _escapedModelProxy;
+	private SCLicense _escapedModel;
 }

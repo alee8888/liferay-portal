@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,8 @@
 
 <%@ include file="/html/common/init.jsp" %>
 
-<%@ page import="com.liferay.taglib.aui.AUIUtil" %><%@
+<%@ page import="com.liferay.portal.kernel.util.DateFormatFactoryUtil" %><%@
+page import="com.liferay.taglib.aui.AUIUtil" %><%@
 page import="com.liferay.taglib.util.InlineUtil" %>
 
 <%
@@ -29,7 +30,7 @@ String namespace = StringPool.BLANK;
 boolean auiFormUseNamespace = GetterUtil.getBoolean((String)request.getAttribute("aui:form:useNamespace"), true);
 
 if ((portletResponse != null) && auiFormUseNamespace) {
-	namespace = portletResponse.getNamespace();
+	namespace = GetterUtil.getString(request.getAttribute("aui:form:portletNamespace"), portletResponse.getNamespace());
 }
 
 String currentURL = PortalUtil.getCurrentURL(request);

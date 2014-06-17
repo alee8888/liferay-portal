@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,47 +26,32 @@ if (referer.equals(themeDisplay.getPathMain() + "/portal/update_reminder_query")
 }
 %>
 
-<aui:form action='<%= themeDisplay.getPathMain() + "/portal/update_reminder_query" %>' method="post" name="fm">
+<aui:form action='<%= themeDisplay.getPathMain() + "/portal/update_reminder_query" %>' cssClass="update-reminder-query" method="post" name="fm">
 	<aui:input name="p_auth" type="hidden" value="<%= AuthTokenUtil.getToken(request) %>" />
 	<aui:input name="doAsUserId" type="hidden" value="<%= themeDisplay.getDoAsUserId() %>" />
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
 	<aui:input name="<%= WebKeys.REFERER %>" type="hidden" value="<%= referer %>" />
 
-	<div class="portlet-msg-info">
+	<div class="alert alert-info">
 		<liferay-ui:message key="please-choose-a-reminder-query" />
 	</div>
 
 	<c:if test="<%= SessionErrors.contains(request, UserReminderQueryException.class.getName()) %>">
-		<div class="portlet-msg-error">
+		<div class="alert alert-danger">
 			<liferay-ui:message key="reminder-query-and-answer-cannot-be-empty" />
 		</div>
 	</c:if>
 
 	<aui:fieldset label="password-reminder">
-		<aui:select label="question" name="reminderQueryQuestion">
-
-			<%
-			for (String question : user.getReminderQueryQuestions()) {
-			%>
-
-				<aui:option label="<%= question %>" />
-
-			<%
-			}
-			%>
-
-			<c:if test="<%= PropsValues.USERS_REMINDER_QUERIES_CUSTOM_QUESTION_ENABLED %>">
-				<aui:option label="<%= UsersAdminUtil.CUSTOM_QUESTION %>" />
-			</c:if>
-		</aui:select>
+		<%@ include file="/html/portal/update_reminder_query_question.jspf" %>
 
 		<c:if test="<%= PropsValues.USERS_REMINDER_QUERIES_CUSTOM_QUESTION_ENABLED %>">
-			<div class="aui-helper-hidden" id="customQuestionContainer">
-				<aui:input bean="<%= user %>" fieldParam="reminderQueryCustomQuestion" label="" model="<%= User.class %>" name="reminderQueryQuestion" />
+			<div class="hide" id="customQuestionContainer">
+				<aui:input autoFocus="<%= true %>" bean="<%= user %>" cssClass="reminder-query-custom" fieldParam="reminderQueryCustomQuestion" label="" model="<%= User.class %>" name="reminderQueryQuestion" />
 			</div>
 		</c:if>
 
-		<aui:input label="answer" name="reminderQueryAnswer" size="50" type="text" value="<%= user.getReminderQueryAnswer() %>" />
+		<aui:input cssClass="reminder-query-answer" label="answer" maxlength="75" name="reminderQueryAnswer" size="50" type="text" value="<%= user.getReminderQueryAnswer() %>" />
 	</aui:fieldset>
 
 	<aui:button-row>
@@ -79,7 +64,7 @@ if (referer.equals(themeDisplay.getPathMain() + "/portal/update_reminder_query")
 	var customQuestionContainer = A.one('#customQuestionContainer');
 
 	if (reminderQueryQuestion && customQuestionContainer) {
-		if (reminderQueryQuestion.val() != '<%= UsersAdminUtil.CUSTOM_QUESTION %>') {
+		if (reminderQueryQuestion.val() != '<%= UsersAdmin.CUSTOM_QUESTION %>') {
 			customQuestionContainer.hide();
 		}
 		else {
@@ -89,7 +74,7 @@ if (referer.equals(themeDisplay.getPathMain() + "/portal/update_reminder_query")
 		reminderQueryQuestion.on(
 			'change',
 			function(event) {
-				if (this.val() == '<%= UsersAdminUtil.CUSTOM_QUESTION %>') {
+				if (this.val() == '<%= UsersAdmin.CUSTOM_QUESTION %>') {
 					<c:if test="<%= PropsValues.USERS_REMINDER_QUERIES_CUSTOM_QUESTION_ENABLED %>">
 						customQuestionContainer.show();
 
@@ -103,7 +88,5 @@ if (referer.equals(themeDisplay.getPathMain() + "/portal/update_reminder_query")
 				}
 			}
 		);
-
-		Liferay.Util.focusFormField(reminderQueryQuestion);
 	}
 </aui:script>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,44 +15,94 @@
 package com.liferay.portlet.messageboards.service.persistence;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
-import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelListener;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.messageboards.NoSuchThreadFlagException;
 import com.liferay.portlet.messageboards.model.MBThreadFlag;
 import com.liferay.portlet.messageboards.model.impl.MBThreadFlagModelImpl;
+import com.liferay.portlet.messageboards.service.MBThreadFlagLocalServiceUtil;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class MBThreadFlagPersistenceTest {
 	@Before
-	public void setUp() throws Exception {
-		_persistence = (MBThreadFlagPersistence)PortalBeanLocatorUtil.locate(MBThreadFlagPersistence.class.getName());
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<MBThreadFlag> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<MBThreadFlag> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBThreadFlag mbThreadFlag = _persistence.create(pk);
 
@@ -79,29 +129,131 @@ public class MBThreadFlagPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBThreadFlag newMBThreadFlag = _persistence.create(pk);
 
-		newMBThreadFlag.setUserId(ServiceTestUtil.nextLong());
+		newMBThreadFlag.setUuid(RandomTestUtil.randomString());
 
-		newMBThreadFlag.setModifiedDate(ServiceTestUtil.nextDate());
+		newMBThreadFlag.setGroupId(RandomTestUtil.nextLong());
 
-		newMBThreadFlag.setThreadId(ServiceTestUtil.nextLong());
+		newMBThreadFlag.setCompanyId(RandomTestUtil.nextLong());
 
-		_persistence.update(newMBThreadFlag, false);
+		newMBThreadFlag.setUserId(RandomTestUtil.nextLong());
+
+		newMBThreadFlag.setUserName(RandomTestUtil.randomString());
+
+		newMBThreadFlag.setCreateDate(RandomTestUtil.nextDate());
+
+		newMBThreadFlag.setModifiedDate(RandomTestUtil.nextDate());
+
+		newMBThreadFlag.setThreadId(RandomTestUtil.nextLong());
+
+		_persistence.update(newMBThreadFlag);
 
 		MBThreadFlag existingMBThreadFlag = _persistence.findByPrimaryKey(newMBThreadFlag.getPrimaryKey());
 
+		Assert.assertEquals(existingMBThreadFlag.getUuid(),
+			newMBThreadFlag.getUuid());
 		Assert.assertEquals(existingMBThreadFlag.getThreadFlagId(),
 			newMBThreadFlag.getThreadFlagId());
+		Assert.assertEquals(existingMBThreadFlag.getGroupId(),
+			newMBThreadFlag.getGroupId());
+		Assert.assertEquals(existingMBThreadFlag.getCompanyId(),
+			newMBThreadFlag.getCompanyId());
 		Assert.assertEquals(existingMBThreadFlag.getUserId(),
 			newMBThreadFlag.getUserId());
+		Assert.assertEquals(existingMBThreadFlag.getUserName(),
+			newMBThreadFlag.getUserName());
+		Assert.assertEquals(Time.getShortTimestamp(
+				existingMBThreadFlag.getCreateDate()),
+			Time.getShortTimestamp(newMBThreadFlag.getCreateDate()));
 		Assert.assertEquals(Time.getShortTimestamp(
 				existingMBThreadFlag.getModifiedDate()),
 			Time.getShortTimestamp(newMBThreadFlag.getModifiedDate()));
 		Assert.assertEquals(existingMBThreadFlag.getThreadId(),
 			newMBThreadFlag.getThreadId());
+	}
+
+	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUUID_G() {
+		try {
+			_persistence.countByUUID_G(StringPool.BLANK,
+				RandomTestUtil.nextLong());
+
+			_persistence.countByUUID_G(StringPool.NULL, 0L);
+
+			_persistence.countByUUID_G((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				RandomTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUserId() {
+		try {
+			_persistence.countByUserId(RandomTestUtil.nextLong());
+
+			_persistence.countByUserId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByThreadId() {
+		try {
+			_persistence.countByThreadId(RandomTestUtil.nextLong());
+
+			_persistence.countByThreadId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByU_T() {
+		try {
+			_persistence.countByU_T(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
+
+			_persistence.countByU_T(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
 	}
 
 	@Test
@@ -115,7 +267,7 @@ public class MBThreadFlagPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -125,6 +277,24 @@ public class MBThreadFlagPersistenceTest {
 		}
 		catch (NoSuchThreadFlagException nsee) {
 		}
+	}
+
+	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("MBThreadFlag", "uuid",
+			true, "threadFlagId", true, "groupId", true, "companyId", true,
+			"userId", true, "userName", true, "createDate", true,
+			"modifiedDate", true, "threadId", true);
 	}
 
 	@Test
@@ -138,11 +308,115 @@ public class MBThreadFlagPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBThreadFlag missingMBThreadFlag = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingMBThreadFlag);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		MBThreadFlag newMBThreadFlag1 = addMBThreadFlag();
+		MBThreadFlag newMBThreadFlag2 = addMBThreadFlag();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMBThreadFlag1.getPrimaryKey());
+		primaryKeys.add(newMBThreadFlag2.getPrimaryKey());
+
+		Map<Serializable, MBThreadFlag> mbThreadFlags = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, mbThreadFlags.size());
+		Assert.assertEquals(newMBThreadFlag1,
+			mbThreadFlags.get(newMBThreadFlag1.getPrimaryKey()));
+		Assert.assertEquals(newMBThreadFlag2,
+			mbThreadFlags.get(newMBThreadFlag2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, MBThreadFlag> mbThreadFlags = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(mbThreadFlags.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		MBThreadFlag newMBThreadFlag = addMBThreadFlag();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMBThreadFlag.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, MBThreadFlag> mbThreadFlags = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, mbThreadFlags.size());
+		Assert.assertEquals(newMBThreadFlag,
+			mbThreadFlags.get(newMBThreadFlag.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, MBThreadFlag> mbThreadFlags = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(mbThreadFlags.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		MBThreadFlag newMBThreadFlag = addMBThreadFlag();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newMBThreadFlag.getPrimaryKey());
+
+		Map<Serializable, MBThreadFlag> mbThreadFlags = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, mbThreadFlags.size());
+		Assert.assertEquals(newMBThreadFlag,
+			mbThreadFlags.get(newMBThreadFlag.getPrimaryKey()));
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = MBThreadFlagLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
+				@Override
+				public void performAction(Object object) {
+					MBThreadFlag mbThreadFlag = (MBThreadFlag)object;
+
+					Assert.assertNotNull(mbThreadFlag);
+
+					count.increment();
+				}
+			});
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -171,7 +445,7 @@ public class MBThreadFlagPersistenceTest {
 				MBThreadFlag.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("threadFlagId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<MBThreadFlag> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -212,7 +486,7 @@ public class MBThreadFlagPersistenceTest {
 				"threadFlagId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("threadFlagId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -231,6 +505,12 @@ public class MBThreadFlagPersistenceTest {
 
 		MBThreadFlagModelImpl existingMBThreadFlagModelImpl = (MBThreadFlagModelImpl)_persistence.findByPrimaryKey(newMBThreadFlag.getPrimaryKey());
 
+		Assert.assertTrue(Validator.equals(
+				existingMBThreadFlagModelImpl.getUuid(),
+				existingMBThreadFlagModelImpl.getOriginalUuid()));
+		Assert.assertEquals(existingMBThreadFlagModelImpl.getGroupId(),
+			existingMBThreadFlagModelImpl.getOriginalGroupId());
+
 		Assert.assertEquals(existingMBThreadFlagModelImpl.getUserId(),
 			existingMBThreadFlagModelImpl.getOriginalUserId());
 		Assert.assertEquals(existingMBThreadFlagModelImpl.getThreadId(),
@@ -238,20 +518,33 @@ public class MBThreadFlagPersistenceTest {
 	}
 
 	protected MBThreadFlag addMBThreadFlag() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		MBThreadFlag mbThreadFlag = _persistence.create(pk);
 
-		mbThreadFlag.setUserId(ServiceTestUtil.nextLong());
+		mbThreadFlag.setUuid(RandomTestUtil.randomString());
 
-		mbThreadFlag.setModifiedDate(ServiceTestUtil.nextDate());
+		mbThreadFlag.setGroupId(RandomTestUtil.nextLong());
 
-		mbThreadFlag.setThreadId(ServiceTestUtil.nextLong());
+		mbThreadFlag.setCompanyId(RandomTestUtil.nextLong());
 
-		_persistence.update(mbThreadFlag, false);
+		mbThreadFlag.setUserId(RandomTestUtil.nextLong());
+
+		mbThreadFlag.setUserName(RandomTestUtil.randomString());
+
+		mbThreadFlag.setCreateDate(RandomTestUtil.nextDate());
+
+		mbThreadFlag.setModifiedDate(RandomTestUtil.nextDate());
+
+		mbThreadFlag.setThreadId(RandomTestUtil.nextLong());
+
+		_persistence.update(mbThreadFlag);
 
 		return mbThreadFlag;
 	}
 
-	private MBThreadFlagPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(MBThreadFlagPersistenceTest.class);
+	private ModelListener<MBThreadFlag>[] _modelListeners;
+	private MBThreadFlagPersistence _persistence = (MBThreadFlagPersistence)PortalBeanLocatorUtil.locate(MBThreadFlagPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,13 +21,13 @@ import com.liferay.portal.kernel.repository.BaseRepository;
 import com.liferay.portal.kernel.repository.LocalRepository;
 import com.liferay.portal.kernel.repository.RepositoryException;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.model.ClassName;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Repository;
-import com.liferay.portal.repository.util.RepositoryFactoryUtil;
+import com.liferay.portal.repository.util.ExternalRepositoryFactoryUtil;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.RepositoryServiceBaseImpl;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.documentlibrary.service.permission.DLFolderPermission;
 import com.liferay.portlet.documentlibrary.service.permission.DLPermission;
 
@@ -37,24 +37,25 @@ import com.liferay.portlet.documentlibrary.service.permission.DLPermission;
  */
 public class RepositoryServiceImpl extends RepositoryServiceBaseImpl {
 
-	public long addRepository(
+	@Override
+	public Repository addRepository(
 			long groupId, long classNameId, long parentFolderId, String name,
 			String description, String portletId,
 			UnicodeProperties typeSettingsProperties,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DLPermission.check(
 			getPermissionChecker(), groupId, ActionKeys.ADD_REPOSITORY);
 
 		return repositoryLocalService.addRepository(
 			getUserId(), groupId, classNameId, parentFolderId, name,
-			description, portletId, typeSettingsProperties, serviceContext);
+			description, portletId, typeSettingsProperties, false,
+			serviceContext);
 	}
 
-	public void checkRepository(long repositoryId)
-		throws PortalException, SystemException {
-
+	@Override
+	public void checkRepository(long repositoryId) throws PortalException {
 		Group group = groupPersistence.fetchByPrimaryKey(repositoryId);
 
 		if (group != null) {
@@ -74,9 +75,8 @@ public class RepositoryServiceImpl extends RepositoryServiceBaseImpl {
 		}
 	}
 
-	public void deleteRepository(long repositoryId)
-		throws PortalException, SystemException {
-
+	@Override
+	public void deleteRepository(long repositoryId) throws PortalException {
 		Repository repository = repositoryPersistence.findByPrimaryKey(
 			repositoryId);
 
@@ -87,17 +87,19 @@ public class RepositoryServiceImpl extends RepositoryServiceBaseImpl {
 		repositoryLocalService.deleteRepository(repository.getRepositoryId());
 	}
 
+	@Override
 	public LocalRepository getLocalRepositoryImpl(long repositoryId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		checkRepository(repositoryId);
 
 		return repositoryLocalService.getLocalRepositoryImpl(repositoryId);
 	}
 
+	@Override
 	public LocalRepository getLocalRepositoryImpl(
 			long folderId, long fileEntryId, long fileVersionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LocalRepository localRepositoryImpl =
 			repositoryLocalService.getLocalRepositoryImpl(
@@ -108,24 +110,25 @@ public class RepositoryServiceImpl extends RepositoryServiceBaseImpl {
 		return localRepositoryImpl;
 	}
 
-	public Repository getRepository(long repositoryId)
-		throws PortalException, SystemException {
-
+	@Override
+	public Repository getRepository(long repositoryId) throws PortalException {
 		return repositoryPersistence.findByPrimaryKey(repositoryId);
 	}
 
+	@Override
 	public com.liferay.portal.kernel.repository.Repository getRepositoryImpl(
 			long repositoryId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		checkRepository(repositoryId);
 
 		return repositoryLocalService.getRepositoryImpl(repositoryId);
 	}
 
+	@Override
 	public com.liferay.portal.kernel.repository.Repository getRepositoryImpl(
 			long folderId, long fileEntryId, long fileVersionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		com.liferay.portal.kernel.repository.Repository repositoryImpl =
 			repositoryLocalService.getRepositoryImpl(
@@ -136,15 +139,18 @@ public class RepositoryServiceImpl extends RepositoryServiceBaseImpl {
 		return repositoryImpl;
 	}
 
-	public String[] getSupportedConfigurations(long classNameId)
-		throws SystemException {
+	@Override
+	public String[] getSupportedConfigurations(long classNameId) {
 
 		try {
-			String repositoryImplClassName = PortalUtil.getClassName(
+			ClassName className = classNameLocalService.getClassName(
 				classNameId);
 
-			BaseRepository baseRepository = RepositoryFactoryUtil.getInstance(
-				repositoryImplClassName);
+			String repositoryImplClassName = className.getValue();
+
+			BaseRepository baseRepository =
+				ExternalRepositoryFactoryUtil.getInstance(
+					repositoryImplClassName);
 
 			return baseRepository.getSupportedConfigurations();
 		}
@@ -153,16 +159,19 @@ public class RepositoryServiceImpl extends RepositoryServiceBaseImpl {
 		}
 	}
 
+	@Override
 	public String[] getSupportedParameters(
-			long classNameId, String configuration)
-		throws SystemException {
+			long classNameId, String configuration) {
 
 		try {
-			String repositoryImplClassName = PortalUtil.getClassName(
+			ClassName className = classNameLocalService.getClassName(
 				classNameId);
 
-			BaseRepository baseRepository = RepositoryFactoryUtil.getInstance(
-				repositoryImplClassName);
+			String repositoryImplClassName = className.getValue();
+
+			BaseRepository baseRepository =
+				ExternalRepositoryFactoryUtil.getInstance(
+					repositoryImplClassName);
 
 			String[] supportedConfigurations =
 				baseRepository.getSupportedConfigurations();
@@ -185,17 +194,19 @@ public class RepositoryServiceImpl extends RepositoryServiceBaseImpl {
 		}
 	}
 
+	@Override
 	public UnicodeProperties getTypeSettingsProperties(long repositoryId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		checkRepository(repositoryId);
 
 		return repositoryLocalService.getTypeSettingsProperties(repositoryId);
 	}
 
+	@Override
 	public void updateRepository(
 			long repositoryId, String name, String description)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Repository repository = repositoryPersistence.findByPrimaryKey(
 			repositoryId);

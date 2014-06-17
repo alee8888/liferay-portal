@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -190,7 +190,10 @@ public class SQLTransformer {
 	private String _replaceCastLong(String sql) {
 		Matcher matcher = _castLongPattern.matcher(sql);
 
-		if (_vendorSybase) {
+		if (_vendorHypersonic) {
+			return matcher.replaceAll("CONVERT($1, SQL_BIGINT)");
+		}
+		else if (_vendorSybase) {
 			return matcher.replaceAll("CONVERT(BIGINT, $1)");
 		}
 		else {
@@ -222,6 +225,18 @@ public class SQLTransformer {
 		else {
 			return matcher.replaceAll("$1");
 		}
+	}
+
+	private String _replaceCrossJoin(String sql) {
+		if (_vendorSybase) {
+			return StringUtil.replace(sql, "CROSS JOIN", StringPool.COMMA);
+		}
+
+		return sql;
+	}
+
+	private String _replaceEscape(String sql) {
+		return StringUtil.replace(sql, "LIKE ?", "LIKE ? ESCAPE '\\'");
 	}
 
 	private String _replaceIntegerDivision(String sql) {
@@ -257,8 +272,12 @@ public class SQLTransformer {
 		return matcher.replaceAll("$1 ($2)");
 	}
 
+	private String _replaceNotEqualsBlankStringComparison(String sql) {
+		return StringUtil.replace(sql, " != ''", " IS NOT NULL");
+	}
+
 	private String _replaceReplace(String newSQL) {
-		return StringUtil.replace(newSQL, "replace(", "str_replace(");
+		return newSQL.replaceAll("(?i)replace\\(", "str_replace(");
 	}
 
 	private String _replaceUnion(String sql) {
@@ -278,6 +297,7 @@ public class SQLTransformer {
 		newSQL = _replaceBoolean(newSQL);
 		newSQL = _replaceCastLong(newSQL);
 		newSQL = _replaceCastText(newSQL);
+		newSQL = _replaceCrossJoin(newSQL);
 		newSQL = _replaceIntegerDivision(newSQL);
 
 		if (_vendorDB2) {
@@ -292,6 +312,10 @@ public class SQLTransformer {
 			if (!db.isSupportsStringCaseSensitiveQuery()) {
 				newSQL = _removeLower(newSQL);
 			}
+		}
+		else if (_vendorOracle) {
+			newSQL = _replaceEscape(newSQL);
+			newSQL = _replaceNotEqualsBlankStringComparison(newSQL);
 		}
 		else if (_vendorPostgreSQL) {
 			newSQL = _replaceNegativeComparison(newSQL);
@@ -414,7 +438,7 @@ public class SQLTransformer {
 	private static Pattern _modPattern = Pattern.compile(
 		"MOD\\((.+?),(.+?)\\)", Pattern.CASE_INSENSITIVE);
 	private static Pattern _negativeComparisonPattern = Pattern.compile(
-		"(!=)?( -([0-9]+)?)", Pattern.CASE_INSENSITIVE);
+		"(!?=)( -([0-9]+)?)", Pattern.CASE_INSENSITIVE);
 	private static Pattern _unionAllPattern = Pattern.compile(
 		"SELECT \\* FROM(.*)TEMP_TABLE(.*)", Pattern.CASE_INSENSITIVE);
 

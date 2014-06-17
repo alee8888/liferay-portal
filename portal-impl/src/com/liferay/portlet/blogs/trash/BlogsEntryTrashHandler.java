@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,59 +15,128 @@
 package com.liferay.portlet.blogs.trash;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.trash.BaseTrashHandler;
+import com.liferay.portal.model.LayoutConstants;
+import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PortletKeys;
+import com.liferay.portal.util.WebKeys;
+import com.liferay.portlet.PortletURLFactoryUtil;
 import com.liferay.portlet.blogs.model.BlogsEntry;
-import com.liferay.portlet.blogs.service.BlogsEntryServiceUtil;
+import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
+import com.liferay.portlet.blogs.service.permission.BlogsEntryPermission;
+
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletURL;
 
 /**
- * Represents the trash handler for blogs entries entity.
+ * Implements trash handling for the blogs entry entity.
  *
  * @author Zsolt Berentey
  */
 public class BlogsEntryTrashHandler extends BaseTrashHandler {
 
-	public static final String CLASS_NAME = BlogsEntry.class.getName();
-
-	/**
-	 * Deletes all blogs entries with the matching primary keys.
-	 *
-	 * @param  classPKs the primary keys of the blogs entries to be deleted
-	 * @throws PortalException if any one of the blogs entries could not be
-	 *         found
-	 * @throws SystemException if a system exception occurred
-	 */
-	public void deleteTrashEntries(long[] classPKs)
-		throws PortalException, SystemException {
-
-		for (long classPK : classPKs) {
-			BlogsEntryServiceUtil.deleteEntry(classPK);
-		}
+	@Override
+	public void deleteTrashEntry(long classPK) throws PortalException {
+		BlogsEntryLocalServiceUtil.deleteEntry(classPK);
 	}
 
-	/**
-	 * Returns the blogs entry entity's class name
-	 *
-	 * @return the blogs entry entity's class name
-	 */
+	@Override
 	public String getClassName() {
-		return CLASS_NAME;
+		return BlogsEntry.class.getName();
 	}
 
-	/**
-	 * Restores all blogs entries with the matching primary keys.
-	 *
-	 * @param  classPKs the primary key of the blogs entry to be restored
-	 * @throws PortalException if any one of the blogs entries could not be
-	 *         found
-	 * @throws SystemException if a system exception occurred
-	 */
-	public void restoreTrashEntries(long[] classPKs)
-		throws PortalException, SystemException {
+	@Override
+	public String getRestoreContainedModelLink(
+			PortletRequest portletRequest, long classPK)
+		throws PortalException {
 
-		for (long classPK : classPKs) {
-			BlogsEntryServiceUtil.restoreEntryFromTrash(classPK);
+		BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(classPK);
+
+		PortletURL portletURL = getRestoreURL(portletRequest, classPK, false);
+
+		portletURL.setParameter("entryId", String.valueOf(entry.getEntryId()));
+		portletURL.setParameter("urlTitle", entry.getUrlTitle());
+
+		return portletURL.toString();
+	}
+
+	@Override
+	public String getRestoreContainerModelLink(
+			PortletRequest portletRequest, long classPK)
+		throws PortalException {
+
+		PortletURL portletURL = getRestoreURL(portletRequest, classPK, true);
+
+		return portletURL.toString();
+	}
+
+	@Override
+	public String getRestoreMessage(
+		PortletRequest portletRequest, long classPK) {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		return themeDisplay.translate("blogs");
+	}
+
+	@Override
+	public boolean isInTrash(long classPK) throws PortalException {
+		BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(classPK);
+
+		return entry.isInTrash();
+	}
+
+	@Override
+	public void restoreTrashEntry(long userId, long classPK)
+		throws PortalException {
+
+		BlogsEntryLocalServiceUtil.restoreEntryFromTrash(userId, classPK);
+	}
+
+	protected PortletURL getRestoreURL(
+			PortletRequest portletRequest, long classPK,
+			boolean isContainerModel)
+		throws PortalException {
+
+		String portletId = PortletKeys.BLOGS;
+
+		BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(classPK);
+
+		long plid = PortalUtil.getPlidFromPortletId(
+			entry.getGroupId(), PortletKeys.BLOGS);
+
+		if (plid == LayoutConstants.DEFAULT_PLID) {
+			portletId = PortletKeys.BLOGS_ADMIN;
+
+			plid = PortalUtil.getControlPanelPlid(portletRequest);
 		}
+
+		PortletURL portletURL = PortletURLFactoryUtil.create(
+			portletRequest, portletId, plid, PortletRequest.RENDER_PHASE);
+
+		if (!isContainerModel) {
+			if (portletId.equals(PortletKeys.BLOGS)) {
+				portletURL.setParameter("struts_action", "/blogs/view_entry");
+			}
+			else {
+				portletURL.setParameter(
+					"struts_action", "/blogs_admin/view_entry");
+			}
+		}
+
+		return portletURL;
+	}
+
+	@Override
+	protected boolean hasPermission(
+			PermissionChecker permissionChecker, long classPK, String actionId)
+		throws PortalException {
+
+		return BlogsEntryPermission.contains(
+			permissionChecker, classPK, actionId);
 	}
 
 }

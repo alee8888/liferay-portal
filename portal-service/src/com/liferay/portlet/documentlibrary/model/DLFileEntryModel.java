@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,14 +14,20 @@
 
 package com.liferay.portlet.documentlibrary.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.StagedGroupedModel;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
+import com.liferay.portlet.trash.model.TrashEntry;
 
 import java.io.Serializable;
 
@@ -40,7 +46,9 @@ import java.util.Date;
  * @see com.liferay.portlet.documentlibrary.model.impl.DLFileEntryModelImpl
  * @generated
  */
-public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
+@ProviderType
+public interface DLFileEntryModel extends AttachedModel, BaseModel<DLFileEntry>,
+	StagedGroupedModel, TrashedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -67,6 +75,7 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 * @return the uuid of this document library file entry
 	 */
 	@AutoEscape
+	@Override
 	public String getUuid();
 
 	/**
@@ -74,6 +83,7 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 *
 	 * @param uuid the uuid of this document library file entry
 	 */
+	@Override
 	public void setUuid(String uuid);
 
 	/**
@@ -95,6 +105,7 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 *
 	 * @return the group ID of this document library file entry
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -102,6 +113,7 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 *
 	 * @param groupId the group ID of this document library file entry
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -109,6 +121,7 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 *
 	 * @return the company ID of this document library file entry
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -116,6 +129,7 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 *
 	 * @param companyId the company ID of this document library file entry
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -123,6 +137,7 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 *
 	 * @return the user ID of this document library file entry
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -130,21 +145,23 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 *
 	 * @param userId the user ID of this document library file entry
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
 	 * Returns the user uuid of this document library file entry.
 	 *
 	 * @return the user uuid of this document library file entry
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getUserUuid() throws SystemException;
+	@Override
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this document library file entry.
 	 *
 	 * @param userUuid the user uuid of this document library file entry
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -153,6 +170,7 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 * @return the user name of this document library file entry
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -160,57 +178,15 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 *
 	 * @param userName the user name of this document library file entry
 	 */
+	@Override
 	public void setUserName(String userName);
-
-	/**
-	 * Returns the version user ID of this document library file entry.
-	 *
-	 * @return the version user ID of this document library file entry
-	 */
-	public long getVersionUserId();
-
-	/**
-	 * Sets the version user ID of this document library file entry.
-	 *
-	 * @param versionUserId the version user ID of this document library file entry
-	 */
-	public void setVersionUserId(long versionUserId);
-
-	/**
-	 * Returns the version user uuid of this document library file entry.
-	 *
-	 * @return the version user uuid of this document library file entry
-	 * @throws SystemException if a system exception occurred
-	 */
-	public String getVersionUserUuid() throws SystemException;
-
-	/**
-	 * Sets the version user uuid of this document library file entry.
-	 *
-	 * @param versionUserUuid the version user uuid of this document library file entry
-	 */
-	public void setVersionUserUuid(String versionUserUuid);
-
-	/**
-	 * Returns the version user name of this document library file entry.
-	 *
-	 * @return the version user name of this document library file entry
-	 */
-	@AutoEscape
-	public String getVersionUserName();
-
-	/**
-	 * Sets the version user name of this document library file entry.
-	 *
-	 * @param versionUserName the version user name of this document library file entry
-	 */
-	public void setVersionUserName(String versionUserName);
 
 	/**
 	 * Returns the create date of this document library file entry.
 	 *
 	 * @return the create date of this document library file entry
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -218,6 +194,7 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 *
 	 * @param createDate the create date of this document library file entry
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -225,6 +202,7 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 *
 	 * @return the modified date of this document library file entry
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -232,7 +210,50 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 *
 	 * @param modifiedDate the modified date of this document library file entry
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
+
+	/**
+	 * Returns the fully qualified class name of this document library file entry.
+	 *
+	 * @return the fully qualified class name of this document library file entry
+	 */
+	@Override
+	public String getClassName();
+
+	public void setClassName(String className);
+
+	/**
+	 * Returns the class name ID of this document library file entry.
+	 *
+	 * @return the class name ID of this document library file entry
+	 */
+	@Override
+	public long getClassNameId();
+
+	/**
+	 * Sets the class name ID of this document library file entry.
+	 *
+	 * @param classNameId the class name ID of this document library file entry
+	 */
+	@Override
+	public void setClassNameId(long classNameId);
+
+	/**
+	 * Returns the class p k of this document library file entry.
+	 *
+	 * @return the class p k of this document library file entry
+	 */
+	@Override
+	public long getClassPK();
+
+	/**
+	 * Sets the class p k of this document library file entry.
+	 *
+	 * @param classPK the class p k of this document library file entry
+	 */
+	@Override
+	public void setClassPK(long classPK);
 
 	/**
 	 * Returns the repository ID of this document library file entry.
@@ -261,6 +282,21 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 * @param folderId the folder ID of this document library file entry
 	 */
 	public void setFolderId(long folderId);
+
+	/**
+	 * Returns the tree path of this document library file entry.
+	 *
+	 * @return the tree path of this document library file entry
+	 */
+	@AutoEscape
+	public String getTreePath();
+
+	/**
+	 * Sets the tree path of this document library file entry.
+	 *
+	 * @param treePath the tree path of this document library file entry
+	 */
+	public void setTreePath(String treePath);
 
 	/**
 	 * Returns the name of this document library file entry.
@@ -465,35 +501,135 @@ public interface DLFileEntryModel extends BaseModel<DLFileEntry>, GroupedModel {
 	 */
 	public void setCustom2ImageId(long custom2ImageId);
 
+	/**
+	 * Returns the manual check in required of this document library file entry.
+	 *
+	 * @return the manual check in required of this document library file entry
+	 */
+	public boolean getManualCheckInRequired();
+
+	/**
+	 * Returns <code>true</code> if this document library file entry is manual check in required.
+	 *
+	 * @return <code>true</code> if this document library file entry is manual check in required; <code>false</code> otherwise
+	 */
+	public boolean isManualCheckInRequired();
+
+	/**
+	 * Sets whether this document library file entry is manual check in required.
+	 *
+	 * @param manualCheckInRequired the manual check in required of this document library file entry
+	 */
+	public void setManualCheckInRequired(boolean manualCheckInRequired);
+
+	/**
+	 * Returns the status of this document library file entry.
+	 *
+	 * @return the status of this document library file entry
+	 */
+	@Override
+	public int getStatus();
+
+	/**
+	 * Returns the trash entry created when this document library file entry was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this document library file entry.
+	 *
+	 * @return the trash entry created when this document library file entry was moved to the Recycle Bin
+	 */
+	@Override
+	public TrashEntry getTrashEntry() throws PortalException;
+
+	/**
+	 * Returns the class primary key of the trash entry for this document library file entry.
+	 *
+	 * @return the class primary key of the trash entry for this document library file entry
+	 */
+	@Override
+	public long getTrashEntryClassPK();
+
+	/**
+	 * Returns the trash handler for this document library file entry.
+	 *
+	 * @return the trash handler for this document library file entry
+	 */
+	@Override
+	public TrashHandler getTrashHandler();
+
+	/**
+	 * Returns <code>true</code> if this document library file entry is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if this document library file entry is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInTrash();
+
+	/**
+	 * Returns <code>true</code> if the parent of this document library file entry is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if the parent of this document library file entry is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInTrashContainer();
+
+	@Override
+	public boolean isInTrashExplicitly();
+
+	@Override
+	public boolean isInTrashImplicitly();
+
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(DLFileEntry dlFileEntry);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<DLFileEntry> toCacheModel();
 
+	@Override
 	public DLFileEntry toEscapedModel();
 
+	@Override
+	public DLFileEntry toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

@@ -2,9 +2,7 @@
 	margin-top: 0.5em;
 
 	h2 {
-		height: 16px;
 		margin: 0 1em 0.2em 0;
-		padding-left: 25px;
 	}
 
 	.asset-links-list {
@@ -23,7 +21,6 @@
 	border-radius: 4px;
 
 	h2 {
-		background: url(@theme_image_path@/common/links.png) no-repeat 0 50%;
 		color: #999;
 		font-size: 1em;
 	}

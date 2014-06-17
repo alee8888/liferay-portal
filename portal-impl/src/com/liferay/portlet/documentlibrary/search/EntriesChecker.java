@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +26,9 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
 import com.liferay.portlet.documentlibrary.NoSuchFileShortcutException;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
@@ -34,6 +36,8 @@ import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
 import com.liferay.portlet.documentlibrary.service.permission.DLFileEntryPermission;
 import com.liferay.portlet.documentlibrary.service.permission.DLFileShortcutPermission;
 import com.liferay.portlet.documentlibrary.service.permission.DLFolderPermission;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Sergio González
@@ -53,16 +57,39 @@ public class EntriesChecker extends RowChecker {
 				WebKeys.THEME_DISPLAY);
 
 		_permissionChecker = themeDisplay.getPermissionChecker();
+
+		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+
+		String portletName = portletDisplay.getPortletName();
+
+		if (portletName.equals(PortletKeys.DOCUMENT_LIBRARY_DISPLAY)) {
+			_documentLibraryDisplayPortlet = true;
+		}
 	}
 
 	@Override
 	public String getAllRowsCheckBox() {
+		if (_documentLibraryDisplayPortlet) {
+			return getAllRowsCheckbox(null, getAllRowIds(), getEntryRowIds());
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getAllRowsCheckBox(HttpServletRequest request) {
+		if (_documentLibraryDisplayPortlet) {
+			return getAllRowsCheckbox(
+				request, getAllRowIds(), getEntryRowIds());
+		}
+
 		return null;
 	}
 
 	@Override
 	public String getRowCheckBox(
-		boolean checked, boolean disabled, String primaryKey) {
+		HttpServletRequest request, boolean checked, boolean disabled,
+		String primaryKey) {
 
 		DLFileShortcut dlFileShortcut = null;
 		FileEntry fileEntry = null;
@@ -124,7 +151,10 @@ public class EntriesChecker extends RowChecker {
 			try {
 				if (DLFileShortcutPermission.contains(
 						_permissionChecker, dlFileShortcut,
-						ActionKeys.DELETE)) {
+						ActionKeys.DELETE) ||
+					DLFileShortcutPermission.contains(
+						_permissionChecker, dlFileShortcut,
+						ActionKeys.UPDATE)) {
 
 					showInput = true;
 				}
@@ -137,7 +167,9 @@ public class EntriesChecker extends RowChecker {
 
 			try {
 				if (DLFolderPermission.contains(
-						_permissionChecker, folder, ActionKeys.DELETE)) {
+						_permissionChecker, folder, ActionKeys.DELETE) ||
+					DLFolderPermission.contains(
+						_permissionChecker, folder, ActionKeys.UPDATE)) {
 
 					showInput = true;
 				}
@@ -150,32 +182,48 @@ public class EntriesChecker extends RowChecker {
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler();
+		String checkBoxRowIds = getEntryRowIds();
+
+		String checkBoxAllRowIds = StringPool.BLANK;
+		String checkBoxPostOnClick = StringPool.BLANK;
+
+		if (_documentLibraryDisplayPortlet) {
+			checkBoxAllRowIds = "'" + getAllRowIds() + "'";
+		}
+		else {
+			checkBoxAllRowIds = "'#" + getAllRowIds() + "'";
+			checkBoxPostOnClick =
+				_liferayPortletResponse.getNamespace() +
+					"toggleActionsButton();";
+		}
+
+		return getRowCheckBox(
+			request, checked, disabled,
+			_liferayPortletResponse.getNamespace() + RowChecker.ROW_IDS + name,
+			primaryKey, checkBoxRowIds, checkBoxAllRowIds, checkBoxPostOnClick);
+	}
+
+	protected String getEntryRowIds() {
+		StringBundler sb = new StringBundler(13);
 
 		sb.append("['");
 		sb.append(_liferayPortletResponse.getNamespace());
 		sb.append(RowChecker.ROW_IDS);
 		sb.append(Folder.class.getSimpleName());
-		sb.append("Checkbox', '");
+		sb.append("', '");
 		sb.append(_liferayPortletResponse.getNamespace());
 		sb.append(RowChecker.ROW_IDS);
 		sb.append(DLFileShortcut.class.getSimpleName());
-		sb.append("Checkbox', '");
+		sb.append("', '");
 		sb.append(_liferayPortletResponse.getNamespace());
 		sb.append(RowChecker.ROW_IDS);
 		sb.append(FileEntry.class.getSimpleName());
-		sb.append("Checkbox']");
+		sb.append("']");
 
-		String checkBoxRowIds = sb.toString();
-
-		return getRowCheckBox(
-			checked, disabled,
-			_liferayPortletResponse.getNamespace() + RowChecker.ROW_IDS +
-				name + "Checkbox",
-			primaryKey, checkBoxRowIds, "'#" + getAllRowIds() + "Checkbox'",
-			_liferayPortletResponse.getNamespace() + "toggleActionsButton();");
+		return sb.toString();
 	}
 
+	private boolean _documentLibraryDisplayPortlet;
 	private LiferayPortletResponse _liferayPortletResponse;
 	private PermissionChecker _permissionChecker;
 

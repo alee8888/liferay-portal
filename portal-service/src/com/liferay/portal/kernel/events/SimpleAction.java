@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,7 +17,14 @@ package com.liferay.portal.kernel.events;
 /**
  * @author Brian Wing Shun Chan
  */
-public abstract class SimpleAction {
+public abstract class SimpleAction implements LifecycleAction {
+
+	@Override
+	public final void processLifecycleEvent(LifecycleEvent lifecycleEvent)
+		throws ActionException {
+
+		run(lifecycleEvent.getIds());
+	}
 
 	public abstract void run(String[] ids) throws ActionException;
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,120 +34,140 @@ public class HashCodeImpl implements HashCode {
 			initialNonZeroOddNumber, multiplierNonZeroOddNumber);
 	}
 
+	@Override
 	public HashCode append(boolean value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(boolean[] value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(byte value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(byte[] value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(char value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(char[] value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(double value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(double[] value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(float value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(float[] value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(int value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(int[] value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(long value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(long[] value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(Object value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(Object[] value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(short value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode append(short[] value) {
 		_hashCodeBuilder.append(value);
 
 		return this;
 	}
 
+	@Override
 	public HashCode appendSuper(int superHashCode) {
 		_hashCodeBuilder.appendSuper(superHashCode);
 
 		return this;
 	}
 
+	@Override
 	public int toHashCode() {
 		return _hashCodeBuilder.toHashCode();
 	}

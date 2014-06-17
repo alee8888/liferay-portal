@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
@@ -36,7 +38,8 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.TicketModelImpl
  * @generated
  */
-public interface TicketModel extends AttachedModel, BaseModel<Ticket> {
+@ProviderType
+public interface TicketModel extends AttachedModel, BaseModel<Ticket>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -56,6 +59,22 @@ public interface TicketModel extends AttachedModel, BaseModel<Ticket> {
 	 * @param primaryKey the primary key of this ticket
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this ticket.
+	 *
+	 * @return the mvcc version of this ticket
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this ticket.
+	 *
+	 * @param mvccVersion the mvcc version of this ticket
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the ticket ID of this ticket.
@@ -104,6 +123,7 @@ public interface TicketModel extends AttachedModel, BaseModel<Ticket> {
 	 *
 	 * @return the fully qualified class name of this ticket
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -113,6 +133,7 @@ public interface TicketModel extends AttachedModel, BaseModel<Ticket> {
 	 *
 	 * @return the class name ID of this ticket
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -120,6 +141,7 @@ public interface TicketModel extends AttachedModel, BaseModel<Ticket> {
 	 *
 	 * @param classNameId the class name ID of this ticket
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -127,6 +149,7 @@ public interface TicketModel extends AttachedModel, BaseModel<Ticket> {
 	 *
 	 * @return the class p k of this ticket
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -134,6 +157,7 @@ public interface TicketModel extends AttachedModel, BaseModel<Ticket> {
 	 *
 	 * @param classPK the class p k of this ticket
 	 */
+	@Override
 	public void setClassPK(long classPK);
 
 	/**
@@ -194,35 +218,60 @@ public interface TicketModel extends AttachedModel, BaseModel<Ticket> {
 	 */
 	public void setExpirationDate(Date expirationDate);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(Ticket ticket);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<Ticket> toCacheModel();
 
+	@Override
 	public Ticket toEscapedModel();
 
+	@Override
+	public Ticket toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

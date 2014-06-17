@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,8 +18,8 @@ import com.liferay.portal.kernel.events.Action;
 import com.liferay.portal.kernel.events.ActionException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.RandomUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Randomizer;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.Layout;
@@ -77,9 +77,9 @@ public class RandomLayoutAction extends Action {
 			List<Layout> layouts = LayoutLocalServiceUtil.getLayouts(
 				generalGuestGroup.getGroupId(), false);
 
-			if (layouts.size() > 0) {
+			if (!layouts.isEmpty()) {
 				Layout randomLayout = layouts.get(
-					Randomizer.getInstance().nextInt(layouts.size()));
+					RandomUtil.nextInt(layouts.size()));
 
 				themeDisplay.setLayout(randomLayout);
 				themeDisplay.setLayoutTypePortlet(
@@ -95,7 +95,6 @@ public class RandomLayoutAction extends Action {
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
-		RandomLookAndFeelAction.class);
+	private static Log _log = LogFactoryUtil.getLog(RandomLayoutAction.class);
 
 }

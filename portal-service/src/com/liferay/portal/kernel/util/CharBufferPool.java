@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -182,8 +182,8 @@ public class CharBufferPool {
 	private static ThreadLocal<List<CharBufferHolder>>
 		_borrowedCharBufferHoldersThreadLocal =
 			new AutoResetThreadLocal<List<CharBufferHolder>>(
-				CharBufferPool.class.getName()
-					+ "._borrowedCharBufferHoldersThreadLocal",
+				CharBufferPool.class.getName() +
+					"._borrowedCharBufferHoldersThreadLocal",
 				new ArrayList<CharBufferHolder>());
 	private static List<CharBufferHolder> _charBufferHoldersPool =
 		new ArrayList<CharBufferHolder>(_INITIAL_POOL_SIZE);
@@ -209,6 +209,7 @@ public class CharBufferPool {
 			_length = length;
 		}
 
+		@Override
 		public int compareTo(CharBufferHolder charBufferHolder) {
 			return _length - charBufferHolder._length;
 		}

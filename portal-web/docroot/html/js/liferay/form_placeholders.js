@@ -1,19 +1,41 @@
 AUI.add(
 	'liferay-form-placeholders',
 	function(A) {
-		var PLACEHOLDER_TEXT_CLASS = 'aui-text-placeholder';
+		var AObject = A.Object;
+		var ANode = A.Node;
+
+		var CSS_PLACEHOLDER = 'text-placeholder';
+
+		var MAP_IGNORE_ATTRS = {
+			id: 1,
+			name: 1,
+			type: 1
+		};
 
 		var SELECTOR_PLACEHOLDER_INPUTS = 'input[placeholder], textarea[placeholder]';
 
 		var STR_BLANK = '';
 
+		var STR_DATA_TYPE_PASSWORD_PLACEHOLDER = 'data-type-password-placeholder';
+
+		var STR_FOCUS = 'focus';
+
+		var STR_PASSWORD = 'password';
+
 		var STR_PLACEHOLDER = 'placeholder';
+
+		var STR_SPACE = ' ';
+
+		var STR_TYPE = 'type';
 
 		var Placeholders = A.Component.create(
 			{
 				EXTENDS: A.Plugin.Base,
+
 				NAME: 'placeholders',
+
 				NS: STR_PLACEHOLDER,
+
 				prototype: {
 					initializer: function(config) {
 						var instance = this;
@@ -26,11 +48,16 @@ AUI.add(
 							var placeholderInputs = formNode.all(SELECTOR_PLACEHOLDER_INPUTS);
 
 							placeholderInputs.each(
-								function(item, index, collection) {
+								function(item, index) {
 									if (!item.val()) {
-										item.addClass(PLACEHOLDER_TEXT_CLASS);
+										if (item.attr(STR_TYPE) === STR_PASSWORD) {
+											instance._initializePasswordNode(item);
+										}
+										else {
+											item.addClass(CSS_PLACEHOLDER);
 
-										item.val(item.attr(STR_PLACEHOLDER));
+											item.val(item.attr(STR_PLACEHOLDER));
+										}
 									}
 								}
 							);
@@ -42,6 +69,35 @@ AUI.add(
 						}
 					},
 
+					_initializePasswordNode: function(field) {
+						var placeholder = ANode.create('<input name="' + field.attr('name') + '_pass_placeholder" type="text" />');
+
+						Liferay.Util.getAttributes(
+							field,
+							function(value, name, attrs) {
+								var result = false;
+
+								if (!MAP_IGNORE_ATTRS[name]) {
+									if (name === 'class') {
+										value += STR_SPACE + CSS_PLACEHOLDER;
+									}
+
+									placeholder.setAttribute(name, value);
+								}
+
+								return result;
+							}
+						);
+
+						placeholder.val(field.attr(STR_PLACEHOLDER));
+
+						placeholder.attr(STR_DATA_TYPE_PASSWORD_PLACEHOLDER, true);
+
+						field.placeAfter(placeholder);
+
+						field.hide();
+					},
+
 					_removePlaceholders: function() {
 						var instance = this;
 
@@ -50,7 +106,7 @@ AUI.add(
 						var placeholderInputs = formNode.all(SELECTOR_PLACEHOLDER_INPUTS);
 
 						placeholderInputs.each(
-							function(item, index, collection) {
+							function(item, index) {
 								if (item.val() == item.attr(STR_PLACEHOLDER)) {
 									item.val(STR_BLANK);
 								}
@@ -58,27 +114,64 @@ AUI.add(
 						);
 					},
 
+					_togglePasswordPlaceholders: function(event, currentTarget) {
+						var placeholder = currentTarget.attr(STR_PLACEHOLDER);
+
+						if (placeholder) {
+							if (event.type === STR_FOCUS) {
+								if (currentTarget.hasAttribute(STR_DATA_TYPE_PASSWORD_PLACEHOLDER)) {
+									currentTarget.hide();
+
+									var passwordField = currentTarget.previous();
+
+									passwordField.show();
+
+									setTimeout(
+										function() {
+											Liferay.Util.focusFormField(passwordField);
+										},
+										0
+									);
+								}
+							}
+							else if (currentTarget.attr(STR_TYPE) === STR_PASSWORD) {
+								var value = currentTarget.val();
+
+								if (!value) {
+									currentTarget.hide();
+
+									currentTarget.next().show();
+								}
+							}
+						}
+					},
+
 					_togglePlaceholders: function(event) {
 						var instance = this;
 
 						var currentTarget = event.currentTarget;
 
-						var placeholder = currentTarget.attr(STR_PLACEHOLDER);
+						if (currentTarget.hasAttribute(STR_DATA_TYPE_PASSWORD_PLACEHOLDER) || currentTarget.attr(STR_TYPE) === STR_PASSWORD) {
+							instance._togglePasswordPlaceholders(event, currentTarget);
+						}
+						else {
+							var placeholder = currentTarget.attr(STR_PLACEHOLDER);
 
-						if (placeholder) {
-							var value = currentTarget.val();
+							if (placeholder) {
+								var value = currentTarget.val();
 
-							if (event.type == 'focus') {
-								if (value == placeholder) {
-									currentTarget.val(STR_BLANK);
+								if (event.type === STR_FOCUS) {
+									if (value === placeholder) {
+										currentTarget.val(STR_BLANK);
 
-									currentTarget.removeClass(PLACEHOLDER_TEXT_CLASS);
+										currentTarget.removeClass(CSS_PLACEHOLDER);
+									}
 								}
-							}
-							else if (!value) {
-								currentTarget.val(placeholder);
+								else if (!value) {
+									currentTarget.val(placeholder);
 
-								currentTarget.addClass(PLACEHOLDER_TEXT_CLASS);
+									currentTarget.addClass(CSS_PLACEHOLDER);
+								}
 							}
 						}
 					}

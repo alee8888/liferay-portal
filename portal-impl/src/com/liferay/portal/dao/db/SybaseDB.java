@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -81,17 +81,16 @@ public class SybaseDB extends BaseDB {
 		sb.append("'select into/bulkcopy/pllsort' , true\n");
 		sb.append("go\n\n");
 
-		sb.append("use ");
-		sb.append(databaseName);
-		sb.append("\n\n");
-		sb.append(
-			readFile(
-				sqlDir + "/portal" + suffix + "/portal" + suffix +
-					"-sybase.sql"));
-		sb.append("\n\n");
-		sb.append(readFile(sqlDir + "/indexes/indexes-sybase.sql"));
-		sb.append("\n\n");
-		sb.append(readFile(sqlDir + "/sequences/sequences-sybase.sql"));
+		if (population != BARE) {
+			sb.append("use ");
+			sb.append(databaseName);
+			sb.append("\n\n");
+			sb.append(getCreateTablesContent(sqlDir, suffix));
+			sb.append("\n\n");
+			sb.append(readFile(sqlDir + "/indexes/indexes-sybase.sql"));
+			sb.append("\n\n");
+			sb.append(readFile(sqlDir + "/sequences/sequences-sybase.sql"));
+		}
 
 		return sb.toString();
 	}
@@ -116,7 +115,7 @@ public class SybaseDB extends BaseDB {
 		String line = null;
 
 		while ((line = unsyncBufferedReader.readLine()) != null) {
-			if (line.indexOf(DROP_COLUMN) != -1) {
+			if (line.contains(DROP_COLUMN)) {
 				line = StringUtil.replace(line, " drop column ", " drop ");
 			}
 
@@ -135,7 +134,15 @@ public class SybaseDB extends BaseDB {
 					"alter table @table@ modify @old-column@ @type@;",
 					REWORD_TEMPLATE, template);
 			}
-			else if (line.indexOf(DROP_INDEX) != -1) {
+
+			else if (line.startsWith(ALTER_TABLE_NAME)) {
+				String[] template = buildTableNameTokens(line);
+
+				line = StringUtil.replace(
+					"exec sp_rename @old-table@, @new-table@;",
+					RENAME_TABLE_TEMPLATE, template);
+			}
+			else if (line.contains(DROP_INDEX)) {
 				String[] tokens = StringUtil.split(line, ' ');
 
 				String tableName = tokens[4];

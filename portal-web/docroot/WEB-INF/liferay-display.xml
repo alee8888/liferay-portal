@@ -10,6 +10,7 @@
 		<portlet id="62" />
 		<portlet id="64" />
 		<portlet id="71" />
+		<portlet id="184" />
 		<portlet id="73" />
 		<portlet id="77" />
 		<portlet id="85" />
@@ -21,9 +22,10 @@
 		<portlet id="141" />
 		<portlet id="148" />
 		<portlet id="175" />
+		<portlet id="193" />
+		<portlet id="194" />
 	</category>
 	<category name="category.collaboration">
-		<portlet id="8" />
 		<portlet id="19" />
 		<portlet id="33" />
 		<portlet id="36" />
@@ -33,6 +35,9 @@
 	</category>
 	<category name="category.community">
 		<portlet id="11" />
+		<portlet id="186" />
+		<portlet id="187" />
+		<portlet id="188" />
 		<portlet id="28" />
 		<portlet id="29" />
 		<portlet id="100" />
@@ -82,10 +87,17 @@
 		<portlet id="173" />
 		<portlet id="174" />
 		<portlet id="176" />
-		<portlet id="177" />
 		<portlet id="178" />
 		<portlet id="179" />
 		<portlet id="182" />
+		<portlet id="183" />
+		<portlet id="185" />
+		<portlet id="195" />
+		<portlet id="196" />
+		<portlet id="197" />
+		<portlet id="198" />
+		<portlet id="199" />
+		<portlet id="200" />
 	</category>
 	<category name="category.news">
 		<portlet id="39" />

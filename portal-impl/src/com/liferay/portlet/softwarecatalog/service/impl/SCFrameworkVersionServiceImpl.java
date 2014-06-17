@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portlet.softwarecatalog.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.softwarecatalog.model.SCFrameworkVersion;
@@ -32,10 +31,11 @@ import java.util.List;
 public class SCFrameworkVersionServiceImpl
 	extends SCFrameworkVersionServiceBaseImpl {
 
+	@Override
 	public SCFrameworkVersion addFrameworkVersion(
 			String name, String url, boolean active, int priority,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		SCPermission.check(
 			getPermissionChecker(), serviceContext.getScopeGroupId(),
@@ -45,8 +45,9 @@ public class SCFrameworkVersionServiceImpl
 			getUserId(), name, url, active, priority, serviceContext);
 	}
 
+	@Override
 	public void deleteFrameworkVersion(long frameworkVersionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		SCFrameworkVersionPermission.check(
 			getPermissionChecker(), frameworkVersionId, ActionKeys.DELETE);
@@ -55,33 +56,35 @@ public class SCFrameworkVersionServiceImpl
 			frameworkVersionId);
 	}
 
+	@Override
 	public SCFrameworkVersion getFrameworkVersion(long frameworkVersionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return scFrameworkVersionLocalService.getFrameworkVersion(
 			frameworkVersionId);
 	}
 
+	@Override
 	public List<SCFrameworkVersion> getFrameworkVersions(
-			long groupId, boolean active)
-		throws SystemException {
+		long groupId, boolean active) {
 
 		return scFrameworkVersionLocalService.getFrameworkVersions(
 			groupId, active);
 	}
 
+	@Override
 	public List<SCFrameworkVersion> getFrameworkVersions(
-			long groupId, boolean active, int start, int end)
-		throws SystemException {
+		long groupId, boolean active, int start, int end) {
 
 		return scFrameworkVersionLocalService.getFrameworkVersions(
 			groupId, active, start, end);
 	}
 
+	@Override
 	public SCFrameworkVersion updateFrameworkVersion(
 			long frameworkVersionId, String name, String url, boolean active,
 			int priority)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		SCFrameworkVersionPermission.check(
 			getPermissionChecker(), frameworkVersionId, ActionKeys.UPDATE);

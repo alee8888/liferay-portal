@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,8 @@ package com.liferay.portlet.documentlibrary.action;
 
 import com.liferay.portal.DuplicateLockException;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.servlet.ServletResponseConstants;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
@@ -23,6 +25,7 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
@@ -37,7 +40,13 @@ import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.SourceFileNameException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
+import com.liferay.portlet.documentlibrary.model.DLFolder;
+import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -56,13 +65,15 @@ import org.apache.struts.action.ActionMapping;
  * @author Brian Wing Shun Chan
  * @author Sergio González
  * @author Manuel de la Peña
+ * @author Levente Hudák
  */
 public class EditEntryAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -111,7 +122,7 @@ public class EditEntryAction extends PortletAction {
 					DuplicateLockException dle = (DuplicateLockException)e;
 
 					SessionErrors.add(
-						actionRequest, dle.getClass().getName(), dle.getLock());
+						actionRequest, dle.getClass(), dle.getLock());
 				}
 				else {
 					SessionErrors.add(actionRequest, e.getClass());
@@ -121,7 +132,6 @@ public class EditEntryAction extends PortletAction {
 			}
 			else if (e instanceof DuplicateFileException ||
 					 e instanceof DuplicateFolderNameException ||
-					 e instanceof NoSuchFolderException ||
 					 e instanceof SourceFileNameException) {
 
 				if (e instanceof DuplicateFileException) {
@@ -137,7 +147,7 @@ public class EditEntryAction extends PortletAction {
 			else if (e instanceof AssetCategoryException ||
 					 e instanceof AssetTagException) {
 
-				SessionErrors.add(actionRequest, e.getClass().getName(), e);
+				SessionErrors.add(actionRequest, e.getClass(), e);
 			}
 			else {
 				throw e;
@@ -147,8 +157,9 @@ public class EditEntryAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -162,7 +173,8 @@ public class EditEntryAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.document_library.error");
+				return actionMapping.findForward(
+					"portlet.document_library.error");
 			}
 			else {
 				throw e;
@@ -171,20 +183,11 @@ public class EditEntryAction extends PortletAction {
 
 		String forward = "portlet.document_library.edit_entry";
 
-		return mapping.findForward(getForward(renderRequest, forward));
+		return actionMapping.findForward(getForward(renderRequest, forward));
 	}
 
 	protected void cancelCheckedOutEntries(ActionRequest actionRequest)
 		throws Exception {
-
-		long repositoryId = ParamUtil.getLong(actionRequest, "repositoryId");
-
-		long[] folderIds = StringUtil.split(
-			ParamUtil.getString(actionRequest, "folderIds"), 0L);
-
-		for (long folderId : folderIds) {
-			DLAppServiceUtil.lockFolder(repositoryId, folderId);
-		}
 
 		long[] fileEntryIds = StringUtil.split(
 			ParamUtil.getString(actionRequest, "fileEntryIds"), 0L);
@@ -192,19 +195,20 @@ public class EditEntryAction extends PortletAction {
 		for (long fileEntryId : fileEntryIds) {
 			DLAppServiceUtil.cancelCheckOut(fileEntryId);
 		}
+
+		long[] fileShortcutIds = StringUtil.split(
+			ParamUtil.getString(actionRequest, "fileShortcutIds"), 0L);
+
+		for (long fileShortcutId : fileShortcutIds) {
+			DLFileShortcut fileShortcut = DLAppLocalServiceUtil.getFileShortcut(
+				fileShortcutId);
+
+			DLAppServiceUtil.cancelCheckOut(fileShortcut.getToFileEntryId());
+		}
 	}
 
 	protected void checkInEntries(ActionRequest actionRequest)
 		throws Exception {
-
-		long repositoryId = ParamUtil.getLong(actionRequest, "repositoryId");
-
-		long[] folderIds = StringUtil.split(
-			ParamUtil.getString(actionRequest, "folderIds"), 0L);
-
-		for (long folderId : folderIds) {
-			DLAppServiceUtil.unlockFolder(repositoryId, folderId, null);
-		}
 
 		long[] fileEntryIds = StringUtil.split(
 			ParamUtil.getString(actionRequest, "fileEntryIds"), 0L);
@@ -216,19 +220,22 @@ public class EditEntryAction extends PortletAction {
 			DLAppServiceUtil.checkInFileEntry(
 				fileEntryId, false, StringPool.BLANK, serviceContext);
 		}
+
+		long[] fileShortcutIds = StringUtil.split(
+			ParamUtil.getString(actionRequest, "fileShortcutIds"), 0L);
+
+		for (long fileShortcutId : fileShortcutIds) {
+			DLFileShortcut fileShortcut = DLAppLocalServiceUtil.getFileShortcut(
+				fileShortcutId);
+
+			DLAppServiceUtil.checkInFileEntry(
+				fileShortcut.getToFileEntryId(), false, StringPool.BLANK,
+				serviceContext);
+		}
 	}
 
 	protected void checkOutEntries(ActionRequest actionRequest)
 		throws Exception {
-
-		long repositoryId = ParamUtil.getLong(actionRequest, "repositoryId");
-
-		long[] folderIds = StringUtil.split(
-			ParamUtil.getString(actionRequest, "folderIds"), 0L);
-
-		for (long folderId : folderIds) {
-			DLAppServiceUtil.lockFolder(repositoryId, folderId);
-		}
 
 		long[] fileEntryIds = StringUtil.split(
 			ParamUtil.getString(actionRequest, "fileEntryIds"), 0L);
@@ -239,6 +246,17 @@ public class EditEntryAction extends PortletAction {
 		for (long fileEntryId : fileEntryIds) {
 			DLAppServiceUtil.checkOutFileEntry(fileEntryId, serviceContext);
 		}
+
+		long[] fileShortcutIds = StringUtil.split(
+			ParamUtil.getString(actionRequest, "fileShortcutIds"), 0L);
+
+		for (long fileShortcutId : fileShortcutIds) {
+			DLFileShortcut fileShortcut = DLAppLocalServiceUtil.getFileShortcut(
+				fileShortcutId);
+
+			DLAppServiceUtil.checkOutFileEntry(
+				fileShortcut.getToFileEntryId(), serviceContext);
+		}
 	}
 
 	protected void deleteEntries(
@@ -248,9 +266,18 @@ public class EditEntryAction extends PortletAction {
 		long[] deleteFolderIds = StringUtil.split(
 			ParamUtil.getString(actionRequest, "folderIds"), 0L);
 
-		for (long deleteFolderId : deleteFolderIds) {
+		List<TrashedModel> trashedModels = new ArrayList<TrashedModel>();
+
+		for (int i = 0; i < deleteFolderIds.length; i++) {
+			long deleteFolderId = deleteFolderIds[i];
+
 			if (moveToTrash) {
-				DLAppServiceUtil.moveFolderToTrash(deleteFolderId);
+				Folder folder = DLAppServiceUtil.moveFolderToTrash(
+					deleteFolderId);
+
+				if (folder.getModel() instanceof DLFolder) {
+					trashedModels.add((DLFolder)folder.getModel());
+				}
 			}
 			else {
 				DLAppServiceUtil.deleteFolder(deleteFolderId);
@@ -262,9 +289,15 @@ public class EditEntryAction extends PortletAction {
 		long[] deleteFileShortcutIds = StringUtil.split(
 			ParamUtil.getString(actionRequest, "fileShortcutIds"), 0L);
 
-		for (long deleteFileShortcutId : deleteFileShortcutIds) {
+		for (int i = 0; i < deleteFileShortcutIds.length; i++) {
+			long deleteFileShortcutId = deleteFileShortcutIds[i];
+
 			if (moveToTrash) {
-				DLAppServiceUtil.moveFileShortcutToTrash(deleteFileShortcutId);
+				DLFileShortcut fileShortcut =
+					DLAppServiceUtil.moveFileShortcutToTrash(
+						deleteFileShortcutId);
+
+				trashedModels.add(fileShortcut);
 			}
 			else {
 				DLAppServiceUtil.deleteFileShortcut(deleteFileShortcutId);
@@ -276,11 +309,22 @@ public class EditEntryAction extends PortletAction {
 
 		for (long deleteFileEntryId : deleteFileEntryIds) {
 			if (moveToTrash) {
-				DLAppServiceUtil.moveFileEntryToTrash(deleteFileEntryId);
+				FileEntry fileEntry = DLAppServiceUtil.moveFileEntryToTrash(
+					deleteFileEntryId);
+
+				if (fileEntry.getModel() instanceof DLFileEntry) {
+					trashedModels.add((DLFileEntry)fileEntry.getModel());
+				}
 			}
 			else {
 				DLAppServiceUtil.deleteFileEntry(deleteFileEntryId);
 			}
+		}
+
+		if (moveToTrash && !trashedModels.isEmpty()) {
+			TrashUtil.addTrashSessionMessages(actionRequest, trashedModels);
+
+			hideDefaultSuccessMessage(actionRequest);
 		}
 	}
 

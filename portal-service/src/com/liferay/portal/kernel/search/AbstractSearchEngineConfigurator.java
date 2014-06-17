@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,15 +28,17 @@ import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
  * @author Michael C. Han
  */
-public abstract class AbstractSearchEngineConfigurator {
+public abstract class AbstractSearchEngineConfigurator
+	implements SearchEngineConfigurator {
 
+	@Override
 	public void afterPropertiesSet() {
 		Set<Entry<String, SearchEngine>> entrySet = _searchEngines.entrySet();
 
@@ -56,6 +58,7 @@ public abstract class AbstractSearchEngineConfigurator {
 		_searchEngines.clear();
 	}
 
+	@Override
 	public void destroy() {
 		for (SearchEngineRegistration searchEngineRegistration :
 				_searchEngineRegistrations) {
@@ -72,6 +75,7 @@ public abstract class AbstractSearchEngineConfigurator {
 		}
 	}
 
+	@Override
 	public void setSearchEngines(Map<String, SearchEngine> searchEngines) {
 		_searchEngines = searchEngines;
 	}
@@ -229,12 +233,11 @@ public abstract class AbstractSearchEngineConfigurator {
 		Destination searchWriterDestination = getSearchWriterDestination(
 			messageBus, searchEngineId, searchEngine);
 
-		searchEngineRegistration.setSearchWriterDestinationName(searchEngineId);
+		searchEngineRegistration.setSearchWriterDestinationName(
+			searchWriterDestination.getName());
 
-		Map<String, SearchEngine> searchEngines =
-			SearchEngineUtil.getSearchEngines();
-
-		SearchEngine originalSearchEngine = searchEngines.get(searchEngineId);
+		SearchEngine originalSearchEngine =
+			SearchEngineUtil.getSearchEngineSilent(searchEngineId);
 
 		if (originalSearchEngine != null) {
 			searchEngineRegistration.setOverride(true);

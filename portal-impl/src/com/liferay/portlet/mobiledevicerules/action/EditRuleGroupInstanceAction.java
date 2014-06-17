@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,6 @@ package com.liferay.portlet.mobiledevicerules.action;
 
 import com.liferay.portal.kernel.bean.BeanParamUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -50,8 +49,9 @@ public class EditRuleGroupInstanceAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -83,8 +83,9 @@ public class EditRuleGroupInstanceAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		long ruleGroupInstanceId = ParamUtil.getLong(
@@ -106,12 +107,12 @@ public class EditRuleGroupInstanceAction extends PortletAction {
 		renderRequest.setAttribute(
 			WebKeys.MOBILE_DEVICE_RULES_RULE_GROUP, ruleGroup);
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			"portlet.mobile_device_rules.edit_rule_group_instance_priorities");
 	}
 
 	protected void deleteRuleGroupInstance(ActionRequest actionRequest)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		long ruleGroupInstanceId = ParamUtil.getLong(
 			actionRequest, "ruleGroupInstanceId");
@@ -122,7 +123,7 @@ public class EditRuleGroupInstanceAction extends PortletAction {
 
 	protected void updateRuleGroupInstancesPriorities(
 			ActionRequest actionRequest)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		String ruleGroupsInstancesJSON = ParamUtil.getString(
 			actionRequest, "ruleGroupsInstancesJSON");

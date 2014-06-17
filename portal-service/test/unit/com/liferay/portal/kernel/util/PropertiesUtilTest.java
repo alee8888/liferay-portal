@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,45 +14,35 @@
 
 package com.liferay.portal.kernel.util;
 
-import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
-import com.liferay.portal.kernel.test.TestCase;
 
 import java.util.Properties;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author Shuyang Zhou
  * @author Brian Wing Shun Chan
  */
-public class PropertiesUtilTest extends TestCase {
+public class PropertiesUtilTest {
 
-	public void testLoad() throws Exception {
+	@Test
+	public void testLoad1() throws Exception {
 		Properties properties = PropertiesUtil.load(_PROPERTIES_STRING);
 
 		for (String[] property : _PROPERTIES_ARRAY) {
-			assertEquals(property[1], properties.get(property[0]));
+			Assert.assertEquals(property[1], properties.get(property[0]));
 		}
 	}
 
-	public void testLoadJDK5() throws Exception {
-		byte[] utf8Encoded = _PROPERTIES_STRING.getBytes(StringPool.UTF8);
-
-		Properties properties = PropertiesUtil.loadJDK5(
-			new UnsyncByteArrayInputStream(utf8Encoded), StringPool.UTF8);
+	@Test
+	public void testLoad2() throws Exception {
+		Properties properties = PropertiesUtil.load(
+			new UnsyncStringReader(_PROPERTIES_STRING));
 
 		for (String[] property : _PROPERTIES_ARRAY) {
-			assertEquals(property[1], properties.get(property[0]));
-		}
-	}
-
-	public void testLoadJDK6() throws Exception {
-		if (JavaDetector.isJDK6()) {
-			Properties properties = PropertiesUtil.loadJDK6(
-				new UnsyncStringReader(_PROPERTIES_STRING));
-
-			for (String[] property : _PROPERTIES_ARRAY) {
-				assertEquals(property[1], properties.get(property[0]));
-			}
+			Assert.assertEquals(property[1], properties.get(property[0]));
 		}
 	}
 

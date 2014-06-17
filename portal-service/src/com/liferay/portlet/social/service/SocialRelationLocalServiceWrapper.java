@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link SocialRelationLocalService}.
- * </p>
+ * Provides a wrapper for {@link SocialRelationLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialRelationLocalService
+ * @author Brian Wing Shun Chan
+ * @see SocialRelationLocalService
  * @generated
  */
+@ProviderType
 public class SocialRelationLocalServiceWrapper
 	implements SocialRelationLocalService,
 		ServiceWrapper<SocialRelationLocalService> {
@@ -38,11 +39,10 @@ public class SocialRelationLocalServiceWrapper
 	*
 	* @param socialRelation the social relation
 	* @return the social relation that was added
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.social.model.SocialRelation addSocialRelation(
-		com.liferay.portlet.social.model.SocialRelation socialRelation)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.social.model.SocialRelation socialRelation) {
 		return _socialRelationLocalService.addSocialRelation(socialRelation);
 	}
 
@@ -52,6 +52,7 @@ public class SocialRelationLocalServiceWrapper
 	* @param relationId the primary key for the new social relation
 	* @return the new social relation
 	*/
+	@Override
 	public com.liferay.portlet.social.model.SocialRelation createSocialRelation(
 		long relationId) {
 		return _socialRelationLocalService.createSocialRelation(relationId);
@@ -63,12 +64,11 @@ public class SocialRelationLocalServiceWrapper
 	* @param relationId the primary key of the social relation
 	* @return the social relation that was removed
 	* @throws PortalException if a social relation with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.social.model.SocialRelation deleteSocialRelation(
 		long relationId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _socialRelationLocalService.deleteSocialRelation(relationId);
 	}
 
@@ -77,14 +77,14 @@ public class SocialRelationLocalServiceWrapper
 	*
 	* @param socialRelation the social relation
 	* @return the social relation that was removed
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.social.model.SocialRelation deleteSocialRelation(
-		com.liferay.portlet.social.model.SocialRelation socialRelation)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.social.model.SocialRelation socialRelation) {
 		return _socialRelationLocalService.deleteSocialRelation(socialRelation);
 	}
 
+	@Override
 	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
 		return _socialRelationLocalService.dynamicQuery();
 	}
@@ -94,12 +94,11 @@ public class SocialRelationLocalServiceWrapper
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the matching rows
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _socialRelationLocalService.dynamicQuery(dynamicQuery);
 	}
 
@@ -107,19 +106,19 @@ public class SocialRelationLocalServiceWrapper
 	* Performs a dynamic query on the database and returns a range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.social.model.impl.SocialRelationModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
 	* @param start the lower bound of the range of model instances
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @return the range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+		int end) {
 		return _socialRelationLocalService.dynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -127,7 +126,7 @@ public class SocialRelationLocalServiceWrapper
 	* Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.social.model.impl.SocialRelationModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param dynamicQuery the dynamic query
@@ -135,14 +134,13 @@ public class SocialRelationLocalServiceWrapper
 	* @param end the upper bound of the range of model instances (not inclusive)
 	* @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	* @return the ordered range of matching rows
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	@SuppressWarnings("rawtypes")
 	public java.util.List dynamicQuery(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator) {
 		return _socialRelationLocalService.dynamicQuery(dynamicQuery, start,
 			end, orderByComparator);
 	}
@@ -152,18 +150,46 @@ public class SocialRelationLocalServiceWrapper
 	*
 	* @param dynamicQuery the dynamic query
 	* @return the number of rows that match the dynamic query
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public long dynamicQueryCount(
-		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
 		return _socialRelationLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
+		return _socialRelationLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
+	@Override
 	public com.liferay.portlet.social.model.SocialRelation fetchSocialRelation(
-		long relationId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long relationId) {
 		return _socialRelationLocalService.fetchSocialRelation(relationId);
+	}
+
+	/**
+	* Returns the social relation with the matching UUID and company.
+	*
+	* @param uuid the social relation's UUID
+	* @param companyId the primary key of the company
+	* @return the matching social relation, or <code>null</code> if a matching social relation could not be found
+	*/
+	@Override
+	public com.liferay.portlet.social.model.SocialRelation fetchSocialRelationByUuidAndCompanyId(
+		java.lang.String uuid, long companyId) {
+		return _socialRelationLocalService.fetchSocialRelationByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -172,37 +198,66 @@ public class SocialRelationLocalServiceWrapper
 	* @param relationId the primary key of the social relation
 	* @return the social relation
 	* @throws PortalException if a social relation with the primary key could not be found
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.social.model.SocialRelation getSocialRelation(
 		long relationId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _socialRelationLocalService.getSocialRelation(relationId);
 	}
 
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery getActionableDynamicQuery() {
+		return _socialRelationLocalService.getActionableDynamicQuery();
+	}
+
+	/**
+	* @throws PortalException
+	*/
+	@Override
+	public com.liferay.portal.model.PersistedModel deletePersistedModel(
+		com.liferay.portal.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _socialRelationLocalService.deletePersistedModel(persistedModel);
+	}
+
+	@Override
 	public com.liferay.portal.model.PersistedModel getPersistedModel(
 		java.io.Serializable primaryKeyObj)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _socialRelationLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the social relation with the matching UUID and company.
+	*
+	* @param uuid the social relation's UUID
+	* @param companyId the primary key of the company
+	* @return the matching social relation
+	* @throws PortalException if a matching social relation could not be found
+	*/
+	@Override
+	public com.liferay.portlet.social.model.SocialRelation getSocialRelationByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _socialRelationLocalService.getSocialRelationByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
 	* Returns a range of all the social relations.
 	*
 	* <p>
-	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set.
+	* Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not {@link com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS}), then the query will include the default ORDER BY logic from {@link com.liferay.portlet.social.model.impl.SocialRelationModelImpl}. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
 	* </p>
 	*
 	* @param start the lower bound of the range of social relations
 	* @param end the upper bound of the range of social relations (not inclusive)
 	* @return the range of social relations
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portlet.social.model.SocialRelation> getSocialRelations(
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int start, int end) {
 		return _socialRelationLocalService.getSocialRelations(start, end);
 	}
 
@@ -210,10 +265,9 @@ public class SocialRelationLocalServiceWrapper
 	* Returns the number of social relations.
 	*
 	* @return the number of social relations
-	* @throws SystemException if a system exception occurred
 	*/
-	public int getSocialRelationsCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public int getSocialRelationsCount() {
 		return _socialRelationLocalService.getSocialRelationsCount();
 	}
 
@@ -222,28 +276,11 @@ public class SocialRelationLocalServiceWrapper
 	*
 	* @param socialRelation the social relation
 	* @return the social relation that was updated
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.social.model.SocialRelation updateSocialRelation(
-		com.liferay.portlet.social.model.SocialRelation socialRelation)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portlet.social.model.SocialRelation socialRelation) {
 		return _socialRelationLocalService.updateSocialRelation(socialRelation);
-	}
-
-	/**
-	* Updates the social relation in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
-	*
-	* @param socialRelation the social relation
-	* @param merge whether to merge the social relation with the current session. See {@link com.liferay.portal.service.persistence.BatchSession#update(com.liferay.portal.kernel.dao.orm.Session, com.liferay.portal.model.BaseModel, boolean)} for an explanation.
-	* @return the social relation that was updated
-	* @throws SystemException if a system exception occurred
-	*/
-	public com.liferay.portlet.social.model.SocialRelation updateSocialRelation(
-		com.liferay.portlet.social.model.SocialRelation socialRelation,
-		boolean merge)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _socialRelationLocalService.updateSocialRelation(socialRelation,
-			merge);
 	}
 
 	/**
@@ -251,6 +288,7 @@ public class SocialRelationLocalServiceWrapper
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _socialRelationLocalService.getBeanIdentifier();
 	}
@@ -260,6 +298,7 @@ public class SocialRelationLocalServiceWrapper
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_socialRelationLocalService.setBeanIdentifier(beanIdentifier);
 	}
@@ -274,12 +313,11 @@ public class SocialRelationLocalServiceWrapper
 	* @throws PortalException if the users could not be found, if the users
 	were not from the same company, or if either of the users was the
 	default user
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.social.model.SocialRelation addRelation(
 		long userId1, long userId2, int type)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _socialRelationLocalService.addRelation(userId1, userId2, type);
 	}
 
@@ -289,11 +327,10 @@ public class SocialRelationLocalServiceWrapper
 	*
 	* @param relationId the primary key of the relation
 	* @throws PortalException if the relation could not be found
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public void deleteRelation(long relationId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_socialRelationLocalService.deleteRelation(relationId);
 	}
 
@@ -306,11 +343,10 @@ public class SocialRelationLocalServiceWrapper
 	* @param type the relation's type
 	* @throws PortalException if the relation or its inverse relation (if
 	applicable) could not be found
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public void deleteRelation(long userId1, long userId2, int type)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_socialRelationLocalService.deleteRelation(userId1, userId2, type);
 	}
 
@@ -321,12 +357,11 @@ public class SocialRelationLocalServiceWrapper
 	* @param relation the relation to be removed
 	* @throws PortalException if the relation is bidirectional and its inverse
 	relation could not be found
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public void deleteRelation(
 		com.liferay.portlet.social.model.SocialRelation relation)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_socialRelationLocalService.deleteRelation(relation);
 	}
 
@@ -334,10 +369,9 @@ public class SocialRelationLocalServiceWrapper
 	* Removes all relations involving the user from the database.
 	*
 	* @param userId the primary key of the user
-	* @throws SystemException if a system exception occurred
 	*/
-	public void deleteRelations(long userId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void deleteRelations(long userId) {
 		_socialRelationLocalService.deleteRelations(userId);
 	}
 
@@ -347,11 +381,10 @@ public class SocialRelationLocalServiceWrapper
 	* @param userId1 the user that is the subject of the relation
 	* @param userId2 the user at the other end of the relation
 	* @throws PortalException if the inverse relation could not be found
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public void deleteRelations(long userId1, long userId2)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_socialRelationLocalService.deleteRelations(userId1, userId2);
 	}
 
@@ -374,11 +407,10 @@ public class SocialRelationLocalServiceWrapper
 	* @param start the lower bound of the range of results
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of matching relations
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portlet.social.model.SocialRelation> getInverseRelations(
-		long userId, int type, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long userId, int type, int start, int end) {
 		return _socialRelationLocalService.getInverseRelations(userId, type,
 			start, end);
 	}
@@ -390,10 +422,9 @@ public class SocialRelationLocalServiceWrapper
 	* @param userId the primary key of the user
 	* @param type the relation's type
 	* @return the number of matching relations
-	* @throws SystemException if a system exception occurred
 	*/
-	public int getInverseRelationsCount(long userId, int type)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public int getInverseRelationsCount(long userId, int type) {
 		return _socialRelationLocalService.getInverseRelationsCount(userId, type);
 	}
 
@@ -403,12 +434,11 @@ public class SocialRelationLocalServiceWrapper
 	* @param relationId the primary key of the relation
 	* @return Returns the relation
 	* @throws PortalException if the relation could not be found
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.social.model.SocialRelation getRelation(
 		long relationId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _socialRelationLocalService.getRelation(relationId);
 	}
 
@@ -420,12 +450,11 @@ public class SocialRelationLocalServiceWrapper
 	* @param type the relation's type
 	* @return Returns the relation
 	* @throws PortalException if the relation could not be found
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public com.liferay.portlet.social.model.SocialRelation getRelation(
 		long userId1, long userId2, int type)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _socialRelationLocalService.getRelation(userId1, userId2, type);
 	}
 
@@ -448,11 +477,10 @@ public class SocialRelationLocalServiceWrapper
 	* @param start the lower bound of the range of results
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of relations
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portlet.social.model.SocialRelation> getRelations(
-		long userId, int type, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long userId, int type, int start, int end) {
 		return _socialRelationLocalService.getRelations(userId, type, start, end);
 	}
 
@@ -474,11 +502,10 @@ public class SocialRelationLocalServiceWrapper
 	* @param start the lower bound of the range of results
 	* @param end the upper bound of the range of results (not inclusive)
 	* @return the range of relations
-	* @throws SystemException if a system exception occurred
 	*/
+	@Override
 	public java.util.List<com.liferay.portlet.social.model.SocialRelation> getRelations(
-		long userId1, long userId2, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long userId1, long userId2, int start, int end) {
 		return _socialRelationLocalService.getRelations(userId1, userId2,
 			start, end);
 	}
@@ -490,10 +517,9 @@ public class SocialRelationLocalServiceWrapper
 	* @param userId the primary key of the user
 	* @param type the relation's type
 	* @return the number of relations
-	* @throws SystemException if a system exception occurred
 	*/
-	public int getRelationsCount(long userId, int type)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public int getRelationsCount(long userId, int type) {
 		return _socialRelationLocalService.getRelationsCount(userId, type);
 	}
 
@@ -503,10 +529,9 @@ public class SocialRelationLocalServiceWrapper
 	* @param userId1 the user that is the subject of the relation
 	* @param userId2 the user at the other end of the relation
 	* @return the number of relations
-	* @throws SystemException if a system exception occurred
 	*/
-	public int getRelationsCount(long userId1, long userId2)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public int getRelationsCount(long userId1, long userId2) {
 		return _socialRelationLocalService.getRelationsCount(userId1, userId2);
 	}
 
@@ -521,10 +546,9 @@ public class SocialRelationLocalServiceWrapper
 	* @param type the relation's type
 	* @return <code>true</code> if the relation exists; <code>false</code>
 	otherwise
-	* @throws SystemException if a system exception occurred
 	*/
-	public boolean hasRelation(long userId1, long userId2, int type)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public boolean hasRelation(long userId1, long userId2, int type) {
 		return _socialRelationLocalService.hasRelation(userId1, userId2, type);
 	}
 
@@ -545,32 +569,35 @@ public class SocialRelationLocalServiceWrapper
 	* @param type the relation's type
 	* @return <code>true</code> if the two users can be in a new relation of
 	the given type; <code>false</code> otherwise
-	* @throws SystemException if a system exception occurred
 	*/
-	public boolean isRelatable(long userId1, long userId2, int type)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public boolean isRelatable(long userId1, long userId2, int type) {
 		return _socialRelationLocalService.isRelatable(userId1, userId2, type);
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SocialRelationLocalService getWrappedSocialRelationLocalService() {
 		return _socialRelationLocalService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSocialRelationLocalService(
 		SocialRelationLocalService socialRelationLocalService) {
 		_socialRelationLocalService = socialRelationLocalService;
 	}
 
+	@Override
 	public SocialRelationLocalService getWrappedService() {
 		return _socialRelationLocalService;
 	}
 
+	@Override
 	public void setWrappedService(
 		SocialRelationLocalService socialRelationLocalService) {
 		_socialRelationLocalService = socialRelationLocalService;

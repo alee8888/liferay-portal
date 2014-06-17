@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -67,6 +67,7 @@ public class ZipWriterImpl implements ZipWriter {
 		_file.mkdir();
 	}
 
+	@Override
 	public void addEntry(String name, byte[] bytes) throws IOException {
 		UnsyncByteArrayInputStream unsyncByteArrayInputStream =
 			new UnsyncByteArrayInputStream(bytes);
@@ -79,14 +80,15 @@ public class ZipWriterImpl implements ZipWriter {
 		}
 	}
 
-	public void addEntry(String name, InputStream inpuStream)
+	@Override
+	public void addEntry(String name, InputStream inputStream)
 		throws IOException {
 
 		if (name.startsWith(StringPool.SLASH)) {
 			name = name.substring(1);
 		}
 
-		if (inpuStream == null) {
+		if (inputStream == null) {
 			return;
 		}
 
@@ -100,21 +102,24 @@ public class ZipWriterImpl implements ZipWriter {
 			new File(getPath() + StringPool.SLASH + name));
 
 		try {
-			File.cat(inpuStream, outputStream);
+			File.cat(inputStream, outputStream);
 		}
 		finally {
 			outputStream.close();
 		}
 	}
 
+	@Override
 	public void addEntry(String name, String s) throws IOException {
 		addEntry(name, s.getBytes(StringPool.UTF8));
 	}
 
+	@Override
 	public void addEntry(String name, StringBuilder sb) throws IOException {
 		addEntry(name, sb.toString());
 	}
 
+	@Override
 	public byte[] finish() throws IOException {
 		UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
 			new UnsyncByteArrayOutputStream();
@@ -132,6 +137,7 @@ public class ZipWriterImpl implements ZipWriter {
 		return unsyncByteArrayOutputStream.toByteArray();
 	}
 
+	@Override
 	public java.io.File getFile() {
 		try {
 			File.umount(_file);
@@ -143,11 +149,12 @@ public class ZipWriterImpl implements ZipWriter {
 		return _file.getDelegate();
 	}
 
+	@Override
 	public String getPath() {
 		return _file.getPath();
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(ZipWriter.class);
+	private static Log _log = LogFactoryUtil.getLog(ZipWriterImpl.class);
 
 	private File _file;
 

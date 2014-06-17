@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,27 +17,31 @@
 <%@ include file="/html/portlet/blogs_admin/init.jsp" %>
 
 <%
-String toolbarItem = ParamUtil.getString(request, "toolbarItem", "view-all");
+String toolbarItem = ParamUtil.getString(request, "toolbarItem");
 %>
 
-<div class="lfr-portlet-toolbar">
-	<portlet:renderURL var="viewEntriesURL">
-		<portlet:param name="struts_action" value="/blogs_admin/view" />
-	</portlet:renderURL>
-
-	<span class="lfr-toolbar-button view-button <%= toolbarItem.equals("view-all") ? "current" : StringPool.BLANK %>">
-		<a href="<%= viewEntriesURL %>"><liferay-ui:message key="view-all" /></a>
-	</span>
-
-	<c:if test="<%= BlogsPermission.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_ENTRY) %>">
-		<portlet:renderURL var="addEntryURL">
-			<portlet:param name="struts_action" value="/blogs_admin/edit_entry" />
-			<portlet:param name="redirect" value="<%= viewEntriesURL %>" />
-			<portlet:param name="backURL" value="<%= viewEntriesURL %>" />
+<aui:nav-bar>
+	<aui:nav cssClass="navbar-nav">
+		<portlet:renderURL var="viewEntriesURL">
+			<portlet:param name="struts_action" value="/blogs_admin/view" />
 		</portlet:renderURL>
 
-		<span class="lfr-toolbar-button add-button <%= toolbarItem.equals("add") ? "current" : StringPool.BLANK %>">
-			<a href="<%= addEntryURL %>"><liferay-ui:message key="add" /></a>
-		</span>
+		<c:if test="<%= BlogsPermission.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_ENTRY) %>">
+			<portlet:renderURL var="addEntryURL">
+				<portlet:param name="struts_action" value="/blogs_admin/edit_entry" />
+				<portlet:param name="redirect" value="<%= viewEntriesURL %>" />
+				<portlet:param name="backURL" value="<%= viewEntriesURL %>" />
+			</portlet:renderURL>
+
+			<aui:nav-item href="<%= addEntryURL %>" iconCssClass="icon-plus" label="add" selected='<%= toolbarItem.equals("add") %>' />
+		</c:if>
+	</aui:nav>
+
+	<c:if test="<%= showBlogEntriesSearch %>">
+		<aui:nav-bar-search>
+			<div class="col-xs-12 form-search">
+				<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" id="keywords1" name="keywords" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' />
+			</div>
+		</aui:nav-bar-search>
 	</c:if>
-</div>
+</aui:nav-bar>

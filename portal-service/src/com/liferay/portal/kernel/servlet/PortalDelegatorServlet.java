@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
- * See http://issues.liferay.com/browse/LEP-2297.
+ * See https://issues.liferay.com/browse/LEP-2297.
  * </p>
  *
  * @author Olaf Fricke
@@ -64,20 +64,31 @@ public class PortalDelegatorServlet extends HttpServlet {
 		String uri = request.getPathInfo();
 
 		if ((uri == null) || (uri.length() == 0)) {
-			throw new ServletException("Path information is not specified");
+			response.sendError(
+				HttpServletResponse.SC_NOT_FOUND,
+				"Path information is not specified");
+
+			return;
 		}
 
 		String[] paths = uri.split(StringPool.SLASH);
 
 		if (paths.length < 2) {
-			throw new ServletException("Path " + uri + " is invalid");
+			response.sendError(
+				HttpServletResponse.SC_NOT_FOUND,
+				"Path " + uri + " is invalid");
+
+			return;
 		}
 
 		HttpServlet delegate = _delegates.get(paths[1]);
 
 		if (delegate == null) {
-			throw new ServletException(
+			response.sendError(
+				HttpServletResponse.SC_NOT_FOUND,
 				"No servlet registred for context " + paths[1]);
+
+			return;
 		}
 
 		Thread currentThread = Thread.currentThread();

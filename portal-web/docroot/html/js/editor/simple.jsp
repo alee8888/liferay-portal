@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,9 +26,11 @@ String onChangeMethod = (String)request.getAttribute("liferay-ui:input-editor:on
 if (Validator.isNotNull(onChangeMethod)) {
 	onChangeMethod = namespace + onChangeMethod;
 }
+
+boolean resizable = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:input-editor:resizable"));
 %>
 
-<aui:script use="resize">
+<aui:script use='<%= resizable ? "resize" : "aui-base" %>'>
 	window['<%= name %>'] = {
 		destroy: function() {
 			var editorEl = document.getElementById('<%= name %>');
@@ -37,7 +39,7 @@ if (Validator.isNotNull(onChangeMethod)) {
 				editorEl.parentNode.removeChild(editorEl);
 			}
 
-			delete window['<%= name %>'];
+			window['<%= name %>'] = null;
 		},
 
 		focus: function() {
@@ -52,15 +54,21 @@ if (Validator.isNotNull(onChangeMethod)) {
 			<c:if test="<%= Validator.isNotNull(initMethod) %>">
 				<%= name %>.setHTML(<%= namespace + initMethod %>());
 
-				new A.Resize(
-					{
-						handles: 'br',
-						node: '#<%= name %>_container',
-						wrap: true
-					}
-				);
+				<c:if test="<%= resizable && BrowserSnifferUtil.isIe(request) %>">
+					new A.Resize(
+						{
+							handles: 'br',
+							node: '#<%= name %>_container',
+							wrap: true
+						}
+					);
+				</c:if>
 			</c:if>
+
+			window['<%= name %>'].instanceReady = true;
 		},
+
+		instanceReady: false,
 
 		setHTML: function(value) {
 			document.getElementById('<%= name %>').value = value || '';
@@ -74,19 +82,7 @@ if (Validator.isNotNull(onChangeMethod)) {
 	<table bgcolor="#FFFFFF" cellpadding="0" cellspacing="0" height="100%" width="100%">
 	<tr>
 		<td bgcolor="#FFFFFF" height="100%">
-			<textarea id="<%= name %>" name="<%= name %>"
-
-			<%
-			if (Validator.isNotNull(onChangeMethod)) {
-			%>
-
-				onChange="<%= HtmlUtil.escape(onChangeMethod) %>(this.value)"
-
-			<%
-			}
-			%>
-
-			style="font-family: monospace; height: 100%; min-height: 8em; min-width: 10em; width: 100%;"></textarea>
+			<textarea class="lfr-editor-textarea" id="<%= name %>" name="<%= name %>" <%= Validator.isNotNull(onChangeMethod) ? "onChange=\"" + HtmlUtil.escapeJS(onChangeMethod) + "(this.value)\"" : StringPool.BLANK %> style="resize:<%= resizable ? "vertical" : "none" %>"></textarea>
 		</td>
 	</tr>
 	</table>

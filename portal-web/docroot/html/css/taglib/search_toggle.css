@@ -1,30 +1,52 @@
-.taglib-search-toggle .inline-control {
-	float: none;
+.taglib-search-toggle .toggle-advanced {
+	margin-left: 10px;
+	position: absolute;
+	top: 8px;
 }
 
-.taglib-search-toggle .toggle-link {
-	clear: both;
+.taglib-search-toggle-advanced-wrapper {
+	left: 0;
+	position: absolute;
+	right: 0;
+	top: 100%;
+	z-index: 1;
+
+	.taglib-search-toggle-advanced {
+		border: 1px solid transparent;
+		margin-top: 5px;
+		padding: 20px;
+	}
 }
 
-.taglib-search-toggle-advanced .aui-fieldset {
-	margin-bottom: 0;
+/*Skin*/
+
+.taglib-search-toggle .toggle-advanced {
+	color: inherit;
+
+	&, &:hover, &:focus {
+		text-decoration: none;
+	}
 }
 
-.taglib-search-toggle-advanced .aui-fieldset .aui-field {
-	display: inline-block;
-	width: 30%;
-}
+.taglib-search-toggle-advanced-wrapper .taglib-search-toggle-advanced {
+	background-color: #FCFCFC;
+	border-color: #DDD;
 
-.taglib-search-toggle-advanced .aui-fieldset .aui-field-input {
-	-moz-box-sizing: border-box;
-	-webkit-box-sizing: border-box;
-	box-sizing: border-box;
-}
+	.btn.close {
+		margin-right: 5px;
+	}
 
-.taglib-search-toggle-advanced .aui-fieldset .aui-field-input, .taglib-search-toggle-advanced .aui-fieldset .aui-field-element, .taglib-search-toggle-advanced .aui-fieldset .aui-field-content {
-	width: 100%;
-}
+	.taglib-search-toggle-advanced-content {
+		margin: 20px;
+		position: relative;
 
-.ie6 .taglib-search-toggle-advanced .aui-fieldset .aui-field-input, .ie7 .taglib-search-toggle-advanced .aui-fieldset .aui-field-input {
-	width: 98%;
+		.match-fields {
+			margin-bottom: 0;
+		}
+
+		.match-fields-legend {
+			color: #999;
+			font-size: 13px;
+		}
+	}
 }

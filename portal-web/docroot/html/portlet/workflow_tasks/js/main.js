@@ -22,7 +22,7 @@ AUI.add(
 					content = '#' + randomId + 'updateAsignee';
 				}
 
-				title = icon.text();
+				var title = icon.text();
 
 				WorkflowTasks.showPopup(icon.attr('href'), A.one(content), title, randomId);
 			},
@@ -45,29 +45,36 @@ AUI.add(
 					comments.show();
 				}
 
-				var dialog = new A.Dialog(
+				var dialog = Liferay.Util.Window.getWindow(
 					{
-						align: Liferay.Util.Window.ALIGN_CENTER,
-						bodyContent: form,
-						buttons: [
-							{
-								handler: function() {
-									submitForm(form);
-								},
-								label: Liferay.Language.get('ok')
+						dialog: {
+							bodyContent: form,
+							height: 420,
+							toolbars: {
+								footer: [
+									{
+										label: Liferay.Language.get('ok'),
+										on: {
+											click: function() {
+												submitForm(form);
+											}
+										}
+									},
+									{
+										label: Liferay.Language.get('cancel'),
+										on: {
+											click: function() {
+												dialog.hide();
+											}
+										}
+									}
+								]
 							},
-							{
-								handler: function() {
-									this.close();
-								},
-								label: Liferay.Language.get('cancel')
-							}
-						],
-						modal: true,
-						title: title,
-						width: 400
+							width: 350
+						},
+						title: Liferay.Util.escapeHTML(title)
 					}
-				).render();
+				);
 			}
 		};
 
@@ -75,6 +82,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-dialog']
+		requires: ['liferay-util-window']
 	}
 );

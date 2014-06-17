@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,9 @@
 
 package com.liferay.portal.webdav.methods;
 
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
+import com.liferay.portal.kernel.webdav.methods.Method;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -24,17 +26,19 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class OptionsMethodImpl implements Method {
 
-	public int process(WebDAVRequest webDavRequest) {
-		HttpServletResponse response = webDavRequest.getHttpServletResponse();
+	@Override
+	public int process(WebDAVRequest webDAVRequest) {
+		HttpServletResponse response = webDAVRequest.getHttpServletResponse();
 
-		if (webDavRequest.getWebDAVStorage().isSupportsClassTwo()) {
+		if (webDAVRequest.getWebDAVStorage().isSupportsClassTwo()) {
 			response.addHeader("DAV", "1,2");
 		}
 		else {
 			response.addHeader("DAV", "1");
 		}
 
-		response.addHeader("Allow", Method.SUPPORTED_METHODS);
+		response.addHeader(
+			"Allow", StringUtil.merge(Method.SUPPORTED_METHOD_NAMES));
 		response.addHeader("MS-Author-Via", "DAV");
 
 		return HttpServletResponse.SC_OK;

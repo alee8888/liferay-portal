@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -58,6 +58,7 @@ public class PortletSandboxDeployListener
 		jars.add(portalLibDir + "/util-taglib.jar");
 	}
 
+	@Override
 	public void deploy(File dir) throws SandboxDeployException {
 		_sandboxHandler.deploy(dir);
 	}
@@ -69,6 +70,7 @@ public class PortletSandboxDeployListener
 		return _sandboxHandler.getDisplayName(displayName);
 	}
 
+	@Override
 	public void undeploy(File dir) throws SandboxDeployException {
 		_sandboxHandler.undeploy(dir);
 	}

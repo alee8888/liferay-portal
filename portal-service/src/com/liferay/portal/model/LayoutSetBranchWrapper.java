@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,27 +27,32 @@ import java.util.Map;
  * This class is a wrapper for {@link LayoutSetBranch}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       LayoutSetBranch
+ * @author Brian Wing Shun Chan
+ * @see LayoutSetBranch
  * @generated
  */
+@ProviderType
 public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	ModelWrapper<LayoutSetBranch> {
 	public LayoutSetBranchWrapper(LayoutSetBranch layoutSetBranch) {
 		_layoutSetBranch = layoutSetBranch;
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return LayoutSetBranch.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return LayoutSetBranch.class.getName();
 	}
 
+	@Override
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("layoutSetBranchId", getLayoutSetBranchId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -55,7 +64,6 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 		attributes.put("name", getName());
 		attributes.put("description", getDescription());
 		attributes.put("master", getMaster());
-		attributes.put("logo", getLogo());
 		attributes.put("logoId", getLogoId());
 		attributes.put("themeId", getThemeId());
 		attributes.put("colorSchemeId", getColorSchemeId());
@@ -70,7 +78,14 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 		return attributes;
 	}
 
+	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long layoutSetBranchId = (Long)attributes.get("layoutSetBranchId");
 
 		if (layoutSetBranchId != null) {
@@ -137,12 +152,6 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 			setMaster(master);
 		}
 
-		Boolean logo = (Boolean)attributes.get("logo");
-
-		if (logo != null) {
-			setLogo(logo);
-		}
-
 		Long logoId = (Long)attributes.get("logoId");
 
 		if (logoId != null) {
@@ -205,6 +214,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the primary key of this layout set branch
 	*/
+	@Override
 	public long getPrimaryKey() {
 		return _layoutSetBranch.getPrimaryKey();
 	}
@@ -214,8 +224,29 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param primaryKey the primary key of this layout set branch
 	*/
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_layoutSetBranch.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this layout set branch.
+	*
+	* @return the mvcc version of this layout set branch
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _layoutSetBranch.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this layout set branch.
+	*
+	* @param mvccVersion the mvcc version of this layout set branch
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_layoutSetBranch.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -223,6 +254,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the layout set branch ID of this layout set branch
 	*/
+	@Override
 	public long getLayoutSetBranchId() {
 		return _layoutSetBranch.getLayoutSetBranchId();
 	}
@@ -232,6 +264,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param layoutSetBranchId the layout set branch ID of this layout set branch
 	*/
+	@Override
 	public void setLayoutSetBranchId(long layoutSetBranchId) {
 		_layoutSetBranch.setLayoutSetBranchId(layoutSetBranchId);
 	}
@@ -241,6 +274,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the group ID of this layout set branch
 	*/
+	@Override
 	public long getGroupId() {
 		return _layoutSetBranch.getGroupId();
 	}
@@ -250,6 +284,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param groupId the group ID of this layout set branch
 	*/
+	@Override
 	public void setGroupId(long groupId) {
 		_layoutSetBranch.setGroupId(groupId);
 	}
@@ -259,6 +294,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the company ID of this layout set branch
 	*/
+	@Override
 	public long getCompanyId() {
 		return _layoutSetBranch.getCompanyId();
 	}
@@ -268,6 +304,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param companyId the company ID of this layout set branch
 	*/
+	@Override
 	public void setCompanyId(long companyId) {
 		_layoutSetBranch.setCompanyId(companyId);
 	}
@@ -277,6 +314,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the user ID of this layout set branch
 	*/
+	@Override
 	public long getUserId() {
 		return _layoutSetBranch.getUserId();
 	}
@@ -286,6 +324,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param userId the user ID of this layout set branch
 	*/
+	@Override
 	public void setUserId(long userId) {
 		_layoutSetBranch.setUserId(userId);
 	}
@@ -294,10 +333,9 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	* Returns the user uuid of this layout set branch.
 	*
 	* @return the user uuid of this layout set branch
-	* @throws SystemException if a system exception occurred
 	*/
-	public java.lang.String getUserUuid()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public java.lang.String getUserUuid() {
 		return _layoutSetBranch.getUserUuid();
 	}
 
@@ -306,6 +344,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param userUuid the user uuid of this layout set branch
 	*/
+	@Override
 	public void setUserUuid(java.lang.String userUuid) {
 		_layoutSetBranch.setUserUuid(userUuid);
 	}
@@ -315,6 +354,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the user name of this layout set branch
 	*/
+	@Override
 	public java.lang.String getUserName() {
 		return _layoutSetBranch.getUserName();
 	}
@@ -324,6 +364,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param userName the user name of this layout set branch
 	*/
+	@Override
 	public void setUserName(java.lang.String userName) {
 		_layoutSetBranch.setUserName(userName);
 	}
@@ -333,6 +374,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the create date of this layout set branch
 	*/
+	@Override
 	public java.util.Date getCreateDate() {
 		return _layoutSetBranch.getCreateDate();
 	}
@@ -342,6 +384,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param createDate the create date of this layout set branch
 	*/
+	@Override
 	public void setCreateDate(java.util.Date createDate) {
 		_layoutSetBranch.setCreateDate(createDate);
 	}
@@ -351,6 +394,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the modified date of this layout set branch
 	*/
+	@Override
 	public java.util.Date getModifiedDate() {
 		return _layoutSetBranch.getModifiedDate();
 	}
@@ -360,6 +404,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param modifiedDate the modified date of this layout set branch
 	*/
+	@Override
 	public void setModifiedDate(java.util.Date modifiedDate) {
 		_layoutSetBranch.setModifiedDate(modifiedDate);
 	}
@@ -369,6 +414,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the private layout of this layout set branch
 	*/
+	@Override
 	public boolean getPrivateLayout() {
 		return _layoutSetBranch.getPrivateLayout();
 	}
@@ -378,6 +424,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return <code>true</code> if this layout set branch is private layout; <code>false</code> otherwise
 	*/
+	@Override
 	public boolean isPrivateLayout() {
 		return _layoutSetBranch.isPrivateLayout();
 	}
@@ -387,6 +434,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param privateLayout the private layout of this layout set branch
 	*/
+	@Override
 	public void setPrivateLayout(boolean privateLayout) {
 		_layoutSetBranch.setPrivateLayout(privateLayout);
 	}
@@ -396,6 +444,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the name of this layout set branch
 	*/
+	@Override
 	public java.lang.String getName() {
 		return _layoutSetBranch.getName();
 	}
@@ -405,6 +454,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param name the name of this layout set branch
 	*/
+	@Override
 	public void setName(java.lang.String name) {
 		_layoutSetBranch.setName(name);
 	}
@@ -414,6 +464,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the description of this layout set branch
 	*/
+	@Override
 	public java.lang.String getDescription() {
 		return _layoutSetBranch.getDescription();
 	}
@@ -423,6 +474,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param description the description of this layout set branch
 	*/
+	@Override
 	public void setDescription(java.lang.String description) {
 		_layoutSetBranch.setDescription(description);
 	}
@@ -432,6 +484,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the master of this layout set branch
 	*/
+	@Override
 	public boolean getMaster() {
 		return _layoutSetBranch.getMaster();
 	}
@@ -441,6 +494,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return <code>true</code> if this layout set branch is master; <code>false</code> otherwise
 	*/
+	@Override
 	public boolean isMaster() {
 		return _layoutSetBranch.isMaster();
 	}
@@ -450,35 +504,9 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param master the master of this layout set branch
 	*/
+	@Override
 	public void setMaster(boolean master) {
 		_layoutSetBranch.setMaster(master);
-	}
-
-	/**
-	* Returns the logo of this layout set branch.
-	*
-	* @return the logo of this layout set branch
-	*/
-	public boolean getLogo() {
-		return _layoutSetBranch.getLogo();
-	}
-
-	/**
-	* Returns <code>true</code> if this layout set branch is logo.
-	*
-	* @return <code>true</code> if this layout set branch is logo; <code>false</code> otherwise
-	*/
-	public boolean isLogo() {
-		return _layoutSetBranch.isLogo();
-	}
-
-	/**
-	* Sets whether this layout set branch is logo.
-	*
-	* @param logo the logo of this layout set branch
-	*/
-	public void setLogo(boolean logo) {
-		_layoutSetBranch.setLogo(logo);
 	}
 
 	/**
@@ -486,6 +514,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the logo ID of this layout set branch
 	*/
+	@Override
 	public long getLogoId() {
 		return _layoutSetBranch.getLogoId();
 	}
@@ -495,6 +524,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param logoId the logo ID of this layout set branch
 	*/
+	@Override
 	public void setLogoId(long logoId) {
 		_layoutSetBranch.setLogoId(logoId);
 	}
@@ -504,6 +534,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the theme ID of this layout set branch
 	*/
+	@Override
 	public java.lang.String getThemeId() {
 		return _layoutSetBranch.getThemeId();
 	}
@@ -513,6 +544,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param themeId the theme ID of this layout set branch
 	*/
+	@Override
 	public void setThemeId(java.lang.String themeId) {
 		_layoutSetBranch.setThemeId(themeId);
 	}
@@ -522,6 +554,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the color scheme ID of this layout set branch
 	*/
+	@Override
 	public java.lang.String getColorSchemeId() {
 		return _layoutSetBranch.getColorSchemeId();
 	}
@@ -531,6 +564,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param colorSchemeId the color scheme ID of this layout set branch
 	*/
+	@Override
 	public void setColorSchemeId(java.lang.String colorSchemeId) {
 		_layoutSetBranch.setColorSchemeId(colorSchemeId);
 	}
@@ -540,6 +574,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the wap theme ID of this layout set branch
 	*/
+	@Override
 	public java.lang.String getWapThemeId() {
 		return _layoutSetBranch.getWapThemeId();
 	}
@@ -549,6 +584,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param wapThemeId the wap theme ID of this layout set branch
 	*/
+	@Override
 	public void setWapThemeId(java.lang.String wapThemeId) {
 		_layoutSetBranch.setWapThemeId(wapThemeId);
 	}
@@ -558,6 +594,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the wap color scheme ID of this layout set branch
 	*/
+	@Override
 	public java.lang.String getWapColorSchemeId() {
 		return _layoutSetBranch.getWapColorSchemeId();
 	}
@@ -567,6 +604,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param wapColorSchemeId the wap color scheme ID of this layout set branch
 	*/
+	@Override
 	public void setWapColorSchemeId(java.lang.String wapColorSchemeId) {
 		_layoutSetBranch.setWapColorSchemeId(wapColorSchemeId);
 	}
@@ -576,6 +614,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the css of this layout set branch
 	*/
+	@Override
 	public java.lang.String getCss() {
 		return _layoutSetBranch.getCss();
 	}
@@ -585,6 +624,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param css the css of this layout set branch
 	*/
+	@Override
 	public void setCss(java.lang.String css) {
 		_layoutSetBranch.setCss(css);
 	}
@@ -594,6 +634,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the settings of this layout set branch
 	*/
+	@Override
 	public java.lang.String getSettings() {
 		return _layoutSetBranch.getSettings();
 	}
@@ -603,6 +644,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param settings the settings of this layout set branch
 	*/
+	@Override
 	public void setSettings(java.lang.String settings) {
 		_layoutSetBranch.setSettings(settings);
 	}
@@ -612,6 +654,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the layout set prototype uuid of this layout set branch
 	*/
+	@Override
 	public java.lang.String getLayoutSetPrototypeUuid() {
 		return _layoutSetBranch.getLayoutSetPrototypeUuid();
 	}
@@ -621,6 +664,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param layoutSetPrototypeUuid the layout set prototype uuid of this layout set branch
 	*/
+	@Override
 	public void setLayoutSetPrototypeUuid(
 		java.lang.String layoutSetPrototypeUuid) {
 		_layoutSetBranch.setLayoutSetPrototypeUuid(layoutSetPrototypeUuid);
@@ -631,6 +675,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return the layout set prototype link enabled of this layout set branch
 	*/
+	@Override
 	public boolean getLayoutSetPrototypeLinkEnabled() {
 		return _layoutSetBranch.getLayoutSetPrototypeLinkEnabled();
 	}
@@ -640,6 +685,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @return <code>true</code> if this layout set branch is layout set prototype link enabled; <code>false</code> otherwise
 	*/
+	@Override
 	public boolean isLayoutSetPrototypeLinkEnabled() {
 		return _layoutSetBranch.isLayoutSetPrototypeLinkEnabled();
 	}
@@ -649,43 +695,65 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 	*
 	* @param layoutSetPrototypeLinkEnabled the layout set prototype link enabled of this layout set branch
 	*/
+	@Override
 	public void setLayoutSetPrototypeLinkEnabled(
 		boolean layoutSetPrototypeLinkEnabled) {
 		_layoutSetBranch.setLayoutSetPrototypeLinkEnabled(layoutSetPrototypeLinkEnabled);
 	}
 
+	@Override
 	public boolean isNew() {
 		return _layoutSetBranch.isNew();
 	}
 
+	@Override
 	public void setNew(boolean n) {
 		_layoutSetBranch.setNew(n);
 	}
 
+	@Override
 	public boolean isCachedModel() {
 		return _layoutSetBranch.isCachedModel();
 	}
 
+	@Override
 	public void setCachedModel(boolean cachedModel) {
 		_layoutSetBranch.setCachedModel(cachedModel);
 	}
 
+	@Override
 	public boolean isEscapedModel() {
 		return _layoutSetBranch.isEscapedModel();
 	}
 
+	@Override
 	public java.io.Serializable getPrimaryKeyObj() {
 		return _layoutSetBranch.getPrimaryKeyObj();
 	}
 
+	@Override
 	public void setPrimaryKeyObj(java.io.Serializable primaryKeyObj) {
 		_layoutSetBranch.setPrimaryKeyObj(primaryKeyObj);
 	}
 
+	@Override
 	public com.liferay.portlet.expando.model.ExpandoBridge getExpandoBridge() {
 		return _layoutSetBranch.getExpandoBridge();
 	}
 
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portal.model.BaseModel<?> baseModel) {
+		_layoutSetBranch.setExpandoBridgeAttributes(baseModel);
+	}
+
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portlet.expando.model.ExpandoBridge expandoBridge) {
+		_layoutSetBranch.setExpandoBridgeAttributes(expandoBridge);
+	}
+
+	@Override
 	public void setExpandoBridgeAttributes(
 		com.liferay.portal.service.ServiceContext serviceContext) {
 		_layoutSetBranch.setExpandoBridgeAttributes(serviceContext);
@@ -696,6 +764,7 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 		return new LayoutSetBranchWrapper((LayoutSetBranch)_layoutSetBranch.clone());
 	}
 
+	@Override
 	public int compareTo(
 		com.liferay.portal.model.LayoutSetBranch layoutSetBranch) {
 		return _layoutSetBranch.compareTo(layoutSetBranch);
@@ -706,12 +775,19 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 		return _layoutSetBranch.hashCode();
 	}
 
+	@Override
 	public com.liferay.portal.model.CacheModel<com.liferay.portal.model.LayoutSetBranch> toCacheModel() {
 		return _layoutSetBranch.toCacheModel();
 	}
 
+	@Override
 	public com.liferay.portal.model.LayoutSetBranch toEscapedModel() {
 		return new LayoutSetBranchWrapper(_layoutSetBranch.toEscapedModel());
+	}
+
+	@Override
+	public com.liferay.portal.model.LayoutSetBranch toUnescapedModel() {
+		return new LayoutSetBranchWrapper(_layoutSetBranch.toUnescapedModel());
 	}
 
 	@Override
@@ -719,83 +795,133 @@ public class LayoutSetBranchWrapper implements LayoutSetBranch,
 		return _layoutSetBranch.toString();
 	}
 
+	@Override
 	public java.lang.String toXmlString() {
 		return _layoutSetBranch.toXmlString();
 	}
 
-	public void persist()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void persist() {
 		_layoutSetBranch.persist();
 	}
 
-	public com.liferay.portal.model.ColorScheme getColorScheme()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public com.liferay.portal.model.ColorScheme getColorScheme() {
 		return _layoutSetBranch.getColorScheme();
 	}
 
+	@Override
 	public com.liferay.portal.model.Group getGroup()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _layoutSetBranch.getGroup();
 	}
 
+	@Override
 	public com.liferay.portal.model.LayoutSet getLayoutSet() {
 		return _layoutSetBranch.getLayoutSet();
 	}
 
+	@Override
 	public long getLiveLogoId() {
 		return _layoutSetBranch.getLiveLogoId();
 	}
 
+	@Override
+	public boolean getLogo() {
+		return _layoutSetBranch.getLogo();
+	}
+
+	@Override
 	public com.liferay.portal.kernel.util.UnicodeProperties getSettingsProperties() {
 		return _layoutSetBranch.getSettingsProperties();
 	}
 
+	@Override
 	public java.lang.String getSettingsProperty(java.lang.String key) {
 		return _layoutSetBranch.getSettingsProperty(key);
 	}
 
-	public com.liferay.portal.model.Theme getTheme()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public com.liferay.portal.model.Theme getTheme() {
 		return _layoutSetBranch.getTheme();
 	}
 
+	@Override
 	public java.lang.String getThemeSetting(java.lang.String key,
-		java.lang.String device)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String device) {
 		return _layoutSetBranch.getThemeSetting(key, device);
 	}
 
-	public com.liferay.portal.model.ColorScheme getWapColorScheme()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public com.liferay.portal.model.ColorScheme getWapColorScheme() {
 		return _layoutSetBranch.getWapColorScheme();
 	}
 
-	public com.liferay.portal.model.Theme getWapTheme()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public com.liferay.portal.model.Theme getWapTheme() {
 		return _layoutSetBranch.getWapTheme();
 	}
 
+	@Override
 	public boolean isLayoutSetPrototypeLinkActive() {
 		return _layoutSetBranch.isLayoutSetPrototypeLinkActive();
 	}
 
+	@Override
+	public boolean isLogo() {
+		return _layoutSetBranch.isLogo();
+	}
+
+	@Override
 	public void setSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties settingsProperties) {
 		_layoutSetBranch.setSettingsProperties(settingsProperties);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof LayoutSetBranchWrapper)) {
+			return false;
+		}
+
+		LayoutSetBranchWrapper layoutSetBranchWrapper = (LayoutSetBranchWrapper)obj;
+
+		if (Validator.equals(_layoutSetBranch,
+					layoutSetBranchWrapper._layoutSetBranch)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
-	 * @deprecated Renamed to {@link #getWrappedModel}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public LayoutSetBranch getWrappedLayoutSetBranch() {
 		return _layoutSetBranch;
 	}
 
+	@Override
 	public LayoutSetBranch getWrappedModel() {
 		return _layoutSetBranch;
 	}
 
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _layoutSetBranch.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _layoutSetBranch.isFinderCacheEnabled();
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		_layoutSetBranch.resetOriginalValues();
 	}

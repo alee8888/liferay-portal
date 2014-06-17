@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -43,6 +43,7 @@ public class PluginSettingImpl extends PluginSettingBaseImpl {
 	/**
 	 * Adds a role to the list of roles.
 	 */
+	@Override
 	public void addRole(String role) {
 		setRolesArray(ArrayUtil.append(_rolesArray, role));
 	}
@@ -52,6 +53,7 @@ public class PluginSettingImpl extends PluginSettingBaseImpl {
 	 *
 	 * @return an array of required roles of the plugin
 	 */
+	@Override
 	public String[] getRolesArray() {
 		return _rolesArray;
 	}
@@ -62,30 +64,30 @@ public class PluginSettingImpl extends PluginSettingBaseImpl {
 	 * @param  userId the primary key of the user
 	 * @return <code>true</code> if the user has permission to use this plugin
 	 */
+	@Override
 	public boolean hasPermission(long userId) {
 		try {
 			if (_rolesArray.length == 0) {
 				return true;
 			}
-			else if (RoleLocalServiceUtil.hasUserRoles(
-						userId, getCompanyId(), _rolesArray, true)) {
+
+			if (RoleLocalServiceUtil.hasUserRoles(
+					userId, getCompanyId(), _rolesArray, true)) {
 
 				return true;
 			}
-			else if (RoleLocalServiceUtil.hasUserRole(
-						userId, getCompanyId(), RoleConstants.ADMINISTRATOR,
-						true)) {
+
+			if (RoleLocalServiceUtil.hasUserRole(
+					userId, getCompanyId(), RoleConstants.ADMINISTRATOR,
+					true)) {
 
 				return true;
 			}
-			else {
-				User user = UserLocalServiceUtil.getUserById(userId);
 
-				if (user.isDefaultUser() &&
-					hasRoleWithName(RoleConstants.GUEST)) {
+			User user = UserLocalServiceUtil.getUserById(userId);
 
-					return true;
-				}
+			if (user.isDefaultUser() && hasRoleWithName(RoleConstants.GUEST)) {
+				return true;
 			}
 		}
 		catch (Exception e) {
@@ -103,9 +105,10 @@ public class PluginSettingImpl extends PluginSettingBaseImpl {
 	 * @return <code>true</code> if the plugin has a role with the specified
 	 *         name
 	 */
+	@Override
 	public boolean hasRoleWithName(String roleName) {
 		for (int i = 0; i < _rolesArray.length; i++) {
-			if (_rolesArray[i].equalsIgnoreCase(roleName)) {
+			if (StringUtil.equalsIgnoreCase(_rolesArray[i], roleName)) {
 				return true;
 			}
 		}
@@ -126,6 +129,7 @@ public class PluginSettingImpl extends PluginSettingBaseImpl {
 	/**
 	 * Sets an array of required roles of the plugin.
 	 */
+	@Override
 	public void setRolesArray(String[] rolesArray) {
 		_rolesArray = rolesArray;
 

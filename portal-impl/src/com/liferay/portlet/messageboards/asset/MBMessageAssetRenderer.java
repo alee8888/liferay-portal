@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,23 +15,27 @@
 package com.liferay.portlet.messageboards.asset;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.parsers.bbcode.BBCodeTranslatorUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
+import com.liferay.portal.kernel.trash.TrashRenderer;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.WebKeys;
+import com.liferay.portlet.asset.model.AssetRendererFactory;
 import com.liferay.portlet.asset.model.BaseAssetRenderer;
 import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.service.permission.MBDiscussionPermission;
 import com.liferay.portlet.messageboards.service.permission.MBMessagePermission;
 
+import java.util.Date;
 import java.util.Locale;
 
 import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
@@ -42,30 +46,76 @@ import javax.portlet.WindowState;
  * @author Juan Fernández
  * @author Sergio González
  */
-public class MBMessageAssetRenderer extends BaseAssetRenderer {
+public class MBMessageAssetRenderer
+	extends BaseAssetRenderer implements TrashRenderer {
 
 	public MBMessageAssetRenderer(MBMessage message) {
 		_message = message;
 	}
 
-	public String getAssetRendererFactoryClassName() {
-		return MBCategoryAssetRendererFactory.CLASS_NAME;
+	@Override
+	public String getClassName() {
+		return MBMessage.class.getName();
 	}
 
+	@Override
 	public long getClassPK() {
 		return _message.getMessageId();
 	}
 
+	@Override
+	public Date getDisplayDate() {
+		return _message.getModifiedDate();
+	}
+
+	@Override
 	public long getGroupId() {
 		return _message.getGroupId();
 	}
 
-	public String getSummary(Locale locale) {
-		return HtmlUtil.stripHtml(_message.getBody());
+	@Override
+	public String getPortletId() {
+		AssetRendererFactory assetRendererFactory = getAssetRendererFactory();
+
+		return assetRendererFactory.getPortletId();
 	}
 
+	@Override
+	public String getSearchSummary(Locale locale) {
+		if (_message.isFormatBBCode()) {
+			return HtmlUtil.extractText(
+				BBCodeTranslatorUtil.getHTML(_message.getBody()));
+		}
+
+		return getSummary(null, null);
+	}
+
+	@Override
+	public String getSummary(
+		PortletRequest portletRequest, PortletResponse portletResponse) {
+
+		return _message.getBody();
+	}
+
+	@Override
+	public String getThumbnailPath(PortletRequest portletRequest)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		return themeDisplay.getPathThemeImages() +
+			"/file_system/large/message.png";
+	}
+
+	@Override
 	public String getTitle(Locale locale) {
 		return _message.getSubject();
+	}
+
+	@Override
+	public String getType() {
+		return MBMessageAssetRendererFactory.TYPE;
 	}
 
 	@Override
@@ -92,15 +142,16 @@ public class MBMessageAssetRenderer extends BaseAssetRenderer {
 			WindowState windowState)
 		throws Exception {
 
-		PortletURL portletURL = liferayPortletResponse.createLiferayPortletURL(
-			PortletKeys.MESSAGE_BOARDS, PortletRequest.RENDER_PHASE);
+		AssetRendererFactory assetRendererFactory = getAssetRendererFactory();
 
-		portletURL.setWindowState(windowState);
+		PortletURL portletURL = assetRendererFactory.getURLView(
+			liferayPortletResponse, windowState);
 
 		portletURL.setParameter(
 			"struts_action", "/message_boards/view_message");
 		portletURL.setParameter(
 			"messageId", String.valueOf(_message.getMessageId()));
+		portletURL.setWindowState(windowState);
 
 		return portletURL;
 	}
@@ -117,21 +168,24 @@ public class MBMessageAssetRenderer extends BaseAssetRenderer {
 			_message.getMessageId());
 	}
 
+	@Override
 	public long getUserId() {
 		return _message.getUserId();
 	}
 
+	@Override
 	public String getUserName() {
 		return _message.getUserName();
 	}
 
+	@Override
 	public String getUuid() {
 		return _message.getUuid();
 	}
 
 	@Override
 	public boolean hasEditPermission(PermissionChecker permissionChecker)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (_message.isDiscussion()) {
 			return MBDiscussionPermission.contains(
@@ -148,7 +202,7 @@ public class MBMessageAssetRenderer extends BaseAssetRenderer {
 
 	@Override
 	public boolean hasViewPermission(PermissionChecker permissionChecker)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (_message.isDiscussion()) {
 			return MBDiscussionPermission.contains(
@@ -168,6 +222,7 @@ public class MBMessageAssetRenderer extends BaseAssetRenderer {
 		return true;
 	}
 
+	@Override
 	public String render(
 			RenderRequest renderRequest, RenderResponse renderResponse,
 			String template)
@@ -188,7 +243,7 @@ public class MBMessageAssetRenderer extends BaseAssetRenderer {
 
 	@Override
 	protected String getIconPath(ThemeDisplay themeDisplay) {
-		return themeDisplay.getPathThemeImages() + "/common/conversation.png";
+		return themeDisplay.getPathThemeImages() + "/common/message.png";
 	}
 
 	private MBMessage _message;

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,13 +23,16 @@ Document document = (Document)row.getObject();
 
 String className = document.get(Field.ENTRY_CLASS_NAME);
 
-String entryTitle = null;
-String entrySummary = null;
 String downloadURL = null;
+String returnToFullPageURL = (String)request.getAttribute("search.jsp-returnToFullPageURL");
 PortletURL viewFullContentURL = null;
 String viewURL = null;
 
 AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(className);
+
+AssetRenderer assetRenderer = null;
+
+boolean inheritRedirect = false;
 
 if (assetRendererFactory != null) {
 	long classPK = GetterUtil.getLong(document.get(Field.ENTRY_CLASS_PK));
@@ -42,13 +45,18 @@ if (assetRendererFactory != null) {
 
 	AssetEntry assetEntry = AssetEntryLocalServiceUtil.getEntry(className, classPK);
 
-	AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(classPK);
+	assetRenderer = assetRendererFactory.getAssetRenderer(classPK);
 
 	downloadURL = assetRenderer.getURLDownload(themeDisplay);
 
 	viewFullContentURL = _getViewFullContentURL(request, themeDisplay, PortletKeys.ASSET_PUBLISHER, document);
 
 	viewFullContentURL.setParameter("struts_action", "/asset_publisher/view_content");
+
+	if (Validator.isNotNull(returnToFullPageURL)) {
+		viewFullContentURL.setParameter("returnToFullPageURL", returnToFullPageURL);
+	}
+
 	viewFullContentURL.setParameter("assetEntryId", String.valueOf(assetEntry.getEntryId()));
 	viewFullContentURL.setParameter("type", assetRendererFactory.getType());
 
@@ -61,6 +69,8 @@ if (assetRendererFactory != null) {
 	}
 
 	if (viewInContext) {
+		inheritRedirect = true;
+
 		String viewFullContentURLString = viewFullContentURL.toString();
 
 		viewFullContentURLString = HttpUtil.setParameter(viewFullContentURLString, "redirect", currentURL);
@@ -70,148 +80,159 @@ if (assetRendererFactory != null) {
 	else {
 		viewURL = viewFullContentURL.toString();
 	}
-
-	entryTitle = assetRenderer.getTitle(locale);
-	entrySummary = assetRenderer.getSummary(locale);
 }
 else {
 	String portletId = document.get(Field.PORTLET_ID);
 
 	viewFullContentURL = _getViewFullContentURL(request, themeDisplay, portletId, document);
 
+	if (Validator.isNotNull(returnToFullPageURL)) {
+		viewFullContentURL.setParameter("returnToFullPageURL", returnToFullPageURL);
+	}
+
 	viewURL = viewFullContentURL.toString();
+}
 
-	Indexer indexer = IndexerRegistryUtil.getIndexer(className);
+Indexer indexer = IndexerRegistryUtil.getIndexer(className);
 
+Summary summary = null;
+
+if (indexer != null) {
 	String snippet = document.get(Field.SNIPPET);
 
-	Summary summary = indexer.getSummary(document, locale, snippet, viewFullContentURL);
+	summary = indexer.getSummary(document, snippet, viewFullContentURL, renderRequest, renderResponse);
+}
+else if (assetRenderer != null) {
+	summary = new Summary(locale, assetRenderer.getTitle(locale), assetRenderer.getSearchSummary(locale), viewFullContentURL);
+}
 
-	if (viewInContext) {
+if (summary != null) {
+	if ((assetRendererFactory == null) && viewInContext) {
 		viewURL = viewFullContentURL.toString();
 	}
 
-	entryTitle = summary.getTitle();
-	entrySummary = summary.getContent();
-}
+	viewURL = _checkViewURL(themeDisplay, viewURL, currentURL, inheritRedirect);
 
-entrySummary = StringUtil.shorten(entrySummary, 200);
+	boolean highlightEnabled = (Boolean)request.getAttribute("search.jsp-highlightEnabled");
+	String[] queryTerms = (String[])request.getAttribute("search.jsp-queryTerms");
 
-viewURL = _checkViewURL(themeDisplay, viewURL, currentURL);
+	summary.setHighlight(highlightEnabled);
+	summary.setQueryTerms(queryTerms);
 
-String[] queryTerms = (String[])request.getAttribute("search.jsp-queryTerms");
+	PortletURL portletURL = (PortletURL)request.getAttribute("search.jsp-portletURL");
+	%>
 
-PortletURL portletURL = (PortletURL)request.getAttribute("search.jsp-portletURL");
-%>
+	<span class="asset-entry">
+		<span class="asset-entry-type">
+			<%= ResourceActionsUtil.getModelResource(themeDisplay.getLocale(), className) %>
+		</span>
 
-<span class="asset-entry">
-	<span class="asset-entry-type">
-		<%= ResourceActionsUtil.getModelResource(themeDisplay.getLocale(), className) %>
-	</span>
+		<span class="asset-entry-title">
+			<a class="<%= (assetRenderer != null) ? assetRenderer.getIconCssClass() : StringPool.BLANK %>" href="<%= viewURL %>">
+				<%= summary.getHighlightedTitle() %>
+			</a>
 
-	<span class="asset-entry-title">
-		<a href="<%= viewURL %>">
-			<c:if test="<%= assetRendererFactory != null %>">
-				<img alt="" src="<%= assetRendererFactory.getIconPath(renderRequest) %>" />
+			<c:if test="<%= Validator.isNotNull(downloadURL) %>">
+				<liferay-ui:icon
+					iconCssClass="icon-download-alt"
+					label="<%= false %>"
+					message='<%= LanguageUtil.format(pageContext, "download-x", HtmlUtil.escape(summary.getTitle()), false) %>'
+					url="<%= downloadURL %>"
+				/>
 			</c:if>
+		</span>
 
-			<%= StringUtil.highlight(HtmlUtil.escape(entryTitle), queryTerms) %>
-		</a>
+		<%
+		String[] assetCategoryIds = document.getValues(Field.ASSET_CATEGORY_IDS);
+		String[] assetTagNames = document.getValues(Field.ASSET_TAG_NAMES);
+		%>
 
-		<c:if test="<%= Validator.isNotNull(downloadURL) %>">
-			<liferay-ui:icon image="../arrows/01_down" label="<%= false %>" message='<%= LanguageUtil.format(pageContext, "download-x", HtmlUtil.escape(entryTitle)) %>' url="<%= downloadURL %>" />
+		<c:if test="<%= Validator.isNotNull(summary.getContent()) || Validator.isNotNull(assetCategoryIds[0]) || Validator.isNotNull(assetTagNames[0]) %>">
+			<div class="asset-entry-content">
+				<c:if test="<%= Validator.isNotNull(summary.getContent()) %>">
+					<span class="asset-entry-summary">
+						<%= summary.getHighlightedContent() %>
+					</span>
+				</c:if>
+
+				<c:if test="<%= Validator.isNotNull(assetTagNames[0]) %>">
+					<div class="asset-entry-tags">
+
+						<%
+						for (int i = 0; i < assetTagNames.length; i++) {
+							String assetTagName = assetTagNames[i].trim();
+
+							PortletURL tagURL = PortletURLUtil.clone(portletURL, renderResponse);
+
+							tagURL.setParameter(Field.ASSET_TAG_NAMES, assetTagName);
+						%>
+
+							<c:if test="<%= i == 0 %>">
+								<div class="taglib-asset-tags-summary">
+							</c:if>
+
+							<a class="tag" href="<%= tagURL.toString() %>"><%= assetTagName %></a>
+
+							<c:if test="<%= (i + 1) == assetTagNames.length %>">
+								</div>
+							</c:if>
+
+						<%
+						}
+						%>
+
+					</div>
+				</c:if>
+
+				<c:if test="<%= Validator.isNotNull(assetCategoryIds[0]) %>">
+					<div class="asset-entry-categories">
+
+						<%
+						for (int i = 0; i < assetCategoryIds.length; i++) {
+							long assetCategoryId = GetterUtil.getLong(assetCategoryIds[i]);
+
+							AssetCategory assetCategory = null;
+
+							try {
+								assetCategory = AssetCategoryLocalServiceUtil.getCategory(assetCategoryId);
+							}
+							catch (NoSuchCategoryException nsce) {
+							}
+
+							if (assetCategory == null) {
+								continue;
+							}
+
+							AssetVocabulary assetVocabulary = AssetVocabularyLocalServiceUtil.getVocabulary(assetCategory.getVocabularyId());
+
+							PortletURL categoryURL = PortletURLUtil.clone(portletURL, renderResponse);
+
+							categoryURL.setParameter(Field.ASSET_CATEGORY_IDS, String.valueOf(assetCategory.getCategoryId()));
+						%>
+
+							<c:if test="<%= i == 0 %>">
+								<div class="taglib-asset-categories-summary">
+									<%= HtmlUtil.escape(assetVocabulary.getTitle(locale)) %>:
+							</c:if>
+
+							<a class="asset-category" href="<%= categoryURL.toString() %>">
+								<%= _buildAssetCategoryPath(assetCategory, locale) %>
+							</a>
+
+							<c:if test="<%= (i + 1) == assetCategoryIds.length %>">
+								</div>
+							</c:if>
+
+						<%
+						}
+						%>
+
+					</div>
+				</c:if>
+			</div>
 		</c:if>
 	</span>
 
-	<%
-	String[] assetCategoryIds = document.getValues(Field.ASSET_CATEGORY_IDS);
-	String[] assetTagNames = document.getValues(Field.ASSET_TAG_NAMES);
-	%>
-
-	<c:if test="<%= Validator.isNotNull(entrySummary) || Validator.isNotNull(assetCategoryIds[0]) || Validator.isNotNull(assetTagNames[0]) %>">
-		<div class="asset-entry-content">
-			<c:if test="<%= Validator.isNotNull(entrySummary) %>">
-				<span class="asset-entry-summary">
-					<%= StringUtil.highlight(HtmlUtil.escape(entrySummary), queryTerms) %>
-				</span>
-			</c:if>
-
-			<c:if test="<%= Validator.isNotNull(assetTagNames[0]) %>">
-				<div class="asset-entry-tags">
-
-					<%
-					for (int i = 0; i < assetTagNames.length; i++) {
-						String assetTagName = assetTagNames[i].trim();
-
-						PortletURL tagURL = PortletURLUtil.clone(portletURL, renderResponse);
-
-						tagURL.setParameter(Field.ASSET_TAG_NAMES, assetTagName);
-					%>
-
-						<c:if test="<%= i == 0 %>">
-							<div class="taglib-asset-tags-summary">
-						</c:if>
-
-						<a class="tag" href="<%= tagURL.toString() %>"><%= assetTagName %></a>
-
-						<c:if test="<%= (i + 1) == assetTagNames.length %>">
-							</div>
-						</c:if>
-
-					<%
-					}
-					%>
-
-				</div>
-			</c:if>
-
-			<c:if test="<%= Validator.isNotNull(assetCategoryIds[0]) %>">
-				<div class="asset-entry-categories">
-
-					<%
-					for (int i = 0; i < assetCategoryIds.length; i++) {
-						long assetCategoryId = GetterUtil.getLong(assetCategoryIds[i]);
-
-						AssetCategory assetCategory = null;
-
-						try {
-							assetCategory = AssetCategoryLocalServiceUtil.getCategory(assetCategoryId);
-						}
-						catch (NoSuchCategoryException nsce) {
-						}
-
-						if (assetCategory == null) {
-							continue;
-						}
-
-						AssetVocabulary assetVocabulary = AssetVocabularyLocalServiceUtil.getVocabulary(assetCategory.getVocabularyId());
-
-						PortletURL categoryURL = PortletURLUtil.clone(portletURL, renderResponse);
-
-						categoryURL.setParameter(Field.ASSET_CATEGORY_TITLES, assetCategory.getTitle(LocaleUtil.getDefault()));
-					%>
-
-						<c:if test="<%= i == 0 %>">
-							<div class="taglib-asset-categories-summary">
-								<span class="asset-vocabulary">
-									<%= HtmlUtil.escape(assetVocabulary.getTitle(locale)) %>:
-								</span>
-						</c:if>
-
-						<a class="asset-category" href="<%= categoryURL.toString() %>">
-							<%= _buildAssetCategoryPath(assetCategory, locale) %>
-						</a>
-
-						<c:if test="<%= (i + 1) == assetCategoryIds.length %>">
-							</div>
-						</c:if>
-
-					<%
-					}
-					%>
-
-				</div>
-			</c:if>
-		</div>
-	</c:if>
-</span>
+<%
+}
+%>

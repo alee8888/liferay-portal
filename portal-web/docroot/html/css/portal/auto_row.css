@@ -2,8 +2,8 @@
 	border-bottom: 1px solid transparent;
 	margin-bottom: 10px;
 	margin-top: 10px;
-	overflow: hidden;
 	padding: 5px;
+	padding-bottom: 25px;
 	padding-top: 1px;
 	position: relative;
 }
@@ -12,22 +12,24 @@
 	width: 100%;
 }
 
+.lfr-form-row:after {
+	clear: both;
+	content: '';
+	display: block;
+	height: 0;
+}
+
 .lfr-form-row:hover {
 	border: solid transparent;
 	border-width: 1px 0;
 	padding-top: 0;
 }
 
-.lfr-form-row .aui-field {
-	clear: none;
-	float: left;
-}
-
-.lfr-form-row-inline .aui-field {
+.lfr-form-row-inline .form-group {
 	margin-right: 5px;
 }
 
-.lfr-form-row legend .field-label{
+.lfr-form-row legend .field-label {
 	float: left;
 	margin-right: 10px;
 }
@@ -43,14 +45,16 @@
 	padding: 0;
 }
 
-.lfr-autorow-controls.aui-toolbar {
-	padding: 1px;
-}
-
 .lfr-autorow-controls {
 	bottom: 5px;
 	position: absolute;
 	right: 5px;
+}
+
+.ie6, .ie7 {
+	.lfr-form-row {
+		zoom: 1;
+	}
 }
 
 /* Skin */

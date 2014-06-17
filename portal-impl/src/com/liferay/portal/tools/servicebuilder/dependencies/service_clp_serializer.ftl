@@ -12,7 +12,6 @@ package ${packagePath}.service;
 
 import com.liferay.portal.kernel.bean.PortletBeanLocatorUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.log.Log;
@@ -187,10 +186,6 @@ public class ClpSerializer {
 	public static Throwable translateThrowable(Throwable throwable) {
 		if (_useReflectionToTranslateThrowable) {
 			try {
-				if (_classLoader == null) {
-					_classLoader = (ClassLoader)PortletBeanLocatorUtil.locate(_servletContextName, "portletClassLoader");
-				}
-
 				UnsyncByteArrayOutputStream unsyncByteArrayOutputStream = new UnsyncByteArrayOutputStream();
 				ObjectOutputStream objectOutputStream = new ObjectOutputStream(unsyncByteArrayOutputStream);
 
@@ -200,13 +195,25 @@ public class ClpSerializer {
 				objectOutputStream.close();
 
 				UnsyncByteArrayInputStream unsyncByteArrayInputStream = new UnsyncByteArrayInputStream(unsyncByteArrayOutputStream.unsafeGetByteArray(), 0, unsyncByteArrayOutputStream.size());
-				ObjectInputStream objectInputStream = new ClassLoaderObjectInputStream(unsyncByteArrayInputStream, _classLoader);
+
+				Thread currentThread = Thread.currentThread();
+
+				ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+
+				ObjectInputStream objectInputStream = new ClassLoaderObjectInputStream(unsyncByteArrayInputStream, contextClassLoader);
 
 				throwable = (Throwable)objectInputStream.readObject();
 
 				objectInputStream.close();
 
 				return throwable;
+			}
+			catch (ClassNotFoundException cnfe) {
+				if (_log.isInfoEnabled()) {
+					_log.info("Do not use reflection to translate throwable");
+				}
+
+				_useReflectionToTranslateThrowable = false;
 			}
 			catch (SecurityException se) {
 				if (_log.isInfoEnabled()) {
@@ -226,17 +233,9 @@ public class ClpSerializer {
 
 		String className = clazz.getName();
 
-		if (className.equals(PortalException.class.getName())) {
-			return new PortalException();
-		}
-
-		if (className.equals(SystemException.class.getName())) {
-			return new SystemException();
-		}
-
 		<#list exceptions as exception>
 			if (className.equals("${packagePath}.${exception}Exception")) {
-				return new ${packagePath}.${exception}Exception();
+				return new ${packagePath}.${exception}Exception(throwable.getMessage(), throwable.getCause());
 			}
 		</#list>
 
@@ -260,7 +259,6 @@ public class ClpSerializer {
 
 	private static Log _log = LogFactoryUtil.getLog(ClpSerializer.class);
 
-	private static ClassLoader _classLoader;
 	private static String _servletContextName;
 	private static boolean _useReflectionToTranslateThrowable = true;
 

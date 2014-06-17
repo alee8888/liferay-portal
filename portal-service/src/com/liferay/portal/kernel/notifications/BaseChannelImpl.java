@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public abstract class BaseChannelImpl implements Channel {
 
+	@Override
 	public void cleanUp() throws ChannelException {
 		long currentTime = System.currentTimeMillis();
 
@@ -47,6 +48,7 @@ public abstract class BaseChannelImpl implements Channel {
 		}
 	}
 
+	@Override
 	public void close() throws ChannelException {
 		flush();
 	}
@@ -55,12 +57,14 @@ public abstract class BaseChannelImpl implements Channel {
 		return _companyId;
 	}
 
+	@Override
 	public List<NotificationEvent> getNotificationEvents()
 		throws ChannelException {
 
 		return getNotificationEvents(true);
 	}
 
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -83,6 +87,7 @@ public abstract class BaseChannelImpl implements Channel {
 		return false;
 	}
 
+	@Override
 	public void registerChannelListener(ChannelListener channelListener) {
 		_channelListeners.add(channelListener);
 
@@ -95,6 +100,7 @@ public abstract class BaseChannelImpl implements Channel {
 		_cleanUpInterval = cleanUpInterval;
 	}
 
+	@Override
 	public void unregisterChannelListener(ChannelListener channelListener) {
 		_channelListeners.remove(channelListener);
 

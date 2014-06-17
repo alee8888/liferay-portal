@@ -16,7 +16,7 @@ AUI.add(
 				}
 
 				form.all(selector).each(
-					function(item, index, collection) {
+					function(item, index) {
 						var val = item.val();
 
 						if (val && item.get('checked')) {
@@ -42,7 +42,7 @@ AUI.add(
 				}
 
 				form.all(selector).each(
-					function(item, index, collection) {
+					function(item, index) {
 						var val = item.val();
 
 						if (val && item.get('name') != except && item.get('checked') && !item.get('disabled')) {
@@ -67,7 +67,7 @@ AUI.add(
 					var options = select.all('option');
 
 					options.each(
-						function(item, index, collection) {
+						function(item, index) {
 							var val = item.val();
 
 							if (val) {
@@ -78,7 +78,7 @@ AUI.add(
 				}
 
 				if (buffer[0] != '.none') {
-					selectList = buffer.join(delimeter);
+					selectList = buffer.join(delimeter || ',');
 				}
 			}
 
@@ -98,7 +98,7 @@ AUI.add(
 				}
 
 				form.all(selector).each(
-					function(item, index, collection) {
+					function(item, index) {
 						var val = item.val();
 
 						if (val && item.get('name') != except && !item.get('checked') && !item.get('disabled')) {

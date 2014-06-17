@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,7 +34,9 @@ public class CMISDisjunction extends CMISJunction {
 
 		StringBundler sb = new StringBundler(cmisCriterions.size() * 2 + 1);
 
-		sb.append("(");
+		if (cmisCriterions.size() > 1) {
+			sb.append(StringPool.OPEN_PARENTHESIS);
+		}
 
 		for (int i = 0; i < cmisCriterions.size(); i++) {
 			CMISCriterion cmisCriterion = cmisCriterions.get(i);
@@ -46,7 +48,9 @@ public class CMISDisjunction extends CMISJunction {
 			sb.append(cmisCriterion.toQueryFragment());
 		}
 
-		sb.append(")");
+		if (cmisCriterions.size() > 1) {
+			sb.append(StringPool.CLOSE_PARENTHESIS);
+		}
 
 		return sb.toString();
 	}

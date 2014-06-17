@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,9 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -37,7 +38,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.PasswordTrackerModelImpl
  * @generated
  */
-public interface PasswordTrackerModel extends BaseModel<PasswordTracker> {
+@ProviderType
+public interface PasswordTrackerModel extends BaseModel<PasswordTracker>,
+	MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -57,6 +60,22 @@ public interface PasswordTrackerModel extends BaseModel<PasswordTracker> {
 	 * @param primaryKey the primary key of this password tracker
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this password tracker.
+	 *
+	 * @return the mvcc version of this password tracker
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this password tracker.
+	 *
+	 * @param mvccVersion the mvcc version of this password tracker
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the password tracker ID of this password tracker.
@@ -90,9 +109,8 @@ public interface PasswordTrackerModel extends BaseModel<PasswordTracker> {
 	 * Returns the user uuid of this password tracker.
 	 *
 	 * @return the user uuid of this password tracker
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getUserUuid() throws SystemException;
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this password tracker.
@@ -130,35 +148,60 @@ public interface PasswordTrackerModel extends BaseModel<PasswordTracker> {
 	 */
 	public void setPassword(String password);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(PasswordTracker passwordTracker);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<PasswordTracker> toCacheModel();
 
+	@Override
 	public PasswordTracker toEscapedModel();
 
+	@Override
+	public PasswordTracker toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

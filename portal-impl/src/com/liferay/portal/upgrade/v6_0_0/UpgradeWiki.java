@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,12 +28,12 @@ public class UpgradeWiki extends UpgradeProcess {
 	@Override
 	protected void doUpgrade() throws Exception {
 		try {
-			runSQL("alter_column_type WikiPage parentTitle varchar(255) null");
+			runSQL("alter_column_type WikiPage parentTitle VARCHAR(255) null");
 			runSQL(
-				"alter_column_type WikiPage redirectTitle varchar(255) null");
+				"alter_column_type WikiPage redirectTitle VARCHAR(255) null");
 
 			runSQL(
-				"alter_column_type WikiPageResource title varchar(255) null");
+				"alter_column_type WikiPageResource title VARCHAR(255) null");
 		}
 		catch (SQLException sqle) {
 

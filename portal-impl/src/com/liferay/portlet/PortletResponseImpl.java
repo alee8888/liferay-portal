@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,20 +25,27 @@ import com.liferay.portal.kernel.servlet.URLEncoder;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.PortletApp;
 import com.liferay.portal.model.PortletURLListener;
+import com.liferay.portal.security.lang.DoPrivilegedUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.PortletLocalServiceUtil;
+import com.liferay.portal.struts.StrutsActionPortletURL;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
 
 import java.io.Writer;
 
 import java.lang.reflect.Constructor;
+
+import java.security.PrivilegedAction;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -101,6 +108,7 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		return (PortletResponseImpl)portletResponse;
 	}
 
+	@Override
 	public void addDateHeader(String name, long date) {
 		if (Validator.isNull(name)) {
 			throw new IllegalArgumentException();
@@ -118,6 +126,7 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		}
 	}
 
+	@Override
 	public void addHeader(String name, String value) {
 		if (Validator.isNull(name)) {
 			throw new IllegalArgumentException();
@@ -135,6 +144,7 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		}
 	}
 
+	@Override
 	public void addIntHeader(String name, int value) {
 		if (Validator.isNull(name)) {
 			throw new IllegalArgumentException();
@@ -152,6 +162,7 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		}
 	}
 
+	@Override
 	public void addProperty(Cookie cookie) {
 		if (cookie == null) {
 			throw new IllegalArgumentException();
@@ -169,12 +180,15 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		}
 	}
 
+	@Override
 	public void addProperty(String key, Element element) {
 		if (key == null) {
 			throw new IllegalArgumentException();
 		}
 
-		if (key.equalsIgnoreCase(MimeResponse.MARKUP_HEAD_ELEMENT)) {
+		if (StringUtil.equalsIgnoreCase(
+				key, MimeResponse.MARKUP_HEAD_ELEMENT)) {
+
 			List<Element> values = _markupHeadElements.get(key);
 
 			if (values != null) {
@@ -197,6 +211,7 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		}
 	}
 
+	@Override
 	public void addProperty(String key, String value) {
 		if (Validator.isNull(key)) {
 			throw new IllegalArgumentException();
@@ -205,15 +220,18 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		addHeader(key, value);
 	}
 
+	@Override
 	public PortletURL createActionURL() {
 		return createActionURL(_portletName);
 	}
 
+	@Override
 	public LiferayPortletURL createActionURL(String portletName) {
 		return createLiferayPortletURL(
 			portletName, PortletRequest.ACTION_PHASE);
 	}
 
+	@Override
 	public Element createElement(String tagName) throws DOMException {
 		if (_document == null) {
 			try {
@@ -234,165 +252,62 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		return _document.createElement(tagName);
 	}
 
+	@Override
 	public LiferayPortletURL createLiferayPortletURL(
 		long plid, String portletName, String lifecycle) {
 
-		try {
-			Layout layout = (Layout)_portletRequestImpl.getAttribute(
-				WebKeys.LAYOUT);
-
-			if (_portletSetup == null) {
-				_portletSetup =
-					PortletPreferencesFactoryUtil.getStrictLayoutPortletSetup(
-						layout, _portletName);
-			}
-
-			String linkToLayoutUuid = GetterUtil.getString(
-				_portletSetup.getValue("portletSetupLinkToLayoutUuid", null));
-
-			if (Validator.isNotNull(linkToLayoutUuid)) {
-				try {
-					Layout linkedLayout =
-						LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
-							linkToLayoutUuid, layout.getGroupId());
-
-					plid = linkedLayout.getPlid();
-				}
-				catch (PortalException pe) {
-				}
-			}
-		}
-		catch (SystemException se) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(se);
-			}
-		}
-
-		if (plid == LayoutConstants.DEFAULT_PLID) {
-			plid = _plid;
-		}
-
-		PortletURLImpl portletURLImpl = null;
-
-		Portlet portlet = getPortlet();
-
-		String portletURLClass = portlet.getPortletURLClass();
-
-		if (portlet.getPortletId().equals(portletName) &&
-			Validator.isNotNull(portletURLClass)) {
-
-			try {
-				Constructor<? extends PortletURLImpl> constructor =
-					_constructors.get(portletURLClass);
-
-				if (constructor == null) {
-					Class<?> portletURLClassObj = Class.forName(
-						portletURLClass);
-
-					constructor = (Constructor<? extends PortletURLImpl>)
-						portletURLClassObj.getConstructor(
-							new Class[] {
-								com.liferay.portlet.PortletResponseImpl.class,
-								long.class, String.class
-							});
-
-					_constructors.put(portletURLClass, constructor);
-				}
-
-				portletURLImpl = constructor.newInstance(
-					new Object[] {this, plid, lifecycle});
-			}
-			catch (Exception e) {
-				_log.error(e);
-			}
-		}
-
-		if (portletURLImpl == null) {
-			portletURLImpl = new PortletURLImpl(
-				_portletRequestImpl, portletName, plid, lifecycle);
-		}
-
-		PortletApp portletApp = portlet.getPortletApp();
-
-		Set<PortletURLListener> portletURLListeners =
-			portletApp.getPortletURLListeners();
-
-		for (PortletURLListener portletURLListener : portletURLListeners) {
-			try {
-				PortletURLGenerationListener portletURLGenerationListener =
-					PortletURLListenerFactory.create(portletURLListener);
-
-				if (lifecycle.equals(PortletRequest.ACTION_PHASE)) {
-					portletURLGenerationListener.filterActionURL(
-						portletURLImpl);
-				}
-				else if (lifecycle.equals(PortletRequest.RENDER_PHASE)) {
-					portletURLGenerationListener.filterRenderURL(
-						portletURLImpl);
-				}
-				else if (lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
-					portletURLGenerationListener.filterResourceURL(
-						portletURLImpl);
-				}
-			}
-			catch (PortletException pe) {
-				_log.error(pe, pe);
-			}
-		}
-
-		try {
-			portletURLImpl.setWindowState(_portletRequestImpl.getWindowState());
-		}
-		catch (WindowStateException wse) {
-			_log.error(wse.getMessage());
-		}
-
-		try {
-			portletURLImpl.setPortletMode(_portletRequestImpl.getPortletMode());
-		}
-		catch (PortletModeException pme) {
-			_log.error(pme.getMessage());
-		}
-
-		if (lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
-			portletURLImpl.setCopyCurrentRenderParameters(true);
-		}
-
-		return portletURLImpl;
+		return createLiferayPortletURL(plid, portletName, lifecycle, true);
 	}
 
+	@Override
+	public LiferayPortletURL createLiferayPortletURL(
+		long plid, String portletName, String lifecycle,
+		boolean includeLinkToLayoutUuid) {
+
+		return DoPrivilegedUtil.wrap(
+			new LiferayPortletURLPrivilegedAction(
+				plid, portletName, lifecycle, includeLinkToLayoutUuid));
+	}
+
+	@Override
 	public LiferayPortletURL createLiferayPortletURL(String lifecycle) {
 		return createLiferayPortletURL(_portletName, lifecycle);
 	}
 
+	@Override
 	public LiferayPortletURL createLiferayPortletURL(
 		String portletName, String lifecycle) {
 
 		return createLiferayPortletURL(_plid, portletName, lifecycle);
 	}
 
+	@Override
 	public PortletURL createRenderURL() {
 		return createRenderURL(_portletName);
 	}
 
+	@Override
 	public LiferayPortletURL createRenderURL(String portletName) {
 		return createLiferayPortletURL(
 			portletName, PortletRequest.RENDER_PHASE);
 	}
 
+	@Override
 	public ResourceURL createResourceURL() {
 		return createResourceURL(_portletName);
 	}
 
+	@Override
 	public LiferayPortletURL createResourceURL(String portletName) {
 		return createLiferayPortletURL(
 			portletName, PortletRequest.RESOURCE_PHASE);
 	}
 
+	@Override
 	public String encodeURL(String path) {
 		if ((path == null) ||
 			(!path.startsWith("#") && !path.startsWith("/") &&
-				(path.indexOf("://") == -1))) {
+			 !path.contains("://"))) {
 
 			// Allow '#' as well to workaround a bug in Oracle ADF 10.1.3
 
@@ -416,12 +331,14 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		return _portletRequestImpl.getHttpServletRequest();
 	}
 
+	@Override
 	public HttpServletResponse getHttpServletResponse() {
 		return _response;
 	}
 
 	public abstract String getLifecycle();
 
+	@Override
 	public String getNamespace() {
 		if (_wsrp) {
 			return "wsrp_rewrite_";
@@ -460,6 +377,7 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		return _portletRequestImpl;
 	}
 
+	@Override
 	public Map<String, String[]> getProperties() {
 		Map<String, String[]> properties =
 			new LinkedHashMap<String, String[]>();
@@ -484,6 +402,7 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		return _urlEncoder;
 	}
 
+	@Override
 	public void setDateHeader(String name, long date) {
 		if (Validator.isNull(name)) {
 			throw new IllegalArgumentException();
@@ -497,6 +416,7 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		}
 	}
 
+	@Override
 	public void setHeader(String name, String value) {
 		if (Validator.isNull(name)) {
 			throw new IllegalArgumentException();
@@ -510,6 +430,7 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		}
 	}
 
+	@Override
 	public void setIntHeader(String name, int value) {
 		if (Validator.isNull(name)) {
 			throw new IllegalArgumentException();
@@ -536,6 +457,7 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		}
 	}
 
+	@Override
 	public void setProperty(String key, String value) {
 		if (key == null) {
 			throw new IllegalArgumentException();
@@ -599,6 +521,7 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		}
 	}
 
+	@Override
 	public void transferMarkupHeadElements() {
 		List<Element> elements = _markupHeadElements.get(
 			MimeResponse.MARKUP_HEAD_ELEMENT);
@@ -644,6 +567,162 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 		}
 	}
 
+	protected LiferayPortletURL doCreateLiferayPortletURL(
+		long plid, String portletName, String lifecycle,
+		boolean includeLinkToLayoutUuid) {
+
+		try {
+			Layout layout = (Layout)_portletRequestImpl.getAttribute(
+				WebKeys.LAYOUT);
+
+			if (layout == null) {
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)_portletRequestImpl.getAttribute(
+						WebKeys.THEME_DISPLAY);
+
+				if (themeDisplay != null) {
+					layout = themeDisplay.getLayout();
+				}
+			}
+
+			if (_portletSetup == null) {
+				_portletSetup =
+					PortletPreferencesFactoryUtil.getStrictLayoutPortletSetup(
+						layout, _portletName);
+			}
+
+			String linkToLayoutUuid = GetterUtil.getString(
+				_portletSetup.getValue("portletSetupLinkToLayoutUuid", null));
+
+			if (PropsValues.PORTLET_CROSS_LAYOUT_INVOCATION_MODE.equals(
+					"render") &&
+				!PortletRequest.RENDER_PHASE.equals(lifecycle)) {
+
+				includeLinkToLayoutUuid = false;
+			}
+
+			if (Validator.isNotNull(linkToLayoutUuid) &&
+				includeLinkToLayoutUuid) {
+
+				try {
+					Layout linkedLayout =
+						LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
+							linkToLayoutUuid, layout.getGroupId(),
+							layout.isPrivateLayout());
+
+					plid = linkedLayout.getPlid();
+				}
+				catch (PortalException pe) {
+				}
+			}
+		}
+		catch (SystemException se) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(se);
+			}
+		}
+
+		if (plid == LayoutConstants.DEFAULT_PLID) {
+			plid = _plid;
+		}
+
+		PortletURLImpl portletURLImpl = null;
+
+		Portlet portlet = getPortlet();
+
+		String portletURLClass = portlet.getPortletURLClass();
+
+		if (portlet.getPortletId().equals(portletName) &&
+			Validator.isNotNull(portletURLClass)) {
+
+			if (portletURLClass.equals(
+					StrutsActionPortletURL.class.getName())) {
+
+				portletURLImpl = new StrutsActionPortletURL(
+					this, plid, lifecycle);
+			}
+			else {
+				try {
+					Constructor<? extends PortletURLImpl> constructor =
+						_constructors.get(portletURLClass);
+
+					if (constructor == null) {
+						Class<?> portletURLClassObj = Class.forName(
+							portletURLClass);
+
+						constructor = (Constructor<? extends PortletURLImpl>)
+							portletURLClassObj.getConstructor(
+								new Class[] {
+									PortletResponseImpl.class, long.class,
+									String.class
+								});
+
+						_constructors.put(portletURLClass, constructor);
+					}
+
+					portletURLImpl = constructor.newInstance(
+						new Object[] {this, plid, lifecycle});
+				}
+				catch (Exception e) {
+					_log.error(e);
+				}
+			}
+		}
+
+		if (portletURLImpl == null) {
+			portletURLImpl = new PortletURLImpl(
+				_portletRequestImpl, portletName, plid, lifecycle);
+		}
+
+		PortletApp portletApp = portlet.getPortletApp();
+
+		Set<PortletURLListener> portletURLListeners =
+			portletApp.getPortletURLListeners();
+
+		for (PortletURLListener portletURLListener : portletURLListeners) {
+			try {
+				PortletURLGenerationListener portletURLGenerationListener =
+					PortletURLListenerFactory.create(portletURLListener);
+
+				if (lifecycle.equals(PortletRequest.ACTION_PHASE)) {
+					portletURLGenerationListener.filterActionURL(
+						portletURLImpl);
+				}
+				else if (lifecycle.equals(PortletRequest.RENDER_PHASE)) {
+					portletURLGenerationListener.filterRenderURL(
+						portletURLImpl);
+				}
+				else if (lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
+					portletURLGenerationListener.filterResourceURL(
+						portletURLImpl);
+				}
+			}
+			catch (PortletException pe) {
+				_log.error(pe, pe);
+			}
+		}
+
+		try {
+			portletURLImpl.setWindowState(_portletRequestImpl.getWindowState());
+		}
+		catch (WindowStateException wse) {
+			_log.error(wse.getMessage());
+		}
+
+		try {
+			portletURLImpl.setPortletMode(_portletRequestImpl.getPortletMode());
+		}
+		catch (PortletModeException pme) {
+			_log.error(pme.getMessage());
+		}
+
+		if (lifecycle.equals(PortletRequest.RESOURCE_PHASE)) {
+			portletURLImpl.setCopyCurrentRenderParameters(true);
+		}
+
+		return portletURLImpl;
+	}
+
 	protected void init(
 		PortletRequestImpl portletRequestImpl, HttpServletResponse response,
 		String portletName, long companyId, long plid) {
@@ -675,5 +754,31 @@ public abstract class PortletResponseImpl implements LiferayPortletResponse {
 	private HttpServletResponse _response;
 	private URLEncoder _urlEncoder;
 	private boolean _wsrp;
+
+	private class LiferayPortletURLPrivilegedAction
+		implements PrivilegedAction<LiferayPortletURL> {
+
+		public LiferayPortletURLPrivilegedAction(
+			long plid, String portletName, String lifecycle,
+			boolean includeLinkToLayoutUuid) {
+
+			_plid = plid;
+			_portletName = portletName;
+			_lifecycle = lifecycle;
+			_includeLinkToLayoutUuid = includeLinkToLayoutUuid;
+		}
+
+		@Override
+		public LiferayPortletURL run() {
+			return doCreateLiferayPortletURL(
+				_plid, _portletName, _lifecycle, _includeLinkToLayoutUuid);
+		}
+
+		private boolean _includeLinkToLayoutUuid;
+		private String _lifecycle;
+		private long _plid;
+		private String _portletName;
+
+	}
 
 }

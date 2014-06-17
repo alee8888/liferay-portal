@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -54,19 +54,19 @@ request.setAttribute("view_layout_branches.jsp-currenttLayoutBranchId", String.v
 	</c:if>
 
 	<c:if test="<%= lbne.getType() == LayoutBranchNameException.TOO_LONG %>">
-		<liferay-ui:message arguments="<%= new Object[] {4, 100} %>" key="please-enter-a-value-between-x-and-x-characters-long" />
+		<liferay-ui:message arguments="<%= new Object[] {4, 100} %>" key="please-enter-a-value-between-x-and-x-characters-long" translateArguments="<%= false %>" />
 	</c:if>
 
 	<c:if test="<%= lbne.getType() == LayoutBranchNameException.TOO_SHORT %>">
-		<liferay-ui:message arguments="<%= new Object[] {4, 100} %>" key="please-enter-a-value-between-x-and-x-characters-long" />
+		<liferay-ui:message arguments="<%= new Object[] {4, 100} %>" key="please-enter-a-value-between-x-and-x-characters-long" translateArguments="<%= false %>" />
 	</c:if>
 </liferay-ui:error>
 
-<div class="portlet-msg-info">
+<div class="alert alert-info">
 	<liferay-ui:message key="page-variations-help" />
 </div>
 
-<c:if test="<%= GroupPermissionUtil.contains(permissionChecker, stagingGroup.getGroupId(), ActionKeys.ADD_LAYOUT_BRANCH) %>">
+<c:if test="<%= GroupPermissionUtil.contains(permissionChecker, stagingGroup, ActionKeys.ADD_LAYOUT_BRANCH) %>">
 	<liferay-util:html-top>
 		<liferay-util:include page="/html/portlet/staging_bar/edit_layout_branch.jsp">
 			<liferay-util:param name="layoutRevisionId" value="<%= String.valueOf(layoutRevisionId) %>" />
@@ -102,36 +102,30 @@ request.setAttribute("view_layout_branches.jsp-currenttLayoutBranchId", String.v
 			%>
 
 			<liferay-ui:search-container-column-text
-				buffer="buffer"
 				name="name"
 			>
+				<c:if test="<%= layoutRevision.getLayoutBranchId() == currentLayoutRevision.getLayoutBranchId() %>">
+					<strong>
+				</c:if>
 
-				<%
-				String layoutBranchName = layoutBranch.getName();
+				<liferay-ui:message key="<%= HtmlUtil.escape(layoutBranch.getName()) %>" />
 
-				if (layoutRevision.getLayoutBranchId() == currentLayoutRevision.getLayoutBranchId()) {
-					buffer.append("<strong>");
-				}
+				<c:if test="<%= layoutBranch.isMaster() %>">
+					<i class="icon-asterisk"></i>
+				</c:if>
 
-				buffer.append(LanguageUtil.get(pageContext, layoutBranchName));
-
-				if (layoutBranch.isMaster()) {
-					buffer.append(" (*)");
-				}
-
-				if (layoutRevision.getLayoutBranchId() == currentLayoutRevision.getLayoutBranchId()) {
-					buffer.append("</strong>");
-				}
-				%>
-
+				<c:if test="<%= layoutRevision.getLayoutBranchId() == currentLayoutRevision.getLayoutBranchId() %>">
+					</strong>
+				</c:if>
 			</liferay-ui:search-container-column-text>
 
 			<liferay-ui:search-container-column-text
 				name="description"
-				value="<%= layoutBranch.getDescription() %>"
+				value="<%= HtmlUtil.escape(layoutBranch.getDescription()) %>"
 			/>
 
 			<liferay-ui:search-container-column-jsp
+				cssClass="entry-action"
 				path="/html/portlet/staging_bar/layout_branch_action.jsp"
 			/>
 		</liferay-ui:search-container-row>

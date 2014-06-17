@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,16 +14,16 @@
 
 package com.liferay.portlet.asset.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public interface AssetTagPropertyKeyFinder {
-	public int countByGroupId(long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public int countByGroupId(long groupId);
 
-	public java.lang.String[] findByGroupId(long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public java.lang.String[] findByGroupId(long groupId);
 
-	public java.lang.String[] findByGroupId(long groupId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public java.lang.String[] findByGroupId(long groupId, int start, int end);
 }

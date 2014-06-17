@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -44,8 +44,9 @@ public class PermissionCheckerUtil {
 				PermissionThreadLocal.getPermissionChecker();
 
 			if (permissionChecker == null) {
-				permissionChecker = (PermissionChecker)Class.forName(
-					PropsValues.PERMISSIONS_CHECKER).newInstance();
+				Class<?> clazz = Class.forName(PropsValues.PERMISSIONS_CHECKER);
+
+				permissionChecker = (PermissionChecker)clazz.newInstance();
 			}
 
 			permissionChecker.init(user);

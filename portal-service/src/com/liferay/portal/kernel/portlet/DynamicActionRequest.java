@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -39,14 +39,14 @@ public class DynamicActionRequest extends ActionRequestWrapper {
 		this(actionRequest, null, true);
 	}
 
+	public DynamicActionRequest(ActionRequest actionRequest, boolean inherit) {
+		this(actionRequest, null, inherit);
+	}
+
 	public DynamicActionRequest(
 		ActionRequest actionRequest, Map<String, String[]> params) {
 
 		this(actionRequest, params, true);
-	}
-
-	public DynamicActionRequest(ActionRequest actionRequest, boolean inherit) {
-		this(actionRequest, null, inherit);
 	}
 
 	public DynamicActionRequest(
@@ -100,7 +100,7 @@ public class DynamicActionRequest extends ActionRequestWrapper {
 			return super.getParameter(name);
 		}
 
-		if ((values != null) && (values.length > 0)) {
+		if (ArrayUtil.isNotEmpty(values)) {
 			return values[0];
 		}
 		else {

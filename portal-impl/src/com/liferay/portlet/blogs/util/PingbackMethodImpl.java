@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
 import com.liferay.portal.kernel.portlet.FriendlyURLMapperThreadLocal;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -80,6 +81,7 @@ public class PingbackMethodImpl implements Method {
 
 	public static final int TARGET_URI_INVALID = 33;
 
+	@Override
 	public Response execute(long companyId) {
 		if (!PropsValues.BLOGS_PINGBACK_ENABLED) {
 			return XmlRpcUtil.createFault(
@@ -118,7 +120,7 @@ public class PingbackMethodImpl implements Method {
 			long parentMessageId = thread.getRootMessageId();
 			String body =
 				"[...] " + getExcerpt() + " [...] [url=" + _sourceUri + "]" +
-					LanguageUtil.get(LocaleUtil.getDefault(), "read-more") +
+					LanguageUtil.get(LocaleUtil.getSiteDefault(), "read-more") +
 						"[/url]";
 
 			List<MBMessage> messages =
@@ -136,7 +138,7 @@ public class PingbackMethodImpl implements Method {
 			ServiceContext serviceContext = new ServiceContext();
 
 			String pingbackUserName = LanguageUtil.get(
-				LocaleUtil.getDefault(), "pingback");
+				LocaleUtil.getSiteDefault(), "pingback");
 
 			serviceContext.setAttribute("pingbackUserName", pingbackUserName);
 
@@ -176,14 +178,17 @@ public class PingbackMethodImpl implements Method {
 		}
 	}
 
+	@Override
 	public String getMethodName() {
 		return "pingback.ping";
 	}
 
+	@Override
 	public String getToken() {
 		return "pingback";
 	}
 
+	@Override
 	public boolean setArguments(Object[] arguments) {
 		try {
 			_sourceUri = (String)arguments[0];
@@ -300,7 +305,7 @@ public class PingbackMethodImpl implements Method {
 			paramArray = params.get(namespace + name);
 		}
 
-		if ((paramArray != null) && (paramArray.length > 0)) {
+		if (ArrayUtil.isNotEmpty(paramArray)) {
 			return paramArray[0];
 		}
 		else {

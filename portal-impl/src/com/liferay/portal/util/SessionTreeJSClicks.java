@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,8 +35,6 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class SessionTreeJSClicks {
 
-	public static final String CLASS_NAME = SessionTreeJSClicks.class.getName();
-
 	public static void closeLayoutNodes(
 		HttpServletRequest request, String treeId, boolean privateLayout,
 		long layoutId, boolean recursive) {
@@ -65,7 +63,8 @@ public class SessionTreeJSClicks {
 		try {
 			String openNodesString = get(request, treeId);
 
-			openNodesString = StringUtil.remove(openNodesString, nodeId);
+			openNodesString = StringUtil.removeFromList(
+				openNodesString, nodeId);
 
 			put(request, treeId, openNodesString);
 		}
@@ -92,7 +91,8 @@ public class SessionTreeJSClicks {
 			String openNodesString = get(request, treeId);
 
 			for (String nodeId : nodeIds) {
-				openNodesString = StringUtil.remove(openNodesString, nodeId);
+				openNodesString = StringUtil.removeFromList(
+					openNodesString, nodeId);
 			}
 
 			put(request, treeId, openNodesString);
@@ -174,7 +174,8 @@ public class SessionTreeJSClicks {
 			PortalPreferences preferences =
 				PortletPreferencesFactoryUtil.getPortalPreferences(request);
 
-			return preferences.getValue(CLASS_NAME, key);
+			return preferences.getValue(
+				SessionTreeJSClicks.class.getName(), key);
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -210,7 +211,8 @@ public class SessionTreeJSClicks {
 			PortalPreferences preferences =
 				PortletPreferencesFactoryUtil.getPortalPreferences(request);
 
-			preferences.setValue(CLASS_NAME, key, value);
+			preferences.setValue(
+				SessionTreeJSClicks.class.getName(), key, value);
 		}
 		catch (Exception e) {
 			_log.error(e, e);

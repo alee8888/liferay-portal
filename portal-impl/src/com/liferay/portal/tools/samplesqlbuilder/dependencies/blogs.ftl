@@ -1,39 +1,36 @@
-<#if (maxBlogsEntryCount > 0)>
-	<#list 1..maxBlogsEntryCount as blogsEntryCount>
-		<#assign blogsEntry = dataFactory.addBlogsEntry(groupId, firstUserId, "Test Blog " + blogsEntryCount, "testblog" + blogsEntryCount, "This is a test blog " + blogsEntryCount + ".")>
+<#assign blogsEntryModels = dataFactory.newBlogsEntryModels(groupId)>
 
-		${sampleSQLBuilder.insertBlogsEntry(blogsEntry)}
+<#list blogsEntryModels as blogsEntryModel>
+	insert into BlogsEntry values ('${blogsEntryModel.uuid}', ${blogsEntryModel.entryId}, ${blogsEntryModel.groupId}, ${blogsEntryModel.companyId}, ${blogsEntryModel.userId}, '${blogsEntryModel.userName}', '${dataFactory.getDateString(blogsEntryModel.createDate)}', '${dataFactory.getDateString(blogsEntryModel.modifiedDate)}', '${blogsEntryModel.title}', '${blogsEntryModel.deckTitle}', '${blogsEntryModel.urlTitle}', '${blogsEntryModel.description}', '${blogsEntryModel.content}', '${dataFactory.getDateString(blogsEntryModel.displayDate)}', ${blogsEntryModel.allowPingbacks?string}, ${blogsEntryModel.allowTrackbacks?string}, '${blogsEntryModel.trackbacks}', ${blogsEntryModel.smallImage?string}, ${blogsEntryModel.smallImageId}, '${blogsEntryModel.smallImageURL}', ${blogsEntryModel.status}, ${blogsEntryModel.statusByUserId}, '${blogsEntryModel.statusByUserName}', '${dataFactory.getDateString(blogsEntryModel.statusDate)}');
 
-		<#assign mbCompanyId = 0>
-		<#assign mbGroupId = 0>
-		<#assign mbUserId = blogsEntry.userId>
-		<#assign mbCategoryId = 0>
-		<#assign mbThreadId = counter.get()>
+	<@insertResourcePermissions
+		_entry = blogsEntryModel
+	/>
 
-		<#assign mbRootMessage = dataFactory.addMBMessage(counter.get(), mbGroupId, mbUserId, dataFactory.blogsEntryClassName.classNameId, blogsEntry.entryId, mbCategoryId, mbThreadId, 0, 0, stringUtil.valueOf(blogsEntry.entryId), stringUtil.valueOf(blogsEntry.entryId))>
+	<@insertAssetEntry
+		_entry = blogsEntryModel
+		_categoryAndTag = true
+	/>
 
-		${sampleSQLBuilder.insertMBMessage(mbRootMessage)}
+	<#assign mbThreadId = dataFactory.getCounterNext()>
+	<#assign mbRootMessageId = dataFactory.getCounterNext()>
 
-		<#assign mbThread = dataFactory.addMBThread(mbThreadId, mbGroupId, companyId, mbCategoryId, mbRootMessage.messageId, maxBlogsEntryCommentCount, mbUserId)>
+	<@insertMBDiscussion
+		_classNameId = dataFactory.blogsEntryClassNameId
+		_classPK = blogsEntryModel.entryId
+		_groupId = groupId
+		_maxCommentCount = dataFactory.maxBlogsEntryCommentCount
+		_mbRootMessageId = mbRootMessageId
+		_mbThreadId = mbThreadId
+	/>
 
-		insert into MBThread values (${mbThread.threadId}, ${mbThread.groupId}, ${mbThread.companyId}, ${mbThread.categoryId}, ${mbThread.rootMessageId}, ${mbThread.rootMessageUserId}, ${mbThread.messageCount}, 0, ${mbThread.lastPostByUserId}, CURRENT_TIMESTAMP, 0, FALSE, 0, ${mbThread.lastPostByUserId}, '', CURRENT_TIMESTAMP);
+	<@insertSubscription
+		_entry = blogsEntryModel
+	/>
 
-		<#if (maxBlogsEntryCommentCount > 0)>
-			<#list 1..maxBlogsEntryCommentCount as blogsEntryCommentCount>
-				<#assign mbMessage = dataFactory.addMBMessage(counter.get(), mbGroupId, mbUserId, dataFactory.blogsEntryClassName.classNameId, blogsEntry.entryId, mbCategoryId, mbThreadId, mbRootMessage.messageId, mbRootMessage.messageId, "N/A", "This is a test comment " + blogsEntryCommentCount + ".")>
+	<@insertSocialActivity
+		_entry = blogsEntryModel
+	/>
 
-				${sampleSQLBuilder.insertMBMessage(mbMessage)}
-			</#list>
-		</#if>
-
-		<#assign mbDiscussion = dataFactory.addMBDiscussion(dataFactory.blogsEntryClassName.classNameId, blogsEntry.entryId, mbThreadId)>
-
-		insert into MBDiscussion values (${mbDiscussion.discussionId}, ${mbDiscussion.classNameId}, ${mbDiscussion.classPK}, ${mbDiscussion.threadId});
-
-		${writerBlogsCSV.write(blogsEntry.entryId + "," + blogsEntry.urlTitle + "," + mbMessage.threadId + "," + mbMessage.messageId + ",")}
-
-		<#if (blogsEntryCount < maxBlogsEntryCount)>
-			${writerBlogsCSV.write("\n")}
-		</#if>
-	</#list>
-</#if>
+	${blogCSVWriter.write(blogsEntryModel.entryId + "," + blogsEntryModel.urlTitle + "," + mbThreadId + "," + mbRootMessageId + "\n")}
+</#list>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -68,6 +68,8 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		};
 	public static final String TABLE_SQL_CREATE = "create table JournalArticleImage (articleImageId LONG not null primary key,groupId LONG,articleId VARCHAR(75) null,version DOUBLE,elInstanceId VARCHAR(75) null,elName VARCHAR(75) null,languageId VARCHAR(75) null,tempImage BOOLEAN)";
 	public static final String TABLE_SQL_DROP = "drop table JournalArticleImage";
+	public static final String ORDER_BY_JPQL = " ORDER BY journalArticleImage.articleImageId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY JournalArticleImage.articleImageId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -87,32 +89,39 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 	public static long LANGUAGEID_COLUMN_BITMASK = 16L;
 	public static long TEMPIMAGE_COLUMN_BITMASK = 32L;
 	public static long VERSION_COLUMN_BITMASK = 64L;
+	public static long ARTICLEIMAGEID_COLUMN_BITMASK = 128L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.journal.model.JournalArticleImage"));
 
 	public JournalArticleImageModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _articleImageId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setArticleImageId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_articleImageId);
+		return _articleImageId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return JournalArticleImage.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return JournalArticleImage.class.getName();
 	}
@@ -129,6 +138,9 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		attributes.put("elName", getElName());
 		attributes.put("languageId", getLanguageId());
 		attributes.put("tempImage", getTempImage());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -184,18 +196,22 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		}
 	}
 
+	@Override
 	public long getArticleImageId() {
 		return _articleImageId;
 	}
 
+	@Override
 	public void setArticleImageId(long articleImageId) {
 		_articleImageId = articleImageId;
 	}
 
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
 
+	@Override
 	public void setGroupId(long groupId) {
 		_columnBitmask |= GROUPID_COLUMN_BITMASK;
 
@@ -212,6 +228,7 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		return _originalGroupId;
 	}
 
+	@Override
 	public String getArticleId() {
 		if (_articleId == null) {
 			return StringPool.BLANK;
@@ -221,6 +238,7 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		}
 	}
 
+	@Override
 	public void setArticleId(String articleId) {
 		_columnBitmask |= ARTICLEID_COLUMN_BITMASK;
 
@@ -235,10 +253,12 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		return GetterUtil.getString(_originalArticleId);
 	}
 
+	@Override
 	public double getVersion() {
 		return _version;
 	}
 
+	@Override
 	public void setVersion(double version) {
 		_columnBitmask |= VERSION_COLUMN_BITMASK;
 
@@ -255,6 +275,7 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		return _originalVersion;
 	}
 
+	@Override
 	public String getElInstanceId() {
 		if (_elInstanceId == null) {
 			return StringPool.BLANK;
@@ -264,6 +285,7 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		}
 	}
 
+	@Override
 	public void setElInstanceId(String elInstanceId) {
 		_columnBitmask |= ELINSTANCEID_COLUMN_BITMASK;
 
@@ -278,6 +300,7 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		return GetterUtil.getString(_originalElInstanceId);
 	}
 
+	@Override
 	public String getElName() {
 		if (_elName == null) {
 			return StringPool.BLANK;
@@ -287,6 +310,7 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		}
 	}
 
+	@Override
 	public void setElName(String elName) {
 		_columnBitmask |= ELNAME_COLUMN_BITMASK;
 
@@ -301,6 +325,7 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		return GetterUtil.getString(_originalElName);
 	}
 
+	@Override
 	public String getLanguageId() {
 		if (_languageId == null) {
 			return StringPool.BLANK;
@@ -310,6 +335,7 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		}
 	}
 
+	@Override
 	public void setLanguageId(String languageId) {
 		_columnBitmask |= LANGUAGEID_COLUMN_BITMASK;
 
@@ -324,14 +350,17 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		return GetterUtil.getString(_originalLanguageId);
 	}
 
+	@Override
 	public boolean getTempImage() {
 		return _tempImage;
 	}
 
+	@Override
 	public boolean isTempImage() {
 		return _tempImage;
 	}
 
+	@Override
 	public void setTempImage(boolean tempImage) {
 		_columnBitmask |= TEMPIMAGE_COLUMN_BITMASK;
 
@@ -353,17 +382,6 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 	}
 
 	@Override
-	public JournalArticleImage toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (JournalArticleImage)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
 			JournalArticleImage.class.getName(), getPrimaryKey());
@@ -374,6 +392,16 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public JournalArticleImage toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (JournalArticleImage)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -394,6 +422,7 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		return journalArticleImageImpl;
 	}
 
+	@Override
 	public int compareTo(JournalArticleImage journalArticleImage) {
 		long primaryKey = journalArticleImage.getPrimaryKey();
 
@@ -410,18 +439,15 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof JournalArticleImage)) {
 			return false;
 		}
 
-		JournalArticleImage journalArticleImage = null;
-
-		try {
-			journalArticleImage = (JournalArticleImage)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		JournalArticleImage journalArticleImage = (JournalArticleImage)obj;
 
 		long primaryKey = journalArticleImage.getPrimaryKey();
 
@@ -436,6 +462,16 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -537,6 +573,7 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(28);
 
@@ -583,7 +620,7 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 	}
 
 	private static ClassLoader _classLoader = JournalArticleImage.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			JournalArticleImage.class
 		};
 	private long _articleImageId;
@@ -605,5 +642,5 @@ public class JournalArticleImageModelImpl extends BaseModelImpl<JournalArticleIm
 	private boolean _originalTempImage;
 	private boolean _setOriginalTempImage;
 	private long _columnBitmask;
-	private JournalArticleImage _escapedModelProxy;
+	private JournalArticleImage _escapedModel;
 }

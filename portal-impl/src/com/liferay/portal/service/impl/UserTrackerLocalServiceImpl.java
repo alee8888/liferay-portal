@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portal.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.UserTracker;
 import com.liferay.portal.model.UserTrackerPath;
 import com.liferay.portal.service.base.UserTrackerLocalServiceBaseImpl;
@@ -30,11 +29,11 @@ import java.util.List;
 public class UserTrackerLocalServiceImpl
 	extends UserTrackerLocalServiceBaseImpl {
 
+	@Override
 	public UserTracker addUserTracker(
-			long companyId, long userId, Date modifiedDate, String sessionId,
-			String remoteAddr, String remoteHost, String userAgent,
-			List<UserTrackerPath> userTrackerPaths)
-		throws SystemException {
+		long companyId, long userId, Date modifiedDate, String sessionId,
+		String remoteAddr, String remoteHost, String userAgent,
+		List<UserTrackerPath> userTrackerPaths) {
 
 		if (PropsValues.SESSION_TRACKER_PERSISTENCE_ENABLED) {
 			long userTrackerId = counterLocalService.increment(
@@ -51,7 +50,7 @@ public class UserTrackerLocalServiceImpl
 			userTracker.setRemoteHost(remoteHost);
 			userTracker.setUserAgent(userAgent);
 
-			userTrackerPersistence.update(userTracker, false);
+			userTrackerPersistence.update(userTracker);
 
 			for (UserTrackerPath userTrackerPath : userTrackerPaths) {
 				long pathId = counterLocalService.increment(
@@ -60,7 +59,7 @@ public class UserTrackerLocalServiceImpl
 				userTrackerPath.setUserTrackerPathId(pathId);
 				userTrackerPath.setUserTrackerId(userTrackerId);
 
-				userTrackerPathPersistence.update(userTrackerPath, false);
+				userTrackerPathPersistence.update(userTrackerPath);
 			}
 
 			return userTracker;
@@ -72,7 +71,7 @@ public class UserTrackerLocalServiceImpl
 
 	@Override
 	public UserTracker deleteUserTracker(long userTrackerId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		UserTracker userTracker = userTrackerPersistence.findByPrimaryKey(
 			userTrackerId);
@@ -81,8 +80,7 @@ public class UserTrackerLocalServiceImpl
 	}
 
 	@Override
-	public UserTracker deleteUserTracker(UserTracker userTracker)
-		throws SystemException {
+	public UserTracker deleteUserTracker(UserTracker userTracker) {
 
 		// Paths
 
@@ -94,8 +92,9 @@ public class UserTrackerLocalServiceImpl
 		return userTrackerPersistence.remove(userTracker);
 	}
 
-	public List<UserTracker> getUserTrackers(long companyId, int start, int end)
-		throws SystemException {
+	@Override
+	public List<UserTracker> getUserTrackers(
+		long companyId, int start, int end) {
 
 		return userTrackerPersistence.findByCompanyId(companyId, start, end);
 	}

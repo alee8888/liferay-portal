@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portlet.dynamicdatalists.workflow;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.workflow.BaseWorkflowHandler;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -37,31 +36,32 @@ import java.util.Map;
 /**
  * @author Marcellus Tavares
  */
-public class DDLRecordWorkflowHandler extends BaseWorkflowHandler {
+public class DDLRecordWorkflowHandler extends BaseWorkflowHandler<DDLRecord> {
 
-	public static final String CLASS_NAME = DDLRecord.class.getName();
-
+	@Override
 	public String getClassName() {
-		return CLASS_NAME;
+		return DDLRecord.class.getName();
 	}
 
+	@Override
 	public String getType(Locale locale) {
-		return ResourceActionsUtil.getModelResource(locale, CLASS_NAME);
+		return ResourceActionsUtil.getModelResource(locale, getClassName());
 	}
 
 	@Override
 	public WorkflowDefinitionLink getWorkflowDefinitionLink(
 			long companyId, long groupId, long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		DDLRecordVersion recordVersion =
 			DDLRecordLocalServiceUtil.getRecordVersion(classPK);
 
 		DDLRecord record = recordVersion.getRecord();
 
-		return WorkflowDefinitionLinkLocalServiceUtil.getWorkflowDefinitionLink(
-			companyId, groupId, DDLRecordSet.class.getName(),
-			record.getRecordSetId(), 0);
+		return WorkflowDefinitionLinkLocalServiceUtil.
+			fetchWorkflowDefinitionLink(
+				companyId, groupId, DDLRecordSet.class.getName(),
+				record.getRecordSetId(), 0);
 	}
 
 	@Override
@@ -69,9 +69,10 @@ public class DDLRecordWorkflowHandler extends BaseWorkflowHandler {
 		return false;
 	}
 
+	@Override
 	public DDLRecord updateStatus(
 			int status, Map<String, Serializable> workflowContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		long userId = GetterUtil.getLong(
 			(String)workflowContext.get(WorkflowConstants.CONTEXT_USER_ID));

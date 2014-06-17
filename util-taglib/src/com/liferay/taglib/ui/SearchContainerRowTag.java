@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,7 +18,6 @@ import com.liferay.portal.kernel.bean.BeanPropertiesUtil;
 import com.liferay.portal.kernel.dao.search.ResultRow;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.repository.model.RepositoryModel;
-import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ServerDetector;
@@ -30,6 +29,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.BodyTag;
@@ -70,16 +70,11 @@ public class SearchContainerRowTag<R>
 
 	@Override
 	public int doAfterBody() {
-		if (!_headerNamesAssigned) {
-			SearchContainerTag<R> searchContainerTag =
-				(SearchContainerTag<R>)findAncestorWithClass(
-					this, SearchContainerTag.class);
+		if (!_headerNamesAssigned && (_headerNames != null) &&
+			!_headerNames.isEmpty()) {
 
-			SearchContainer<R> searchContainer =
-				searchContainerTag.getSearchContainer();
-
-			searchContainer.setHeaderNames(_headerNames);
-			searchContainer.setOrderableHeaders(_orderableHeaders);
+			_searchContainer.setHeaderNames(_headerNames);
+			_searchContainer.setOrderableHeaders(_orderableHeaders);
 
 			_headerNamesAssigned = true;
 		}
@@ -133,18 +128,13 @@ public class SearchContainerRowTag<R>
 		if (searchContainerTag == null) {
 			throw new JspException("Requires liferay-ui:search-container");
 		}
-		else if (!searchContainerTag.isHasResults()) {
-			throw new JspException(
-				"Requires liferay-ui:search-container-results");
-		}
 
-		SearchContainer<R> searchContainer =
-			searchContainerTag.getSearchContainer();
+		_searchContainer = searchContainerTag.getSearchContainer();
 
-		searchContainer.setClassName(_className);
+		_searchContainer.setClassName(_className);
 
-		_resultRows = searchContainer.getResultRows();
-		_results = searchContainer.getResults();
+		_resultRows = _searchContainer.getResultRows();
+		_results = _searchContainer.getResults();
 
 		if ((_results != null) && !_results.isEmpty()) {
 			processRow();
@@ -309,8 +299,7 @@ public class SearchContainerRowTag<R>
 			}
 			else {
 				rowId = FriendlyURLNormalizerUtil.normalize(
-					String.valueOf(rowIdObj),
-					new char[] {CharPool.PERIOD, CharPool.SLASH});
+					String.valueOf(rowIdObj), _friendlyURLPattern);
 			}
 		}
 
@@ -320,6 +309,8 @@ public class SearchContainerRowTag<R>
 		pageContext.setAttribute(_modelVar, model);
 		pageContext.setAttribute(_rowVar, _resultRow);
 	}
+
+	private static Pattern _friendlyURLPattern = Pattern.compile("[^a-z0-9_-]");
 
 	private boolean _bold;
 	private String _className;
@@ -336,6 +327,7 @@ public class SearchContainerRowTag<R>
 	private String _rowIdProperty;
 	private int _rowIndex;
 	private String _rowVar = DEFAULT_ROW_VAR;
+	private SearchContainer<R> _searchContainer;
 	private boolean _stringKey;
 
 }

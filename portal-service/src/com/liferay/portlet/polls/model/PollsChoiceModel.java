@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,21 @@
 
 package com.liferay.portlet.polls.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.LocalizedModel;
+import com.liferay.portal.model.StagedGroupedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
 
 import java.io.Serializable;
 
+import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 
@@ -39,7 +45,9 @@ import java.util.Map;
  * @see com.liferay.portlet.polls.model.impl.PollsChoiceModelImpl
  * @generated
  */
-public interface PollsChoiceModel extends BaseModel<PollsChoice> {
+@ProviderType
+public interface PollsChoiceModel extends BaseModel<PollsChoice>, LocalizedModel,
+	StagedGroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -66,6 +74,7 @@ public interface PollsChoiceModel extends BaseModel<PollsChoice> {
 	 * @return the uuid of this polls choice
 	 */
 	@AutoEscape
+	@Override
 	public String getUuid();
 
 	/**
@@ -73,6 +82,7 @@ public interface PollsChoiceModel extends BaseModel<PollsChoice> {
 	 *
 	 * @param uuid the uuid of this polls choice
 	 */
+	@Override
 	public void setUuid(String uuid);
 
 	/**
@@ -88,6 +98,119 @@ public interface PollsChoiceModel extends BaseModel<PollsChoice> {
 	 * @param choiceId the choice ID of this polls choice
 	 */
 	public void setChoiceId(long choiceId);
+
+	/**
+	 * Returns the group ID of this polls choice.
+	 *
+	 * @return the group ID of this polls choice
+	 */
+	@Override
+	public long getGroupId();
+
+	/**
+	 * Sets the group ID of this polls choice.
+	 *
+	 * @param groupId the group ID of this polls choice
+	 */
+	@Override
+	public void setGroupId(long groupId);
+
+	/**
+	 * Returns the company ID of this polls choice.
+	 *
+	 * @return the company ID of this polls choice
+	 */
+	@Override
+	public long getCompanyId();
+
+	/**
+	 * Sets the company ID of this polls choice.
+	 *
+	 * @param companyId the company ID of this polls choice
+	 */
+	@Override
+	public void setCompanyId(long companyId);
+
+	/**
+	 * Returns the user ID of this polls choice.
+	 *
+	 * @return the user ID of this polls choice
+	 */
+	@Override
+	public long getUserId();
+
+	/**
+	 * Sets the user ID of this polls choice.
+	 *
+	 * @param userId the user ID of this polls choice
+	 */
+	@Override
+	public void setUserId(long userId);
+
+	/**
+	 * Returns the user uuid of this polls choice.
+	 *
+	 * @return the user uuid of this polls choice
+	 */
+	@Override
+	public String getUserUuid();
+
+	/**
+	 * Sets the user uuid of this polls choice.
+	 *
+	 * @param userUuid the user uuid of this polls choice
+	 */
+	@Override
+	public void setUserUuid(String userUuid);
+
+	/**
+	 * Returns the user name of this polls choice.
+	 *
+	 * @return the user name of this polls choice
+	 */
+	@AutoEscape
+	@Override
+	public String getUserName();
+
+	/**
+	 * Sets the user name of this polls choice.
+	 *
+	 * @param userName the user name of this polls choice
+	 */
+	@Override
+	public void setUserName(String userName);
+
+	/**
+	 * Returns the create date of this polls choice.
+	 *
+	 * @return the create date of this polls choice
+	 */
+	@Override
+	public Date getCreateDate();
+
+	/**
+	 * Sets the create date of this polls choice.
+	 *
+	 * @param createDate the create date of this polls choice
+	 */
+	@Override
+	public void setCreateDate(Date createDate);
+
+	/**
+	 * Returns the modified date of this polls choice.
+	 *
+	 * @return the modified date of this polls choice
+	 */
+	@Override
+	public Date getModifiedDate();
+
+	/**
+	 * Sets the modified date of this polls choice.
+	 *
+	 * @param modifiedDate the modified date of this polls choice
+	 */
+	@Override
+	public void setModifiedDate(Date modifiedDate);
 
 	/**
 	 * Returns the question ID of this polls choice.
@@ -219,35 +342,73 @@ public interface PollsChoiceModel extends BaseModel<PollsChoice> {
 	public void setDescriptionMap(Map<Locale, String> descriptionMap,
 		Locale defaultLocale);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
+	public String[] getAvailableLanguageIds();
+
+	@Override
+	public String getDefaultLanguageId();
+
+	@Override
+	public void prepareLocalizedFieldsForImport() throws LocaleException;
+
+	@Override
+	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
+		throws LocaleException;
+
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(PollsChoice pollsChoice);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<PollsChoice> toCacheModel();
 
+	@Override
 	public PollsChoice toEscapedModel();
 
+	@Override
+	public PollsChoice toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,14 +21,13 @@ String redirect = ParamUtil.getString(request, "backURL");
 
 redirect = ParamUtil.getString(request, "redirect");
 
+SearchContainer searchContainer = (SearchContainer)request.getAttribute("liferay-ui:search:searchContainer");
+
 ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
 
-Document assetDoc = (Document)row.getObject();
+int assetEntryOrder = searchContainer.getStart() + row.getPos();
 
-Element root = assetDoc.getRootElement();
-
-int assetEntryOrder = GetterUtil.getInteger(root.elementText("asset-order"));
-boolean last = GetterUtil.getBoolean(root.elementText("last"));
+boolean last = (assetEntryOrder == (searchContainer.getTotal() - 1));
 %>
 
 <c:choose>
@@ -41,8 +40,8 @@ boolean last = GetterUtil.getBoolean(root.elementText("last"));
 		%>
 
 		<liferay-ui:icon
+			iconCssClass="icon-arrow-down"
 			message="down"
-			src='<%= themeDisplay.getPathThemeImages() + "/arrows/02_down.png" %>'
 			url="<%= taglibDownURL %>"
 		/>
 
@@ -51,8 +50,8 @@ boolean last = GetterUtil.getBoolean(root.elementText("last"));
 		%>
 
 		<liferay-ui:icon
+			iconCssClass="icon-arrow-up"
 			message="up"
-			src='<%= themeDisplay.getPathThemeImages() + "/arrows/02_up.png" %>'
 			url="<%= taglibUpURL %>"
 		/>
 	</c:when>
@@ -63,8 +62,8 @@ boolean last = GetterUtil.getBoolean(root.elementText("last"));
 		%>
 
 		<liferay-ui:icon
+			iconCssClass="icon-arrow-down"
 			message="down"
-			src='<%= themeDisplay.getPathThemeImages() + "/arrows/02_down.png" %>'
 			url="<%= taglibDownURL %>"
 		/>
 	</c:when>
@@ -75,8 +74,8 @@ boolean last = GetterUtil.getBoolean(root.elementText("last"));
 		%>
 
 		<liferay-ui:icon
+			iconCssClass="icon-arrow-up"
 			message="up"
-			src='<%= themeDisplay.getPathThemeImages() + "/arrows/02_up.png" %>'
 			url="<%= taglibUpURL %>"
 		/>
 	</c:when>

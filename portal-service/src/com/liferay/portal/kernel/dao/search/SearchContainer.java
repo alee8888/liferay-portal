@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,10 +21,13 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.SearchContainerReference;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.util.PortalUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +35,8 @@ import java.util.Map;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Brian Wing Shun Chan
@@ -43,8 +48,9 @@ public class SearchContainer<R> {
 	public static final String DEFAULT_CUR_PARAM = "cur";
 
 	/**
-	 * @deprecated Use <code>DEFAULT_CUR</code>.
+	 * @deprecated As of 6.2.0, replaced by {@link #DEFAULT_CUR}.
 	 */
+	@Deprecated
 	public static final int DEFAULT_CUR_VALUE = DEFAULT_CUR;
 
 	public static final int DEFAULT_DELTA = GetterUtil.getInteger(
@@ -54,38 +60,27 @@ public class SearchContainer<R> {
 
 	public static final String DEFAULT_DELTA_PARAM = "delta";
 
+	public static final String DEFAULT_DEPRECATED_TOTAL_VAR = "deprecatedTotal";
+
 	/**
-	 * @deprecated LPS-6312
+	 * @deprecated As of 6.2.0, see LPS-6312
 	 */
+	@Deprecated
 	public static final int DEFAULT_MAX_PAGES = 25;
 
 	public static final String DEFAULT_ORDER_BY_COL_PARAM = "orderByCol";
 
 	public static final String DEFAULT_ORDER_BY_TYPE_PARAM = "orderByType";
 
+	public static final String DEFAULT_RESULTS_VAR = "results";
+
+	public static final String DEFAULT_TOTAL_VAR = "total";
+
+	public static final String DEFAULT_VAR = "searchContainer";
+
 	public static final int MAX_DELTA = 200;
 
 	public SearchContainer() {
-	}
-
-	public SearchContainer(
-		PortletRequest portletRequest, PortletURL iteratorURL,
-		List<String> headerNames, String emptyResultsMessage) {
-
-		this(
-			portletRequest, null, null, DEFAULT_CUR_PARAM, DEFAULT_DELTA,
-			iteratorURL, headerNames, emptyResultsMessage);
-	}
-
-	public SearchContainer(
-		PortletRequest portletRequest, DisplayTerms displayTerms,
-		DisplayTerms searchTerms, String curParam, int delta,
-		PortletURL iteratorURL, List<String> headerNames,
-		String emptyResultsMessage) {
-
-		this (
-			portletRequest, displayTerms, searchTerms, curParam, 0, delta,
-			iteratorURL, headerNames, emptyResultsMessage);
 	}
 
 	public SearchContainer(
@@ -155,6 +150,34 @@ public class SearchContainer<R> {
 		}
 
 		_emptyResultsMessage = emptyResultsMessage;
+
+		SearchContainerReference searchContainerReference =
+			(SearchContainerReference)portletRequest.getAttribute(
+				WebKeys.SEARCH_CONTAINER_REFERENCE);
+
+		if (searchContainerReference != null) {
+			searchContainerReference.register(this);
+		}
+	}
+
+	public SearchContainer(
+		PortletRequest portletRequest, DisplayTerms displayTerms,
+		DisplayTerms searchTerms, String curParam, int delta,
+		PortletURL iteratorURL, List<String> headerNames,
+		String emptyResultsMessage) {
+
+		this (
+			portletRequest, displayTerms, searchTerms, curParam, 0, delta,
+			iteratorURL, headerNames, emptyResultsMessage);
+	}
+
+	public SearchContainer(
+		PortletRequest portletRequest, PortletURL iteratorURL,
+		List<String> headerNames, String emptyResultsMessage) {
+
+		this(
+			portletRequest, null, null, DEFAULT_CUR_PARAM, DEFAULT_DELTA,
+			iteratorURL, headerNames, emptyResultsMessage);
 	}
 
 	public String getClassName() {
@@ -170,8 +193,9 @@ public class SearchContainer<R> {
 	}
 
 	/**
-	 * @deprecated Use <code>getCur</code>.
+	 * @deprecated As of 6.2.0, replaced by {@link #getCur}
 	 */
+	@Deprecated
 	public int getCurValue() {
 		return getCur();
 	}
@@ -200,8 +224,15 @@ public class SearchContainer<R> {
 		return _headerNames;
 	}
 
-	public String getId() {
+	public String getId(HttpServletRequest request, String namespace) {
+		if (_uniqueId) {
+			return _id;
+		}
+
 		if (Validator.isNotNull(_id)) {
+			_id = PortalUtil.getUniqueElementId(request, namespace, _id);
+			_uniqueId = true;
+
 			return _id;
 		}
 
@@ -220,12 +251,19 @@ public class SearchContainer<R> {
 				simpleClassName, TextFormatter.I);
 
 			id = TextFormatter.formatPlural(variableCasingSimpleClassName);
-		}
-		else {
-			id = DeterminateKeyGenerator.generate("taglib_search_container");
+
+			id = id.concat("SearchContainer");
+
+			_id = PortalUtil.getUniqueElementId(request, namespace, id);
+			_uniqueId = true;
+
+			return _id;
 		}
 
+		id = DeterminateKeyGenerator.generate("taglib_search_container");
+
 		_id = id.concat("SearchContainer");
+		_uniqueId = true;
 
 		return _id;
 	}
@@ -235,8 +273,9 @@ public class SearchContainer<R> {
 	}
 
 	/**
-	 * @deprecated LPS-6312
+	 * @deprecated As of 6.2.0, see LPS-6312
 	 */
+	@Deprecated
 	public int getMaxPages() {
 		return _maxPages;
 	}
@@ -305,12 +344,28 @@ public class SearchContainer<R> {
 		return _total;
 	}
 
+	public String getTotalVar() {
+		return _totalVar;
+	}
+
 	public boolean isDeltaConfigurable() {
 		return _deltaConfigurable;
 	}
 
 	public boolean isHover() {
 		return _hover;
+	}
+
+	public boolean isRecalculateCur() {
+		if ((_total == 0) && (_cur == DEFAULT_CUR)) {
+			return false;
+		}
+
+		if (((_cur - 1) * _delta) >= _total) {
+			return true;
+		}
+
+		return false;
 	}
 
 	public void setClassName(String className) {
@@ -362,8 +417,9 @@ public class SearchContainer<R> {
 	}
 
 	/**
-	 * @deprecated LPS-6312
+	 * @deprecated As of 6.2.0, see LPS-6312
 	 */
+	@Deprecated
 	public void setMaxPages(int maxPages) {
 		_maxPages = maxPages;
 	}
@@ -411,11 +467,12 @@ public class SearchContainer<R> {
 	public void setTotal(int total) {
 		_total = total;
 
-		if (((_cur - 1) * _delta) >= _total) {
-			_cur = DEFAULT_CUR;
-		}
-
+		_calculateCur();
 		_calculateStartAndEnd();
+	}
+
+	public void setTotalVar(String totalVar) {
+		_totalVar = totalVar;
 	}
 
 	private void _buildNormalizedHeaderNames(List<String> headerNames) {
@@ -431,9 +488,29 @@ public class SearchContainer<R> {
 		}
 	}
 
+	private void _calculateCur() {
+		if (_total == 0) {
+			_cur = DEFAULT_CUR;
+
+			return;
+		}
+
+		if (isRecalculateCur()) {
+			if ((_total % _delta) == 0) {
+				_cur = (_total / _delta);
+			}
+			else {
+				_cur = (_total / _delta) + 1;
+			}
+		}
+	}
+
 	private void _calculateStartAndEnd() {
-		_start = (_cur - 1) * _delta;
-		_end = _start + _delta;
+		int[] startAndEnd = SearchPaginationUtil.calculateStartAndEnd(
+			_cur, _delta);
+
+		_start = startAndEnd[0];
+		_end = startAndEnd[1];
 
 		_resultEnd = _end;
 
@@ -457,8 +534,9 @@ public class SearchContainer<R> {
 	private PortletURL _iteratorURL;
 
 	/**
-	 * @deprecated LPS-6312
+	 * @deprecated As of 6.2.0, see LPS-6312
 	 */
+	@Deprecated
 	private int _maxPages = DEFAULT_MAX_PAGES;
 
 	private List<String> _normalizedHeaderNames;
@@ -477,5 +555,7 @@ public class SearchContainer<R> {
 	private DisplayTerms _searchTerms;
 	private int _start;
 	private int _total;
+	private String _totalVar;
+	private boolean _uniqueId;
 
 }

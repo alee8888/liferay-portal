@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,15 +19,9 @@
 <%@ page import="com.liferay.portal.DuplicateUserGroupException" %><%@
 page import="com.liferay.portal.RequiredUserGroupException" %><%@
 page import="com.liferay.portal.UserGroupNameException" %><%@
-page import="com.liferay.portal.service.permission.PortalPermissionUtil" %><%@
+page import="com.liferay.portal.security.membershippolicy.UserGroupMembershipPolicyUtil" %><%@
 page import="com.liferay.portal.service.permission.UserGroupPermissionUtil" %><%@
-page import="com.liferay.portlet.usergroupsadmin.search.UserGroupDisplayTerms" %><%@
-page import="com.liferay.portlet.usergroupsadmin.search.UserGroupSearch" %><%@
-page import="com.liferay.portlet.usergroupsadmin.search.UserGroupSearchTerms" %><%@
-page import="com.liferay.portlet.usergroupsadmin.search.UserUserGroupChecker" %><%@
-page import="com.liferay.portlet.usersadmin.search.UserSearch" %><%@
-page import="com.liferay.portlet.usersadmin.search.UserSearchTerms" %><%@
-page import="com.liferay.portlet.usersadmin.util.UsersAdminUtil" %>
+page import="com.liferay.portlet.usergroupsadmin.search.UserUserGroupChecker" %>
 
 <%
 boolean filterManageableOrganizations = true;

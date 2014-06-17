@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,9 +18,32 @@
 
 <%
 String signature = ParamUtil.getString(request, "signature");
+
+Set<String> contextPaths = JSONWebServiceActionsManagerUtil.getContextPaths();
 %>
 
-<aui:input cssClass="lfr-api-service-search" label="" name="serviceSearch" placeholder="search" />
+<c:if test="<%= contextPaths.size() > 1 %>">
+	<aui:select cssClass="lfr-api-context" label="context-path" name="contextPath">
+
+		<%
+		for (String curContextPath : contextPaths) {
+			String curContextPathView = curContextPath;
+
+			if (Validator.isNull(curContextPath)) {
+				curContextPathView = StringPool.SLASH;
+			}
+		%>
+
+			<aui:option label="<%= curContextPathView %>" selected="<%= contextPath.equals(curContextPath) %>" value="<%= curContextPath %>" />
+
+		<%
+		}
+		%>
+
+	</aui:select>
+</c:if>
+
+<aui:input autoFocus="<%= true %>" cssClass="lfr-api-service-search" label="" name="serviceSearch" placeholder="search" />
 
 <div class="services" id="services">
 
@@ -40,7 +63,7 @@ String signature = ParamUtil.getString(request, "signature");
 
 		Set<JSONWebServiceActionMapping> jsonWebServiceMappings = jsonWebServiceClasses.get(actionClassName);
 
-		if (Validator.isNull(jsonWebServiceMappings)) {
+		if (jsonWebServiceMappings == null) {
 			jsonWebServiceMappings = new LinkedHashSet<JSONWebServiceActionMapping>();
 
 			jsonWebServiceClasses.put(actionClassName, jsonWebServiceMappings);
@@ -51,10 +74,19 @@ String signature = ParamUtil.getString(request, "signature");
 
 	for (String jsonWebServiceClassName : jsonWebServiceClasses.keySet()) {
 		Set<JSONWebServiceActionMapping> jsonWebServiceMappings = jsonWebServiceClasses.get(jsonWebServiceClassName);
+
+		String panelTitle = jsonWebServiceClassName;
+
+		if (panelTitle.endsWith("Impl")) {
+			panelTitle = panelTitle.substring(0, panelTitle.length() - 4);
+		}
+		if (panelTitle.endsWith("Service")) {
+			panelTitle = panelTitle.substring(0, panelTitle.length() - 7);
+		}
 	%>
 
-		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id='<%= "apiService" + jsonWebServiceClassName + "Panel" %>' persistState="<%= true %>" title="<%= jsonWebServiceClassName %>">
-			<ul class="lfr-component">
+		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id='<%= "apiService" + jsonWebServiceClassName + "Panel" %>' persistState="<%= true %>" title="<%= panelTitle %>">
+			<ul class="list-unstyled">
 
 				<%
 				for (JSONWebServiceActionMapping jsonWebServiceActionMapping : jsonWebServiceMappings) {
@@ -68,7 +100,12 @@ String signature = ParamUtil.getString(request, "signature");
 				%>
 
 					<li class="lfr-api-signature <%= (serviceSignature.equals(signature)) ? "selected" : StringPool.BLANK %>">
-						<a class="method-name lfr-api-service-result" data-metaData="<%= jsonWebServiceClassName %>" href="?signature=<%= serviceSignature %>">
+
+						<%
+						String methodURL = HttpUtil.addParameter(jsonWSContextPath, "signature", serviceSignature);
+						%>
+
+						<a class="lfr-api-service-result method-name" data-metaData="<%= jsonWebServiceClassName %>" href="<%= methodURL %>">
 							<%= path %>
 						</a>
 					</li>
@@ -86,7 +123,7 @@ String signature = ParamUtil.getString(request, "signature");
 
 </div>
 
-<div class="no-matches aui-helper-hidden" id="noMatches">
+<div class="hide no-matches" id="noMatches">
 	<liferay-ui:message key="there-are-no-services-matching-that-phrase" />
 </div>
 
@@ -94,6 +131,27 @@ String signature = ParamUtil.getString(request, "signature");
 	var Lang = A.Lang;
 
 	var AArray = A.Array;
+
+	<c:if test="<%= contextPaths.size() > 1 %>">
+		var contextPathSelector = A.one('#<portlet:namespace />contextPath');
+
+		if (contextPathSelector) {
+			contextPathSelector.on(
+				'change',
+				function(event) {
+					var contextPath = contextPathSelector.val();
+
+					var location = '<%= jsonWSPath %>';
+
+					if (contextPath && (contextPath != '/')) {
+						location = Liferay.Util.addParams('contextPath=' + contextPath, location);
+					}
+
+					window.location.href = location;
+				}
+			);
+		}
+	</c:if>
 
 	var ServiceFilter = A.Component.create(
 		{
@@ -119,7 +177,7 @@ String signature = ParamUtil.getString(request, "signature");
 	var results = [];
 
 	servicesClone.all('.lfr-api-service-result').each(
-		function(item, index, collection) {
+		function(item, index) {
 			results.push(
 				{
 					el: item._node,
@@ -134,11 +192,9 @@ String signature = ParamUtil.getString(request, "signature");
 
 	var cache = {};
 
-	var serviceSearch = A.one('#serviceSearch');
-
 	var filter = new ServiceFilter(
 		{
-			inputNode: serviceSearch,
+			inputNode: A.one('#serviceSearch'),
 			minQueryLength: 0,
 			queryDelay: 0,
 			resultFilters: function(query, results) {
@@ -146,7 +202,7 @@ String signature = ParamUtil.getString(request, "signature");
 
 				return AArray.filter(
 					results,
-					function(item, index, collection) {
+					function(item, index) {
 						var node = item.raw.node;
 						var guid = node.guid();
 
@@ -171,7 +227,7 @@ String signature = ParamUtil.getString(request, "signature");
 
 					cachedResults = AArray.map(
 						results,
-						function(item, index, collection) {
+						function(item, index) {
 							return A.Highlight.all(item.text, queryChars);
 						}
 					);
@@ -213,7 +269,7 @@ String signature = ParamUtil.getString(request, "signature");
 				if (query) {
 					AArray.each(
 						results,
-						function(item, index, collection) {
+						function(item, index) {
 							var raw = item.raw;
 							var el = raw.el;
 							var node = raw.node;
@@ -260,6 +316,4 @@ String signature = ParamUtil.getString(request, "signature");
 			50
 		)
 	);
-
-	Liferay.Util.focusFormField(serviceSearch);
 </aui:script>

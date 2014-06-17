@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -46,6 +46,10 @@ public abstract class BaseUpgradeTableImpl extends Table {
 		return _allowUniqueIndexes;
 	}
 
+	public boolean isDeleteTempFile() {
+		return _deleteTempFile;
+	}
+
 	public void setAllowUniqueIndexes(boolean allowUniqueIndexes)
 		throws Exception {
 
@@ -62,6 +66,10 @@ public abstract class BaseUpgradeTableImpl extends Table {
 		super.setCreateSQL(createSQL);
 	}
 
+	public void setDeleteTempFile(boolean deleteTempFile) {
+		_deleteTempFile = deleteTempFile;
+	}
+
 	public void setIndexesSQL(String[] indexesSQL) throws Exception {
 		_indexesSQL = indexesSQL;
 	}
@@ -69,7 +77,9 @@ public abstract class BaseUpgradeTableImpl extends Table {
 	public void updateTable() throws Exception {
 		_calledUpdateTable = true;
 
-		String tempFileName = generateTempFile();
+		generateTempFile();
+
+		String tempFileName = getTempFileName();
 
 		try {
 			DB db = DBFactoryUtil.getDB();
@@ -88,9 +98,7 @@ public abstract class BaseUpgradeTableImpl extends Table {
 				db.runSQL(createSQL);
 			}
 
-			if (Validator.isNotNull(tempFileName)) {
-				populateTable(tempFileName);
-			}
+			populateTable();
 
 			String[] indexesSQL = getIndexesSQL();
 
@@ -110,7 +118,9 @@ public abstract class BaseUpgradeTableImpl extends Table {
 					db.runSQL(indexSQL);
 				}
 				catch (Exception e) {
-					_log.warn(e.getMessage() + ": " + indexSQL);
+					if (_log.isWarnEnabled()) {
+						_log.warn(e.getMessage() + ": " + indexSQL);
+					}
 				}
 			}
 
@@ -119,7 +129,7 @@ public abstract class BaseUpgradeTableImpl extends Table {
 			}
 		}
 		finally {
-			if (Validator.isNotNull(tempFileName)) {
+			if (Validator.isNotNull(tempFileName) && _deleteTempFile) {
 				FileUtil.delete(tempFileName);
 			}
 		}
@@ -129,6 +139,7 @@ public abstract class BaseUpgradeTableImpl extends Table {
 
 	private boolean _allowUniqueIndexes;
 	private boolean _calledUpdateTable;
+	private boolean _deleteTempFile;
 	private String[] _indexesSQL = new String[0];
 
 }

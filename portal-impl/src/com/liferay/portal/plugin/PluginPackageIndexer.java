@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -41,6 +41,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 
 /**
@@ -56,13 +58,18 @@ public class PluginPackageIndexer extends BaseIndexer {
 	public static final String PORTLET_ID = "PluginPackageIndexer";
 
 	public PluginPackageIndexer() {
+		setDefaultSelectedFieldNames(
+			Field.COMPANY_ID, Field.CONTENT, Field.ENTRY_CLASS_NAME,
+			Field.ENTRY_CLASS_PK, Field.TITLE, Field.UID);
 		setStagingAware(false);
 	}
 
+	@Override
 	public String[] getClassNames() {
 		return CLASS_NAMES;
 	}
 
+	@Override
 	public String getPortletId() {
 		return PORTLET_ID;
 	}
@@ -157,11 +164,11 @@ public class PluginPackageIndexer extends BaseIndexer {
 
 		List<String> tags = pluginPackage.getTags();
 
-		document.addKeyword("tag", tags.toArray(new String[0]));
+		document.addKeyword("tag", tags.toArray(new String[tags.size()]));
 
 		List<String> types = pluginPackage.getTypes();
 
-		document.addKeyword("type", types.toArray(new String[0]));
+		document.addKeyword("type", types.toArray(new String[types.size()]));
 
 		document.addKeyword("version", pluginPackage.getVersion());
 
@@ -170,8 +177,8 @@ public class PluginPackageIndexer extends BaseIndexer {
 
 	@Override
 	protected Summary doGetSummary(
-		Document document, Locale locale, String snippet,
-		PortletURL portletURL) {
+		Document document, Locale locale, String snippet, PortletURL portletURL,
+		PortletRequest portletRequest, PortletResponse portletResponse) {
 
 		String title = document.get(Field.TITLE);
 
@@ -285,26 +292,27 @@ public class PluginPackageIndexer extends BaseIndexer {
 
 		String status = (String)searchContext.getAttribute(Field.STATUS);
 
-		if (Validator.isNotNull(status) && !status.equals("all")) {
-			BooleanQuery searchQuery = BooleanQueryFactoryUtil.create(
-				searchContext);
-
-			if (status.equals(
-					PluginPackageImpl.
-						STATUS_NOT_INSTALLED_OR_OLDER_VERSION_INSTALLED)) {
-
-				searchQuery.addExactTerm(
-					Field.STATUS, PluginPackageImpl.STATUS_NOT_INSTALLED);
-				searchQuery.addExactTerm(
-					Field.STATUS,
-					PluginPackageImpl.STATUS_OLDER_VERSION_INSTALLED);
-			}
-			else {
-				searchQuery.addExactTerm(Field.STATUS, status);
-			}
-
-			fullQuery.add(searchQuery, BooleanClauseOccur.MUST);
+		if (Validator.isNull(status) || status.equals("all")) {
+			return;
 		}
+
+		BooleanQuery searchQuery = BooleanQueryFactoryUtil.create(
+			searchContext);
+
+		if (status.equals(
+				PluginPackageImpl.
+					STATUS_NOT_INSTALLED_OR_OLDER_VERSION_INSTALLED)) {
+
+			searchQuery.addExactTerm(
+				Field.STATUS, PluginPackageImpl.STATUS_NOT_INSTALLED);
+			searchQuery.addExactTerm(
+				Field.STATUS, PluginPackageImpl.STATUS_OLDER_VERSION_INSTALLED);
+		}
+		else {
+			searchQuery.addExactTerm(Field.STATUS, status);
+		}
+
+		fullQuery.add(searchQuery, BooleanClauseOccur.MUST);
 	}
 
 }

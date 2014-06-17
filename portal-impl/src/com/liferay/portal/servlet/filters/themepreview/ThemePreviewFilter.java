@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,8 @@
 
 package com.liferay.portal.servlet.filters.themepreview;
 
+import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
-import com.liferay.portal.kernel.servlet.StringServletResponse;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
 import com.liferay.portal.servlet.filters.strip.StripFilter;
@@ -83,14 +83,16 @@ public class ThemePreviewFilter extends BasePortalFilter {
 
 		request.setAttribute(StripFilter.SKIP_FILTER, Boolean.TRUE);
 
-		StringServletResponse stringServerResponse = new StringServletResponse(
-			response);
+		BufferCacheServletResponse bufferCacheServletResponse =
+			new BufferCacheServletResponse(response);
 
 		processFilter(
-			ThemePreviewFilter.class, request, stringServerResponse,
+			ThemePreviewFilter.class, request, bufferCacheServletResponse,
 			filterChain);
 
-		String content = getContent(request, stringServerResponse.getString());
+		String content = bufferCacheServletResponse.getString();
+
+		content = getContent(request, content);
 
 		ServletResponseUtil.write(response, content);
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,13 +15,19 @@
 package com.liferay.portlet.dynamicdatalists.service.permission;
 
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.util.PortletKeys;
 
 /**
  * @author Bruno Basto
+ * @author Levente Hudák
  */
 public class DDLPermission {
+
+	public static final String RESOURCE_NAME =
+		"com.liferay.portlet.dynamicdatalists";
 
 	public static void check(
 			PermissionChecker permissionChecker, long groupId, String actionId)
@@ -35,11 +41,25 @@ public class DDLPermission {
 	public static boolean contains(
 		PermissionChecker permissionChecker, long groupId, String actionId) {
 
-		return permissionChecker.hasPermission(
-			groupId, _CLASS_NAME, groupId, actionId);
+		return contains(
+			permissionChecker, groupId, PortletKeys.DYNAMIC_DATA_LISTS,
+			actionId);
 	}
 
-	private static final String _CLASS_NAME =
-		"com.liferay.portlet.dynamicdatalists";
+	public static boolean contains(
+		PermissionChecker permissionChecker, long groupId, String portletId,
+		String actionId) {
+
+		Boolean hasPermission = StagingPermissionUtil.hasPermission(
+			permissionChecker, groupId, RESOURCE_NAME, groupId, portletId,
+			actionId);
+
+		if (hasPermission != null) {
+			return hasPermission.booleanValue();
+		}
+
+		return permissionChecker.hasPermission(
+			groupId, RESOURCE_NAME, groupId, actionId);
+	}
 
 }

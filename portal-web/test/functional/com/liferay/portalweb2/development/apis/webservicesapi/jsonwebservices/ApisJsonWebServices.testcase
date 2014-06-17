@@ -1,0 +1,21 @@
+<definition component-name="portal-apis">
+	<property name="testray.main.component.name" value="APIs" />
+
+	<set-up>
+		<execute macro="User#firstLoginPG" />
+	</set-up>
+
+	<!--<command name="ViewAxis" priority="5">
+		<execute macro="Site#cpAddBlank" />
+
+		<execute macro="Site#cpView" />
+	</command>-->
+
+	<command name="ViewJsonws" priority="5">
+		<execute macro="Api#apiJsonwsView" />
+
+		<execute macro="Api#apiJsonwsAddressView" />
+
+		<execute macro="Api#apiJsonwsWikiView" />
+	</command>
+</definition>

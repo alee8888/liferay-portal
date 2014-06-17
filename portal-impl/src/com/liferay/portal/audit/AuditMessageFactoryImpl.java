@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,24 +18,29 @@ import com.liferay.portal.kernel.audit.AuditMessage;
 import com.liferay.portal.kernel.audit.AuditMessageFactory;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 
 import java.util.Date;
 
 /**
  * @author Amos Fong
  */
+@DoPrivileged
 public class AuditMessageFactoryImpl implements AuditMessageFactory {
 
+	@Override
 	public AuditMessage getAuditMessage(String message) throws JSONException {
 		return new AuditMessage(message);
 	}
 
+	@Override
 	public AuditMessage getAuditMessage(
 		String eventType, long companyId, long userId, String userName) {
 
 		return new AuditMessage(eventType, companyId, userId, userName);
 	}
 
+	@Override
 	public AuditMessage getAuditMessage(
 		String eventType, long companyId, long userId, String userName,
 		String className, String classPK) {
@@ -44,6 +49,7 @@ public class AuditMessageFactoryImpl implements AuditMessageFactory {
 			eventType, companyId, userId, userName, className, classPK);
 	}
 
+	@Override
 	public AuditMessage getAuditMessage(
 		String eventType, long companyId, long userId, String userName,
 		String className, String classPK, String message) {
@@ -53,6 +59,7 @@ public class AuditMessageFactoryImpl implements AuditMessageFactory {
 			message);
 	}
 
+	@Override
 	public AuditMessage getAuditMessage(
 		String eventType, long companyId, long userId, String userName,
 		String className, String classPK, String message, Date timestamp,
@@ -63,6 +70,7 @@ public class AuditMessageFactoryImpl implements AuditMessageFactory {
 			timestamp, additionalInfo);
 	}
 
+	@Override
 	public AuditMessage getAuditMessage(
 		String eventType, long companyId, long userId, String userName,
 		String className, String classPK, String message,

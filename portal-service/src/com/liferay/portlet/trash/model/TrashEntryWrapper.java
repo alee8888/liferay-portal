@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.trash.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,23 +28,27 @@ import java.util.Map;
  * This class is a wrapper for {@link TrashEntry}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       TrashEntry
+ * @author Brian Wing Shun Chan
+ * @see TrashEntry
  * @generated
  */
+@ProviderType
 public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	public TrashEntryWrapper(TrashEntry trashEntry) {
 		_trashEntry = trashEntry;
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return TrashEntry.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return TrashEntry.class.getName();
 	}
 
+	@Override
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
@@ -53,12 +60,14 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 		attributes.put("createDate", getCreateDate());
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classPK", getClassPK());
+		attributes.put("systemEventSetKey", getSystemEventSetKey());
 		attributes.put("typeSettings", getTypeSettings());
 		attributes.put("status", getStatus());
 
 		return attributes;
 	}
 
+	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
 		Long entryId = (Long)attributes.get("entryId");
 
@@ -108,6 +117,12 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 			setClassPK(classPK);
 		}
 
+		Long systemEventSetKey = (Long)attributes.get("systemEventSetKey");
+
+		if (systemEventSetKey != null) {
+			setSystemEventSetKey(systemEventSetKey);
+		}
+
 		String typeSettings = (String)attributes.get("typeSettings");
 
 		if (typeSettings != null) {
@@ -126,6 +141,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @return the primary key of this trash entry
 	*/
+	@Override
 	public long getPrimaryKey() {
 		return _trashEntry.getPrimaryKey();
 	}
@@ -135,6 +151,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @param primaryKey the primary key of this trash entry
 	*/
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_trashEntry.setPrimaryKey(primaryKey);
 	}
@@ -144,6 +161,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @return the entry ID of this trash entry
 	*/
+	@Override
 	public long getEntryId() {
 		return _trashEntry.getEntryId();
 	}
@@ -153,6 +171,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @param entryId the entry ID of this trash entry
 	*/
+	@Override
 	public void setEntryId(long entryId) {
 		_trashEntry.setEntryId(entryId);
 	}
@@ -162,6 +181,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @return the group ID of this trash entry
 	*/
+	@Override
 	public long getGroupId() {
 		return _trashEntry.getGroupId();
 	}
@@ -171,6 +191,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @param groupId the group ID of this trash entry
 	*/
+	@Override
 	public void setGroupId(long groupId) {
 		_trashEntry.setGroupId(groupId);
 	}
@@ -180,6 +201,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @return the company ID of this trash entry
 	*/
+	@Override
 	public long getCompanyId() {
 		return _trashEntry.getCompanyId();
 	}
@@ -189,6 +211,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @param companyId the company ID of this trash entry
 	*/
+	@Override
 	public void setCompanyId(long companyId) {
 		_trashEntry.setCompanyId(companyId);
 	}
@@ -198,6 +221,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @return the user ID of this trash entry
 	*/
+	@Override
 	public long getUserId() {
 		return _trashEntry.getUserId();
 	}
@@ -207,6 +231,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @param userId the user ID of this trash entry
 	*/
+	@Override
 	public void setUserId(long userId) {
 		_trashEntry.setUserId(userId);
 	}
@@ -215,10 +240,9 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	* Returns the user uuid of this trash entry.
 	*
 	* @return the user uuid of this trash entry
-	* @throws SystemException if a system exception occurred
 	*/
-	public java.lang.String getUserUuid()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public java.lang.String getUserUuid() {
 		return _trashEntry.getUserUuid();
 	}
 
@@ -227,6 +251,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @param userUuid the user uuid of this trash entry
 	*/
+	@Override
 	public void setUserUuid(java.lang.String userUuid) {
 		_trashEntry.setUserUuid(userUuid);
 	}
@@ -236,6 +261,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @return the user name of this trash entry
 	*/
+	@Override
 	public java.lang.String getUserName() {
 		return _trashEntry.getUserName();
 	}
@@ -245,6 +271,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @param userName the user name of this trash entry
 	*/
+	@Override
 	public void setUserName(java.lang.String userName) {
 		_trashEntry.setUserName(userName);
 	}
@@ -254,6 +281,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @return the create date of this trash entry
 	*/
+	@Override
 	public java.util.Date getCreateDate() {
 		return _trashEntry.getCreateDate();
 	}
@@ -263,6 +291,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @param createDate the create date of this trash entry
 	*/
+	@Override
 	public void setCreateDate(java.util.Date createDate) {
 		_trashEntry.setCreateDate(createDate);
 	}
@@ -272,10 +301,12 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @return the fully qualified class name of this trash entry
 	*/
+	@Override
 	public java.lang.String getClassName() {
 		return _trashEntry.getClassName();
 	}
 
+	@Override
 	public void setClassName(java.lang.String className) {
 		_trashEntry.setClassName(className);
 	}
@@ -285,6 +316,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @return the class name ID of this trash entry
 	*/
+	@Override
 	public long getClassNameId() {
 		return _trashEntry.getClassNameId();
 	}
@@ -294,6 +326,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @param classNameId the class name ID of this trash entry
 	*/
+	@Override
 	public void setClassNameId(long classNameId) {
 		_trashEntry.setClassNameId(classNameId);
 	}
@@ -303,6 +336,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @return the class p k of this trash entry
 	*/
+	@Override
 	public long getClassPK() {
 		return _trashEntry.getClassPK();
 	}
@@ -312,8 +346,29 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @param classPK the class p k of this trash entry
 	*/
+	@Override
 	public void setClassPK(long classPK) {
 		_trashEntry.setClassPK(classPK);
+	}
+
+	/**
+	* Returns the system event set key of this trash entry.
+	*
+	* @return the system event set key of this trash entry
+	*/
+	@Override
+	public long getSystemEventSetKey() {
+		return _trashEntry.getSystemEventSetKey();
+	}
+
+	/**
+	* Sets the system event set key of this trash entry.
+	*
+	* @param systemEventSetKey the system event set key of this trash entry
+	*/
+	@Override
+	public void setSystemEventSetKey(long systemEventSetKey) {
+		_trashEntry.setSystemEventSetKey(systemEventSetKey);
 	}
 
 	/**
@@ -321,6 +376,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @return the type settings of this trash entry
 	*/
+	@Override
 	public java.lang.String getTypeSettings() {
 		return _trashEntry.getTypeSettings();
 	}
@@ -330,6 +386,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @param typeSettings the type settings of this trash entry
 	*/
+	@Override
 	public void setTypeSettings(java.lang.String typeSettings) {
 		_trashEntry.setTypeSettings(typeSettings);
 	}
@@ -339,6 +396,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @return the status of this trash entry
 	*/
+	@Override
 	public int getStatus() {
 		return _trashEntry.getStatus();
 	}
@@ -348,42 +406,64 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 	*
 	* @param status the status of this trash entry
 	*/
+	@Override
 	public void setStatus(int status) {
 		_trashEntry.setStatus(status);
 	}
 
+	@Override
 	public boolean isNew() {
 		return _trashEntry.isNew();
 	}
 
+	@Override
 	public void setNew(boolean n) {
 		_trashEntry.setNew(n);
 	}
 
+	@Override
 	public boolean isCachedModel() {
 		return _trashEntry.isCachedModel();
 	}
 
+	@Override
 	public void setCachedModel(boolean cachedModel) {
 		_trashEntry.setCachedModel(cachedModel);
 	}
 
+	@Override
 	public boolean isEscapedModel() {
 		return _trashEntry.isEscapedModel();
 	}
 
+	@Override
 	public java.io.Serializable getPrimaryKeyObj() {
 		return _trashEntry.getPrimaryKeyObj();
 	}
 
+	@Override
 	public void setPrimaryKeyObj(java.io.Serializable primaryKeyObj) {
 		_trashEntry.setPrimaryKeyObj(primaryKeyObj);
 	}
 
+	@Override
 	public com.liferay.portlet.expando.model.ExpandoBridge getExpandoBridge() {
 		return _trashEntry.getExpandoBridge();
 	}
 
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portal.model.BaseModel<?> baseModel) {
+		_trashEntry.setExpandoBridgeAttributes(baseModel);
+	}
+
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portlet.expando.model.ExpandoBridge expandoBridge) {
+		_trashEntry.setExpandoBridgeAttributes(expandoBridge);
+	}
+
+	@Override
 	public void setExpandoBridgeAttributes(
 		com.liferay.portal.service.ServiceContext serviceContext) {
 		_trashEntry.setExpandoBridgeAttributes(serviceContext);
@@ -394,6 +474,7 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 		return new TrashEntryWrapper((TrashEntry)_trashEntry.clone());
 	}
 
+	@Override
 	public int compareTo(com.liferay.portlet.trash.model.TrashEntry trashEntry) {
 		return _trashEntry.compareTo(trashEntry);
 	}
@@ -403,12 +484,19 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 		return _trashEntry.hashCode();
 	}
 
+	@Override
 	public com.liferay.portal.model.CacheModel<com.liferay.portlet.trash.model.TrashEntry> toCacheModel() {
 		return _trashEntry.toCacheModel();
 	}
 
+	@Override
 	public com.liferay.portlet.trash.model.TrashEntry toEscapedModel() {
 		return new TrashEntryWrapper(_trashEntry.toEscapedModel());
+	}
+
+	@Override
+	public com.liferay.portlet.trash.model.TrashEntry toUnescapedModel() {
+		return new TrashEntryWrapper(_trashEntry.toUnescapedModel());
 	}
 
 	@Override
@@ -416,44 +504,102 @@ public class TrashEntryWrapper implements TrashEntry, ModelWrapper<TrashEntry> {
 		return _trashEntry.toString();
 	}
 
+	@Override
 	public java.lang.String toXmlString() {
 		return _trashEntry.toXmlString();
 	}
 
-	public void persist()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void persist() {
 		_trashEntry.persist();
 	}
 
+	@Override
+	public com.liferay.portlet.trash.model.TrashEntry getRootEntry() {
+		return _trashEntry.getRootEntry();
+	}
+
+	@Override
 	public com.liferay.portal.kernel.util.UnicodeProperties getTypeSettingsProperties() {
 		return _trashEntry.getTypeSettingsProperties();
 	}
 
+	@Override
 	public java.lang.String getTypeSettingsProperty(java.lang.String key) {
 		return _trashEntry.getTypeSettingsProperty(key);
 	}
 
+	@Override
 	public java.lang.String getTypeSettingsProperty(java.lang.String key,
 		java.lang.String defaultValue) {
 		return _trashEntry.getTypeSettingsProperty(key, defaultValue);
 	}
 
+	@Override
+	public boolean isTrashEntry(java.lang.Class<?> clazz, long classPK) {
+		return _trashEntry.isTrashEntry(clazz, classPK);
+	}
+
+	@Override
+	public boolean isTrashEntry(java.lang.String className, long classPK) {
+		return _trashEntry.isTrashEntry(className, classPK);
+	}
+
+	@Override
+	public void setRootEntry(
+		com.liferay.portlet.trash.model.TrashEntry rootEntry) {
+		_trashEntry.setRootEntry(rootEntry);
+	}
+
+	@Override
 	public void setTypeSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties typeSettingsProperties) {
 		_trashEntry.setTypeSettingsProperties(typeSettingsProperties);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof TrashEntryWrapper)) {
+			return false;
+		}
+
+		TrashEntryWrapper trashEntryWrapper = (TrashEntryWrapper)obj;
+
+		if (Validator.equals(_trashEntry, trashEntryWrapper._trashEntry)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
-	 * @deprecated Renamed to {@link #getWrappedModel}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public TrashEntry getWrappedTrashEntry() {
 		return _trashEntry;
 	}
 
+	@Override
 	public TrashEntry getWrappedModel() {
 		return _trashEntry;
 	}
 
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _trashEntry.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _trashEntry.isFinderCacheEnabled();
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		_trashEntry.resetOriginalValues();
 	}

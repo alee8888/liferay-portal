@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.webdav.Resource;
 import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
+import com.liferay.portal.kernel.webdav.methods.Method;
 
 import java.io.InputStream;
 
@@ -33,16 +34,17 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class GetMethodImpl implements Method {
 
-	public int process(WebDAVRequest webDavRequest) throws WebDAVException {
+	@Override
+	public int process(WebDAVRequest webDAVRequest) throws WebDAVException {
 		InputStream is = null;
 
 		try {
-			WebDAVStorage storage = webDavRequest.getWebDAVStorage();
-			HttpServletRequest request = webDavRequest.getHttpServletRequest();
+			WebDAVStorage storage = webDAVRequest.getWebDAVStorage();
+			HttpServletRequest request = webDAVRequest.getHttpServletRequest();
 			HttpServletResponse response =
-				webDavRequest.getHttpServletResponse();
+				webDAVRequest.getHttpServletResponse();
 
-			Resource resource = storage.getResource(webDavRequest);
+			Resource resource = storage.getResource(webDAVRequest);
 
 			if (resource == null) {
 				return HttpServletResponse.SC_NOT_FOUND;

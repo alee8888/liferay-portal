@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portlet.wiki.engines.antlrwiki.translator;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -44,10 +45,10 @@ import javax.portlet.PortletURL;
 public class XhtmlTranslator extends XhtmlTranslationVisitor {
 
 	public String translate(
-		WikiPage wikiPage, PortletURL viewPageURL, PortletURL editPageURL,
+		WikiPage page, PortletURL viewPageURL, PortletURL editPageURL,
 		String attachmentURLPrefix, WikiPageNode wikiPageNode) {
 
-		_wikiPage = wikiPage;
+		_page = page;
 		_viewPageURL = viewPageURL;
 		_editPageURL = editPageURL;
 		_attachmentURLPrefix = attachmentURLPrefix;
@@ -63,7 +64,7 @@ public class XhtmlTranslator extends XhtmlTranslationVisitor {
 
 		String unformattedText = getUnformattedHeadingText(headingNode);
 
-		String markup = getHeadingMarkup(_wikiPage.getTitle(), unformattedText);
+		String markup = getHeadingMarkup(_page.getTitle(), unformattedText);
 
 		append(" id=\"");
 		append(markup);
@@ -141,7 +142,16 @@ public class XhtmlTranslator extends XhtmlTranslationVisitor {
 
 		append("<div class=\"toc\">");
 		append("<div class=\"collapsebox\">");
-		append("<h4>Table of Contents");
+		append("<h4>");
+
+		String title = tableOfContentsNode.getTitle();
+
+		if (title == null) {
+			title = "Table of Contents";
+		}
+
+		append(title);
+
 		append(StringPool.NBSP);
 		append("<a class=\"toc-trigger\" href=\"javascript:;\">[-]</a></h4>");
 		append("<div class=\"toc-index\">");
@@ -177,36 +187,38 @@ public class XhtmlTranslator extends XhtmlTranslationVisitor {
 	protected void appendTableOfContents(
 		TreeNode<HeadingNode> tableOfContents, int depth) {
 
-		append("<ol>");
-
 		List<TreeNode<HeadingNode>> treeNodes = tableOfContents.getChildNodes();
 
-		if (treeNodes != null) {
-			for (TreeNode<HeadingNode> treeNode : treeNodes) {
-				append("<li class=\"toc-level-");
-				append(depth);
-				append("\">");
+		if ((treeNodes == null) || treeNodes.isEmpty()) {
+			return;
+		}
 
-				HeadingNode headingNode = treeNode.getValue();
+		append("<ol>");
 
-				String content = getUnformattedHeadingText(headingNode);
+		for (TreeNode<HeadingNode> treeNode : treeNodes) {
+			append("<li class=\"toc-level-");
+			append(depth);
+			append("\">");
 
-				append("<a class=\"wikipage\" href=\"");
+			HeadingNode headingNode = treeNode.getValue();
 
-				if (_viewPageURL != null) {
-					append(_viewPageURL.toString());
-				}
+			String content = getUnformattedHeadingText(headingNode);
 
-				append(StringPool.POUND);
-				append(getHeadingMarkup(_wikiPage.getTitle(), content));
-				append("\">");
-				append(content);
-				append("</a>");
+			append("<a class=\"wikipage\" href=\"");
 
-				appendTableOfContents(treeNode, depth + 1);
-
-				append("</li>");
+			if (_viewPageURL != null) {
+				append(_viewPageURL.toString());
 			}
+
+			append(StringPool.POUND);
+			append(getHeadingMarkup(_page.getTitle(), content));
+			append("\">");
+			append(content);
+			append("</a>");
+
+			appendTableOfContents(treeNode, depth + 1);
+
+			append("</li>");
 		}
 
 		append("</ol>");
@@ -217,12 +229,23 @@ public class XhtmlTranslator extends XhtmlTranslationVisitor {
 
 		try {
 			page = WikiPageLocalServiceUtil.getPage(
-				_wikiPage.getNodeId(), linkNode.getLink());
+				_page.getNodeId(), linkNode.getLink());
 		}
 		catch (NoSuchPageException nspe) {
 		}
 		catch (Exception e) {
 			_log.error(e, e);
+		}
+
+		String attachmentLink = searchLinkInAttachments(linkNode);
+
+		if (attachmentLink != null) {
+
+			// Attachment links take precedence over pages
+
+			append(_attachmentURLPrefix + attachmentLink);
+
+			return;
 		}
 
 		String pageTitle = linkNode.getLink();
@@ -232,14 +255,14 @@ public class XhtmlTranslator extends XhtmlTranslationVisitor {
 
 			append(_viewPageURL.toString());
 
-			_viewPageURL.setParameter("title", _wikiPage.getTitle());
+			_viewPageURL.setParameter("title", _page.getTitle());
 		}
 		else if (_editPageURL != null) {
 			_editPageURL.setParameter("title", pageTitle);
 
 			append(_editPageURL.toString());
 
-			_editPageURL.setParameter("title", _wikiPage.getTitle());
+			_editPageURL.setParameter("title", _page.getTitle());
 		}
 	}
 
@@ -262,14 +285,30 @@ public class XhtmlTranslator extends XhtmlTranslationVisitor {
 		return unformattedHeadingTextVisitor.getUnformattedText(headingNode);
 	}
 
+	protected String searchLinkInAttachments(LinkNode linkNode) {
+		try {
+			for (FileEntry fileEntry : _page.getAttachmentsFileEntries()) {
+				String title = fileEntry.getTitle();
+
+				if (title.equals(linkNode.getLink())) {
+					return title;
+				}
+			}
+		}
+		catch (Exception e) {
+		}
+
+		return null;
+	}
+
 	private static final String _HEADING_ANCHOR_PREFIX = "section-";
 
 	private static Log _log = LogFactoryUtil.getLog(XhtmlTranslator.class);
 
 	private String _attachmentURLPrefix;
 	private PortletURL _editPageURL;
+	private WikiPage _page;
 	private WikiPageNode _rootWikiPageNode;
 	private PortletURL _viewPageURL;
-	private WikiPage _wikiPage;
 
 }

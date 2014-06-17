@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,7 +21,7 @@ public class ModelHintsConstants {
 
 	public static final String TEXT_DISPLAY_HEIGHT = "15";
 
-	public static final String TEXT_DISPLAY_WIDTH = "350";
+	public static final String TEXT_DISPLAY_WIDTH = "210";
 
 	public static final String TEXT_MAX_LENGTH = "75";
 

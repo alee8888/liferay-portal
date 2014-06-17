@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,50 +14,26 @@
 
 package com.liferay.portlet.social.service;
 
-import com.liferay.portal.kernel.transaction.Transactional;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
+import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.social.model.SocialActivityDefinition;
 import com.liferay.portlet.social.util.SocialConfigurationUtil;
 
 import java.util.List;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
  * @author Zsolt Berentey
  */
-@ExecutionTestListeners(
-	listeners = {
-		EnvironmentExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
+@ExecutionTestListeners(listeners = {MainServletExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class SocialActivitySettingLocalServiceTest
 	extends BaseSocialActivityTestCase {
-
-	@BeforeClass
-	public static void setUp() throws Exception {
-		BaseSocialActivityTestCase.setUp();
-
-		addGroup(TEST_GROUP);
-
-		addUsers();
-
-		addAsset();
-	}
-
-	@AfterClass
-	public static void tearDown() throws Exception {
-		BaseSocialActivityTestCase.tearDown();
-	}
 
 	@Test
 	public void testGetActivityDefinition() throws Exception {
@@ -92,7 +68,6 @@ public class SocialActivitySettingLocalServiceTest
 	}
 
 	@Test
-	@Transactional
 	public void testUpdateActivitySettings() throws Exception {
 		SocialActivitySettingLocalServiceUtil.updateActivitySetting(
 			_group.getGroupId(), TEST_MODEL, true);
@@ -108,17 +83,17 @@ public class SocialActivitySettingLocalServiceTest
 
 		Assert.assertFalse(
 			SocialActivitySettingLocalServiceUtil.isEnabled(
-			_group.getGroupId(), classNameId));
+				_group.getGroupId(), classNameId));
 		Assert.assertTrue(
 			SocialActivitySettingLocalServiceUtil.isEnabled(
-			_group.getGroupId(), classNameId, 1));
+				_group.getGroupId(), classNameId, 1));
 
 		SocialActivitySettingLocalServiceUtil.updateActivitySetting(
 			_group.getGroupId(), TEST_MODEL, 1, false);
 
 		Assert.assertFalse(
 			SocialActivitySettingLocalServiceUtil.isEnabled(
-			_group.getGroupId(), classNameId, 1));
+				_group.getGroupId(), classNameId, 1));
 	}
 
 }

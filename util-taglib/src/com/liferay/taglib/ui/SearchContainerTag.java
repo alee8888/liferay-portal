@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.SearchContainerReference;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.taglib.util.ParamAndPropertyAncestorTagImpl;
@@ -35,20 +36,21 @@ import javax.servlet.jsp.JspException;
 
 /**
  * @author Raymond Augé
+ * @author Roberto Díaz
  */
 public class SearchContainerTag<R> extends ParamAndPropertyAncestorTagImpl {
 
-	public static final String DEFAULT_VAR = "searchContainer";
-
 	@Override
 	public int doEndTag() {
+		pageContext.setAttribute(
+			_searchContainer.getTotalVar(), _searchContainer.getTotal());
+
 		_curParam = SearchContainer.DEFAULT_CUR_PARAM;
 		_delta = SearchContainer.DEFAULT_DELTA;
 		_deltaConfigurable = SearchContainer.DEFAULT_DELTA_CONFIGURABLE;
 		_deltaParam = SearchContainer.DEFAULT_DELTA_PARAM;
 		_displayTerms = null;
 		_emptyResultsMessage = null;
-		_hasResults = false;
 		_headerNames = null;
 		_hover = false;
 		_id = null;
@@ -61,7 +63,9 @@ public class SearchContainerTag<R> extends ParamAndPropertyAncestorTagImpl {
 		_rowChecker = null;
 		_searchContainer = null;
 		_searchTerms = null;
-		_var = DEFAULT_VAR;
+		_total = 0;
+		_totalVar = SearchContainer.DEFAULT_TOTAL_VAR;
+		_var = SearchContainer.DEFAULT_VAR;
 
 		return EVAL_PAGE;
 	}
@@ -88,39 +92,62 @@ public class SearchContainerTag<R> extends ParamAndPropertyAncestorTagImpl {
 			}
 
 			_searchContainer.setDeltaConfigurable(_deltaConfigurable);
-			_searchContainer.setId(_id);
+
+			if (Validator.isNotNull(_emptyResultsMessage)) {
+				_searchContainer.setEmptyResultsMessage(_emptyResultsMessage);
+			}
 
 			if (_headerNames != null) {
 				_searchContainer.setHeaderNames(_headerNames);
 			}
 
 			_searchContainer.setHover(_hover);
-
-			if (Validator.isNotNull(_orderByColParam)) {
-				_searchContainer.setOrderByColParam(_orderByColParam);
-			}
+			_searchContainer.setId(_id);
 
 			if (Validator.isNotNull(_orderByCol)) {
 				_searchContainer.setOrderByCol(_orderByCol);
+			}
+
+			if (Validator.isNotNull(_orderByColParam)) {
+				_searchContainer.setOrderByColParam(_orderByColParam);
 			}
 
 			if (_orderByComparator != null) {
 				_searchContainer.setOrderByComparator(_orderByComparator);
 			}
 
-			if (Validator.isNotNull(_orderByTypeParam)) {
-				_searchContainer.setOrderByTypeParam(_orderByTypeParam);
-			}
-
 			if (Validator.isNotNull(_orderByType)) {
 				_searchContainer.setOrderByType(_orderByType);
+			}
+
+			if (Validator.isNotNull(_orderByTypeParam)) {
+				_searchContainer.setOrderByTypeParam(_orderByTypeParam);
 			}
 
 			if (_rowChecker != null) {
 				_searchContainer.setRowChecker(_rowChecker);
 			}
 
+			if (_total != 0) {
+				_searchContainer.setTotal(_total);
+			}
+
+			if (Validator.isNotNull(_totalVar)) {
+				_searchContainer.setTotalVar(_totalVar);
+			}
+
+			pageContext.setAttribute(_searchContainer.getTotalVar(), 0);
 			pageContext.setAttribute(_var, _searchContainer);
+
+			SearchContainerReference searchContainerReference =
+				(SearchContainerReference)pageContext.getAttribute(
+					"searchContainerReference");
+
+			if ((searchContainerReference != null) &&
+				!_var.equals(SearchContainer.DEFAULT_VAR)) {
+
+				searchContainerReference.register(_var, _searchContainer);
+			}
 
 			return EVAL_BODY_INCLUDE;
 		}
@@ -185,6 +212,14 @@ public class SearchContainerTag<R> extends ParamAndPropertyAncestorTagImpl {
 		return _searchTerms;
 	}
 
+	public int getTotal() {
+		return _total;
+	}
+
+	public String getTotalVar() {
+		return _totalVar;
+	}
+
 	public String getVar() {
 		return _var;
 	}
@@ -193,8 +228,12 @@ public class SearchContainerTag<R> extends ParamAndPropertyAncestorTagImpl {
 		return _deltaConfigurable;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, with no direct replacement. See LPS-41307.
+	 */
+	@Deprecated
 	public boolean isHasResults() {
-		return _hasResults;
+		return true;
 	}
 
 	public boolean isHover() {
@@ -225,8 +264,11 @@ public class SearchContainerTag<R> extends ParamAndPropertyAncestorTagImpl {
 		_emptyResultsMessage = emptyResultsMessage;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, see LPS-41307
+	 */
+	@Deprecated
 	public void setHasResults(boolean hasResults) {
-		_hasResults = hasResults;
 	}
 
 	public void setHeaderNames(String headerNames) {
@@ -277,6 +319,14 @@ public class SearchContainerTag<R> extends ParamAndPropertyAncestorTagImpl {
 		_searchTerms = searchTerms;
 	}
 
+	public void setTotal(int total) {
+		_total = total;
+	}
+
+	public void setTotalVar(String totalVar) {
+		_totalVar = totalVar;
+	}
+
 	public void setVar(String var) {
 		_var = var;
 	}
@@ -288,7 +338,6 @@ public class SearchContainerTag<R> extends ParamAndPropertyAncestorTagImpl {
 	private String _deltaParam = SearchContainer.DEFAULT_DELTA_PARAM;
 	private DisplayTerms _displayTerms;
 	private String _emptyResultsMessage;
-	private boolean _hasResults;
 	private List<String> _headerNames;
 	private boolean _hover = true;
 	private String _id;
@@ -303,6 +352,8 @@ public class SearchContainerTag<R> extends ParamAndPropertyAncestorTagImpl {
 	private RowChecker _rowChecker;
 	private SearchContainer<R> _searchContainer;
 	private DisplayTerms _searchTerms;
-	private String _var = DEFAULT_VAR;
+	private int _total;
+	private String _totalVar = SearchContainer.DEFAULT_TOTAL_VAR;
+	private String _var = SearchContainer.DEFAULT_VAR;
 
 }

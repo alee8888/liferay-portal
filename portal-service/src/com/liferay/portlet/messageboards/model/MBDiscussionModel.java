@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,14 +14,20 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.StagedGroupedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
 
 import java.io.Serializable;
+
+import java.util.Date;
 
 /**
  * The base model interface for the MBDiscussion service. Represents a row in the &quot;MBDiscussion&quot; database table, with each column mapped to a property of this class.
@@ -36,7 +42,9 @@ import java.io.Serializable;
  * @see com.liferay.portlet.messageboards.model.impl.MBDiscussionModelImpl
  * @generated
  */
-public interface MBDiscussionModel extends AttachedModel, BaseModel<MBDiscussion> {
+@ProviderType
+public interface MBDiscussionModel extends AttachedModel, BaseModel<MBDiscussion>,
+	StagedGroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -58,6 +66,23 @@ public interface MBDiscussionModel extends AttachedModel, BaseModel<MBDiscussion
 	public void setPrimaryKey(long primaryKey);
 
 	/**
+	 * Returns the uuid of this message boards discussion.
+	 *
+	 * @return the uuid of this message boards discussion
+	 */
+	@AutoEscape
+	@Override
+	public String getUuid();
+
+	/**
+	 * Sets the uuid of this message boards discussion.
+	 *
+	 * @param uuid the uuid of this message boards discussion
+	 */
+	@Override
+	public void setUuid(String uuid);
+
+	/**
 	 * Returns the discussion ID of this message boards discussion.
 	 *
 	 * @return the discussion ID of this message boards discussion
@@ -72,10 +97,124 @@ public interface MBDiscussionModel extends AttachedModel, BaseModel<MBDiscussion
 	public void setDiscussionId(long discussionId);
 
 	/**
+	 * Returns the group ID of this message boards discussion.
+	 *
+	 * @return the group ID of this message boards discussion
+	 */
+	@Override
+	public long getGroupId();
+
+	/**
+	 * Sets the group ID of this message boards discussion.
+	 *
+	 * @param groupId the group ID of this message boards discussion
+	 */
+	@Override
+	public void setGroupId(long groupId);
+
+	/**
+	 * Returns the company ID of this message boards discussion.
+	 *
+	 * @return the company ID of this message boards discussion
+	 */
+	@Override
+	public long getCompanyId();
+
+	/**
+	 * Sets the company ID of this message boards discussion.
+	 *
+	 * @param companyId the company ID of this message boards discussion
+	 */
+	@Override
+	public void setCompanyId(long companyId);
+
+	/**
+	 * Returns the user ID of this message boards discussion.
+	 *
+	 * @return the user ID of this message boards discussion
+	 */
+	@Override
+	public long getUserId();
+
+	/**
+	 * Sets the user ID of this message boards discussion.
+	 *
+	 * @param userId the user ID of this message boards discussion
+	 */
+	@Override
+	public void setUserId(long userId);
+
+	/**
+	 * Returns the user uuid of this message boards discussion.
+	 *
+	 * @return the user uuid of this message boards discussion
+	 */
+	@Override
+	public String getUserUuid();
+
+	/**
+	 * Sets the user uuid of this message boards discussion.
+	 *
+	 * @param userUuid the user uuid of this message boards discussion
+	 */
+	@Override
+	public void setUserUuid(String userUuid);
+
+	/**
+	 * Returns the user name of this message boards discussion.
+	 *
+	 * @return the user name of this message boards discussion
+	 */
+	@AutoEscape
+	@Override
+	public String getUserName();
+
+	/**
+	 * Sets the user name of this message boards discussion.
+	 *
+	 * @param userName the user name of this message boards discussion
+	 */
+	@Override
+	public void setUserName(String userName);
+
+	/**
+	 * Returns the create date of this message boards discussion.
+	 *
+	 * @return the create date of this message boards discussion
+	 */
+	@Override
+	public Date getCreateDate();
+
+	/**
+	 * Sets the create date of this message boards discussion.
+	 *
+	 * @param createDate the create date of this message boards discussion
+	 */
+	@Override
+	public void setCreateDate(Date createDate);
+
+	/**
+	 * Returns the modified date of this message boards discussion.
+	 *
+	 * @return the modified date of this message boards discussion
+	 */
+	@Override
+	public Date getModifiedDate();
+
+	/**
+	 * Sets the modified date of this message boards discussion.
+	 *
+	 * @param modifiedDate the modified date of this message boards discussion
+	 */
+	@Override
+	public void setModifiedDate(Date modifiedDate);
+
+	/**
 	 * Returns the fully qualified class name of this message boards discussion.
 	 *
 	 * @return the fully qualified class name of this message boards discussion
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -85,6 +224,7 @@ public interface MBDiscussionModel extends AttachedModel, BaseModel<MBDiscussion
 	 *
 	 * @return the class name ID of this message boards discussion
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -92,6 +232,7 @@ public interface MBDiscussionModel extends AttachedModel, BaseModel<MBDiscussion
 	 *
 	 * @param classNameId the class name ID of this message boards discussion
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**
@@ -99,6 +240,7 @@ public interface MBDiscussionModel extends AttachedModel, BaseModel<MBDiscussion
 	 *
 	 * @return the class p k of this message boards discussion
 	 */
+	@Override
 	public long getClassPK();
 
 	/**
@@ -106,6 +248,7 @@ public interface MBDiscussionModel extends AttachedModel, BaseModel<MBDiscussion
 	 *
 	 * @param classPK the class p k of this message boards discussion
 	 */
+	@Override
 	public void setClassPK(long classPK);
 
 	/**
@@ -122,35 +265,60 @@ public interface MBDiscussionModel extends AttachedModel, BaseModel<MBDiscussion
 	 */
 	public void setThreadId(long threadId);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(MBDiscussion mbDiscussion);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<MBDiscussion> toCacheModel();
 
+	@Override
 	public MBDiscussion toEscapedModel();
 
+	@Override
+	public MBDiscussion toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

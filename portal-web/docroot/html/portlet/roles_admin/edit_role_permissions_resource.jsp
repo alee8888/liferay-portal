@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,6 +25,16 @@ String curPortletResource = (String)request.getAttribute("edit_role_permissions.
 String curModelResource = (String)request.getAttribute("edit_role_permissions.jsp-curModelResource");
 String curModelResourceName = (String)request.getAttribute("edit_role_permissions.jsp-curModelResourceName");
 
+Portlet curPortlet = null;
+String curPortletId = StringPool.BLANK;
+String curPortletControlPanelEntryCategory = StringPool.BLANK;
+
+if (Validator.isNotNull(curPortletResource)) {
+	curPortlet = PortletLocalServiceUtil.getPortletById(themeDisplay.getCompanyId(), curPortletResource);
+	curPortletId = curPortlet.getPortletId();
+	curPortletControlPanelEntryCategory = curPortlet.getControlPanelEntryCategory();
+}
+
 List curActions = ResourceActionsUtil.getResourceActions(curPortletResource, curModelResource);
 
 curActions = ListUtil.sort(curActions, new ActionComparator(locale));
@@ -35,14 +45,15 @@ List<String> headerNames = new ArrayList<String>();
 
 headerNames.add("action");
 
-if (role.getType() == RoleConstants.TYPE_REGULAR) {
-	headerNames.add("scope");
-	headerNames.add(StringPool.BLANK);
+boolean showScope = _isShowScope(role, curModelResource, curPortletId);
+
+if (showScope) {
+	headerNames.add("sites");
 }
 
-SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, renderResponse.createRenderURL(), headerNames, "there-are-no-actions");
+SearchContainer searchContainer = new SearchContainer(liferayPortletRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, liferayPortletResponse.createRenderURL(), headerNames, "there-are-no-actions");
 
-searchContainer.setRowChecker(new ResourceActionRowChecker(renderResponse));
+searchContainer.setRowChecker(new ResourceActionRowChecker(liferayPortletResponse));
 
 int total = curActions.size();
 
@@ -59,6 +70,16 @@ for (int i = 0; i < results.size(); i++) {
 
 	if (role.getName().equals(RoleConstants.GUEST) && guestUnsupportedActions.contains(actionId)) {
 		continue;
+	}
+
+	if (Validator.isNotNull(curPortletResource)) {
+		if (actionId.equals(ActionKeys.ACCESS_IN_CONTROL_PANEL) && Validator.isNull(curPortlet.getControlPanelEntryCategory())) {
+			continue;
+		}
+
+		if (actionId.equals(ActionKeys.ADD_TO_PAGE) && _hasHiddenPortletCategory(curPortlet)) {
+			continue;
+		}
 	}
 
 	String curResource = null;
@@ -82,7 +103,7 @@ for (int i = 0; i < results.size(); i++) {
 		if (Validator.isNotNull(portletResource)) {
 			Portlet portlet = PortletLocalServiceUtil.getPortletById(company.getCompanyId(), portletResource);
 
-			if (Validator.isNotNull(portlet.getControlPanelEntryCategory()) && portlet.getControlPanelEntryCategory().equals(PortletCategoryKeys.CONTENT)) {
+			if (Validator.isNotNull(portlet.getControlPanelEntryCategory()) && portlet.getControlPanelEntryCategory().startsWith(PortletCategoryKeys.SITE_ADMINISTRATION)) {
 				supportsFilterByGroup = true;
 			}
 		}
@@ -102,7 +123,7 @@ for (int i = 0; i < results.size(); i++) {
 
 		groupParams.put("rolePermissions", rolePermissions);
 
-		groups = GroupLocalServiceUtil.search(company.getCompanyId(), new long[] {PortalUtil.getClassNameId(Company.class), PortalUtil.getClassNameId(Group.class), PortalUtil.getClassNameId(Organization.class), PortalUtil.getClassNameId(UserPersonalSite.class)}, null, null, groupParams, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+		groups = GroupLocalServiceUtil.search(company.getCompanyId(), new long[] {PortalUtil.getClassNameId(Company.class), PortalUtil.getClassNameId(Group.class), PortalUtil.getClassNameId(Organization.class), PortalUtil.getClassNameId(UserPersonalSite.class)}, null, null, groupParams, true, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		groupIdsArray = new long[groups.size()];
 
@@ -111,7 +132,7 @@ for (int i = 0; i < results.size(); i++) {
 
 			groupIdsArray[j] = group.getGroupId();
 
-			groupNames.add(group.getDescriptiveName(locale));
+			groupNames.add(HtmlUtil.escape(group.getDescriptiveName(locale)));
 		}
 
 		if (!groups.isEmpty()) {
@@ -124,12 +145,10 @@ for (int i = 0; i < results.size(); i++) {
 
 	ResultRow row = new ResultRow(new Object[] {role, actionId, curResource, target, scope, supportsFilterByGroup, groups, groupIdsArray, groupNames}, target, i);
 
-	row.addText(ResourceActionsUtil.getAction(pageContext, actionId));
+	row.addText(_getActionLabel(pageContext, themeDisplay, curResource, actionId));
 
-	if (role.getType() == RoleConstants.TYPE_REGULAR) {
+	if (showScope) {
 		row.addJSP("/html/portlet/roles_admin/edit_role_permissions_resource_scope.jsp");
-
-		row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/roles_admin/edit_role_permissions_resource_action.jsp");
 	}
 
 	resultRows.add(row);
@@ -137,3 +156,19 @@ for (int i = 0; i < results.size(); i++) {
 %>
 
 <liferay-ui:search-iterator paginate="<%= false %>" searchContainer="<%= searchContainer %>" />
+
+<%!
+private boolean _hasHiddenPortletCategory(Portlet portlet) {
+	PortletCategory portletCategory = (PortletCategory)WebAppPool.get(portlet.getCompanyId(), WebKeys.PORTLET_CATEGORY);
+
+	PortletCategory hiddenPortletCategory = portletCategory.getCategory("category.hidden");
+
+	Set<String> portletIds = hiddenPortletCategory.getPortletIds();
+
+	if (portletIds.contains(portlet.getPortletId())) {
+		return true;
+	}
+
+	return false;
+}
+%>

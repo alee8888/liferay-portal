@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,6 +18,28 @@
 
 <%
 String url = GetterUtil.getString(typeSettingsProperties.get("url"));
+boolean ajax = GetterUtil.getBoolean(request.getParameter("ajax"));
 %>
 
-<aui:input name="url" type="text" value="<%= url %>" />
+<aui:input cssClass="lfr-input-text-container" name="url" type="text" value="<%= url %>">
+	<aui:validator name="required" />
+</aui:input>
+
+<c:if test="<%= ajax %>">
+	<aui:script use="liferay-form">
+		var form = Liferay.Form.get('<portlet:namespace />fm');
+
+		if (form) {
+			var rules = form.formValidator.get('rules');
+
+			var fieldName = '<portlet:namespace />url';
+
+			if (!(fieldName in rules)) {
+				rules[fieldName] = {
+					custom: false,
+					required: true
+				};
+			}
+		}
+	</aui:script>
+</c:if>

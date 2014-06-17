@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,7 @@ package com.liferay.portal.atom;
 import com.liferay.portal.kernel.atom.AtomCollectionAdapter;
 import com.liferay.portal.kernel.atom.AtomEntryContent;
 import com.liferay.portal.kernel.atom.AtomException;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.InputStream;
 
@@ -44,7 +45,8 @@ public class AtomCollectionAdapterWrapper<E>
 	public AtomCollectionAdapterWrapper(
 		AtomCollectionAdapter<E> atomCollectionAdapter) {
 
-		super(atomCollectionAdapter.getCollectionName().toLowerCase());
+		super(
+			StringUtil.toLowerCase(atomCollectionAdapter.getCollectionName()));
 
 		_atomCollectionAdapter = atomCollectionAdapter;
 	}
@@ -184,6 +186,7 @@ public class AtomCollectionAdapterWrapper<E>
 		return _atomCollectionAdapter.getEntryTitle(entry);
 	}
 
+	@Override
 	public String getTitle(RequestContext requestContext) {
 		return _atomCollectionAdapter.getFeedTitle(
 			new AtomRequestContextImpl(requestContext));

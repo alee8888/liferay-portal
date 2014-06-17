@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.shopping.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link ShoppingOrderService}.
- * </p>
+ * Provides a wrapper for {@link ShoppingOrderService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ShoppingOrderService
+ * @author Brian Wing Shun Chan
+ * @see ShoppingOrderService
  * @generated
  */
+@ProviderType
 public class ShoppingOrderServiceWrapper implements ShoppingOrderService,
 	ServiceWrapper<ShoppingOrderService> {
 	public ShoppingOrderServiceWrapper(
@@ -37,6 +38,7 @@ public class ShoppingOrderServiceWrapper implements ShoppingOrderService,
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _shoppingOrderService.getBeanIdentifier();
 	}
@@ -46,54 +48,56 @@ public class ShoppingOrderServiceWrapper implements ShoppingOrderService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_shoppingOrderService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public void completeOrder(long groupId, java.lang.String number,
 		java.lang.String ppTxnId, java.lang.String ppPaymentStatus,
 		double ppPaymentGross, java.lang.String ppReceiverEmail,
 		java.lang.String ppPayerEmail,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_shoppingOrderService.completeOrder(groupId, number, ppTxnId,
 			ppPaymentStatus, ppPaymentGross, ppReceiverEmail, ppPayerEmail,
 			serviceContext);
 	}
 
+	@Override
 	public void deleteOrder(long groupId, long orderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_shoppingOrderService.deleteOrder(groupId, orderId);
 	}
 
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingOrder getOrder(
 		long groupId, long orderId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _shoppingOrderService.getOrder(groupId, orderId);
 	}
 
+	@Override
 	public void sendEmail(long groupId, long orderId,
 		java.lang.String emailType,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_shoppingOrderService.sendEmail(groupId, orderId, emailType,
 			serviceContext);
 	}
 
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingOrder updateOrder(
 		long groupId, long orderId, java.lang.String ppTxnId,
 		java.lang.String ppPaymentStatus, double ppPaymentGross,
 		java.lang.String ppReceiverEmail, java.lang.String ppPayerEmail)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _shoppingOrderService.updateOrder(groupId, orderId, ppTxnId,
 			ppPaymentStatus, ppPaymentGross, ppReceiverEmail, ppPayerEmail);
 	}
 
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingOrder updateOrder(
 		long groupId, long orderId, java.lang.String billingFirstName,
 		java.lang.String billingLastName, java.lang.String billingEmailAddress,
@@ -109,8 +113,7 @@ public class ShoppingOrderServiceWrapper implements ShoppingOrderService,
 		java.lang.String shippingPhone, java.lang.String ccName,
 		java.lang.String ccType, java.lang.String ccNumber, int ccExpMonth,
 		int ccExpYear, java.lang.String ccVerNumber, java.lang.String comments)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _shoppingOrderService.updateOrder(groupId, orderId,
 			billingFirstName, billingLastName, billingEmailAddress,
 			billingCompany, billingStreet, billingCity, billingState,
@@ -122,24 +125,28 @@ public class ShoppingOrderServiceWrapper implements ShoppingOrderService,
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ShoppingOrderService getWrappedShoppingOrderService() {
 		return _shoppingOrderService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedShoppingOrderService(
 		ShoppingOrderService shoppingOrderService) {
 		_shoppingOrderService = shoppingOrderService;
 	}
 
+	@Override
 	public ShoppingOrderService getWrappedService() {
 		return _shoppingOrderService;
 	}
 
+	@Override
 	public void setWrappedService(ShoppingOrderService shoppingOrderService) {
 		_shoppingOrderService = shoppingOrderService;
 	}

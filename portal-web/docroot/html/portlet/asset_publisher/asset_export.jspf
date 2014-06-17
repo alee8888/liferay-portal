@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,20 +15,22 @@
 --%>
 
 <%
+PortletURL exportAssetURL = assetRenderer.getURLExport(liferayPortletRequest, liferayPortletResponse);
+
 exportAssetURL.setWindowState(LiferayWindowState.EXCLUSIVE);
 %>
 
 <liferay-ui:icon-list>
 
 	<%
-	for (String extension : extensions) {
+	for (String extension : assetPublisherDisplayContext.getExtensions(assetRenderer)) {
 		exportAssetURL.setParameter("targetExtension", extension);
 	%>
 
 		<liferay-ui:icon
-			image='<%= "../file_system/small/" + extension %>'
+			image='<%= "../file_system/small/" + HtmlUtil.escapeAttribute(extension) %>'
 			label="<%= true %>"
-			message='<%= LanguageUtil.format(pageContext, "x-convert-x-to-x", new Object[] {"aui-helper-hidden-accessible", assetRenderer.getTitle(locale), extension.toUpperCase()}) %>'
+			message='<%= LanguageUtil.format(pageContext, "x-convert-x-to-x", new Object[] {"hide-accessible", assetRenderer.getTitle(locale), StringUtil.toUpperCase(HtmlUtil.escape(extension))}, false) %>'
 			method="get"
 			url="<%= exportAssetURL.toString() %>"
 		/>

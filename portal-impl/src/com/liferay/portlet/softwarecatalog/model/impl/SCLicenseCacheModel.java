@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,7 +20,10 @@ import com.liferay.portal.model.CacheModel;
 
 import com.liferay.portlet.softwarecatalog.model.SCLicense;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing SCLicense in entity cache.
@@ -29,7 +32,8 @@ import java.io.Serializable;
  * @see SCLicense
  * @generated
  */
-public class SCLicenseCacheModel implements CacheModel<SCLicense>, Serializable {
+public class SCLicenseCacheModel implements CacheModel<SCLicense>,
+	Externalizable {
 	@Override
 	public String toString() {
 		StringBundler sb = new StringBundler(13);
@@ -51,6 +55,7 @@ public class SCLicenseCacheModel implements CacheModel<SCLicense>, Serializable 
 		return sb.toString();
 	}
 
+	@Override
 	public SCLicense toEntityModel() {
 		SCLicenseImpl scLicenseImpl = new SCLicenseImpl();
 
@@ -77,6 +82,40 @@ public class SCLicenseCacheModel implements CacheModel<SCLicense>, Serializable 
 		scLicenseImpl.resetOriginalValues();
 
 		return scLicenseImpl;
+	}
+
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		licenseId = objectInput.readLong();
+		name = objectInput.readUTF();
+		url = objectInput.readUTF();
+		openSource = objectInput.readBoolean();
+		active = objectInput.readBoolean();
+		recommended = objectInput.readBoolean();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(licenseId);
+
+		if (name == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(name);
+		}
+
+		if (url == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(url);
+		}
+
+		objectOutput.writeBoolean(openSource);
+		objectOutput.writeBoolean(active);
+		objectOutput.writeBoolean(recommended);
 	}
 
 	public long licenseId;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,11 +16,14 @@ package com.liferay.portal.repository.liferayrepository.model;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
+import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.permission.DLFolderPermission;
-import com.liferay.portlet.documentlibrary.util.DLAppUtil;
+import com.liferay.portlet.documentlibrary.util.RepositoryModelUtil;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 
 import java.io.Serializable;
@@ -43,18 +46,69 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		_escapedModel = escapedModel;
 	}
 
+	@Override
+	public Object clone() {
+		LiferayFolder liferayFolder = new LiferayFolder(
+			_dlFolder, _escapedModel);
+
+		liferayFolder.setCompanyId(getCompanyId());
+		liferayFolder.setCreateDate(getCreateDate());
+		liferayFolder.setGroupId(getGroupId());
+		liferayFolder.setModifiedDate(getModifiedDate());
+		liferayFolder.setPrimaryKey(getPrimaryKey());
+		liferayFolder.setUserId(getUserId());
+		liferayFolder.setUserName(getUserName());
+
+		try {
+			liferayFolder.setUserUuid(getUserUuid());
+		}
+		catch (SystemException se) {
+		}
+
+		liferayFolder.setUuid(getUuid());
+
+		return liferayFolder;
+	}
+
+	@Override
 	public boolean containsPermission(
 			PermissionChecker permissionChecker, String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return DLFolderPermission.contains(
 			permissionChecker, _dlFolder, actionId);
 	}
 
-	public List<Folder> getAncestors() throws PortalException, SystemException {
-		return toFolders(_dlFolder.getAncestors());
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof LiferayFolder)) {
+			return false;
+		}
+
+		LiferayFolder liferayFolder = (LiferayFolder)obj;
+
+		if (Validator.equals(_dlFolder, liferayFolder._dlFolder)) {
+			return true;
+		}
+
+		return false;
 	}
 
+	@Override
+	public List<Long> getAncestorFolderIds() throws PortalException {
+		return _dlFolder.getAncestorFolderIds();
+	}
+
+	@Override
+	public List<Folder> getAncestors() throws PortalException {
+		return RepositoryModelUtil.toFolders(_dlFolder.getAncestors());
+	}
+
+	@Override
 	public Map<String, Serializable> getAttributes() {
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
@@ -66,10 +120,12 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		return _dlFolder.getCompanyId();
 	}
 
+	@Override
 	public Date getCreateDate() {
 		return _dlFolder.getCreateDate();
 	}
 
+	@Override
 	public String getDescription() {
 		return _dlFolder.getDescription();
 	}
@@ -79,40 +135,48 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		return _dlFolder.getExpandoBridge();
 	}
 
+	@Override
 	public long getFolderId() {
 		return _dlFolder.getFolderId();
 	}
 
+	@Override
 	public long getGroupId() {
 		return _dlFolder.getGroupId();
 	}
 
+	@Override
 	public Date getLastPostDate() {
 		return _dlFolder.getLastPostDate();
 	}
 
+	@Override
 	public Object getModel() {
 		return _dlFolder;
 	}
 
+	@Override
 	public Class<?> getModelClass() {
-		return DLFolder.class;
+		return LiferayFolder.class;
 	}
 
 	@Override
 	public String getModelClassName() {
-		return DLFolder.class.getName();
+		return LiferayFolder.class.getName();
 	}
 
+	@Override
 	public Date getModifiedDate() {
 		return _dlFolder.getModifiedDate();
 	}
 
+	@Override
 	public String getName() {
-		return DLAppUtil.stripTrashNamespace(_dlFolder.getName());
+		return _dlFolder.getName();
 	}
 
-	public Folder getParentFolder() throws PortalException, SystemException {
+	@Override
+	public Folder getParentFolder() throws PortalException {
 		DLFolder dlParentFolder = _dlFolder.getParentFolder();
 
 		if (dlParentFolder == null) {
@@ -123,6 +187,7 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		}
 	}
 
+	@Override
 	public long getParentFolderId() {
 		return _dlFolder.getParentFolderId();
 	}
@@ -132,38 +197,57 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		return _dlFolder.getPrimaryKey();
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
 		return getPrimaryKey();
 	}
 
+	@Override
 	public long getRepositoryId() {
 		return _dlFolder.getRepositoryId();
 	}
 
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(DLFolderConstants.getClassName());
+	}
+
+	@Override
 	public long getUserId() {
 		return _dlFolder.getUserId();
 	}
 
+	@Override
 	public String getUserName() {
 		return _dlFolder.getUserName();
 	}
 
-	public String getUserUuid() throws SystemException {
+	@Override
+	public String getUserUuid() {
 		return _dlFolder.getUserUuid();
 	}
 
+	@Override
 	public String getUuid() {
 		return _dlFolder.getUuid();
 	}
 
+	@Override
+	public int hashCode() {
+		return _dlFolder.hashCode();
+	}
+
+	@Override
 	public boolean hasInheritableLock() {
 		return _dlFolder.hasInheritableLock();
 	}
 
+	@Override
 	public boolean hasLock() {
 		return _dlFolder.hasLock();
 	}
 
+	@Override
 	public boolean isDefaultRepository() {
 		if (_dlFolder.getGroupId() == _dlFolder.getRepositoryId()) {
 			return true;
@@ -173,22 +257,27 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		}
 	}
 
+	@Override
 	public boolean isEscapedModel() {
 		return _escapedModel;
 	}
 
+	@Override
 	public boolean isLocked() {
 		return _dlFolder.isLocked();
 	}
 
+	@Override
 	public boolean isMountPoint() {
 		return _dlFolder.isMountPoint();
 	}
 
+	@Override
 	public boolean isRoot() {
 		return _dlFolder.isRoot();
 	}
 
+	@Override
 	public boolean isSupportsLocking() {
 		if (isMountPoint()) {
 			return false;
@@ -198,6 +287,7 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		}
 	}
 
+	@Override
 	public boolean isSupportsMetadata() {
 		if (isMountPoint()) {
 			return false;
@@ -207,6 +297,7 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		}
 	}
 
+	@Override
 	public boolean isSupportsMultipleUpload() {
 		if (isMountPoint()) {
 			return false;
@@ -216,6 +307,7 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		}
 	}
 
+	@Override
 	public boolean isSupportsShortcuts() {
 		if (isMountPoint()) {
 			return false;
@@ -225,6 +317,7 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		}
 	}
 
+	@Override
 	public boolean isSupportsSocial() {
 		if (isMountPoint()) {
 			return false;
@@ -234,18 +327,32 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		}
 	}
 
+	@Override
+	public boolean isSupportsSubscribing() {
+		if (isMountPoint()) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+
+	@Override
 	public void setCompanyId(long companyId) {
 		_dlFolder.setCompanyId(companyId);
 	}
 
+	@Override
 	public void setCreateDate(Date date) {
 		_dlFolder.setCreateDate(date);
 	}
 
+	@Override
 	public void setGroupId(long groupId) {
 		_dlFolder.setGroupId(groupId);
 	}
 
+	@Override
 	public void setModifiedDate(Date date) {
 		_dlFolder.setModifiedDate(date);
 	}
@@ -254,28 +361,53 @@ public class LiferayFolder extends LiferayModel implements Folder {
 		_dlFolder.setPrimaryKey(primaryKey);
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public void setUserId(long userId) {
 		_dlFolder.setUserId(userId);
 	}
 
+	@Override
 	public void setUserName(String userName) {
 		_dlFolder.setUserName(userName);
 	}
 
+	@Override
 	public void setUserUuid(String userUuid) {
 		_dlFolder.setUserUuid(userUuid);
 	}
 
+	@Override
+	public void setUuid(String uuid) {
+		_dlFolder.setUuid(uuid);
+	}
+
+	@Override
 	public Folder toEscapedModel() {
 		if (isEscapedModel()) {
 			return this;
 		}
 		else {
 			return new LiferayFolder(_dlFolder.toEscapedModel(), true);
+		}
+	}
+
+	@Override
+	public String toString() {
+		return _dlFolder.toString();
+	}
+
+	@Override
+	public Folder toUnescapedModel() {
+		if (isEscapedModel()) {
+			return new LiferayFolder(_dlFolder.toUnescapedModel(), true);
+		}
+		else {
+			return this;
 		}
 	}
 

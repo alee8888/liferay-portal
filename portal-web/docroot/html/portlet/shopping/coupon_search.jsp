@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,17 +22,17 @@ CouponSearch searchContainer = (CouponSearch)request.getAttribute("liferay-ui:se
 CouponDisplayTerms displayTerms = (CouponDisplayTerms)searchContainer.getDisplayTerms();
 %>
 
-<aui:fieldset>
-	<aui:column>
-		<aui:input name="<%= displayTerms.CODE %>" size="20" type="text" value="<%= displayTerms.getCode() %>" />
+<aui:fieldset column="<%= true %>">
+	<aui:col width="<%= 33 %>">
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="<%= displayTerms.CODE %>" size="20" type="text" value="<%= displayTerms.getCode() %>" />
 
-		<aui:select label="" name="<%= displayTerms.AND_OPERATOR %>">
+		<aui:select label="" name="<%= displayTerms.AND_OPERATOR %>" title="and-or-operator">
 			<aui:option label="and" selected="<%= displayTerms.isAndOperator() %>" value="1" />
 			<aui:option label="or" selected="<%= !displayTerms.isAndOperator() %>" value="0" />
 		</aui:select>
-	</aui:column>
+	</aui:col>
 
-	<aui:column>
+	<aui:col width="<%= 33 %>">
 		<aui:select name="<%= displayTerms.DISCOUNT_TYPE %>" showEmptyOption="<%= true %>">
 
 			<%
@@ -46,14 +46,14 @@ CouponDisplayTerms displayTerms = (CouponDisplayTerms)searchContainer.getDisplay
 			%>
 
 		</aui:select>
-	</aui:column>
+	</aui:col>
 
-	<aui:column>
+	<aui:col width="<%= 33 %>">
 		<aui:select name="<%= displayTerms.ACTIVE %>">
 			<aui:option label="yes" selected="<%= displayTerms.isActive() %>" value="1" />
 			<aui:option label="no" selected="<%= !displayTerms.isActive() %>" value="0" />
 		</aui:select>
-	</aui:column>
+	</aui:col>
 </aui:fieldset>
 
 <aui:button-row>
@@ -65,10 +65,7 @@ CouponDisplayTerms displayTerms = (CouponDisplayTerms)searchContainer.getDisplay
 <aui:script>
 	function <portlet:namespace />addCoupon() {
 		document.<portlet:namespace />fm.method = 'post';
+
 		submitForm(document.<portlet:namespace />fm, '<portlet:renderURL><portlet:param name="struts_action" value="/shopping/edit_coupon" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:renderURL>');
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace /><%= displayTerms.CODE %>);
-	</c:if>
 </aui:script>

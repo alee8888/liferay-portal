@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,46 +17,35 @@
 <%@ include file="/html/portlet/asset_publisher/init.jsp" %>
 
 <%
-if (mergeUrlTags || mergeLayoutTags) {
-	String[] compilerTagNames = new String[0];
+long assetCategoryId = ParamUtil.getLong(request, "categoryId");
 
-	if (mergeUrlTags) {
-		compilerTagNames = ParamUtil.getParameterValues(request, "tags");
-	}
+if (assetCategoryId > 0) {
+	AssetCategory assetCategory = AssetCategoryLocalServiceUtil.getCategory(assetCategoryId);
 
-	if (mergeLayoutTags) {
-		Set<String> layoutTagNames = AssetUtil.getLayoutTagNames(request);
+	assetCategory = assetCategory.toEscapedModel();
 
-		if (!layoutTagNames.isEmpty()) {
-			compilerTagNames = ArrayUtil.append(compilerTagNames, layoutTagNames.toArray(new String[layoutTagNames.size()]));
-		}
-	}
+	PortalUtil.setPageKeywords(assetCategory.getTitle(locale), request);
+}
 
-	String titleEntry = null;
+String assetTagName = ParamUtil.getString(request, "tag");
 
-	if ((compilerTagNames != null) && (compilerTagNames.length > 0)) {
-		String[] newAssetTagNames = ArrayUtil.append(allAssetTagNames, compilerTagNames);
+if (Validator.isNotNull(assetTagName)) {
+	PortalUtil.setPageKeywords(assetTagName, request);
+}
 
-		allAssetTagNames = ArrayUtil.distinct(newAssetTagNames, new StringComparator());
+if (assetPublisherDisplayContext.isMergeURLTags() || assetPublisherDisplayContext.isMergeLayoutTags()) {
+	String[] compilerTagNames = assetPublisherDisplayContext.getCompilerTagNames();
 
-		long[] allAssetTagIds = AssetTagLocalServiceUtil.getTagIds(scopeGroupId, allAssetTagNames);
+	String titleEntry = ArrayUtil.isNotEmpty(compilerTagNames) ? compilerTagNames[compilerTagNames.length - 1] : null;
 
-		assetEntryQuery.setAllTagIds(allAssetTagIds);
-
-		titleEntry = compilerTagNames[compilerTagNames.length - 1];
-	}
-
-	String portletTitle = HtmlUtil.unescape(portletDisplay.getTitle());
+	String portletTitle = portletDisplay.getTitle();
 
 	portletTitle = AssetUtil.substituteTagPropertyVariables(scopeGroupId, titleEntry, portletTitle);
 
 	renderResponse.setTitle(portletTitle);
 }
-else {
-	allAssetTagNames = ArrayUtil.distinct(allAssetTagNames, new StringComparator());
-}
 
-for (String curAssetTagName : allAssetTagNames) {
+for (String curAssetTagName : assetPublisherDisplayContext.getAllAssetTagNames()) {
 	try {
 		AssetTag assetTag = AssetTagLocalServiceUtil.getTag(scopeGroupId, curAssetTagName);
 
@@ -74,80 +63,131 @@ for (String curAssetTagName : allAssetTagNames) {
 	}
 }
 
-if (enableTagBasedNavigation && selectionStyle.equals("manual") && ((assetEntryQuery.getAllCategoryIds().length > 0) || (assetEntryQuery.getAllTagIds().length > 0))) {
-	selectionStyle = "dynamic";
+if (assetPublisherDisplayContext.isEnableTagBasedNavigation() && assetPublisherDisplayContext.isSelectionStyleManual() && ((assetPublisherDisplayContext.getAllAssetCategoryIds().length > 0) || (assetPublisherDisplayContext.getAllAssetTagNames().length > 0))) {
+	assetPublisherDisplayContext.setSelectionStyle("dynamic");
 }
 
 Group scopeGroup = themeDisplay.getScopeGroup();
+
+boolean hasAddPortletURLs = false;
 %>
 
-<c:if test="<%= (scopeGroup != null) && (!scopeGroup.hasStagingGroup() || scopeGroup.isStagingGroup()) && !portletName.equals(PortletKeys.RELATED_ASSETS) %>">
-	<aui:form name="fm">
+<c:if test="<%= assetPublisherDisplayContext.isShowAddContentButton() && (scopeGroup != null) && (!scopeGroup.hasStagingGroup() || scopeGroup.isStagingGroup()) && !portletName.equals(PortletKeys.HIGHEST_RATED_ASSETS) && !portletName.equals(PortletKeys.MOST_VIEWED_ASSETS) && !portletName.equals(PortletKeys.RELATED_ASSETS) %>">
 
-		<%
-		for (long groupId : groupIds) {
-		%>
+	<%
+	boolean defaultAssetPublisher = AssetUtil.isDefaultAssetPublisher(layout, portletDisplay.getId(), portletResource);
 
-			<div class="lfr-meta-actions add-asset-selector">
-				<%@ include file="/html/portlet/asset_publisher/add_asset.jspf" %>
-			</div>
+	long[] groupIds = assetPublisherDisplayContext.getGroupIds();
+	%>
 
-		<%
-		}
-		%>
+	<c:if test="<%= groupIds.length > 0 %>">
+		<aui:nav-bar cssClass='<%= "add-asset-selector lfr-meta-actions" + ((groupIds.length == 1) ? " single-item-button" : StringPool.BLANK) %>'>
 
-	</aui:form>
+			<%
+			for (long groupId : groupIds) {
+				Map<String, PortletURL> addPortletURLs = AssetUtil.getAddPortletURLs(liferayPortletRequest, liferayPortletResponse, groupId, assetPublisherDisplayContext.getClassNameIds(), assetPublisherDisplayContext.getClassTypeIds(), assetPublisherDisplayContext.getAllAssetCategoryIds(), assetPublisherDisplayContext.getAllAssetTagNames(), null);
+
+				if ((addPortletURLs != null) && !addPortletURLs.isEmpty()) {
+					hasAddPortletURLs = true;
+				}
+			%>
+
+				<c:if test="<%= !addPortletURLs.isEmpty() %>">
+					<%@ include file="/html/portlet/asset_publisher/add_asset.jspf" %>
+				</c:if>
+
+			<%
+			}
+			%>
+
+		</aui:nav-bar>
+	</c:if>
 </c:if>
+
+<div class="subscribe-action">
+	<c:if test="<%= !portletName.equals(PortletKeys.HIGHEST_RATED_ASSETS) && !portletName.equals(PortletKeys.MOST_VIEWED_ASSETS) && !portletName.equals(PortletKeys.RECENT_CONTENT) && !portletName.equals(PortletKeys.RELATED_ASSETS) && PortletPermissionUtil.contains(permissionChecker, plid, portletDisplay.getId(), ActionKeys.SUBSCRIBE) && AssetPublisherUtil.getEmailAssetEntryAddedEnabled(portletPreferences) %>">
+		<c:choose>
+			<c:when test="<%= AssetPublisherUtil.isSubscribed(themeDisplay.getCompanyId(), user.getUserId(), themeDisplay.getPlid(), portletDisplay.getId()) %>">
+				<portlet:actionURL var="unsubscribeURL">
+					<portlet:param name="struts_action" value="/asset_publisher/edit_subscription" />
+					<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.UNSUBSCRIBE %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
+				</portlet:actionURL>
+
+				<liferay-ui:icon
+					iconCssClass="icon-remove-sign"
+					label="<%= true %>"
+					message="unsubscribe"
+					url="<%= unsubscribeURL %>"
+				/>
+			</c:when>
+			<c:otherwise>
+				<portlet:actionURL var="subscribeURL">
+					<portlet:param name="struts_action" value="/asset_publisher/edit_subscription" />
+					<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.SUBSCRIBE %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
+				</portlet:actionURL>
+
+				<liferay-ui:icon
+					iconCssClass="icon-ok-sign"
+					label="<%= true %>"
+					message="subscribe"
+					url="<%= subscribeURL %>"
+				/>
+			</c:otherwise>
+		</c:choose>
+	</c:if>
+
+	<%
+	boolean enableRSS = !PortalUtil.isRSSFeedsEnabled() ? false : assetPublisherDisplayContext.isEnableRSS();
+	%>
+
+	<c:if test="<%= enableRSS %>">
+		<liferay-portlet:resourceURL varImpl="rssURL">
+			<portlet:param name="struts_action" value="/asset_publisher/rss" />
+		</liferay-portlet:resourceURL>
+
+		<liferay-ui:rss resourceURL="<%= rssURL %>" />
+	</c:if>
+</div>
 
 <%
 PortletURL portletURL = renderResponse.createRenderURL();
 
-SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, delta, portletURL, null, null);
+SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, assetPublisherDisplayContext.getDelta(), portletURL, null, null);
 
-if (!paginationType.equals("none")) {
-	searchContainer.setDelta(delta);
+if (!assetPublisherDisplayContext.isPaginationTypeNone()) {
+	searchContainer.setDelta(assetPublisherDisplayContext.getDelta());
 	searchContainer.setDeltaConfigurable(false);
 }
 %>
 
-<c:if test="<%= showMetadataDescriptions %>">
+<c:if test="<%= assetPublisherDisplayContext.isShowMetadataDescriptions() %>">
 	<liferay-ui:categorization-filter
 		assetType="content"
-		portletURL="<%= portletURL%>"
+		portletURL="<%= portletURL %>"
 	/>
 </c:if>
 
+<%
+Map<String, Object> contextObjects = new HashMap<String, Object>();
+
+contextObjects.put(PortletDisplayTemplateConstants.ASSET_PUBLISHER_HELPER, AssetPublisherHelperUtil.getAssetPublisherHelper());
+
+request.setAttribute("view.jsp-viewInContext", assetPublisherDisplayContext.isAssetLinkBehaviorViewInPortlet());
+%>
+
 <c:choose>
-	<c:when test='<%= selectionStyle.equals("dynamic") %>'>
+	<c:when test="<%= assetPublisherDisplayContext.isSelectionStyleDynamic() %>">
 		<%@ include file="/html/portlet/asset_publisher/view_dynamic_list.jspf" %>
 	</c:when>
-	<c:when test='<%= selectionStyle.equals("manual") %>'>
+	<c:when test="<%= assetPublisherDisplayContext.isSelectionStyleManual() %>">
 		<%@ include file="/html/portlet/asset_publisher/view_manual.jspf" %>
 	</c:when>
 </c:choose>
 
-<c:if test='<%= !paginationType.equals("none") && (searchContainer.getTotal() > searchContainer.getResults().size()) %>'>
-	<liferay-ui:search-paginator searchContainer="<%= searchContainer %>" type="<%= paginationType %>" />
-</c:if>
-
-<c:if test="<%= enableRSS %>">
-	<portlet:resourceURL var="rssURL">
-		<portlet:param name="struts_action" value="/asset_publisher/rss" />
-	</portlet:resourceURL>
-
-	<div class="subscribe">
-		<liferay-ui:icon
-			image="rss"
-			label="<%= true %>"
-			method="get"
-			target="_blank"
-			url="<%= rssURL %>"
-		/>
-	</div>
-
-	<liferay-util:html-top>
-		<link href="<%= HtmlUtil.escape(rssURL) %>" rel="alternate" title="RSS" type="application/rss+xml" />
-	</liferay-util:html-top>
+<c:if test="<%= !assetPublisherDisplayContext.isPaginationTypeNone() && (searchContainer.getTotal() > searchContainer.getResults().size()) %>">
+	<liferay-ui:search-paginator searchContainer="<%= searchContainer %>" type="<%= assetPublisherDisplayContext.getPaginationType() %>" />
 </c:if>
 
 <%!

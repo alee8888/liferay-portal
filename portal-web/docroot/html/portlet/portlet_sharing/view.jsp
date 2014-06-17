@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +29,7 @@ String widgetURL = ParamUtil.getString(request, "widgetURL");
 
 		<textarea class="lfr-textarea" onClick="Liferay.Util.selectAndCopy(this);">&lt;script src=&quot;<%= themeDisplay.getPortalURL() %><%= themeDisplay.getPathContext() %>/html/js/liferay/widget.js&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;
 &lt;script type=&quot;text/javascript&quot;&gt;
-Liferay.Widget({ url: &#x27;<%= widgetURL %>&#x27;});
+Liferay.Widget({ url: &#x27;<%= HtmlUtil.escape(widgetURL) %>&#x27;});
 &lt;/script&gt;</textarea>
 	</c:when>
 	<c:when test="<%= Validator.isNotNull(netvibesURL) %>">
@@ -37,6 +37,6 @@ Liferay.Widget({ url: &#x27;<%= widgetURL %>&#x27;});
 			<aui:a href="http://eco.netvibes.com/submit/widget" target="_blank"><liferay-ui:message key="add-this-application-to-netvibes" /></aui:a>
 		</p>
 
-		<liferay-ui:input-resource url="<%= netvibesURL %>" />
+		<aui:input label="" name="netvibesURL" type="resource" value="<%= netvibesURL %>" />
 	</c:when>
 </c:choose>

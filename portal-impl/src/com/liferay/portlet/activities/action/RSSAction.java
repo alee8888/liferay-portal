@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,16 @@
 
 package com.liferay.portlet.activities.action;
 
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.dao.search.SearchContainer;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.service.GroupLocalServiceUtil;
-import com.liferay.portal.struts.PortletAction;
+import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalUtil;
@@ -39,107 +40,44 @@ import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndEntryImpl;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.feed.synd.SyndFeedImpl;
-import com.sun.syndication.io.FeedException;
-
-import edu.emory.mathcs.backport.java.util.Collections;
-
-import java.io.OutputStream;
+import com.sun.syndication.feed.synd.SyndLink;
+import com.sun.syndication.feed.synd.SyndLinkImpl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import javax.portlet.PortletConfig;
-import javax.portlet.PortletRequest;
-import javax.portlet.ResourceRequest;
-import javax.portlet.ResourceResponse;
-
-import org.apache.struts.action.ActionForm;
-import org.apache.struts.action.ActionMapping;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Brian Wing Shun Chan
  * @author Vilmos Papp
+ * @author Eduardo Garcia
  */
-public class RSSAction extends PortletAction {
+public class RSSAction extends com.liferay.portal.struts.RSSAction {
 
-	@Override
-	public void serveResource(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
+	protected String exportToRSS(
+			HttpServletRequest request, String title, String description,
+			String format, double version, String displayStyle,
+			List<SocialActivity> activities, ServiceContext serviceContext)
 		throws Exception {
 
-		resourceResponse.setContentType(ContentTypes.TEXT_XML_UTF8);
-
-		OutputStream outputStream = resourceResponse.getPortletOutputStream();
-
-		try {
-			byte[] bytes = getRSS(resourceRequest);
-
-			outputStream.write(bytes);
-		}
-		finally {
-			outputStream.close();
-		}
-	}
-
-	protected List<SocialActivity> getActivities(PortletRequest portletRequest)
-		throws Exception {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		Group group = GroupLocalServiceUtil.getGroup(
-			themeDisplay.getScopeGroupId());
-
-		int start = 0;
-		int end = 10;
-
-		if (group.isOrganization()) {
-			return SocialActivityLocalServiceUtil.getOrganizationActivities(
-				group.getOrganizationId(), start, end);
-		}
-		else if (group.isRegularSite()) {
-			return SocialActivityLocalServiceUtil.getGroupActivities(
-				group.getGroupId(), start, end);
-		}
-		else if (group.isUser()) {
-			return SocialActivityLocalServiceUtil.getUserActivities(
-				group.getClassPK(), start, end);
-		}
-
-		return Collections.emptyList();
-	}
-
-	protected byte[] getRSS(PortletRequest portletRequest) throws Exception {
-		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		SyndFeed syndFeed = new SyndFeedImpl();
 
-		String feedTitle = ParamUtil.getString(portletRequest, "feedTitle");
-
-		syndFeed.setDescription(feedTitle);
-
-		syndFeed.setFeedType(RSSUtil.FEED_TYPE_DEFAULT);
-
-		String feedLink = PortalUtil.getLayoutFullURL(themeDisplay) +
-			Portal.FRIENDLY_URL_SEPARATOR + "activities/rss";
-
-		syndFeed.setLink(feedLink);
-
-		syndFeed.setTitle(feedTitle);
+		syndFeed.setDescription(GetterUtil.getString(description, title));
 
 		List<SyndEntry> syndEntries = new ArrayList<SyndEntry>();
 
 		syndFeed.setEntries(syndEntries);
 
-		List<SocialActivity> activities = getActivities(portletRequest);
-
 		for (SocialActivity activity : activities) {
 			SocialActivityFeedEntry activityFeedEntry =
 				SocialActivityInterpreterLocalServiceUtil.interpret(
-					activity, themeDisplay);
+					StringPool.BLANK, activity, serviceContext);
 
 			if (activityFeedEntry == null) {
 				continue;
@@ -149,8 +87,18 @@ public class RSSAction extends PortletAction {
 
 			SyndContent syndContent = new SyndContentImpl();
 
-			syndContent.setType(RSSUtil.FEED_TYPE_DEFAULT);
-			syndContent.setValue(activityFeedEntry.getBody());
+			syndContent.setType(RSSUtil.ENTRY_TYPE_DEFAULT);
+
+			String value = null;
+
+			if (displayStyle.equals(RSSUtil.DISPLAY_STYLE_TITLE)) {
+				value = StringPool.BLANK;
+			}
+			else {
+				value = activityFeedEntry.getBody();
+			}
+
+			syndContent.setValue(value);
 
 			syndEntry.setDescription(syndContent);
 
@@ -161,27 +109,94 @@ public class RSSAction extends PortletAction {
 			syndEntry.setPublishedDate(new Date(activity.getCreateDate()));
 			syndEntry.setTitle(
 				HtmlUtil.extractText(activityFeedEntry.getTitle()));
+			syndEntry.setUri(syndEntry.getLink());
 
 			syndEntries.add(syndEntry);
 		}
 
-		String rss = StringPool.BLANK;
+		syndFeed.setFeedType(RSSUtil.getFeedType(format, version));
 
-		try {
-			rss = RSSUtil.export(syndFeed);
+		List<SyndLink> syndLinks = new ArrayList<SyndLink>();
+
+		syndFeed.setLinks(syndLinks);
+
+		SyndLink selfSyndLink = new SyndLinkImpl();
+
+		syndLinks.add(selfSyndLink);
+
+		String link =
+			PortalUtil.getLayoutFullURL(themeDisplay) +
+				Portal.FRIENDLY_URL_SEPARATOR + "activities/rss";
+
+		selfSyndLink.setHref(link);
+
+		selfSyndLink.setRel("self");
+
+		SyndLink alternateSyndLink = new SyndLinkImpl();
+
+		syndLinks.add(alternateSyndLink);
+
+		alternateSyndLink.setHref(PortalUtil.getLayoutFullURL(themeDisplay));
+		alternateSyndLink.setRel("alternate");
+
+		syndFeed.setPublishedDate(new Date());
+		syndFeed.setTitle(title);
+		syndFeed.setUri(link);
+
+		return RSSUtil.export(syndFeed);
+	}
+
+	protected List<SocialActivity> getActivities(
+			HttpServletRequest request, int max)
+		throws Exception {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		Group group = GroupLocalServiceUtil.getGroup(
+			themeDisplay.getScopeGroupId());
+
+		int start = 0;
+
+		if (group.isOrganization()) {
+			return SocialActivityLocalServiceUtil.getOrganizationActivities(
+				group.getOrganizationId(), start, max);
 		}
-		catch (FeedException fe) {
-			throw new SystemException(fe);
+		else if (group.isRegularSite()) {
+			return SocialActivityLocalServiceUtil.getGroupActivities(
+				group.getGroupId(), start, max);
+		}
+		else if (group.isUser()) {
+			return SocialActivityLocalServiceUtil.getUserActivities(
+				group.getClassPK(), start, max);
 		}
 
-		return rss.getBytes(StringPool.UTF8);
+		return Collections.emptyList();
 	}
 
 	@Override
-	protected boolean isCheckMethodOnProcessAction() {
-		return _CHECK_METHOD_ON_PROCESS_ACTION;
-	}
+	protected byte[] getRSS(HttpServletRequest request) throws Exception {
+		String feedTitle = ParamUtil.getString(request, "feedTitle");
+		String format = ParamUtil.getString(
+			request, "type", RSSUtil.FORMAT_DEFAULT);
+		double version = ParamUtil.getDouble(
+			request, "version", RSSUtil.VERSION_DEFAULT);
+		String displayStyle = ParamUtil.getString(
+			request, "displayStyle", RSSUtil.DISPLAY_STYLE_DEFAULT);
 
-	private static final boolean _CHECK_METHOD_ON_PROCESS_ACTION = false;
+		int max = ParamUtil.getInteger(
+			request, "max", SearchContainer.DEFAULT_DELTA);
+
+		List<SocialActivity> activities = getActivities(request, max);
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			request);
+
+		String rss = exportToRSS(
+			request, feedTitle, null, format, version, displayStyle, activities,
+			serviceContext);
+
+		return rss.getBytes(StringPool.UTF8);
+	}
 
 }

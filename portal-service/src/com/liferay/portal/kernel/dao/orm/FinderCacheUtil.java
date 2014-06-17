@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,9 @@ package com.liferay.portal.kernel.dao.orm;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+import com.liferay.portal.model.BaseModel;
+import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
 
 /**
  * @author Brian Wing Shun Chan
@@ -35,18 +38,23 @@ public class FinderCacheUtil {
 	}
 
 	public static FinderCache getFinderCache() {
+		PortalRuntimePermission.checkGetBeanProperty(FinderCacheUtil.class);
+
 		return _finderCache;
 	}
 
 	public static Object getResult(
-		FinderPath finderPath, Object[] args, SessionFactory sessionFactory) {
+		FinderPath finderPath, Object[] args,
+		BasePersistenceImpl<? extends BaseModel<?>> basePersistenceImpl) {
 
-		return getFinderCache().getResult(finderPath, args, sessionFactory);
+		return getFinderCache().getResult(
+			finderPath, args, basePersistenceImpl);
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public static Object getResult(
 		String className, String methodName, String[] params, Object[] args,
 		SessionFactory sessionFactory) {
@@ -63,8 +71,9 @@ public class FinderCacheUtil {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public static void putResult(
 		boolean classNameCacheEnabled, String className, String methodName,
 		String[] params, Object[] args, Object result) {
@@ -80,6 +89,12 @@ public class FinderCacheUtil {
 		getFinderCache().putResult(finderPath, args, result);
 	}
 
+	public static void putResult(
+		FinderPath finderPath, Object[] args, Object result, boolean quiet) {
+
+		getFinderCache().putResult(finderPath, args, result, quiet);
+	}
+
 	public static void removeCache(String className) {
 		getFinderCache().removeCache(className);
 	}
@@ -89,6 +104,8 @@ public class FinderCacheUtil {
 	}
 
 	public void setFinderCache(FinderCache finderCache) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_finderCache = finderCache;
 	}
 

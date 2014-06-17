@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.wiki.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -22,13 +24,11 @@ import com.liferay.portlet.wiki.service.WikiNodeServiceUtil;
 import java.rmi.RemoteException;
 
 /**
- * <p>
- * This class provides a SOAP utility for the
+ * Provides the SOAP utility for the
  * {@link com.liferay.portlet.wiki.service.WikiNodeServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it is difficult for SOAP to
  * support certain types.
- * </p>
  *
  * <p>
  * ServiceBuilder follows certain rules in translating the methods. For example,
@@ -48,9 +48,8 @@ import java.rmi.RemoteException;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -58,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       WikiNodeServiceHttp
- * @see       com.liferay.portlet.wiki.model.WikiNodeSoap
- * @see       com.liferay.portlet.wiki.service.WikiNodeServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see WikiNodeServiceHttp
+ * @see com.liferay.portlet.wiki.model.WikiNodeSoap
+ * @see com.liferay.portlet.wiki.service.WikiNodeServiceUtil
  * @generated
  */
+@ProviderType
 public class WikiNodeServiceSoap {
 	public static com.liferay.portlet.wiki.model.WikiNodeSoap addNode(
 		java.lang.String name, java.lang.String description,
@@ -114,6 +114,118 @@ public class WikiNodeServiceSoap {
 					name);
 
 			return com.liferay.portlet.wiki.model.WikiNodeSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.wiki.model.WikiNodeSoap[] getNodes(
+		long groupId) throws RemoteException {
+		try {
+			java.util.List<com.liferay.portlet.wiki.model.WikiNode> returnValue = WikiNodeServiceUtil.getNodes(groupId);
+
+			return com.liferay.portlet.wiki.model.WikiNodeSoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.wiki.model.WikiNodeSoap[] getNodes(
+		long groupId, int status) throws RemoteException {
+		try {
+			java.util.List<com.liferay.portlet.wiki.model.WikiNode> returnValue = WikiNodeServiceUtil.getNodes(groupId,
+					status);
+
+			return com.liferay.portlet.wiki.model.WikiNodeSoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.wiki.model.WikiNodeSoap[] getNodes(
+		long groupId, int start, int end) throws RemoteException {
+		try {
+			java.util.List<com.liferay.portlet.wiki.model.WikiNode> returnValue = WikiNodeServiceUtil.getNodes(groupId,
+					start, end);
+
+			return com.liferay.portlet.wiki.model.WikiNodeSoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.wiki.model.WikiNodeSoap[] getNodes(
+		long groupId, int status, int start, int end) throws RemoteException {
+		try {
+			java.util.List<com.liferay.portlet.wiki.model.WikiNode> returnValue = WikiNodeServiceUtil.getNodes(groupId,
+					status, start, end);
+
+			return com.liferay.portlet.wiki.model.WikiNodeSoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static int getNodesCount(long groupId) throws RemoteException {
+		try {
+			int returnValue = WikiNodeServiceUtil.getNodesCount(groupId);
+
+			return returnValue;
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static int getNodesCount(long groupId, int status)
+		throws RemoteException {
+		try {
+			int returnValue = WikiNodeServiceUtil.getNodesCount(groupId, status);
+
+			return returnValue;
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.wiki.model.WikiNodeSoap moveNodeToTrash(
+		long nodeId) throws RemoteException {
+		try {
+			com.liferay.portlet.wiki.model.WikiNode returnValue = WikiNodeServiceUtil.moveNodeToTrash(nodeId);
+
+			return com.liferay.portlet.wiki.model.WikiNodeSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static void restoreNodeFromTrash(long nodeId)
+		throws RemoteException {
+		try {
+			WikiNodeServiceUtil.restoreNodeFromTrash(nodeId);
 		}
 		catch (Exception e) {
 			_log.error(e, e);

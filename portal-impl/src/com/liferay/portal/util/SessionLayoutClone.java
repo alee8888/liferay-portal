@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,12 +27,14 @@ import javax.servlet.http.HttpSession;
  */
 public class SessionLayoutClone implements LayoutClone {
 
+	@Override
 	public String get(HttpServletRequest request, long plid) {
 		HttpSession session = getPortalSession(request);
 
-		return (String) session.getAttribute(encodeKey(plid));
+		return (String)session.getAttribute(encodeKey(plid));
 	}
 
+	@Override
 	public void update(
 		HttpServletRequest request, long plid, String typeSettings) {
 

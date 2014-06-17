@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,30 +27,30 @@ public class OrgGroupRoleImpl extends OrgGroupRoleBaseImpl {
 	public OrgGroupRoleImpl() {
 	}
 
+	@Override
 	public boolean containsGroup(List<Group> groups) {
 		if (groups == null) {
 			return false;
 		}
-		else {
-			for (Group group : groups) {
-				if (group.getGroupId() == getGroupId()) {
-					return true;
-				}
+
+		for (Group group : groups) {
+			if (group.getGroupId() == getGroupId()) {
+				return true;
 			}
 		}
 
 		return false;
 	}
 
+	@Override
 	public boolean containsOrganization(List<Organization> organizations) {
 		if (organizations == null) {
 			return false;
 		}
-		else {
-			for (Organization organization : organizations) {
-				if (organization.getOrganizationId() == getOrganizationId()) {
-					return true;
-				}
+
+		for (Organization organization : organizations) {
+			if (organization.getOrganizationId() == getOrganizationId()) {
+				return true;
 			}
 		}
 

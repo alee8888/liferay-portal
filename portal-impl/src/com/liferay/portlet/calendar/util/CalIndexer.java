@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,13 +14,8 @@
 
 package com.liferay.portlet.calendar.util;
 
-import com.liferay.portal.kernel.dao.orm.DynamicQuery;
-import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
-import com.liferay.portal.kernel.dao.orm.Projection;
-import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
-import com.liferay.portal.kernel.dao.orm.ProjectionList;
-import com.liferay.portal.kernel.dao.orm.Property;
-import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.search.BaseIndexer;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
@@ -29,18 +24,14 @@ import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.Summary;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
-import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.calendar.model.CalEvent;
 import com.liferay.portlet.calendar.service.CalEventLocalServiceUtil;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Locale;
 
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 
 /**
@@ -56,20 +47,14 @@ public class CalIndexer extends BaseIndexer {
 		setPermissionAware(true);
 	}
 
+	@Override
 	public String[] getClassNames() {
 		return CLASS_NAMES;
 	}
 
+	@Override
 	public String getPortletId() {
 		return PORTLET_ID;
-	}
-
-	protected void addReindexCriteria(
-		DynamicQuery dynamicQuery, long companyId) {
-
-		Property property = PropertyFactoryUtil.forName("companyId");
-
-		dynamicQuery.add(property.eq(companyId));
 	}
 
 	@Override
@@ -95,23 +80,21 @@ public class CalIndexer extends BaseIndexer {
 
 	@Override
 	protected Summary doGetSummary(
-		Document document, Locale locale, String snippet,
-		PortletURL portletURL) {
-
-		String title = document.get(Field.TITLE);
-
-		String content = snippet;
-
-		if (Validator.isNull(snippet)) {
-			content = StringUtil.shorten(document.get(Field.DESCRIPTION), 200);
-		}
+		Document document, Locale locale, String snippet, PortletURL portletURL,
+		PortletRequest portletRequest, PortletResponse portletResponse) {
 
 		String eventId = document.get(Field.ENTRY_CLASS_PK);
 
 		portletURL.setParameter("struts_action", "/calendar/view_event");
 		portletURL.setParameter("eventId", eventId);
 
-		return new Summary(title, content, portletURL);
+		Summary summary = createSummary(
+			document, Field.TITLE, Field.DESCRIPTION);
+
+		summary.setMaxContentLength(200);
+		summary.setPortletURL(portletURL);
+
+		return summary;
 	}
 
 	@Override
@@ -143,76 +126,29 @@ public class CalIndexer extends BaseIndexer {
 		return PORTLET_ID;
 	}
 
-	protected void reindexEvents(long companyId) throws Exception {
-		DynamicQuery dynamicQuery = DynamicQueryFactoryUtil.forClass(
-			CalEvent.class, PortalClassLoaderUtil.getClassLoader());
+	protected void reindexEvents(long companyId) throws PortalException {
+		final ActionableDynamicQuery actionableDynamicQuery =
+			CalEventLocalServiceUtil.getActionableDynamicQuery();
 
-		Projection minEventIdProjection = ProjectionFactoryUtil.min("eventId");
-		Projection maxEventIdProjection = ProjectionFactoryUtil.max("eventId");
+		actionableDynamicQuery.setCompanyId(companyId);
+		actionableDynamicQuery.setPerformActionMethod(
+			new ActionableDynamicQuery.PerformActionMethod() {
 
-		ProjectionList projectionList = ProjectionFactoryUtil.projectionList();
+				@Override
+				public void performAction(Object object)
+					throws PortalException {
 
-		projectionList.add(minEventIdProjection);
-		projectionList.add(maxEventIdProjection);
+					CalEvent event = (CalEvent)object;
 
-		dynamicQuery.setProjection(projectionList);
+					Document document = getDocument(event);
 
-		addReindexCriteria(dynamicQuery, companyId);
+					actionableDynamicQuery.addDocument(document);
+				}
 
-		List<Object[]> results = CalEventLocalServiceUtil.dynamicQuery(
-			dynamicQuery);
+			});
+		actionableDynamicQuery.setSearchEngineId(getSearchEngineId());
 
-		Object[] minAndMaxEventIds = results.get(0);
-
-		if ((minAndMaxEventIds[0] == null) || (minAndMaxEventIds[1] == null)) {
-			return;
-		}
-
-		long minEventId = (Long)minAndMaxEventIds[0];
-		long maxEventId = (Long)minAndMaxEventIds[1];
-
-		long startEventId = minEventId;
-		long endEventId = startEventId + DEFAULT_INTERVAL;
-
-		while (startEventId <= maxEventId) {
-			reindexEvents(companyId, startEventId, endEventId);
-
-			startEventId = endEventId;
-			endEventId += DEFAULT_INTERVAL;
-		}
-	}
-
-	protected void reindexEvents(
-			long companyId, long startEventId, long endEventId)
-		throws Exception {
-
-		DynamicQuery dynamicQuery = DynamicQueryFactoryUtil.forClass(
-			CalEvent.class, PortalClassLoaderUtil.getClassLoader());
-
-		Property property = PropertyFactoryUtil.forName("eventId");
-
-		dynamicQuery.add(property.ge(startEventId));
-		dynamicQuery.add(property.lt(endEventId));
-
-		addReindexCriteria(dynamicQuery, companyId);
-
-		List<CalEvent> events = CalEventLocalServiceUtil.dynamicQuery(
-			dynamicQuery);
-
-		if (events.isEmpty()) {
-			return;
-		}
-
-		Collection<Document> documents = new ArrayList<Document>(events.size());
-
-		for (CalEvent event : events) {
-			Document document = getDocument(event);
-
-			documents.add(document);
-		}
-
-		SearchEngineUtil.updateDocuments(
-			getSearchEngineId(), companyId, documents);
+		actionableDynamicQuery.performActions();
 	}
 
 }

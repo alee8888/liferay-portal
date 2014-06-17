@@ -1,83 +1,38 @@
 <#include "../init.ftl">
 
-<#if (fieldValue == "")>
-	<#assign fieldValue = fieldStructure.predefinedValue>
-</#if>
+<#assign DATE = staticUtil["java.util.Calendar"].DATE>
+<#assign MONTH = staticUtil["java.util.Calendar"].MONTH>
+<#assign YEAR = staticUtil["java.util.Calendar"].YEAR>
 
 <#if (fieldRawValue?is_date)>
-	<#assign fieldValue = fieldRawValue?string("MM/dd/yyyy")>
+	<#assign fieldValue = calendarFactory.getCalendar(fieldRawValue?long)>
+
+<#elseif (validator.isNotNull(predefinedValue))>
+	<#assign predefinedDate = dateUtil.parseDate(predefinedValue, requestedLocale)>
+
+	<#assign fieldValue = calendarFactory.getCalendar(predefinedDate?long)>
+<#else>
+	<#assign calendar = calendarFactory.getCalendar(timeZone)>
+
+	<#assign fieldValue = calendarFactory.getCalendar(calendar.get(YEAR), calendar.get(MONTH), calendar.get(DATE))>
 </#if>
 
-<div class="aui-field-wrapper-content lfr-forms-field-wrapper">
-	<@aui.input label=label name=namespacedFieldName type="hidden" value=fieldRawValue!"" />
+<#assign dayValue = paramUtil.getInteger(request, "${namespacedFieldName}Day", fieldValue.get(DATE))>
+<#assign monthValue = paramUtil.getInteger(request, "${namespacedFieldName}Month", fieldValue.get(MONTH))>
+<#assign yearValue = paramUtil.getInteger(request, "${namespacedFieldName}Year", fieldValue.get(YEAR))>
 
-	<@aui.input cssClass=cssClass helpMessage=fieldStructure.tip label=label name="${namespacedFieldName}formattedDate" type="text" value=fieldValue>
-		<@aui.validator name="date" />
-
-		<#if required>
-			<@aui.validator name="required" />
-		</#if>
-	</@aui.input>
+<@aui["field-wrapper"] data=data helpMessage=escape(fieldStructure.tip) label=escape(label) required=required>
+	<@liferay_ui["input-date"]
+		cssClass=cssClass
+		dayParam="${namespacedFieldName}Day"
+		dayValue=dayValue
+		disabled=false
+		monthParam="${namespacedFieldName}Month"
+		monthValue=monthValue
+		name="${namespacedFieldName}"
+		yearParam="${namespacedFieldName}Year"
+		yearValue=yearValue
+	/>
 
 	${fieldStructure.children}
-</div>
-
-<@aui.script use="aui-datepicker">
-	var fieldValueInput = A.one('#${portletNamespace}${namespacedFieldName}');
-	var formattedDateInput = A.one('#${portletNamespace}${namespacedFieldName}formattedDate');
-
-	var updateFieldValue = function(value) {
-		var timestamp = '';
-
-		try {
-			var date = A.DataType.Date.parse(value);
-
-			timestamp = date.getTime()
-		}
-		catch (e) {
-		}
-
-		fieldValueInput.val(timestamp);
-	};
-
-	formattedDateInput.on(
-		{
-			change: function(event) {
-				var value = formattedDateInput.val();
-
-				updateFieldValue(value);
-			}
-		}
-	);
-
-	updateFieldValue('${fieldValue}');
-
-	new A.DatePicker(
-		{
-			after: {
-				'calendar:select': function(event) {
-					var date = event.date;
-					var formatted = date.formatted;
-
-					if (formatted.length) {
-						formatted = formatted[0];
-
-						this.get('currentNode').val(formatted);
-						updateFieldValue(formatted);
-					}
-				}
-			},
-			calendar: {
-				dateFormat: '%m/%d/%Y',
-
-				<#if (fieldValue != "")>
-					dates: ['${fieldValue}'],
-				</#if>
-
-				selectMultipleDates: false
-			},
-			setValue: false,
-			trigger: formattedDateInput
-		}
-	).render();
-</@aui.script>
+</@>

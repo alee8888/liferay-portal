@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,15 +16,19 @@ package com.liferay.portal.kernel.search;
 
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.search.facet.Facet;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.Layout;
 
 import java.io.Serializable;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,6 +44,18 @@ public class SearchContext implements Serializable {
 		}
 
 		_facets.put(facet.getFieldName(), facet);
+	}
+
+	public void addFullQueryEntryClassName(String entryClassName) {
+		if (_fullQueryEntryClassNames == null) {
+			_fullQueryEntryClassNames = new HashSet<String>();
+		}
+
+		_fullQueryEntryClassNames.add(entryClassName);
+	}
+
+	public void clearFullQueryEntryClassNames() {
+		_fullQueryEntryClassNames = null;
 	}
 
 	public long[] getAssetCategoryIds() {
@@ -74,6 +90,10 @@ public class SearchContext implements Serializable {
 		return _categoryIds;
 	}
 
+	public long[] getClassTypeIds() {
+		return _classTypeIds;
+	}
+
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -102,12 +122,29 @@ public class SearchContext implements Serializable {
 		return _folderIds;
 	}
 
+	public String[] getFullQueryEntryClassNames() {
+		if (_fullQueryEntryClassNames == null) {
+			return new String[0];
+		}
+
+		return _fullQueryEntryClassNames.toArray(
+			new String[_fullQueryEntryClassNames.size()]);
+	}
+
 	public long[] getGroupIds() {
 		return _groupIds;
 	}
 
 	public String getKeywords() {
 		return _keywords;
+	}
+
+	public String getLanguageId() {
+		return LocaleUtil.toLanguageId(_locale);
+	}
+
+	public Layout getLayout() {
+		return _layout;
 	}
 
 	public Locale getLocale() {
@@ -134,6 +171,10 @@ public class SearchContext implements Serializable {
 		return _queryConfig;
 	}
 
+	public float getScoresThreshold() {
+		return _scoresThreshold;
+	}
+
 	public String getSearchEngineId() {
 		if (Validator.isNull(_searchEngineId)) {
 			return SearchEngineUtil.getDefaultSearchEngineId();
@@ -158,8 +199,24 @@ public class SearchContext implements Serializable {
 		return _userId;
 	}
 
+	public boolean hasOverridenKeywords() {
+		return Validator.isNull(_originalKeywords);
+	}
+
 	public boolean isAndSearch() {
 		return _andSearch;
+	}
+
+	public boolean isIncludeAttachments() {
+		return _includeAttachments;
+	}
+
+	public boolean isIncludeDiscussions() {
+		return _includeDiscussions;
+	}
+
+	public boolean isIncludeFolders() {
+		return _includeFolders;
 	}
 
 	public boolean isIncludeLiveGroups() {
@@ -170,8 +227,18 @@ public class SearchContext implements Serializable {
 		return _includeStagingGroups;
 	}
 
+	public boolean isLike() {
+		return _like;
+	}
+
 	public boolean isScopeStrict() {
 		return _scopeStrict;
+	}
+
+	public void overrideKeywords(String keywords) {
+		_originalKeywords = _keywords;
+
+		_keywords = keywords;
 	}
 
 	public void setAndSearch(boolean andSearch) {
@@ -206,6 +273,10 @@ public class SearchContext implements Serializable {
 		_categoryIds = categoryIds;
 	}
 
+	public void setClassTypeIds(long[] classTypeIds) {
+		_classTypeIds = classTypeIds;
+	}
+
 	public void setCompanyId(long companyId) {
 		_companyId = companyId;
 	}
@@ -224,12 +295,29 @@ public class SearchContext implements Serializable {
 		}
 	}
 
+	public void setFolderIds(List<Long> folderIds) {
+		_folderIds = ArrayUtil.toArray(
+			folderIds.toArray(new Long[folderIds.size()]));
+	}
+
 	public void setFolderIds(long[] folderIds) {
 		_folderIds = folderIds;
 	}
 
 	public void setGroupIds(long[] groupIds) {
 		_groupIds = groupIds;
+	}
+
+	public void setIncludeAttachments(boolean includeAttachments) {
+		_includeAttachments = includeAttachments;
+	}
+
+	public void setIncludeDiscussions(boolean includeDiscussions) {
+		_includeDiscussions = includeDiscussions;
+	}
+
+	public void setIncludeFolders(boolean includeFolders) {
+		_includeFolders = includeFolders;
 	}
 
 	public void setIncludeLiveGroups(boolean includeLiveGroups) {
@@ -242,6 +330,14 @@ public class SearchContext implements Serializable {
 
 	public void setKeywords(String keywords) {
 		_keywords = keywords;
+	}
+
+	public void setLayout(Layout layout) {
+		_layout = layout;
+	}
+
+	public void setLike(boolean like) {
+		_like = like;
 	}
 
 	public void setLocale(Locale locale) {
@@ -270,13 +366,17 @@ public class SearchContext implements Serializable {
 		_scopeStrict = scopeStrict;
 	}
 
+	public void setScoresThreshold(float scoresThreshold) {
+		_scoresThreshold = scoresThreshold;
+	}
+
 	public void setSearchEngineId(String searchEngineId) {
 		if (_searchEngineId == null) {
 			_searchEngineId = searchEngineId;
 		}
 	}
 
-	public void setSorts(Sort[] sorts) {
+	public void setSorts(Sort... sorts) {
 		_sorts = sorts;
 	}
 
@@ -298,21 +398,30 @@ public class SearchContext implements Serializable {
 	private Map<String, Serializable> _attributes;
 	private BooleanClause[] _booleanClauses;
 	private long[] _categoryIds;
+	private long[] _classTypeIds;
 	private long _companyId;
 	private int _end = QueryUtil.ALL_POS;
 	private String[] _entryClassNames;
 	private Map<String, Facet> _facets = new ConcurrentHashMap<String, Facet>();
 	private long[] _folderIds;
+	private Set<String> _fullQueryEntryClassNames;
 	private long[] _groupIds;
+	private boolean _includeAttachments;
+	private boolean _includeDiscussions;
+	private boolean _includeFolders = true;
 	private boolean _includeLiveGroups = true;
 	private boolean _includeStagingGroups = true;
 	private String _keywords;
-	private Locale _locale = LocaleUtil.getDefault();
+	private Layout _layout;
+	private boolean _like;
+	private Locale _locale = LocaleUtil.getMostRelevantLocale();
 	private long[] _nodeIds;
+	private String _originalKeywords;
 	private long _ownerUserId;
 	private String[] _portletIds;
 	private QueryConfig _queryConfig;
 	private boolean _scopeStrict = true;
+	private float _scoresThreshold;
 	private String _searchEngineId;
 	private Sort[] _sorts;
 	private int _start = QueryUtil.ALL_POS;

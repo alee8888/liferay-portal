@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -98,7 +98,7 @@ portletURL.setParameter("categoryId", String.valueOf(categoryId));
 
 			// Action
 
-			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/shopping/category_action.jsp");
+			row.addJSP("/html/portlet/shopping/category_action.jsp", "entry-action");
 
 			// Add result row
 
@@ -115,7 +115,7 @@ portletURL.setParameter("categoryId", String.valueOf(categoryId));
 				<c:if test="<%= showAddCategoryButton || showPermissionsButton || showSearch %>">
 					<aui:fieldset>
 						<c:if test="<%= showSearch %>">
-							<aui:input id="keywords1" label="search" name="keywords" size="30" type="text" />
+							<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" id="keywords1" label="search" name="keywords" size="30" type="text" />
 						</c:if>
 					</aui:fieldset>
 
@@ -153,9 +153,10 @@ portletURL.setParameter("categoryId", String.valueOf(categoryId));
 								modelResourceDescription="<%= HtmlUtil.escape(modelResourceDescription) %>"
 								resourcePrimKey="<%= resourcePrimKey %>"
 								var="permissionsURL"
+								windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 							/>
 
-							<aui:button href="<%= permissionsURL %>" value="permissions" />
+							<aui:button href="<%= permissionsURL %>" useDialog="<%= true %>" value="permissions" />
 						</c:if>
 					</aui:button-row>
 				</c:if>
@@ -232,13 +233,13 @@ portletURL.setParameter("categoryId", String.valueOf(categoryId));
 
 			// SKU and small image
 
-			StringBundler sb = new StringBundler();
+			StringBundler sb = new StringBundler(10);
 
 			if (item.isSmallImage()) {
 				sb.append("<br />");
 				sb.append("<img alt=\"");
 				sb.append(item.getSku());
-				sb.append("\" border=\"0\" src=\"");
+				sb.append("\" src=\"");
 
 				if (Validator.isNotNull(item.getSmallImageURL())) {
 					sb.append(item.getSmallImageURL());
@@ -299,7 +300,7 @@ portletURL.setParameter("categoryId", String.valueOf(categoryId));
 			}
 			else {
 				row.addText(
-					"<div class=\"portlet-msg-success\">" +
+					"<div class=\"alert alert-success\">" +
 						currencyFormat.format(ShoppingUtil.calculateActualPrice(item)) +
 							"</div>",
 					rowURL);
@@ -307,7 +308,7 @@ portletURL.setParameter("categoryId", String.valueOf(categoryId));
 
 			// Action
 
-			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/shopping/item_action.jsp");
+			row.addJSP("/html/portlet/shopping/item_action.jsp", "entry-action");
 
 			// Add result row
 
@@ -323,7 +324,7 @@ portletURL.setParameter("categoryId", String.valueOf(categoryId));
 				<c:if test="<%= showAddItemButton || showSearch %>">
 					<aui:fieldset>
 						<c:if test="<%= showSearch %>">
-							<aui:input id="keyworkds2" label="search" name="keywords" size="30" type="text" />
+							<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" id="keywords2" label="search" name="keywords" size="30" type="text" />
 						</c:if>
 					</aui:fieldset>
 
@@ -359,10 +360,3 @@ portletURL.setParameter("categoryId", String.valueOf(categoryId));
 		</liferay-ui:panel-container>
 	</aui:form>
 </liferay-ui:panel-container>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm2.<portlet:namespace />keywords);
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm1.<portlet:namespace />keywords);
-	</aui:script>
-</c:if>

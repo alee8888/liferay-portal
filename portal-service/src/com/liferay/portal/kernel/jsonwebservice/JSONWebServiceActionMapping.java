@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,14 +27,20 @@ public interface JSONWebServiceActionMapping {
 
 	public Method getActionMethod();
 
+	public Object getActionObject();
+
+	public String getContextPath();
+
 	public String getMethod();
 
 	public MethodParameter[] getMethodParameters();
 
 	public String getPath();
 
-	public String getServletContextPath();
+	public Method getRealActionMethod();
 
 	public String getSignature();
+
+	public boolean isDeprecated();
 
 }

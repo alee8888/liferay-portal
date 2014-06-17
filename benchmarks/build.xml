@@ -3,67 +3,15 @@
 <project name="benchmarks" basedir="." default="run">
 	<import file="../build-common.xml" />
 
-	<path id="grinder.classpath">
-		<fileset dir="lib" includes="*.jar" />
-	</path>
-
-	<property name="grinder.file" value="../tools/grinder-3.1.zip" />
-
 	<target name="build-sample-sql">
+		<property name="sample.sql.properties.file" value="${basedir}/benchmarks.properties" />
+
 		<java
 			classname="com.liferay.portal.tools.samplesqlbuilder.SampleSQLBuilder"
 			classpathref="project.classpath"
 		>
-			<arg value="-Dexternal-properties=com/liferay/portal/tools/dependencies/portal-tools.properties" />
-			<arg value="sample.sql.base.dir=${basedir}" />
-			<arg value="sample.sql.db.type=${sample.sql.db.type}" />
-			<arg value="sample.sql.max.blogs.entry.comment.count=${sample.sql.max.blogs.entry.comment.count}" />
-			<arg value="sample.sql.max.blogs.entry.count=${sample.sql.max.blogs.entry.count}" />
-			<arg value="sample.sql.max.ddl.record.count=${sample.sql.max.ddl.record.count}" />
-			<arg value="sample.sql.max.ddl.record.set.count=${sample.sql.max.ddl.record.set.count}" />
-			<arg value="sample.sql.max.dl.file.entry.count=${sample.sql.max.dl.file.entry.count}" />
-			<arg value="sample.sql.max.dl.file.entry.size=${sample.sql.max.dl.file.entry.size}" />
-			<arg value="sample.sql.max.dl.folder.count=${sample.sql.max.dl.folder.count}" />
-			<arg value="sample.sql.max.dl.folder.depth=${sample.sql.max.dl.folder.depth}" />
-			<arg value="sample.sql.max.group.count=${sample.sql.max.group.count}" />
-			<arg value="sample.sql.max.journal.article.count=${sample.sql.max.journal.article.count}" />
-			<arg value="sample.sql.max.journal.article.size=${sample.sql.max.journal.article.size}" />
-			<arg value="sample.sql.max.mb.category.count=${sample.sql.max.mb.category.count}" />
-			<arg value="sample.sql.max.mb.message.count=${sample.sql.max.mb.message.count}" />
-			<arg value="sample.sql.max.mb.thread.count=${sample.sql.max.mb.thread.count}" />
-			<arg value="sample.sql.max.user.count=${sample.sql.max.user.count}" />
-			<arg value="sample.sql.max.user.to.group.count=${sample.sql.max.user.to.group.count}" />
-			<arg value="sample.sql.max.wiki.node.count=${sample.sql.max.wiki.node.count}" />
-			<arg value="sample.sql.max.wiki.page.comment.count=${sample.sql.max.wiki.page.comment.count}" />
-			<arg value="sample.sql.max.wiki.page.count=${sample.sql.max.wiki.page.count}" />
-			<arg value="sample.sql.optimize.buffer.size=${sample.sql.optimize.buffer.size}" />
-			<arg value="sample.sql.output.dir=${sample.sql.output.dir}" />
-			<arg value="sample.sql.output.merge=${sample.sql.output.merge}" />
+			<sysproperty key="external-properties" value="com/liferay/portal/tools/dependencies/portal-tools.properties" />
+			<arg value="${sample.sql.properties.file}" />
 		</java>
-	</target>
-
-	<target name="run" depends="setup">
-		<java
-			classname="net.grinder.Grinder"
-			classpathref="grinder.classpath"
-			fork="true"
-			newenvironment="true"
-		/>
-	</target>
-
-	<target name="setup">
-		<if>
-			<not>
-				<available file="lib" />
-			</not>
-			<then>
-				<unzip src="${grinder.file}" dest="lib">
-					<patternset>
-						<include name="**/lib/*.jar" />
-					</patternset>
-					<mapper type="flatten" />
-				</unzip>
-			</then>
-		</if>
 	</target>
 </project>

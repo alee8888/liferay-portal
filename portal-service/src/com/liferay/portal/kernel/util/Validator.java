@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,8 +15,11 @@
 package com.liferay.portal.kernel.util;
 
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -157,7 +160,7 @@ public class Validator {
 	 *         instance, or both <code>null</code>; <code>false</code> otherwise
 	 */
 	public static boolean equals(Object obj1, Object obj2) {
-		if ((obj1 == null) && (obj2 == null)) {
+		if (obj1 == obj2) {
 			return true;
 		}
 		else if ((obj1 == null) || (obj2 == null)) {
@@ -183,6 +186,194 @@ public class Validator {
 		else {
 			return false;
 		}
+	}
+
+	/**
+	 * Returns <code>true</code> if the boolean arrays are equal.
+	 *
+	 * @param  booleanArray1 the first boolean array
+	 * @param  booleanArray2 the second boolean array
+	 * @return <code>true</code> if the booleans arrays are equal; <code>false
+	 *         </code>otherwise
+	 */
+	public static boolean equalsSorted(
+		boolean[] booleanArray1, boolean[] booleanArray2) {
+
+		Boolean[] booleanObjArray1 = ArrayUtil.toArray(booleanArray1);
+
+		Arrays.sort(booleanObjArray1);
+
+		Boolean[] booleanObjArray2 = ArrayUtil.toArray(booleanArray2);
+
+		Arrays.sort(booleanObjArray2);
+
+		return Arrays.equals(booleanObjArray1, booleanObjArray2);
+	}
+
+	/**
+	 * Returns <code>true</code> if the byte arrays are equal.
+	 *
+	 * @param  byteArray1 the first byte array
+	 * @param  byteArray2 the second byte array
+	 * @return <code>true</code> if the byte arrays are equal; <code>false
+	 *         </code>otherwise
+	 */
+	public static boolean equalsSorted(byte[] byteArray1, byte[] byteArray2) {
+		byteArray1 = ArrayUtil.clone(byteArray1);
+
+		Arrays.sort(byteArray1);
+
+		byteArray2 = ArrayUtil.clone(byteArray2);
+
+		Arrays.sort(byteArray2);
+
+		return Arrays.equals(byteArray1, byteArray2);
+	}
+
+	/**
+	 * Returns <code>true</code> if the char arrays are equal.
+	 *
+	 * @param  charArray1 the first char array
+	 * @param  charArray2 the second char array
+	 * @return <code>true</code> if the char arrays are equal; <code>false
+	 *         </code>otherwise
+	 */
+	public static boolean equalsSorted(char[] charArray1, char[] charArray2) {
+		charArray1 = ArrayUtil.clone(charArray1);
+
+		Arrays.sort(charArray1);
+
+		charArray2 = ArrayUtil.clone(charArray2);
+
+		Arrays.sort(charArray2);
+
+		return Arrays.equals(charArray1, charArray2);
+	}
+
+	/**
+	 * Returns <code>true</code> if the double arrays are equal.
+	 *
+	 * @param  doubleArray1 the first double array
+	 * @param  doubleArray2 the second double array
+	 * @return <code>true</code> if the double arrays are equal; <code>false
+	 *         </code>otherwise
+	 */
+	public static boolean equalsSorted(
+		double[] doubleArray1, double[] doubleArray2) {
+
+		doubleArray1 = ArrayUtil.clone(doubleArray1);
+
+		Arrays.sort(doubleArray1);
+
+		doubleArray2 = ArrayUtil.clone(doubleArray2);
+
+		Arrays.sort(doubleArray2);
+
+		return Arrays.equals(doubleArray1, doubleArray2);
+	}
+
+	/**
+	 * Returns <code>true</code> if the float arrays are equal.
+	 *
+	 * @param  floatArray1 the first float array
+	 * @param  floatArray2 the second char array
+	 * @return <code>true</code> if the float arrays are equal; <code>false
+	 *         </code>otherwise
+	 */
+	public static boolean equalsSorted(
+		float[] floatArray1, float[] floatArray2) {
+
+		floatArray1 = ArrayUtil.clone(floatArray1);
+
+		Arrays.sort(floatArray1);
+
+		floatArray2 = ArrayUtil.clone(floatArray2);
+
+		Arrays.sort(floatArray2);
+
+		return Arrays.equals(floatArray1, floatArray2);
+	}
+
+	/**
+	 * Returns <code>true</code> if the int arrays are equal.
+	 *
+	 * @param  intArray1 the first int array
+	 * @param  intArray2 the second int array
+	 * @return <code>true</code> if the int arrays are equal; <code>false</code>
+	 *         otherwise
+	 */
+	public static boolean equalsSorted(int[] intArray1, int[] intArray2) {
+		intArray1 = ArrayUtil.clone(intArray1);
+
+		Arrays.sort(intArray1);
+
+		intArray2 = ArrayUtil.clone(intArray2);
+
+		Arrays.sort(intArray2);
+
+		return Arrays.equals(intArray1, intArray2);
+	}
+
+	/**
+	 * Returns <code>true</code> if the long arrays are equal.
+	 *
+	 * @param  longArray1 the first long array
+	 * @param  longArray2 the second long array
+	 * @return <code>true</code> if the long arrays are equal; <code>false
+	 *         </code>otherwise
+	 */
+	public static boolean equalsSorted(long[] longArray1, long[] longArray2) {
+		longArray1 = ArrayUtil.clone(longArray1);
+
+		Arrays.sort(longArray1);
+
+		longArray2 = ArrayUtil.clone(longArray2);
+
+		Arrays.sort(longArray2);
+
+		return Arrays.equals(longArray1, longArray2);
+	}
+
+	/**
+	 * Returns <code>true</code> if the object arrays are equal.
+	 *
+	 * @param  objArray1 the first object array
+	 * @param  objArray2 the second object array
+	 * @return <code>true</code> if the object arrays are equal; <code>false
+	 *         </code>otherwise
+	 */
+	public static boolean equalsSorted(Object[] objArray1, Object[] objArray2) {
+		objArray1 = ArrayUtil.clone(objArray1);
+
+		Arrays.sort(objArray1);
+
+		objArray2 = ArrayUtil.clone(objArray2);
+
+		Arrays.sort(objArray2);
+
+		return Arrays.equals(objArray1, objArray2);
+	}
+
+	/**
+	 * Returns <code>true</code> if the short arrays are equal.
+	 *
+	 * @param  shortArray1 the first short array
+	 * @param  shortArray2 the second short array
+	 * @return <code>true</code> if the short arrays are equal; <code>false
+	 *         </code>otherwise
+	 */
+	public static boolean equalsSorted(
+		short[] shortArray1, short[] shortArray2) {
+
+		shortArray1 = ArrayUtil.clone(shortArray1);
+
+		Arrays.sort(shortArray1);
+
+		shortArray2 = ArrayUtil.clone(shortArray2);
+
+		Arrays.sort(shortArray2);
+
+		return Arrays.equals(shortArray1, shortArray2);
 	}
 
 	/**
@@ -258,6 +449,22 @@ public class Validator {
 		}
 	}
 
+	public static boolean isBlank(String s) {
+		if (s == null) {
+			return true;
+		}
+
+		if (s.length() == 0) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public static boolean isBoolean(String value) {
+		return ArrayUtil.contains(_BOOLEANS, value);
+	}
+
 	/**
 	 * Returns <code>true</code> if the character is an upper or lower case
 	 * English letter.
@@ -298,6 +505,26 @@ public class Validator {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Returns <code>true</code> if the string contains content. The only
+	 * requirement is that it contain content that is not whitespace.
+	 *
+	 * @param  s the string to check
+	 * @return <code>true</code> if the string contains content;
+	 *         <code>false</code> otherwise
+	 */
+	public static boolean isContent(String s) {
+		if (isNotNull(
+				StringUtil.replace(
+					s, new String[] {StringPool.NEW_LINE, StringPool.TAB},
+					new String[] {StringPool.BLANK, StringPool.BLANK}))) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -375,15 +602,7 @@ public class Validator {
 			return false;
 		}
 
-		if (domainName.startsWith(StringPool.PERIOD) ||
-			domainName.endsWith(StringPool.PERIOD)) {
-
-			return false;
-		}
-
-		if (!domainName.contains(StringPool.PERIOD) &&
-			!domainName.equals(_LOCALHOST)) {
-
+		if (domainName.startsWith(StringPool.PERIOD)) {
 			return false;
 		}
 
@@ -406,7 +625,7 @@ public class Validator {
 					return false;
 				}
 
-				if (!isChar(c) && !isDigit(c) && (c != CharPool.DASH)) {
+				if (!Character.isLetterOrDigit(c) && (c != CharPool.DASH)) {
 					return false;
 				}
 			}
@@ -440,13 +659,87 @@ public class Validator {
 
 		// LEP-1445
 
-		for (int i = 0; i < _EMAIL_ADDRESS_SPECIAL_CHAR.length; i++) {
-			if (c == _EMAIL_ADDRESS_SPECIAL_CHAR[i]) {
+		for (char specialChar : _EMAIL_ADDRESS_SPECIAL_CHAR) {
+			if (c == specialChar) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns <code>true</code> if the file extension is valid.
+	 *
+	 * @param  fileExtension string to check
+	 * @return <code>true</code> if the extension is valid; <code>false</code>
+	 *         otherwise
+	 */
+	public static boolean isFileExtension(String fileExtension) {
+		if (isNull(fileExtension) ||
+			fileExtension.contains(StringPool.BACK_SLASH) ||
+			fileExtension.contains(StringPool.NULL_CHAR) ||
+			fileExtension.contains(StringPool.SLASH)) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	public static boolean isFileName(String name) {
+		if (isNull(name) || name.equals(StringPool.PERIOD) ||
+			name.equals(StringPool.DOUBLE_PERIOD) ||
+			name.contains(StringPool.BACK_SLASH) ||
+			name.contains(StringPool.NULL_CHAR) ||
+			name.contains(StringPool.SLASH)) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	public static boolean isFilePath(String path, boolean isParentDirAllowed) {
+		if (isNull(path)) {
+			return false;
+		}
+
+		if (path.contains(StringPool.NULL_CHAR)) {
+			return false;
+		}
+
+		if (isParentDirAllowed) {
+			return true;
+		}
+
+		if (path.equals(StringPool.DOUBLE_PERIOD)) {
+			return false;
+		}
+
+		String normalizedPath = path.replace(
+			CharPool.BACK_SLASH, CharPool.SLASH);
+
+		if (normalizedPath.startsWith(
+				StringPool.DOUBLE_PERIOD.concat(StringPool.SLASH))) {
+
+			return false;
+		}
+
+		if (normalizedPath.endsWith(
+				StringPool.SLASH.concat(StringPool.DOUBLE_PERIOD))) {
+
+			return false;
+		}
+
+		if (normalizedPath.contains(
+				StringPool.SLASH.concat(
+					StringPool.DOUBLE_PERIOD).concat(StringPool.SLASH))) {
+
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -525,8 +818,9 @@ public class Validator {
 		}
 
 		for (char c : nameCharArray) {
-			if (!isChar(c) && !isDigit(c) && (c != CharPool.DASH) &&
-				(c != CharPool.PERIOD)) {
+			if (!isChar(c) && !isDigit(c) && (c != CharPool.CLOSE_BRACKET) &&
+				(c != CharPool.COLON) && (c != CharPool.DASH) &&
+				(c != CharPool.OPEN_BRACKET) && (c != CharPool.PERIOD)) {
 
 				return false;
 			}
@@ -548,9 +842,25 @@ public class Validator {
 			return false;
 		}
 
-		if (((s.indexOf("<html>") != -1) || (s.indexOf("<HTML>") != -1)) &&
-			((s.indexOf("</html>") != -1) || (s.indexOf("</HTML>") != -1))) {
+		if ((s.contains("<html>") || s.contains("<HTML>")) &&
+			(s.contains("</html>") || s.contains("</HTML>"))) {
 
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns <code>true</code> if the string is a valid IPv4 or IPv6 IP
+	 * address.
+	 *
+	 * @param  ipAddress the string to check
+	 * @return <code>true</code> if the string is a valid IPv4 or IPv6 IP
+	 *         address; <code>false</code> otherwise
+	 */
+	public static boolean isIPAddress(String ipAddress) {
+		if (isIPv4Address(ipAddress) || isIPv6Address(ipAddress)) {
 			return true;
 		}
 
@@ -561,11 +871,34 @@ public class Validator {
 	 * Returns <code>true</code> if the string is a valid IPv4 IP address.
 	 *
 	 * @param  ipAddress the string to check
-	 * @return <code>true</code> if the string is an IPv4 IP address;
+	 * @return <code>true</code> if the string is a valid IPv4 IP address;
 	 *         <code>false</code> otherwise
 	 */
-	public static boolean isIPAddress(String ipAddress) {
-		Matcher matcher = _ipAddressPattern.matcher(ipAddress);
+	public static boolean isIPv4Address(String ipAddress) {
+		Matcher matcher = _ipv4AddressPattern.matcher(ipAddress);
+
+		return matcher.matches();
+	}
+
+	/**
+	 * Returns <code>true</code> if the string is a valid IPv6 IP address.
+	 *
+	 * @param  ipAddress the string to check
+	 * @return <code>true</code> if the string is a valid IPv6 IP address;
+	 *         <code>false</code> otherwise
+	 */
+	public static boolean isIPv6Address(String ipAddress) {
+		if (isNull(ipAddress)) {
+			return false;
+		}
+
+		if (StringUtil.startsWith(ipAddress, CharPool.OPEN_BRACKET) &&
+			StringUtil.endsWith(ipAddress, CharPool.CLOSE_BRACKET)) {
+
+			ipAddress = ipAddress.substring(1, ipAddress.length() - 1);
+		}
+
+		Matcher matcher = _ipv6AddressPattern.matcher(ipAddress);
 
 		return matcher.matches();
 	}
@@ -576,8 +909,8 @@ public class Validator {
 	 * @param  month the month (0-based, meaning 0 for January)
 	 * @param  day the day of the month
 	 * @param  year the year
-	 * @return <code>true</code> if the date is valid; <code>false</code>
-	 *         otherwise
+	 * @return <code>true</code> if the date is valid in the Julian calendar;
+	 *         <code>false</code> otherwise
 	 */
 	public static boolean isJulianDate(int month, int day, int year) {
 		if ((month < 0) || (month > 11)) {
@@ -625,17 +958,18 @@ public class Validator {
 			int x = 0;
 
 			if (((i + 1) % 2) == 0) {
-				x = Integer.parseInt(number.substring(i, i + 1)) * 2;
+				x = GetterUtil.getInteger(number.substring(i, i + 1)) * 2;
 
 				if (x >= 10) {
 					String s = String.valueOf(x);
 
-					x = Integer.parseInt(s.substring(0, 1)) +
-						Integer.parseInt(s.substring(1, 2));
+					x =
+						GetterUtil.getInteger(s.substring(0, 1)) +
+							GetterUtil.getInteger(s.substring(1, 2));
 				}
 			}
 			else {
-				x = Integer.parseInt(number.substring(i, i + 1));
+				x = GetterUtil.getInteger(number.substring(i, i + 1));
 			}
 
 			total = total + x;
@@ -698,21 +1032,18 @@ public class Validator {
 	}
 
 	/**
-	 * Returns <code>true</code> if the array is not <code>null</code>, meaning
-	 * it is neither a <code>null</code> reference or empty.
-	 *
-	 * @param  array the array to check
-	 * @return <code>true</code> if the array is not <code>null</code>;
-	 *         <code>false</code> otherwise
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             ArrayUtil#isNotEmpty(Object[])}
 	 */
+	@Deprecated
 	public static boolean isNotNull(Object[] array) {
-		return !isNull(array);
+		return ArrayUtil.isNotEmpty(array);
 	}
 
 	/**
 	 * Returns <code>true</code> if the string is not <code>null</code>, meaning
 	 * it is not a <code>null</code> reference, nothing but spaces, or the
-	 * string "<code>null</code>".
+	 * string "<code>null</code>", with zero or more leading or trailing spaces.
 	 *
 	 * @param  s the string to check
 	 * @return <code>true</code> if the string is not <code>null</code>;
@@ -764,26 +1095,17 @@ public class Validator {
 	}
 
 	/**
-	 * Returns <code>true</code> if the array is <code>null</code>, meaning it
-	 * is either a <code>null</code> reference or empty.
-	 *
-	 * @param  array the array to check
-	 * @return <code>true</code> if the array is <code>null</code>;
-	 *         <code>false</code> otherwise
+	 * @deprecated As of 6.2.0, replaced by {@link ArrayUtil#isEmpty(Object[])}
 	 */
+	@Deprecated
 	public static boolean isNull(Object[] array) {
-		if ((array == null) || (array.length == 0)) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return ArrayUtil.isEmpty(array);
 	}
 
 	/**
 	 * Returns <code>true</code> if the string is <code>null</code>, meaning it
 	 * is a <code>null</code> reference, nothing but spaces, or the string
-	 * "<code>null</code>".
+	 * "<code>null</code>", with zero or more leading or trailing spaces.
 	 *
 	 * @param  s the string to check
 	 * @return <code>true</code> if the string is <code>null</code>;
@@ -859,7 +1181,7 @@ public class Validator {
 	 * is at least four characters long and contains only letters and decimal
 	 * digits.
 	 *
-	 * @param  password the password to check
+	 * @param  password the string to check
 	 * @return <code>true</code> if the string is a valid password;
 	 *         <code>false</code> otherwise
 	 */
@@ -894,6 +1216,20 @@ public class Validator {
 		return isNumber(StringUtil.extractDigits(phoneNumber));
 	}
 
+	public static boolean isUri(String uri) {
+		if (isNotNull(uri)) {
+			try {
+				new URI(uri);
+
+				return true;
+			}
+			catch (URISyntaxException urise) {
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * Returns <code>true</code> if the string is a valid URL based on the rules
 	 * in {@link java.net.URL}.
@@ -903,7 +1239,7 @@ public class Validator {
 	 *         <code>false</code> otherwise
 	 */
 	public static boolean isUrl(String url) {
-		if (Validator.isNotNull(url)) {
+		if (isNotNull(url)) {
 			if (url.indexOf(CharPool.COLON) == -1) {
 				return false;
 			}
@@ -991,13 +1327,18 @@ public class Validator {
 	 *         <code>false</code> otherwise
 	 */
 	public static boolean isXml(String s) {
-		if (s.startsWith(_XML_BEGIN) || s.startsWith(_XML_EMPTY)) {
+		if (isNull(s)) {
+			return false;
+		}
+		else if (s.startsWith(_XML_BEGIN) || s.startsWith(_XML_EMPTY)) {
 			return true;
 		}
 		else {
 			return false;
 		}
 	}
+
+	private static final String[] _BOOLEANS = {"false", "on", "off", "true"};
 
 	private static final int _CHAR_LOWER_CASE_BEGIN = 97;
 
@@ -1016,8 +1357,6 @@ public class Validator {
 		'_', '`', '{', '|', '}', '~'
 	};
 
-	private static final String _LOCALHOST = "localhost";
-
 	private static final String _VARIABLE_TERM_BEGIN = "[$";
 
 	private static final String _VARIABLE_TERM_END = "$]";
@@ -1028,14 +1367,39 @@ public class Validator {
 
 	private static Pattern _emailAddressPattern = Pattern.compile(
 		"[\\w!#$%&'*+/=?^_`{|}~-]+(?:\\.[\\w!#$%&'*+/=?^_`{|}~-]+)*@" +
-		"(?:[\\w](?:[\\w-]*[\\w])?\\.)+[\\w](?:[\\w-]*[\\w])?");
-	private static Pattern _ipAddressPattern = Pattern.compile(
-		"\\b" +
-		"((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\." +
-		"((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\." +
-		"((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])\\." +
-		"((?!\\d\\d\\d)\\d+|1\\d\\d|2[0-4]\\d|25[0-5])" +
-		"\\b");
+		"(?:[a-zA-Z0-9](?:-*[a-zA-Z0-9])?\\.*)+");
+	private static Pattern _ipv4AddressPattern = Pattern.compile(
+		"^" +
+		"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\." +
+		"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\." +
+		"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\." +
+		"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" +
+		"$");
+	private static Pattern _ipv6AddressPattern = Pattern.compile(
+		"^" +
+		"\\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|" +
+		"(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|" +
+		"((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)" +
+		"(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|" +
+		"(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:" +
+		"((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)" +
+		"(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|" +
+		"(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|" +
+		"((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)" +
+		"(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|" +
+		"(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|" +
+		"((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)" +
+		"(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|" +
+		"(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|" +
+		"((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)" +
+		"(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|" +
+		"(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|" +
+		"((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)" +
+		"(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|" +
+		"(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:" +
+		"((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\." +
+		"(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:)))(%.+)?\\s*" +
+		"$");
 	private static Pattern _variableNamePattern = Pattern.compile(
 		"[_a-zA-Z]+[_a-zA-Z0-9]*");
 

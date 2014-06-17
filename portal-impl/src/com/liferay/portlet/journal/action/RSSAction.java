@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,7 +19,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.portlet.PortletRequestModel;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -32,7 +32,6 @@ import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.XPath;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
-import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
@@ -56,47 +55,23 @@ import com.sun.syndication.feed.synd.SyndEntryImpl;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.feed.synd.SyndFeedImpl;
 import com.sun.syndication.feed.synd.SyndLink;
+import com.sun.syndication.feed.synd.SyndLinkImpl;
 import com.sun.syndication.io.FeedException;
 
-import java.io.OutputStream;
-
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
-import javax.portlet.PortletConfig;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
 import javax.portlet.ResourceURL;
 
-import org.apache.struts.action.ActionForm;
-import org.apache.struts.action.ActionMapping;
-
 /**
  * @author Raymond Augé
  */
-public class RSSAction extends PortletAction {
-
-	@Override
-	public void serveResource(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
-		throws Exception {
-
-		resourceResponse.setContentType(ContentTypes.TEXT_XML_UTF8);
-
-		OutputStream outputStream = resourceResponse.getPortletOutputStream();
-
-		try {
-			byte[] bytes = getRSS(resourceRequest, resourceResponse);
-
-			outputStream.write(bytes);
-		}
-		finally {
-			outputStream.close();
-		}
-	}
+public class RSSAction extends com.liferay.portal.struts.RSSAction {
 
 	protected String exportToRSS(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse,
@@ -104,19 +79,9 @@ public class RSSAction extends PortletAction {
 			ThemeDisplay themeDisplay)
 		throws Exception {
 
-		ResourceURL feedURL = resourceResponse.createResourceURL();
-
-		feedURL.setCacheability(ResourceURL.FULL);
-		feedURL.setParameter("struts_action", "/journal/rss");
-		feedURL.setParameter("groupId", String.valueOf(feed.getGroupId()));
-		feedURL.setParameter("feedId", String.valueOf(feed.getFeedId()));
-
 		SyndFeed syndFeed = new SyndFeedImpl();
 
 		syndFeed.setDescription(feed.getDescription());
-		syndFeed.setFeedType(feed.getFeedType() + "_" + feed.getFeedVersion());
-		syndFeed.setLink(feedURL.toString());
-		syndFeed.setTitle(feed.getName());
 
 		List<SyndEntry> syndEntries = new ArrayList<SyndEntry>();
 
@@ -129,17 +94,15 @@ public class RSSAction extends PortletAction {
 		}
 
 		for (JournalArticle article : articles) {
-			String author = HtmlUtil.escape(
-				PortalUtil.getUserName(
-					article.getUserId(), article.getUserName()));
-			String link = getEntryURL(
-				resourceRequest, feed, article, layout, themeDisplay);
-
 			SyndEntry syndEntry = new SyndEntryImpl();
+
+			String author = PortalUtil.getUserName(article);
 
 			syndEntry.setAuthor(author);
 
 			SyndContent syndContent = new SyndContentImpl();
+
+			syndContent.setType(RSSUtil.ENTRY_TYPE_DEFAULT);
 
 			String value = article.getDescription(languageId);
 
@@ -154,19 +117,50 @@ public class RSSAction extends PortletAction {
 				}
 			}
 
-			syndContent.setType(RSSUtil.ENTRY_TYPE_DEFAULT);
 			syndContent.setValue(value);
 
 			syndEntry.setDescription(syndContent);
 
+			String link = getEntryURL(
+				resourceRequest, feed, article, layout, themeDisplay);
+
 			syndEntry.setLink(link);
+
 			syndEntry.setPublishedDate(article.getDisplayDate());
 			syndEntry.setTitle(article.getTitle(languageId));
 			syndEntry.setUpdatedDate(article.getModifiedDate());
-			syndEntry.setUri(syndEntry.getLink());
+			syndEntry.setUri(link);
 
 			syndEntries.add(syndEntry);
 		}
+
+		syndFeed.setFeedType(
+			feed.getFeedFormat() + "_" + feed.getFeedVersion());
+
+		List<SyndLink> syndLinks = new ArrayList<SyndLink>();
+
+		syndFeed.setLinks(syndLinks);
+
+		SyndLink selfSyndLink = new SyndLinkImpl();
+
+		syndLinks.add(selfSyndLink);
+
+		ResourceURL feedURL = resourceResponse.createResourceURL();
+
+		feedURL.setCacheability(ResourceURL.FULL);
+		feedURL.setParameter("struts_action", "/journal/rss");
+		feedURL.setParameter("groupId", String.valueOf(feed.getGroupId()));
+		feedURL.setParameter("feedId", String.valueOf(feed.getFeedId()));
+
+		String link = feedURL.toString();
+
+		selfSyndLink.setHref(link);
+
+		selfSyndLink.setRel("self");
+
+		syndFeed.setTitle(feed.getName());
+		syndFeed.setPublishedDate(new Date());
+		syndFeed.setUri(feedURL.toString());
 
 		try {
 			return RSSUtil.export(syndFeed);
@@ -186,7 +180,7 @@ public class RSSAction extends PortletAction {
 				layout.getGroupId(), layout.isPrivateLayout(),
 				article.getArticleId());
 
-		if (hitLayoutIds.size() > 0) {
+		if (!hitLayoutIds.isEmpty()) {
 			Long hitLayoutId = hitLayoutIds.get(0);
 
 			Layout hitLayout = LayoutLocalServiceUtil.getLayout(
@@ -195,28 +189,27 @@ public class RSSAction extends PortletAction {
 
 			return PortalUtil.getLayoutFriendlyURL(hitLayout, themeDisplay);
 		}
-		else {
-			long plid = PortalUtil.getPlidFromFriendlyURL(
-				feed.getCompanyId(), feed.getTargetLayoutFriendlyUrl());
 
-			String portletId = PortletKeys.JOURNAL_CONTENT;
+		long plid = PortalUtil.getPlidFromFriendlyURL(
+			feed.getCompanyId(), feed.getTargetLayoutFriendlyUrl());
 
-			if (Validator.isNotNull(feed.getTargetPortletId())) {
-				portletId = feed.getTargetPortletId();
-			}
+		String portletId = PortletKeys.JOURNAL_CONTENT;
 
-			PortletURL entryURL = new PortletURLImpl(
-				resourceRequest, portletId, plid, PortletRequest.RENDER_PHASE);
-
-			entryURL.setParameter("struts_action", "/journal_content/view");
-			entryURL.setParameter(
-				"groupId", String.valueOf(article.getGroupId()));
-			entryURL.setParameter("articleId", article.getArticleId());
-
-			return entryURL.toString();
+		if (Validator.isNotNull(feed.getTargetPortletId())) {
+			portletId = feed.getTargetPortletId();
 		}
+
+		PortletURL entryURL = new PortletURLImpl(
+			resourceRequest, portletId, plid, PortletRequest.RENDER_PHASE);
+
+		entryURL.setParameter("struts_action", "/journal_content/view");
+		entryURL.setParameter("groupId", String.valueOf(article.getGroupId()));
+		entryURL.setParameter("articleId", article.getArticleId());
+
+		return entryURL.toString();
 	}
 
+	@Override
 	protected byte[] getRSS(
 			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 		throws Exception {
@@ -280,8 +273,16 @@ public class RSSAction extends PortletAction {
 			JournalArticleDisplay articleDisplay =
 				JournalContentUtil.getDisplay(
 					feed.getGroupId(), article.getArticleId(),
-					rendererTemplateId, null, languageId, themeDisplay, 1,
-					_XML_REQUUEST);
+					rendererTemplateId, null, languageId, 1,
+					new PortletRequestModel() {
+
+						@Override
+						public String toXML() {
+							return _XML_REQUUEST;
+						}
+
+					},
+					themeDisplay);
 
 			if (articleDisplay != null) {
 				content = articleDisplay.getContent();
@@ -293,12 +294,14 @@ public class RSSAction extends PortletAction {
 			Document document = SAXReaderUtil.read(
 				article.getContentByLocale(languageId));
 
+			contentField = HtmlUtil.escapeXPathAttribute(contentField);
+
 			XPath xPathSelector = SAXReaderUtil.createXPath(
-				"//dynamic-element[@name='" + contentField + "']");
+				"//dynamic-element[@name=" + contentField + "]");
 
 			List<Node> results = xPathSelector.selectNodes(document);
 
-			if (results.size() == 0) {
+			if (results.isEmpty()) {
 				return content;
 			}
 

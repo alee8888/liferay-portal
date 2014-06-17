@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,9 @@
 
 package com.liferay.portal.tools;
 
+import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -23,6 +25,7 @@ import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
+import com.liferay.portal.tools.javadocformatter.SinceJava;
 import com.liferay.portal.tools.servicebuilder.ServiceBuilder;
 import com.liferay.portal.util.FileImpl;
 import com.liferay.portal.xml.SAXReaderImpl;
@@ -39,11 +42,17 @@ import com.thoughtworks.qdox.model.JavaMethod;
 import com.thoughtworks.qdox.model.JavaPackage;
 import com.thoughtworks.qdox.model.JavaParameter;
 import com.thoughtworks.qdox.model.Type;
+import com.thoughtworks.qdox.model.annotation.AnnotationValue;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.Writer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +60,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -62,6 +72,7 @@ import org.apache.tools.ant.DirectoryScanner;
  * @author Brian Wing Shun Chan
  * @author Connor McKay
  * @author James Hinkey
+ * @author Hugo Huijser
  */
 public class JavadocFormatter {
 
@@ -95,7 +106,7 @@ public class JavadocFormatter {
 
 		System.out.println("Input directory is " + _inputDir);
 
-		String limit = arguments.get("javadoc.limit");
+		String[] limits = StringUtil.split(arguments.get("javadoc.limit"), ",");
 
 		_outputFilePrefix = GetterUtil.getString(
 			arguments.get("javadoc.output.file.prefix"));
@@ -116,50 +127,73 @@ public class JavadocFormatter {
 		directoryScanner.setExcludes(
 			new String[] {"**\\classes\\**", "**\\portal-client\\**"});
 
-		List<String> includes = new ArrayList<String>();
+		for (String limit : limits) {
+			List<String> includes = new ArrayList<String>();
 
-		if (Validator.isNotNull(limit) && !limit.startsWith("$")) {
-			System.out.println("Limit on " + limit);
+			if (Validator.isNotNull(limit) && !limit.startsWith("$")) {
+				System.out.println("Limit on " + limit);
 
-			String[] limitArray = StringUtil.split(limit, '/');
+				String[] limitArray = StringUtil.split(limit, '/');
 
-			for (String curLimit : limitArray) {
-				includes.add(
-					"**\\" + StringUtil.replace(curLimit, ".", "\\") +
-						"\\**\\*.java");
-				includes.add("**\\" + curLimit + ".java");
-			}
-		}
-		else {
-			includes.add("**\\*.java");
-		}
-
-		directoryScanner.setIncludes(
-			includes.toArray(new String[includes.size()]));
-
-		directoryScanner.scan();
-
-		String[] fileNames = directoryScanner.getIncludedFiles();
-
-		if ((fileNames.length == 0) && Validator.isNotNull(limit) &&
-			!limit.startsWith("$")) {
-
-			StringBundler sb = new StringBundler("Limit file not found: ");
-
-			sb.append(limit);
-
-			if (limit.contains(".")) {
-				sb.append(" Specify limit filename without package path or ");
-				sb.append("file type suffix.");
+				for (String curLimit : limitArray) {
+					includes.add(
+						"**\\" + StringUtil.replace(curLimit, ".", "\\") +
+							"\\**\\*.java");
+					includes.add("**\\" + curLimit + ".java");
+				}
 			}
 
-			System.out.println(sb.toString());
-		}
+			else {
+				includes.add("**\\*.java");
+			}
 
-		for (String fileName : fileNames) {
-			fileName = StringUtil.replace(fileName, "\\", "/");
+			directoryScanner.setIncludes(
+				includes.toArray(new String[includes.size()]));
 
-			_format(fileName);
+			directoryScanner.scan();
+
+			String[] fileNames = StringPool.EMPTY_ARRAY;
+
+			fileNames = directoryScanner.getIncludedFiles();
+
+			if ((fileNames.length == 0) && Validator.isNotNull(limit) &&
+				!limit.startsWith("$")) {
+
+				StringBundler sb = new StringBundler("Limit file not found: ");
+
+				sb.append(limit);
+
+				if (limit.contains(".")) {
+					sb.append(
+						" Specify limit filename without package path or ");
+					sb.append("file type suffix.");
+				}
+
+				System.out.println(sb.toString());
+			}
+
+			_languagePropertiesFile = new File(
+				"src/content/Language.properties");
+
+			if (_languagePropertiesFile.exists()) {
+				_languageProperties = new Properties();
+
+				_languageProperties.load(
+					new FileInputStream(
+						_languagePropertiesFile.getAbsolutePath()));
+			}
+
+			for (String fileName : fileNames) {
+				fileName = StringUtil.replace(fileName, "\\", "/");
+
+				try {
+					_format(fileName);
+				}
+				catch (Exception e) {
+					throw new RuntimeException(
+						"Unable to format file " + fileName, e);
+				}
+			}
 		}
 
 		for (Map.Entry<String, Tuple> entry : _javadocxXmlTuples.entrySet()) {
@@ -207,12 +241,45 @@ public class JavadocFormatter {
 		}
 	}
 
+	private List<Tuple> _addAncestorJavaClassTuples(
+		JavaClass javaClass, List<Tuple> ancestorJavaClassTuples) {
+
+		JavaClass superJavaClass = javaClass.getSuperJavaClass();
+
+		if (superJavaClass != null) {
+			ancestorJavaClassTuples.add(new Tuple(superJavaClass));
+
+			ancestorJavaClassTuples = _addAncestorJavaClassTuples(
+				superJavaClass, ancestorJavaClassTuples);
+		}
+
+		Type[] implementz = javaClass.getImplements();
+
+		for (Type implement : implementz) {
+			Type[] actualTypeArguments = implement.getActualTypeArguments();
+			JavaClass implementedInterface = implement.getJavaClass();
+
+			if (actualTypeArguments == null) {
+				ancestorJavaClassTuples.add(new Tuple(implementedInterface));
+			}
+			else {
+				ancestorJavaClassTuples.add(
+					new Tuple(implementedInterface, actualTypeArguments));
+			}
+
+			ancestorJavaClassTuples = _addAncestorJavaClassTuples(
+				implementedInterface, ancestorJavaClassTuples);
+		}
+
+		return ancestorJavaClassTuples;
+	}
+
 	private void _addClassCommentElement(
 		Element rootElement, JavaClass javaClass) {
 
 		String comment = _getCDATA(javaClass);
 
-		if (comment.startsWith("Copyright (c) 2000-2010 Liferay, Inc.")) {
+		if (comment.startsWith("Copyright (c)")) {
 			comment = StringPool.BLANK;
 		}
 
@@ -223,6 +290,24 @@ public class JavadocFormatter {
 		Element commentElement = rootElement.addElement("comment");
 
 		commentElement.addCDATA(comment);
+	}
+
+	private String _addDeprecatedTag(
+		String comment, AbstractBaseJavaEntity abstractBaseJavaEntity,
+		String indent) {
+
+		if (comment == null) {
+			return null;
+		}
+
+		if (!comment.contains("* @deprecated ") ||
+			ServiceBuilder.hasAnnotation(
+				abstractBaseJavaEntity, "Deprecated")) {
+
+			return comment;
+		}
+
+		return comment + indent + "@Deprecated\n";
 	}
 
 	private void _addDocletElements(
@@ -256,8 +341,8 @@ public class JavadocFormatter {
 		boolean publicAccess) {
 
 		List<String> allTagNames = new ArrayList<String>();
-		List<String> commonTagNamesWithComments = new ArrayList<String>();
 		List<String> customTagNames = new ArrayList<String>();
+		List<String> requiredTagNames = new ArrayList<String>();
 
 		for (String tagName : tagNames) {
 			List<Element> elements = parentElement.elements(tagName);
@@ -280,7 +365,21 @@ public class JavadocFormatter {
 					tagName.equals("throws")) {
 
 					if (Validator.isNotNull(comment)) {
-						commonTagNamesWithComments.add(tagName);
+						requiredTagNames.add(tagName);
+					}
+					else if (tagName.equals("param")) {
+						if (GetterUtil.getBoolean(
+								element.elementText("required"))) {
+
+							requiredTagNames.add(tagName);
+						}
+					}
+					else if (tagName.equals("throws")) {
+						if (GetterUtil.getBoolean(
+								element.elementText("required"))) {
+
+							requiredTagNames.add(tagName);
+						}
 					}
 				}
 				else {
@@ -299,17 +398,17 @@ public class JavadocFormatter {
 			maxTagNameLengthTags.addAll(allTagNames);
 		}
 		else if (_updateJavadocs) {
-			if (!commonTagNamesWithComments.isEmpty()) {
+			if (!requiredTagNames.isEmpty()) {
 				maxTagNameLengthTags.addAll(allTagNames);
 			}
 			else {
-				maxTagNameLengthTags.addAll(commonTagNamesWithComments);
 				maxTagNameLengthTags.addAll(customTagNames);
+				maxTagNameLengthTags.addAll(requiredTagNames);
 			}
 		}
 		else {
-			maxTagNameLengthTags.addAll(commonTagNamesWithComments);
 			maxTagNameLengthTags.addAll(customTagNames);
+			maxTagNameLengthTags.addAll(requiredTagNames);
 		}
 
 		for (String name : maxTagNameLengthTags) {
@@ -318,7 +417,7 @@ public class JavadocFormatter {
 			}
 		}
 
-		// There should be an @ sign before the tag name and a space after it
+		// There should be an @ sign before the tag and a space after it
 
 		maxTagNameLength += 2;
 
@@ -341,11 +440,7 @@ public class JavadocFormatter {
 					comment = element.getText();
 				}
 
-				String elementName = null;
-
-				if (commentElement != null) {
-					elementName = element.elementText("name");
-				}
+				String elementName = element.elementText("name");
 
 				if (Validator.isNotNull(comment)) {
 					comment = _assembleTagComment(
@@ -369,7 +464,7 @@ public class JavadocFormatter {
 							!tagName.equals("return") &&
 							!tagName.equals("throws")) {
 
-							// Write out custom tag name
+							// Write out custom tag
 
 							comment = _assembleTagComment(
 								tagName, elementName, comment, indent,
@@ -377,7 +472,7 @@ public class JavadocFormatter {
 
 							sb.append(comment);
 						}
-						else if (!commonTagNamesWithComments.isEmpty()) {
+						else if (!requiredTagNames.isEmpty()) {
 
 							// Write out all tags
 
@@ -389,7 +484,7 @@ public class JavadocFormatter {
 						}
 						else {
 
-							// Skip empty common tag name
+							// Skip empty common tag
 
 						}
 					}
@@ -398,7 +493,7 @@ public class JavadocFormatter {
 							!tagName.equals("return") &&
 							!tagName.equals("throws")) {
 
-							// Write out custom tag name
+							// Write out custom tag
 
 							comment = _assembleTagComment(
 								tagName, elementName, comment, indent,
@@ -406,9 +501,25 @@ public class JavadocFormatter {
 
 							sb.append(comment);
 						}
+						else if (tagName.equals("param") ||
+								 tagName.equals("return") ||
+								 tagName.equals("throws")) {
+
+							if (GetterUtil.getBoolean(
+									element.elementText("required"))) {
+
+								elementName = element.elementText("name");
+
+								comment = _assembleTagComment(
+									tagName, elementName, comment, indent,
+									tagNameIndent);
+
+								sb.append(comment);
+							}
+						}
 						else {
 
-							// Skip empty common tag name
+							// Skip empty common tag
 
 						}
 					}
@@ -475,10 +586,7 @@ public class JavadocFormatter {
 		for (DocletTag paramDocletTag : paramDocletTags) {
 			String curValue = paramDocletTag.getValue();
 
-			if (!curValue.startsWith(name)) {
-				continue;
-			}
-			else {
+			if (curValue.equals(name) || curValue.startsWith(name + " ")) {
 				value = curValue;
 
 				break;
@@ -492,15 +600,15 @@ public class JavadocFormatter {
 
 		if (value != null) {
 			value = value.substring(name.length());
+
+			DocUtil.add(paramElement, "required", true);
 		}
 
 		value = _trimMultilineText(value);
 
-		if (Validator.isNotNull(value)) {
-			Element commentElement = paramElement.addElement("comment");
+		Element commentElement = paramElement.addElement("comment");
 
-			commentElement.addCDATA(value);
-		}
+		commentElement.addCDATA(value);
 	}
 
 	private void _addParamElements(
@@ -515,8 +623,7 @@ public class JavadocFormatter {
 		}
 	}
 
-	private void _addReturnElement(
-			Element methodElement, JavaMethod javaMethod)
+	private void _addReturnElement(Element methodElement, JavaMethod javaMethod)
 		throws Exception {
 
 		Type returns = javaMethod.getReturns();
@@ -531,6 +638,8 @@ public class JavadocFormatter {
 			return;
 		}
 
+		Element returnElement = methodElement.addElement("return");
+
 		DocletTag[] returnDocletTags = javaMethod.getTagsByName("return");
 
 		String comment = StringPool.BLANK;
@@ -539,17 +648,15 @@ public class JavadocFormatter {
 			DocletTag returnDocletTag = returnDocletTags[0];
 
 			comment = GetterUtil.getString(returnDocletTag.getValue());
+
+			DocUtil.add(returnElement, "required", true);
 		}
 
 		comment = _trimMultilineText(comment);
 
-		if (Validator.isNotNull(comment)) {
-			Element returnElement = methodElement.addElement("return");
+		Element commentElement = returnElement.addElement("comment");
 
-			Element commentElement = returnElement.addElement("comment");
-
-			commentElement.addCDATA(comment);
-		}
+		commentElement.addCDATA(comment);
 	}
 
 	private void _addThrowsElement(
@@ -582,15 +689,15 @@ public class JavadocFormatter {
 
 		if (value != null) {
 			value = value.substring(name.length());
+
+			DocUtil.add(throwsElement, "required", true);
 		}
 
 		value = _trimMultilineText(value);
 
-		if (Validator.isNotNull(value)) {
-			Element commentElement = throwsElement.addElement("comment");
+		Element commentElement = throwsElement.addElement("comment");
 
-			commentElement.addCDATA(_getCDATA(value));
-		}
+		commentElement.addCDATA(_getCDATA(value));
 	}
 
 	private void _addThrowsElements(
@@ -613,7 +720,7 @@ public class JavadocFormatter {
 
 		if (Validator.isNotNull(elementName)) {
 			if (Validator.isNotNull(comment)) {
-				comment = elementName  + StringPool.SPACE + comment;
+				comment = elementName + StringPool.SPACE + comment;
 			}
 			else {
 				comment = elementName;
@@ -696,41 +803,9 @@ public class JavadocFormatter {
 			fileName, originalContent, javadocLessContent, document);
 	}
 
-	private String _formatInlines(String text) {
-
-		// Capitalize ID
-
-		text = text.replaceAll("(?i)\\bid(s)?\\b", "ID$1");
-
-		// Wrap special constants in code tags
-
-		text = text.replaceAll(
-			"(?i)(?<!<code>|\\w)(null|false|true)(?!\\w)", "<code>$1</code>");
-
-		return text;
-	}
-
-	private List<JavaClass> _getAncestorJavaClasses(JavaClass javaClass) {
-		List<JavaClass> ancestorJavaClasses = new ArrayList<JavaClass>();
-
-		while ((javaClass = javaClass.getSuperJavaClass()) != null) {
-			ancestorJavaClasses.add(javaClass);
-		}
-
-		return ancestorJavaClasses;
-	}
-
-	private String _getCDATA(AbstractJavaEntity abstractJavaEntity) {
-		return _getCDATA(abstractJavaEntity.getComment());
-	}
-
-	private String _getCDATA(String cdata) {
-		if (cdata == null) {
-			return StringPool.BLANK;
-		}
-
+	private String _formatCDATA(String cdata) {
 		cdata = cdata.replaceAll(
-			"(?s)\\s*<(p|pre|[ou]l)>\\s*(.*?)\\s*</\\1>\\s*",
+			"(?s)\\s*<(p|[ou]l)>\\s*(.*?)\\s*</\\1>\\s*",
 			"\n\n<$1>\n$2\n</$1>\n\n");
 		cdata = cdata.replaceAll(
 			"(?s)\\s*<li>\\s*(.*?)\\s*</li>\\s*", "\n<li>\n$1\n</li>\n");
@@ -740,17 +815,14 @@ public class JavadocFormatter {
 
 		// Trim whitespace inside paragraph tags or in the first paragraph
 
-		Pattern pattern = Pattern.compile(
-			"(^.*?(?=\n\n|$)+|(?<=<p>\n).*?(?=\n</p>))", Pattern.DOTALL);
-
-		Matcher matcher = pattern.matcher(cdata);
+		Matcher matcher = _paragraphTagPattern.matcher(cdata);
 
 		StringBuffer sb = new StringBuffer();
 
 		while (matcher.find()) {
 			String trimmed = _trimMultilineText(matcher.group());
 
-			// Escape dollar signs so they are not treated as replacement groups
+			// Escape dollar signs
 
 			trimmed = trimmed.replaceAll("\\$", "\\\\\\$");
 
@@ -764,8 +836,130 @@ public class JavadocFormatter {
 		return cdata.trim();
 	}
 
+	private String _formatInlines(String text) {
+
+		// Capitalize ID
+
+		text = text.replaceAll("[?@param id](?i)\\bid(s)?\\b", " ID$1");
+
+		// Wrap special constants in code tags
+
+		text = text.replaceAll(
+			"(?i)(?<!<code>|\\w)(null|false|true)(?!\\w)", "<code>$1</code>");
+
+		return text;
+	}
+
+	private String _getCDATA(AbstractJavaEntity abstractJavaEntity) {
+		return _getCDATA(abstractJavaEntity.getComment());
+	}
+
+	private String _getCDATA(String cdata) {
+		StringBundler sb = new StringBundler();
+
+		if ((cdata == null) || cdata.isEmpty()) {
+			return StringPool.BLANK;
+		}
+
+		int cdataBeginIndex = 0;
+
+		while (!cdata.isEmpty()) {
+			int preTagIndex = cdata.indexOf("<pre>");
+			int tableTagIndex = cdata.indexOf("<table>");
+
+			boolean hasPreTag = (preTagIndex != -1) ? true : false;
+			boolean hasTableTag = (tableTagIndex != -1) ? true : false;
+
+			if (!hasPreTag && !hasTableTag) {
+				sb.append(_formatCDATA(cdata));
+
+				break;
+			}
+
+			boolean startsWithPreTag = (preTagIndex == 0) ? true : false;
+			boolean startsWithTableTag = (tableTagIndex == 0) ? true : false;
+
+			if (startsWithPreTag || startsWithTableTag) {
+				sb.append("\n");
+
+				String tagName = null;
+
+				if (preTagIndex == 0) {
+					tagName = "pre";
+				}
+				else {
+					tagName = "table";
+				}
+
+				String startTag = "<" + tagName + ">";
+				String endTag = "</" + tagName + ">";
+
+				int startTagLength = startTag.length();
+				int endTagLength = endTag.length();
+
+				int endTagIndex = cdata.indexOf(endTag, startTagLength - 1);
+
+				sb.append(cdata.substring(0, endTagIndex + endTagLength));
+
+				sb.append("\n");
+
+				cdataBeginIndex = endTagIndex + endTagLength;
+			}
+			else {
+
+				// Format the cdata up to the next pre or table tag
+
+				int startTagIndex = 0;
+
+				if (hasPreTag && hasTableTag) {
+					if (preTagIndex < tableTagIndex) {
+						startTagIndex = preTagIndex;
+					}
+					else {
+						startTagIndex = tableTagIndex;
+					}
+				}
+				else if (hasPreTag && !hasTableTag) {
+					startTagIndex = preTagIndex;
+				}
+				else {
+
+					// Must have table tag and no pre tag
+
+					startTagIndex = tableTagIndex;
+				}
+
+				sb.append(_formatCDATA(cdata.substring(0, startTagIndex)));
+
+				cdataBeginIndex = startTagIndex;
+			}
+
+			cdata = cdata.substring(cdataBeginIndex);
+		}
+
+		cdata = sb.toString();
+
+		return cdata.trim();
+	}
+
 	private String _getClassName(String fileName) {
 		int pos = fileName.indexOf("src/");
+
+		if (pos == -1) {
+			pos = fileName.indexOf("test/integration/");
+
+			if (pos != -1) {
+				pos = fileName.indexOf("integration/", pos);
+			}
+		}
+
+		if (pos == -1) {
+			pos = fileName.indexOf("test/unit/");
+
+			if (pos != -1) {
+				pos = fileName.indexOf("unit/", pos);
+			}
+		}
 
 		if (pos == -1) {
 			pos = fileName.indexOf("test/");
@@ -863,7 +1057,7 @@ public class JavadocFormatter {
 
 		String comment = rootElement.elementText("comment");
 
-		if (_initializeMissingJavadocs || Validator.isNotNull(comment)) {
+		if (Validator.isNotNull(comment)) {
 			sb.append(_wrapText(comment, indent + " * "));
 		}
 
@@ -899,7 +1093,7 @@ public class JavadocFormatter {
 		for (Annotation annotation : annotations) {
 			int annotationLineNumber = annotation.getLineNumber();
 
-			Map<String, String> propertyMap = annotation.getPropertyMap(); 
+			Map<String, String> propertyMap = annotation.getPropertyMap();
 
 			if (propertyMap.isEmpty()) {
 				annotationLineNumber--;
@@ -1026,8 +1220,8 @@ public class JavadocFormatter {
 	}
 
 	private String _getJavaFieldComment(
-		String[] lines, Map<String, Element> fieldElementsMap,
-		JavaField javaField) {
+		Map<String, Element> fieldElementsMap, JavaField javaField,
+		String indent) {
 
 		String fieldKey = _getFieldKey(javaField);
 
@@ -1037,8 +1231,6 @@ public class JavadocFormatter {
 			return null;
 		}
 
-		String indent = _getIndent(lines, javaField);
-
 		StringBundler sb = new StringBundler();
 
 		sb.append(indent);
@@ -1046,7 +1238,7 @@ public class JavadocFormatter {
 
 		String comment = fieldElement.elementText("comment");
 
-		if (_initializeMissingJavadocs || Validator.isNotNull(comment)) {
+		if (Validator.isNotNull(comment)) {
 			sb.append(_wrapText(comment, indent + " * "));
 		}
 
@@ -1083,8 +1275,8 @@ public class JavadocFormatter {
 	}
 
 	private String _getJavaMethodComment(
-		String[] lines, Map<String, Element> methodElementsMap,
-		JavaMethod javaMethod) {
+		Map<String, Element> methodElementsMap, JavaMethod javaMethod,
+		String indent) {
 
 		String methodKey = _getMethodKey(javaMethod);
 
@@ -1094,8 +1286,6 @@ public class JavadocFormatter {
 			return null;
 		}
 
-		String indent = _getIndent(lines, javaMethod);
-
 		StringBundler sb = new StringBundler();
 
 		sb.append(indent);
@@ -1103,7 +1293,7 @@ public class JavadocFormatter {
 
 		String comment = methodElement.elementText("comment");
 
-		if (_initializeMissingJavadocs || Validator.isNotNull(comment)) {
+		if (Validator.isNotNull(comment)) {
 			sb.append(_wrapText(comment, indent + " * "));
 		}
 
@@ -1146,7 +1336,7 @@ public class JavadocFormatter {
 		StringBundler sb = new StringBundler();
 
 		sb.append(methodElement.elementText("name"));
-		sb.append("(");
+		sb.append(StringPool.OPEN_PARENTHESIS);
 
 		List<Element> paramElements = methodElement.elements("param");
 
@@ -1157,7 +1347,7 @@ public class JavadocFormatter {
 			sb.append(",");
 		}
 
-		sb.append(")");
+		sb.append(StringPool.CLOSE_PARENTHESIS);
 
 		return sb.toString();
 	}
@@ -1166,7 +1356,7 @@ public class JavadocFormatter {
 		StringBundler sb = new StringBundler();
 
 		sb.append(javaMethod.getName());
-		sb.append("(");
+		sb.append(StringPool.OPEN_PARENTHESIS);
 
 		JavaParameter[] javaParameters = javaMethod.getParameters();
 
@@ -1177,7 +1367,7 @@ public class JavadocFormatter {
 			sb.append(",");
 		}
 
-		sb.append(")");
+		sb.append(StringPool.CLOSE_PARENTHESIS);
 
 		return sb.toString();
 	}
@@ -1204,28 +1394,6 @@ public class JavadocFormatter {
 		return typeValue;
 	}
 
-	private boolean _hasAnnotation(
-		AbstractBaseJavaEntity abstractBaseJavaEntity, String annotationName) {
-
-		Annotation[] annotations = abstractBaseJavaEntity.getAnnotations();
-
-		if (annotations == null) {
-			return false;
-		}
-
-		for (int i = 0; i < annotations.length; i++) {
-			Type type = annotations[i].getType();
-
-			JavaClass javaClass = type.getJavaClass();
-
-			if (annotationName.equals(javaClass.getName())) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	private boolean _hasGeneratedTag(String content) {
 		if (content.contains("* @generated") || content.contains("$ANTLR")) {
 			return true;
@@ -1235,7 +1403,7 @@ public class JavadocFormatter {
 		}
 	}
 
- 	private boolean _hasPublicModifier(AbstractJavaEntity abstractJavaEntity) {
+	private boolean _hasPublicModifier(AbstractJavaEntity abstractJavaEntity) {
 		String[] modifiers = abstractJavaEntity.getModifiers();
 
 		if (modifiers == null) {
@@ -1251,12 +1419,13 @@ public class JavadocFormatter {
 		return false;
 	}
 
-	private boolean  _isOverrideMethod(
+	private boolean _isOverrideMethod(
 		JavaClass javaClass, JavaMethod javaMethod,
-		Collection<JavaClass> ancestorJavaClasses) {
+		Collection<Tuple> ancestorJavaClassTuples) {
 
-		if (javaClass.isInterface() || javaMethod.isConstructor() ||
-			javaMethod.isPrivate() || javaMethod.isStatic()) {
+		if (javaMethod.isConstructor() || javaMethod.isPrivate() ||
+			javaMethod.isStatic() ||
+			_overridesHigherJavaAPIVersion(javaMethod)) {
 
 			return false;
 		}
@@ -1273,9 +1442,55 @@ public class JavadocFormatter {
 
 		// Check for matching method in each ancestor
 
-		for (JavaClass ancestorJavaClass : ancestorJavaClasses) {
-			JavaMethod ancestorJavaMethod =
-				ancestorJavaClass.getMethodBySignature(methodName, types);
+		for (Tuple ancestorJavaClassTuple : ancestorJavaClassTuples) {
+			JavaClass ancestorJavaClass =
+				(JavaClass)ancestorJavaClassTuple.getObject(0);
+
+			JavaMethod ancestorJavaMethod = null;
+
+			if (ancestorJavaClassTuple.getSize() > 1) {
+
+				// LPS-35613
+
+				Type[] ancestorActualTypeArguments =
+					(Type[])ancestorJavaClassTuple.getObject(1);
+
+				Type[] genericTypes = new Type[types.length];
+
+				for (int i = 0; i < types.length; i++) {
+					Type type = types[i];
+
+					String typeValue = type.getValue();
+
+					boolean useGenericType = false;
+
+					for (int j = 0; j < ancestorActualTypeArguments.length;
+							j++) {
+
+						if (typeValue.equals(
+								ancestorActualTypeArguments[j].getValue())) {
+
+							useGenericType = true;
+
+							break;
+						}
+					}
+
+					if (useGenericType) {
+						genericTypes[i] = new Type("java.lang.Object");
+					}
+					else {
+						genericTypes[i] = type;
+					}
+				}
+
+				ancestorJavaMethod = ancestorJavaClass.getMethodBySignature(
+					methodName, genericTypes);
+			}
+			else {
+				ancestorJavaMethod = ancestorJavaClass.getMethodBySignature(
+					methodName, types);
+			}
 
 			if (ancestorJavaMethod == null) {
 				continue;
@@ -1295,14 +1510,42 @@ public class JavadocFormatter {
 			if (samePackage) {
 				return !ancestorJavaMethod.isPrivate();
 			}
-			else {
-				if (ancestorJavaMethod.isProtected() ||
-					ancestorJavaMethod.isPublic()) {
 
+			if (ancestorJavaMethod.isProtected() ||
+				ancestorJavaMethod.isPublic()) {
+
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean _overridesHigherJavaAPIVersion(JavaMethod javaMethod) {
+		Annotation[] annotations = javaMethod.getAnnotations();
+
+		if (annotations == null) {
+			return false;
+		}
+
+		for (Annotation annotation : annotations) {
+			Type type = annotation.getType();
+
+			JavaClass javaClass = type.getJavaClass();
+
+			String javaClassName = javaClass.getFullyQualifiedName();
+
+			if (javaClassName.equals(SinceJava.class.getName())) {
+				AnnotationValue value = annotation.getProperty("value");
+
+				double sinceJava = GetterUtil.getDouble(
+					value.getParameterValue());
+
+				if (sinceJava > _LOWEST_SUPPORTED_JAVA_VERSION) {
 					return true;
-				}
-				else {
-					return false;
 				}
 			}
 		}
@@ -1310,9 +1553,7 @@ public class JavadocFormatter {
 		return false;
 	}
 
-	private String _removeJavadocFromJava(
-		JavaClass javaClass, String content) {
-
+	private String _removeJavadocFromJava(JavaClass javaClass, String content) {
 		Set<Integer> lineNumbers = new HashSet<Integer>();
 
 		lineNumbers.add(_getJavaClassLineNumber(javaClass));
@@ -1350,7 +1591,7 @@ public class JavadocFormatter {
 				while (true) {
 					lines[pos] = null;
 
-					if (line.startsWith("/**")) {
+					if (line.startsWith("/**") || line.startsWith("/*")) {
 						break;
 					}
 
@@ -1368,17 +1609,29 @@ public class JavadocFormatter {
 			}
 		}
 
-		return sb.toString().trim();
+		content = sb.toString();
+
+		return content.trim();
 	}
 
 	private String _trimMultilineText(String text) {
-		String[] textArray = StringUtil.splitLines(text);
+		String[] lines = StringUtil.splitLines(text);
 
-		for (int i = 0; i < textArray.length; i++) {
-			textArray[i] = textArray[i].trim();
+		StringBundler sb = new StringBundler();
+
+		for (int i = 0; i < lines.length; i++) {
+			String line = lines[i].trim();
+
+			sb.append(line);
+
+			if (!line.endsWith(StringPool.OPEN_PARENTHESIS) &&
+				(i < (lines.length - 1))) {
+
+				sb.append(StringPool.SPACE);
+			}
 		}
 
-		return StringUtil.merge(textArray, " ");
+		return sb.toString();
 	}
 
 	private void _updateJavadocsXmlFile(
@@ -1439,16 +1692,23 @@ public class JavadocFormatter {
 		JavaClass javaClass = _getJavaClass(
 			fileName, new UnsyncStringReader(javadocLessContent));
 
-		List<JavaClass> ancestorJavaClasses = _getAncestorJavaClasses(
-			javaClass);
+		_updateLanguageProperties(document, javaClass.getName());
+
+		List<Tuple> ancestorJavaClassTuples = new ArrayList<Tuple>();
+
+		ancestorJavaClassTuples = _addAncestorJavaClassTuples(
+			javaClass, ancestorJavaClassTuples);
 
 		Element rootElement = document.getRootElement();
 
 		Map<Integer, String> commentsMap = new TreeMap<Integer, String>();
 
-		commentsMap.put(
-			_getJavaClassLineNumber(javaClass),
-			_getJavaClassComment(rootElement, javaClass));
+		String javaClassComment = _getJavaClassComment(rootElement, javaClass);
+
+		javaClassComment = _addDeprecatedTag(
+			javaClassComment, javaClass, StringPool.BLANK);
+
+		commentsMap.put(_getJavaClassLineNumber(javaClass), javaClassComment);
 
 		Map<String, Element> methodElementsMap = new HashMap<String, Element>();
 
@@ -1467,20 +1727,24 @@ public class JavadocFormatter {
 				continue;
 			}
 
+			String indent = _getIndent(lines, javaMethod);
+
 			String javaMethodComment = _getJavaMethodComment(
-				lines, methodElementsMap, javaMethod);
+				methodElementsMap, javaMethod, indent);
+
+			javaMethodComment = _addDeprecatedTag(
+				javaMethodComment, javaMethod, indent);
 
 			// Handle override tag insertion
 
-			if (!_hasAnnotation(javaMethod, "Override")) {
+			if (!ServiceBuilder.hasAnnotation(javaMethod, "Override")) {
 				if (_isOverrideMethod(
-						javaClass, javaMethod, ancestorJavaClasses)) {
+						javaClass, javaMethod, ancestorJavaClassTuples)) {
 
-					String overrideLine =
-						_getIndent(lines, javaMethod) + "@Override\n";
+					String overrideLine = indent + "@Override\n";
 
 					if (Validator.isNotNull(javaMethodComment)) {
-						javaMethodComment =	javaMethodComment + overrideLine;
+						javaMethodComment = javaMethodComment + overrideLine;
 					}
 					else {
 						javaMethodComment = overrideLine;
@@ -1508,9 +1772,15 @@ public class JavadocFormatter {
 				continue;
 			}
 
-			commentsMap.put(
-				javaField.getLineNumber(),
-				_getJavaFieldComment(lines, fieldElementsMap, javaField));
+			String indent = _getIndent(lines, javaField);
+
+			String javaFieldComment = _getJavaFieldComment(
+				fieldElementsMap, javaField, indent);
+
+			javaFieldComment = _addDeprecatedTag(
+				javaFieldComment, javaField, indent);
+
+			commentsMap.put(javaField.getLineNumber(), javaFieldComment);
 		}
 
 		StringBundler sb = new StringBundler(javadocLessContent.length());
@@ -1528,7 +1798,9 @@ public class JavadocFormatter {
 			sb.append("\n");
 		}
 
-		String formattedContent = sb.toString().trim();
+		String formattedContent = sb.toString();
+
+		formattedContent = formattedContent.trim();
 
 		if (!originalContent.equals(formattedContent)) {
 			File file = new File(_inputDir + fileName);
@@ -1539,37 +1811,157 @@ public class JavadocFormatter {
 		}
 	}
 
+	private void _updateLanguageProperties(Document document, String className)
+		throws IOException {
+
+		if (_languageProperties == null) {
+			return;
+		}
+
+		int index = className.indexOf("ServiceImpl");
+
+		if (index <= 0) {
+			return;
+		}
+
+		StringBundler sb = new StringBundler();
+
+		sb.append(Character.toLowerCase(className.charAt(0)));
+
+		for (int i = 1; i < index; i++) {
+			char c = className.charAt(i);
+
+			if (Character.isUpperCase(c)) {
+				if (((i + 1) < index) &&
+					Character.isLowerCase(className.charAt(i + 1))) {
+
+					sb.append(CharPool.DASH);
+				}
+
+				sb.append(Character.toLowerCase(c));
+			}
+			else {
+				sb.append(c);
+			}
+		}
+
+		sb.append("-service-help");
+
+		String key = sb.toString();
+
+		String value = _languageProperties.getProperty(key);
+
+		if (value == null) {
+			return;
+		}
+
+		Element rootElement = document.getRootElement();
+
+		String comment = rootElement.elementText("comment");
+
+		if ((comment == null) || value.equals(comment)) {
+			return;
+		}
+
+		index = comment.indexOf("\n\n");
+
+		if (index != -1) {
+			value = comment.substring(0, index);
+		}
+		else {
+			value = comment;
+		}
+
+		_updateLanguageProperties(key, value);
+	}
+
+	private void _updateLanguageProperties(String key, String value)
+		throws IOException {
+
+		UnsyncBufferedReader unsyncBufferedReader = new UnsyncBufferedReader(
+			new FileReader(_languagePropertiesFile));
+
+		StringBundler sb = new StringBundler();
+
+		boolean begin = false;
+		boolean firstLine = true;
+		String linePrefix = key + "=";
+
+		String line = null;
+
+		while ((line = unsyncBufferedReader.readLine()) != null) {
+			if (line.equals(StringPool.BLANK)) {
+				begin = !begin;
+			}
+
+			if (firstLine) {
+				firstLine = false;
+			}
+			else {
+				sb.append(StringPool.NEW_LINE);
+			}
+
+			if (line.startsWith(linePrefix)) {
+				sb.append(linePrefix);
+				sb.append(value);
+			}
+			else {
+				sb.append(line);
+			}
+		}
+
+		unsyncBufferedReader.close();
+
+		Writer writer = new OutputStreamWriter(
+			new FileOutputStream(_languagePropertiesFile, false),
+			StringPool.UTF8);
+
+		writer.write(sb.toString());
+
+		writer.close();
+
+		System.out.println(
+			"Updating " + _languagePropertiesFile + " key " + key);
+	}
+
+	private String _wrapText(String text, int indentLength, String exclude) {
+		StringBuffer sb = new StringBuffer();
+
+		StringBundler regexSB = new StringBundler("(?<=^|</");
+
+		regexSB.append(exclude);
+		regexSB.append(">).+?(?=$|<");
+		regexSB.append(exclude);
+		regexSB.append(">)");
+
+		Pattern pattern = Pattern.compile(regexSB.toString(), Pattern.DOTALL);
+
+		Matcher matcher = pattern.matcher(text);
+
+		while (matcher.find()) {
+			String wrapped = _formatInlines(matcher.group());
+
+			wrapped = StringUtil.wrap(wrapped, 80 - indentLength, "\n");
+
+			matcher.appendReplacement(sb, wrapped);
+		}
+
+		matcher.appendTail(sb);
+
+		return sb.toString();
+	}
+
 	private String _wrapText(String text, String indent) {
 		int indentLength = _getIndentLength(indent);
 
-		// Do not wrap text inside <pre>
-
 		if (text.contains("<pre>")) {
-			Pattern pattern = Pattern.compile(
-				"(?<=^|</pre>).+?(?=$|<pre>)", Pattern.DOTALL);
-
-			Matcher matcher = pattern.matcher(text);
-
-			StringBuffer sb = new StringBuffer();
-
-			while (matcher.find()) {
-				String wrapped = _formatInlines(matcher.group());
-
-				wrapped = StringUtil.wrap(
-					wrapped, 80 - indentLength, "\n");
-
-				matcher.appendReplacement(sb, wrapped);
-			}
-
-			matcher.appendTail(sb);
-
-			sb.append("\n");
-
-			text = sb.toString();
+			text = _wrapText(text, indentLength, "pre");
+		}
+		else if (text.contains("<table>")) {
+			text = _wrapText(text, indentLength, "table");
 		}
 		else {
 			text = _formatInlines(text);
-
 			text = StringUtil.wrap(text, 80 - indentLength, "\n");
 		}
 
@@ -1579,15 +1971,20 @@ public class JavadocFormatter {
 		return text;
 	}
 
-	private static FileImpl _fileUtil = FileImpl.getInstance();
+	private static final double _LOWEST_SUPPORTED_JAVA_VERSION = 1.6;
 
+	private static FileImpl _fileUtil = FileImpl.getInstance();
 	private static SAXReaderImpl _saxReaderUtil = SAXReaderImpl.getInstance();
 
 	private boolean _initializeMissingJavadocs;
 	private String _inputDir;
 	private Map<String, Tuple> _javadocxXmlTuples =
 		new HashMap<String, Tuple>();
+	private Properties _languageProperties;
+	private File _languagePropertiesFile;
 	private String _outputFilePrefix;
+	private Pattern _paragraphTagPattern = Pattern.compile(
+		"(^.*?(?=\n\n|$)+|(?<=<p>\n).*?(?=\n</p>))", Pattern.DOTALL);
 	private boolean _updateJavadocs;
 
 }

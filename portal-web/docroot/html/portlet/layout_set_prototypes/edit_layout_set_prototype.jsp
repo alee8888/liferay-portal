@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -33,21 +33,29 @@ long layoutSetPrototypeId = BeanParamUtil.getLong(layoutSetPrototype, request, "
 
 boolean layoutsUpdateable = GetterUtil.getBoolean(layoutSetPrototype.getSettingsProperty("layoutsUpdateable"), true);
 
-Locale defaultLocale = LocaleUtil.getDefault();
-String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
-
-Locale[] locales = LanguageUtil.getAvailableLocales();
+Group group = themeDisplay.getSiteGroup();
 %>
 
-<liferay-util:include page="/html/portlet/layout_set_prototypes/toolbar.jsp">
-	<liferay-util:param name="toolbarItem" value='<%= layoutSetPrototype.isNew() ? "add" : "view-all" %>' />
-</liferay-util:include>
+<liferay-ui:success key='<%= PortletKeys.SITE_TEMPLATE_SETTINGS + "requestProcessed" %>' message="site-template-was-added" />
 
-<liferay-ui:header
-	backURL="<%= backURL %>"
-	localizeTitle="<%= layoutSetPrototype.isNew() %>"
-	title='<%= layoutSetPrototype.isNew() ? "new-site-template" : layoutSetPrototype.getName(locale) %>'
-/>
+<c:if test="<%= !group.isLayoutSetPrototype() %>">
+	<liferay-util:include page="/html/portlet/layout_set_prototypes/toolbar.jsp">
+		<liferay-util:param name="toolbarItem" value='<%= layoutSetPrototype.isNew() ? "add" : StringPool.BLANK %>' />
+	</liferay-util:include>
+
+	<liferay-ui:header
+		backURL="<%= backURL %>"
+		localizeTitle="<%= layoutSetPrototype.isNew() %>"
+		title='<%= layoutSetPrototype.isNew() ? "new-site-template" : layoutSetPrototype.getName(locale) %>'
+	/>
+</c:if>
+
+<%
+request.setAttribute("edit_layout_set_prototype.jsp-layoutSetPrototype", layoutSetPrototype);
+request.setAttribute("edit_layout_set_prototype.jsp-redirect", currentURL);
+%>
+
+<liferay-util:include page="/html/portlet/layout_set_prototypes/merge_alert.jsp" />
 
 <aui:form method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveLayoutSetPrototype();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
@@ -57,32 +65,13 @@ Locale[] locales = LanguageUtil.getAvailableLocales();
 	<aui:model-context bean="<%= layoutSetPrototype %>" model="<%= LayoutSetPrototype.class %>" />
 
 	<aui:fieldset>
-		<aui:input name="name" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="name" />
 
 		<aui:input name="description" />
 
 		<aui:input name="active" />
 
 		<aui:input helpMessage="allow-site-administrators-to-modify-pages-associated-with-this-site-template-help" label="allow-site-administrators-to-modify-pages-associated-with-this-site-template" name="layoutsUpdateable" type="checkbox" value="<%= layoutsUpdateable %>" />
-
-		<c:if test="<%= !layoutSetPrototype.isNew() %>">
-			<aui:field-wrapper label="configuration">
-				<liferay-portlet:actionURL portletName="<%= PortletKeys.SITE_REDIRECTOR %>" var="viewURL">
-					<portlet:param name="struts_action" value="/my_sites/view" />
-					<portlet:param name="groupId" value="<%= String.valueOf(layoutSetPrototype.getGroup().getGroupId()) %>" />
-					<portlet:param name="privateLayout" value="<%= Boolean.TRUE.toString() %>" />
-				</liferay-portlet:actionURL>
-
-				<liferay-ui:icon
-					image="view"
-					label="<%= true %>"
-					message="open-site-template"
-					method="get"
-					target="_blank"
-					url="<%= viewURL %>"
-				/>
-			</aui:field-wrapper>
-		</c:if>
 
 		<%
 		Set<String> servletContextNames = CustomJspRegistryUtil.getServletContextNames();
@@ -123,13 +112,10 @@ Locale[] locales = LanguageUtil.getAvailableLocales();
 
 <aui:script>
 	function <portlet:namespace />saveLayoutSetPrototype() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (layoutSetPrototype == null) ? Constants.ADD : Constants.UPDATE %>";
-		submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/layout_set_prototypes/edit_layout_set_prototype" /></portlet:actionURL>");
-	}
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= (layoutSetPrototype.isNew()) ? Constants.ADD : Constants.UPDATE %>';
 
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-	</c:if>
+		submitForm(document.<portlet:namespace />fm, '<portlet:actionURL><portlet:param name="struts_action" value="/layout_set_prototypes/edit_layout_set_prototype" /></portlet:actionURL>');
+	}
 </aui:script>
 
 <%

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,8 +17,6 @@
 <%@ include file="/html/portlet/polls_display/init.jsp" %>
 
 <%
-String redirect = ParamUtil.getString(request, "redirect");
-
 questionId = ParamUtil.getLong(request, "questionId", questionId);
 
 List<PollsQuestion> questions = PollsQuestionLocalServiceUtil.getQuestions(scopeGroupId);
@@ -30,18 +28,20 @@ if (scopeGroupId != themeDisplay.getCompanyGroupId()) {
 }
 %>
 
-<liferay-portlet:actionURL portletConfiguration="true" var="configurationURL" />
+<liferay-portlet:actionURL portletConfiguration="true" var="configurationActionURL" />
 
-<aui:form action="<%= configurationURL %>" method="post" name="fm">
+<liferay-portlet:renderURL portletConfiguration="true" var="configurationRenderURL" />
+
+<aui:form action="<%= configurationActionURL %>" method="post" name="fm">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.UPDATE %>" />
-	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+	<aui:input name="redirect" type="hidden" value="<%= configurationRenderURL %>" />
 
 	<liferay-ui:error exception="<%= NoSuchQuestionException.class %>" message="the-question-could-not-be-found" />
 
 	<c:choose>
 		<c:when test="<%= !questions.isEmpty() %>">
 			<aui:fieldset>
-				<aui:select label="question" name="preferences--questionId--">
+				<aui:select label="title" name="preferences--questionId--">
 					<aui:option value="" />
 
 					<%
@@ -59,7 +59,7 @@ if (scopeGroupId != themeDisplay.getCompanyGroupId()) {
 			</aui:fieldset>
 		</c:when>
 		<c:otherwise>
-			<div class="portlet-msg-info">
+			<div class="alert alert-info">
 				<liferay-ui:message key="there-are-no-available-questions-for-selection" />
 			</div>
 		</c:otherwise>

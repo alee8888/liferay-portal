@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,6 @@ package com.liferay.portal.service.impl;
 
 import com.liferay.portal.kernel.bean.ClassLoaderBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.Repository;
 import com.liferay.portal.kernel.repository.cmis.CMISRepositoryHandler;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -35,16 +34,16 @@ import org.apache.chemistry.opencmis.client.api.Document;
 public class CMISRepositoryLocalServiceImpl
 	extends CMISRepositoryLocalServiceBaseImpl {
 
-	public Object getSession(long repositoryId)
-		throws PortalException, SystemException {
-
+	@Override
+	public Object getSession(long repositoryId) throws PortalException {
 		CMISRepository cmisRepository = getCmisRepository(repositoryId);
 
 		return cmisRepository.getSession();
 	}
 
+	@Override
 	public FileEntry toFileEntry(long repositoryId, Object object)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		CMISRepository cmisRepository = getCmisRepository(repositoryId);
 
@@ -53,8 +52,9 @@ public class CMISRepositoryLocalServiceImpl
 		return cmisRepository.toFileEntry(document);
 	}
 
+	@Override
 	public FileVersion toFileVersion(long repositoryId, Object object)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		CMISRepository cmisRepository = getCmisRepository(repositoryId);
 
@@ -63,8 +63,9 @@ public class CMISRepositoryLocalServiceImpl
 		return cmisRepository.toFileVersion(document);
 	}
 
+	@Override
 	public Folder toFolder(long repositoryId, Object object)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		CMISRepository cmisRepository = getCmisRepository(repositoryId);
 
@@ -75,7 +76,7 @@ public class CMISRepositoryLocalServiceImpl
 	}
 
 	protected CMISRepository getCmisRepository(long repositoryId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Repository repositoryImpl = repositoryLocalService.getRepositoryImpl(
 			repositoryId);

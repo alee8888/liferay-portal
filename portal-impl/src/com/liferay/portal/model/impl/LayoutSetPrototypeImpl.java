@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -35,16 +34,26 @@ public class LayoutSetPrototypeImpl extends LayoutSetPrototypeBaseImpl {
 	public LayoutSetPrototypeImpl() {
 	}
 
-	public Group getGroup() throws PortalException, SystemException {
+	@Override
+	public Group getGroup() throws PortalException {
 		return GroupLocalServiceUtil.getLayoutSetPrototypeGroup(
 			getCompanyId(), getLayoutSetPrototypeId());
 	}
 
-	public LayoutSet getLayoutSet() throws PortalException, SystemException {
+	@Override
+	public long getGroupId() throws PortalException {
+		Group group = getGroup();
+
+		return group.getGroupId();
+	}
+
+	@Override
+	public LayoutSet getLayoutSet() throws PortalException {
 		return LayoutSetLocalServiceUtil.getLayoutSet(
 			getGroup().getGroupId(), true);
 	}
 
+	@Override
 	public UnicodeProperties getSettingsProperties() {
 		if (_settingsProperties == null) {
 			_settingsProperties = new UnicodeProperties(true);
@@ -60,6 +69,7 @@ public class LayoutSetPrototypeImpl extends LayoutSetPrototypeBaseImpl {
 		return _settingsProperties;
 	}
 
+	@Override
 	public String getSettingsProperty(String key) {
 		UnicodeProperties settingsProperties = getSettingsProperties();
 
@@ -73,6 +83,7 @@ public class LayoutSetPrototypeImpl extends LayoutSetPrototypeBaseImpl {
 		super.setSettings(settings);
 	}
 
+	@Override
 	public void setSettingsProperties(UnicodeProperties settingsProperties) {
 		_settingsProperties = settingsProperties;
 

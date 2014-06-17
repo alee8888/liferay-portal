@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,8 @@
 
 package com.liferay.portal.bean;
 
-import java.lang.Object;
+import com.liferay.portal.util.ClassLoaderUtil;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -29,38 +30,34 @@ public class VelocityBeanHandler implements InvocationHandler {
 		_classLoader = classLoader;
 	}
 
-	public Object getBean() {
-		return _bean;
-	}
-
 	public ClassLoader getClassLoader() {
 		return _classLoader;
 	}
 
-	public Object invoke(Object proxy, Method method, Object[] args)
+	@Override
+	public Object invoke(Object proxy, Method method, Object[] arguments)
 		throws Throwable {
 
-		Thread currentThread = Thread.currentThread();
-
-		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+		ClassLoader contextClassLoader =
+			ClassLoaderUtil.getContextClassLoader();
 
 		try {
 			if ((_classLoader != null) &&
-				(contextClassLoader != _classLoader)) {
+				(_classLoader != contextClassLoader)) {
 
-				currentThread.setContextClassLoader(_classLoader);
+				ClassLoaderUtil.setContextClassLoader(_classLoader);
 			}
 
-			return method.invoke(_bean, args);
+			return method.invoke(_bean, arguments);
 		}
 		catch (InvocationTargetException ite) {
 			return null;
 		}
 		finally {
 			if ((_classLoader != null) &&
-				(contextClassLoader != _classLoader)) {
+				(_classLoader != contextClassLoader)) {
 
-				currentThread.setContextClassLoader(contextClassLoader);
+				ClassLoaderUtil.setContextClassLoader(contextClassLoader);
 			}
 		}
 	}

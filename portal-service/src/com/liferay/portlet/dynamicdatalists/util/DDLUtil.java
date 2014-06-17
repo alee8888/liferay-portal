@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,46 +14,36 @@
 
 package com.liferay.portlet.dynamicdatalists.util;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.search.Hits;
-import com.liferay.portal.kernel.xml.Element;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecord;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecordSet;
 
 import java.util.List;
-import java.util.Map;
 
+import javax.portlet.PortletPreferences;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Eduardo Lundgren
+ * @author Marcellus Tavares
  */
+@ProviderType
 public class DDLUtil {
 
-	public static void addAllReservedEls(
-		Element rootElement, Map<String, String> tokens,
-		DDLRecordSet recordSet) {
-
-		getDDL().addAllReservedEls(rootElement, tokens, recordSet);
-	}
-
 	public static DDL getDDL() {
+		PortalRuntimePermission.checkGetBeanProperty(DDLUtil.class);
+
 		return _ddl;
-	}
-
-	public static void getRecordFileUpload(
-			HttpServletRequest request, HttpServletResponse response,
-			DDLRecord record, String fieldName)
-		throws Exception {
-
-		getDDL().sendRecordFileUpload(request, response, record, fieldName);
 	}
 
 	public static JSONObject getRecordJSONObject(DDLRecord record)
@@ -103,20 +93,26 @@ public class DDLUtil {
 			renderResponse);
 	}
 
-	public static void sendRecordFileUpload(
-			HttpServletRequest request, HttpServletResponse response,
-			DDLRecord record, String fieldName)
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
+	public static boolean isEditable(
+			HttpServletRequest request, String portletId, long groupId)
 		throws Exception {
 
-		getDDL().sendRecordFileUpload(request, response, record, fieldName);
+		return getDDL().isEditable(request, portletId, groupId);
 	}
 
-	public static void sendRecordFileUpload(
-			HttpServletRequest request, HttpServletResponse response,
-			long recordId, String fieldName)
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
+	public static boolean isEditable(
+			PortletPreferences preferences, String portletId, long groupId)
 		throws Exception {
 
-		getDDL().sendRecordFileUpload(request, response, recordId, fieldName);
+		return getDDL().isEditable(preferences, portletId, groupId);
 	}
 
 	public static DDLRecord updateRecord(
@@ -138,15 +134,9 @@ public class DDLUtil {
 			recordId, recordSetId, mergeFields, serviceContext);
 	}
 
-	public static String uploadRecordFieldFile(
-			DDLRecord record, String fieldName, ServiceContext serviceContext)
-		throws Exception {
-
-		return getDDL().uploadRecordFieldFile(
-			record, fieldName, serviceContext);
-	}
-
 	public void setDDL(DDL ddl) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_ddl = ddl;
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -42,16 +42,17 @@ public class ViewAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		if (renderRequest.getRemoteUser() == null) {
-			return mapping.findForward("portlet.my_pages.view");
+			return actionMapping.findForward("portlet.my_pages.view");
 		}
 
 		if (!renderRequest.getWindowState().equals(WindowState.MAXIMIZED)) {
-			return mapping.findForward("portlet.my_pages.view");
+			return actionMapping.findForward("portlet.my_pages.view");
 		}
 
 		User user = PortalUtil.getUser(renderRequest);
@@ -85,7 +86,7 @@ public class ViewAction extends PortletAction {
 
 		ActionUtil.getGroup(renderRequest);
 
-		return mapping.findForward("portlet.my_pages.edit_layouts");
+		return actionMapping.findForward("portlet.my_pages.edit_layouts");
 	}
 
 }

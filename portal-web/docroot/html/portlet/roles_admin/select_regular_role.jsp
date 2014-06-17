@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,12 +17,23 @@
 <%@ include file="/html/portlet/roles_admin/init.jsp" %>
 
 <%
+String p_u_i_d = ParamUtil.getString(request, "p_u_i_d");
+String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectRegularRole");
+
+User selUser = PortalUtil.getSelectedUser(request);
+
 PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("struts_action", "/roles_admin/select_regular_role");
+
+if (selUser != null) {
+	portletURL.setParameter("p_u_i_d", String.valueOf(selUser.getUserId()));
+}
+
+portletURL.setParameter("eventName", eventName);
 %>
 
-<aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
+<aui:form action="<%= portletURL.toString() %>" method="post" name="selectRegularRoleFm">
 	<liferay-ui:header
 		title="roles"
 	/>
@@ -48,15 +59,20 @@ portletURL.setParameter("struts_action", "/roles_admin/select_regular_role");
 				roles = UsersAdminUtil.filterRoles(permissionChecker, roles);
 
 				total = roles.size();
+
+				searchContainer.setTotal(total);
+
 				results = ListUtil.subList(roles, searchContainer.getStart(), searchContainer.getEnd());
 			}
 			else {
-				results = RoleLocalServiceUtil.search(company.getCompanyId(), searchTerms.getKeywords(), new Integer[] {RoleConstants.TYPE_REGULAR}, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
 				total = RoleLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getKeywords(), new Integer[] {RoleConstants.TYPE_REGULAR});
+
+				searchContainer.setTotal(total);
+
+				results = RoleLocalServiceUtil.search(company.getCompanyId(), searchTerms.getKeywords(), new Integer[] {RoleConstants.TYPE_REGULAR}, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
 			}
 
-			pageContext.setAttribute("results", results);
-			pageContext.setAttribute("total", total);
+			searchContainer.setResults(results);
 			%>
 
 		</liferay-ui:search-container-results>
@@ -69,34 +85,52 @@ portletURL.setParameter("struts_action", "/roles_admin/select_regular_role");
 			<liferay-util:param name="className" value="<%= RolesAdminUtil.getCssClassName(role) %>" />
 			<liferay-util:param name="classHoverName" value="<%= RolesAdminUtil.getCssClassName(role) %>" />
 
-			<%
-			StringBundler sb = new StringBundler(10);
-
-			sb.append("javascript:opener.");
-			sb.append(renderResponse.getNamespace());
-			sb.append("selectRole('");
-			sb.append(role.getRoleId());
-			sb.append("', '");
-			sb.append(UnicodeFormatter.toString(role.getTitle(locale)));
-			sb.append("', '");
-			sb.append("roles");
-			sb.append("');");
-			sb.append("window.close();");
-
-			String rowHREF = sb.toString();
-			%>
-
 			<liferay-ui:search-container-column-text
-				href="<%= rowHREF %>"
 				name="title"
 				value="<%= HtmlUtil.escape(role.getTitle(locale)) %>"
 			/>
+
+			<liferay-ui:search-container-column-text>
+				<c:if test="<%= Validator.isNull(p_u_i_d)|| RoleMembershipPolicyUtil.isRoleAllowed((selUser != null) ? selUser.getUserId() : 0, role.getRoleId()) %>">
+
+					<%
+					Map<String, Object> data = new HashMap<String, Object>();
+
+					data.put("roleid", role.getRoleId());
+					data.put("roletitle", role.getTitle(locale));
+					data.put("searchcontainername", "roles");
+
+					boolean disabled = false;
+
+					for (long curRoleId : selUser.getRoleIds()) {
+						if (curRoleId == role.getRoleId()) {
+							disabled = true;
+
+							break;
+						}
+					}
+					%>
+
+					<aui:button cssClass="selector-button" data="<%= data %>" disabled="<%= disabled %>" value="choose" />
+				</c:if>
+			</liferay-ui:search-container-column-text>
 		</liferay-ui:search-container-row>
 
 		<liferay-ui:search-iterator />
 	</liferay-ui:search-container>
 </aui:form>
 
-<aui:script>
-	Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
+<aui:script use="aui-base">
+	var Util = Liferay.Util;
+
+	var openingLiferay = Util.getOpener().Liferay;
+
+	openingLiferay.fire(
+		'<portlet:namespace />enableRemovedRegularRoles',
+		{
+			selectors: A.all('.selector-button:disabled')
+		}
+	);
+
+	Util.selectEntityHandler('#<portlet:namespace />selectRegularRoleFm', '<%= HtmlUtil.escapeJS(eventName) %>');
 </aui:script>

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +29,17 @@ for (String servletContextName : ServletContextPool.keySet()) {
 	List<Portlet> portlets = portletApp.getPortlets();
 
 	for (Portlet portlet : portlets) {
-		String path = StringPool.SLASH.concat(portlet.getPortletName()).concat("/invoke");
+		PortletConfig portletConfig = PortletConfigFactoryUtil.create(portlet, servletContext);
+
+		String invokerPortletName = portletConfig.getInitParameter(InvokerPortlet.INIT_INVOKER_PORTLET_NAME);
+
+		if (invokerPortletName == null) {
+			invokerPortletName = portletConfig.getPortletName();
+		}
+
+		String portletName = PortalUtil.getJsSafePortletId(invokerPortletName);
+
+		String path = StringPool.SLASH.concat(portletName).concat("/invoke");
 
 		RequestDispatcher requestDispatcher = servletContext.getRequestDispatcher(path);
 

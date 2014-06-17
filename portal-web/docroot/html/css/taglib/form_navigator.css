@@ -1,157 +1,184 @@
-.taglib-form-navigator .form-navigator {
-	border: 1px solid transparent;
-	float: right;
-	margin: 0 0 0 15px;
-	padding: 10px;
-	position: relative;
-	width: 30%;
-	z-index: 1;
-}
+@import "compass";
+@import "mixins";
 
-.taglib-form-navigator .form-navigator h3 {
-	margin: 0;
-}
+.taglib-form-navigator {
+	ul.form-navigator.list-group {
+		@include respond-to(desktop) {
+			float: right;
+		}
+	}
 
-.taglib-form-navigator .form-navigator ul {
-	margin-bottom: 10px;
-}
+	.error-notice, .modified-notice {
+		display: none;
+	}
 
-.taglib-form-navigator .form-navigator li a {
-	cursor: pointer;
-	display: block;
-	padding: 2px 0 2px 5px;
-}
+	> .form-steps {
+		position: relative;
 
-.taglib-form-navigator .form-navigator li.selected {
-	left: -22px;
-	margin-right: -22px;
-	padding: 0;
-	position: relative;
-}
+		> ul.form-navigator.well {
+			border-width: 0;
+			clear: both;
+			float: none;
+			overflow: visible;
+			padding: 0;
+			width: 100%;
 
-.taglib-form-navigator .form-navigator li.selected a {
-	display: block;
-	margin: 0 0 0 11px;
-	overflow: hidden;
-	padding: 2px 10px;
-}
+			@include respond-to(phone, tablet) {
+				overflow: auto;
+				white-space: nowrap;
+			}
 
-.taglib-form-navigator .form-navigator .modified-notice {
-	display: none;
-}
+			.tab {
+				display: inline-block;
+				overflow: visible;
+				position: relative;
+				text-align: center;
+				white-space: nowrap;
+				z-index: 50;
 
-.taglib-form-navigator .form-navigator .section-modified .modified-notice {
-	display: inline;
-}
+				&.active {
+					&:last-child .tab-label .tab-icon {
+						display: none;
+					}
 
-.taglib-form-navigator .form-navigator .selected.section-modified .modified-notice {
-	display: inline;
-}
+					.tab-label {
+						position: relative;
 
-.taglib-form-navigator .form-navigator li.section-error a {
-	padding-left: 25px;
-}
+						.message {
+							display: inline-block;
+						}
 
-.taglib-form-navigator .form-navigator li.selected.section-error a {
-	margin-left: 11px;
-	padding-left: 35px;
-}
+						.tab-icon {
+							display: inline-block;
+						}
+					}
+				}
 
-.taglib-form-navigator .form-navigator li a .error-notice {
-	display: none;
-}
+				.tab-label {
+					display: block;
+					margin: 0 5px 0 -5px;
+					outline: 0;
+					padding: 0;
 
-.taglib-form-navigator .form-navigator .aui-button-holder {
-	margin-top: 20px;
-}
+					.error-notice {
+						display: none;
+					}
 
-.taglib-form-navigator .form-section {
-	float: left;
-	width: 63%;
-}
+					.number {
+						clear: both;
+						display: inline-block;
+						margin: 5px;
+						width: 30px;
+					}
 
-.taglib-form-navigator .form-section .aui-fieldset {
-	display: table-cell;
-}
+					.message {
+						margin-left: -5px;
+					}
 
-.ie .form-section .aui-fieldset {
-	display: block;
-}
+					.modified-notice {
+						display: none;
+					}
 
-.taglib-form-navigator .form-section .aui-field-input, .taglib-form-navigator .lfr-change-logo img {
-	max-width: 100%;
-}
+					.tab-icon {
+						display: none;
+					}
+				}
+			}
+		}
+	}
 
-.ie6 .taglib-form-navigator .form-section {
-	width: 60%;
-}
+	.form-navigator-content {
+		overflow: visible;
 
-.taglib-form-navigator .form-section h3 {
-	border-bottom: 1px solid transparent;
-	clear: both;
-	margin: 10px 0;
+		&[class*="col-"] {
+			padding-left: 0;
+		}
+
+		.form-section {
+			display: none;
+
+			&.active {
+				display: block;
+			}
+		}
+
+		legend {
+			overflow: auto;
+			padding-bottom: 2px;
+		}
+	}
+
+	.section-modified .modified-notice {
+		display: inline-block;
+	}
+
+	.section-error .error-notice {
+		display: inline-block;
+		margin-right: 5px;
+	}
 }
 
 /* Skin */
 
-.taglib-form-navigator .form-navigator {
-	background-color: #D7F1FF;
-	border-color: #88C5D9;
-}
+.taglib-form-navigator {
+	> .form-steps > ul.form-navigator.well {
+		background: transparent;
 
-.taglib-form-navigator .form-navigator h3 {
-	color: #036;
-	font-size: 14px;
-	font-weight: bold;
-}
+		.tab {
+			&.active {
+				@include opacity(1);
 
-.taglib-form-navigator .form-navigator li a:hover {
-	background-color: #88C5D9;
-	text-decoration: none;
-}
+				.tab-label {
+					&:hover, &:focus {
+						background: transparent;
+					}
 
-.taglib-form-navigator .form-navigator li.selected {
-	background: url(@theme_image_path@/control_panel/selected.png) no-repeat 0 50%;
-	font-weight: bold;
-}
+					.message {
+						color: #000;
 
-.taglib-form-navigator .form-navigator li.selected a {
-	background-color: #5C696E;
-	color: #FFF;
-	text-decoration: none;
-}
+						@include opacity(0.7);
+					}
 
-.ie6 .taglib-form-navigator .form-navigator li.selected a:hover {
-	background-color: #5C696E;
-}
+					.number {
+						background: #333;
+						font-size: 18px;
 
-.taglib-form-navigator .form-navigator .modified-notice {
-	font-weight: bold;
-}
+						@include opacity(1);
+					}
 
-.taglib-form-navigator .form-navigator .section-modified .modified-notice {
-	color: #090;
-}
+					.tab-icon {
+						color: #333;
+					}
+				}
+			}
 
-.taglib-form-navigator .form-navigator .selected.section-modified .modified-notice {
-	color: #9F3;
-}
+			.tab-label {
+				background: transparent;
 
-.taglib-form-navigator .form-navigator li.section-error a {
-	background-image: url(@theme_image_path@/messages/alert.png);
-	background-position: 5px 50%;
-	background-repeat: no-repeat;
-	color: #F00;
-	font-weight: bold;
-}
+				&:hover, &:focus {
+					text-decoration: none;
 
-.taglib-form-navigator .form-navigator li.selected.section-error a {
-	background-position: 15px 50%;
-	color: #F99;
-}
+					.number {
+						@include opacity(1);
+					}
+				}
 
-.taglib-form-navigator .form-section h3 {
-	border-bottom-color: #000;
-	font-size: 14px;
-	font-weight: 700;
+				.number {
+					background: #CCC;
+					color: #FFF;
+					font-size: 14px;
+					font-weight: bold;
+
+					@include opacity(0.6);
+
+					text-decoration: none;
+				}
+
+				.message {
+					color: #000;
+					font-size: 12px;
+				}
+			}
+		}
+	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,11 +28,13 @@ import net.sf.ehcache.event.CacheEventListener;
 
 /**
  * @author Edward C. Han
+ * @author Shuyang Zhou
  */
-public class PortalCacheCacheEventListener implements CacheEventListener {
+public class PortalCacheCacheEventListener<K extends Serializable, V>
+	implements CacheEventListener {
 
 	public PortalCacheCacheEventListener(
-		CacheListener cacheListener, PortalCache portalCache) {
+		CacheListener<K, V> cacheListener, PortalCache<K, V> portalCache) {
 
 		_cacheListener = cacheListener;
 		_portalCache = portalCache;
@@ -40,73 +42,89 @@ public class PortalCacheCacheEventListener implements CacheEventListener {
 
 	@Override
 	public Object clone() {
-		return new PortalCacheCacheEventListener(_cacheListener, _portalCache);
+		return new PortalCacheCacheEventListener<K, V>(
+			_cacheListener, _portalCache);
 	}
 
+	@Override
 	public void dispose() {
 	}
 
-	public void notifyElementEvicted(Ehcache ehcache, Element element) {
-		Serializable key = element.getKey();
+	public CacheListener<K, V> getCacheListener() {
+		return _cacheListener;
+	}
 
-		_cacheListener.notifyEntryEvicted(
-			_portalCache, String.valueOf(key), element.getObjectValue());
+	public PortalCache<K, V> getPortalCache() {
+		return _portalCache;
+	}
+
+	@Override
+	public void notifyElementEvicted(Ehcache ehcache, Element element) {
+		K key = (K)element.getObjectKey();
+		V value = (V)element.getObjectValue();
+
+		_cacheListener.notifyEntryEvicted(_portalCache, key, value);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Evicted " + key + " from " + ehcache.getName());
 		}
 	}
 
+	@Override
 	public void notifyElementExpired(Ehcache ehcache, Element element) {
-		Serializable key = element.getKey();
+		K key = (K)element.getObjectKey();
+		V value = (V)element.getObjectValue();
 
-		_cacheListener.notifyEntryExpired(
-			_portalCache, String.valueOf(key), element.getObjectValue());
+		_cacheListener.notifyEntryExpired(_portalCache, key, value);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Expired " + key + " from " + ehcache.getName());
 		}
 	}
 
+	@Override
 	public void notifyElementPut(Ehcache ehcache, Element element)
 		throws CacheException {
 
-		Serializable key = element.getKey();
+		K key = (K)element.getObjectKey();
+		V value = (V)element.getObjectValue();
 
-		_cacheListener.notifyEntryPut(
-			_portalCache, String.valueOf(key), element.getObjectValue());
+		_cacheListener.notifyEntryPut(_portalCache, key, value);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Inserted " + key + " into " + ehcache.getName());
 		}
 	}
 
+	@Override
 	public void notifyElementRemoved(Ehcache ehcache, Element element)
 		throws CacheException {
 
-		Serializable key = element.getKey();
+		K key = (K)element.getObjectKey();
+		V value = (V)element.getObjectValue();
 
-		_cacheListener.notifyEntryRemoved(
-			_portalCache, String.valueOf(key), element.getObjectValue());
+		_cacheListener.notifyEntryRemoved(_portalCache, key, value);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Removed " + key + " from " + ehcache.getName());
 		}
 	}
 
+	@Override
 	public void notifyElementUpdated(Ehcache ehcache, Element element)
 		throws CacheException {
 
-		Serializable key = element.getKey();
+		K key = (K)element.getObjectKey();
+		V value = (V)element.getObjectValue();
 
-		_cacheListener.notifyEntryUpdated(
-			_portalCache, String.valueOf(key), element.getObjectValue());
+		_cacheListener.notifyEntryUpdated(_portalCache, key, value);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Updated " + key + " in " + ehcache.getName());
 		}
 	}
 
+	@Override
 	public void notifyRemoveAll(Ehcache ehcache) {
 		_cacheListener.notifyRemoveAll(_portalCache);
 
@@ -118,7 +136,7 @@ public class PortalCacheCacheEventListener implements CacheEventListener {
 	private static Log _log = LogFactoryUtil.getLog(
 		PortalCacheCacheEventListener.class);
 
-	private CacheListener _cacheListener;
-	private PortalCache _portalCache;
+	private CacheListener<K, V> _cacheListener;
+	private PortalCache<K, V> _portalCache;
 
 }

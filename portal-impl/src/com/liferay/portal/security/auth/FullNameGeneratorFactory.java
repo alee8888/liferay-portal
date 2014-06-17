@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,50 +16,52 @@ package com.liferay.portal.security.auth;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.kernel.util.ClassUtil;
+import com.liferay.portal.kernel.util.InstanceFactory;
+import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.PropsValues;
 
 /**
  * @author Michael C. Han
+ * @author Shuyang Zhou
  */
 public class FullNameGeneratorFactory {
 
 	public static FullNameGenerator getInstance() {
-		if (_fullNameGenerator == null) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(
-					"Instantiate " + PropsValues.USERS_FULL_NAME_GENERATOR);
-			}
-
-			ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
-
-			try {
-				_fullNameGenerator = (FullNameGenerator)classLoader.loadClass(
-					PropsValues.USERS_FULL_NAME_GENERATOR).newInstance();
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
-		}
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("Return " + _fullNameGenerator.getClass().getName());
-		}
-
 		return _fullNameGenerator;
 	}
 
-	public static void setInstance(FullNameGenerator fullNameValidator) {
+	public static void setInstance(FullNameGenerator fullNameGenerator) {
 		if (_log.isDebugEnabled()) {
-			_log.debug("Set " + fullNameValidator.getClass().getName());
+			_log.debug("Set " + ClassUtil.getClassName(fullNameGenerator));
 		}
 
-		_fullNameGenerator = fullNameValidator;
+		if (fullNameGenerator == null) {
+			_fullNameGenerator = _originalFullNameGenerator;
+		}
+		else {
+			_fullNameGenerator = fullNameGenerator;
+		}
+	}
+
+	public void afterPropertiesSet() throws Exception {
+		if (_log.isDebugEnabled()) {
+			_log.debug("Instantiate " + PropsValues.USERS_FULL_NAME_GENERATOR);
+		}
+
+		ClassLoader classLoader = ClassLoaderUtil.getPortalClassLoader();
+
+		_originalFullNameGenerator =
+			(FullNameGenerator)InstanceFactory.newInstance(
+				classLoader, PropsValues.USERS_FULL_NAME_GENERATOR);
+
+		_fullNameGenerator = _originalFullNameGenerator;
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(
-		FullNameValidatorFactory.class);
+		FullNameGeneratorFactory.class);
 
-	private static FullNameGenerator _fullNameGenerator;
+	private static volatile FullNameGenerator _fullNameGenerator;
+	private static FullNameGenerator _originalFullNameGenerator;
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -48,16 +48,14 @@ public class SafeProperties extends Properties {
 		if (key == null) {
 			return null;
 		}
-		else {
-			if (value == null) {
-				return super.remove(key);
-			}
-			else {
-				value = _encode((String)value);
 
-				return super.put(key, value);
-			}
+		if (value == null) {
+			return super.remove(key);
 		}
+
+		value = _encode((String)value);
+
+		return super.put(key, value);
 	}
 
 	@Override

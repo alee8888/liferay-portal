@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,114 +35,88 @@ String keywords = ParamUtil.getString(request, "keywords");
 		title="search"
 	/>
 
+	<aui:nav-bar>
+		<aui:nav-bar-search>
+			<div class="col-xs-12 form-search">
+				<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" id="keywords1" name="keywords" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' />
+			</div>
+		</aui:nav-bar-search>
+	</aui:nav-bar>
+
 	<%
 	PortletURL portletURL = renderResponse.createRenderURL();
 
 	portletURL.setParameter("struts_action", "/blogs/search");
 	portletURL.setParameter("redirect", redirect);
 	portletURL.setParameter("keywords", keywords);
+	%>
 
-	List<String> headerNames = new ArrayList<String>();
+	<liferay-ui:search-container
+		emptyResultsMessage='<%= LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>'
+		iteratorURL="<%= portletURL %>"
+	>
 
-	headerNames.add("#");
-	headerNames.add("entry");
-
-	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>"));
-
-	searchContainer.setDelta(pageDelta);
-	searchContainer.setDeltaConfigurable(false);
-
-	try {
+		<%
 		Indexer indexer = IndexerRegistryUtil.getIndexer(BlogsEntry.class);
 
 		SearchContext searchContext = SearchContextFactory.getInstance(request);
 
 		searchContext.setAttribute("paginationType", "regular");
 		searchContext.setEnd(searchContainer.getEnd());
+		searchContext.setIncludeDiscussions(true);
 		searchContext.setKeywords(keywords);
 		searchContext.setStart(searchContainer.getStart());
 
-		Hits results = indexer.search(searchContext);
+		Hits hits = indexer.search(searchContext);
 
-		int total = results.getLength();
+		searchContainer.setTotal(hits.getLength());
 
-		searchContainer.setTotal(total);
+		PortletURL hitURL = renderResponse.createRenderURL();
 
-		List resultRows = searchContainer.getResultRows();
+		hitURL.setParameter("struts_action", "/blogs/view_entry");
+		hitURL.setParameter("redirect", currentURL);
+		%>
 
-		for (int i = 0; i < results.getDocs().length; i++) {
-			Document doc = results.doc(i);
+		<liferay-ui:search-container-results
+			results="<%= SearchResultUtil.getSearchResults(hits, locale, hitURL) %>"
+		/>
 
-			ResultRow row = new ResultRow(doc, i, i);
+		<liferay-ui:search-container-row
+			className="com.liferay.portal.kernel.search.SearchResult"
+			modelVar="searchResult"
+		>
 
-			// Position
+			<%
+			BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(searchResult.getClassPK());
 
-			row.addText(searchContainer.getStart() + i + 1 + StringPool.PERIOD);
+			entry = entry.toEscapedModel();
 
-			// Entry
+			Summary summary = searchResult.getSummary();
+			%>
 
-			long entryId = GetterUtil.getLong(doc.get(Field.ENTRY_CLASS_PK));
+			<portlet:renderURL var="rowURL">
+				<portlet:param name="struts_action" value="/blogs/view_entry" />
+				<portlet:param name="redirect" value="<%= currentURL %>" />
+				<portlet:param name="urlTitle" value="<%= entry.getUrlTitle() %>" />
+			</portlet:renderURL>
 
-			BlogsEntry entry = null;
+			<liferay-ui:app-view-search-entry
+				cssClass='<%= MathUtil.isEven(index) ? "search" : "search alt" %>'
+				description="<%= (summary != null) ? summary.getContent() : entry.getDescription() %>"
+				mbMessages="<%= searchResult.getMBMessages() %>"
+				queryTerms="<%= hits.getQueryTerms() %>"
+				thumbnailSrc="<%= Validator.isNotNull(entry.getEntryImageURL(themeDisplay)) ? entry.getEntryImageURL(themeDisplay) : StringPool.BLANK %>"
+				title="<%= (summary != null) ? summary.getTitle() : entry.getTitle() %>"
+				url="<%= rowURL %>"
+			/>
+		</liferay-ui:search-container-row>
 
-			try {
-				entry = BlogsEntryLocalServiceUtil.getEntry(entryId);
-
-				entry = entry.toEscapedModel();
-			}
-			catch (Exception e) {
-				if (_log.isWarnEnabled()) {
-					_log.warn("Blogs search index is stale and contains entry " + entryId);
-				}
-
-				continue;
-			}
-
-			PortletURL rowURL = renderResponse.createRenderURL();
-
-			rowURL.setParameter("struts_action", "/blogs/view_entry");
-			rowURL.setParameter("redirect", currentURL);
-			rowURL.setParameter("urlTitle", entry.getUrlTitle());
-
-			row.addText(entry.getTitle(), rowURL);
-
-			// Add result row
-
-			resultRows.add(row);
-		}
-	%>
-
-		<span class="aui-search-bar">
-			<aui:input inlineField="<%= true %>" label="" name="keywords" size="30" title="search-entries" type="text" value="<%= keywords %>" />
-
-			<aui:button type="submit" value="search" />
-		</span>
-
-		<br /><br />
-
-		<liferay-ui:search-iterator searchContainer="<%= searchContainer %>" />
-
-	<%
-	}
-	catch (Exception e) {
-		_log.error(e.getMessage());
-	}
-	%>
-
+		<liferay-ui:search-paginator searchContainer="<%= searchContainer %>" type="more" />
+	</liferay-ui:search-container>
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />keywords);
-	</aui:script>
-</c:if>
 
 <%
 if (Validator.isNotNull(keywords)) {
 	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "search") + ": " + keywords, currentURL);
 }
-%>
-
-<%!
-private static Log _log = LogFactoryUtil.getLog("portal-web.docroot.html.portlet.blogs.search_jsp");
 %>

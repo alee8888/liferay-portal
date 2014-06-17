@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,79 +14,99 @@
 
 package com.liferay.portal.test;
 
+import com.liferay.portal.kernel.test.AbstractIntegrationJUnitTestRunner;
+import com.liferay.portal.kernel.util.ReflectionUtil;
+import com.liferay.portal.test.jdbc.ResetDatabaseUtilDataSource;
 import com.liferay.portal.util.InitUtil;
 
-import org.junit.runners.BlockJUnit4ClassRunner;
-import org.junit.runners.model.FrameworkMethod;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
+import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
 /**
  * @author Miguel Pastor
+ * @author Carlos Sierra
+ * @author Shuyang Zhou
  */
-public class LiferayIntegrationJUnitTestRunner extends BlockJUnit4ClassRunner {
+public class LiferayIntegrationJUnitTestRunner
+	extends AbstractIntegrationJUnitTestRunner {
 
 	public LiferayIntegrationJUnitTestRunner(Class<?> clazz)
 		throws InitializationError {
 
 		super(clazz);
+	}
 
-		if (System.getProperty("external-properties") == null) {
-			System.setProperty("external-properties", "portal-test.properties");
+	@Override
+	public void initApplicationContext() {
+		System.setProperty("catalina.base", ".");
+
+		ResetDatabaseUtilDataSource.initialize();
+
+		InitUtil.initWithSpringAndModuleFramework();
+	}
+
+	@Override
+	protected Statement classBlock(RunNotifier notifier) {
+		final Statement classBlock = super.classBlock(notifier);
+
+		return new Statement() {
+
+			@Override
+			public void evaluate() throws Throwable {
+				Thread currentThread = Thread.currentThread();
+
+				Object inheritableThreadLocals =
+					_inheritableThreadLocalsField.get(currentThread);
+
+				if (inheritableThreadLocals != null) {
+					_inheritableThreadLocalsField.set(
+						currentThread,
+						_createInheritedMapMethod.invoke(
+							null, inheritableThreadLocals));
+				}
+
+				Object threadLocals = _threadLocalsField.get(currentThread);
+
+				_threadLocalsField.set(currentThread, null);
+
+				try {
+					classBlock.evaluate();
+				}
+				finally {
+					_inheritableThreadLocalsField.set(
+						currentThread, inheritableThreadLocals);
+					_threadLocalsField.set(currentThread, threadLocals);
+				}
+			}
+
+		};
+	}
+
+	private static final Method _createInheritedMapMethod;
+	private static final Field _inheritableThreadLocalsField;
+	private static final Class<?> _threadLocalMapClass;
+	private static final Field _threadLocalsField;
+
+	static {
+		try {
+			_threadLocalMapClass = Class.forName(
+				ThreadLocal.class.getName().concat("$ThreadLocalMap"));
+
+			_createInheritedMapMethod = ReflectionUtil.getDeclaredMethod(
+				ThreadLocal.class, "createInheritedMap", _threadLocalMapClass);
+
+			_inheritableThreadLocalsField = ReflectionUtil.getDeclaredField(
+				Thread.class, "inheritableThreadLocals");
+			_threadLocalsField = ReflectionUtil.getDeclaredField(
+				Thread.class, "threadLocals");
 		}
-
-		InitUtil.initWithSpring();
-
-		_testContextHandler = new TestContextHandler(clazz);
+		catch (Exception e) {
+			throw new ExceptionInInitializerError(e);
+		}
 	}
-
-	@Override
-	protected Statement withAfterClasses(Statement statement) {
-		Statement withAfterClassesStatement = super.withAfterClasses(statement);
-
-		return new RunAfterTestClassesCallback(
-			withAfterClassesStatement, _testContextHandler);
-	}
-
-	/**
-	 * @deprecated
-	 */
-	@Override
-	protected Statement withAfters(
-		FrameworkMethod frameworkMethod, Object instance, Statement statement) {
-
-		Statement withAftersStatement = super.withAfters(
-			frameworkMethod, instance, statement);
-
-		return new RunAfterTestMethodCallback(
-			instance, frameworkMethod.getMethod(), withAftersStatement,
-			_testContextHandler);
-	}
-
-	@Override
-	protected Statement withBeforeClasses(Statement statement) {
-		Statement withBeforeClassesStatement = super.withBeforeClasses(
-			statement);
-
-		return new RunBeforeTestClassesCallback(
-			withBeforeClassesStatement, _testContextHandler);
-	}
-
-	/**
-	 * @deprecated
-	 */
-	@Override
-	protected Statement withBefores(
-		FrameworkMethod frameworkMethod, Object instance, Statement statement) {
-
-		Statement withBeforesStatement = super.withBefores(
-			frameworkMethod, instance, statement);
-
-		return new RunBeforeTestMethodCallback(
-			instance, frameworkMethod.getMethod(), withBeforesStatement,
-			_testContextHandler);
-	}
-
-	private TestContextHandler _testContextHandler;
 
 }

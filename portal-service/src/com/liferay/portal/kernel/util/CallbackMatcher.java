@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 /**
  * <p>
- * See http://issues.liferay.com/browse/LPS-6872.
+ * See https://issues.liferay.com/browse/LPS-6872.
  * </p>
  *
  * @author Jonathan Potter
@@ -38,6 +38,10 @@ public class CallbackMatcher {
 			MatchResult matchResult = matcher.toMatchResult();
 
 			String replacement = callback.foundMatch(matchResult);
+
+			if (replacement == null) {
+				continue;
+			}
 
 			int matchStart = offset + matchResult.start();
 			int matchEnd = offset + matchResult.end();

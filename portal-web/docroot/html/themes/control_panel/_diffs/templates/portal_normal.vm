@@ -2,61 +2,50 @@
 
 #parse ($init)
 
-<html class="#language ("lang.dir")" dir="#language ("lang.dir")" lang="$w3c_language_id">
+<html class="$root_css_class" dir="#language ("lang.dir")" lang="$w3c_language_id">
 
 <head>
 	<title>$the_title - $company_name</title>
+
+	<meta content="initial-scale=1.0, width=device-width" name="viewport" />
 
 	$theme.include($top_head_include)
 </head>
 
 <body class="$css_class">
 
-#if ($control_panel_category == "")
+#quick_access("#main-content")
+
+$theme.include($body_top_include)
+
+#if (($control_panel_category != "my") || !$getterUtil.getBoolean($propsUtil.get("dockbar.administrative.links.show.in.pop.up")))
 	#dockbar()
 #end
 
-<div id="wrapper">
-	<a href="#main-content" id="skip-to-content">#language("skip-to-content")</a>
+<div class="container-fluid" id="wrapper">
+	<div class="row">
+		<div class="col-md-12" id="content-wrapper">
+			<div id="content">
+				#if ($selectable)
+					$theme.include($content_include)
+				#else
+					$portletDisplay.recycle()
 
-	<header id="banner" role="banner">
-		<div id="heading">
-			<h1 class="company-title">
-				<a class="$logo_css_class" href="$control_panel_url" title="#language("go-to") #language("control-panel")">
-					<span>#language("control-panel")</span>
-				</a>
-			</h1>
+					$portletDisplay.setTitle($the_title)
+
+					$theme.wrapPortlet("portlet.vm", $content_include)
+				#end
+
+				<div class="clear"></div>
+			</div>
 		</div>
-	</header>
-
-	<div id="content">
-		#if ($control_panel_category == "")
-			<nav class="site-breadcrumbs" id="breadcrumbs">
-		#else
-			<nav class="site-breadcrumbs control-panel-category" id="breadcrumbs">
-		#end
-
-			<h1>
-				<span>#language("breadcrumbs")</span>
-			</h1>
-
-			#breadcrumbs("control_panel")
-		</nav>
-
-		#if ($selectable)
-			$theme.include($content_include)
-		#else
-			$portletDisplay.recycle()
-
-			$portletDisplay.setTitle($the_title)
-
-			$theme.wrapPortlet("portlet.vm", $content_include)
-		#end
-
-		<div class="clear"></div>
 	</div>
-</body>
+</div>
+
+$theme.include($body_bottom_include)
 
 $theme.include($bottom_include)
+
+</body>
 
 </html>

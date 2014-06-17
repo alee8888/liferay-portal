@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,27 +30,35 @@ public class NotificationEventComparator
 		_ascending = ascending;
 	}
 
+	@Override
 	public int compare(
 		NotificationEvent notificationEvent1,
 		NotificationEvent notificationEvent2) {
 
-		long deliverBy1 = notificationEvent1.getDeliverBy();
-		long deliverBy2 = notificationEvent2.getDeliverBy();
-
-		int value = 0;
-
-		if (deliverBy1 < deliverBy2) {
-			value = -1;
+		if (notificationEvent1.equals(notificationEvent2)) {
+			return 0;
 		}
-		else if (deliverBy1 > deliverBy2) {
-			value = 1;
+
+		long value =
+			notificationEvent1.getDeliverBy() -
+				notificationEvent2.getDeliverBy();
+
+		if (value == 0) {
+			value =
+				notificationEvent1.getTimestamp() -
+					notificationEvent2.getTimestamp();
+		}
+
+		if (value == 0) {
+			value =
+				notificationEvent1.hashCode() - notificationEvent2.hashCode();
 		}
 
 		if (_ascending) {
-			return value;
+			return (int)value;
 		}
 		else {
-			return -value;
+			return (int)-value;
 		}
 	}
 

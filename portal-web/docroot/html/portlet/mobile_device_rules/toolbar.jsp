@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -32,11 +32,11 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "add");
 		<portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 	</liferay-portlet:renderURL>
 
-	<div class="lfr-portlet-toolbar">
-		<span class="lfr-toolbar-button add-button <%= toolbarItem.equals("add") ? "current" : StringPool.BLANK %>">
-			<a href="<%= addRuleGroupURL %>">
-				<liferay-ui:message key="add-rule-group" />
-			</a>
-		</span>
-	</div>
+	<aui:nav-bar>
+		<aui:nav cssClass="navbar-nav">
+			<aui:nav-item href="<%= addRuleGroupURL %>" iconCssClass="icon-plus" label="add-device-family" selected='<%= toolbarItem.equals("add") %>' />
+		</aui:nav>
+
+		<aui:nav-bar-search cssClass="pull-right" file="/html/portlet/mobile_device_rules/rule_group_search.jsp" />
+	</aui:nav-bar>
 </c:if>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,11 +15,12 @@
 package com.liferay.portal.action;
 
 import com.liferay.portal.events.EventsProcessorUtil;
+import com.liferay.portal.kernel.util.CookieKeys;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.struts.ActionConstants;
-import com.liferay.portal.util.CookieKeys;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
@@ -41,8 +42,8 @@ public class LogoutAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		try {
@@ -83,6 +84,23 @@ public class LogoutAction extends Action {
 			passwordCookie.setMaxAge(0);
 			passwordCookie.setPath(StringPool.SLASH);
 
+			boolean rememberMe = GetterUtil.getBoolean(
+				CookieKeys.getCookie(request, CookieKeys.REMEMBER_ME));
+
+			if (!rememberMe) {
+				Cookie loginCookie = new Cookie(
+					CookieKeys.LOGIN, StringPool.BLANK);
+
+				if (Validator.isNotNull(domain)) {
+					loginCookie.setDomain(domain);
+				}
+
+				loginCookie.setMaxAge(0);
+				loginCookie.setPath(StringPool.SLASH);
+
+				CookieKeys.addCookie(request, response, loginCookie);
+			}
+
 			Cookie rememberMeCookie = new Cookie(
 				CookieKeys.REMEMBER_ME, StringPool.BLANK);
 
@@ -110,7 +128,7 @@ public class LogoutAction extends Action {
 
 			request.setAttribute(WebKeys.LOGOUT, true);
 
-			return mapping.findForward(ActionConstants.COMMON_REFERER);
+			return actionMapping.findForward(ActionConstants.COMMON_REFERER);
 		}
 		catch (Exception e) {
 			PortalUtil.sendError(e, request, response);

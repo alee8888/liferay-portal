@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,8 +18,12 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.LayoutSet;
+import com.liferay.portal.model.MVCCModel;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import java.util.Date;
 
@@ -30,12 +34,25 @@ import java.util.Date;
  * @see LayoutSet
  * @generated
  */
-public class LayoutSetCacheModel implements CacheModel<LayoutSet>, Serializable {
+public class LayoutSetCacheModel implements CacheModel<LayoutSet>,
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
 		StringBundler sb = new StringBundler(35);
 
-		sb.append("{layoutSetId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", layoutSetId=");
 		sb.append(layoutSetId);
 		sb.append(", groupId=");
 		sb.append(groupId);
@@ -47,8 +64,6 @@ public class LayoutSetCacheModel implements CacheModel<LayoutSet>, Serializable 
 		sb.append(modifiedDate);
 		sb.append(", privateLayout=");
 		sb.append(privateLayout);
-		sb.append(", logo=");
-		sb.append(logo);
 		sb.append(", logoId=");
 		sb.append(logoId);
 		sb.append(", themeId=");
@@ -74,9 +89,11 @@ public class LayoutSetCacheModel implements CacheModel<LayoutSet>, Serializable 
 		return sb.toString();
 	}
 
+	@Override
 	public LayoutSet toEntityModel() {
 		LayoutSetImpl layoutSetImpl = new LayoutSetImpl();
 
+		layoutSetImpl.setMvccVersion(mvccVersion);
 		layoutSetImpl.setLayoutSetId(layoutSetId);
 		layoutSetImpl.setGroupId(groupId);
 		layoutSetImpl.setCompanyId(companyId);
@@ -96,7 +113,6 @@ public class LayoutSetCacheModel implements CacheModel<LayoutSet>, Serializable 
 		}
 
 		layoutSetImpl.setPrivateLayout(privateLayout);
-		layoutSetImpl.setLogo(logo);
 		layoutSetImpl.setLogoId(logoId);
 
 		if (themeId == null) {
@@ -154,16 +170,110 @@ public class LayoutSetCacheModel implements CacheModel<LayoutSet>, Serializable 
 
 		layoutSetImpl.resetOriginalValues();
 
+		layoutSetImpl.setVirtualHostname(_virtualHostname);
+
 		return layoutSetImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput)
+		throws ClassNotFoundException, IOException {
+		mvccVersion = objectInput.readLong();
+		layoutSetId = objectInput.readLong();
+		groupId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		createDate = objectInput.readLong();
+		modifiedDate = objectInput.readLong();
+		privateLayout = objectInput.readBoolean();
+		logoId = objectInput.readLong();
+		themeId = objectInput.readUTF();
+		colorSchemeId = objectInput.readUTF();
+		wapThemeId = objectInput.readUTF();
+		wapColorSchemeId = objectInput.readUTF();
+		css = objectInput.readUTF();
+		pageCount = objectInput.readInt();
+		settings = objectInput.readUTF();
+		layoutSetPrototypeUuid = objectInput.readUTF();
+		layoutSetPrototypeLinkEnabled = objectInput.readBoolean();
+
+		_virtualHostname = (java.lang.String)objectInput.readObject();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(layoutSetId);
+		objectOutput.writeLong(groupId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(createDate);
+		objectOutput.writeLong(modifiedDate);
+		objectOutput.writeBoolean(privateLayout);
+		objectOutput.writeLong(logoId);
+
+		if (themeId == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(themeId);
+		}
+
+		if (colorSchemeId == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(colorSchemeId);
+		}
+
+		if (wapThemeId == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(wapThemeId);
+		}
+
+		if (wapColorSchemeId == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(wapColorSchemeId);
+		}
+
+		if (css == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(css);
+		}
+
+		objectOutput.writeInt(pageCount);
+
+		if (settings == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(settings);
+		}
+
+		if (layoutSetPrototypeUuid == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(layoutSetPrototypeUuid);
+		}
+
+		objectOutput.writeBoolean(layoutSetPrototypeLinkEnabled);
+
+		objectOutput.writeObject(_virtualHostname);
+	}
+
+	public long mvccVersion;
 	public long layoutSetId;
 	public long groupId;
 	public long companyId;
 	public long createDate;
 	public long modifiedDate;
 	public boolean privateLayout;
-	public boolean logo;
 	public long logoId;
 	public String themeId;
 	public String colorSchemeId;
@@ -174,4 +284,5 @@ public class LayoutSetCacheModel implements CacheModel<LayoutSet>, Serializable 
 	public String settings;
 	public String layoutSetPrototypeUuid;
 	public boolean layoutSetPrototypeLinkEnabled;
+	public java.lang.String _virtualHostname;
 }

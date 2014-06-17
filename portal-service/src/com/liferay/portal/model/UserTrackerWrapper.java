@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,27 +27,32 @@ import java.util.Map;
  * This class is a wrapper for {@link UserTracker}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       UserTracker
+ * @author Brian Wing Shun Chan
+ * @see UserTracker
  * @generated
  */
+@ProviderType
 public class UserTrackerWrapper implements UserTracker,
 	ModelWrapper<UserTracker> {
 	public UserTrackerWrapper(UserTracker userTracker) {
 		_userTracker = userTracker;
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return UserTracker.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return UserTracker.class.getName();
 	}
 
+	@Override
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("userTrackerId", getUserTrackerId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
@@ -56,7 +65,14 @@ public class UserTrackerWrapper implements UserTracker,
 		return attributes;
 	}
 
+	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long userTrackerId = (Long)attributes.get("userTrackerId");
 
 		if (userTrackerId != null) {
@@ -111,6 +127,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @return the primary key of this user tracker
 	*/
+	@Override
 	public long getPrimaryKey() {
 		return _userTracker.getPrimaryKey();
 	}
@@ -120,8 +137,29 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @param primaryKey the primary key of this user tracker
 	*/
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_userTracker.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this user tracker.
+	*
+	* @return the mvcc version of this user tracker
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _userTracker.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this user tracker.
+	*
+	* @param mvccVersion the mvcc version of this user tracker
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_userTracker.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -129,6 +167,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @return the user tracker ID of this user tracker
 	*/
+	@Override
 	public long getUserTrackerId() {
 		return _userTracker.getUserTrackerId();
 	}
@@ -138,6 +177,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @param userTrackerId the user tracker ID of this user tracker
 	*/
+	@Override
 	public void setUserTrackerId(long userTrackerId) {
 		_userTracker.setUserTrackerId(userTrackerId);
 	}
@@ -147,6 +187,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @return the company ID of this user tracker
 	*/
+	@Override
 	public long getCompanyId() {
 		return _userTracker.getCompanyId();
 	}
@@ -156,6 +197,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @param companyId the company ID of this user tracker
 	*/
+	@Override
 	public void setCompanyId(long companyId) {
 		_userTracker.setCompanyId(companyId);
 	}
@@ -165,6 +207,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @return the user ID of this user tracker
 	*/
+	@Override
 	public long getUserId() {
 		return _userTracker.getUserId();
 	}
@@ -174,6 +217,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @param userId the user ID of this user tracker
 	*/
+	@Override
 	public void setUserId(long userId) {
 		_userTracker.setUserId(userId);
 	}
@@ -182,10 +226,9 @@ public class UserTrackerWrapper implements UserTracker,
 	* Returns the user uuid of this user tracker.
 	*
 	* @return the user uuid of this user tracker
-	* @throws SystemException if a system exception occurred
 	*/
-	public java.lang.String getUserUuid()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public java.lang.String getUserUuid() {
 		return _userTracker.getUserUuid();
 	}
 
@@ -194,6 +237,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @param userUuid the user uuid of this user tracker
 	*/
+	@Override
 	public void setUserUuid(java.lang.String userUuid) {
 		_userTracker.setUserUuid(userUuid);
 	}
@@ -203,6 +247,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @return the modified date of this user tracker
 	*/
+	@Override
 	public java.util.Date getModifiedDate() {
 		return _userTracker.getModifiedDate();
 	}
@@ -212,6 +257,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @param modifiedDate the modified date of this user tracker
 	*/
+	@Override
 	public void setModifiedDate(java.util.Date modifiedDate) {
 		_userTracker.setModifiedDate(modifiedDate);
 	}
@@ -221,6 +267,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @return the session ID of this user tracker
 	*/
+	@Override
 	public java.lang.String getSessionId() {
 		return _userTracker.getSessionId();
 	}
@@ -230,6 +277,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @param sessionId the session ID of this user tracker
 	*/
+	@Override
 	public void setSessionId(java.lang.String sessionId) {
 		_userTracker.setSessionId(sessionId);
 	}
@@ -239,6 +287,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @return the remote addr of this user tracker
 	*/
+	@Override
 	public java.lang.String getRemoteAddr() {
 		return _userTracker.getRemoteAddr();
 	}
@@ -248,6 +297,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @param remoteAddr the remote addr of this user tracker
 	*/
+	@Override
 	public void setRemoteAddr(java.lang.String remoteAddr) {
 		_userTracker.setRemoteAddr(remoteAddr);
 	}
@@ -257,6 +307,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @return the remote host of this user tracker
 	*/
+	@Override
 	public java.lang.String getRemoteHost() {
 		return _userTracker.getRemoteHost();
 	}
@@ -266,6 +317,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @param remoteHost the remote host of this user tracker
 	*/
+	@Override
 	public void setRemoteHost(java.lang.String remoteHost) {
 		_userTracker.setRemoteHost(remoteHost);
 	}
@@ -275,6 +327,7 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @return the user agent of this user tracker
 	*/
+	@Override
 	public java.lang.String getUserAgent() {
 		return _userTracker.getUserAgent();
 	}
@@ -284,42 +337,64 @@ public class UserTrackerWrapper implements UserTracker,
 	*
 	* @param userAgent the user agent of this user tracker
 	*/
+	@Override
 	public void setUserAgent(java.lang.String userAgent) {
 		_userTracker.setUserAgent(userAgent);
 	}
 
+	@Override
 	public boolean isNew() {
 		return _userTracker.isNew();
 	}
 
+	@Override
 	public void setNew(boolean n) {
 		_userTracker.setNew(n);
 	}
 
+	@Override
 	public boolean isCachedModel() {
 		return _userTracker.isCachedModel();
 	}
 
+	@Override
 	public void setCachedModel(boolean cachedModel) {
 		_userTracker.setCachedModel(cachedModel);
 	}
 
+	@Override
 	public boolean isEscapedModel() {
 		return _userTracker.isEscapedModel();
 	}
 
+	@Override
 	public java.io.Serializable getPrimaryKeyObj() {
 		return _userTracker.getPrimaryKeyObj();
 	}
 
+	@Override
 	public void setPrimaryKeyObj(java.io.Serializable primaryKeyObj) {
 		_userTracker.setPrimaryKeyObj(primaryKeyObj);
 	}
 
+	@Override
 	public com.liferay.portlet.expando.model.ExpandoBridge getExpandoBridge() {
 		return _userTracker.getExpandoBridge();
 	}
 
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portal.model.BaseModel<?> baseModel) {
+		_userTracker.setExpandoBridgeAttributes(baseModel);
+	}
+
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portlet.expando.model.ExpandoBridge expandoBridge) {
+		_userTracker.setExpandoBridgeAttributes(expandoBridge);
+	}
+
+	@Override
 	public void setExpandoBridgeAttributes(
 		com.liferay.portal.service.ServiceContext serviceContext) {
 		_userTracker.setExpandoBridgeAttributes(serviceContext);
@@ -330,6 +405,7 @@ public class UserTrackerWrapper implements UserTracker,
 		return new UserTrackerWrapper((UserTracker)_userTracker.clone());
 	}
 
+	@Override
 	public int compareTo(com.liferay.portal.model.UserTracker userTracker) {
 		return _userTracker.compareTo(userTracker);
 	}
@@ -339,12 +415,19 @@ public class UserTrackerWrapper implements UserTracker,
 		return _userTracker.hashCode();
 	}
 
+	@Override
 	public com.liferay.portal.model.CacheModel<com.liferay.portal.model.UserTracker> toCacheModel() {
 		return _userTracker.toCacheModel();
 	}
 
+	@Override
 	public com.liferay.portal.model.UserTracker toEscapedModel() {
 		return new UserTrackerWrapper(_userTracker.toEscapedModel());
+	}
+
+	@Override
+	public com.liferay.portal.model.UserTracker toUnescapedModel() {
+		return new UserTrackerWrapper(_userTracker.toUnescapedModel());
 	}
 
 	@Override
@@ -352,46 +435,84 @@ public class UserTrackerWrapper implements UserTracker,
 		return _userTracker.toString();
 	}
 
+	@Override
 	public java.lang.String toXmlString() {
 		return _userTracker.toXmlString();
 	}
 
-	public void persist()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void persist() {
 		_userTracker.persist();
 	}
 
+	@Override
 	public void addPath(com.liferay.portal.model.UserTrackerPath path) {
 		_userTracker.addPath(path);
 	}
 
+	@Override
 	public java.lang.String getEmailAddress() {
 		return _userTracker.getEmailAddress();
 	}
 
+	@Override
 	public java.lang.String getFullName() {
 		return _userTracker.getFullName();
 	}
 
+	@Override
 	public int getHits() {
 		return _userTracker.getHits();
 	}
 
+	@Override
 	public java.util.List<com.liferay.portal.model.UserTrackerPath> getPaths() {
 		return _userTracker.getPaths();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof UserTrackerWrapper)) {
+			return false;
+		}
+
+		UserTrackerWrapper userTrackerWrapper = (UserTrackerWrapper)obj;
+
+		if (Validator.equals(_userTracker, userTrackerWrapper._userTracker)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
-	 * @deprecated Renamed to {@link #getWrappedModel}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public UserTracker getWrappedUserTracker() {
 		return _userTracker;
 	}
 
+	@Override
 	public UserTracker getWrappedModel() {
 		return _userTracker;
 	}
 
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _userTracker.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _userTracker.isFinderCacheEnabled();
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		_userTracker.resetOriginalValues();
 	}

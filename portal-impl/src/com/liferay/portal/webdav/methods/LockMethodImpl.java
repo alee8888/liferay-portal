@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
+import com.liferay.portal.kernel.webdav.methods.Method;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
@@ -45,29 +46,30 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class LockMethodImpl implements Method {
 
-	public int process(WebDAVRequest webDavRequest) throws WebDAVException {
+	@Override
+	public int process(WebDAVRequest webDAVRequest) throws WebDAVException {
 		try {
-			return doProcess(webDavRequest);
+			return doProcess(webDAVRequest);
 		}
 		catch (Exception e) {
 			throw new WebDAVException(e);
 		}
 	}
 
-	protected int doProcess(WebDAVRequest webDavRequest) throws Exception {
-		WebDAVStorage storage = webDavRequest.getWebDAVStorage();
+	protected int doProcess(WebDAVRequest webDAVRequest) throws Exception {
+		WebDAVStorage storage = webDAVRequest.getWebDAVStorage();
 
 		if (!storage.isSupportsClassTwo()) {
 			return HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 		}
 
-		HttpServletRequest request = webDavRequest.getHttpServletRequest();
-		HttpServletResponse response = webDavRequest.getHttpServletResponse();
+		HttpServletRequest request = webDAVRequest.getHttpServletRequest();
+		HttpServletResponse response = webDAVRequest.getHttpServletResponse();
 
 		Lock lock = null;
 		Status status = null;
 
-		String lockUuid = webDavRequest.getLockUuid();
+		String lockUuid = webDAVRequest.getLockUuid();
 		long timeout = WebDAVUtil.getTimeout(request);
 
 		if (Validator.isNull(lockUuid)) {
@@ -123,16 +125,17 @@ public class LockMethodImpl implements Method {
 				return HttpServletResponse.SC_PRECONDITION_FAILED;
 			}
 
-			status = storage.lockResource(webDavRequest, owner, timeout);
+			status = storage.lockResource(webDAVRequest, owner, timeout);
 
 			lock = (Lock)status.getObject();
 		}
 		else {
 			try {
+
 				// Refresh existing lock
 
 				lock = storage.refreshResourceLock(
-					webDavRequest, lockUuid, timeout);
+					webDAVRequest, lockUuid, timeout);
 
 				status = new Status(HttpServletResponse.SC_OK);
 			}
@@ -183,7 +186,7 @@ public class LockMethodImpl implements Method {
 	}
 
 	protected String getResponseXML(Lock lock, long depth) throws Exception {
-		StringBundler sb = new StringBundler(20);
+		StringBundler sb = new StringBundler(21);
 
 		long timeoutSecs = lock.getExpirationTime() / Time.SECOND;
 
@@ -204,7 +207,8 @@ public class LockMethodImpl implements Method {
 		sb.append("<D:timeout>");
 
 		if (timeoutSecs > 0) {
-			sb.append("Second-" + timeoutSecs);
+			sb.append("Second-");
+			sb.append(timeoutSecs);
 		}
 		else {
 			sb.append("Infinite");

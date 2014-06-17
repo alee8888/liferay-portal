@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -25,13 +27,11 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * <p>
- * This class provides a SOAP utility for the
+ * Provides the SOAP utility for the
  * {@link com.liferay.portal.service.RoleServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it is difficult for SOAP to
  * support certain types.
- * </p>
  *
  * <p>
  * ServiceBuilder follows certain rules in translating the methods. For example,
@@ -51,9 +51,8 @@ import java.util.Map;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -61,13 +60,64 @@ import java.util.Map;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       RoleServiceHttp
- * @see       com.liferay.portal.model.RoleSoap
- * @see       com.liferay.portal.service.RoleServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see RoleServiceHttp
+ * @see com.liferay.portal.model.RoleSoap
+ * @see com.liferay.portal.service.RoleServiceUtil
  * @generated
  */
+@ProviderType
 public class RoleServiceSoap {
+	/**
+	* Adds a role. The user is reindexed after role is added.
+	*
+	* @param className the name of the class for which the role is created
+	* @param classPK the primary key of the class for which the role is
+	created (optionally <code>0</code>)
+	* @param name the role's name
+	* @param titleMap the role's localized titles (optionally
+	<code>null</code>)
+	* @param descriptionMap the role's localized descriptions (optionally
+	<code>null</code>)
+	* @param type the role's type (optionally <code>0</code>)
+	* @param subtype the role's subtype (optionally <code>null</code>)
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set the expando bridge attributes for the
+	role.
+	* @return the role
+	* @throws PortalException if a user with the primary key could not be
+	found, if the user did not have permission to add roles, if the
+	class name or the role name were invalid, or if the role is a
+	duplicate
+	*/
+	public static com.liferay.portal.model.RoleSoap addRole(
+		java.lang.String className, long classPK, java.lang.String name,
+		java.lang.String[] titleMapLanguageIds,
+		java.lang.String[] titleMapValues,
+		java.lang.String[] descriptionMapLanguageIds,
+		java.lang.String[] descriptionMapValues, int type,
+		java.lang.String subtype,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws RemoteException {
+		try {
+			Map<Locale, String> titleMap = LocalizationUtil.getLocalizationMap(titleMapLanguageIds,
+					titleMapValues);
+			Map<Locale, String> descriptionMap = LocalizationUtil.getLocalizationMap(descriptionMapLanguageIds,
+					descriptionMapValues);
+
+			com.liferay.portal.model.Role returnValue = RoleServiceUtil.addRole(className,
+					classPK, name, titleMap, descriptionMap, type, subtype,
+					serviceContext);
+
+			return com.liferay.portal.model.RoleSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	/**
 	* Adds a role. The user is reindexed after role is added.
 	*
@@ -79,11 +129,13 @@ public class RoleServiceSoap {
 	* @param type the role's type (optionally <code>0</code>)
 	* @return the role
 	* @throws PortalException if a user with the primary key could not be
-	found, if the user did not have permission to add roles, if the
-	class name or the role name were invalid, or if the role is a
-	duplicate
-	* @throws SystemException if a system exception occurred
+	found, if the user did not have permission to add roles, if
+	the class name or the role name were invalid, or if the role
+	is a duplicate
+	* @deprecated As of 6.2.0, replaced by {@link #addRole(String, long,
+	String, Map, Map, int, String, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.RoleSoap addRole(
 		java.lang.String name, java.lang.String[] titleMapLanguageIds,
 		java.lang.String[] titleMapValues,
@@ -117,7 +169,6 @@ public class RoleServiceSoap {
 	* @throws PortalException if a user with the primary key could not be found
 	or if the user did not have permission to assign members to one
 	of the roles
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void addUserRoles(long userId, long[] roleIds)
 		throws RemoteException {
@@ -139,7 +190,6 @@ public class RoleServiceSoap {
 	role, if a role with the primary key could not be found, if the
 	role is a default system role, or if the role's resource could
 	not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void deleteRole(long roleId) throws RemoteException {
 		try {
@@ -158,7 +208,6 @@ public class RoleServiceSoap {
 	* @param groupId the primary key of the group
 	* @return the roles associated with the group
 	* @throws PortalException if a portal exception occurred
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.RoleSoap[] getGroupRoles(
 		long groupId) throws RemoteException {
@@ -181,7 +230,6 @@ public class RoleServiceSoap {
 	* @return the role with the primary key
 	* @throws PortalException if a role with the primary key could not be found
 	or if the user did not have permission to view the role
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.RoleSoap getRole(long roleId)
 		throws RemoteException {
@@ -210,7 +258,6 @@ public class RoleServiceSoap {
 	* @return the role with the name
 	* @throws PortalException if a role with the name could not be found in the
 	company or if the user did not have permission to view the role
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.RoleSoap getRole(long companyId,
 		java.lang.String name) throws RemoteException {
@@ -234,7 +281,6 @@ public class RoleServiceSoap {
 	* @param groupId the primary key of the group
 	* @return the user's roles within the user group
 	* @throws PortalException if a portal exception occurred
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.RoleSoap[] getUserGroupGroupRoles(
 		long userId, long groupId) throws RemoteException {
@@ -258,7 +304,6 @@ public class RoleServiceSoap {
 	* @param groupId the primary key of the group
 	* @return the user's roles within the user group
 	* @throws PortalException if a portal exception occurred
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.RoleSoap[] getUserGroupRoles(
 		long userId, long groupId) throws RemoteException {
@@ -282,7 +327,6 @@ public class RoleServiceSoap {
 	* @param groups the groups (optionally <code>null</code>)
 	* @return the union of all the user's roles within the groups
 	* @throws PortalException if a portal exception occurred
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.RoleSoap[] getUserRelatedRoles(
 		long userId, com.liferay.portal.model.GroupSoap[] groups)
@@ -307,7 +351,6 @@ public class RoleServiceSoap {
 	* @param userId the primary key of the user
 	* @return the roles associated with the user
 	* @throws PortalException if a portal exception occurred
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.RoleSoap[] getUserRoles(long userId)
 		throws RemoteException {
@@ -336,7 +379,6 @@ public class RoleServiceSoap {
 	role; <code>false</code> otherwise
 	* @throws PortalException if a role with the name could not be found in the
 	company or if a default user for the company could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static boolean hasUserRole(long userId, long companyId,
 		java.lang.String name, boolean inherited) throws RemoteException {
@@ -367,7 +409,6 @@ public class RoleServiceSoap {
 	* @throws PortalException if any one of the roles with the names could not
 	be found in the company or if the default user for the company
 	could not be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static boolean hasUserRoles(long userId, long companyId,
 		java.lang.String[] names, boolean inherited) throws RemoteException {
@@ -394,7 +435,6 @@ public class RoleServiceSoap {
 	found, if the user did not have permission to remove members from
 	a role, or if a role with any one of the primary keys could not
 	be found
-	* @throws SystemException if a system exception occurred
 	*/
 	public static void unsetUserRoles(long userId, long[] roleIds)
 		throws RemoteException {
@@ -418,17 +458,20 @@ public class RoleServiceSoap {
 	* @param descriptionMap the new localized descriptions (optionally
 	<code>null</code>) to replace those existing for the role
 	* @param subtype the role's new subtype (optionally <code>null</code>)
+	* @param serviceContext the service context to be applied (optionally
+	<code>null</code>). Can set the expando bridge attributes for the
+	role.
 	* @return the role with the primary key
 	* @throws PortalException if the user did not have permission to update the
 	role, if a role with the primary could not be found, or if the
 	role's name was invalid
-	* @throws SystemException if a system exception occurred
 	*/
 	public static com.liferay.portal.model.RoleSoap updateRole(long roleId,
 		java.lang.String name, java.lang.String[] titleMapLanguageIds,
 		java.lang.String[] titleMapValues,
 		java.lang.String[] descriptionMapLanguageIds,
-		java.lang.String[] descriptionMapValues, java.lang.String subtype)
+		java.lang.String[] descriptionMapValues, java.lang.String subtype,
+		com.liferay.portal.service.ServiceContext serviceContext)
 		throws RemoteException {
 		try {
 			Map<Locale, String> titleMap = LocalizationUtil.getLocalizationMap(titleMapLanguageIds,
@@ -437,7 +480,7 @@ public class RoleServiceSoap {
 					descriptionMapValues);
 
 			com.liferay.portal.model.Role returnValue = RoleServiceUtil.updateRole(roleId,
-					name, titleMap, descriptionMap, subtype);
+					name, titleMap, descriptionMap, subtype, serviceContext);
 
 			return com.liferay.portal.model.RoleSoap.toSoapModel(returnValue);
 		}

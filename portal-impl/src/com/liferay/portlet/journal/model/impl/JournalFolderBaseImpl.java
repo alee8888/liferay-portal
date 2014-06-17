@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,15 @@
 
 package com.liferay.portlet.journal.model.impl;
 
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 
 import com.liferay.portlet.journal.model.JournalFolder;
 import com.liferay.portlet.journal.service.JournalFolderLocalServiceUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The extended model base implementation for the JournalFolder service. Represents a row in the &quot;JournalFolder&quot; database table, with each column mapped to a property of this class.
@@ -38,12 +43,49 @@ public abstract class JournalFolderBaseImpl extends JournalFolderModelImpl
 	 *
 	 * Never modify or reference this class directly. All methods that expect a journal folder model instance should use the {@link JournalFolder} interface instead.
 	 */
-	public void persist() throws SystemException {
+	@Override
+	public void persist() {
 		if (this.isNew()) {
 			JournalFolderLocalServiceUtil.addJournalFolder(this);
 		}
 		else {
 			JournalFolderLocalServiceUtil.updateJournalFolder(this);
 		}
+	}
+
+	@Override
+	@SuppressWarnings("unused")
+	public String buildTreePath() throws PortalException {
+		List<JournalFolder> journalFolders = new ArrayList<JournalFolder>();
+
+		JournalFolder journalFolder = this;
+
+		while (journalFolder != null) {
+			journalFolders.add(journalFolder);
+
+			journalFolder = JournalFolderLocalServiceUtil.fetchJournalFolder(journalFolder.getParentFolderId());
+		}
+
+		StringBundler sb = new StringBundler((journalFolders.size() * 2) + 1);
+
+		sb.append(StringPool.SLASH);
+
+		for (int i = journalFolders.size() - 1; i >= 0; i--) {
+			journalFolder = journalFolders.get(i);
+
+			sb.append(journalFolder.getFolderId());
+			sb.append(StringPool.SLASH);
+		}
+
+		return sb.toString();
+	}
+
+	@Override
+	public void updateTreePath(String treePath) {
+		JournalFolder journalFolder = this;
+
+		journalFolder.setTreePath(treePath);
+
+		JournalFolderLocalServiceUtil.updateJournalFolder(journalFolder);
 	}
 }

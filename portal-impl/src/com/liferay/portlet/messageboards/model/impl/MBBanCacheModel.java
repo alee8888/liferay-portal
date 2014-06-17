@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,7 +20,10 @@ import com.liferay.portal.model.CacheModel;
 
 import com.liferay.portlet.messageboards.model.MBBan;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import java.util.Date;
 
@@ -31,12 +34,14 @@ import java.util.Date;
  * @see MBBan
  * @generated
  */
-public class MBBanCacheModel implements CacheModel<MBBan>, Serializable {
+public class MBBanCacheModel implements CacheModel<MBBan>, Externalizable {
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(17);
+		StringBundler sb = new StringBundler(19);
 
-		sb.append("{banId=");
+		sb.append("{uuid=");
+		sb.append(uuid);
+		sb.append(", banId=");
 		sb.append(banId);
 		sb.append(", groupId=");
 		sb.append(groupId);
@@ -57,8 +62,16 @@ public class MBBanCacheModel implements CacheModel<MBBan>, Serializable {
 		return sb.toString();
 	}
 
+	@Override
 	public MBBan toEntityModel() {
 		MBBanImpl mbBanImpl = new MBBanImpl();
+
+		if (uuid == null) {
+			mbBanImpl.setUuid(StringPool.BLANK);
+		}
+		else {
+			mbBanImpl.setUuid(uuid);
+		}
 
 		mbBanImpl.setBanId(banId);
 		mbBanImpl.setGroupId(groupId);
@@ -93,6 +106,47 @@ public class MBBanCacheModel implements CacheModel<MBBan>, Serializable {
 		return mbBanImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		uuid = objectInput.readUTF();
+		banId = objectInput.readLong();
+		groupId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		userId = objectInput.readLong();
+		userName = objectInput.readUTF();
+		createDate = objectInput.readLong();
+		modifiedDate = objectInput.readLong();
+		banUserId = objectInput.readLong();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		if (uuid == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(uuid);
+		}
+
+		objectOutput.writeLong(banId);
+		objectOutput.writeLong(groupId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(userId);
+
+		if (userName == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(userName);
+		}
+
+		objectOutput.writeLong(createDate);
+		objectOutput.writeLong(modifiedDate);
+		objectOutput.writeLong(banUserId);
+	}
+
+	public String uuid;
 	public long banId;
 	public long groupId;
 	public long companyId;

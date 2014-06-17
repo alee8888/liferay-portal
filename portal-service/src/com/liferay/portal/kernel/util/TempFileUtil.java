@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,255 +15,141 @@
 package com.liferay.portal.kernel.util;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.io.ByteArrayFileInputStream;
-import com.liferay.portal.kernel.io.FileFilter;
-import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.model.Repository;
+import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
+import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.util.PortletKeys;
+import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
+
+import java.util.List;
 
 /**
  * @author Sergio González
+ * @author Matthew Kong
+ * @author Alexander Chow
  */
 public class TempFileUtil {
 
-	public static String addTempFile(
-			long userId, String tempPathName, File file)
-		throws IOException, PortalException, SystemException {
+	public static FileEntry addTempFile(
+			long groupId, long userId, String fileName, String tempFolderName,
+			File file, String mimeType)
+		throws PortalException {
 
-		String tempFileName = FileUtil.createTempFileName();
+		Folder folder = addTempFolder(groupId, userId, tempFolderName);
 
-		DLStoreUtil.validate(tempFileName, true, file);
-
-		File tempFile = getTempFile(tempFileName, tempPathName);
-
-		FileUtil.copyFile(file, tempFile);
-
-		return tempFileName;
+		return PortletFileRepositoryUtil.addPortletFileEntry(
+			groupId, userId, StringPool.BLANK, 0, PortletKeys.DOCUMENT_LIBRARY,
+			folder.getFolderId(), file, fileName, mimeType, false);
 	}
 
-	public static String addTempFile(
-			long userId, String fileName, String tempPathName, File file)
-		throws IOException, PortalException, SystemException {
+	public static FileEntry addTempFile(
+			long groupId, long userId, String fileName, String tempFolderName,
+			InputStream inputStream, String mimeType)
+		throws PortalException {
 
-		DLStoreUtil.validate(fileName, true, file);
+		Folder folder = addTempFolder(groupId, userId, tempFolderName);
 
-		File tempFile = getTempFile(userId, fileName, tempPathName);
-
-		FileUtil.copyFile(file, tempFile);
-
-		return fileName;
+		return PortletFileRepositoryUtil.addPortletFileEntry(
+			groupId, userId, StringPool.BLANK, 0, PortletKeys.DOCUMENT_LIBRARY,
+			folder.getFolderId(), inputStream, fileName, mimeType, false);
 	}
 
-	public static String addTempFile(
-			long userId, String fileName, String tempPathName,
-			InputStream inputStream)
-		throws IOException, PortalException, SystemException {
-
-		File file = null;
-
-		if (inputStream instanceof ByteArrayFileInputStream) {
-			ByteArrayFileInputStream byteArrayFileInputStream =
-				(ByteArrayFileInputStream)inputStream;
-
-			file = byteArrayFileInputStream.getFile();
-
-			DLStoreUtil.validate(fileName, true, file);
-		}
-		else {
-			DLStoreUtil.validate(fileName, true, inputStream);
-		}
-
-		File tempFile = getTempFile(userId, fileName, tempPathName);
-
-		if (file != null) {
-			FileUtil.copyFile(file, tempFile);
-		}
-		else {
-			FileUtil.write(tempFile, inputStream);
-		}
-
-		return fileName;
-	}
-
-	public static String addTempFile(String tempPathName, File file)
-		throws IOException, PortalException, SystemException {
-
-		String tempFileName = FileUtil.createTempFileName();
-
-		DLStoreUtil.validate(tempFileName, false, file);
-
-		File tempFile = getTempFile(tempFileName, tempPathName);
-
-		FileUtil.copyFile(file, tempFile);
-
-		return tempFileName;
-	}
-
-	public static String addTempFile(
-			String fileName, String tempPathName, File file)
-		throws IOException, PortalException, SystemException {
-
-		DLStoreUtil.validate(fileName, true, file);
-
-		File tempFile = getTempFile(fileName, tempPathName);
-
-		FileUtil.copyFile(file, tempFile);
-
-		return fileName;
+	public static void deleteTempFile(long fileEntryId) throws PortalException {
+		PortletFileRepositoryUtil.deletePortletFileEntry(fileEntryId);
 	}
 
 	public static void deleteTempFile(
-		long userId, String fileName, String tempPathName) {
+			long groupId, long userId, String fileName, String tempFolderName)
+		throws PortalException {
 
-		File file = getTempFile(userId, fileName, tempPathName);
+		Folder folder = getTempFolder(groupId, userId, tempFolderName);
 
-		FileUtil.delete(file);
+		PortletFileRepositoryUtil.deletePortletFileEntry(
+			groupId, folder.getFolderId(), fileName);
 	}
 
-	public static void deleteTempFile(String fileName, String tempPathName) {
-		File file = getTempFile(fileName, tempPathName);
+	public static FileEntry getTempFile(
+			long groupId, long userId, String fileName, String tempFolderName)
+		throws PortalException {
 
-		FileUtil.delete(file);
-	}
+		Folder folder = getTempFolder(groupId, userId, tempFolderName);
 
-	public static File getTempFile(
-		long userId, String fileName, String tempPathName) {
-
-		String absoluteFilePath = _getTempAbsolutePath(
-			userId, fileName, tempPathName);
-
-		return new File(absoluteFilePath);
-	}
-
-	public static File getTempFile(String fileName, String tempPathName) {
-		String absoluteFilePath = _getTempAbsolutePath(fileName, tempPathName);
-
-		return new File(absoluteFilePath);
+		return PortletFileRepositoryUtil.getPortletFileEntry(
+			groupId, folder.getFolderId(), fileName);
 	}
 
 	public static String[] getTempFileEntryNames(
-		long userId, String tempPathName) {
+			long groupId, long userId, String tempFolderName)
+		throws PortalException {
 
-		File dir = new File(_getTempAbsolutePath(tempPathName));
+		Folder folder = addTempFolder(groupId, userId, tempFolderName);
 
-		StringBundler sb = new StringBundler(5);
+		List<FileEntry> fileEntries =
+			PortletFileRepositoryUtil.getPortletFileEntries(
+				groupId, folder.getFolderId());
 
-		sb.append(StringPool.PERIOD);
-		sb.append(StringPool.STAR);
-		sb.append(StringPool.UNDERLINE);
-		sb.append(userId);
-		sb.append(_SUFFIX_TEMP_FILENAME_USERID_REGEX);
+		String[] fileEntryNames = new String[fileEntries.size()];
 
-		FileFilter fileFilter = new FileFilter(sb.toString());
+		for (int i = 0; i < fileEntries.size(); i++) {
+			FileEntry fileEntry = fileEntries.get(i);
 
-		File[] files = dir.listFiles(fileFilter);
-
-		int count = 0;
-
-		if (files != null) {
-			count = files.length;
+			fileEntryNames[i] = fileEntry.getTitle();
 		}
 
-		String[] fileNames = new String[count];
-
-		for (int i = 0; i < count; i++) {
-			File file = files[i];
-
-			String fileName = StringUtil.replace(
-				file.getName(),
-				StringPool.UNDERLINE + userId + _SUFFIX_TEMP_FILENAME,
-				StringPool.BLANK);
-
-			fileNames[i] = fileName;
-		}
-
-		return fileNames;
+		return fileEntryNames;
 	}
 
-	public static String[] getTempFileEntryNames(String tempPathName) {
-		File dir = new File(_getTempAbsolutePath(tempPathName));
+	protected static Folder addTempFolder(
+			long groupId, long userId, String tempFolderName)
+		throws PortalException {
 
-		File[] files = dir.listFiles(
-			new FileFilter(_SUFFIX_TEMP_FILENAME_REGEX));
+		ServiceContext serviceContext = new ServiceContext();
 
-		String[] fileNames = new String[files.length];
+		serviceContext.setAddGroupPermissions(true);
+		serviceContext.setAddGuestPermissions(true);
 
-		for (int i = 0; i < files.length; i++) {
-			File file = files[i];
+		Repository repository = PortletFileRepositoryUtil.addPortletRepository(
+			groupId, PortletKeys.DOCUMENT_LIBRARY, serviceContext);
 
-			String fileName = StringUtil.replace(
-				file.getName(), _SUFFIX_TEMP_FILENAME, StringPool.BLANK);
+		Folder userFolder = PortletFileRepositoryUtil.addPortletFolder(
+			userId, repository.getRepositoryId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, String.valueOf(userId),
+			serviceContext);
 
-			fileNames[i] = fileName;
-		}
+		Folder tempFolder = PortletFileRepositoryUtil.addPortletFolder(
+			userId, repository.getRepositoryId(), userFolder.getFolderId(),
+			tempFolderName, serviceContext);
 
-		return fileNames;
+		return tempFolder;
 	}
 
-	private static String _getTempAbsolutePath(
-		long userId, String fileName, String tempPathName) {
+	protected static Folder getTempFolder(
+			long groupId, long userId, String tempFolderName)
+		throws PortalException {
 
-		StringBundler sb = new StringBundler(5);
+		Repository repository = PortletFileRepositoryUtil.getPortletRepository(
+			groupId, PortletKeys.DOCUMENT_LIBRARY);
 
-		sb.append(SystemProperties.get(SystemProperties.TMP_DIR));
-		sb.append(_BASE_TEMP_PATHNAME);
-		sb.append(tempPathName);
-		sb.append(StringPool.SLASH);
-		sb.append(_getTempFileName(userId, fileName));
+		ServiceContext serviceContext = new ServiceContext();
 
-		return sb.toString();
+		serviceContext.setAddGroupPermissions(true);
+		serviceContext.setAddGuestPermissions(true);
+
+		Folder userFolder = PortletFileRepositoryUtil.getPortletFolder(
+			userId, repository.getRepositoryId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, String.valueOf(userId),
+			serviceContext);
+
+		Folder tempFolder = PortletFileRepositoryUtil.getPortletFolder(
+			userId, repository.getRepositoryId(), userFolder.getFolderId(),
+			tempFolderName, serviceContext);
+
+		return tempFolder;
 	}
-
-	private static String _getTempAbsolutePath(String tempPathName) {
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(SystemProperties.get(SystemProperties.TMP_DIR));
-		sb.append(_BASE_TEMP_PATHNAME);
-		sb.append(tempPathName);
-		sb.append(StringPool.SLASH);
-
-		return sb.toString();
-	}
-
-	private static String _getTempAbsolutePath(
-		String fileName, String tempPathName) {
-
-		StringBundler sb = new StringBundler(5);
-
-		sb.append(SystemProperties.get(SystemProperties.TMP_DIR));
-		sb.append(_BASE_TEMP_PATHNAME);
-		sb.append(tempPathName);
-		sb.append(StringPool.SLASH);
-		sb.append(_getTempFileName(fileName));
-
-		return sb.toString();
-	}
-
-	private static String _getTempFileName(long userId, String fileName) {
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(fileName);
-		sb.append(StringPool.UNDERLINE);
-		sb.append(userId);
-		sb.append(_SUFFIX_TEMP_FILENAME);
-
-		return sb.toString();
-	}
-
-	private static String _getTempFileName(String fileName) {
-		return fileName + _SUFFIX_TEMP_FILENAME;
-	}
-
-	private static final String _BASE_TEMP_PATHNAME = "/liferay/";
-
-	private static final String _SUFFIX_TEMP_FILENAME = "_temp.tmp";
-
-	private static final String _SUFFIX_TEMP_FILENAME_REGEX = ".*_temp\\.tmp";
-
-	private static final String _SUFFIX_TEMP_FILENAME_USERID_REGEX =
-		"_temp\\.tmp";
 
 }

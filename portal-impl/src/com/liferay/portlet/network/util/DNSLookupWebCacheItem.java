@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -32,6 +32,7 @@ public class DNSLookupWebCacheItem implements WebCacheItem {
 		_domain = domain;
 	}
 
+	@Override
 	public Object convert(String key) throws WebCacheException {
 		DNSLookup dnsLookup = null;
 
@@ -63,7 +64,7 @@ public class DNSLookupWebCacheItem implements WebCacheItem {
 						sb.append(ia[i].getHostName());
 
 						if ((i + 1) <= ia.length) {
-							sb.append(",");
+							sb.append(StringPool.COMMA);
 						}
 					}
 
@@ -80,6 +81,7 @@ public class DNSLookupWebCacheItem implements WebCacheItem {
 		return dnsLookup;
 	}
 
+	@Override
 	public long getRefreshTime() {
 		return _REFRESH_TIME;
 	}

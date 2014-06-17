@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,12 +34,18 @@ else {
 
 	folderIds.add(new Long(searchFolderIds));
 
-	BookmarksFolderServiceUtil.getSubfolderIds(folderIds, scopeGroupId, searchFolderIds);
+	BookmarksFolderServiceUtil.getSubfolderIds(folderIds, scopeGroupId, searchFolderIds, true);
 
 	folderIdsArray = StringUtil.split(StringUtil.merge(folderIds), 0L);
 }
 
 String keywords = ParamUtil.getString(request, "keywords");
+
+if (searchFolderId > 0) {
+	BookmarksUtil.addPortletBreadcrumbEntries(searchFolderId, request, renderResponse);
+}
+
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "search") + ": " + keywords, currentURL);
 %>
 
 <liferay-portlet:renderURL varImpl="searchURL">
@@ -67,18 +73,15 @@ String keywords = ParamUtil.getString(request, "keywords");
 	portletURL.setParameter("searchFolderId", String.valueOf(searchFolderId));
 	portletURL.setParameter("searchFolderIds", String.valueOf(searchFolderIds));
 	portletURL.setParameter("keywords", keywords);
+	%>
 
-	List<String> headerNames = new ArrayList<String>();
+	<liferay-ui:search-container
+		emptyResultsMessage='<%= LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>'
+		iteratorURL="<%= portletURL %>"
+	>
 
-	headerNames.add("#");
-	headerNames.add("folder");
-	headerNames.add("entry");
-	headerNames.add(StringPool.BLANK);
-
-	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>"));
-
-	try {
-		Indexer indexer = IndexerRegistryUtil.getIndexer(BookmarksEntry.class);
+		<%
+		Indexer indexer = BookmarksSearcher.getInstance();
 
 		SearchContext searchContext = SearchContextFactory.getInstance(request);
 
@@ -88,104 +91,137 @@ String keywords = ParamUtil.getString(request, "keywords");
 		searchContext.setKeywords(keywords);
 		searchContext.setStart(searchContainer.getStart());
 
-		Hits results = indexer.search(searchContext);
+		Hits hits = indexer.search(searchContext);
 
-		int total = results.getLength();
+		searchContainer.setTotal(hits.getLength());
+		%>
 
-		searchContainer.setTotal(total);
+		<liferay-ui:search-container-results
+			results="<%= BookmarksUtil.getEntries(hits) %>"
+		/>
 
-		List resultRows = searchContainer.getResultRows();
+		<liferay-ui:search-container-row
+			className="Object"
+			modelVar="obj"
+		>
 
-		for (int i = 0; i < results.getDocs().length; i++) {
-			Document doc = results.doc(i);
+			<c:choose>
+				<c:when test="<%= obj instanceof BookmarksEntry %>">
 
-			ResultRow row = new ResultRow(doc, i, i);
+					<%
+					BookmarksEntry entry = (BookmarksEntry)obj;
 
-			// Position
+					entry = entry.toEscapedModel();
 
-			row.addText(searchContainer.getStart() + i + 1 + StringPool.PERIOD);
+					BookmarksFolder folder = entry.getFolder();
 
-			// Folder and document
+					String rowHREF = themeDisplay.getPathMain().concat("/bookmarks/open_entry?entryId=").concat(String.valueOf(entry.getEntryId()));
+					%>
 
-			long entryId = GetterUtil.getLong(doc.get(Field.ENTRY_CLASS_PK));
+					<liferay-ui:search-container-column-text
+						name="entry"
+						title="<%= entry.getDescription() %>"
+					>
 
-			BookmarksEntry entry = null;
+						<%
+						AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(BookmarksEntry.class.getName());
 
-			try {
-				entry = BookmarksEntryServiceUtil.getEntry(entryId);
-			}
-			catch (Exception e) {
-				if (_log.isWarnEnabled()) {
-					_log.warn("Bookmarks search index is stale and contains entry " + entryId);
-				}
+						AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(entry.getEntryId());
+						%>
 
-				continue;
-			}
+						<liferay-ui:icon
+							iconCssClass="<%= assetRenderer.getIconCssClass() %>"
+							label="<%= true %>"
+							message="<%= entry.getName() %>"
+							target="_blank"
+							url="<%= rowHREF %>"
+						/>
+					</liferay-ui:search-container-column-text>
 
-			row.setObject(entry);
+					<liferay-ui:search-container-column-text
+						href="<%= rowHREF %>"
+						name="type"
+						target="_blank"
+						title="<%= entry.getDescription() %>"
+						value='<%= LanguageUtil.get(locale, "entry") %>'
+					/>
 
-			BookmarksFolder folder = entry.getFolder();
+					<liferay-ui:search-container-column-text
+						href="<%= rowHREF %>"
+						name="folder"
+						target="_blank"
+						title="<%= entry.getDescription() %>"
+						value="<%= folder.getName() %>"
+					/>
 
-			String rowHREF = themeDisplay.getPathMain().concat("/bookmarks/open_entry?entryId=").concat(String.valueOf(entry.getEntryId()));
+					<c:if test='<%= ArrayUtil.contains(entryColumns, "action") %>'>
+						<liferay-ui:search-container-column-jsp
+							cssClass="entry-action"
+							path="/html/portlet/bookmarks/entry_action.jsp"
+						/>
+					</c:if>
+				</c:when>
+				<c:when test="<%= obj instanceof BookmarksFolder %>">
 
-			TextSearchEntry rowTextEntry = new TextSearchEntry();
+					<%
+					BookmarksFolder folder = (BookmarksFolder)obj;
 
-			rowTextEntry.setHref(rowHREF);
-			rowTextEntry.setName(folder.getName());
-			rowTextEntry.setTarget("_blank");
-			rowTextEntry.setTitle(entry.getDescription());
+					BookmarksFolder parentFolder = folder.getParentFolder();
+					%>
 
-			row.addText(rowTextEntry);
+					<liferay-portlet:renderURL var="rowURL">
+						<portlet:param name="struts_action" value="/bookmarks/view" />
+						<portlet:param name="folderId" value="<%= String.valueOf(folder.getFolderId()) %>" />
+						<portlet:param name="redirect" value="<%= currentURL %>" />
+					</liferay-portlet:renderURL>
 
-			rowTextEntry = (TextSearchEntry)rowTextEntry.clone();
+					<liferay-ui:search-container-column-text
+						name="entry"
+						title="<%= folder.getDescription() %>"
+					>
 
-			rowTextEntry.setName(entry.getName());
+						<%
+						AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(BookmarksFolder.class.getName());
 
-			row.addText(rowTextEntry);
+						AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(folder.getFolderId());
+						%>
 
-			// Action
+						<liferay-ui:icon
+							iconCssClass="<%= assetRenderer.getIconCssClass() %>"
+							label="<%= true %>"
+							message="<%= HtmlUtil.escape(folder.getName()) %>"
+							url="<%= rowURL %>"
+						/>
+					</liferay-ui:search-container-column-text>
 
-			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/bookmarks/entry_action.jsp");
+					<liferay-ui:search-container-column-text
+						href="<%= rowURL %>"
+						name="type"
+						title="<%= folder.getDescription() %>"
+						value='<%= LanguageUtil.get(locale, "folder") %>'
+					/>
 
-			// Add result row
+					<liferay-ui:search-container-column-text
+						href="<%= rowURL %>"
+						name="folder"
+						title="<%= folder.getDescription() %>"
+						value='<%= (parentFolder != null) ? parentFolder.getName() : LanguageUtil.get(locale, "home") %>'
+					/>
 
-			resultRows.add(row);
-		}
-	%>
+					<c:if test='<%= ArrayUtil.contains(folderColumns, "action") %>'>
+						<liferay-ui:search-container-column-jsp
+							cssClass="entry-action"
+							path="/html/portlet/bookmarks/folder_action.jsp"
+						/>
+					</c:if>
+				</c:when>
+			</c:choose>
+		</liferay-ui:search-container-row>
 
-		<span class="aui-search-bar">
-			<aui:input inlineField="<%= true %>" label="" name="keywords" size="30" title="search-bookmarks" type="text" value="<%= keywords %>" />
+		<div class="form-search">
+			<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' title='<%= LanguageUtil.get(locale, "search-categories") %>' />
+		</div>
 
-			<aui:button type="submit" value="search" />
-		</span>
-
-		<br /><br />
-
-		<liferay-ui:search-iterator searchContainer="<%= searchContainer %>" type="more" />
-
-	<%
-	}
-	catch (Exception e) {
-		_log.error(e.getMessage());
-	}
-	%>
-
+		<liferay-ui:search-iterator type="more" />
+	</liferay-ui:search-container>
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />keywords);
-	</aui:script>
-</c:if>
-
-<%
-if (searchFolderId > 0) {
-	BookmarksUtil.addPortletBreadcrumbEntries(searchFolderId, request, renderResponse);
-}
-
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "search") + ": " + keywords, currentURL);
-%>
-
-<%!
-private static Log _log = LogFactoryUtil.getLog("portal-web.docroot.html.portlet.bookmarks.search_jsp");
-%>

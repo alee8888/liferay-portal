@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,7 @@
 
 package com.liferay.portlet.bookmarks.model.impl;
 
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
 import com.liferay.portlet.bookmarks.service.BookmarksFolderLocalServiceUtil;
 
@@ -27,27 +26,20 @@ public class BookmarksEntryImpl extends BookmarksEntryBaseImpl {
 	public BookmarksEntryImpl() {
 	}
 
-	public BookmarksFolder getFolder() {
-		BookmarksFolder folder = null;
+	@Override
+	public String buildTreePath() throws PortalException {
+		BookmarksFolder folder = getFolder();
 
-		if (getFolderId() > 0) {
-			try {
-				folder = BookmarksFolderLocalServiceUtil.getFolder(
-					getFolderId());
-			}
-			catch (Exception e) {
-				folder = new BookmarksFolderImpl();
-
-				_log.error(e);
-			}
-		}
-		else {
-			folder = new BookmarksFolderImpl();
-		}
-
-		return folder;
+		return folder.buildTreePath();
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(BookmarksEntryImpl.class);
+	@Override
+	public BookmarksFolder getFolder() throws PortalException {
+		if (getFolderId() <= 0) {
+			return new BookmarksFolderImpl();
+		}
+
+		return BookmarksFolderLocalServiceUtil.getFolder(getFolderId());
+	}
 
 }

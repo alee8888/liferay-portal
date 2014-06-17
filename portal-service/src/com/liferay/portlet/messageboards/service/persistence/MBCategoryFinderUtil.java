@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,39 +14,46 @@
 
 package com.liferay.portlet.messageboards.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public class MBCategoryFinderUtil {
 	public static int countByS_G_U_P(long groupId, long userId,
-		long[] parentCategoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().countByS_G_U_P(groupId, userId, parentCategoryIds);
+		long[] parentCategoryIds,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder()
+				   .countByS_G_U_P(groupId, userId, parentCategoryIds,
+			queryDefinition);
 	}
 
 	public static int filterCountByS_G_U_P(long groupId, long userId,
-		long[] parentCategoryIds)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long[] parentCategoryIds,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
 		return getFinder()
-				   .filterCountByS_G_U_P(groupId, userId, parentCategoryIds);
+				   .filterCountByS_G_U_P(groupId, userId, parentCategoryIds,
+			queryDefinition);
 	}
 
 	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> filterFindByS_G_U_P(
-		long groupId, long userId, long[] parentCategoryIds, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, long userId, long[] parentCategoryIds,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
 		return getFinder()
 				   .filterFindByS_G_U_P(groupId, userId, parentCategoryIds,
-			start, end);
+			queryDefinition);
 	}
 
 	public static java.util.List<com.liferay.portlet.messageboards.model.MBCategory> findByS_G_U_P(
-		long groupId, long userId, long[] parentCategoryIds, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, long userId, long[] parentCategoryIds,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
 		return getFinder()
-				   .findByS_G_U_P(groupId, userId, parentCategoryIds, start, end);
+				   .findByS_G_U_P(groupId, userId, parentCategoryIds,
+			queryDefinition);
 	}
 
 	public static MBCategoryFinder getFinder() {

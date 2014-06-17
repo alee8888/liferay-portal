@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,7 +18,6 @@ import com.liferay.portal.DuplicateTeamException;
 import com.liferay.portal.TeamNameException;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
@@ -38,9 +37,10 @@ import java.util.List;
  */
 public class TeamLocalServiceImpl extends TeamLocalServiceBaseImpl {
 
+	@Override
 	public Team addTeam(
 			long userId, long groupId, String name, String description)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		// Team
 
@@ -62,7 +62,7 @@ public class TeamLocalServiceImpl extends TeamLocalServiceBaseImpl {
 		team.setName(name);
 		team.setDescription(description);
 
-		teamPersistence.update(team, false);
+		teamPersistence.update(team);
 
 		// Resources
 
@@ -73,23 +73,21 @@ public class TeamLocalServiceImpl extends TeamLocalServiceBaseImpl {
 		// Role
 
 		roleLocalService.addRole(
-			userId, user.getCompanyId(), String.valueOf(teamId), null, null,
-			RoleConstants.TYPE_PROVIDER, Team.class.getName(), teamId);
+			userId, Team.class.getName(), teamId, String.valueOf(teamId), null,
+			null, RoleConstants.TYPE_PROVIDER, null, null);
 
 		return team;
 	}
 
 	@Override
-	public Team deleteTeam(long teamId)
-		throws PortalException, SystemException {
-
+	public Team deleteTeam(long teamId) throws PortalException {
 		Team team = teamPersistence.findByPrimaryKey(teamId);
 
 		return deleteTeam(team);
 	}
 
 	@Override
-	public Team deleteTeam(Team team) throws PortalException, SystemException {
+	public Team deleteTeam(Team team) throws PortalException {
 
 		// Team
 
@@ -110,9 +108,8 @@ public class TeamLocalServiceImpl extends TeamLocalServiceBaseImpl {
 		return team;
 	}
 
-	public void deleteTeams(long groupId)
-		throws PortalException, SystemException {
-
+	@Override
+	public void deleteTeams(long groupId) throws PortalException {
 		List<Team> teams = teamPersistence.findByGroupId(groupId);
 
 		for (Team team : teams) {
@@ -120,22 +117,18 @@ public class TeamLocalServiceImpl extends TeamLocalServiceBaseImpl {
 		}
 	}
 
-	public List<Team> getGroupTeams(long groupId) throws SystemException {
+	@Override
+	public List<Team> getGroupTeams(long groupId) {
 		return teamPersistence.findByGroupId(groupId);
 	}
 
-	public Team getTeam(long groupId, String name)
-		throws PortalException, SystemException {
-
+	@Override
+	public Team getTeam(long groupId, String name) throws PortalException {
 		return teamPersistence.findByG_N(groupId, name);
 	}
 
-	public List<Team> getUserTeams(long userId) throws SystemException {
-		return userPersistence.getTeams(userId);
-	}
-
-	public List<Team> getUserTeams(long userId, long groupId)
-		throws SystemException {
+	@Override
+	public List<Team> getUserTeams(long userId, long groupId) {
 
 		LinkedHashMap<String, Object> params =
 			new LinkedHashMap<String, Object>();
@@ -147,32 +140,27 @@ public class TeamLocalServiceImpl extends TeamLocalServiceBaseImpl {
 			null);
 	}
 
-	public boolean hasUserTeam(long userId, long teamId)
-		throws SystemException {
-
-		return userPersistence.containsTeam(userId, teamId);
-	}
-
+	@Override
 	public List<Team> search(
-			long groupId, String name, String description,
-			LinkedHashMap<String, Object> params, int start, int end,
-			OrderByComparator obc)
-		throws SystemException {
+		long groupId, String name, String description,
+		LinkedHashMap<String, Object> params, int start, int end,
+		OrderByComparator obc) {
 
 		return teamFinder.findByG_N_D(
 			groupId, name, description, params, start, end, obc);
 	}
 
+	@Override
 	public int searchCount(
-			long groupId, String name, String description,
-			LinkedHashMap<String, Object> params)
-		throws SystemException {
+		long groupId, String name, String description,
+		LinkedHashMap<String, Object> params) {
 
 		return teamFinder.countByG_N_D(groupId, name, description, params);
 	}
 
+	@Override
 	public Team updateTeam(long teamId, String name, String description)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Date now = new Date();
 
@@ -184,13 +172,13 @@ public class TeamLocalServiceImpl extends TeamLocalServiceBaseImpl {
 		team.setName(name);
 		team.setDescription(description);
 
-		teamPersistence.update(team, false);
+		teamPersistence.update(team);
 
 		return team;
 	}
 
 	protected void validate(long teamId, long groupId, String name)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (Validator.isNull(name) || Validator.isNumber(name) ||
 			(name.indexOf(CharPool.COMMA) != -1) ||
@@ -201,10 +189,8 @@ public class TeamLocalServiceImpl extends TeamLocalServiceBaseImpl {
 
 		Team team = teamPersistence.fetchByG_N(groupId, name);
 
-		if (team != null) {
-			if ((teamId <= 0) || (team.getTeamId() != teamId)) {
-				throw new DuplicateTeamException();
-			}
+		if ((team != null) && (team.getTeamId() != teamId)) {
+			throw new DuplicateTeamException("{teamId=" + teamId + "}");
 		}
 	}
 

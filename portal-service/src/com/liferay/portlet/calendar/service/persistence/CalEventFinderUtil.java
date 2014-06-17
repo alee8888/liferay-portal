@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,36 +14,35 @@
 
 package com.liferay.portlet.calendar.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public class CalEventFinderUtil {
 	public static int countByG_SD_T(long groupId, java.util.Date startDateGT,
 		java.util.Date startDateLT, boolean timeZoneSensitive,
-		java.lang.String[] types)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String[] types) {
 		return getFinder()
 				   .countByG_SD_T(groupId, startDateGT, startDateLT,
 			timeZoneSensitive, types);
 	}
 
-	public static java.util.List<com.liferay.portlet.calendar.model.CalEvent> findByFutureReminders()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static java.util.List<com.liferay.portlet.calendar.model.CalEvent> findByFutureReminders() {
 		return getFinder().findByFutureReminders();
 	}
 
-	public static java.util.List<com.liferay.portlet.calendar.model.CalEvent> findByNoAssets()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static java.util.List<com.liferay.portlet.calendar.model.CalEvent> findByNoAssets() {
 		return getFinder().findByNoAssets();
 	}
 
 	public static java.util.List<com.liferay.portlet.calendar.model.CalEvent> findByG_SD_T(
 		long groupId, java.util.Date startDateGT, java.util.Date startDateLT,
-		boolean timeZoneSensitive, java.lang.String[] types)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		boolean timeZoneSensitive, java.lang.String[] types) {
 		return getFinder()
 				   .findByG_SD_T(groupId, startDateGT, startDateLT,
 			timeZoneSensitive, types);
@@ -51,8 +50,7 @@ public class CalEventFinderUtil {
 
 	public static java.util.List<com.liferay.portlet.calendar.model.CalEvent> findByG_SD_T(
 		long groupId, java.util.Date startDateGT, java.util.Date startDateLT,
-		boolean timeZoneSensitive, java.lang.String[] types, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		boolean timeZoneSensitive, java.lang.String[] types, int start, int end) {
 		return getFinder()
 				   .findByG_SD_T(groupId, startDateGT, startDateLT,
 			timeZoneSensitive, types, start, end);

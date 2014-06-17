@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -42,11 +42,14 @@ MembershipRequest membershipRequest = (MembershipRequest)request.getAttribute(We
 	<aui:input name="groupId" type="hidden" value="<%= groupId %>" />
 	<aui:input name="membershipRequestId" type="hidden" value="<%= membershipRequest.getMembershipRequestId() %>" />
 
-	<liferay-ui:header
-		backURL="<%= redirect %>"
-		localizeTitle="<%= false %>"
-		title='<%= LanguageUtil.format(pageContext, "reply-membership-request-for-x", group.getDescriptiveName(locale)) %>'
-	/>
+	<c:if test="<%= !layout.isTypeControlPanel() %>">
+		<liferay-ui:header
+			backURL="<%= redirect %>"
+			escapeXml="<%= false %>"
+			localizeTitle="<%= false %>"
+			title='<%= LanguageUtil.format(pageContext, "reply-membership-request-for-x", HtmlUtil.escape(group.getDescriptiveName(locale)), false) %>'
+		/>
+	</c:if>
 
 	<liferay-ui:error exception="<%= DuplicateGroupException.class %>" message="please-enter-a-unique-name" />
 	<liferay-ui:error exception="<%= GroupNameException.class %>" message="please-enter-a-valid-name" />
@@ -62,7 +65,7 @@ MembershipRequest membershipRequest = (MembershipRequest)request.getAttribute(We
 			<liferay-ui:message key="you-cannot-delete-this-site-because-you-are-currently-accessing-this-site" />
 		</c:if>
 
-		<c:if test="<%=rge.getType() == RequiredGroupException.PARENT_GROUP%>">
+		<c:if test="<%= rge.getType() == RequiredGroupException.PARENT_GROUP %>">
 			<liferay-ui:message key="you-cannot-delete-sites-that-have-subsites" />
 		</c:if>
 
@@ -73,22 +76,20 @@ MembershipRequest membershipRequest = (MembershipRequest)request.getAttribute(We
 
 	<aui:model-context bean="<%= membershipRequest %>" model="<%= MembershipRequest.class %>" />
 
+	<c:if test="<%= Validator.isNotNull(group.getDescription()) %>">
+		<aui:field-wrapper label="description">
+			<p>
+				<%= HtmlUtil.escape(group.getDescription()) %>
+			</p>
+		</aui:field-wrapper>
+	</c:if>
+
 	<aui:fieldset>
-		<c:if test="<%= Validator.isNotNull(group.getDescription()) %>">
-			<aui:field-wrapper label="description">
-				<%= group.getDescription() %>
-			</aui:field-wrapper>
-		</c:if>
+		<aui:input name="userName" type="resource" value="<%= PortalUtil.getUserName(membershipRequest.getUserId(), StringPool.BLANK) %>" />
 
-		<aui:field-wrapper label="user-name">
-			<%= HtmlUtil.escape(PortalUtil.getUserName(membershipRequest.getUserId(), StringPool.BLANK)) %>
-		</aui:field-wrapper>
+		<aui:input name="userComments" readonly="<%= true %>" type="textarea" value="<%= HtmlUtil.escape(membershipRequest.getComments()) %>" />
 
-		<aui:field-wrapper label="user-comments">
-			<%= membershipRequest.getComments() %>
-		</aui:field-wrapper>
-
-		<aui:select label="status" name="statusId">
+		<aui:select autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" label="status" name="statusId">
 			<aui:option label="approve" value="<%= MembershipRequestConstants.STATUS_APPROVED %>" />
 			<aui:option label="deny" value="<%= MembershipRequestConstants.STATUS_DENIED %>" />
 		</aui:select>
@@ -102,9 +103,3 @@ MembershipRequest membershipRequest = (MembershipRequest)request.getAttribute(We
 		<aui:button href="<%= redirect %>" type="cancel" />
 	</aui:button-row>
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />statusId);
-	</aui:script>
-</c:if>

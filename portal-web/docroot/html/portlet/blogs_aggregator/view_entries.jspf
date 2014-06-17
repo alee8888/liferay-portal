@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -42,32 +42,28 @@
 	</c:otherwise>
 </c:choose>
 
-<c:if test="<%= enableRssSubscription %>">
+<c:if test="<%= enableRSS %>">
 
 	<%
-	StringBundler rssURLParams = new StringBundler();
+	String rssURLParams = null;
 
 	if (selectionMethod.equals("users")) {
 		if (organizationId > 0) {
-			rssURLParams.append("&organizationId=");
-			rssURLParams.append(organizationId);
+			rssURLParams = "&organizationId=" + organizationId;
 		}
 		else {
-			rssURLParams.append("&companyId=");
-			rssURLParams.append(company.getCompanyId());
+			rssURLParams = "&companyId=" + company.getCompanyId();
 		}
 	}
 	else {
-		rssURLParams.append("&groupId=");
-		rssURLParams.append(themeDisplay.getScopeGroupId());
+		rssURLParams = "&groupId=" + themeDisplay.getScopeGroupId();
 	}
 	%>
 
-	<liferay-ui:icon
-		image="rss"
-		label="<%= true %>"
-		method="get"
-		target="_blank"
+	<liferay-ui:rss
+		delta="<%= rssDelta %>"
+		displayStyle="<%= rssDisplayStyle %>"
+		feedType="<%= rssFeedType %>"
 		url='<%= themeDisplay.getPathMain() + "/blogs_aggregator/rss?p_l_id=" + plid + rssURLParams %>'
 	/>
 </c:if>

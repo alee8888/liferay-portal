@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,27 +14,12 @@
 
 package com.liferay.portal.kernel.scheduler.config;
 
-import com.liferay.portal.kernel.messaging.MessageBus;
-import com.liferay.portal.kernel.scheduler.SchedulerEngine;
-import com.liferay.portal.kernel.scheduler.SchedulerEntry;
-
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author Shuyang Zhou
+ * @author Tina Tian
  */
 public interface SchedulingConfigurator {
 
-	public void destroy();
-
-	public void init();
-
-	public void setMessageBus(MessageBus messageBus);
-
-	public void setSchedulerEngine(SchedulerEngine schedulerEngine);
-
-	public void setSchedulerEntries(
-		Map<String, List<SchedulerEntry>> schedulerEntries);
+	public void configure();
 
 }

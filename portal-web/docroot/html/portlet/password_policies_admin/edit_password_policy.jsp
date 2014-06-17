@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,10 +27,6 @@ long passwordPolicyId = BeanParamUtil.getLong(passwordPolicy, request, "password
 boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defaultPolicy");
 %>
 
-<liferay-util:include page="/html/portlet/password_policies_admin/toolbar.jsp">
-	<liferay-util:param name="toolbarItem" value='<%= (passwordPolicy == null) ? "add" : "view-all" %>' />
-</liferay-util:include>
-
 <liferay-ui:header
 	backURL="<%= backURL %>"
 	localizeTitle="<%= (passwordPolicy == null) %>"
@@ -54,13 +50,13 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 	<liferay-ui:panel-container extended="<%= true %>" id="passwordPoliciesAdminPasswordPolicyPanelContainer" persistState="<%= true %>">
 		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="passwordPoliciesAdminPasswordPolicyGeneralPanel" persistState="<%= true %>" title="general">
 			<aui:fieldset>
-				<aui:input disabled="<%= defaultPolicy %>" name="name" />
+				<aui:input autoFocus="<%= (!defaultPolicy && windowState.equals(WindowState.MAXIMIZED)) %>" disabled="<%= defaultPolicy %>" name="name" />
 
-				<aui:input name="description" />
+				<aui:input autoFocus="<%= (defaultPolicy && windowState.equals(WindowState.MAXIMIZED)) %>" name="description" />
 
 				<aui:input helpMessage="changeable-help" name="changeable" />
 
-				<div id="<portlet:namespace />changeableSettings">
+				<div class="password-policy-options" id="<portlet:namespace />changeableSettings">
 					<aui:input helpMessage="change-required-help" name="changeRequired" />
 
 					<aui:select helpMessage="minimum-age-help" label="minimum-age" name="minAge">
@@ -101,7 +97,7 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 
 				<aui:input helpMessage="syntax-checking-enabled-help" label="syntax-checking-enabled" name="checkSyntax" />
 
-				<div id="<portlet:namespace />syntaxSettings">
+				<div class="password-policy-options" id="<portlet:namespace />syntaxSettings">
 					<aui:input helpMessage="allow-dictionary-words-help" name="allowDictionaryWords" />
 
 					<aui:input helpMessage="minimum-alpha-numeric-help" label="minimum-alpha-numeric" name="minAlphanumeric" />
@@ -115,6 +111,12 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 					<aui:input helpMessage="minimum-symbols-help" label="minimum-symbols" name="minSymbols" />
 
 					<aui:input helpMessage="minimum-upper-case-help" label="minimum-upper-case" name="minUpperCase" />
+
+					<%
+					String taglinbHelpMessage = LanguageUtil.format(pageContext, "regular-expression-help", new Object[] {"<a href=\"http://docs.oracle.com/javase/tutorial/essential/regex\" target=\"_blank\">", "</a>"}, false);
+					%>
+
+					<aui:input helpMessage="<%= taglinbHelpMessage %>" label="regular-expression" name="regex" />
 				</div>
 			</aui:fieldset>
 		</liferay-ui:panel>
@@ -124,7 +126,7 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 
 				<aui:input helpMessage="history-enabled-help" label="history-enabled" name="history" />
 
-				<div id="<portlet:namespace />historySettings">
+				<div class="password-policy-options" id="<portlet:namespace />historySettings">
 					<aui:select helpMessage="history-count-help" name="historyCount">
 
 						<%
@@ -147,7 +149,7 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 
 				<aui:input helpMessage="expiration-enabled-help" label="expiration-enabled" name="expireable" />
 
-				<div id="<portlet:namespace />expirationSettings">
+				<div class="password-policy-options" id="<portlet:namespace />expirationSettings">
 					<aui:select helpMessage="maximum-age-help" label="maximum-age" name="maxAge">
 
 						<%
@@ -174,6 +176,7 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 						}
 						%>
 
+						<aui:option label="do-not-warn" value="<%= 0 %>" />
 					</aui:select>
 
 					<aui:input helpMessage="grace-limit-help" name="graceLimit" />
@@ -185,7 +188,7 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 			<aui:fieldset>
 				<aui:input helpMessage="lockout-enabled-help" label="lockout-enabled" name="lockout" />
 
-				<div id="<portlet:namespace />lockoutSettings">
+				<div class="password-policy-options" id="<portlet:namespace />lockoutSettings">
 					<aui:input helpMessage="maximum-failure-help" label="maximum-failure" name="maxFailure" />
 
 					<aui:select helpMessage="reset-failure-count-help" name="resetFailureCount">
@@ -229,15 +232,11 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 </aui:form>
 
 <aui:script>
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace /><%= defaultPolicy ? "description" : "name" %>);
-	</c:if>
-
-	Liferay.Util.toggleBoxes('<portlet:namespace />changeableCheckbox', '<portlet:namespace />changeableSettings');
-	Liferay.Util.toggleBoxes('<portlet:namespace />checkSyntaxCheckbox', '<portlet:namespace />syntaxSettings');
-	Liferay.Util.toggleBoxes('<portlet:namespace />historyCheckbox', '<portlet:namespace />historySettings');
-	Liferay.Util.toggleBoxes('<portlet:namespace />expireableCheckbox', '<portlet:namespace />expirationSettings');
-	Liferay.Util.toggleBoxes('<portlet:namespace />lockoutCheckbox', '<portlet:namespace />lockoutSettings');
+	Liferay.Util.toggleBoxes('<portlet:namespace />changeable', '<portlet:namespace />changeableSettings');
+	Liferay.Util.toggleBoxes('<portlet:namespace />checkSyntax', '<portlet:namespace />syntaxSettings');
+	Liferay.Util.toggleBoxes('<portlet:namespace />history', '<portlet:namespace />historySettings');
+	Liferay.Util.toggleBoxes('<portlet:namespace />expireable', '<portlet:namespace />expirationSettings');
+	Liferay.Util.toggleBoxes('<portlet:namespace />lockout', '<portlet:namespace />lockoutSettings');
 </aui:script>
 
 <%

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,6 +24,7 @@ import java.util.Date;
 public abstract class BaseAtomCollectionAdapter<E>
 	implements AtomCollectionAdapter<E> {
 
+	@Override
 	public void deleteEntry(
 			String resourceName, AtomRequestContext atomRequestContext)
 		throws AtomException {
@@ -34,7 +35,7 @@ public abstract class BaseAtomCollectionAdapter<E>
 		catch (Exception e) {
 			Class<?> clazz = e.getClass();
 
-			String className = clazz.getName();
+			String className = clazz.getSimpleName();
 
 			if (className.startsWith("NoSuch")) {
 				throw new AtomException(SC_NOT_FOUND);
@@ -44,6 +45,7 @@ public abstract class BaseAtomCollectionAdapter<E>
 		}
 	}
 
+	@Override
 	public E getEntry(
 			String resourceName, AtomRequestContext atomRequestContext)
 		throws AtomException {
@@ -54,7 +56,7 @@ public abstract class BaseAtomCollectionAdapter<E>
 		catch (Exception e) {
 			Class<?> clazz = e.getClass();
 
-			String className = clazz.getName();
+			String className = clazz.getSimpleName();
 
 			if (className.startsWith("NoSuch")) {
 				throw new AtomException(SC_NOT_FOUND);
@@ -64,6 +66,7 @@ public abstract class BaseAtomCollectionAdapter<E>
 		}
 	}
 
+	@Override
 	public Iterable<E> getFeedEntries(AtomRequestContext atomRequestContext)
 		throws AtomException {
 
@@ -71,7 +74,9 @@ public abstract class BaseAtomCollectionAdapter<E>
 			return doGetFeedEntries(atomRequestContext);
 		}
 		catch (Exception e) {
-			String className = e.getClass().getName();
+			Class<?> clazz = e.getClass();
+
+			String className = clazz.getSimpleName();
 
 			if (className.startsWith("NoSuch")) {
 				throw new AtomException(SC_NOT_FOUND);
@@ -81,20 +86,24 @@ public abstract class BaseAtomCollectionAdapter<E>
 		}
 	}
 
+	@Override
 	public String getMediaContentType(E entry) {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	@SuppressWarnings("unused")
 	public String getMediaName(E entry) throws AtomException {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	@SuppressWarnings("unused")
 	public InputStream getMediaStream(E entry) throws AtomException {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public E postEntry(
 			String title, String summary, String content, Date date,
 			AtomRequestContext atomRequestContext)
@@ -107,7 +116,7 @@ public abstract class BaseAtomCollectionAdapter<E>
 		catch (Exception e) {
 			Class<?> clazz = e.getClass();
 
-			String className = clazz.getName();
+			String className = clazz.getSimpleName();
 
 			if (className.startsWith("NoSuch")) {
 				throw new AtomException(SC_NOT_FOUND);
@@ -117,6 +126,7 @@ public abstract class BaseAtomCollectionAdapter<E>
 		}
 	}
 
+	@Override
 	public E postMedia(
 			String mimeType, String slug, InputStream inputStream,
 			AtomRequestContext atomRequestContext)
@@ -128,7 +138,7 @@ public abstract class BaseAtomCollectionAdapter<E>
 		catch (Exception e) {
 			Class<?> clazz = e.getClass();
 
-			String className = clazz.getName();
+			String className = clazz.getSimpleName();
 
 			if (className.startsWith("NoSuch")) {
 				throw new AtomException(SC_NOT_FOUND);
@@ -138,6 +148,7 @@ public abstract class BaseAtomCollectionAdapter<E>
 		}
 	}
 
+	@Override
 	public void putEntry(
 			E entry, String title, String summary, String content, Date date,
 			AtomRequestContext atomRequestContext)
@@ -150,7 +161,7 @@ public abstract class BaseAtomCollectionAdapter<E>
 		catch (Exception e) {
 			Class<?> clazz = e.getClass();
 
-			String className = clazz.getName();
+			String className = clazz.getSimpleName();
 
 			if (className.startsWith("NoSuch")) {
 				throw new AtomException(SC_NOT_FOUND);
@@ -160,6 +171,7 @@ public abstract class BaseAtomCollectionAdapter<E>
 		}
 	}
 
+	@Override
 	public void putMedia(
 			E entry, String mimeType, String slug, InputStream inputStream,
 			AtomRequestContext atomRequestContext)
@@ -171,7 +183,7 @@ public abstract class BaseAtomCollectionAdapter<E>
 		catch (Exception e) {
 			Class<?> clazz = e.getClass();
 
-			String className = clazz.getName();
+			String className = clazz.getSimpleName();
 
 			if (className.startsWith("NoSuch")) {
 				throw new AtomException(SC_NOT_FOUND);

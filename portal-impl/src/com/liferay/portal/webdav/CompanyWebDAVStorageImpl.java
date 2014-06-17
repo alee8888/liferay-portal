@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,10 +21,8 @@ import com.liferay.portal.kernel.webdav.Resource;
 import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
-import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.User;
-import com.liferay.portal.service.CompanyLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
 
 import java.util.ArrayList;
@@ -35,17 +33,19 @@ import java.util.List;
  */
 public class CompanyWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 
-	public Resource getResource(WebDAVRequest webDavRequest) {
-		String path = getRootPath() + webDavRequest.getPath();
+	@Override
+	public Resource getResource(WebDAVRequest webDAVRequest) {
+		String path = getRootPath() + webDAVRequest.getPath();
 
 		return new BaseResourceImpl(path, StringPool.BLANK, StringPool.BLANK);
 	}
 
-	public List<Resource> getResources(WebDAVRequest webDavRequest)
+	@Override
+	public List<Resource> getResources(WebDAVRequest webDAVRequest)
 		throws WebDAVException {
 
 		try {
-			long userId = webDavRequest.getUserId();
+			long userId = webDAVRequest.getUserId();
 
 			return getResources(userId);
 		}
@@ -57,16 +57,12 @@ public class CompanyWebDAVStorageImpl extends BaseWebDAVStorageImpl {
 	protected List<Resource> getResources(long userId) throws Exception {
 		User user = UserLocalServiceUtil.getUserById(userId);
 
-		Company company = CompanyLocalServiceUtil.getCompanyById(
-			user.getCompanyId());
-
 		List<Group> groups = WebDAVUtil.getGroups(user);
 
 		List<Resource> resources = new ArrayList<Resource>(groups.size());
 
 		for (Group group : groups) {
-			String parentPath =
-				getRootPath() + StringPool.SLASH + company.getWebId();
+			String parentPath = getRootPath();
 
 			String name = group.getFriendlyURL();
 

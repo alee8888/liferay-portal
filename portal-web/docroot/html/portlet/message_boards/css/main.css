@@ -1,4 +1,6 @@
-.portlet-message-boards {
+@import "compass";
+
+.portlet-asset-publisher, .portlet-message-boards, .portlet-trash {
 	.category-buttons {
 		clear: both;
 		margin-bottom: 1em;
@@ -6,32 +8,19 @@
 
 	.category-subscriptions {
 		clear: both;
+		margin-bottom: 1em;
 		overflow: hidden;
 	}
 
 	.category-subscription-types {
 		float: right;
-	}
-
-	.code {
-		background: #fff;
-		border: 1px solid #777;
-		font-family: monospace;
-		overflow-x: auto;
-		white-space: pre;
-	}
-
-	.code-lines {
-		border-right: 1px solid #ccc;
-		color: #000;
-		margin-right: 5px;
-		padding: 0px 5px 0px 5px;
+		margin-bottom: 0;
 	}
 
 	.quote {
-		background: #fff url(@theme_image_path@/message_boards/quoteleft.png) left top no-repeat;
+		background: #FFF url(@theme_image_path@/message_boards/quoteleft.png) left top no-repeat;
 		border: 1px solid #777;
-		padding: 5px 0px 0px 5px;
+		padding: 5px 0 0 5px;
 	}
 
 	.quote-content {
@@ -41,36 +30,70 @@
 
 	.quote-title {
 		font-weight: bold;
-		padding: 5px 0px 5px 0px;
+		padding: 5px 0 5px 0;
 	}
 
 	.title {
-		border-bottom: 1px solid #ccc;
+		border-bottom: 1px solid #CCC;
 		font-size: large;
 		font-weight: normal;
 		padding: 5px;
+	}
+
+	.trash-attachments {
+		float: right;
 	}
 
 	#messageBoardsPanelContainer {
 		border-width: 0;
 	}
 
+	.message-attachments {
+		h3 {
+			color: #333;
+			font-size: 1em;
+		}
+
+		ul {
+			list-style: none;
+		}
+
+		.message-attachment {
+			padding: 0.5em;
+		}
+
+		.deleted-input {
+			list-style: none;
+			margin-left: -2em;
+			padding: 0;
+		}
+
+		.undo {
+			font-weight: bold;
+		}
+	}
+
 	.message-container {
-		border: 1px solid #ccc;
+		border: 1px solid #CCC;
 		margin: 5px 0 0 0;
+		overflow: auto;
 
 		table {
 			border-collapse: collapse;
 			table-layout: fixed;
 		}
 
+		.lfr-code table {
+			table-layout: auto;
+		}
+
 		td {
-			border: none;
+			border-width: 0;
 		}
 	}
 
 	.thread-top {
-		border-bottom: 1px solid #ccc;
+		border-bottom: 1px solid #CCC;
 		padding: 3px 5px;
 	}
 
@@ -84,7 +107,7 @@
 	}
 
 	td.user-info {
-		border-right: 1px solid #ccc;
+		border-right: 1px solid #CCC;
 		width: 150px;
 	}
 
@@ -104,11 +127,19 @@
 	.thread-body {
 		overflow: hidden;
 		padding: 15px;
+
+		td {
+			border: 1px solid #CCC;
+		}
 	}
 
 	.message-container .user-info {
-		border-right: 1px solid #ccc;
+		border-right: 1px solid #CCC;
 		padding: 5px;
+
+		.user-name {
+			@include hyphenation;
+		}
 	}
 
 	.clear {
@@ -117,11 +148,6 @@
 
 	.taglib-custom-attributes-list {
 		margin-bottom: 1em;
-
-		label {
-			display: block;
-			font-weight: bold;
-		}
 	}
 
 	.message-boards-panels {
@@ -148,8 +174,8 @@
 	}
 
 	.views {
-		color: #999;
 		clear: both;
+		color: #999;
 		float: left;
 		padding: 5px 0;
 		text-align: center;
@@ -161,7 +187,7 @@
 		}
 	}
 
-	.votes, .status {
+	.status, .votes {
 		display: inline-block;
 		height: 38px;
 		margin: 0 3px 0 0;
@@ -196,13 +222,14 @@
 	}
 
 	.toggle_id_message_boards_view_message_thread {
-		border: 1px solid #ccc;
+		border: 1px solid #CCC;
+		clear: both;
 		margin: 5px 0 0 0;
 		width: 100%;
 	}
 
 	.thread-controls {
-		border: 1px solid #ccc;
+		border: 1px solid #CCC;
 		margin-bottom: 5px;
 		padding: 3px 5px;
 	}
@@ -224,14 +251,25 @@
 		float: left;
 	}
 
-	.thread-view, .message-container .thread-message-view {
+	.message-container .thread-message-view, .thread-view {
 		border-collapse: collapse;
+		min-width: 400px;
 		padding: 0;
 		width: 100%;
 	}
 
+	.thread-view-controls {
+		list-style: none;
+		margin: 0;
+		text-align: right;
+
+		li {
+			display: inline-block;
+		}
+	}
+
 	.emoticons {
-		border: 1px solid #ccc;
+		border: 1px solid #CCC;
 		margin-left: 10px;
 	}
 
@@ -243,15 +281,31 @@
 		margin: 5px 0 0 0;
 	}
 
-	.lfr-textarea.message-edit {
-		height: 100%;
-		width: 100%;
+	.lfr-textarea {
+		&.message-edit {
+			height: 100%;
+			width: 100%;
+
+			textarea {
+				height: 378px;
+				min-height: 100%;
+				width: 99.5%;
+			}
+		}
 	}
 
-	.lfr-textarea.message-edit textarea {
-		height: 378px;
-		min-height: 100%;
-		width: 99.5%;
+	.category-description, .category-title {
+		display: block;
+	}
+
+	.category-description {
+		@include hyphenation;
+	}
+
+	.category-title {
+		@include ellipsis;
+
+		font-weight: bold;
 	}
 
 	.subcategories {
@@ -260,21 +314,17 @@
 
 	.taglib-flags {
 		float: left;
-		margin-left: 20px;
+		margin: 10px 0 0 20px;
 	}
 
 	.threads-panel {
-		margin-top: 2em;
+		margin-top: 1em;
 	}
 
 	.displayStyle-question {
 		.action-question {
 			.taglib-text {
 				display: none;
-			}
-
-			.lfr-actions .lfr-trigger strong {
-				min-width: 0;
 			}
 		}
 
@@ -315,10 +365,10 @@
 
 		.question-subject {
 			font-size: 125%;
-		}
 
-		.question-subject #a {
-			color: #06C;
+			#a {
+				color: #06C;
+			}
 		}
 
 		.summary {
@@ -327,14 +377,14 @@
 		}
 	}
 
-	.top-links .category-search {
+	.search-root-entry {
+		color: #999;
 		float: right;
-		margin: 0 0 0.5em 0.5em;
 	}
 }
 
 .ie {
-	.portlet-message-boards {
+	.portlet-message-boards, .portlet-trash {
 		.message-container {
 			width: 100%;
 
@@ -346,9 +396,24 @@
 }
 
 .ie6 {
-	.portlet-message-boards {
+	.portlet-message-boards, .portlet-trash {
 		.code {
 			width: 100%;
+		}
+	}
+}
+
+.ie8 {
+	.question-details {
+		white-space: normal;
+	}
+}
+
+.trash-restore-popup {
+	.form {
+		fieldset {
+			margin-bottom: 0;
+			padding: 0 15px;
 		}
 	}
 }

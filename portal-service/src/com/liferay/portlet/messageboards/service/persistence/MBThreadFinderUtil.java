@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,129 +14,160 @@
 
 package com.liferay.portlet.messageboards.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public class MBThreadFinderUtil {
-	public static int countByG_U_S(long groupId, long userId, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().countByG_U_S(groupId, userId, status);
+	public static int countByG_U(long groupId, long userId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder().countByG_U(groupId, userId, queryDefinition);
 	}
 
-	public static int countByG_C_S(long groupId, long categoryId, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().countByG_C_S(groupId, categoryId, status);
+	public static int countByG_C(long groupId, long categoryId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder().countByG_C(groupId, categoryId, queryDefinition);
 	}
 
-	public static int countByG_U_MD_S(long groupId, long userId,
-		java.util.Date modifiedDate, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().countByG_U_MD_S(groupId, userId, modifiedDate, status);
+	public static int countByG_U_C(long groupId, long userId,
+		long[] categoryIds,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder()
+				   .countByG_U_C(groupId, userId, categoryIds, queryDefinition);
 	}
 
-	public static int countByG_U_A_S(long groupId, long userId,
-		boolean anonymous, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().countByG_U_A_S(groupId, userId, anonymous, status);
+	public static int countByG_U_LPD(long groupId, long userId,
+		java.util.Date lastPostDate,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder()
+				   .countByG_U_LPD(groupId, userId, lastPostDate,
+			queryDefinition);
 	}
 
-	public static int countByS_G_U_S(long groupId, long userId, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().countByS_G_U_S(groupId, userId, status);
+	public static int countByG_U_A(long groupId, long userId,
+		boolean anonymous,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder()
+				   .countByG_U_A(groupId, userId, anonymous, queryDefinition);
 	}
 
-	public static int countByS_G_U_C_S(long groupId, long userId,
-		long[] categoryIds, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().countByS_G_U_C_S(groupId, userId, categoryIds, status);
+	public static int countByS_G_U(long groupId, long userId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder().countByS_G_U(groupId, userId, queryDefinition);
 	}
 
-	public static int filterCountByG_C(long groupId, long categoryId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int countByG_U_C_A(long groupId, long userId,
+		long[] categoryIds, boolean anonymous,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder()
+				   .countByG_U_C_A(groupId, userId, categoryIds, anonymous,
+			queryDefinition);
+	}
+
+	public static int countByS_G_U_C(long groupId, long userId,
+		long[] categoryIds,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder()
+				   .countByS_G_U_C(groupId, userId, categoryIds, queryDefinition);
+	}
+
+	public static int filterCountByG_C(long groupId, long categoryId) {
 		return getFinder().filterCountByG_C(groupId, categoryId);
 	}
 
-	public static int filterCountByG_C_S(long groupId, long categoryId,
-		int status) throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().filterCountByG_C_S(groupId, categoryId, status);
+	public static int filterCountByG_C(long groupId, long categoryId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder().filterCountByG_C(groupId, categoryId, queryDefinition);
 	}
 
-	public static int filterCountByS_G_U_C_S(long groupId, long userId,
-		long[] categoryIds, int status)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static int filterCountByS_G_U_C(long groupId, long userId,
+		long[] categoryIds,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
 		return getFinder()
-				   .filterCountByS_G_U_C_S(groupId, userId, categoryIds, status);
+				   .filterCountByS_G_U_C(groupId, userId, categoryIds,
+			queryDefinition);
 	}
 
 	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> filterFindByG_C(
-		long groupId, long categoryId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long groupId, long categoryId, int start, int end) {
 		return getFinder().filterFindByG_C(groupId, categoryId, start, end);
 	}
 
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> filterFindByG_C_S(
-		long groupId, long categoryId, int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder()
-				   .filterFindByG_C_S(groupId, categoryId, status, start, end);
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> filterFindByG_C(
+		long groupId, long categoryId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder().filterFindByG_C(groupId, categoryId, queryDefinition);
 	}
 
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> filterFindByS_G_U_C_S(
-		long groupId, long userId, long[] categoryIds, int status, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> filterFindByS_G_U_C(
+		long groupId, long userId, long[] categoryIds,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
 		return getFinder()
-				   .filterFindByS_G_U_C_S(groupId, userId, categoryIds, status,
-			start, end);
+				   .filterFindByS_G_U_C(groupId, userId, categoryIds,
+			queryDefinition);
 	}
 
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByNoAssets()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByNoAssets() {
 		return getFinder().findByNoAssets();
 	}
 
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByG_U_S(
-		long groupId, long userId, int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().findByG_U_S(groupId, userId, status, start, end);
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByG_U(
+		long groupId, long userId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder().findByG_U(groupId, userId, queryDefinition);
 	}
 
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByG_C_S(
-		long groupId, long categoryId, int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().findByG_C_S(groupId, categoryId, status, start, end);
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByG_C(
+		long groupId, long categoryId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder().findByG_C(groupId, categoryId, queryDefinition);
 	}
 
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByG_U_MD_S(
-		long groupId, long userId, java.util.Date modifiedDate, int status,
-		int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByG_U_C(
+		long groupId, long userId, long[] categoryIds,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
 		return getFinder()
-				   .findByG_U_MD_S(groupId, userId, modifiedDate, status,
-			start, end);
+				   .findByG_U_C(groupId, userId, categoryIds, queryDefinition);
 	}
 
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByG_U_A_S(
-		long groupId, long userId, boolean anonymous, int status, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByG_U_LPD(
+		long groupId, long userId, java.util.Date lastPostDate,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
 		return getFinder()
-				   .findByG_U_A_S(groupId, userId, anonymous, status, start, end);
+				   .findByG_U_LPD(groupId, userId, lastPostDate, queryDefinition);
 	}
 
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByS_G_U_S(
-		long groupId, long userId, int status, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getFinder().findByS_G_U_S(groupId, userId, status, start, end);
-	}
-
-	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByS_G_U_C_S(
-		long groupId, long userId, long[] categoryIds, int status, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByG_U_A(
+		long groupId, long userId, boolean anonymous,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
 		return getFinder()
-				   .findByS_G_U_C_S(groupId, userId, categoryIds, status,
-			start, end);
+				   .findByG_U_A(groupId, userId, anonymous, queryDefinition);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByS_G_U(
+		long groupId, long userId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder().findByS_G_U(groupId, userId, queryDefinition);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByG_U_C_A(
+		long groupId, long userId, long[] categoryIds, boolean anonymous,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder()
+				   .findByG_U_C_A(groupId, userId, categoryIds, anonymous,
+			queryDefinition);
+	}
+
+	public static java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByS_G_U_C(
+		long groupId, long userId, long[] categoryIds,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
+		return getFinder()
+				   .findByS_G_U_C(groupId, userId, categoryIds, queryDefinition);
 	}
 
 	public static MBThreadFinder getFinder() {

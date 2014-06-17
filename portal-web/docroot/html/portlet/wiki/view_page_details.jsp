@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,10 +20,10 @@
 WikiNode node = (WikiNode)request.getAttribute(WebKeys.WIKI_NODE);
 WikiPage wikiPage = (WikiPage)request.getAttribute(WebKeys.WIKI_PAGE);
 
-String[] attachments = new String[0];
+List<FileEntry> attachmentsFileEntries = null;
 
 if (wikiPage != null) {
-	attachments = wikiPage.getAttachmentsFiles();
+	attachmentsFileEntries = wikiPage.getAttachmentsFileEntries();
 }
 
 int numOfVersions = WikiPageLocalServiceUtil.getPagesCount(wikiPage.getNodeId(), wikiPage.getTitle());
@@ -52,32 +52,28 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "det
 	<liferay-util:param name="tabs1" value="details" />
 </liferay-util:include>
 
-<%
-int count = 0;
-%>
-
-<table class="lfr-table page-info">
-<tr class="portlet-section-body<%= MathUtil.isOdd(count++) ? "-alternate" : "" %> results-row <%= MathUtil.isOdd(count) ? "alt" : "" %>">
-	<th>
+<table class="table table-bordered table-hover table-striped page-info">
+<tr>
+	<th class="table-header">
 		<liferay-ui:message key="title" />
 	</th>
-	<td>
+	<td class="table-cell">
 		<%= wikiPage.getTitle() %>
 	</td>
 </tr>
-<tr class="portlet-section-body<%= MathUtil.isOdd(count++) ? "-alternate" : "" %> results-row <%= MathUtil.isOdd(count) ? "alt" : "" %>">
-	<th>
+<tr>
+	<th class="table-header">
 		<liferay-ui:message key="format" />
 	</th>
-	<td>
+	<td class="table-cell">
 		<liferay-ui:message key='<%= "wiki.formats." + wikiPage.getFormat() %>'/>
 	</td>
 </tr>
-<tr class="portlet-section-body<%= MathUtil.isOdd(count++) ? "-alternate" : "" %> results-row <%= MathUtil.isOdd(count) ? "alt" : "" %>">
-	<th>
+<tr>
+	<th class="table-header">
 		<liferay-ui:message key="latest-version" />
 	</th>
-	<td>
+	<td class="table-cell">
 		<%= wikiPage.getVersion() %>
 
 		<c:if test="<%= wikiPage.isMinorEdit() %>">
@@ -85,28 +81,28 @@ int count = 0;
 		</c:if>
 	</td>
 </tr>
-<tr class="portlet-section-body<%= MathUtil.isOdd(count++) ? "-alternate" : "" %> results-row <%= MathUtil.isOdd(count) ? "alt" : "" %>">
-	<th>
+<tr>
+	<th class="table-header">
 		<liferay-ui:message key="created-by" />
 	</th>
-	<td>
+	<td class="table-cell">
 		<%= HtmlUtil.escape(initialPage.getUserName()) %> (<%= dateFormatDateTime.format(initialPage.getCreateDate()) %>)
 	</td>
 </tr>
-<tr class="portlet-section-body<%= MathUtil.isOdd(count++) ? "-alternate" : "" %> results-row <%= MathUtil.isOdd(count) ? "alt" : "" %>">
-	<th>
+<tr>
+	<th class="table-header">
 		<liferay-ui:message key="last-changed-by" />
 	</th>
-	<td>
+	<td class="table-cell">
 		<%= HtmlUtil.escape(wikiPage.getUserName()) %> (<%= dateFormatDateTime.format(wikiPage.getCreateDate()) %>)
 	</td>
 </tr>
-<tr class="portlet-section-body<%= MathUtil.isOdd(count++) ? "-alternate" : "" %> results-row <%= MathUtil.isOdd(count) ? "alt" : "" %>">
-	<th>
+<tr>
+	<th class="table-header">
 		<liferay-ui:message key="attachments" />
 	</th>
-	<td>
-		<%= attachments.length %>
+	<td class="table-cell">
+		<%= (attachmentsFileEntries != null) ? attachmentsFileEntries.size() : 0 %>
 	</td>
 </tr>
 
@@ -117,20 +113,19 @@ int count = 0;
 
 	PortletURL exportPageURL = renderResponse.createActionURL();
 
-	exportPageURL.setWindowState(LiferayWindowState.EXCLUSIVE);
-
 	exportPageURL.setParameter("struts_action", "/wiki/export_page");
 	exportPageURL.setParameter("nodeId", String.valueOf(node.getNodeId()));
 	exportPageURL.setParameter("nodeName", node.getName());
 	exportPageURL.setParameter("title", wikiPage.getTitle());
 	exportPageURL.setParameter("version", String.valueOf(wikiPage.getVersion()));
+	exportPageURL.setWindowState(LiferayWindowState.EXCLUSIVE);
 	%>
 
-	<tr class="portlet-section-body<%= MathUtil.isOdd(count++) ? "-alternate" : "" %> results-row <%= MathUtil.isOdd(count) ? "alt" : "" %>">
-		<th>
+	<tr>
+		<th class="table-header">
 			<liferay-ui:message key="convert-to" />
 		</th>
-		<td>
+		<td class="table-cell">
 			<liferay-ui:icon-list>
 
 			<%
@@ -141,7 +136,7 @@ int count = 0;
 				<liferay-ui:icon
 					image='<%= "../file_system/small/" + conversion %>'
 					label="<%= true %>"
-					message="<%= conversion.toUpperCase() %>"
+					message="<%= StringUtil.toUpperCase(conversion) %>"
 					method="get"
 					url="<%= exportPageURL.toString() %>"
 				/>
@@ -155,42 +150,25 @@ int count = 0;
 	</tr>
 </c:if>
 
-<tr class="portlet-section-body<%= MathUtil.isOdd(count++) ? "-alternate" : "" %> results-row <%= MathUtil.isOdd(count) ? "alt" : "" %>">
-	<th>
-		<liferay-ui:message key="rss-subscription" />
-	</th>
-	<td>
-		<liferay-ui:icon-list>
-			<liferay-ui:icon
-				image="rss"
-				label="<%= true %>"
-				message="Atom 1.0"
-				target="_blank"
-				url='<%= themeDisplay.getPathMain() + "/wiki/rss?p_l_id=" + plid + "&companyId=" + company.getCompanyId() + "&nodeId=" + wikiPage.getNodeId() + "&title=" + wikiPage.getTitle() + rssURLAtomParams %>'
+<c:if test="<%= wikiPortletInstanceSettings.isEnableRSS() %>">
+	<tr>
+		<th class="table-header">
+			<liferay-ui:message key="rss-subscription" />
+		</th>
+		<td class="table-cell">
+			<liferay-ui:rss
+				delta="<%= wikiPortletInstanceSettings.getRssDelta() %>"
+				displayStyle="<%= wikiPortletInstanceSettings.getRssDisplayStyle() %>"
+				feedType="<%= wikiPortletInstanceSettings.getRssFeedType() %>"
+				url='<%= themeDisplay.getPathMain() + "/wiki/rss?p_l_id=" + plid + "&companyId=" + company.getCompanyId() + "&nodeId=" + wikiPage.getNodeId() + "&title=" + wikiPage.getTitle() %>'
 			/>
+		</td>
+	</tr>
+</c:if>
 
-			<liferay-ui:icon
-				image="rss"
-				label="<%= true %>"
-				message="RSS 1.0"
-				target="_blank"
-				url='<%= themeDisplay.getPathMain() + "/wiki/rss?p_l_id=" + plid + "&companyId=" + company.getCompanyId() + "&nodeId=" + wikiPage.getNodeId() + "&title=" + wikiPage.getTitle() + rssURLRSS10Params %>'
-			/>
-
-			<liferay-ui:icon
-				image="rss"
-				label="<%= true %>"
-				message="RSS 2.0"
-				target="_blank"
-				url='<%= themeDisplay.getPathMain() + "/wiki/rss?p_l_id=" + plid + "&companyId=" + company.getCompanyId() + "&nodeId=" + wikiPage.getNodeId() + "&title=" + wikiPage.getTitle() + rssURLRSS20Params %>'
-			/>
-		</liferay-ui:icon-list>
-	</td>
-</tr>
-
-<c:if test="<%= WikiPagePermission.contains(permissionChecker, wikiPage, ActionKeys.SUBSCRIBE) || WikiNodePermission.contains(permissionChecker, node, ActionKeys.SUBSCRIBE) %>">
-	<tr class="portlet-section-body<%= MathUtil.isOdd(count++) ? "-alternate" : "" %> results-row <%= MathUtil.isOdd(count) ? "alt" : "" %>">
-		<th>
+<c:if test="<%= (WikiPagePermission.contains(permissionChecker, wikiPage, ActionKeys.SUBSCRIBE) || WikiNodePermission.contains(permissionChecker, node, ActionKeys.SUBSCRIBE)) && (wikiSettings.isEmailPageAddedEnabled() || wikiSettings.isEmailPageUpdatedEnabled()) %>">
+	<tr>
+		<th class="table-header">
 			<liferay-ui:message key="email-subscription" />
 		</th>
 		<td>
@@ -213,8 +191,9 @@ int count = 0;
 								</portlet:actionURL>
 
 								<liferay-ui:icon
-									image="unsubscribe"
+									iconCssClass="icon-remove-sign"
 									label="<%= true %>"
+									message="unsubscribe"
 									url="<%= unsubscribeURL %>"
 								/>
 							</td>
@@ -233,8 +212,9 @@ int count = 0;
 								</portlet:actionURL>
 
 								<liferay-ui:icon
-									image="subscribe"
+									iconCssClass="icon-ok-sign"
 									label="<%= true %>"
+									message="subscribe"
 									url="<%= subscribeURL %>"
 								/>
 							</td>
@@ -259,8 +239,9 @@ int count = 0;
 								</portlet:actionURL>
 
 								<liferay-ui:icon
-									image="unsubscribe"
+									iconCssClass="icon-remove-sign"
 									label="<%= true %>"
+									message="unsubscribe"
 									url="<%= unsubscribeURL %>"
 								/>
 							</td>
@@ -278,8 +259,9 @@ int count = 0;
 								</portlet:actionURL>
 
 								<liferay-ui:icon
-									image="subscribe"
+									iconCssClass="icon-ok-sign"
 									label="<%= true %>"
+									message="subscribe"
 									url="<%= subscribeURL %>"
 								/>
 							</td>
@@ -294,11 +276,11 @@ int count = 0;
 </c:if>
 
 <c:if test="<%= WikiPagePermission.contains(permissionChecker, wikiPage, ActionKeys.PERMISSIONS) || (WikiPagePermission.contains(permissionChecker, wikiPage, ActionKeys.UPDATE) && WikiNodePermission.contains(permissionChecker, wikiPage.getNodeId(), ActionKeys.ADD_PAGE)) || WikiPagePermission.contains(permissionChecker, wikiPage, ActionKeys.DELETE) %>">
-	<tr class="portlet-section-body<%= MathUtil.isOdd(count++) ? "-alternate" : "" %> results-row <%= MathUtil.isOdd(count) ? "alt" : "" %>">
-		<th>
+	<tr>
+		<th class="table-header">
 			<liferay-ui:message key="advanced-actions" />
 		</th>
-		<td>
+		<td class="table-cell">
 			<liferay-ui:icon-list>
 				<c:if test="<%= WikiPagePermission.contains(permissionChecker, wikiPage, ActionKeys.PERMISSIONS) %>">
 					<liferay-security:permissionsURL
@@ -306,12 +288,16 @@ int count = 0;
 						modelResourceDescription="<%= wikiPage.getTitle() %>"
 						resourcePrimKey="<%= String.valueOf(wikiPage.getResourcePrimKey()) %>"
 						var="permissionsURL"
+						windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 					/>
 
 					<liferay-ui:icon
-						image="permissions"
+						iconCssClass="icon-lock"
 						label="<%= true %>"
+						message="permissions"
+						method="get"
 						url="<%= permissionsURL %>"
+						useDialog="<%= true %>"
 					/>
 				</c:if>
 
@@ -330,8 +316,9 @@ int count = 0;
 					%>
 
 					<liferay-ui:icon
-						image="copy"
+						iconCssClass="icon-copy"
 						label="<%= true %>"
+						message="copy"
 						url="<%= copyPageURL.toString() %>"
 					/>
 				</c:if>
@@ -346,7 +333,7 @@ int count = 0;
 					%>
 
 					<liferay-ui:icon
-						image="forward"
+						iconCssClass="icon-move"
 						label="<%= true %>"
 						message="move"
 						url="<%= movePageURL.toString() %>"
@@ -362,15 +349,20 @@ int count = 0;
 
 					PortletURL deletePageURL = PortletURLUtil.clone(editPageURL, PortletRequest.ACTION_PHASE, renderResponse);
 
-					deletePageURL.setParameter(Constants.CMD, Constants.DELETE);
+					if (TrashUtil.isTrashEnabled(scopeGroupId)) {
+						deletePageURL.setParameter(Constants.CMD, Constants.MOVE_TO_TRASH);
+					}
+					else {
+						deletePageURL.setParameter(Constants.CMD, Constants.DELETE);
+					}
+
 					deletePageURL.setParameter("redirect", frontPageURL.toString());
 					%>
 
-					<liferay-ui:icon-delete label="<%= true %>" url="<%= deletePageURL.toString() %>" />
+					<liferay-ui:icon-delete label="<%= true %>" trash="<%= TrashUtil.isTrashEnabled(scopeGroupId) %>" url="<%= deletePageURL.toString() %>" />
 				</c:if>
 			</liferay-ui:icon-list>
 		</td>
 	</tr>
 </c:if>
-
 </table>

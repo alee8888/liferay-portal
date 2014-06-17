@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.model;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -28,6 +30,7 @@ import java.util.Map;
  * @author Brian Wing Shun Chan
  * @see    com.liferay.portal.model.impl.BaseModelImpl
  */
+@ProviderType
 public interface BaseModel<T>
 	extends ClassedModel, Cloneable, Comparable<T>, Serializable {
 
@@ -43,6 +46,7 @@ public interface BaseModel<T>
 	 *
 	 * @return the expando bridge for this model instance
 	 */
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
 	public Map<String, Object> getModelAttributes();
@@ -52,6 +56,7 @@ public interface BaseModel<T>
 	 *
 	 * @return the primary key of this model instance
 	 */
+	@Override
 	public Serializable getPrimaryKeyObj();
 
 	/**
@@ -65,12 +70,28 @@ public interface BaseModel<T>
 	public boolean isCachedModel();
 
 	/**
+	 * Returns <code>true</code> if this model's entity cache is enabled.
+	 *
+	 * @return <code>true</code> if this model's entity cache is enabled;
+	 *         <code>false</code> otherwise
+	 */
+	public boolean isEntityCacheEnabled();
+
+	/**
 	 * Returns <code>true</code> if this model instance is escaped.
 	 *
 	 * @return <code>true</code> if this model instance is escaped;
 	 *         <code>false</code> otherwise
 	 */
 	public boolean isEscapedModel();
+
+	/**
+	 * Returns <code>true</code> if this model's finder cache is enabled.
+	 *
+	 * @return <code>true</code> if this model's finder cache is enabled;
+	 *         <code>false</code> otherwise
+	 */
+	public boolean isFinderCacheEnabled();
 
 	/**
 	 * Returns <code>true</code> if this model instance does not yet exist in
@@ -95,11 +116,15 @@ public interface BaseModel<T>
 	 */
 	public void setCachedModel(boolean cachedModel);
 
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
 	/**
 	 * Sets the expando bridge attributes for this model instance to the
 	 * attributes stored in the service context.
 	 *
-	 * @param serviceContext the service context
+	 * @param serviceContext the service context to be applied
 	 * @see   com.liferay.portal.service.ServiceContext#getExpandoBridgeAttributes(
 	 *        )
 	 */
@@ -119,6 +144,7 @@ public interface BaseModel<T>
 	 *
 	 * @param primaryKeyObj the primary key of this model instance
 	 */
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
 	/**
@@ -136,6 +162,8 @@ public interface BaseModel<T>
 	 * @see    com.liferay.portal.kernel.bean.AutoEscapeBeanHandler
 	 */
 	public T toEscapedModel();
+
+	public T toUnescapedModel();
 
 	/**
 	 * Returns the XML representation of this model instance.

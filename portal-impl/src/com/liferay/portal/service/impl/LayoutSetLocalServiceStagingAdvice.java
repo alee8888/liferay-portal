@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,19 +15,20 @@
 package com.liferay.portal.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.staging.LayoutStagingUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.ColorSchemeFactoryUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.ThemeFactoryUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.LayoutSetBranch;
 import com.liferay.portal.model.LayoutSetStagingHandler;
-import com.liferay.portal.model.impl.ColorSchemeImpl;
-import com.liferay.portal.model.impl.ThemeImpl;
-
-import java.io.InputStream;
+import com.liferay.portal.service.LayoutSetLocalService;
+import com.liferay.portal.staging.StagingAdvicesThreadLocal;
+import com.liferay.portal.util.ClassLoaderUtil;
+import com.liferay.portal.util.PortalUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -44,16 +45,20 @@ import org.aopalliance.intercept.MethodInvocation;
 /**
  * @author Julio Camarero
  * @author Brian Wing Shun Chan
+ * @author Raymond Augé
  */
 public class LayoutSetLocalServiceStagingAdvice
 	extends LayoutSetLocalServiceImpl implements MethodInterceptor {
 
+	@Override
 	public Object invoke(MethodInvocation methodInvocation) throws Throwable {
+		if (!StagingAdvicesThreadLocal.isEnabled()) {
+			return methodInvocation.proceed();
+		}
+
 		Method method = methodInvocation.getMethod();
 
 		String methodName = method.getName();
-
-		Object[] arguments = methodInvocation.getArguments();
 
 		if (!_layoutSetLocalServiceStagingAdviceMethodNames.contains(
 				methodName)) {
@@ -63,58 +68,70 @@ public class LayoutSetLocalServiceStagingAdvice
 
 		Object returnValue = null;
 
+		Object thisObject = methodInvocation.getThis();
+		Object[] arguments = methodInvocation.getArguments();
+
 		if (methodName.equals("updateLayoutSetPrototypeLinkEnabled") &&
 			(arguments.length == 5)) {
 
 			updateLayoutSetPrototypeLinkEnabled(
-				(Long)arguments[0], (Boolean)arguments[1],
-				(Boolean)arguments[2], (String)arguments[3]);
+				(LayoutSetLocalService)thisObject, (Long)arguments[0],
+				(Boolean)arguments[1], (Boolean)arguments[2],
+				(String)arguments[3]);
 		}
-		else if (methodName.equals("updateLogo") && (arguments.length == 5)) {
-			updateLogo(
-				(Long)arguments[0], (Boolean)arguments[1],
-				(Boolean)arguments[2], (InputStream)arguments[3],
-				(Boolean)arguments[4]);
+		else if (methodName.equals("updateLogo") && (arguments.length == 4)) {
+			returnValue = updateLogo(
+				(LayoutSetLocalService)thisObject, (Long)arguments[0],
+				(Boolean)arguments[1], (Boolean)arguments[2],
+				(byte[])arguments[3]);
 		}
 		else if (methodName.equals("updateLookAndFeel") &&
-				(arguments.length == 6)) {
+				 (arguments.length == 6)) {
 
 			returnValue = updateLookAndFeel(
-				(Long)arguments[0], (Boolean)arguments[1], (String)arguments[2],
+				(LayoutSetLocalService)thisObject, (Long)arguments[0],
+				(Boolean)arguments[1], (String)arguments[2],
 				(String)arguments[3], (String)arguments[4],
 				(Boolean)arguments[5]);
 		}
 		else if (methodName.equals("updateSettings")) {
 			returnValue = updateSettings(
-				(Long)arguments[0], (Boolean)arguments[1],
-				(String)arguments[2]);
+				(LayoutSetLocalService)thisObject, (Long)arguments[0],
+				(Boolean)arguments[1], (String)arguments[2]);
 		}
 		else {
 			try {
 				Class<?> clazz = getClass();
 
-				Method localMethod = clazz.getMethod(
-					methodName, method.getParameterTypes());
+				Class<?>[] parameterTypes = ArrayUtil.append(
+					new Class<?>[] {LayoutSetLocalService.class},
+					method.getParameterTypes());
 
-				returnValue = localMethod.invoke(this, arguments);
+				Method layoutSetLocalServiceStagingAdviceMethod =
+					clazz.getMethod(methodName, parameterTypes);
+
+				arguments = ArrayUtil.append(
+					new Object[] {thisObject}, arguments);
+
+				returnValue = layoutSetLocalServiceStagingAdviceMethod.invoke(
+					this, arguments);
 			}
 			catch (InvocationTargetException ite) {
 				throw ite.getTargetException();
 			}
 			catch (NoSuchMethodException nsme) {
-				throw new SystemException(nsme);
+				returnValue = methodInvocation.proceed();
 			}
 		}
 
 		return wrapReturnValue(returnValue);
 	}
 
-	@Override
 	public void updateLayoutSetPrototypeLinkEnabled(
-			long groupId, boolean privateLayout,
-			boolean layoutSetPrototypeLinkEnabled,
+			LayoutSetLocalService layoutSetLocalService, long groupId,
+			boolean privateLayout, boolean layoutSetPrototypeLinkEnabled,
 			String layoutSetPrototypeUuid)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LayoutSet layoutSet = layoutSetPersistence.findByG_P(
 			groupId, privateLayout);
@@ -125,7 +142,7 @@ public class LayoutSetLocalServiceStagingAdvice
 			layoutSet);
 
 		if (layoutSetBranch == null) {
-			super.updateLayoutSetPrototypeLinkEnabled(
+			layoutSetLocalService.updateLayoutSetPrototypeLinkEnabled(
 				groupId, privateLayout, layoutSetPrototypeLinkEnabled,
 				layoutSetPrototypeUuid);
 
@@ -149,14 +166,13 @@ public class LayoutSetLocalServiceStagingAdvice
 			layoutSetPrototypeLinkEnabled);
 		layoutSetBranch.setLayoutSetPrototypeUuid(layoutSetPrototypeUuid);
 
-		layoutSetBranchPersistence.update(layoutSetBranch, false);
+		layoutSetBranchPersistence.update(layoutSetBranch);
 	}
 
-	@Override
 	public LayoutSet updateLogo(
-			long groupId, boolean privateLayout, boolean logo, InputStream is,
-			boolean cleanUpStream)
-		throws PortalException, SystemException {
+			LayoutSetLocalService layoutSetLocalService, long groupId,
+			boolean privateLayout, boolean logo, byte[] logoBytes)
+		throws PortalException {
 
 		LayoutSet layoutSet = layoutSetPersistence.findByG_P(
 			groupId, privateLayout);
@@ -167,44 +183,24 @@ public class LayoutSetLocalServiceStagingAdvice
 			layoutSet);
 
 		if (layoutSetBranch == null) {
-			return super.updateLogo(
-				groupId, privateLayout, logo, is, cleanUpStream);
+			return layoutSetLocalService.updateLogo(
+				groupId, privateLayout, logo, logoBytes);
 		}
 
 		layoutSetBranch.setModifiedDate(new Date());
-		layoutSetBranch.setLogo(logo);
 
-		if (logo) {
-			long logoId = layoutSetBranch.getLogoId();
+		PortalUtil.updateImageId(
+			layoutSetBranch, logo, logoBytes, "logoId", 0, 0, 0);
 
-			if (logoId <= 0) {
-				logoId = counterLocalService.increment();
-
-				layoutSet.setLogoId(logoId);
-			}
-		}
-		else {
-			layoutSet.setLogoId(0);
-		}
-
-		layoutSetBranchPersistence.update(layoutSetBranch, false);
-
-		if (logo) {
-			imageLocalService.updateImage(
-				layoutSetBranch.getLogoId(), is, cleanUpStream);
-		}
-		else {
-			imageLocalService.deleteImage(layoutSetBranch.getLogoId());
-		}
+		layoutSetBranchPersistence.update(layoutSetBranch);
 
 		return layoutSet;
 	}
 
-	@Override
 	public LayoutSet updateLookAndFeel(
-			long groupId, boolean privateLayout, String themeId,
-			String colorSchemeId, String css, boolean wapTheme)
-		throws PortalException, SystemException {
+			LayoutSetLocalService target, long groupId, boolean privateLayout,
+			String themeId, String colorSchemeId, String css, boolean wapTheme)
+		throws PortalException {
 
 		LayoutSet layoutSet = layoutSetPersistence.findByG_P(
 			groupId, privateLayout);
@@ -215,19 +211,20 @@ public class LayoutSetLocalServiceStagingAdvice
 			layoutSet);
 
 		if (layoutSetBranch == null) {
-			return super.updateLookAndFeel(
+			return target.updateLookAndFeel(
 				groupId, privateLayout, themeId, colorSchemeId, css, wapTheme);
 		}
 
 		layoutSetBranch.setModifiedDate(new Date());
 
 		if (Validator.isNull(themeId)) {
-			themeId = ThemeImpl.getDefaultRegularThemeId(
+			themeId = ThemeFactoryUtil.getDefaultRegularThemeId(
 				layoutSetBranch.getCompanyId());
 		}
 
 		if (Validator.isNull(colorSchemeId)) {
-			colorSchemeId = ColorSchemeImpl.getDefaultRegularColorSchemeId();
+			colorSchemeId =
+				ColorSchemeFactoryUtil.getDefaultRegularColorSchemeId();
 		}
 
 		if (wapTheme) {
@@ -240,15 +237,15 @@ public class LayoutSetLocalServiceStagingAdvice
 			layoutSetBranch.setCss(css);
 		}
 
-		layoutSetBranchPersistence.update(layoutSetBranch, false);
+		layoutSetBranchPersistence.update(layoutSetBranch);
 
 		return layoutSet;
 	}
 
-	@Override
 	public LayoutSet updateSettings(
-			long groupId, boolean privateLayout, String settings)
-		throws PortalException, SystemException {
+			LayoutSetLocalService target, long groupId, boolean privateLayout,
+			String settings)
+		throws PortalException {
 
 		LayoutSet layoutSet = layoutSetPersistence.findByG_P(
 			groupId, privateLayout);
@@ -259,13 +256,13 @@ public class LayoutSetLocalServiceStagingAdvice
 			layoutSet);
 
 		if (layoutSetBranch == null) {
-			return super.updateSettings(groupId, privateLayout, settings);
+			return target.updateSettings(groupId, privateLayout, settings);
 		}
 
 		layoutSetBranch.setModifiedDate(new Date());
 		layoutSetBranch.setSettings(settings);
 
-		layoutSetBranchPersistence.update(layoutSetBranch, false);
+		layoutSetBranchPersistence.update(layoutSetBranch);
 
 		return layoutSet;
 	}
@@ -299,13 +296,13 @@ public class LayoutSetLocalServiceStagingAdvice
 		}
 
 		if (!LayoutStagingUtil.isBranchingLayoutSet(
-			group, layoutSet.getPrivateLayout())) {
+				group, layoutSet.getPrivateLayout())) {
 
 			return layoutSet;
 		}
 
 		return (LayoutSet)ProxyUtil.newProxyInstance(
-			PortalClassLoaderUtil.getClassLoader(),
+			ClassLoaderUtil.getPortalClassLoader(),
 			new Class[] {LayoutSet.class},
 			new LayoutSetStagingHandler(layoutSet));
 	}
@@ -332,7 +329,11 @@ public class LayoutSetLocalServiceStagingAdvice
 			returnValue = wrapLayoutSet((LayoutSet)returnValue);
 		}
 		else if (returnValue instanceof List<?>) {
-			returnValue = wrapLayoutSets((List<LayoutSet>)returnValue);
+			List<?> list = (List<?>)returnValue;
+
+			if (!list.isEmpty() && (list.get(0) instanceof LayoutSet)) {
+				returnValue = wrapLayoutSets((List<LayoutSet>)returnValue);
+			}
 		}
 
 		return returnValue;

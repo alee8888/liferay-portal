@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,13 +14,18 @@
 
 package com.liferay.portal.kernel.portlet;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.atom.AtomCollectionAdapter;
 import com.liferay.portal.kernel.lar.PortletDataHandler;
+import com.liferay.portal.kernel.lar.StagedModelDataHandler;
+import com.liferay.portal.kernel.notifications.UserNotificationHandler;
 import com.liferay.portal.kernel.poller.PollerProcessor;
 import com.liferay.portal.kernel.pop.MessageListener;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.OpenSearch;
 import com.liferay.portal.kernel.servlet.URLEncoder;
+import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.workflow.WorkflowHandler;
@@ -28,13 +33,13 @@ import com.liferay.portal.kernel.xmlrpc.Method;
 import com.liferay.portal.security.permission.PermissionPropagator;
 import com.liferay.portlet.ControlPanelEntry;
 import com.liferay.portlet.asset.model.AssetRendererFactory;
+import com.liferay.portlet.dynamicdatamapping.util.DDMDisplay;
 import com.liferay.portlet.expando.model.CustomAttributesDisplay;
 import com.liferay.portlet.social.model.SocialActivityInterpreter;
 import com.liferay.portlet.social.model.SocialRequestInterpreter;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.ResourceBundle;
 
 import javax.portlet.Portlet;
@@ -45,61 +50,75 @@ import javax.servlet.ServletContext;
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public interface PortletBag extends Cloneable {
 
 	public Object clone();
+
+	public void destroy();
 
 	public List<AssetRendererFactory> getAssetRendererFactoryInstances();
 
 	public List<AtomCollectionAdapter<?>> getAtomCollectionAdapterInstances();
 
-	public ConfigurationAction getConfigurationActionInstance();
+	public List<ConfigurationAction> getConfigurationActionInstances();
 
-	public ControlPanelEntry getControlPanelEntryInstance();
+	public List<ControlPanelEntry> getControlPanelEntryInstances();
 
 	public List<CustomAttributesDisplay> getCustomAttributesDisplayInstances();
 
-	public FriendlyURLMapper getFriendlyURLMapperInstance();
+	public List<DDMDisplay> getDdmDisplayInstances();
+
+	public List<FriendlyURLMapper> getFriendlyURLMapperInstances();
 
 	public List<Indexer> getIndexerInstances();
 
-	public OpenSearch getOpenSearchInstance();
+	public List<OpenSearch> getOpenSearchInstances();
 
-	public PermissionPropagator getPermissionPropagatorInstance();
+	public List<PermissionPropagator> getPermissionPropagatorInstances();
 
-	public PollerProcessor getPollerProcessorInstance();
+	public List<PollerProcessor> getPollerProcessorInstances();
 
-	public MessageListener getPopMessageListenerInstance();
+	public List<MessageListener> getPopMessageListenerInstances();
 
-	public PortletDataHandler getPortletDataHandlerInstance();
+	public List<PortletDataHandler> getPortletDataHandlerInstances();
 
 	public Portlet getPortletInstance();
 
-	public PortletLayoutListener getPortletLayoutListenerInstance();
+	public List<PortletLayoutListener> getPortletLayoutListenerInstances();
 
 	public String getPortletName();
 
-	public PreferencesValidator getPreferencesValidatorInstance();
+	public List<PreferencesValidator> getPreferencesValidatorInstances();
 
 	public ResourceBundle getResourceBundle(Locale locale);
 
-	public Map<String, ResourceBundle> getResourceBundles();
+	public ResourceBundleTracker getResourceBundleTracker();
 
 	public ServletContext getServletContext();
 
-	public SocialActivityInterpreter getSocialActivityInterpreterInstance();
+	public List<SocialActivityInterpreter>
+		getSocialActivityInterpreterInstances();
 
-	public SocialRequestInterpreter getSocialRequestInterpreterInstance();
+	public List<SocialRequestInterpreter>
+		getSocialRequestInterpreterInstances();
+
+	public List<StagedModelDataHandler<?>> getStagedModelDataHandlerInstances();
+
+	public List<TemplateHandler> getTemplateHandlerInstances();
 
 	public List<TrashHandler> getTrashHandlerInstances();
 
-	public URLEncoder getURLEncoderInstance();
+	public List<URLEncoder> getURLEncoderInstances();
 
-	public WebDAVStorage getWebDAVStorageInstance();
+	public List<UserNotificationHandler>
+		getUserNotificationHandlerInstances();
 
-	public List<WorkflowHandler> getWorkflowHandlerInstances();
+	public List<WebDAVStorage> getWebDAVStorageInstances();
 
-	public Method getXmlRpcMethodInstance();
+	public List<WorkflowHandler<?>> getWorkflowHandlerInstances();
+
+	public List<Method> getXmlRpcMethodInstances();
 
 	public void setPortletInstance(Portlet portletInstance);
 

@@ -1,0 +1,49 @@
+<html>
+<head>
+<title>SONotifications</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">SONotifications</td></tr>
+</thead>
+<tbody>
+<tr>
+	<td>PAGE_NAME</td>
+	<td></td>
+	<td>SONotifications</td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>NOTIFICATIONS_ENTRY</td>
+	<td>//li[@class='user-notification unread']//div[@class='title']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NOTIFICATIONS_ENTRY_INCREMENT</td>
+	<td>xPath=(//li[@class='user-notification unread']//div[@class='title'])[${key_row}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SEARCH_RESULTS</td>
+	<td>//span[contains(.,'results')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>NEXT_BUTTON</td>
+	<td>//a[contains(.,'Next')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

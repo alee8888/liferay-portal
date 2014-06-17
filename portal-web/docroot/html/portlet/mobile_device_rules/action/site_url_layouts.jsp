@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -38,8 +38,8 @@ else {
 
 <aui:input name="actionPlid" type="hidden" value="<%= actionPlid %>" />
 
-<aui:select label="page" name="plid">
-	<aui:option disabled="<%= true %>" label="select-a-page" selected="<%= actionPlid == 0 %>" value="0" />
+<aui:select label="page" name="plid" required="<%= true %>">
+	<aui:option disabled="<%= true %>" label="select-a-page" selected="<%= actionPlid == 0 %>" value="" />
 
 	<%
 	List<Layout> publicLayouts = LayoutServiceUtil.getLayouts(actionGroupId, false);
@@ -52,7 +52,7 @@ else {
 		for (Layout publicLayout : publicLayouts) {
 		%>
 
-			<aui:option label="<%= publicLayout.getName(locale) %>" selected="<%= publicLayout.getPlid() == actionPlid %>" value="<%= publicLayout.getPlid() %>" />
+			<aui:option label="<%= HtmlUtil.escape(publicLayout.getName(locale)) %>" selected="<%= publicLayout.getPlid() == actionPlid %>" value="<%= publicLayout.getPlid() %>" />
 
 		<%
 		}
@@ -71,7 +71,7 @@ else {
 		for (Layout privateLayout : privateLayouts) {
 		%>
 
-			<aui:option label="<%= privateLayout.getName(locale) %>" selected="<%= privateLayout.getPlid() == actionPlid %>" value="<%= privateLayout.getPlid() %>" />
+			<aui:option label="<%= HtmlUtil.escape(privateLayout.getName(locale)) %>" selected="<%= privateLayout.getPlid() == actionPlid %>" value="<%= privateLayout.getPlid() %>" />
 
 		<%
 		}

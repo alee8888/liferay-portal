@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.expando.util;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.security.auth.CompanyThreadLocal;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 
@@ -25,19 +26,25 @@ public class ExpandoBridgeFactoryUtil {
 	public static ExpandoBridge getExpandoBridge(
 		long companyId, String className) {
 
+		PortalRuntimePermission.checkExpandoBridge(className);
+
 		return getExpandoBridgeFactory().getExpandoBridge(companyId, className);
 	}
 
 	public static ExpandoBridge getExpandoBridge(
 		long companyId, String className, long classPK) {
 
+		PortalRuntimePermission.checkExpandoBridge(className);
+
 		return getExpandoBridgeFactory().getExpandoBridge(
 			companyId, className, classPK);
 	}
 
 	/**
-	 * @deprecated {@link #getExpandoBridge(long, String)}
+	 * @deprecated As of 6.1.0, replaced by {@link #getExpandoBridge(long,
+	 *             String)}
 	 */
+	@Deprecated
 	public static ExpandoBridge getExpandoBridge(String className) {
 		long companyId = CompanyThreadLocal.getCompanyId();
 
@@ -45,8 +52,10 @@ public class ExpandoBridgeFactoryUtil {
 	}
 
 	/**
-	 * @deprecated {@link #getExpandoBridge(long, String, long)}
+	 * @deprecated As of 6.1.0, replaced by {@link #getExpandoBridge(long,
+	 *             String, long)}
 	 */
+	@Deprecated
 	public static ExpandoBridge getExpandoBridge(
 		String className, long classPK) {
 
@@ -56,11 +65,16 @@ public class ExpandoBridgeFactoryUtil {
 	}
 
 	public static ExpandoBridgeFactory getExpandoBridgeFactory() {
+		PortalRuntimePermission.checkGetBeanProperty(
+			ExpandoBridgeFactoryUtil.class);
+
 		return _expandoBridgeFactory;
 	}
 
 	public void setExpandoBridgeFactory(
 		ExpandoBridgeFactory expandoBridgeFactory) {
+
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
 
 		_expandoBridgeFactory = expandoBridgeFactory;
 	}

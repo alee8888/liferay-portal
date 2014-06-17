@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,8 +16,8 @@ package com.liferay.util.servlet;
 
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
-import com.liferay.util.PwdGenerator;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -54,7 +54,8 @@ public class SessionParameters {
 
 		if (newParameter == null) {
 			newParameter =
-				PwdGenerator.getPassword() + StringPool.UNDERLINE + parameter;
+				StringUtil.randomString() + StringPool.UNDERLINE +
+					parameter;
 
 			parameters.put(parameter, newParameter);
 		}
@@ -77,7 +78,8 @@ public class SessionParameters {
 
 		if (newParameter == null) {
 			newParameter =
-				PwdGenerator.getPassword() + StringPool.UNDERLINE + parameter;
+				StringUtil.randomString() + StringPool.UNDERLINE +
+					parameter;
 
 			parameters.put(parameter, newParameter);
 		}

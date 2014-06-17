@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,6 +18,8 @@ import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.search.util.SearchUtil;
+import com.liferay.portal.kernel.security.RandomUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,9 +31,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.regex.Matcher;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 /**
@@ -41,6 +43,7 @@ import java.util.regex.Pattern;
  * @author Sandeep Soni
  * @author Ganesh Ram
  * @author Shuyang Zhou
+ * @author Hugo Huijser
  */
 public class StringUtil {
 
@@ -119,7 +122,7 @@ public class StringUtil {
 		}
 
 		if (allowDuplicates || !contains(s, add, delimiter)) {
-			StringBundler sb = new StringBundler();
+			StringBundler sb = new StringBundler(4);
 
 			sb.append(s);
 
@@ -153,6 +156,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * appendParentheticalSuffix("file", 0) returns "file (0)"
@@ -160,6 +164,7 @@ public class StringUtil {
 	 * appendParentheticalSuffix("file (0)", 1) returns "file (1)"
 	 * appendParentheticalSuffix("file (0)", 2) returns "file (0) (2)"
 	 * </code>
+	 * </pre>
 	 * </p>
 	 *
 	 * @param  s the original string
@@ -188,11 +193,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * appendParentheticalSuffix("Java", "EE") returns "Java (EE)"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @param  suffix the suffix to be appended
@@ -222,8 +229,9 @@ public class StringUtil {
 		StringBundler sb = new StringBundler(bytes.length * 2);
 
 		for (byte b : bytes) {
-			String hex = Integer.toHexString(
-				0x0100 + (b & 0x00FF)).substring(1);
+			String hex = Integer.toHexString(0x0100 + (b & 0x00FF));
+
+			hex = hex.substring(1);
 
 			if (hex.length() < 2) {
 				sb.append("0");
@@ -243,11 +251,14 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
-	 * contains("application", "app") returns true
+	 * contains("one,two,three", "two") returns true
+	 * contains("one,two,three", "thr") returns false
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string in which to search
 	 * @param  text the text to search for in the string
@@ -266,12 +277,14 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * contains("three...two...one", "two", "...") returns true
 	 * contains("three...two...one", "thr", "...") returns false
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string in which to search
 	 * @param  text the text to search for in the string
@@ -334,12 +347,12 @@ public class StringUtil {
 
 	/**
 	 * Returns <code>true</code> if the string ends with the specified
-	 * character.
+	 * character, ignoring case.
 	 *
 	 * @param  s the string in which to search
 	 * @param  end the character to search for at the end of the string
 	 * @return <code>true</code> if the string ends with the specified
-	 *         character; <code>false</code> otherwise
+	 *         character, ignoring case; <code>false</code> otherwise
 	 */
 	public static boolean endsWith(String s, char end) {
 		return endsWith(s, (new Character(end)).toString());
@@ -347,12 +360,12 @@ public class StringUtil {
 
 	/**
 	 * Returns <code>true</code> if the string ends with the string
-	 * <code>end</code>.
+	 * <code>end</code>, ignoring case.
 	 *
 	 * @param  s the string in which to search
 	 * @param  end the string to check for at the end of the string
 	 * @return <code>true</code> if the string ends with the string
-	 *         <code>end</code>; <code>false</code> otherwise
+	 *         <code>end</code>, ignoring case; <code>false</code> otherwise
 	 */
 	public static boolean endsWith(String s, String end) {
 		if ((s == null) || (end == null)) {
@@ -365,12 +378,88 @@ public class StringUtil {
 
 		String temp = s.substring(s.length() - end.length());
 
-		if (temp.equalsIgnoreCase(end)) {
+		if (equalsIgnoreCase(temp, end)) {
 			return true;
 		}
 		else {
 			return false;
 		}
+	}
+
+	public static boolean equalsIgnoreBreakLine(String s1, String s2) {
+		if (s1 == s2) {
+			return true;
+		}
+
+		if ((s1 == null) || (s2 == null)) {
+			return false;
+		}
+
+		s1 = replace(
+			s1, new String[] {StringPool.RETURN_NEW_LINE, StringPool.NEW_LINE},
+			new String[] {StringPool.BLANK, StringPool.BLANK});
+		s2 = replace(
+			s2, new String[] {StringPool.RETURN_NEW_LINE, StringPool.NEW_LINE},
+			new String[] {StringPool.BLANK, StringPool.BLANK});
+
+		if (s1.length() != s2.length()) {
+			return false;
+		}
+
+		return s1.equals(s2);
+	}
+
+	/**
+	 * Returns <code>true</code> if the strings are equal, ignoring case.
+	 *
+	 * @param  s1 the first string to compare
+	 * @param  s2 the second string to compare
+	 * @return <code>true</code> if the strings are equal, ignoring case;
+	 *         <code>false</code> otherwise
+	 */
+	public static boolean equalsIgnoreCase(String s1, String s2) {
+		if (s1 == s2) {
+			return true;
+		}
+
+		if ((s1 == null) || (s2 == null)) {
+			return false;
+		}
+
+		if (s1.length() != s2.length()) {
+			return false;
+		}
+
+		for (int i = 0; i < s1.length(); i++) {
+			char c1 = s1.charAt(i);
+
+			char c2 = s2.charAt(i);
+
+			if (c1 == c2) {
+				continue;
+			}
+
+			if ((c1 > 127) || (c2 > 127)) {
+
+				// Georgian alphabet needs to check both upper and lower case
+
+				if ((Character.toLowerCase(c1) == Character.toLowerCase(c2)) ||
+					(Character.toUpperCase(c1) == Character.toUpperCase(c2))) {
+
+					continue;
+				}
+
+				return false;
+			}
+
+			int delta = c1 - c2;
+
+			if ((delta != 32) && (delta != -32)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -470,15 +559,14 @@ public class StringUtil {
 		if (s == null) {
 			return null;
 		}
-		else {
-			int index = s.indexOf(delimiter);
 
-			if (index < 0) {
-				return null;
-			}
-			else {
-				return s.substring(0, index);
-			}
+		int index = s.indexOf(delimiter);
+
+		if (index < 0) {
+			return null;
+		}
+		else {
+			return s.substring(0, index);
 		}
 	}
 
@@ -497,15 +585,14 @@ public class StringUtil {
 		if (s == null) {
 			return null;
 		}
-		else {
-			int index = s.indexOf(delimiter);
 
-			if (index < 0) {
-				return null;
-			}
-			else {
-				return s.substring(0, index);
-			}
+		int index = s.indexOf(delimiter);
+
+		if (index < 0) {
+			return null;
+		}
+		else {
+			return s.substring(0, index);
 		}
 	}
 
@@ -524,15 +611,14 @@ public class StringUtil {
 		if (s == null) {
 			return null;
 		}
-		else {
-			int index = s.lastIndexOf(delimiter);
 
-			if (index < 0) {
-				return null;
-			}
-			else {
-				return s.substring(index + 1);
-			}
+		int index = s.lastIndexOf(delimiter);
+
+		if (index < 0) {
+			return null;
+		}
+		else {
+			return s.substring(index + 1);
 		}
 	}
 
@@ -551,72 +637,391 @@ public class StringUtil {
 		if (s == null) {
 			return null;
 		}
+
+		int index = s.lastIndexOf(delimiter);
+
+		if (index < 0) {
+			return null;
+		}
 		else {
-			int index = s.lastIndexOf(delimiter);
-
-			if (index < 0) {
-				return null;
-			}
-			else {
-				return s.substring(index + delimiter.length());
-			}
+			return s.substring(index + delimiter.length());
 		}
 	}
 
 	/**
-	 * @deprecated
+	 * Returns the substring of all leading digits of string <code>s</code>, or
+	 * an empty string if it has no leading digits.
+	 *
+	 * @param  s the string from which to extract the substring
+	 * @return the substring of all leading digits of string <code>s</code>, or
+	 *         an empty string if it has no leading digits
 	 */
-	public static String highlight(String s, String keywords) {
-		return highlight(s, keywords, "<span class=\"highlight\">", "</span>");
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public static String highlight(
-		String s, String keywords, String highlight1, String highlight2) {
-
-		if (Validator.isNull(s) || Validator.isNull(keywords)) {
-			return s;
-		}
-
-		Pattern pattern = Pattern.compile(
-			Pattern.quote(keywords), Pattern.CASE_INSENSITIVE);
-
-		return _highlight(s, pattern, highlight1, highlight2);
-	}
-
-	public static String highlight(String s, String[] queryTerms) {
-		return highlight(
-			s, queryTerms, "<span class=\"highlight\">", "</span>");
-	}
-
-	public static String highlight(
-		String s, String[] queryTerms, String highlight1, String highlight2) {
-
-		if (Validator.isNull(s) || Validator.isNull(queryTerms)) {
-			return s;
-		}
-
-		if (queryTerms.length == 0) {
+	public static String extractLeadingDigits(String s) {
+		if (s == null) {
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler(2 * queryTerms.length - 1);
+		StringBundler sb = new StringBundler();
 
-		for (int i = 0; i < queryTerms.length; i++) {
-			sb.append(Pattern.quote(queryTerms[i].trim()));
+		char[] chars = s.toCharArray();
 
-			if ((i + 1) < queryTerms.length) {
-				sb.append(StringPool.PIPE);
+		for (char c : chars) {
+			if (Validator.isDigit(c)) {
+				sb.append(c);
+			}
+			else {
+				return sb.toString();
 			}
 		}
 
-		int flags = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+		return sb.toString();
+	}
 
-		Pattern pattern = Pattern.compile(sb.toString(), flags);
+	/**
+	 * @deprecated As of 7.0.0, moved to {@link SearchUtil#highlight(String,
+	 *             String[])}}
+	 */
+	@Deprecated
+	public static String highlight(String s, String[] queryTerms) {
+		return SearchUtil.highlight(s, queryTerms);
+	}
 
-		return _highlight(s, pattern, highlight1, highlight2);
+	/**
+	 * @deprecated As of 7.0.0, moved to {@link SearchUtil#highlight(String,
+	 *             String[], String, String)}}
+	 */
+	@Deprecated
+	public static String highlight(
+		String s, String[] queryTerms, String highlight1, String highlight2) {
+
+		return SearchUtil.highlight(s, queryTerms, highlight1, highlight2);
+	}
+
+	/**
+	 * Returns the index within the string of the first occurrence of any
+	 * character from the array.
+	 *
+	 * <p>
+	 * A <code>null</code> string returns <code>-1</code>. A <code>null</code>
+	 * or empty array returns <code>-1</code>.
+	 * </p>
+	 *
+	 * <p>
+	 * Examples:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * indexOfAny(null, *) returns -1
+	 * indexOfAny(*, null) returns -1
+	 * indexOfAny(*, []) returns -1
+	 * indexOfAny("zzabyycdxx", ['a','c']) returns 2
+	 * indexOfAny("zzabyycdxx", ['c','a']) returns 2
+	 * indexOfAny("zzabyycdxx", ['m','n']) returns -1
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string to search (optionally <code>null</code>)
+	 * @param  chars the characters to search for (optionally <code>null</code>)
+	 * @return the index within the string of the first occurrence of any
+	 *         character from the array, or <code>-1</code> if none of the
+	 *         characters occur
+	 */
+	public static int indexOfAny(String s, char[] chars) {
+		if (s == null) {
+			return -1;
+		}
+
+		return indexOfAny(s, chars, 0, s.length() - 1);
+	}
+
+	/**
+	 * Returns the index within the string of the first occurrence of any
+	 * character from the array, starting the search at the specified index
+	 * within the string.
+	 *
+	 * <p>
+	 * A <code>null</code> string returns <code>-1</code>. A <code>null</code>
+	 * or empty array returns <code>-1</code>.
+	 * </p>
+	 *
+	 * <p>
+	 * Examples:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * indexOfAny(null, *, *) returns -1
+	 * indexOfAny(*, null, *) returns -1
+	 * indexOfAny(*, [], *) returns -1
+	 * indexOfAny("zzabyycdxx", ['a','c'], 3) returns 6
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string to search (optionally <code>null</code>)
+	 * @param  chars the characters to search for (optionally <code>null</code>)
+	 * @param  fromIndex the start index within the string
+	 * @return the index within the string of the first occurrence of any
+	 *         character from the array, starting the search at the specified
+	 *         index within the string, or <code>-1</code> if none of the
+	 *         characters occur
+	 */
+	public static int indexOfAny(String s, char[] chars, int fromIndex) {
+		if (s == null) {
+			return -1;
+		}
+
+		return indexOfAny(s, chars, fromIndex, s.length() - 1);
+	}
+
+	/**
+	 * Returns the index within the string of the first occurrence of any
+	 * character from the array, up to and including the specified end index
+	 * within the string, starting the search at the specified start index
+	 * within the string.
+	 *
+	 * <p>
+	 * A <code>null</code> string returns <code>-1</code>. A <code>null</code>
+	 * or empty array returns <code>-1</code>.
+	 * </p>
+	 *
+	 * <p>
+	 * Examples:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * indexOfAny(null, *, *, *) returns -1
+	 * indexOfAny(*, null, *, *) returns -1
+	 * indexOfAny(*, [], *, *) returns -1
+	 * indexOfAny("zzabyycdxx", ['a','c'], 3, 7) returns 6
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string to search (optionally <code>null</code>)
+	 * @param  chars the characters to search for (optionally <code>null</code>)
+	 * @param  fromIndex the start index within the string
+	 * @param  toIndex the end index within the string
+	 * @return the index within the string of the first occurrence of any
+	 *         character from the array, up to and including the specified end
+	 *         index within the string, starting the search at the specified
+	 *         start index within the string, or <code>-1</code> if none of the
+	 *         characters occur
+	 */
+	public static int indexOfAny(
+		String s, char[] chars, int fromIndex, int toIndex) {
+
+		if ((s == null) || (toIndex < fromIndex)) {
+			return -1;
+		}
+
+		if (ArrayUtil.isEmpty(chars)) {
+			return -1;
+		}
+
+		if (fromIndex >= s.length()) {
+			return -1;
+		}
+
+		if (fromIndex < 0) {
+			fromIndex = 0;
+		}
+
+		if (toIndex >= s.length()) {
+			toIndex = s.length() - 1;
+		}
+
+		for (int i = fromIndex; i <= toIndex; i++) {
+			char c = s.charAt(i);
+
+			for (int j = 0; j < chars.length; j++) {
+				if (c == chars[j]) {
+					return i;
+				}
+			}
+		}
+
+		return -1;
+	}
+
+	/**
+	 * Returns the index within the string of the first occurrence of any string
+	 * from the array.
+	 *
+	 * <p>
+	 * A <code>null</code> string returns <code>-1</code>. A <code>null</code>
+	 * or empty array returns <code>-1</code>, but an array containing
+	 * <code>""</code> returns <code>0</code> if the string is not
+	 * <code>null</code>.
+	 * </p>
+	 *
+	 * <p>
+	 * Examples:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * indexOfAny(null, *) returns -1
+	 * indexOfAny(*, null) returns -1
+	 * indexOfAny(*, [null]) returns -1
+	 * indexOfAny(*, []) returns -1
+	 * indexOfAny("zzabyycdxx", ["ab","cd"]) returns 2
+	 * indexOfAny("zzabyycdxx", ["cd","ab"]) returns 2
+	 * indexOfAny("zzabyycdxx", ["mn","op"]) returns -1
+	 * indexOfAny("zzabyycdxx", ["mn",""]) returns 0
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string (optionally <code>null</code>)
+	 * @param  texts the strings to search for (optionally <code>null</code>)
+	 * @return the index within the string of the first occurrence of any string
+	 *         from the array, <code>0</code> if the search array contains
+	 *         <code>""</code>, or <code>-1</code> if none of the strings occur
+	 */
+	public static int indexOfAny(String s, String[] texts) {
+		if (s == null) {
+			return -1;
+		}
+
+		return indexOfAny(s, texts, 0, s.length() - 1);
+	}
+
+	/**
+	 * Returns the index within the string of the first occurrence of any string
+	 * from the array, starting the search at the specified index within the
+	 * string.
+	 *
+	 * <p>
+	 * A <code>null</code> string returns <code>-1</code>. A <code>null</code>
+	 * or empty array returns <code>-1</code>, but an array containing
+	 * <code>""</code> returns the specified start index if the string is not
+	 * <code>null</code>.
+	 * </p>
+	 *
+	 * <p>
+	 * Examples:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * indexOfAny(null, *, *) returns -1
+	 * indexOfAny(*, null, *) returns -1
+	 * indexOfAny(*, [null], *) returns -1
+	 * indexOfAny(*, [], *) returns -1
+	 * indexOfAny("zzabyycdxx", ["ab","cd"], 3) returns 6
+	 * indexOfAny("zzabyycdxx", ["cd","ab"], 3) returns 6
+	 * indexOfAny("zzabyycdxx", ["mn","op"], *) returns -1
+	 * indexOfAny("zzabyycdxx", ["mn",""], 3) returns 3
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string to search (optionally <code>null</code>)
+	 * @param  texts the strings to search for (optionally <code>null</code>)
+	 * @param  fromIndex the start index within the string
+	 * @return the index within the string of the first occurrence of any string
+	 *         from the array, starting the search at the specified index within
+	 *         the string, the start index if the search array contains
+	 *         <code>""</code>, or <code>-1</code> if none of the strings occur
+	 */
+	public static int indexOfAny(String s, String[] texts, int fromIndex) {
+		if (s == null) {
+			return -1;
+		}
+
+		return indexOfAny(s, texts, fromIndex, s.length() - 1);
+	}
+
+	/**
+	 * Returns the index within the string of the first occurrence of any string
+	 * from the array, up to and including the specified end index within the
+	 * string, starting the search at the specified start index within the
+	 * string.
+	 *
+	 * <p>
+	 * A <code>null</code> string returns <code>-1</code>. A <code>null</code>
+	 * or empty array returns <code>-1</code>, but an array containing
+	 * <code>""</code> returns the specified start index if the string is not
+	 * <code>null</code>.
+	 * </p>
+	 *
+	 * <p>
+	 * Examples:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * indexOfAny(null, *, *, *) returns -1
+	 * indexOfAny(*, null, *, *) returns -1
+	 * indexOfAny(*, [null], *, *) returns -1
+	 * indexOfAny(*, [], *, *) returns -1
+	 * indexOfAny("zzabyycdxx", ["ab","cd"], 3, 7) returns 6
+	 * indexOfAny("zzabyycdxx", ["cd","ab"], 2, 7) returns 2
+	 * indexOfAny("zzabyycdxx", ["mn","op"], *, *) returns -1
+	 * indexOfAny("zzabyycdxx", ["mn",""], 3, *) returns 3
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string to search (optionally <code>null</code>)
+	 * @param  texts the strings to search for (optionally <code>null</code>)
+	 * @param  fromIndex the start index within the string
+	 * @param  toIndex the end index within the string
+	 * @return the index within the string of the first occurrence of any string
+	 *         from the array, up to and including the specified end index
+	 *         within the string, starting the search at the specified start
+	 *         index within the string, the start index if the search array
+	 *         contains <code>""</code>, or <code>-1</code> if none of the
+	 *         strings occur
+	 */
+	public static int indexOfAny(
+		String s, String[] texts, int fromIndex, int toIndex) {
+
+		if ((s == null) || (toIndex < fromIndex)) {
+			return -1;
+		}
+
+		if (ArrayUtil.isEmpty(texts)) {
+			return -1;
+		}
+
+		if (fromIndex >= s.length()) {
+			return -1;
+		}
+
+		if (fromIndex < 0) {
+			fromIndex = 0;
+		}
+
+		if (toIndex >= s.length()) {
+			toIndex = s.length() - 1;
+		}
+
+		for (int i = fromIndex; i <= toIndex; i++) {
+			for (int j = 0; j < texts.length; j++) {
+				if (texts[j] == null) {
+					continue;
+				}
+
+				if ((i + texts[j].length() <= toIndex + 1) &&
+					s.startsWith(texts[j], i)) {
+
+					return i;
+				}
+			}
+		}
+
+		return -1;
 	}
 
 	/**
@@ -642,29 +1047,455 @@ public class StringUtil {
 		if (offset > s.length()) {
 			return s.concat(insert);
 		}
-		else {
-			String prefix = s.substring(0, offset);
-			String postfix = s.substring(offset);
 
-			return prefix.concat(insert).concat(postfix);
+		String prefix = s.substring(0, offset);
+		String postfix = s.substring(offset);
+
+		return prefix.concat(insert).concat(postfix);
+	}
+
+	/**
+	 * Returns <code>true</code> if all the characters in string <code>s</code>
+	 * are lower case, ignoring any non-alphabetic characters.
+	 *
+	 * @param  s the string in which to search
+	 * @return <code>true</code> if all the characters in string <code>s</code>
+	 *         are lower case, ignoring any non-alphabetic characters;
+	 *         <code>false</code> otherwise
+	 */
+	public static boolean isLowerCase(String s) {
+		if (s == null) {
+			return false;
 		}
+
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+
+			// Fast path for ascii code, fallback to the slow unicode detection
+
+			if (c <= 127) {
+				if ((c >= CharPool.UPPER_CASE_A) &&
+					(c <= CharPool.UPPER_CASE_Z)) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Character.isLetter(c) && Character.isUpperCase(c)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Returns <code>true</code> if all the characters in string <code>s</code>
+	 * are upper case, ignoring any non-alphabetic characters.
+	 *
+	 * @param  s the string in which to search
+	 * @return <code>true</code> if all the characters in string <code>s</code>
+	 *         are upper case, ignoring any non-alphabetic characters;
+	 *         <code>false</code> otherwise
+	 */
+	public static boolean isUpperCase(String s) {
+		if (s == null) {
+			return false;
+		}
+
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+
+			// Fast path for ascii code, fallback to the slow unicode detection
+
+			if (c <= 127) {
+				if ((c >= CharPool.LOWER_CASE_A) &&
+					(c <= CharPool.LOWER_CASE_Z)) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Character.isLetter(c) && Character.isLowerCase(c)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Returns the index within the string of the last occurrence of any
+	 * character from the array.
+	 *
+	 * <p>
+	 * A <code>null</code> string returns <code>-1</code>. A <code>null</code>
+	 * or empty array returns <code>-1</code>.
+	 * </p>
+	 *
+	 * <p>
+	 * Examples:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * lastIndexOfAny(null, *) returns -1
+	 * lastIndexOfAny(*, null) returns -1
+	 * lastIndexOfAny(*, []) returns -1
+	 * lastIndexOfAny("zzabyycdxx", ['a','c']) returns 6
+	 * lastIndexOfAny("zzabyycdxx", ['c','a']) returns 6
+	 * lastIndexOfAny("zzabyycdxx", ['m','n']) returns -1
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string to search (optionally <code>null</code>)
+	 * @param  chars the characters to search for (optionally <code>null</code>)
+	 * @return the index within the string of the last occurrence of any
+	 *         character from the array, or <code>-1</code> if none of the
+	 *         characters occur
+	 */
+	public static int lastIndexOfAny(String s, char[] chars) {
+		if (s == null) {
+			return -1;
+		}
+
+		return lastIndexOfAny(s, chars, 0, s.length() - 1);
+	}
+
+	/**
+	 * Returns the index within the string of the last occurrence of any
+	 * character from the array, starting the search at the specified index
+	 * within the string.
+	 *
+	 * <p>
+	 * A <code>null</code> string returns <code>-1</code>. A <code>null</code>
+	 * or empty array returns <code>-1</code>.
+	 * </p>
+	 *
+	 * <p>
+	 * Examples:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * lastIndexOfAny(null, *, *) returns -1
+	 * lastIndexOfAny(*, null, *) returns -1
+	 * lastIndexOfAny(*, [], *) returns -1
+	 * lastIndexOfAny("zzabyycdxx", ['a','c'], 5) returns 2
+	 * lastIndexOfAny("zzabyycdxx", ['m','n'], *) returns -1
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string to search (optionally <code>null</code>)
+	 * @param  chars the characters to search for (optionally <code>null</code>)
+	 * @param  toIndex the end index within the string
+	 * @return the index within the string of the last occurrence of any
+	 *         character from the array, starting the search at the specified
+	 *         index within the string, or <code>-1</code> if none of the
+	 *         characters occur
+	 */
+	public static int lastIndexOfAny(String s, char[] chars, int toIndex) {
+		if (s == null) {
+			return -1;
+		}
+
+		return lastIndexOfAny(s, chars, 0, toIndex);
+	}
+
+	/**
+	 * Returns the index within the string of the last occurrence of any
+	 * character from the array, up to and including the specified end index
+	 * within the string, starting the search at the specified start index
+	 * within the string.
+	 *
+	 * <p>
+	 * A <code>null</code> string returns <code>-1</code>. A <code>null</code>
+	 * or empty array returns <code>-1</code>.
+	 * </p>
+	 *
+	 * <p>
+	 * Examples:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * lastIndexOfAny(null</code>, *, *, *) returns -1
+	 * lastIndexOfAny(*, null</code>, *, *) returns -1
+	 * lastIndexOfAny(*, [], *, *) returns -1
+	 * lastIndexOfAny("zzabyycdxx", ['a','c'], 5, 7) returns 6
+	 * lastIndexOfAny("zzabyycdxx", ['m','n'], *, *) returns -1
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string to search (optionally <code>null</code>)
+	 * @param  chars the characters to search for (optionally <code>null</code>)
+	 * @param  fromIndex the start index within the string
+	 * @param  toIndex the end index within the string
+	 * @return the index within the string of the last occurrence of any
+	 *         character from the array, up to and including the specified end
+	 *         index within the string, starting the search at the specified
+	 *         start index within the string, or <code>-1</code> if none of the
+	 *         characters occur
+	 */
+	public static int lastIndexOfAny(
+		String s, char[] chars, int fromIndex, int toIndex) {
+
+		if ((s == null) || (toIndex < fromIndex)) {
+			return -1;
+		}
+
+		if (ArrayUtil.isEmpty(chars)) {
+			return -1;
+		}
+
+		if (fromIndex >= s.length()) {
+			return -1;
+		}
+
+		if (fromIndex < 0) {
+			fromIndex = 0;
+		}
+
+		if (toIndex >= s.length()) {
+			toIndex = s.length() - 1;
+		}
+
+		for (int i = toIndex; i >= fromIndex; i--) {
+			char c = s.charAt(i);
+
+			for (int j = 0; j < chars.length; j++) {
+				if (c == chars[j]) {
+					return i;
+				}
+			}
+		}
+
+		return -1;
+	}
+
+	/**
+	 * Returns the index within the string of the last occurrence of any string
+	 * from the array.
+	 *
+	 * <p>
+	 * A <code>null</code> string returns <code>-1</code>. A <code>null</code>
+	 * or empty array returns <code>-1</code>, but an array containing
+	 * <code>""</code> returns <code>0</code> if the string is not
+	 * <code>null</code>.
+	 * </p>
+	 *
+	 * <p>
+	 * Examples:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * lastIndexOfAny(null</code>, *) returns -1
+	 * lastIndexOfAny(*, null</code>) returns -1
+	 * lastIndexOfAny(*, []) returns -1
+	 * lastIndexOfAny(*, [null</code>]) returns -1
+	 * lastIndexOfAny("zzabyycdxx", ["ab","cd"]) returns 6
+	 * lastIndexOfAny("zzabyycdxx", ["cd","ab"]) returns 6
+	 * lastIndexOfAny("zzabyycdxx", ["mn","op"]) returns -1
+	 * lastIndexOfAny("zzabyycdxx", ["mn",""]) returns 10
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string to search (optionally <code>null</code>)
+	 * @param  texts the strings to search for (optionally <code>null</code>)
+	 * @return the index within the string of the last occurrence of any string
+	 *         from the array, <code>0</code> if the search array contains
+	 *         <code>""</code>, or <code>-1</code> if none of the strings occur
+	 */
+	public static int lastIndexOfAny(String s, String[] texts) {
+		if (s == null) {
+			return -1;
+		}
+
+		return lastIndexOfAny(s, texts, 0, s.length() - 1);
+	}
+
+	/**
+	 * Returns the index within the string of the last occurrence of any string
+	 * from the array, starting the search at the specified index within the
+	 * string.
+	 *
+	 * <p>
+	 * A <code>null</code> string returns <code>-1</code>. A <code>null</code>
+	 * or empty array returns <code>-1</code>, but an array containing
+	 * <code>""</code> returns the specified start index if the string is not
+	 * <code>null</code>.
+	 * </p>
+	 *
+	 * <p>
+	 * Examples:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * lastIndexOfAny(null, *, *) returns -1
+	 * lastIndexOfAny(*, null, *) returns -1
+	 * lastIndexOfAny(*, [], *) returns -1
+	 * lastIndexOfAny(*, [null], *) returns -1
+	 * lastIndexOfAny("zzabyycdxx", ["ab","cd"], 5) returns 2
+	 * lastIndexOfAny("zzabyycdxx", ["cd","ab"], 5) returns 2
+	 * lastIndexOfAny("zzabyycdxx", ["mn","op"], *) returns -1
+	 * lastIndexOfAny("zzabyycdxx", ["mn",""], 5) returns 5
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string to search (optionally <code>null</code>)
+	 * @param  texts the strings to search for (optionally <code>null</code>)
+	 * @param  toIndex the end index within the string
+	 * @return the index within the string of the last occurrence of any string
+	 *         from the array, starting the search at the specified index within
+	 *         the string, the start index if the search array contains
+	 *         <code>""</code>, or <code>-1</code> if none of the strings occur
+	 */
+	public static int lastIndexOfAny(String s, String[] texts, int toIndex) {
+		if (s == null) {
+			return -1;
+		}
+
+		return lastIndexOfAny(s, texts, 0, toIndex);
+	}
+
+	/**
+	 * Returns the index within the string of the last occurrence of any string
+	 * from the array, up to and including the specified end index within the
+	 * string, starting the search at the specified start index within the
+	 * string.
+	 *
+	 * <p>
+	 * A <code>null</code> string returns <code>-1</code>. A <code>null</code>
+	 * or empty array returns <code>-1</code>, but an array containing
+	 * <code>""</code> returns the specified end index if the string is not
+	 * <code>null</code>.
+	 * </p>
+	 *
+	 * <p>
+	 * Examples:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * lastIndexOfAny(null, *, *, *) returns -1
+	 * lastIndexOfAny(*, null, *, *) returns -1
+	 * lastIndexOfAny(*, [], *, *) returns -1
+	 * lastIndexOfAny(*, [null], *, *) returns -1
+	 * lastIndexOfAny("zzabyycdxx", ["ab","cd"], 2, 5) returns 2
+	 * lastIndexOfAny("zzabyycdxx", ["mn","op"], *, *) returns -1
+	 * lastIndexOfAny("zzabyycdxx", ["mn",""], 2, 5) returns 5
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string to search (optionally <code>null</code>)
+	 * @param  texts the strings to search for (optionally <code>null</code>)
+	 * @param  fromIndex the start index within the string
+	 * @param  toIndex the end index within the string
+	 * @return the index within the string of the last occurrence of any string
+	 *         from the array, up to and including the specified end index
+	 *         within the string, starting the search at the specified start
+	 *         index within the string, the end index if the search array
+	 *         contains <code>""</code>, or <code>-1</code> if none of the
+	 *         strings occur
+	 */
+	public static int lastIndexOfAny(
+		String s, String[] texts, int fromIndex, int toIndex) {
+
+		if ((s == null) || (toIndex < fromIndex)) {
+			return -1;
+		}
+
+		if (ArrayUtil.isEmpty(texts)) {
+			return -1;
+		}
+
+		if (fromIndex >= s.length()) {
+			return -1;
+		}
+
+		if (fromIndex < 0) {
+			fromIndex = 0;
+		}
+
+		if (toIndex >= s.length()) {
+			toIndex = s.length() - 1;
+		}
+
+		for (int i = toIndex; i >= fromIndex; i--) {
+			for (int j = 0; j < texts.length; j++) {
+				if (texts[j] == null) {
+					continue;
+				}
+
+				if ((i + texts[j].length() <= toIndex + 1) &&
+					s.startsWith(texts[j], i)) {
+
+					return i;
+				}
+			}
+		}
+
+		return -1;
 	}
 
 	/**
 	 * Converts all of the characters in the string to lower case.
 	 *
 	 * @param  s the string to convert
-	 * @return the string, converted to lowercase, or <code>null</code> if the
+	 * @return the string, converted to lower case, or <code>null</code> if the
 	 *         string is <code>null</code>
-	 * @see    {@link String#toLowerCase()}
+	 * @see    String#toLowerCase()
 	 */
 	public static String lowerCase(String s) {
-		if (s == null) {
-			return null;
+		return toLowerCase(s);
+	}
+
+	/**
+	 * Converts all of the characters in the arbitrary number of strings to
+	 * lower case.
+	 *
+	 * @param array the array or sequence of string arguments
+	 */
+	public static void lowerCase(String... array) {
+		if (array != null) {
+			for (int i = 0; i < array.length; i++) {
+				array[i] = toLowerCase(array[i]);
+			}
 		}
-		else {
-			return s.toLowerCase();
+	}
+
+	/**
+	 * Converts the first character of the string to lower case.
+	 *
+	 * @param  s the string whose first character is to be converted
+	 * @return the string, with its first character converted to lower-case
+	 */
+	public static String lowerCaseFirstLetter(String s) {
+		char[] chars = s.toCharArray();
+
+		if ((chars[0] >= 65) && (chars[0] <= 90)) {
+			chars[0] = (char)(chars[0] + 32);
 		}
+
+		return new String(chars);
 	}
 
 	/**
@@ -740,11 +1571,11 @@ public class StringUtil {
 		StringBundler sb = new StringBundler(2 * array.length - 1);
 
 		for (int i = 0; i < array.length; i++) {
-			sb.append(String.valueOf(array[i]).trim());
-
-			if ((i + 1) != array.length) {
+			if (i != 0) {
 				sb.append(delimiter);
 			}
+
+			sb.append(String.valueOf(array[i]));
 		}
 
 		return sb.toString();
@@ -785,20 +1616,38 @@ public class StringUtil {
 		StringBundler sb = new StringBundler(2 * array.length - 1);
 
 		for (int i = 0; i < array.length; i++) {
-			sb.append(String.valueOf(array[i]).trim());
-
-			if ((i + 1) != array.length) {
+			if (i != 0) {
 				sb.append(delimiter);
 			}
+
+			sb.append(String.valueOf(array[i]));
 		}
 
 		return sb.toString();
 	}
 
+	/**
+	 * Merges the elements of the collection by returning a string representing
+	 * a comma delimited list of its values.
+	 *
+	 * @param  col the collection of objects
+	 * @return the merged collection elements, or <code>null</code> if the
+	 *         collection is <code>null</code>
+	 */
 	public static String merge(Collection<?> col) {
 		return merge(col, StringPool.COMMA);
 	}
 
+	/**
+	 * Merges the elements of the collection by returning a string representing
+	 * a delimited list of its values.
+	 *
+	 * @param  col the collection of objects
+	 * @param  delimiter the string whose last index in the string marks where
+	 *         to begin the substring
+	 * @return the merged collection elements, or <code>null</code> if the
+	 *         collection is <code>null</code>
+	 */
 	public static String merge(Collection<?> col, String delimiter) {
 		if (col == null) {
 			return null;
@@ -843,11 +1692,11 @@ public class StringUtil {
 		StringBundler sb = new StringBundler(2 * array.length - 1);
 
 		for (int i = 0; i < array.length; i++) {
-			sb.append(String.valueOf(array[i]).trim());
-
-			if ((i + 1) != array.length) {
+			if (i != 0) {
 				sb.append(delimiter);
 			}
+
+			sb.append(String.valueOf(array[i]));
 		}
 
 		return sb.toString();
@@ -888,11 +1737,11 @@ public class StringUtil {
 		StringBundler sb = new StringBundler(2 * array.length - 1);
 
 		for (int i = 0; i < array.length; i++) {
-			sb.append(String.valueOf(array[i]).trim());
-
-			if ((i + 1) != array.length) {
+			if (i != 0) {
 				sb.append(delimiter);
 			}
+
+			sb.append(String.valueOf(array[i]));
 		}
 
 		return sb.toString();
@@ -933,11 +1782,11 @@ public class StringUtil {
 		StringBundler sb = new StringBundler(2 * array.length - 1);
 
 		for (int i = 0; i < array.length; i++) {
-			sb.append(String.valueOf(array[i]).trim());
-
-			if ((i + 1) != array.length) {
+			if (i != 0) {
 				sb.append(delimiter);
 			}
+
+			sb.append(String.valueOf(array[i]));
 		}
 
 		return sb.toString();
@@ -978,11 +1827,11 @@ public class StringUtil {
 		StringBundler sb = new StringBundler(2 * array.length - 1);
 
 		for (int i = 0; i < array.length; i++) {
-			sb.append(String.valueOf(array[i]).trim());
-
-			if ((i + 1) != array.length) {
+			if (i != 0) {
 				sb.append(delimiter);
 			}
+
+			sb.append(String.valueOf(array[i]));
 		}
 
 		return sb.toString();
@@ -1023,11 +1872,11 @@ public class StringUtil {
 		StringBundler sb = new StringBundler(2 * array.length - 1);
 
 		for (int i = 0; i < array.length; i++) {
-			sb.append(String.valueOf(array[i]).trim());
-
-			if ((i + 1) != array.length) {
+			if (i != 0) {
 				sb.append(delimiter);
 			}
+
+			sb.append(String.valueOf(array[i]).trim());
 		}
 
 		return sb.toString();
@@ -1068,11 +1917,11 @@ public class StringUtil {
 		StringBundler sb = new StringBundler(2 * array.length - 1);
 
 		for (int i = 0; i < array.length; i++) {
-			sb.append(String.valueOf(array[i]).trim());
-
-			if ((i + 1) != array.length) {
+			if (i != 0) {
 				sb.append(delimiter);
 			}
+
+			sb.append(String.valueOf(array[i]));
 		}
 
 		return sb.toString();
@@ -1085,11 +1934,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * quote("Hello, World!") returns "'Hello, World!'"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to enclose in apostrophes
 	 * @return the string enclosed by apostrophes, or <code>null</code> if the
@@ -1106,11 +1957,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * quote("PATH", '%') returns "%PATH%"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to enclose in quotes
 	 * @param  quote the character to insert to insert to the beginning of and
@@ -1133,11 +1986,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * quote("WARNING", "!!!") returns "!!!WARNING!!!"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to enclose in quotes
 	 * @param  quote the quote string to insert to insert to the beginning of
@@ -1154,6 +2009,23 @@ public class StringUtil {
 	}
 
 	/**
+	 * Returns a randomized string of four lower case, alphabetic characters.
+	 *
+	 * @return a randomized string of four lower case, alphabetic characters
+	 */
+	public static String randomId() {
+		Random random = new Random();
+
+		char[] chars = new char[4];
+
+		for (int i = 0; i < 4; i++) {
+			chars[i] = (char)(CharPool.LOWER_CASE_A + random.nextInt(26));
+		}
+
+		return new String(chars);
+	}
+
+	/**
 	 * Pseudorandomly permutes the characters of the string.
 	 *
 	 * @param  s the string whose characters are to be randomized
@@ -1162,7 +2034,40 @@ public class StringUtil {
 	 *         string
 	 */
 	public static String randomize(String s) {
-		return Randomizer.getInstance().randomize(s);
+		return RandomUtil.shuffle(s);
+	}
+
+	/**
+	 * Returns a randomized string of eight characters consisting of lower case
+	 * letters, upper case letters, and single-digit whole numbers.
+	 *
+	 * @return a randomized string of eight characters consisting of lower case
+	 *         letters, upper case letters, and single-digit whole numbers
+	 */
+	public static String randomString() {
+		return randomString(8);
+	}
+
+	/**
+	 * Returns a randomized string of the specified length consisting of lower
+	 * case letters, upper case letters, and single-digit whole numbers.
+	 *
+	 * @param  length the character length of the randomized string
+	 * @return a randomized string of the specified length consisting of lower
+	 *         case letters, upper case letters, and single-digit whole numbers
+	 */
+	public static String randomString(int length) {
+		Random random = new Random();
+
+		char[] chars = new char[length];
+
+		for (int i = 0; i < length; i++) {
+			int index = random.nextInt(_RANDOM_STRING_CHAR_TABLE.length);
+
+			chars[i] = _RANDOM_STRING_CHAR_TABLE[index];
+		}
+
+		return new String(chars);
 	}
 
 	public static String read(ClassLoader classLoader, String name)
@@ -1189,31 +2094,36 @@ public class StringUtil {
 						"Unable to open resource at " + url.toString());
 				}
 
-				String s = read(is);
+				try {
+					String s = read(is);
 
-				if (s != null) {
-					sb.append(s);
-					sb.append(StringPool.NEW_LINE);
+					if (s != null) {
+						sb.append(s);
+						sb.append(StringPool.NEW_LINE);
+					}
 				}
-
-				is.close();
+				finally {
+					StreamUtil.cleanUp(is);
+				}
 			}
 
 			return sb.toString().trim();
 		}
-		else {
-			InputStream is = classLoader.getResourceAsStream(name);
 
-			if (is == null) {
-				throw new IOException(
-					"Unable to open resource in class loader " + name);
-			}
+		InputStream is = classLoader.getResourceAsStream(name);
 
+		if (is == null) {
+			throw new IOException(
+				"Unable to open resource in class loader " + name);
+		}
+
+		try {
 			String s = read(is);
 
-			is.close();
-
 			return s;
+		}
+		finally {
+			StreamUtil.cleanUp(is);
 		}
 	}
 
@@ -1225,12 +2135,15 @@ public class StringUtil {
 
 		String line = null;
 
-		while ((line = unsyncBufferedReader.readLine()) != null) {
-			sb.append(line);
-			sb.append(CharPool.NEW_LINE);
+		try {
+			while ((line = unsyncBufferedReader.readLine()) != null) {
+				sb.append(line);
+				sb.append(CharPool.NEW_LINE);
+			}
 		}
-
-		unsyncBufferedReader.close();
+		finally {
+			unsyncBufferedReader.close();
+		}
 
 		return sb.toString().trim();
 	}
@@ -1251,6 +2164,24 @@ public class StringUtil {
 	}
 
 	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #removeFromList(String,
+	 *             String)}
+	 */
+	@Deprecated
+	public static String remove(String s, String element) {
+		return removeFromList(s, element, StringPool.COMMA);
+	}
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #removeFromList(String,
+	 *             String, String)}
+	 */
+	@Deprecated
+	public static String remove(String s, String element, String delimiter) {
+		return removeFromList(s, element, delimiter);
+	}
+
+	/**
 	 * Removes the <code>remove</code> string from string <code>s</code> that
 	 * represents a list of comma delimited strings.
 	 *
@@ -1263,6 +2194,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * remove("red,blue,green,yellow", "blue") returns "red,green,yellow,"
@@ -1270,16 +2202,17 @@ public class StringUtil {
 	 * remove("blue,", "blue") returns ""
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string representing the list of comma delimited strings
-	 * @param  remove the string to remove
+	 * @param  element the string to remove
 	 * @return a string representing the list of comma delimited strings with
 	 *         the <code>remove</code> string removed, or <code>null</code> if
 	 *         the original string, the string to remove, or the delimiter is
 	 *         <code>null</code>
 	 */
-	public static String remove(String s, String remove) {
-		return remove(s, remove, StringPool.COMMA);
+	public static String removeFromList(String s, String element) {
+		return removeFromList(s, element, StringPool.COMMA);
 	}
 
 	/**
@@ -1295,24 +2228,28 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
-	 * remove("red;blue;green;yellow", "blue") returns "red,green,yellow;"
-	 * remove("blue", "blue") returns ""
-	 * remove("blue;", "blue") returns ""
+	 * remove("red;blue;green;yellow", "blue", ";") returns "red;green;yellow;"
+	 * remove("blue", "blue", ";") returns ""
+	 * remove("blue;", "blue", ";") returns ""
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string representing the list of delimited strings
-	 * @param  remove the string to remove
+	 * @param  element the string to remove
 	 * @param  delimiter the delimiter
 	 * @return a string representing the list of delimited strings with the
 	 *         <code>remove</code> string removed, or <code>null</code> if the
 	 *         original string, the string to remove, or the delimiter is
 	 *         <code>null</code>
 	 */
-	public static String remove(String s, String remove, String delimiter) {
-		if ((s == null) || (remove == null) || (delimiter == null)) {
+	public static String removeFromList(
+		String s, String element, String delimiter) {
+
+		if ((s == null) || (element == null) || (delimiter == null)) {
 			return null;
 		}
 
@@ -1320,23 +2257,23 @@ public class StringUtil {
 			s += delimiter;
 		}
 
-		String drd = delimiter.concat(remove).concat(delimiter);
+		String drd = delimiter.concat(element).concat(delimiter);
 
-		String rd = remove.concat(delimiter);
+		String rd = element.concat(delimiter);
 
-		while (contains(s, remove, delimiter)) {
+		while (contains(s, element, delimiter)) {
 			int pos = s.indexOf(drd);
 
 			if (pos == -1) {
 				if (s.startsWith(rd)) {
-					int x = remove.length() + delimiter.length();
+					int x = element.length() + delimiter.length();
 					int y = s.length();
 
 					s = s.substring(x, y);
 				}
 			}
 			else {
-				int x = pos + remove.length() + delimiter.length();
+				int x = pos + element.length() + delimiter.length();
 				int y = s.length();
 
 				String temp = s.substring(0, pos);
@@ -1479,6 +2416,43 @@ public class StringUtil {
 		}
 	}
 
+	/**
+	 * Replaces all occurrences of the of the keywords found in the substring,
+	 * defined by the beginning and ending strings, with the new values.
+	 *
+	 * <p>
+	 * For example, with the following initialized variables:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * String s = "http://www.example-url/${userId}";
+	 * String begin = "${";
+	 * String end = "}";
+	 * Map<String, String> values =  new HashMap&#60;String, String&#62;();
+	 * values.put("userId", "jbloggs");
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * <p>
+	 * <code>replace(s, begin, end, values)</code> returns
+	 * <code>"http://www.example-url/jbloggs"</code>
+	 * </p>
+	 *
+	 * @param  s the original string
+	 * @param  begin the string preceding the substring to be modified. This
+	 *         string is excluded from the result.
+	 * @param  end the string following the substring to be modified. This
+	 *         string is excluded from the result.
+	 * @param  values the key-value map values
+	 * @return a string representing the original string with all occurrences of
+	 *         the of the keywords found in the substring, replaced with the new
+	 *         values. <code>null</code> is returned if the original string, the
+	 *         beginning string, the ending string, or the key-map values are
+	 *         <code>null</code>.
+	 */
 	public static String replace(
 		String s, String begin, String end, Map<String, String> values) {
 
@@ -1527,6 +2501,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * replace("redorangeyellow", {"red", "orange", "yellow"}, {"RED","ORANGE", "YELLOW"}, false) returns "REDORANGEYELLOW"
@@ -1537,6 +2512,7 @@ public class StringUtil {
 	 * replace("redorange.yellow", {"red", "orange", "yellow"}, {"RED","ORANGE", * "YELLOW"}, true) returns "redorange.YELLOW"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @param  oldSubs the strings to be searched for and replaced in the
@@ -1553,7 +2529,7 @@ public class StringUtil {
 	 *         all occurrences of the <code>oldSubs</code> strings replaced with
 	 *         the corresponding <code>newSubs</code> strings, or
 	 *         <code>null</code> if the original string, the
-	 *         <code>oldSubs</code> array, or the <code>newSubs</code is
+	 *         <code>oldSubs</code> array, or the <code>newSubs</code> is
 	 *         <code>null</code>
 	 */
 	public static String replace(
@@ -1631,6 +2607,29 @@ public class StringUtil {
 	 *         string <code>newSub</code>
 	 */
 	public static String replaceFirst(String s, String oldSub, String newSub) {
+		return replaceFirst(s, oldSub, newSub, 0);
+	}
+
+	/**
+	 * Replaces the first occurrences of the elements of the string array with
+	 * the corresponding elements of the new string array, beginning the element
+	 * search from the index position.
+	 *
+	 * @param  s the original string
+	 * @param  oldSub the strings whose first occurrences are to be searched for
+	 *         and replaced in the original string
+	 * @param  newSub the strings with which to replace the first occurrences of
+	 *         the <code>oldSubs</code> strings
+	 * @param  fromIndex the start index within the string
+	 * @return a string representing the original string with the first
+	 *         occurrences of the <code>oldSubs</code> strings replaced with the
+	 *         corresponding <code>newSubs</code> strings, or <code>null</code>
+	 *         if the original string, the <code>oldSubs</code> string, or the
+	 *         <code>newSubs</code> string is <code>null</code>
+	 */
+	public static String replaceFirst(
+		String s, String oldSub, String newSub, int fromIndex) {
+
 		if ((s == null) || (oldSub == null) || (newSub == null)) {
 			return null;
 		}
@@ -1639,7 +2638,7 @@ public class StringUtil {
 			return s;
 		}
 
-		int y = s.indexOf(oldSub);
+		int y = s.indexOf(oldSub, fromIndex);
 
 		if (y >= 0) {
 			return s.substring(0, y).concat(newSub).concat(
@@ -1663,7 +2662,7 @@ public class StringUtil {
 	 *         occurrences of the <code>oldSubs</code> strings replaced with the
 	 *         corresponding <code>newSubs</code> strings, or <code>null</code>
 	 *         if the original string, the <code>oldSubs</code> array, or the
-	 *         <code>newSubs</code is <code>null</code>
+	 *         <code>newSubs</code> is <code>null</code>
 	 */
 	public static String replaceFirst(
 		String s, String[] oldSubs, String[] newSubs) {
@@ -1769,7 +2768,7 @@ public class StringUtil {
 	 *         occurrences of the <code>oldSubs</code> strings replaced with the
 	 *         corresponding <code>newSubs</code> strings, or <code>null</code>
 	 *         if the original string, the <code>oldSubs</code> array, or the
-	 *         <code>newSubs</code is <code>null</code>
+	 *         <code>newSubs</code> is <code>null</code>
 	 */
 	public static String replaceLast(
 		String s, String[] oldSubs, String[] newSubs) {
@@ -1789,11 +2788,51 @@ public class StringUtil {
 		return s;
 	}
 
+	/**
+	 * Replaces all occurrences of the of the keywords found in the substring,
+	 * defined by the beginning and ending strings, with the new values. The
+	 * result is returned as a {@link StringBundler}.
+	 *
+	 * <p>
+	 * For example, with the following initialized variables:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * String s = "http://www.example-url/${userId}";
+	 * String begin = "${";
+	 * String end = "}";
+	 * Map<String, String> values =  new HashMap&#60;String, String&#62;();
+	 * values.put("userId", "jbloggs");
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * <p>
+	 * <code>StringBundler sb = replaceToStringBundler(s, begin, end,
+	 * values)</code> <code>sb.toString()</code> returns
+	 * <code>"http://www.example-url/jbloggs"</code>
+	 * </p>
+	 *
+	 * @param  s the original string
+	 * @param  begin the string preceding the substring to be modified. This
+	 *         string is excluded from the result.
+	 * @param  end the string following the substring to be modified. This
+	 *         string is excluded from the result.
+	 * @param  values the key-value map values
+	 * @return a string bundler representing the original string with all
+	 *         occurrences of the of the keywords found in the substring,
+	 *         replaced with the new values. <code>null</code> is returned if
+	 *         the original string, the beginning string, the ending string, or
+	 *         the key-map values are <code>null</code>.
+	 * @see    #replace(String, String, String, Map)
+	 */
 	public static StringBundler replaceToStringBundler(
 		String s, String begin, String end, Map<String, String> values) {
 
-		if ((s == null) || (begin == null) || (end == null) ||
-			(values == null) || (values.size() == 0)) {
+		if (Validator.isBlank(s) || Validator.isBlank(begin) ||
+			Validator.isBlank(end) || MapUtil.isEmpty(values)) {
 
 			return new StringBundler(s);
 		}
@@ -1831,11 +2870,29 @@ public class StringUtil {
 		return sb;
 	}
 
+	/**
+	 * Replaces all occurrences of the of the keywords found in the substring,
+	 * defined by the beginning and ending strings, with the new values. The
+	 * result is returned as a {@link StringBundler}.
+	 *
+	 * @param  s the original string
+	 * @param  begin the string preceding the substring to be modified. This
+	 *         string is removed from the result.
+	 * @param  end the string following the substring to be modified. This
+	 *         string is removed from the result.
+	 * @param  values the key-value map values, which has a string keys and
+	 *         {@link StringBundler} values
+	 * @return a string bundler representing the original string with all
+	 *         occurrences of the of the keywords found in the substring,
+	 *         replaced with the new values. <code>null</code> is returned if
+	 *         the original string, the beginning string, the ending string, or
+	 *         the key-map values are <code>null</code>.
+	 */
 	public static StringBundler replaceWithStringBundler(
 		String s, String begin, String end, Map<String, StringBundler> values) {
 
-		if ((s == null) || (begin == null) || (end == null) ||
-			(values == null) || (values.size() == 0)) {
+		if (Validator.isBlank(s) || Validator.isBlank(begin) ||
+			Validator.isBlank(end) || MapUtil.isEmpty(values)) {
 
 			return new StringBundler(s);
 		}
@@ -1909,11 +2966,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * safePath("http://www.liferay.com") returns "http:/www.liferay.com"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  path the original string
 	 * @return a string representing the original string with all double slashes
@@ -1924,8 +2983,8 @@ public class StringUtil {
 	}
 
 	/**
-	 * Returns a string representing the original string shortened to 20
-	 * characters, with suffix "..." appended to it.
+	 * Returns a string representing the original string appended with suffix
+	 * "..." and then shortened to 20 characters.
 	 *
 	 * <p>
 	 * The suffix is only added if the original string exceeds 20 characters. If
@@ -1937,15 +2996,17 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
-	 * shorten("12345678901234567890xyz") returns "12345678901234567890..."
+	 * shorten("12345678901234567890xyz") returns "12345678901234567..."
 	 * shorten("1 345678901234567890xyz") returns "1..."
 	 * shorten(" 2345678901234567890xyz") returns "..."
 	 * shorten("12345678901234567890") returns "12345678901234567890"
 	 * shorten(" 2345678901234567890") returns " 2345678901234567890"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @return a string representing the original string shortened to 20
@@ -1956,8 +3017,8 @@ public class StringUtil {
 	}
 
 	/**
-	 * Returns a string representing the original string shortened to the
-	 * specified length, with suffix "..." appended to it.
+	 * Returns a string representing the original string appended with suffix
+	 * "..." and then shortened to the specified length.
 	 *
 	 * <p>
 	 * The suffix is only added if the original string exceeds the specified
@@ -1970,15 +3031,17 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
-	 * shorten("123456", 5) returns "12345..."
-	 * shorten("1 3456", 5) returns "1..."
-	 * shorten(" 23456", 5) returns "..."
-	 * shorten("12345", 5) returns "12345"
-	 * shorten(" 1234", 5) returns " 1234"
+	 * shorten("123456789", 8) returns "12345..."
+	 * shorten("1 3456789", 8) returns "1..."
+	 * shorten(" 23456789", 8) returns "..."
+	 * shorten("12345678", 8) returns "12345678"
+	 * shorten(" 1234567", 8) returns " 1234567"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @param  length the number of characters to limit from the original string
@@ -1990,8 +3053,8 @@ public class StringUtil {
 	}
 
 	/**
-	 * Returns a string representing the original string shortened to the
-	 * specified length, with the specified suffix appended to it.
+	 * Returns a string representing the original string appended with the
+	 * specified suffix and then shortened to the specified length.
 	 *
 	 * <p>
 	 * The suffix is only added if the original string exceeds the specified
@@ -2004,15 +3067,17 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
-	 * shorten("123456", 5, "... etc.") returns "12345... etc."
-	 * shorten("1 3456", 5, "... etc.") returns "1... etc."
-	 * shorten(" 23456", 5, "... etc.") returns "... etc."
-	 * shorten("12345", 5, "... etc.") returns "12345"
-	 * shorten(" 1234", 5, "... etc.") returns " 1234"
+	 * shorten("12345678901234", 13, "... etc.") returns "12345... etc."
+	 * shorten("1 345678901234", 13, "... etc.") returns "1... etc."
+	 * shorten(" 2345678901234", 13, "... etc.") returns "... etc."
+	 * shorten("1234567890123", 13, "... etc.") returns "1234567890123"
+	 * shorten(" 123456789012", 13, "... etc.") returns " 123456789012"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @param  length the number of characters to limit from the original string
@@ -2025,26 +3090,36 @@ public class StringUtil {
 			return null;
 		}
 
-		if (s.length() > length) {
-			for (int j = length; j >= 0; j--) {
-				if (Character.isWhitespace(s.charAt(j))) {
-					length = j;
-
-					break;
-				}
-			}
-
-			String temp = s.substring(0, length);
-
-			s = temp.concat(suffix);
+		if (s.length() <= length) {
+			return s;
 		}
 
-		return s;
+		if (length < suffix.length()) {
+			return s.substring(0, length);
+		}
+
+		int curLength = length;
+
+		for (int j = (curLength - suffix.length()); j >= 0; j--) {
+			if (Character.isWhitespace(s.charAt(j))) {
+				curLength = j;
+
+				break;
+			}
+		}
+
+		if (curLength == length) {
+			curLength = length - suffix.length();
+		}
+
+		String temp = s.substring(0, curLength);
+
+		return temp.concat(suffix);
 	}
 
 	/**
-	 * Returns a string representing the original string shortened to 20
-	 * characters, with the specified suffix appended to it.
+	 * Returns a string representing the original string appended with the
+	 * specified suffix and then shortened to 20 characters.
 	 *
 	 * <p>
 	 * The suffix is only added if the original string exceeds 20 characters. If
@@ -2056,15 +3131,17 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
-	 * shorten("12345678901234567890xyz", "... etc.") returns "12345678901234567890... etc."
+	 * shorten("12345678901234567890xyz", "... etc.") returns "123456789012... etc."
 	 * shorten("1 345678901234567890xyz", "... etc.") returns "1... etc."
 	 * shorten(" 2345678901234567890xyz", "... etc.") returns "... etc."
 	 * shorten("12345678901234567890", "... etc.") returns "12345678901234567890"
 	 * shorten(" 2345678901234567890", "... etc.") returns " 2345678901234567890"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @param  suffix the suffix to append
@@ -2082,12 +3159,14 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * split("Alice,Bob,Charlie") returns {"Alice", "Bob", "Charlie"}
 	 * split("Alice, Bob, Charlie") returns {"Alice", " Bob", " Charlie"}
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to split
 	 * @return the array of strings resulting from splitting string
@@ -2120,11 +3199,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * splitLines("First;Second;Third", ';') returns {"First","Second","Third"}
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to split
 	 * @param  delimiter the delimiter
@@ -2252,11 +3333,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * splitLines("oneandtwoandthreeandfour", "and") returns {"one","two","three","four"}
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to split
 	 * @param  delimiter the delimiter
@@ -2495,11 +3578,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * splitLines("Red\rBlue\nGreen") returns {"Red","Blue","Green"}
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to split
 	 * @return the array of strings resulting from splitting string
@@ -2593,7 +3678,7 @@ public class StringUtil {
 
 		String temp = s.substring(0, start.length());
 
-		if (temp.equalsIgnoreCase(start)) {
+		if (equalsIgnoreCase(temp, start)) {
 			return true;
 		}
 		else {
@@ -2637,13 +3722,15 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * strip("Mississipi", 'i') returns "Mssssp"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
-	 * @param  s the string from which to strip all occurrences the character
+	 * @param  s the string from which to strip all occurrences of the character
 	 * @param  remove the character to strip from the string
 	 * @return a string representing the string <code>s</code> with all
 	 *         occurrences of the specified character removed, or
@@ -2687,13 +3774,15 @@ public class StringUtil {
 	 * Example:
 	 * <p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * stripBetween("One small step for man, one giant leap for mankind", "step", "giant ") returns "One small leap for mankind"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
-	 * @param  s the from which to strip a substring
+	 * @param  s the string from which to strip a substring
 	 * @param  begin the beginning characters of the substring to be removed
 	 * @param  end the ending characters of the substring to be removed
 	 * @return a string representing the combination of the substring of
@@ -2705,7 +3794,9 @@ public class StringUtil {
 	 *         <code>null</code>
 	 */
 	public static String stripBetween(String s, String begin, String end) {
-		if ((s == null) || (begin == null) || (end == null)) {
+		if (Validator.isBlank(s) || Validator.isBlank(begin) ||
+			Validator.isBlank(end)) {
+
 			return s;
 		}
 
@@ -2733,6 +3824,43 @@ public class StringUtil {
 	}
 
 	/**
+	 * Returns a string representing the string <code>s</code> with its
+	 * <code>&lt;![CDATA[]]&gt;</code> wrapper removed.
+	 *
+	 * <p>
+	 * Example:
+	 * <p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * stripCDATA("&lt;![CDATA[One small step for man]]&gt;") returns "One small step for man"
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string from which to strip its CDATA wrapper
+	 * @return a string representing the string <code>s</code> with its
+	 *         <code>&lt;![CDATA[]]&gt;</code> wrapper removed, or
+	 *         <code>null</code> if <code>s</code> is <code>null</code>
+	 */
+	public static String stripCDATA(String s) {
+		if (s == null) {
+			return s;
+		}
+
+		if (s.startsWith(StringPool.CDATA_OPEN) &&
+			s.endsWith(StringPool.CDATA_CLOSE)) {
+
+			s = s.substring(
+				StringPool.CDATA_OPEN.length(),
+				s.length() - StringPool.CDATA_CLOSE.length());
+		}
+
+		return s;
+	}
+
+	/**
 	 * Returns a string representing the Unicode character codes of the
 	 * characters comprising the string <code>s</code>.
 	 *
@@ -2740,6 +3868,7 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * toCharCode("a") returns "97"
@@ -2747,6 +3876,7 @@ public class StringUtil {
 	 * toCharCode("c") returns "99"
 	 * toCharCode("What's for lunch?") returns "87104971163911532102111114321081171109910463"
 	 * </code>
+	 * </pre>
 	 * </p>
 	 *
 	 * @param  s the string whose character codes are to be represented
@@ -2763,6 +3893,28 @@ public class StringUtil {
 		return sb.toString();
 	}
 
+	/**
+	 * Returns a string representing the hexidecimal character code of the
+	 * integer.
+	 *
+	 * <p>
+	 * Example:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * toHexString(10) returns "a"
+	 * toHexString(15) returns "f"
+	 * toHexString(10995) returns "2af3"
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  i the integer to convert
+	 * @return a string representing the hexidecimal character code of the
+	 *         integer
+	 */
 	public static String toHexString(int i) {
 		char[] buffer = new char[8];
 
@@ -2778,6 +3930,26 @@ public class StringUtil {
 		return new String(buffer, index, 8 - index);
 	}
 
+	/**
+	 * Returns a string representing the hexidecimal character code of the long
+	 * integer.
+	 *
+	 * <p>
+	 * Example:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * toHexString(12345678910L) returns "2dfdc1c3e"
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  l the long integer to convert
+	 * @return a string representing the hexidecimal character code of the long
+	 *         integer
+	 */
 	public static String toHexString(long l) {
 		char[] buffer = new char[16];
 
@@ -2793,6 +3965,15 @@ public class StringUtil {
 		return new String(buffer, index, 16 - index);
 	}
 
+	/**
+	 * Returns a string representing the hexidecimal character code of the
+	 * <code>Integer</code> or <code>Long</code> object type. If the object is
+	 * not an instance of these types, the object's original value is returned.
+	 *
+	 * @param  obj the object to convert
+	 * @return a string representing the hexidecimal character code of the
+	 *         object
+	 */
 	public static String toHexString(Object obj) {
 		if (obj instanceof Integer) {
 			return toHexString(((Integer)obj).intValue());
@@ -2806,6 +3987,122 @@ public class StringUtil {
 	}
 
 	/**
+	 * Converts all of the characters in the string to lower case, based on the
+	 * portal instance's default locale.
+	 *
+	 * @param  s the string to convert
+	 * @return the string, converted to lower case, or <code>null</code> if the
+	 *         string is <code>null</code>
+	 */
+	public static String toLowerCase(String s) {
+		return toLowerCase(s, null);
+	}
+
+	/**
+	 * Converts all of the characters in the string to lower case, based on the
+	 * locale.
+	 *
+	 * @param  s the string to convert
+	 * @param  locale apply this locale's rules
+	 * @return the string, converted to lower case, or <code>null</code> if the
+	 *         string is <code>null</code>
+	 */
+	public static String toLowerCase(String s, Locale locale) {
+		if (s == null) {
+			return null;
+		}
+
+		StringBuilder sb = null;
+
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+
+			if (c > 127) {
+
+				// Found non-ascii char, fallback to the slow unicode detection
+
+				if (locale == null) {
+					locale = LocaleUtil.getDefault();
+				}
+
+				return s.toLowerCase(locale);
+			}
+
+			if ((c >= 'A') && (c <= 'Z')) {
+				if (sb == null) {
+					sb = new StringBuilder(s);
+				}
+
+				sb.setCharAt(i, (char)(c + 32));
+			}
+		}
+
+		if (sb == null) {
+			return s;
+		}
+
+		return sb.toString();
+	}
+
+	/**
+	 * Converts all of the characters in the string to upper case, based on the
+	 * portal instance's default locale.
+	 *
+	 * @param  s the string to convert
+	 * @return the string, converted to upper case, or <code>null</code> if the
+	 *         string is <code>null</code>
+	 */
+	public static String toUpperCase(String s) {
+		return toUpperCase(s, null);
+	}
+
+	/**
+	 * Converts all of the characters in the string to upper case, based on the
+	 * locale.
+	 *
+	 * @param  s the string to convert
+	 * @param  locale apply this locale's rules
+	 * @return the string, converted to upper case, or <code>null</code> if the
+	 *         string is <code>null</code>
+	 */
+	public static String toUpperCase(String s, Locale locale) {
+		if (s == null) {
+			return null;
+		}
+
+		StringBuilder sb = null;
+
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+
+			if (c > 127) {
+
+				// Found non-ascii char, fallback to the slow unicode detection
+
+				if (locale == null) {
+					locale = LocaleUtil.getDefault();
+				}
+
+				return s.toUpperCase(locale);
+			}
+
+			if ((c >= 'a') && (c <= 'z')) {
+				if (sb == null) {
+					sb = new StringBuilder(s);
+				}
+
+				sb.setCharAt(i, (char)(c - 32));
+			}
+		}
+
+		if (sb == null) {
+			return s;
+		}
+
+		return sb.toString();
+	}
+
+	/**
 	 * Trims all leading and trailing whitespace from the string.
 	 *
 	 * @param  s the original string
@@ -2813,7 +4110,49 @@ public class StringUtil {
 	 *         trailing whitespace removed
 	 */
 	public static String trim(String s) {
-		return trim(s, null);
+		if (s == null) {
+			return null;
+		}
+
+		if (s.length() == 0) {
+			return s;
+		}
+
+		int len = s.length();
+
+		int x = len;
+
+		for (int i = 0; i < len; i++) {
+			char c = s.charAt(i);
+
+			if (!Character.isWhitespace(c)) {
+				x = i;
+
+				break;
+			}
+		}
+
+		if (x == len) {
+			return StringPool.BLANK;
+		}
+
+		int y = x + 1;
+
+		for (int i = len - 1; i > x; i--) {
+			char c = s.charAt(i);
+
+			if (!Character.isWhitespace(c)) {
+				y = i + 1;
+
+				break;
+			}
+		}
+
+		if ((x == 0) && (y == len)) {
+			return s;
+		}
+
+		return s.substring(x, y);
 	}
 
 	/**
@@ -2824,12 +4163,14 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * trim(" \tHey\t ", '\t') returns "\tHey\t"
 	 * trim(" \t Hey \t ", '\t') returns "\t Hey \t"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @param  c the whitespace character to limit trimming
@@ -2856,40 +4197,48 @@ public class StringUtil {
 			return null;
 		}
 
-		char[] chars = s.toCharArray();
+		if (s.length() == 0) {
+			return s;
+		}
 
-		int len = chars.length;
+		if (ArrayUtil.isEmpty(exceptions)) {
+			return trim(s);
+		}
 
-		int x = 0;
-		int y = chars.length;
+		int len = s.length();
+		int x = len;
 
 		for (int i = 0; i < len; i++) {
-			char c = chars[i];
+			char c = s.charAt(i);
 
-			if (_isTrimable(c, exceptions)) {
-				x = i + 1;
-			}
-			else {
+			if (!_isTrimable(c, exceptions)) {
+				x = i;
+
 				break;
 			}
 		}
 
-		for (int i = len - 1; i >= 0; i--) {
-			char c = chars[i];
+		if (x == len) {
+			return StringPool.BLANK;
+		}
 
-			if (_isTrimable(c, exceptions)) {
-				y = i;
-			}
-			else {
+		int y = x + 1;
+
+		for (int i = len - 1; i > x; i--) {
+			char c = s.charAt(i);
+
+			if (!_isTrimable(c, exceptions)) {
+				y = i + 1;
+
 				break;
 			}
 		}
 
-		if ((x != 0) || (y != len)) {
-			return s.substring(x, y);
+		if ((x == 0) && (y == len)) {
+			return s;
 		}
 		else {
-			return s;
+			return s.substring(x, y);
 		}
 	}
 
@@ -2901,7 +4250,36 @@ public class StringUtil {
 	 *         whitespace removed
 	 */
 	public static String trimLeading(String s) {
-		return trimLeading(s, null);
+		if (s == null) {
+			return null;
+		}
+
+		if (s.length() == 0) {
+			return s;
+		}
+
+		int len = s.length();
+		int x = len;
+
+		for (int i = 0; i < len; i++) {
+			char c = s.charAt(i);
+
+			if (!Character.isWhitespace(c)) {
+				x = i;
+
+				break;
+			}
+		}
+
+		if (x == len) {
+			return StringPool.BLANK;
+		}
+		else if (x == 0) {
+			return s;
+		}
+		else {
+			return s.substring(x);
+		}
 	}
 
 	/**
@@ -2933,29 +4311,35 @@ public class StringUtil {
 			return null;
 		}
 
-		char[] chars = s.toCharArray();
+		if (s.length() == 0) {
+			return s;
+		}
 
-		int len = chars.length;
+		if (ArrayUtil.isEmpty(exceptions)) {
+			return trimLeading(s);
+		}
 
-		int x = 0;
-		int y = chars.length;
+		int len = s.length();
+		int x = len;
 
 		for (int i = 0; i < len; i++) {
-			char c = chars[i];
+			char c = s.charAt(i);
 
-			if (_isTrimable(c, exceptions)) {
-				x = i + 1;
-			}
-			else {
+			if (!_isTrimable(c, exceptions)) {
+				x = i;
+
 				break;
 			}
 		}
 
-		if ((x != 0) || (y != len)) {
-			return s.substring(x, y);
+		if (x == len) {
+			return StringPool.BLANK;
+		}
+		else if (x == 0) {
+			return s;
 		}
 		else {
-			return s;
+			return s.substring(x);
 		}
 	}
 
@@ -2967,7 +4351,36 @@ public class StringUtil {
 	 *         whitespace removed
 	 */
 	public static String trimTrailing(String s) {
-		return trimTrailing(s, null);
+		if (s == null) {
+			return null;
+		}
+
+		if (s.length() == 0) {
+			return s;
+		}
+
+		int len = s.length();
+		int x = 0;
+
+		for (int i = len - 1; i >= 0; i--) {
+			char c = s.charAt(i);
+
+			if (!Character.isWhitespace(c)) {
+				x = i + 1;
+
+				break;
+			}
+		}
+
+		if (x == 0) {
+			return StringPool.BLANK;
+		}
+		else if (x == len) {
+			return s;
+		}
+		else {
+			return s.substring(0, x);
+		}
 	}
 
 	/**
@@ -2999,29 +4412,35 @@ public class StringUtil {
 			return null;
 		}
 
-		char[] chars = s.toCharArray();
+		if (s.length() == 0) {
+			return s;
+		}
 
-		int len = chars.length;
+		if (ArrayUtil.isEmpty(exceptions)) {
+			return trimTrailing(s);
+		}
 
+		int len = s.length();
 		int x = 0;
-		int y = chars.length;
 
 		for (int i = len - 1; i >= 0; i--) {
-			char c = chars[i];
+			char c = s.charAt(i);
 
-			if (_isTrimable(c, exceptions)) {
-				y = i;
-			}
-			else {
+			if (!_isTrimable(c, exceptions)) {
+				x = i + 1;
+
 				break;
 			}
 		}
 
-		if ((x != 0) || (y != len)) {
-			return s.substring(x, y);
+		if (x == 0) {
+			return StringPool.BLANK;
+		}
+		else if (x == len) {
+			return s;
 		}
 		else {
-			return s;
+			return s.substring(0, x);
 		}
 	}
 
@@ -3060,15 +4479,10 @@ public class StringUtil {
 	 * @param  s the string to convert
 	 * @return the string, converted to upper-case, or <code>null</code> if the
 	 *         string is <code>null</code>
-	 * @see    {@link String#toUpperCase()}
+	 * @see    String#toUpperCase()
 	 */
 	public static String upperCase(String s) {
-		if (s == null) {
-			return null;
-		}
-		else {
-			return s.toUpperCase();
-		}
+		return toUpperCase(s);
 	}
 
 	/**
@@ -3092,16 +4506,158 @@ public class StringUtil {
 	 *
 	 * @param  obj the object whose string value is to be returned
 	 * @return the string value of the object
-	 * @see    {@link String#valueOf(Object obj)}
+	 * @see    String#valueOf(Object obj)
 	 */
 	public static String valueOf(Object obj) {
 		return String.valueOf(obj);
 	}
 
+	public static boolean wildcardMatches(
+		String s, String wildcard, char singleWildcardCharacter,
+		char multipleWildcardCharacter, char escapeWildcardCharacter,
+		boolean caseSensitive) {
+
+		if (!caseSensitive) {
+			s = toLowerCase(s);
+			wildcard = toLowerCase(wildcard);
+		}
+
+		// Update the wildcard, single whildcard character, and multiple
+		// wildcard character so that they no longer have escaped wildcard
+		// characters
+
+		int index = wildcard.indexOf(escapeWildcardCharacter);
+
+		if (index != -1) {
+
+			// Search for safe wildcard replacement
+
+			char newSingleWildcardCharacter = 0;
+
+			while (wildcard.indexOf(newSingleWildcardCharacter) != -1) {
+				newSingleWildcardCharacter++;
+			}
+
+			char newMultipleWildcardCharacter =
+				(char)(newSingleWildcardCharacter + 1);
+
+			while (wildcard.indexOf(newMultipleWildcardCharacter) != -1) {
+				newMultipleWildcardCharacter++;
+			}
+
+			// Purify
+
+			StringBuilder sb = new StringBuilder(wildcard);
+
+			for (int i = 0; i < sb.length(); i++) {
+				char c = sb.charAt(i);
+
+				if (c == escapeWildcardCharacter) {
+					sb.deleteCharAt(i);
+				}
+				else if (c == singleWildcardCharacter) {
+					sb.setCharAt(i, newSingleWildcardCharacter);
+				}
+				else if (c == multipleWildcardCharacter) {
+					sb.setCharAt(i, newMultipleWildcardCharacter);
+				}
+			}
+
+			wildcard = sb.toString();
+
+			singleWildcardCharacter = newSingleWildcardCharacter;
+			multipleWildcardCharacter = newMultipleWildcardCharacter;
+		}
+
+		// Align head
+
+		for (index = 0; index < s.length(); index++) {
+			if (index >= wildcard.length()) {
+				return false;
+			}
+
+			char c = wildcard.charAt(index);
+
+			if (c == multipleWildcardCharacter) {
+				break;
+			}
+
+			if ((s.charAt(index) != c) && (c != singleWildcardCharacter)) {
+				return false;
+			}
+		}
+
+		// Match body
+
+		int sIndex = index;
+		int wildcardIndex = index;
+
+		int matchPoint = 0;
+		int comparePoint = 0;
+
+		while (sIndex < s.length()) {
+			char c = wildcard.charAt(wildcardIndex);
+
+			if (c == multipleWildcardCharacter) {
+				if (++wildcardIndex == wildcard.length()) {
+					return true;
+				}
+
+				matchPoint = wildcardIndex;
+				comparePoint = sIndex + 1;
+			}
+			else if ((c == s.charAt(sIndex)) ||
+					 (c == singleWildcardCharacter)) {
+
+				sIndex++;
+				wildcardIndex++;
+			}
+			else {
+				wildcardIndex = matchPoint;
+				sIndex = comparePoint++;
+			}
+		}
+
+		// Match tail
+
+		while (wildcardIndex < wildcard.length()) {
+			if (wildcard.charAt(wildcardIndex) != multipleWildcardCharacter) {
+				break;
+			}
+
+			wildcardIndex++;
+		}
+
+		if (wildcardIndex == wildcard.length()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	/**
+	 * Wraps the text when it exceeds the <code>80</code> column width limit,
+	 * using a {@link StringPool#NEW_LINE} to break each wrapped line.
+	 *
+	 * @param  text the text to wrap
+	 * @return the wrapped text following the column width limit, or
+	 *         <code>null</code> if the text is <code>null</code>
+	 */
 	public static String wrap(String text) {
 		return wrap(text, 80, StringPool.NEW_LINE);
 	}
 
+	/**
+	 * Wraps the text when it exceeds the column width limit, using the line
+	 * separator to break each wrapped line.
+	 *
+	 * @param  text the text to wrap
+	 * @param  width the column width limit for the text
+	 * @param  lineSeparator the string to use in breaking each wrapped line
+	 * @return the wrapped text and line separators, following the column width
+	 *         limit, or <code>null</code> if the text is <code>null</code>
+	 */
 	public static String wrap(String text, int width, String lineSeparator) {
 		try {
 			return _wrap(text, width, lineSeparator);
@@ -3111,48 +4667,6 @@ public class StringUtil {
 
 			return text;
 		}
-	}
-
-	private static String _highlight(
-		String s, Pattern pattern, String highlight1, String highlight2) {
-
-		StringTokenizer st = new StringTokenizer(s);
-
-		if (st.countTokens() == 0) {
-			return StringPool.BLANK;
-		}
-
-		StringBundler sb = new StringBundler(2 * st.countTokens() - 1);
-
-		while (st.hasMoreTokens()) {
-			String token = st.nextToken();
-
-			Matcher matcher = pattern.matcher(token);
-
-			if (matcher.find()) {
-				StringBuffer hightlighted = new StringBuffer();
-
-				do {
-					matcher.appendReplacement(
-						hightlighted, highlight1 + matcher.group() +
-						highlight2);
-				}
-				while (matcher.find());
-
-				matcher.appendTail(hightlighted);
-
-				sb.append(hightlighted);
-			}
-			else {
-				sb.append(token);
-			}
-
-			if (st.hasMoreTokens()) {
-				sb.append(StringPool.SPACE);
-			}
-		}
-
-		return sb.toString();
 	}
 
 	/**
@@ -3165,11 +4679,9 @@ public class StringUtil {
 	 *         to any of the exception characters; <code>true</code> otherwise
 	 */
 	private static boolean _isTrimable(char c, char[] exceptions) {
-		if ((exceptions != null) && (exceptions.length > 0)) {
-			for (char exception : exceptions) {
-				if (c == exception) {
-					return false;
-				}
+		for (char exception : exceptions) {
+			if (c == exception) {
+				return false;
 			}
 		}
 
@@ -3254,6 +4766,14 @@ public class StringUtil {
 	private static final char[] _HEX_DIGITS = {
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',
 		'e', 'f'
+	};
+
+	private static final char[] _RANDOM_STRING_CHAR_TABLE = {
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D',
+		'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+		'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+		'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+		'u', 'v', 'w', 'x', 'y', 'z'
 	};
 
 	private static Log _log = LogFactoryUtil.getLog(StringUtil.class);

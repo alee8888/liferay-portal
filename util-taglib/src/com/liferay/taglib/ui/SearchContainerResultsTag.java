@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,27 +26,29 @@ import javax.servlet.jsp.tagext.TagSupport;
 
 /**
  * @author Raymond Augé
+ * @author Roberto Díaz
  */
 public class SearchContainerResultsTag<R> extends TagSupport {
 
-	public static final String DEFAULT_RESULTS_VAR = "results";
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             SearchContainer#DEFAULT_RESULTS_VAR}.
+	 */
+	@Deprecated
+	public static final String DEFAULT_RESULTS_VAR =
+		SearchContainer.DEFAULT_RESULTS_VAR;
 
-	public static final String DEFAULT_TOTAL_VAR = "total";
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             SearchContainer#DEFAULT_DEPRECATED_TOTAL_VAR}.
+	 */
+	@Deprecated
+	public static final String DEFAULT_TOTAL_VAR =
+		SearchContainer.DEFAULT_DEPRECATED_TOTAL_VAR;
 
 	@Override
 	public int doEndTag() throws JspException {
 		try {
-			if (_results == null) {
-				_results = (List<R>)pageContext.getAttribute(_resultsVar);
-				_total = (Integer)pageContext.getAttribute(_totalVar);
-			}
-
-			if (_results != null) {
-				if (_total < _results.size()) {
-					_total = _results.size();
-				}
-			}
-
 			SearchContainerTag<R> searchContainerTag =
 				(SearchContainerTag<R>)findAncestorWithClass(
 					this, SearchContainerTag.class);
@@ -54,13 +56,52 @@ public class SearchContainerResultsTag<R> extends TagSupport {
 			SearchContainer<R> searchContainer =
 				searchContainerTag.getSearchContainer();
 
-			searchContainer.setResults(_results);
-			searchContainer.setTotal(_total);
+			int total = searchContainer.getTotal();
 
-			searchContainerTag.setHasResults(true);
+			if (_deprecatedTotal == 0) {
+				_deprecatedTotal = total;
+			}
+
+			String totalVar = searchContainer.getTotalVar();
+
+			if (!_deprecatedTotalVar.equals(
+					SearchContainer.DEFAULT_DEPRECATED_TOTAL_VAR) &&
+				totalVar.equals(SearchContainer.DEFAULT_TOTAL_VAR)) {
+
+				pageContext.removeAttribute(totalVar);
+
+				searchContainer.setTotalVar(_deprecatedTotalVar);
+			}
+			else {
+				pageContext.removeAttribute(_deprecatedTotalVar);
+
+				_deprecatedTotalVar = totalVar;
+			}
+
+			if (_results == null) {
+				_results = searchContainer.getResults();
+
+				if (_results.isEmpty()) {
+					_results = (List<R>)pageContext.getAttribute(_resultsVar);
+				}
+
+				_deprecatedTotal = (Integer)pageContext.getAttribute(
+					_deprecatedTotalVar);
+			}
+
+			if (_results != null) {
+				if (_deprecatedTotal < _results.size()) {
+					_deprecatedTotal = _results.size();
+				}
+			}
+
+			searchContainer.setResults(_results);
+
+			if (total == 0) {
+				searchContainer.setTotal(_deprecatedTotal);
+			}
 
 			pageContext.setAttribute(_resultsVar, _results);
-			pageContext.setAttribute(_totalVar, _total);
 
 			return EVAL_PAGE;
 		}
@@ -69,10 +110,11 @@ public class SearchContainerResultsTag<R> extends TagSupport {
 		}
 		finally {
 			if (!ServerDetector.isResin()) {
+				_deprecatedTotal = 0;
+				_deprecatedTotalVar =
+					SearchContainer.DEFAULT_DEPRECATED_TOTAL_VAR;
 				_results = null;
-				_resultsVar = DEFAULT_RESULTS_VAR;
-				_total = 0;
-				_totalVar = DEFAULT_TOTAL_VAR;
+				_resultsVar = SearchContainer.DEFAULT_RESULTS_VAR;
 			}
 		}
 	}
@@ -88,8 +130,8 @@ public class SearchContainerResultsTag<R> extends TagSupport {
 		}
 
 		if (_results == null) {
+			pageContext.setAttribute(_deprecatedTotalVar, 0);
 			pageContext.setAttribute(_resultsVar, new ArrayList<R>());
-			pageContext.setAttribute(_totalVar, 0);
 		}
 
 		return EVAL_BODY_INCLUDE;
@@ -103,12 +145,22 @@ public class SearchContainerResultsTag<R> extends TagSupport {
 		return _resultsVar;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             SearchContainerTag#getTotal()}.
+	 */
+	@Deprecated
 	public int getTotal() {
-		return _total;
+		return _deprecatedTotal;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             SearchContainerTag#getTotalVar()}.
+	 */
+	@Deprecated
 	public String getTotalVar() {
-		return _totalVar;
+		return _deprecatedTotalVar;
 	}
 
 	public void setResults(List<R> results) {
@@ -119,17 +171,28 @@ public class SearchContainerResultsTag<R> extends TagSupport {
 		_resultsVar = resultsVar;
 	}
 
-	public void setTotal(int total) {
-		_total = total;
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             SearchContainerTag#setTotal(int)}.
+	 */
+	@Deprecated
+	public void setTotal(int deprecatedTotal) {
+		_deprecatedTotal = deprecatedTotal;
 	}
 
-	public void setTotalVar(String totalVar) {
-		_totalVar = totalVar;
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             SearchContainerTag#setTotalVar(String)}.
+	 */
+	@Deprecated
+	public void setTotalVar(String deprecatedTotalVar) {
+		_deprecatedTotalVar = deprecatedTotalVar;
 	}
 
+	private int _deprecatedTotal;
+	private String _deprecatedTotalVar =
+		SearchContainer.DEFAULT_DEPRECATED_TOTAL_VAR;
 	private List<R> _results;
-	private String _resultsVar = DEFAULT_RESULTS_VAR;
-	private int _total;
-	private String _totalVar = DEFAULT_TOTAL_VAR;
+	private String _resultsVar = SearchContainer.DEFAULT_RESULTS_VAR;
 
 }

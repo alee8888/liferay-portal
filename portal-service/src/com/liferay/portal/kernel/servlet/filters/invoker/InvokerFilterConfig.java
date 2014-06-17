@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,21 +36,26 @@ public class InvokerFilterConfig implements FilterConfig {
 		_initParameterMap = initParameterMap;
 	}
 
+	@Override
 	public String getFilterName() {
 		return _filterName;
 	}
 
+	@Override
 	public String getInitParameter(String key) {
 		return _initParameterMap.get(key);
 	}
 
+	@Override
 	public Enumeration<String> getInitParameterNames() {
 		return new Enumeration<String>() {
 
+			@Override
 			public boolean hasMoreElements() {
 				return _keys.hasNext();
 			}
 
+			@Override
 			public String nextElement() {
 				return _keys.next();
 			}
@@ -61,6 +66,7 @@ public class InvokerFilterConfig implements FilterConfig {
 		};
 	}
 
+	@Override
 	public ServletContext getServletContext() {
 		return _servletContext;
 	}

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,21 +18,21 @@
 
 <%
 for (int displayActivityCounterNameIndex : displayActivityCounterNameIndexes) {
-	String displayActivityCounterName = PrefsParamUtil.getString(preferences, request, "displayActivityCounterName" + displayActivityCounterNameIndex);
+	String displayActivityCounterName = PrefsParamUtil.getString(portletPreferences, request, "displayActivityCounterName" + displayActivityCounterNameIndex);
 
-	if (Validator.isNull(displayActivityCounterName)){
+	if (Validator.isNull(displayActivityCounterName)) {
 		continue;
 	}
 
-	String chartType = PrefsParamUtil.getString(preferences, request, "chartType" + displayActivityCounterNameIndex, "area");
-	int chartWidth = PrefsParamUtil.getInteger(preferences, request, "chartWidth" + displayActivityCounterNameIndex, 35);
-	String dataRange = PrefsParamUtil.getString(preferences, request, "dataRange" + displayActivityCounterNameIndex, "year");
+	String chartType = PrefsParamUtil.getString(portletPreferences, request, "chartType" + displayActivityCounterNameIndex, "area");
+	int chartWidth = PrefsParamUtil.getInteger(portletPreferences, request, "chartWidth" + displayActivityCounterNameIndex, 35);
+	String dataRange = PrefsParamUtil.getString(portletPreferences, request, "dataRange" + displayActivityCounterNameIndex, "year");
 
 	List<AssetTag> assetTags = null;
 
 	List<SocialActivityCounter> activityCounters = null;
 
-	String title = LanguageUtil.format(pageContext, "social.counter." + displayActivityCounterName, new Object[] {LanguageUtil.get(pageContext, "assets")});
+	String title = LanguageUtil.get(pageContext, "site-statistics") + StringPool.SPACE;
 
 	int dataSize = 0;
 	int displayHeight = 80;
@@ -45,7 +45,7 @@ for (int displayActivityCounterNameIndex : displayActivityCounterNameIndexes) {
 			assetTags = AssetTagLocalServiceUtil.getSocialActivityCounterOffsetTags(scopeGroupId, displayActivityCounterName, -12, 0);
 		}
 
-		title = LanguageUtil.format(pageContext, "tag-cloud-based-on-x", new Object[] {title});
+		title = title + LanguageUtil.format(pageContext, "tag-cloud-for-x", LanguageUtil.get(pageContext, "group.statistics.title." + displayActivityCounterName), false);
 
 		dataSize = assetTags.size();
 	}
@@ -70,6 +70,8 @@ for (int displayActivityCounterNameIndex : displayActivityCounterNameIndexes) {
 		}
 
 		dataSize = activityCounters.size();
+
+		title = title + LanguageUtil.get(pageContext, "group.statistics.title." + displayActivityCounterName);
 	}
 
 	if (dataSize == 0) {
@@ -79,7 +81,7 @@ for (int displayActivityCounterNameIndex : displayActivityCounterNameIndexes) {
 
 	<div class="group-statistics-container">
 		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id='<%= "groupStatisticsPanel" + displayActivityCounterNameIndex %>' persistState="<%= true %>" title="<%= title %>">
-			<div class="group-statistics-body chart-<%= chartType %>" style="height: <%= displayHeight %>px;">
+			<div class="group-statistics-body chart-<%= HtmlUtil.escapeAttribute(chartType) %>" style="min-height: <%= displayHeight %>px;">
 				<c:choose>
 					<c:when test="<%= dataSize > 0 %>">
 						<c:choose>
@@ -95,7 +97,7 @@ for (int displayActivityCounterNameIndex : displayActivityCounterNameIndexes) {
 						</c:choose>
 					</c:when>
 					<c:otherwise>
-						<div class="portlet-configuration portlet-msg-info">
+						<div class="alert alert-info portlet-configuration">
 							<liferay-ui:message key="there-is-not-enough-data-to-display-for-this-counter" />
 						</div>
 					</c:otherwise>
@@ -109,7 +111,7 @@ for (int displayActivityCounterNameIndex : displayActivityCounterNameIndexes) {
 %>
 
 <c:if test="<%= Validator.isNull(displayActivityCounterNameIndexesParam) %>">
-	<div class="portlet-configuration portlet-msg-info">
+	<div class="alert alert-info portlet-configuration">
 		<a href="<%= portletDisplay.getURLConfiguration() %>" onClick="<%= portletDisplay.getURLConfigurationJS() %>">
 			<liferay-ui:message key="please-configure-this-portlet-and-select-at-least-one-activity-counter" />
 		</a>

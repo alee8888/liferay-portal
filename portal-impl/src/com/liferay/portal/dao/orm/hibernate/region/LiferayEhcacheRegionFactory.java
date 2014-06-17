@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,12 +14,15 @@
 
 package com.liferay.portal.dao.orm.hibernate.region;
 
+import com.liferay.portal.cache.ehcache.CacheManagerUtil;
 import com.liferay.portal.cache.ehcache.EhcacheConfigurationUtil;
 import com.liferay.portal.cache.ehcache.ModifiableEhcacheWrapper;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalLifecycle;
 import com.liferay.portal.kernel.util.ReflectionUtil;
+import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.lang.reflect.Field;
@@ -125,9 +128,14 @@ public class LiferayEhcacheRegionFactory extends EhCacheRegionFactory {
 	}
 
 	public void reconfigureCaches(URL cacheConfigFile) {
+		if (manager == null) {
+			return;
+		}
+
 		synchronized (manager) {
-			Configuration configuration = EhcacheConfigurationUtil.
-				getConfiguration(cacheConfigFile, true, _usingDefault);
+			Configuration configuration =
+				EhcacheConfigurationUtil.getConfiguration(
+					cacheConfigFile, true, _usingDefault);
 
 			Map<String, CacheConfiguration> cacheConfigurations =
 				configuration.getCacheConfigurations();
@@ -176,20 +184,28 @@ public class LiferayEhcacheRegionFactory extends EhCacheRegionFactory {
 
 			configuration.setDefaultTransactionManager(transactionManager);*/
 
-			manager = new CacheManager(configuration);
+			manager = CacheManagerUtil.createCacheManager(configuration);
 
-			FailSafeTimer failSafeTimer = manager.getTimer();
+			boolean skipUpdateCheck = GetterUtil.getBoolean(
+				SystemProperties.get("net.sf.ehcache.skipUpdateCheck"));
+			boolean tcActive = GetterUtil.getBoolean(
+				SystemProperties.get("tc.active"));
 
-			failSafeTimer.cancel();
+			if (skipUpdateCheck && !tcActive) {
+				FailSafeTimer failSafeTimer = manager.getTimer();
 
-			try {
-				Field cacheManagerTimerField = ReflectionUtil.getDeclaredField(
-					CacheManager.class, "cacheManagerTimer");
+				failSafeTimer.cancel();
 
-				cacheManagerTimerField.set(manager, null);
-			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
+				try {
+					Field cacheManagerTimerField =
+						ReflectionUtil.getDeclaredField(
+							CacheManager.class, "cacheManagerTimer");
+
+					cacheManagerTimerField.set(manager, null);
+				}
+				catch (Exception e) {
+					throw new RuntimeException(e);
+				}
 			}
 
 			mbeanRegistrationHelper.registerMBean(manager, properties);
@@ -258,7 +274,7 @@ public class LiferayEhcacheRegionFactory extends EhCacheRegionFactory {
 			}
 
 			if (ehcache != null) {
-				 manager.removeCache(cacheName);
+				manager.removeCache(cacheName);
 			}
 
 			ehcache = new ModifiableEhcacheWrapper(replacementCache);

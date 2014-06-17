@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -49,34 +49,42 @@ public class MBMessageDisplayImpl implements MBMessageDisplay {
 		_threadView = threadView;
 	}
 
+	@Override
 	public MBCategory getCategory() {
 		return _category;
 	}
 
+	@Override
 	public MBMessage getMessage() {
 		return _message;
 	}
 
+	@Override
 	public MBThread getNextThread() {
 		return _nextThread;
 	}
 
+	@Override
 	public MBMessage getParentMessage() {
 		return _parentMessage;
 	}
 
+	@Override
 	public MBThread getPreviousThread() {
 		return _previousThread;
 	}
 
+	@Override
 	public MBThread getThread() {
 		return _thread;
 	}
 
+	@Override
 	public String getThreadView() {
 		return _threadView;
 	}
 
+	@Override
 	public MBTreeWalker getTreeWalker() {
 		return _treeWalker;
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -34,13 +34,13 @@ public class DoOperationAction extends BaseJMXManageAction<Object> {
 		_signature = signature;
 	}
 
+	@Override
 	public Object action() throws ManageActionException {
 		try {
 			MBeanServer mBeanServer = getMBeanServer();
 
 			return mBeanServer.invoke(
 				_objectName, _operationName, _parameters, _signature);
-
 		}
 		catch (Exception e) {
 			throw new ManageActionException(e);

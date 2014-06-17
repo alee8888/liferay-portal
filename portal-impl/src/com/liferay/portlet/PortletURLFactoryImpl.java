@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portlet;
 
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 
 import javax.portlet.PortletRequest;
 
@@ -23,20 +24,23 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * @author Brian Wing Shun Chan
  */
+@DoPrivileged
 public class PortletURLFactoryImpl implements PortletURLFactory {
 
+	@Override
 	public LiferayPortletURL create(
-		HttpServletRequest request, String portletName, long plid,
+		HttpServletRequest request, String portletId, long plid,
 		String lifecycle) {
 
-		return new PortletURLImpl(request, portletName, plid, lifecycle);
+		return new PortletURLImpl(request, portletId, plid, lifecycle);
 	}
 
+	@Override
 	public LiferayPortletURL create(
-		PortletRequest portletRequest, String portletName, long plid,
+		PortletRequest portletRequest, String portletId, long plid,
 		String lifecycle) {
 
-		return new PortletURLImpl(portletRequest, portletName, plid, lifecycle);
+		return new PortletURLImpl(portletRequest, portletId, plid, lifecycle);
 	}
 
 }

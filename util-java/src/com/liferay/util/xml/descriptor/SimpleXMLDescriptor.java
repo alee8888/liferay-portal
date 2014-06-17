@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.util.xml.descriptor;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.util.xml.ElementComparator;
 import com.liferay.util.xml.ElementIdentifier;
 
@@ -25,6 +26,7 @@ import org.dom4j.Element;
  */
 public abstract class SimpleXMLDescriptor implements XMLDescriptor {
 
+	@Override
 	public boolean areEqual(Element el1, Element el2) {
 		String name1 = el1.getName();
 		String name2 = el2.getName();
@@ -33,11 +35,12 @@ public abstract class SimpleXMLDescriptor implements XMLDescriptor {
 			return false;
 		}
 
-		if (_isIncluded(el1, getUniqueElements())) {
+		if (ArrayUtil.contains(getUniqueElements(), el1.getName())) {
 			return true;
 		}
 
 		ElementIdentifier[] elIds = getElementsIdentifiedByAttribute();
+
 		for (int i = 0; i < elIds.length; i++) {
 			if (name1.equals(elIds[i].getElementName())) {
 				if (_compareAttribute(
@@ -52,10 +55,12 @@ public abstract class SimpleXMLDescriptor implements XMLDescriptor {
 		}
 
 		elIds = getElementsIdentifiedByChild();
+
 		for (int i = 0; i < elIds.length; i++) {
 			if (name1.equals(elIds[i].getElementName())) {
 				if (_compareChildText(
 						el1, el2, elIds[i].getIdentifierName()) == 0) {
+
 					return true;
 				}
 				else {
@@ -74,12 +79,15 @@ public abstract class SimpleXMLDescriptor implements XMLDescriptor {
 		}
 	}
 
+	@Override
 	public abstract boolean canHandleType(String doctype, Document root);
 
+	@Override
 	public boolean canJoinChildren(Element element) {
-		return _isIncluded(element, getJoinableElements());
+		return ArrayUtil.contains(getJoinableElements(), element.getName());
 	}
 
+	@Override
 	public String[] getChildrenOrder(Element parentElement) {
 		return new String[0];
 	}
@@ -96,6 +104,7 @@ public abstract class SimpleXMLDescriptor implements XMLDescriptor {
 		return new String[0];
 	}
 
+	@Override
 	public String[] getRootChildrenOrder() {
 		return new String[0];
 	}
@@ -141,16 +150,6 @@ public abstract class SimpleXMLDescriptor implements XMLDescriptor {
 		}*/
 
 		return child;
-	}
-
-	private boolean _isIncluded(Element element, String[] elemNames) {
-		for (int i = 0; i < elemNames.length; i++) {
-			if (element.getName().equals(elemNames[i])) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 }

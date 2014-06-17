@@ -1,54 +1,57 @@
-<#setting number_format = "0">
+<#assign layoutModel = dataFactory.newLayoutModel(dataFactory.guestGroupModel.groupId, "welcome", "58,", "47,")>
 
-<#assign mbMessageCounter = dataFactory.newInteger()>
-<#assign wikiPageCounter = dataFactory.newInteger()>
+<@insertLayout
+	_layoutModel = layoutModel
+/>
 
-<#assign privateLayouts = []>
+<@insertGroup
+	_groupModel = dataFactory.globalGroupModel
+	_publicPageCount = 1
+/>
 
-<#list dataFactory.groups as group>
-	<#assign publicLayouts = [
-		dataFactory.addLayout(1, "Welcome", "/welcome", "58,", "47,")
-	]>
+<@insertGroup
+	_groupModel = dataFactory.guestGroupModel
+	_publicPageCount = 1
+/>
 
-	${sampleSQLBuilder.insertGroup(group, privateLayouts, publicLayouts)}
-</#list>
+<#list dataFactory.groupModels as groupModel>
+	<#assign groupId = groupModel.groupId>
 
-<#list 1..maxGroupCount as groupCount>
-	<#assign groupId = groupCount>
-
-	<#assign group = dataFactory.addGroup(groupId, dataFactory.groupClassName.classNameId, groupId, "Community " + groupCount, "/community" + groupCount, true)>
-
-	<#assign publicLayouts = [
-		dataFactory.addLayout(1, "Welcome", "/welcome", "58,", "47,"),
-		dataFactory.addLayout(2, "Blogs", "/blogs", "", "33,")
-		dataFactory.addLayout(3, "Document Library", "/document_library", "", "20,")
-		dataFactory.addLayout(4, "Forums", "/forums", "", "19,")
-		dataFactory.addLayout(5, "Wiki", "/wiki", "", "36,")
-	]>
-
-	<#assign journalArticleLayouts = []>
-
-	<#list 1..maxJournalArticleCount as journalArticleCount>
-		<#assign journalArticleLayouts = journalArticleLayouts + [dataFactory.addLayout(5 + journalArticleCount, "Web Content " + journalArticleCount, "/journal_article_" + journalArticleCount, "", "56,")]>
-
-		${writerLayoutCSV.write("journal_article_" + journalArticleCount + "\n")}
-	</#list>
-
-	<#assign publicLayouts = publicLayouts + journalArticleLayouts>
-
-	${sampleSQLBuilder.insertGroup(group, privateLayouts, publicLayouts)}
-
-	${sampleSQLBuilder.insertJournalArticle(groupId, journalArticleLayouts)}
-
-	<#include "users.ftl">
+	<#include "asset_publisher.ftl">
 
 	<#include "blogs.ftl">
 
 	<#include "ddl.ftl">
 
-	<#include "dl.ftl">
+	<#include "journal_article.ftl">
 
 	<#include "mb.ftl">
 
+	<#include "users.ftl">
+
 	<#include "wiki.ftl">
+
+	<@insertDLFolder
+		_ddmStructureId = dataFactory.defaultDLDDMStructureId
+		_dlFolderDepth = 1
+		_groupId = groupId
+		_parentDLFolderId = 0
+	/>
+
+	<#assign publicLayoutModels = dataFactory.newPublicLayoutModels(groupId)>
+
+	<#list publicLayoutModels as publicLayoutModel >
+		<@insertLayout
+			_layoutModel = publicLayoutModel
+		/>
+	</#list>
+
+	<#assign publicPageCount = publicLayoutModels?size + dataFactory.maxDDLRecordSetCount + dataFactory.maxJournalArticleCount>
+
+	<@insertGroup
+		_groupModel = groupModel
+		_publicPageCount = publicPageCount
+	/>
+
+	${repositoryCSVWriter.write(groupId + ", " + groupModel.name + "\n")}
 </#list>

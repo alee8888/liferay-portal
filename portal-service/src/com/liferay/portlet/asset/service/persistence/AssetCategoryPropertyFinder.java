@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,18 +14,18 @@
 
 package com.liferay.portlet.asset.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public interface AssetCategoryPropertyFinder {
-	public int countByG_K(long groupId, java.lang.String key)
-		throws com.liferay.portal.kernel.exception.SystemException;
+	public int countByG_K(long groupId, java.lang.String key);
 
 	public java.util.List<com.liferay.portlet.asset.model.AssetCategoryProperty> findByG_K(
-		long groupId, java.lang.String key)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long groupId, java.lang.String key);
 
 	public java.util.List<com.liferay.portlet.asset.model.AssetCategoryProperty> findByG_K(
-		long groupId, java.lang.String key, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException;
+		long groupId, java.lang.String key, int start, int end);
 }

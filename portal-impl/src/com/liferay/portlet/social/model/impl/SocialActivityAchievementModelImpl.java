@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,15 +15,16 @@
 package com.liferay.portlet.social.model.impl;
 
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.service.UserLocalServiceUtil;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
@@ -69,6 +70,8 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 		};
 	public static final String TABLE_SQL_CREATE = "create table SocialActivityAchievement (activityAchievementId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,createDate LONG,name VARCHAR(75) null,firstInGroup BOOLEAN)";
 	public static final String TABLE_SQL_DROP = "drop table SocialActivityAchievement";
+	public static final String ORDER_BY_JPQL = " ORDER BY socialActivityAchievement.activityAchievementId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY SocialActivityAchievement.activityAchievementId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -85,32 +88,39 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 	public static long GROUPID_COLUMN_BITMASK = 2L;
 	public static long NAME_COLUMN_BITMASK = 4L;
 	public static long USERID_COLUMN_BITMASK = 8L;
+	public static long ACTIVITYACHIEVEMENTID_COLUMN_BITMASK = 16L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.social.model.SocialActivityAchievement"));
 
 	public SocialActivityAchievementModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _activityAchievementId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setActivityAchievementId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_activityAchievementId);
+		return _activityAchievementId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return SocialActivityAchievement.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return SocialActivityAchievement.class.getName();
 	}
@@ -126,6 +136,9 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 		attributes.put("createDate", getCreateDate());
 		attributes.put("name", getName());
 		attributes.put("firstInGroup", getFirstInGroup());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -176,18 +189,22 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 		}
 	}
 
+	@Override
 	public long getActivityAchievementId() {
 		return _activityAchievementId;
 	}
 
+	@Override
 	public void setActivityAchievementId(long activityAchievementId) {
 		_activityAchievementId = activityAchievementId;
 	}
 
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
 
+	@Override
 	public void setGroupId(long groupId) {
 		_columnBitmask |= GROUPID_COLUMN_BITMASK;
 
@@ -204,18 +221,22 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 		return _originalGroupId;
 	}
 
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_companyId = companyId;
 	}
 
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
 
+	@Override
 	public void setUserId(long userId) {
 		_columnBitmask |= USERID_COLUMN_BITMASK;
 
@@ -228,26 +249,37 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 		_userId = userId;
 	}
 
-	public String getUserUuid() throws SystemException {
-		return PortalUtil.getUserValue(getUserId(), "uuid", _userUuid);
+	@Override
+	public String getUserUuid() {
+		try {
+			User user = UserLocalServiceUtil.getUserById(getUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
+		}
 	}
 
+	@Override
 	public void setUserUuid(String userUuid) {
-		_userUuid = userUuid;
 	}
 
 	public long getOriginalUserId() {
 		return _originalUserId;
 	}
 
+	@Override
 	public long getCreateDate() {
 		return _createDate;
 	}
 
+	@Override
 	public void setCreateDate(long createDate) {
 		_createDate = createDate;
 	}
 
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -257,6 +289,7 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 		}
 	}
 
+	@Override
 	public void setName(String name) {
 		_columnBitmask |= NAME_COLUMN_BITMASK;
 
@@ -271,14 +304,17 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 		return GetterUtil.getString(_originalName);
 	}
 
+	@Override
 	public boolean getFirstInGroup() {
 		return _firstInGroup;
 	}
 
+	@Override
 	public boolean isFirstInGroup() {
 		return _firstInGroup;
 	}
 
+	@Override
 	public void setFirstInGroup(boolean firstInGroup) {
 		_columnBitmask |= FIRSTINGROUP_COLUMN_BITMASK;
 
@@ -300,17 +336,6 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 	}
 
 	@Override
-	public SocialActivityAchievement toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (SocialActivityAchievement)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			SocialActivityAchievement.class.getName(), getPrimaryKey());
@@ -321,6 +346,16 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public SocialActivityAchievement toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (SocialActivityAchievement)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -340,6 +375,7 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 		return socialActivityAchievementImpl;
 	}
 
+	@Override
 	public int compareTo(SocialActivityAchievement socialActivityAchievement) {
 		long primaryKey = socialActivityAchievement.getPrimaryKey();
 
@@ -356,18 +392,15 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SocialActivityAchievement)) {
 			return false;
 		}
 
-		SocialActivityAchievement socialActivityAchievement = null;
-
-		try {
-			socialActivityAchievement = (SocialActivityAchievement)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		SocialActivityAchievement socialActivityAchievement = (SocialActivityAchievement)obj;
 
 		long primaryKey = socialActivityAchievement.getPrimaryKey();
 
@@ -382,6 +415,16 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -455,6 +498,7 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(25);
 
@@ -497,7 +541,7 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 	}
 
 	private static ClassLoader _classLoader = SocialActivityAchievement.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			SocialActivityAchievement.class
 		};
 	private long _activityAchievementId;
@@ -506,7 +550,6 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 	private boolean _setOriginalGroupId;
 	private long _companyId;
 	private long _userId;
-	private String _userUuid;
 	private long _originalUserId;
 	private boolean _setOriginalUserId;
 	private long _createDate;
@@ -516,5 +559,5 @@ public class SocialActivityAchievementModelImpl extends BaseModelImpl<SocialActi
 	private boolean _originalFirstInGroup;
 	private boolean _setOriginalFirstInGroup;
 	private long _columnBitmask;
-	private SocialActivityAchievement _escapedModelProxy;
+	private SocialActivityAchievement _escapedModel;
 }

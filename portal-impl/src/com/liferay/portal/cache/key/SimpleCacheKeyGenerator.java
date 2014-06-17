@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,16 +27,19 @@ public class SimpleCacheKeyGenerator extends BaseCacheKeyGenerator {
 		return new SimpleCacheKeyGenerator();
 	}
 
+	@Override
 	public String getCacheKey(String key) {
 		return key;
 	}
 
+	@Override
 	public String getCacheKey(String[] keys) {
 		StringBundler sb = new StringBundler(keys);
 
 		return sb.toString();
 	}
 
+	@Override
 	public String getCacheKey(StringBundler sb) {
 		return sb.toString();
 	}

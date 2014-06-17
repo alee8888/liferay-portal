@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portal.servlet;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.servlet.DirectServletRegistry;
 import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -37,12 +38,15 @@ import javax.servlet.ServletContext;
 /**
  * @author Shuyang Zhou
  */
+@DoPrivileged
 public class DirectServletRegistryImpl implements DirectServletRegistry {
 
+	@Override
 	public void clearServlets() {
 		_servletInfos.clear();
 	}
 
+	@Override
 	public Servlet getServlet(String path) {
 		ServletInfo servletInfo = _servletInfos.get(path);
 
@@ -74,6 +78,7 @@ public class DirectServletRegistryImpl implements DirectServletRegistry {
 		return servlet;
 	}
 
+	@Override
 	public void putServlet(String path, Servlet servlet) {
 		if (_servletInfos.containsKey(path)) {
 			return;
@@ -120,9 +125,7 @@ public class DirectServletRegistryImpl implements DirectServletRegistry {
 
 			Collection<String> dependants = null;
 
-			String jasperVersion = JasperVersionDetector.getJasperVersion();
-
-			if (jasperVersion.contains("7.0")) {
+			if (JasperVersionDetector.hasJspServletDependantsMap()) {
 				Map<String, ?> dependantsMap = (Map<String, ?>)method.invoke(
 					servlet);
 

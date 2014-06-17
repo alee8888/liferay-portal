@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,7 @@
 package com.liferay.portal.util;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.TreeNodeView;
@@ -27,12 +27,14 @@ import com.liferay.portal.model.PortletApp;
 import com.liferay.portal.model.PortletCategory;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.PortletLocalServiceUtil;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.comparator.PortletCategoryComparator;
 import com.liferay.portal.util.comparator.PortletTitleComparator;
 import com.liferay.portlet.PortletConfigFactoryUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -47,13 +49,16 @@ import javax.servlet.ServletContext;
  */
 public class PortletListerImpl implements PortletLister {
 
-	public TreeView getTreeView() throws PortalException, SystemException {
+	@Override
+	public TreeView getTreeView() throws PortalException {
 		_nodeId = 1;
 
 		_list = new ArrayList<TreeNodeView>();
 
+		TreeNodeView rootNodeView = null;
+
 		if (_rootNodeName != null) {
-			TreeNodeView rootNodeView = new TreeNodeView(_nodeId);
+			rootNodeView = new TreeNodeView(_nodeId);
 
 			rootNodeView.setLeaf(false);
 			rootNodeView.setName(_rootNodeName);
@@ -67,44 +72,68 @@ public class PortletListerImpl implements PortletLister {
 		List<PortletCategory> portletCategories = ListUtil.fromCollection(
 			portletCategory.getCategories());
 
-		iteratePortletCategories(portletCategories, _nodeId, 0);
+		iteratePortletCategories(rootNodeView, portletCategories, _nodeId, 0);
 
 		return new TreeView(_list, _depth);
 	}
 
+	@Override
+	public void setHierarchicalTree(boolean hierarchicalTree) {
+		_hierarchicalTree = hierarchicalTree;
+	}
+
+	@Override
 	public void setIncludeInstanceablePortlets(
 		boolean includeInstanceablePortlets) {
 
 		_includeInstanceablePortlets = includeInstanceablePortlets;
 	}
 
+	@Override
 	public void setIteratePortlets(boolean iteratePortlets) {
 		_iteratePortlets = iteratePortlets;
 	}
 
+	@Override
 	public void setLayoutTypePortlet(LayoutTypePortlet layoutTypePortlet) {
 		_layoutTypePortlet = layoutTypePortlet;
 	}
 
+	@Override
 	public void setRootNodeName(String rootNodeName) {
 		_rootNodeName = rootNodeName;
 	}
 
+	@Override
 	public void setServletContext(ServletContext servletContext) {
 		_servletContext = servletContext;
 	}
 
+	@Override
+	public void setThemeDisplay(ThemeDisplay themeDisplay) {
+		_themeDisplay = themeDisplay;
+	}
+
+	@Override
 	public void setUser(User user) {
 		_user = user;
 	}
 
+	protected Locale getLocale() {
+		if (_themeDisplay == null) {
+			return _user.getLocale();
+		}
+
+		return _themeDisplay.getLocale();
+	}
+
 	protected void iteratePortletCategories(
+			TreeNodeView parentNodeView,
 			List<PortletCategory> portletCategories, long parentId, int depth)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		portletCategories = ListUtil.sort(
-			portletCategories,
-			new PortletCategoryComparator(_user.getLocale()));
+			portletCategories, new PortletCategoryComparator(getLocale()));
 
 		for (int i = 0; i < portletCategories.size(); i++) {
 			PortletCategory portletCategory = portletCategories.get(i);
@@ -133,31 +162,39 @@ public class PortletListerImpl implements PortletLister {
 				nodeView.setLs("0");
 			}
 
-			nodeView.setName(portletCategory.getName());
+			nodeView.setName(
+				LanguageUtil.get(getLocale(), portletCategory.getName()));
 			nodeView.setObjId(portletCategory.getPath());
 			nodeView.setParentId(parentId);
 
-			_list.add(nodeView);
+			if (_hierarchicalTree) {
+				if (parentNodeView != null) {
+					parentNodeView.addChild(nodeView);
+				}
+			}
+			else {
+				_list.add(nodeView);
+			}
 
 			int nodeId = _nodeId;
 
 			List<PortletCategory> subCategories = ListUtil.fromCollection(
 				portletCategory.getCategories());
 
-			iteratePortletCategories(subCategories, nodeId, depth);
+			iteratePortletCategories(nodeView, subCategories, nodeId, depth);
 
 			if (_iteratePortlets) {
 				iteratePortlets(
-					portletCategory, portletCategory.getPortletIds(), nodeId,
-					depth + 1);
+					nodeView, portletCategory, portletCategory.getPortletIds(),
+					nodeId, depth + 1);
 			}
 		}
 	}
 
 	protected void iteratePortlets(
-			PortletCategory portletCategory, Set<String> portletIds,
-			int parentNodeId, int depth)
-		throws PortalException, SystemException {
+			TreeNodeView parentNodeView, PortletCategory portletCategory,
+			Set<String> portletIds, int parentNodeId, int depth)
+		throws PortalException {
 
 		List<Portlet> portlets = new ArrayList<Portlet>();
 
@@ -197,7 +234,7 @@ public class PortletListerImpl implements PortletLister {
 							portlet, _servletContext);
 
 					ResourceBundle resourceBundle =
-						portletConfig.getResourceBundle(_user.getLocale());
+						portletConfig.getResourceBundle(getLocale());
 
 					externalPortletCategory = ResourceBundleUtil.getString(
 						resourceBundle, portletCategory.getName());
@@ -206,7 +243,7 @@ public class PortletListerImpl implements PortletLister {
 		}
 
 		portlets = ListUtil.sort(
-			portlets, new PortletTitleComparator(_user.getLocale()));
+			portlets, new PortletTitleComparator(getLocale()));
 
 		for (int i = 0; i < portlets.size(); i++) {
 			Portlet portlet = portlets.get(i);
@@ -223,15 +260,23 @@ public class PortletListerImpl implements PortletLister {
 				nodeView.setLs("0");
 			}
 
-			nodeView.setName(PortalUtil.getPortletTitle(portlet, _user));
+			nodeView.setName(
+				PortalUtil.getPortletTitle(
+					portlet, _servletContext, getLocale()));
 			nodeView.setObjId(portlet.getRootPortletId());
 			nodeView.setParentId(parentNodeId);
 
-			_list.add(nodeView);
+			if (_hierarchicalTree) {
+				parentNodeView.addChild(nodeView);
+			}
+			else {
+				_list.add(nodeView);
+			}
 		}
 	}
 
 	private int _depth;
+	private boolean _hierarchicalTree;
 	private boolean _includeInstanceablePortlets;
 	private boolean _iteratePortlets;
 	private LayoutTypePortlet _layoutTypePortlet;
@@ -239,6 +284,7 @@ public class PortletListerImpl implements PortletLister {
 	private int _nodeId;
 	private String _rootNodeName;
 	private ServletContext _servletContext;
+	private ThemeDisplay _themeDisplay;
 	private User _user;
 
 }

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,18 +20,18 @@
 long actionGroupId = GetterUtil.getLong(typeSettingsProperties.getProperty("groupId"));
 %>
 
-<aui:select label="site" name="groupId" onChange='<%= liferayPortletResponse.getNamespace() + "changeDisplay();" %>'>
-	<aui:option disabled="<%= true %>" label="select-a-site" selected="<%= actionGroupId == 0 %>" value="0" />
+<aui:select label="site" name="groupId" onChange='<%= liferayPortletResponse.getNamespace() + "changeDisplay();" %>' required="<%= true %>">
+	<aui:option disabled="<%= true %>" label="select-a-site" selected="<%= actionGroupId == 0 %>" value="" />
 
 	<%
 	int count = 0;
 
-	for (Group group : GroupServiceUtil.getUserSites()) {
+	for (Group group : GroupServiceUtil.getUserSitesGroups()) {
 		if (!group.isUser() && !group.isControlPanel()) {
 			count++;
 	%>
 
-			<aui:option label="<%= group.getName() %>" selected="<%= group.getGroupId() == actionGroupId %>" value="<%= group.getGroupId() %>" />
+			<aui:option label="<%= HtmlUtil.escape(group.getName()) %>" selected="<%= group.getGroupId() == actionGroupId %>" value="<%= group.getGroupId() %>" />
 
 	<%
 		}

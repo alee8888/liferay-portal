@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,9 +14,10 @@
 
 package com.liferay.portlet.polls.model.impl;
 
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.polls.model.PollsChoice;
+import com.liferay.portlet.polls.model.PollsVote;
 import com.liferay.portlet.polls.service.PollsChoiceLocalServiceUtil;
 import com.liferay.portlet.polls.service.PollsVoteLocalServiceUtil;
 
@@ -31,18 +32,33 @@ public class PollsQuestionImpl extends PollsQuestionBaseImpl {
 	public PollsQuestionImpl() {
 	}
 
-	public List<PollsChoice> getChoices() throws SystemException {
+	@Override
+	public List<PollsChoice> getChoices() {
 		return PollsChoiceLocalServiceUtil.getChoices(getQuestionId());
 	}
 
-	public int getVotesCount() throws SystemException {
+	@Override
+	public List<PollsVote> getVotes() {
+		return PollsVoteLocalServiceUtil.getQuestionVotes(
+			getQuestionId(), QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+	}
+
+	@Override
+	public List<PollsVote> getVotes(int start, int end) {
+		return PollsVoteLocalServiceUtil.getQuestionVotes(
+			getQuestionId(), start, end);
+	}
+
+	@Override
+	public int getVotesCount() {
 		return PollsVoteLocalServiceUtil.getQuestionVotesCount(getQuestionId());
 	}
 
+	@Override
 	public boolean isExpired() {
 		Date expirationDate = getExpirationDate();
 
-		if ((expirationDate != null) && (expirationDate.before(new Date()))) {
+		if ((expirationDate != null) && expirationDate.before(new Date())) {
 			return true;
 		}
 		else {
@@ -50,6 +66,7 @@ public class PollsQuestionImpl extends PollsQuestionBaseImpl {
 		}
 	}
 
+	@Override
 	public boolean isExpired(
 		ServiceContext serviceContext, Date defaultCreateDate) {
 

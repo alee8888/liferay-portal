@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,9 +26,7 @@ ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_
 WorkflowTask workflowTask = null;
 
 if (row != null) {
-	randomId = PwdGenerator.getPassword(PwdGenerator.KEY3, 4);
-
-	Object result = row.getObject();
+	randomId = StringUtil.randomId();
 
 	workflowTask = (WorkflowTask)row.getParameter("workflowTask");
 }
@@ -39,7 +37,7 @@ else {
 long[] pooledActorsIds = WorkflowTaskManagerUtil.getPooledActorsIds(company.getCompanyId(), workflowTask.getWorkflowTaskId());
 %>
 
-<liferay-ui:icon-menu showExpanded="<%= (row == null) %>" showWhenSingleIcon="<%= (row == null) %>">
+<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>" showExpanded="<%= (row == null) %>" showWhenSingleIcon="<%= (row == null) %>">
 	<c:if test="<%= !workflowTask.isCompleted() && _isAssignedToUser(workflowTask, user) %>">
 
 		<%
@@ -49,7 +47,7 @@ long[] pooledActorsIds = WorkflowTaskManagerUtil.getPooledActorsIds(company.getC
 			String message = "proceed";
 
 			if (Validator.isNotNull(transitionName)) {
-				message = transitionName;
+				message = HtmlUtil.escape(transitionName);
 			}
 		%>
 
@@ -68,8 +66,8 @@ long[] pooledActorsIds = WorkflowTaskManagerUtil.getPooledActorsIds(company.getC
 
 			<liferay-ui:icon
 				cssClass='<%= "workflow-task-" + randomId + " task-change-status-link" %>'
-				id='<%= randomId + transitionName + "taskChangeStatusLink" %>'
-				image="../aui/shuffle"
+				iconCssClass="icon-random"
+				id='<%= randomId + HtmlUtil.escapeAttribute(transitionName) + "taskChangeStatusLink" %>'
 				message="<%= message %>"
 				method="get"
 				url="<%= editURL %>"
@@ -93,8 +91,8 @@ long[] pooledActorsIds = WorkflowTaskManagerUtil.getPooledActorsIds(company.getC
 
 		<liferay-ui:icon
 			cssClass='<%= "workflow-task-" + randomId + " task-assign-to-me-link" %>'
+			iconCssClass="icon-signin"
 			id='<%= randomId + "taskAssignToMeLink" %>'
-			image="assign"
 			message="assign-to-me"
 			method="get"
 			url="<%= assignToMeURL %>"
@@ -112,8 +110,8 @@ long[] pooledActorsIds = WorkflowTaskManagerUtil.getPooledActorsIds(company.getC
 
 		<liferay-ui:icon
 			cssClass='<%= "workflow-task-" + randomId + " task-assign-link" %>'
+			iconCssClass="icon-signin"
 			id='<%= randomId + "taskAssignLink" %>'
-			image="assign"
 			message="assign-to-..."
 			method="get"
 			url="<%= assignURL %>"
@@ -130,8 +128,8 @@ long[] pooledActorsIds = WorkflowTaskManagerUtil.getPooledActorsIds(company.getC
 
 		<liferay-ui:icon
 			cssClass='<%= "workflow-task-" + randomId + " task-due-date-link" %>'
+			iconCssClass="icon-time"
 			id='<%= randomId + "taskDueDateLink" %>'
-			image="time"
 			message="update-due-date"
 			method="get"
 			url="<%= updateDueDateURL %>"
@@ -139,7 +137,7 @@ long[] pooledActorsIds = WorkflowTaskManagerUtil.getPooledActorsIds(company.getC
 	</c:if>
 </liferay-ui:icon-menu>
 
-<div class="aui-helper-hidden" id="<%= randomId %>updateAsignee">
+<div class="hide" id="<%= randomId %>updateAsignee">
 	<c:if test="<%= _hasOtherAssignees(pooledActorsIds, workflowTask, user) %>">
 		<aui:select label="assign-to" name="assigneeUserId">
 
@@ -160,20 +158,20 @@ long[] pooledActorsIds = WorkflowTaskManagerUtil.getPooledActorsIds(company.getC
 	</c:if>
 </div>
 
-<div class="aui-helper-hidden" id="<%= randomId %>updateAsigneeToMe">
+<div class="hide" id="<%= randomId %>updateAsigneeToMe">
 	<aui:input name="asigneeUserId" type="hidden" value="<%= user.getUserId() %>" />
 </div>
 
-<div class="aui-helper-hidden" id="<%= randomId %>updateDueDate">
+<div class="hide" id="<%= randomId %>updateDueDate">
 	<aui:input bean="<%= workflowTask %>" model="<%= WorkflowTask.class %>" name="dueDate" />
 </div>
 
-<div class="aui-helper-hidden" id="<%= randomId %>updateComments">
+<div class="hide" id="<%= randomId %>updateComments">
 	<aui:input cols="55" name="comment" rows="10" type="textarea" />
 </div>
 
 <aui:script use="liferay-workflow-tasks">
-	var onTaskClickFn = A.rbind(Liferay.WorkflowTasks.onTaskClick, Liferay.WorkflowTasks, '<%= randomId %>');
+	var onTaskClickFn = A.rbind('onTaskClick', Liferay.WorkflowTasks, '<%= randomId %>');
 
 	<c:if test="<%= !workflowTask.isCompleted() && _isAssignedToUser(workflowTask, user) %>">
 
@@ -188,7 +186,7 @@ long[] pooledActorsIds = WorkflowTaskManagerUtil.getPooledActorsIds(company.getC
 			}
 		%>
 
-			Liferay.delegateClick('<portlet:namespace /><%= randomId + transitionName %>taskChangeStatusLink', onTaskClickFn);
+			Liferay.delegateClick('<portlet:namespace /><%= randomId + HtmlUtil.escapeJS(transitionName) %>taskChangeStatusLink', onTaskClickFn);
 
 		<%
 		}

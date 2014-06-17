@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,11 +14,12 @@
 
 package com.liferay.portlet.documentlibrary.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.StagedGroupedModel;
 import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.ServiceContext;
 
@@ -41,8 +42,9 @@ import java.util.Date;
  * @see com.liferay.portlet.documentlibrary.model.impl.DLFileVersionModelImpl
  * @generated
  */
+@ProviderType
 public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
-	GroupedModel, WorkflowedModel {
+	StagedGroupedModel, WorkflowedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -69,6 +71,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 * @return the uuid of this document library file version
 	 */
 	@AutoEscape
+	@Override
 	public String getUuid();
 
 	/**
@@ -76,6 +79,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @param uuid the uuid of this document library file version
 	 */
+	@Override
 	public void setUuid(String uuid);
 
 	/**
@@ -97,6 +101,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @return the group ID of this document library file version
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -104,6 +109,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @param groupId the group ID of this document library file version
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -111,6 +117,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @return the company ID of this document library file version
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -118,6 +125,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @param companyId the company ID of this document library file version
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -125,6 +133,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @return the user ID of this document library file version
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -132,21 +141,23 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @param userId the user ID of this document library file version
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
 	 * Returns the user uuid of this document library file version.
 	 *
 	 * @return the user uuid of this document library file version
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getUserUuid() throws SystemException;
+	@Override
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this document library file version.
 	 *
 	 * @param userUuid the user uuid of this document library file version
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -155,6 +166,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 * @return the user name of this document library file version
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -162,6 +174,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @param userName the user name of this document library file version
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -169,6 +182,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @return the create date of this document library file version
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -176,6 +190,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @param createDate the create date of this document library file version
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -183,6 +198,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @return the modified date of this document library file version
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -190,6 +206,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @param modifiedDate the modified date of this document library file version
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -233,6 +250,21 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 * @param fileEntryId the file entry ID of this document library file version
 	 */
 	public void setFileEntryId(long fileEntryId);
+
+	/**
+	 * Returns the tree path of this document library file version.
+	 *
+	 * @return the tree path of this document library file version
+	 */
+	@AutoEscape
+	public String getTreePath();
+
+	/**
+	 * Sets the tree path of this document library file version.
+	 *
+	 * @param treePath the tree path of this document library file version
+	 */
+	public void setTreePath(String treePath);
 
 	/**
 	 * Returns the extension of this document library file version.
@@ -368,10 +400,26 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	public void setSize(long size);
 
 	/**
+	 * Returns the checksum of this document library file version.
+	 *
+	 * @return the checksum of this document library file version
+	 */
+	@AutoEscape
+	public String getChecksum();
+
+	/**
+	 * Sets the checksum of this document library file version.
+	 *
+	 * @param checksum the checksum of this document library file version
+	 */
+	public void setChecksum(String checksum);
+
+	/**
 	 * Returns the status of this document library file version.
 	 *
 	 * @return the status of this document library file version
 	 */
+	@Override
 	public int getStatus();
 
 	/**
@@ -379,6 +427,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @param status the status of this document library file version
 	 */
+	@Override
 	public void setStatus(int status);
 
 	/**
@@ -386,6 +435,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @return the status by user ID of this document library file version
 	 */
+	@Override
 	public long getStatusByUserId();
 
 	/**
@@ -393,21 +443,23 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @param statusByUserId the status by user ID of this document library file version
 	 */
+	@Override
 	public void setStatusByUserId(long statusByUserId);
 
 	/**
 	 * Returns the status by user uuid of this document library file version.
 	 *
 	 * @return the status by user uuid of this document library file version
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getStatusByUserUuid() throws SystemException;
+	@Override
+	public String getStatusByUserUuid();
 
 	/**
 	 * Sets the status by user uuid of this document library file version.
 	 *
 	 * @param statusByUserUuid the status by user uuid of this document library file version
 	 */
+	@Override
 	public void setStatusByUserUuid(String statusByUserUuid);
 
 	/**
@@ -416,6 +468,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 * @return the status by user name of this document library file version
 	 */
 	@AutoEscape
+	@Override
 	public String getStatusByUserName();
 
 	/**
@@ -423,6 +476,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @param statusByUserName the status by user name of this document library file version
 	 */
+	@Override
 	public void setStatusByUserName(String statusByUserName);
 
 	/**
@@ -430,6 +484,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @return the status date of this document library file version
 	 */
+	@Override
 	public Date getStatusDate();
 
 	/**
@@ -437,11 +492,14 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @param statusDate the status date of this document library file version
 	 */
+	@Override
 	public void setStatusDate(Date statusDate);
 
 	/**
-	 * @deprecated Renamed to {@link #isApproved()}
+	 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	 */
+	@Deprecated
+	@Override
 	public boolean getApproved();
 
 	/**
@@ -449,13 +507,23 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @return <code>true</code> if this document library file version is approved; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isApproved();
+
+	/**
+	 * Returns <code>true</code> if this document library file version is denied.
+	 *
+	 * @return <code>true</code> if this document library file version is denied; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isDenied();
 
 	/**
 	 * Returns <code>true</code> if this document library file version is a draft.
 	 *
 	 * @return <code>true</code> if this document library file version is a draft; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isDraft();
 
 	/**
@@ -463,44 +531,95 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 *
 	 * @return <code>true</code> if this document library file version is expired; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isExpired();
+
+	/**
+	 * Returns <code>true</code> if this document library file version is inactive.
+	 *
+	 * @return <code>true</code> if this document library file version is inactive; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInactive();
+
+	/**
+	 * Returns <code>true</code> if this document library file version is incomplete.
+	 *
+	 * @return <code>true</code> if this document library file version is incomplete; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isIncomplete();
 
 	/**
 	 * Returns <code>true</code> if this document library file version is pending.
 	 *
 	 * @return <code>true</code> if this document library file version is pending; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isPending();
 
+	/**
+	 * Returns <code>true</code> if this document library file version is scheduled.
+	 *
+	 * @return <code>true</code> if this document library file version is scheduled; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isScheduled();
+
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(DLFileVersion dlFileVersion);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<DLFileVersion> toCacheModel();
 
+	@Override
 	public DLFileVersion toEscapedModel();
 
+	@Override
+	public DLFileVersion toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,12 +27,12 @@ else {
 	orderByType = portalPreferences.getValue(PortletKeys.BOOKMARKS, "entries-order-by-type", "asc");
 }
 
-OrderByComparator orderByComparator = BookmarksUtil.getEntriesOrderByComparator(orderByCol, orderByType);
+OrderByComparator orderByComparator = BookmarksUtil.getEntryOrderByComparator(orderByCol, orderByType);
 %>
 
 <liferay-ui:search-container
 	curParam="cur2"
-	delta="<%= entriesPerPage %>"
+	delta="<%= bookmarksSettings.getEntriesPerPage() %>"
 	deltaConfigurable="<%= false %>"
 	emptyResultsMessage="there-are-no-bookmarks-in-this-folder"
 	headerNames="<%= StringUtil.merge(entryColumns) %>"
@@ -49,19 +49,22 @@ OrderByComparator orderByComparator = BookmarksUtil.getEntriesOrderByComparator(
 
 			assetEntryQuery.setExcludeZeroViewCount(false);
 
-			results = AssetEntryServiceUtil.getEntries(assetEntryQuery);
-			total = AssetEntryServiceUtil.getEntriesCount(assetEntryQuery);
+			searchContainer.setTotal(total);
 
-			pageContext.setAttribute("results", results);
-			pageContext.setAttribute("total", total);
+			assetEntryQuery.setEnd(searchContainer.getEnd());
+			assetEntryQuery.setStart(searchContainer.getStart());
+
+			results = AssetEntryServiceUtil.getEntries(assetEntryQuery);
 		}
 		else {
-			results = BookmarksEntryServiceUtil.getEntries(scopeGroupId, folderId, searchContainer.getStart(), searchContainer.getEnd(), orderByComparator);
 			total = BookmarksEntryServiceUtil.getEntriesCount(scopeGroupId, folderId);
+
+			searchContainer.setTotal(total);
+
+			results = BookmarksEntryServiceUtil.getEntries(scopeGroupId, folderId, searchContainer.getStart(), searchContainer.getEnd(), orderByComparator);
 		}
 
-		pageContext.setAttribute("results", results);
-		pageContext.setAttribute("total", total);
+		searchContainer.setResults(results);
 		%>
 
 	</liferay-ui:search-container-results>

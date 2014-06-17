@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -82,32 +82,39 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 			true);
 	public static long CLASSNAMEID_COLUMN_BITMASK = 1L;
 	public static long TAGID_COLUMN_BITMASK = 2L;
+	public static long ASSETCOUNT_COLUMN_BITMASK = 4L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.asset.model.AssetTagStats"));
 
 	public AssetTagStatsModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _tagStatsId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setTagStatsId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_tagStatsId);
+		return _tagStatsId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return AssetTagStats.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return AssetTagStats.class.getName();
 	}
@@ -120,6 +127,9 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 		attributes.put("tagId", getTagId());
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("assetCount", getAssetCount());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -151,18 +161,22 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 		}
 	}
 
+	@Override
 	public long getTagStatsId() {
 		return _tagStatsId;
 	}
 
+	@Override
 	public void setTagStatsId(long tagStatsId) {
 		_tagStatsId = tagStatsId;
 	}
 
+	@Override
 	public long getTagId() {
 		return _tagId;
 	}
 
+	@Override
 	public void setTagId(long tagId) {
 		_columnBitmask |= TAGID_COLUMN_BITMASK;
 
@@ -179,6 +193,7 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 		return _originalTagId;
 	}
 
+	@Override
 	public String getClassName() {
 		if (getClassNameId() <= 0) {
 			return StringPool.BLANK;
@@ -187,6 +202,7 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 		return PortalUtil.getClassName(getClassNameId());
 	}
 
+	@Override
 	public void setClassName(String className) {
 		long classNameId = 0;
 
@@ -197,10 +213,12 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 		setClassNameId(classNameId);
 	}
 
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
 
+	@Override
 	public void setClassNameId(long classNameId) {
 		_columnBitmask |= CLASSNAMEID_COLUMN_BITMASK;
 
@@ -217,10 +235,12 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 		return _originalClassNameId;
 	}
 
+	@Override
 	public int getAssetCount() {
 		return _assetCount;
 	}
 
+	@Override
 	public void setAssetCount(int assetCount) {
 		_columnBitmask = -1L;
 
@@ -229,17 +249,6 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public AssetTagStats toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (AssetTagStats)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -256,6 +265,16 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 	}
 
 	@Override
+	public AssetTagStats toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (AssetTagStats)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		AssetTagStatsImpl assetTagStatsImpl = new AssetTagStatsImpl();
 
@@ -269,6 +288,7 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 		return assetTagStatsImpl;
 	}
 
+	@Override
 	public int compareTo(AssetTagStats assetTagStats) {
 		int value = 0;
 
@@ -293,18 +313,15 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AssetTagStats)) {
 			return false;
 		}
 
-		AssetTagStats assetTagStats = null;
-
-		try {
-			assetTagStats = (AssetTagStats)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		AssetTagStats assetTagStats = (AssetTagStats)obj;
 
 		long primaryKey = assetTagStats.getPrimaryKey();
 
@@ -319,6 +336,16 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -368,6 +395,7 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(16);
 
@@ -398,7 +426,7 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 	}
 
 	private static ClassLoader _classLoader = AssetTagStats.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			AssetTagStats.class
 		};
 	private long _tagStatsId;
@@ -410,5 +438,5 @@ public class AssetTagStatsModelImpl extends BaseModelImpl<AssetTagStats>
 	private boolean _setOriginalClassNameId;
 	private int _assetCount;
 	private long _columnBitmask;
-	private AssetTagStats _escapedModelProxy;
+	private AssetTagStats _escapedModel;
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,7 @@
 
 package com.liferay.portal.dao.shard.advice;
 
-import com.liferay.portal.dao.shard.ShardDataSourceTargetSource;
-import com.liferay.portal.dao.shard.ShardSessionFactoryTargetSource;
+import com.liferay.portal.kernel.cache.CacheRegistryUtil;
 import com.liferay.portal.kernel.dao.shard.ShardUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -36,34 +35,43 @@ public class ShardGloballyAdvice implements MethodInterceptor {
 	 *
 	 * @see ShardIterativelyAdvice
 	 */
+	@Override
 	public Object invoke(MethodInvocation methodInvocation) throws Throwable {
+		Object returnValue = null;
+
 		_shardAdvice.setGlobalCall(new Object());
 
 		try {
-			if (_log.isInfoEnabled()) {
-				_log.info(
-					"All shards invoked for " + methodInvocation.toString());
-			}
-
 			for (String shardName : ShardUtil.getAvailableShardNames()) {
-				ShardDataSourceTargetSource dataSourceTargetSource =
-					_shardAdvice.getShardDataSourceTargetSource();
+				if (_log.isInfoEnabled()) {
+					_log.info(
+						"Invoking shard " + shardName + " for " +
+							methodInvocation.toString());
+				}
 
-				dataSourceTargetSource.setDataSource(shardName);
+				ShardUtil.setTargetSource(shardName);
 
-				ShardSessionFactoryTargetSource shardSessionFactoryTargetSource
-					= _shardAdvice.getShardSessionFactoryTargetSource();
+				_shardAdvice.pushCompanyService(shardName);
 
-				shardSessionFactoryTargetSource.setSessionFactory(shardName);
+				try {
+					Object value = methodInvocation.proceed();
 
-				methodInvocation.proceed();
+					if (shardName.equals(ShardUtil.getDefaultShardName())) {
+						returnValue = value;
+					}
+				}
+				finally {
+					_shardAdvice.popCompanyService();
+
+					CacheRegistryUtil.clear();
+				}
 			}
 		}
 		finally {
 			_shardAdvice.setGlobalCall(null);
 		}
 
-		return null;
+		return returnValue;
 	}
 
 	public void setShardAdvice(ShardAdvice shardAdvice) {

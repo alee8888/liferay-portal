@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,6 +25,10 @@ long messageId = message.getMessageId();
 
 long categoryId = MBUtil.getCategoryId(request, message);
 
+MBCategory category = MBCategoryLocalServiceUtil.getCategory(categoryId);
+
+category = category.toEscapedModel();
+
 MBThread thread = message.getThread();
 
 MBMessage curParentMessage = null;
@@ -45,7 +49,7 @@ boolean splitThread = false;
 
 	<liferay-ui:header
 		backURL="<%= redirect %>"
-		title="message"
+		title="move-thread"
 	/>
 
 	<liferay-ui:error exception="<%= MessageBodyException.class %>" message="please-enter-a-valid-message" />
@@ -57,32 +61,11 @@ boolean splitThread = false;
 	%>
 
 	<aui:fieldset>
-		<aui:field-wrapper label="category">
+		<div class="form-group">
+			<aui:input label="category[message-board]" name="categoryName" type="resource" value='<%= ((categoryId != MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) && (categoryId != MBCategoryConstants.DISCUSSION_CATEGORY_ID)) ? category.getName() : LanguageUtil.get(pageContext, "message-boards-home") %>' />
 
-			<%
-			MBCategory category = MBCategoryLocalServiceUtil.getCategory(categoryId);
-
-			category = category.toEscapedModel();
-			%>
-
-			<portlet:renderURL var="viewCategoryURL">
-				<portlet:param name="struts_action" value="/message_boards/view" />
-				<portlet:param name="mbCategoryId" value="<%= String.valueOf(categoryId) %>" />
-			</portlet:renderURL>
-
-			<aui:a href="<%= viewCategoryURL %>" id="categoryName"><%= ((categoryId != MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) && (categoryId != MBCategoryConstants.DISCUSSION_CATEGORY_ID)) ? category.getName() : LanguageUtil.get(pageContext, "message-boards-home") %></aui:a>
-
-			<portlet:renderURL var="selectCategoryURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-				<portlet:param name="struts_action" value="/message_boards/select_category" />
-				<portlet:param name="mbCategoryId" value="<%= String.valueOf(category.getParentCategoryId()) %>" />
-			</portlet:renderURL>
-
-			<%
-			String taglibOpenCategoryWindow = "var categoryWindow = window.open('" + HtmlUtil.escape(selectCategoryURL) + "','category', 'directories=no,height=640,location=no,menubar=no,resizable=yes,scrollbars=yes,status=no,toolbar=no,width=680'); void(''); categoryWindow.focus();";
-			%>
-
-			<aui:button onClick="<%= taglibOpenCategoryWindow %>" value="select" />
-		</aui:field-wrapper>
+			<aui:button name="selectCategoryButton" value="select" />
+		</div>
 
 		<aui:input disabled="<%= thread.isLocked() %>" helpMessage='<%= thread.isLocked() ? LanguageUtil.get(pageContext, "unlock-thread-to-add-an-explanation-post") : StringPool.BLANK %>' label="add-explanation-post" name="addExplanationPost" onClick='<%= renderResponse.getNamespace() + "toggleExplanationPost();" %>' type="checkbox" />
 
@@ -90,7 +73,7 @@ boolean splitThread = false;
 			<aui:input maxlength="75" name="subject" style="width: 350px;" value="">
 				<aui:validator name="required">
 					function() {
-						return A.one('#<portlet:namespace />addExplanationPostCheckbox').get('checked');
+						return A.one('#<portlet:namespace />addExplanationPost').get('checked');
 					}
 				</aui:validator>
 			</aui:input>
@@ -113,24 +96,16 @@ boolean splitThread = false;
 <aui:script>
 	function <portlet:namespace />moveThread() {
 		document.<portlet:namespace />fm.<portlet:namespace />body.value = <portlet:namespace />getHTML();
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
-	function <portlet:namespace />selectCategory(categoryId, categoryName) {
-		document.<portlet:namespace />fm.<portlet:namespace />mbCategoryId.value = categoryId;
-
-		var nameEl = document.getElementById("<portlet:namespace />categoryName");
-
-		nameEl.href = "<portlet:renderURL><portlet:param name="struts_action" value="/message_boards/view" /></portlet:renderURL>&<portlet:namespace />mbCategoryId=" + categoryId;
-		nameEl.innerHTML = categoryName + "&nbsp;";
-	}
-
 	function <portlet:namespace />toggleExplanationPost() {
-		if (document.getElementById("<portlet:namespace />addExplanationPostCheckbox").checked) {
-			document.getElementById("<portlet:namespace />explanationPost").style.display = "";
+		if (document.getElementById('<portlet:namespace />addExplanationPost').checked) {
+			document.getElementById('<portlet:namespace />explanationPost').style.display = '';
 		}
 		else {
-			document.getElementById("<portlet:namespace />explanationPost").style.display = "none";
+			document.getElementById('<portlet:namespace />explanationPost').style.display = 'none';
 		}
 	}
 </aui:script>
@@ -140,3 +115,28 @@ MBUtil.addPortletBreadcrumbEntries(message, request, renderResponse);
 
 PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "move-thread"), currentURL);
 %>
+
+<aui:script use="aui-base">
+	A.one('#<portlet:namespace />selectCategoryButton').on(
+		'click',
+		function(event) {
+			Liferay.Util.selectEntity(
+				{
+					dialog: {
+						constrain: true,
+						modal: true,
+						width: 680
+					},
+					id: '<portlet:namespace />selectCategory',
+					title: '<liferay-ui:message arguments="category" key="select-x" />',
+					uri: '<portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="struts_action" value="/message_boards/select_category" /><portlet:param name="mbCategoryId" value="<%= String.valueOf(category.getParentCategoryId()) %>" /></portlet:renderURL>'
+				},
+				function(event) {
+					document.<portlet:namespace />fm.<portlet:namespace />mbCategoryId.value = event.categoryid;
+
+					document.getElementById('<portlet:namespace />categoryName').value = A.Lang.String.unescapeEntities(event.name);
+				}
+			);
+		}
+	);
+</aui:script>

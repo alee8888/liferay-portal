@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -38,6 +38,42 @@ else if (Validator.isNotNull(title)) {
 	title = LanguageUtil.get(pageContext, title);
 }
 
-String fieldCss = AUIUtil.buildCss(AUIUtil.FIELD_PREFIX, "select", inlineField, disabled, false, first, last, cssClass);
-String inputCss = AUIUtil.buildCss(AUIUtil.INPUT_PREFIX, "select", false, false, false, false, false, inputCssClass);
+String controlGroupCssClass = AUIUtil.buildControlGroupCss(inlineField, inlineLabel, wrapperCssClass, "select");
+String fieldCss = AUIUtil.buildCss("aui-field-select", disabled, first, last, cssClass);
+
+boolean numericValue = false;
+
+if ((bean != null) && Validator.isNull(listType) && showEmptyOption) {
+	Object propertyInstance = null;
+
+	Class<?> propertyTypeClass = BeanPropertiesUtil.getObjectTypeSilent(bean, name);
+
+	if (propertyTypeClass.isPrimitive()) {
+		propertyInstance = _primitiveObjects.get(propertyTypeClass);
+	}
+	else {
+		try {
+			propertyInstance = propertyTypeClass.newInstance();
+		}
+		catch (Exception e) {
+		}
+	}
+
+	if (propertyInstance instanceof Number) {
+		numericValue = true;
+	}
+}
+%>
+
+<%!
+private static Map<Class<?>, Object> _primitiveObjects = new HashMap<Class<?>, Object>();
+
+static {
+	_primitiveObjects.put(byte.class, new Byte("0"));
+	_primitiveObjects.put(double.class, new Double(0));
+	_primitiveObjects.put(float.class, new Float(0));
+	_primitiveObjects.put(int.class, new Integer(0));
+	_primitiveObjects.put(long.class, new Long(0));
+	_primitiveObjects.put(short.class, new Short("0"));
+}
 %>

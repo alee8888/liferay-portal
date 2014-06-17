@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,6 +18,7 @@ import com.liferay.counter.service.persistence.CounterFinder;
 import com.liferay.counter.service.persistence.CounterPersistence;
 import com.liferay.portal.dao.shard.ShardDataSourceTargetSource;
 import com.liferay.portal.dao.shard.ShardSessionFactoryTargetSource;
+import com.liferay.portal.kernel.dao.shard.ShardUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.persistence.ClassNamePersistence;
@@ -40,6 +41,7 @@ import org.aopalliance.intercept.MethodInvocation;
  */
 public class ShardPersistenceAdvice implements MethodInterceptor {
 
+	@Override
 	public Object invoke(MethodInvocation methodInvocation) throws Throwable {
 		ShardDataSourceTargetSource shardDataSourceTargetSource =
 			_shardAdvice.getShardDataSourceTargetSource();
@@ -65,9 +67,7 @@ public class ShardPersistenceAdvice implements MethodInterceptor {
 			target instanceof ShardPersistence ||
 			target instanceof VirtualHostPersistence) {
 
-			shardDataSourceTargetSource.setDataSource(
-				PropsValues.SHARD_DEFAULT_NAME);
-			shardSessionFactoryTargetSource.setSessionFactory(
+			String currentShardName = ShardUtil.setTargetSource(
 				PropsValues.SHARD_DEFAULT_NAME);
 
 			if (_log.isDebugEnabled()) {
@@ -82,16 +82,15 @@ public class ShardPersistenceAdvice implements MethodInterceptor {
 			}
 			finally {
 				_shardAdvice.popCompanyService();
+
+				ShardUtil.setTargetSource(currentShardName);
 			}
 		}
 
 		if (_shardAdvice.getGlobalCall() == null) {
-			_shardAdvice.setShardNameByCompany();
+			String shardName = _shardAdvice.setShardNameByCompany();
 
-			String shardName = _shardAdvice.getShardName();
-
-			shardDataSourceTargetSource.setDataSource(shardName);
-			shardSessionFactoryTargetSource.setSessionFactory(shardName);
+			String currentShardName = ShardUtil.setTargetSource(shardName);
 
 			if (_log.isInfoEnabled()) {
 				_log.info(
@@ -99,7 +98,16 @@ public class ShardPersistenceAdvice implements MethodInterceptor {
 						methodInvocation.toString());
 			}
 
-			return methodInvocation.proceed();
+			_shardAdvice.pushCompanyService(shardName);
+
+			try {
+				return methodInvocation.proceed();
+			}
+			finally {
+				_shardAdvice.popCompanyService();
+
+				ShardUtil.setTargetSource(currentShardName);
+			}
 		}
 		else {
 			return methodInvocation.proceed();

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,7 +30,7 @@ if (assetVocabularyId > 0) {
 	assetVocabularies.add(assetVocabulary);
 }
 else {
-	assetVocabularies = AssetVocabularyServiceUtil.getGroupsVocabularies(new long[] {themeDisplay.getScopeGroupId(), themeDisplay.getParentGroupId()});
+	assetVocabularies = AssetVocabularyServiceUtil.getGroupVocabularies(PortalUtil.getCurrentAndAncestorSiteGroupIds(scopeGroupId));
 }
 
 if (assetVocabularies.isEmpty()) {
@@ -38,8 +38,8 @@ if (assetVocabularies.isEmpty()) {
 }
 %>
 
-<div class="asset-vocabulary <%= cssClass %>" data-facetFieldName="<%= facet.getFieldName() %>" id="<%= randomNamespace %>facet">
-	<aui:input name="<%= facet.getFieldName() %>" type="hidden" value="<%= StringUtil.merge(assetCategoryIdsOrNames) %>" />
+<div class="asset-vocabulary <%= cssClass %>" data-facetFieldName="<%= HtmlUtil.escapeAttribute(facet.getFieldId()) %>" id="<%= randomNamespace %>facet">
+	<aui:input name="<%= HtmlUtil.escapeAttribute(facet.getFieldId()) %>" type="hidden" value="<%= StringUtil.merge(assetCategoryIdsOrNames) %>" />
 
 	<%
 	for (AssetVocabulary assetVocabulary : assetVocabularies) {
@@ -51,14 +51,14 @@ if (assetVocabularies.isEmpty()) {
 	%>
 
 		<div class="search-asset-vocabulary-list-container">
-			<ul class="lfr-component search-asset-vocabulary-list">
+			<ul class="nav nav-pills nav-stacked search-asset-vocabulary-list">
 
 				<%
 				StringBundler sb = new StringBundler();
 
-				String clearFields = renderResponse.getNamespace() + facet.getFieldName();
+				String clearFields = renderResponse.getNamespace() + facet.getFieldId();
 
-				_buildCategoriesNavigation(assetCategoryIdsOrNames, matchByName, facetCollector, assetCategories, clearFields, pageContext, sb);
+				_buildCategoriesNavigation(assetCategoryIdsOrNames, matchByName, facetCollector, assetCategories, clearFields, pageContext, locale, sb);
 				%>
 
 				<%= sb.toString() %>
@@ -73,7 +73,7 @@ if (assetVocabularies.isEmpty()) {
 </div>
 
 <%!
-private void _buildCategoriesNavigation(String[] assetCategoryIdsOrNames, boolean matchByName, FacetCollector facetCollector, List<AssetCategory> assetCategories, String clearFields, PageContext pageContext, StringBundler sb) throws Exception {
+private void _buildCategoriesNavigation(String[] assetCategoryIdsOrNames, boolean matchByName, FacetCollector facetCollector, List<AssetCategory> assetCategories, String clearFields, PageContext pageContext, Locale locale, StringBundler sb) throws Exception {
 	for (AssetCategory assetCategory : assetCategories) {
 		String term = String.valueOf(assetCategory.getCategoryId());
 
@@ -94,15 +94,15 @@ private void _buildCategoriesNavigation(String[] assetCategoryIdsOrNames, boolea
 		sb.append("<li class=\"facet-value");
 
 		if (ArrayUtil.contains(assetCategoryIdsOrNames, term)) {
-			sb.append(" current-term");
+			sb.append(" active");
 
-			ScriptTag.doTag(null, "liferay-token-list", "Liferay.Search.tokenList.add({clearFields: '" + UnicodeFormatter.toString(clearFields) + "', text: '" + UnicodeFormatter.toString(assetCategoryName) + "'});", null, pageContext);
+			ScriptTag.doTag(null, "liferay-token-list", "Liferay.Search.tokenList.add({clearFields: '" + HtmlUtil.escapeJS(clearFields) + "', text: '" + HtmlUtil.escapeJS(assetCategoryName) + "'});", null, pageContext);
 		}
 
 		sb.append("\"><a href=\"#\" data-value=\"");
 		sb.append(HtmlUtil.escapeAttribute(term));
 		sb.append("\">");
-		sb.append(assetCategoryName);
+		sb.append(assetCategory.getTitle(locale));
 		sb.append("</a> <span class=\"frequency\">(");
 		sb.append(frequency);
 		sb.append(")</span>");
@@ -112,7 +112,7 @@ private void _buildCategoriesNavigation(String[] assetCategoryIdsOrNames, boolea
 		if (!childAssetCategories.isEmpty()) {
 			sb.append("<ul>");
 
-			_buildCategoriesNavigation(assetCategoryIdsOrNames, matchByName, facetCollector, childAssetCategories, clearFields, pageContext, sb);
+			_buildCategoriesNavigation(assetCategoryIdsOrNames, matchByName, facetCollector, childAssetCategories, clearFields, pageContext, locale, sb);
 
 			sb.append("</ul>");
 		}

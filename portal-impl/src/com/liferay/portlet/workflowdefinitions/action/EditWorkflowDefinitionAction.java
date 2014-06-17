@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,15 +15,18 @@
 package com.liferay.portlet.workflowdefinitions.action;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.RequiredWorkflowDefinitionException;
 import com.liferay.portal.kernel.workflow.WorkflowDefinition;
 import com.liferay.portal.kernel.workflow.WorkflowDefinitionFileException;
 import com.liferay.portal.kernel.workflow.WorkflowDefinitionManagerUtil;
@@ -33,7 +36,7 @@ import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
 
-import java.io.InputStream;
+import java.io.File;
 
 import java.util.Locale;
 import java.util.Map;
@@ -55,8 +58,9 @@ public class EditWorkflowDefinitionAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -75,10 +79,19 @@ public class EditWorkflowDefinitionAction extends PortletAction {
 			sendRedirect(actionRequest, actionResponse);
 		}
 		catch (Exception e) {
-			if (e instanceof WorkflowDefinitionFileException) {
+			if (e instanceof RequiredWorkflowDefinitionException) {
+				SessionErrors.add(actionRequest, e.getClass());
+
+				hideDefaultErrorMessage(actionRequest);
+
+				setForward(actionRequest, "portlet.workflow_definitions.view");
+			}
+			else if (e instanceof WorkflowDefinitionFileException) {
 				SessionErrors.add(actionRequest, e.getClass());
 			}
 			else if (e instanceof WorkflowException) {
+				_log.error(e, e);
+
 				SessionErrors.add(actionRequest, e.getClass());
 
 				setForward(actionRequest, "portlet.workflow_definitions.error");
@@ -91,8 +104,9 @@ public class EditWorkflowDefinitionAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -102,7 +116,7 @@ public class EditWorkflowDefinitionAction extends PortletAction {
 			if (e instanceof WorkflowException) {
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward(
+				return actionMapping.findForward(
 					"portlet.workflow_definitions.error");
 			}
 			else {
@@ -110,9 +124,10 @@ public class EditWorkflowDefinitionAction extends PortletAction {
 			}
 		}
 
-		return mapping.findForward(getForward(
-			renderRequest,
-			"portlet.workflow_definitions.edit_workflow_definition"));
+		return actionMapping.findForward(
+			getForward(
+				renderRequest,
+				"portlet.workflow_definitions.edit_workflow_definition"));
 	}
 
 	protected void deleteWorkflowDefinition(ActionRequest actionRequest)
@@ -183,41 +198,36 @@ public class EditWorkflowDefinitionAction extends PortletAction {
 		Map<Locale, String> titleMap = LocalizationUtil.getLocalizationMap(
 			actionRequest, "title");
 
-		InputStream inputStream = null;
+		File file = uploadPortletRequest.getFile("file");
 
-		try {
-			inputStream = uploadPortletRequest.getFileAsStream("file");
+		WorkflowDefinition workflowDefinition = null;
 
-			WorkflowDefinition workflowDefinition = null;
+		if (file == null) {
+			String name = ParamUtil.getString(actionRequest, "name");
+			int version = ParamUtil.getInteger(actionRequest, "version");
 
-			if (inputStream == null) {
-				String name = ParamUtil.getString(actionRequest, "name");
-				int version = ParamUtil.getInteger(actionRequest, "version");
+			workflowDefinition =
+				WorkflowDefinitionManagerUtil.getWorkflowDefinition(
+					themeDisplay.getCompanyId(), name, version);
 
-				workflowDefinition =
-					WorkflowDefinitionManagerUtil.getWorkflowDefinition(
-						themeDisplay.getCompanyId(), name, version);
-
-				WorkflowDefinitionManagerUtil.updateTitle(
-					themeDisplay.getCompanyId(), themeDisplay.getUserId(), name,
-					version, getTitle(titleMap));
-			}
-			else {
-				workflowDefinition =
-					WorkflowDefinitionManagerUtil.deployWorkflowDefinition(
-						themeDisplay.getCompanyId(), themeDisplay.getUserId(),
-						getTitle(titleMap), inputStream);
-			}
-
-			actionRequest.setAttribute(
-				WebKeys.WORKFLOW_DEFINITION, workflowDefinition);
+			WorkflowDefinitionManagerUtil.updateTitle(
+				themeDisplay.getCompanyId(), themeDisplay.getUserId(), name,
+				version, getTitle(titleMap));
 		}
-		finally {
-			StreamUtil.cleanUp(inputStream);
+		else {
+			workflowDefinition =
+				WorkflowDefinitionManagerUtil.deployWorkflowDefinition(
+					themeDisplay.getCompanyId(), themeDisplay.getUserId(),
+					getTitle(titleMap), FileUtil.getBytes(file));
 		}
 
+		actionRequest.setAttribute(
+			WebKeys.WORKFLOW_DEFINITION, workflowDefinition);
 	}
 
 	private static final boolean _CHECK_METHOD_ON_PROCESS_ACTION = false;
+
+	private static Log _log = LogFactoryUtil.getLog(
+		EditWorkflowDefinitionAction.class);
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,6 +35,10 @@ public class BaseFieldWrapperTag extends com.liferay.taglib.util.IncludeTag {
 
 	public java.lang.String getCssClass() {
 		return _cssClass;
+	}
+
+	public java.lang.Object getData() {
+		return _data;
 	}
 
 	public boolean getFirst() {
@@ -73,6 +77,12 @@ public class BaseFieldWrapperTag extends com.liferay.taglib.util.IncludeTag {
 		_cssClass = cssClass;
 
 		setScopedAttribute("cssClass", cssClass);
+	}
+
+	public void setData(java.lang.Object data) {
+		_data = data;
+
+		setScopedAttribute("data", data);
 	}
 
 	public void setFirst(boolean first) {
@@ -126,6 +136,7 @@ public class BaseFieldWrapperTag extends com.liferay.taglib.util.IncludeTag {
 	@Override
 	protected void cleanUp() {
 		_cssClass = null;
+		_data = null;
 		_first = false;
 		_helpMessage = null;
 		_inlineField = false;
@@ -149,6 +160,7 @@ public class BaseFieldWrapperTag extends com.liferay.taglib.util.IncludeTag {
 	@Override
 	protected void setAttributes(HttpServletRequest request) {
 		setNamespacedAttribute(request, "cssClass", _cssClass);
+		setNamespacedAttribute(request, "data", _data);
 		setNamespacedAttribute(request, "first", _first);
 		setNamespacedAttribute(request, "helpMessage", _helpMessage);
 		setNamespacedAttribute(request, "inlineField", _inlineField);
@@ -168,6 +180,7 @@ public class BaseFieldWrapperTag extends com.liferay.taglib.util.IncludeTag {
 		"/html/taglib/aui/field_wrapper/start.jsp";
 
 	private java.lang.String _cssClass = null;
+	private java.lang.Object _data = null;
 	private boolean _first = false;
 	private java.lang.String _helpMessage = null;
 	private boolean _inlineField = false;

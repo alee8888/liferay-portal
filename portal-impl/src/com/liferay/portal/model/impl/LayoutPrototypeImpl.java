@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,6 @@ package com.liferay.portal.model.impl;
 
 import com.liferay.portal.NoSuchLayoutException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.service.GroupLocalServiceUtil;
@@ -32,18 +31,21 @@ public class LayoutPrototypeImpl extends LayoutPrototypeBaseImpl {
 	public LayoutPrototypeImpl() {
 	}
 
-	public Group getGroup() throws PortalException, SystemException {
+	@Override
+	public Group getGroup() throws PortalException {
 		return GroupLocalServiceUtil.getLayoutPrototypeGroup(
 			getCompanyId(), getLayoutPrototypeId());
 	}
 
-	public long getGroupId() throws PortalException, SystemException {
+	@Override
+	public long getGroupId() throws PortalException {
 		Group group = getGroup();
 
 		return group.getGroupId();
 	}
 
-	public Layout getLayout() throws PortalException, SystemException {
+	@Override
+	public Layout getLayout() throws PortalException {
 		Group group = getGroup();
 
 		if (group.getPrivateLayoutsPageCount() > 0) {
@@ -53,7 +55,7 @@ public class LayoutPrototypeImpl extends LayoutPrototypeBaseImpl {
 			return layouts.get(0);
 		}
 
-		throw new NoSuchLayoutException();
+		throw new NoSuchLayoutException("{groupId=" + group.getGroupId() + "}");
 	}
 
 }

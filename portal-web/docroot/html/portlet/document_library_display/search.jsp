@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -45,6 +45,8 @@ else {
 String keywords = ParamUtil.getString(request, "keywords");
 
 int mountFoldersCount = DLAppServiceUtil.getMountFoldersCount(scopeGroupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+DLActionsDisplayContext dlActionsDisplayContext = new DLActionsDisplayContext(request, dlPortletInstanceSettings);
 %>
 
 <liferay-portlet:renderURL varImpl="searchURL">
@@ -65,6 +67,50 @@ int mountFoldersCount = DLAppServiceUtil.getMountFoldersCount(scopeGroupId, DLFo
 		title="search"
 	/>
 
+	<div class="form-search">
+		<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' title='<%= LanguageUtil.get(locale, "search-documents") %>' />
+	</div>
+
+	<br /><br />
+
+	<c:if test="<%= (mountFoldersCount > 0) && (folderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) %>">
+
+		<%
+		List<Folder> mountFolders = DLAppServiceUtil.getMountFolders(scopeGroupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		StringBundler sb = new StringBundler((6 * mountFoldersCount) - 1);
+
+		for (int i = 0; i < mountFoldersCount; i++) {
+			Folder mountFolder = mountFolders.get(i);
+
+			PortletURL searchExternalRepositoryURL = renderResponse.createRenderURL();
+
+			searchExternalRepositoryURL.setParameter("struts_action", "/document_library_display/search");
+			searchExternalRepositoryURL.setParameter("redirect", redirect);
+			searchExternalRepositoryURL.setParameter("repositoryId", String.valueOf(mountFolder.getRepositoryId()));
+			searchExternalRepositoryURL.setParameter("folderId", String.valueOf(mountFolder.getFolderId()));
+			searchExternalRepositoryURL.setParameter("breadcrumbsFolderId", String.valueOf(breadcrumbsFolderId));
+			searchExternalRepositoryURL.setParameter("searchFolderId", String.valueOf(searchFolderId));
+			searchExternalRepositoryURL.setParameter("searchFolderIds", String.valueOf(searchFolderIds));
+			searchExternalRepositoryURL.setParameter("keywords", keywords);
+
+			sb.append("<a href=\"");
+			sb.append(searchExternalRepositoryURL.toString());
+			sb.append("\">");
+			sb.append(HtmlUtil.escape(mountFolder.getName()));
+			sb.append("</a>");
+
+			if ((i + 1) < mountFoldersCount) {
+				sb.append(", ");
+			}
+		}
+		%>
+
+		<span class="alert alert-info">
+			<liferay-ui:message arguments="<%= sb.toString() %>" key="results-from-the-local-repository-search-in-x" translateArguments="<%= false %>" />
+		</span>
+	</c:if>
+
 	<%
 	PortletURL portletURL = renderResponse.createRenderURL();
 
@@ -76,148 +122,119 @@ int mountFoldersCount = DLAppServiceUtil.getMountFoldersCount(scopeGroupId, DLFo
 	portletURL.setParameter("searchFolderId", String.valueOf(searchFolderId));
 	portletURL.setParameter("searchFolderIds", String.valueOf(searchFolderIds));
 	portletURL.setParameter("keywords", keywords);
+	%>
 
-	List<String> headerNames = new ArrayList<String>();
+	<liferay-ui:search-container
+		emptyResultsMessage='<%= LanguageUtil.format(pageContext, "no-documents-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>'
+		iteratorURL="<%= portletURL %>"
+	>
 
-	headerNames.add("#");
-	headerNames.add("folder");
-	headerNames.add("document");
-	headerNames.add(StringPool.BLANK);
-
-	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.format(pageContext, "no-documents-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>"));
-
-	try {
-		Indexer indexer = IndexerRegistryUtil.getIndexer(DLFileEntryConstants.getClassName());
-
+		<%
 		SearchContext searchContext = SearchContextFactory.getInstance(request);
 
 		searchContext.setAttribute("paginationType", "more");
 		searchContext.setEnd(searchContainer.getEnd());
 		searchContext.setFolderIds(folderIdsArray);
+		searchContext.setIncludeDiscussions(true);
 		searchContext.setKeywords(keywords);
 		searchContext.setStart(searchContainer.getStart());
 
-		Hits results = DLAppServiceUtil.search(repositoryId, searchContext);
+		Hits hits = DLAppServiceUtil.search(repositoryId, searchContext);
 
-		int total = results.getLength();
+		searchContainer.setTotal(hits.getLength());
 
-		searchContainer.setTotal(total);
+		PortletURL hitURL = renderResponse.createRenderURL();
+		%>
 
-		List resultRows = searchContainer.getResultRows();
+		<liferay-ui:search-container-results
+			results="<%= SearchResultUtil.getSearchResults(hits, locale, hitURL) %>"
+		/>
 
-		for (int i = 0; i < results.getDocs().length; i++) {
-			Document doc = results.doc(i);
-
-			ResultRow row = new ResultRow(doc, i, i);
-
-			// Position
-
-			row.addText(searchContainer.getStart() + i + 1 + StringPool.PERIOD);
-
-			// Folder and document
-
-			long fileEntryId = GetterUtil.getLong(doc.get(Field.ENTRY_CLASS_PK));
-
-			FileEntry fileEntry = null;
-
-			try {
-				fileEntry = DLAppLocalServiceUtil.getFileEntry(fileEntryId);
-			}
-			catch (Exception e) {
-				if (_log.isWarnEnabled()) {
-					_log.warn("Documents and Media search index is stale and contains file entry {" + fileEntryId + "}");
-				}
-
-				continue;
-			}
-
-			row.setObject(fileEntry);
-
-			Folder folder = fileEntry.getFolder();
-
-			PortletURL rowURL = renderResponse.createRenderURL();
-
-			rowURL.setParameter("struts_action", "/document_library_display/view_file_entry");
-			rowURL.setParameter("redirect", currentURL);
-			rowURL.setParameter("fileEntryId", String.valueOf(fileEntry.getFileEntryId()));
-
-			String rowHREF = rowURL.toString();
-
-			row.addText(folder.getName(), rowHREF);
-			row.addText(fileEntry.getTitle(), rowHREF);
-
-			// Action
-
-			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/document_library/file_entry_action.jsp");
-
-			// Add result row
-
-			resultRows.add(row);
-		}
-	%>
-
-		<span class="aui-search-bar">
-			<aui:input inlineField="<%= true %>" label="" name="keywords" size="30" title="search-documents" type="text" value="<%= keywords %>" />
-
-			<aui:button type="submit" value="search" />
-		</span>
-
-		<br /><br />
-
-		<c:if test="<%= (mountFoldersCount > 0) && (folderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) %>">
+		<liferay-ui:search-container-row
+			className="com.liferay.portal.kernel.search.SearchResult"
+			modelVar="searchResult"
+		>
 
 			<%
-			List<Folder> mountFolders = DLAppServiceUtil.getMountFolders(scopeGroupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+			Summary summary = searchResult.getSummary();
 
-			StringBundler sb = new StringBundler((6 * mountFoldersCount) - 1);
+			FileEntry fileEntry = null;
+			Folder folder = null;
 
-			for (int i = 0; i < mountFoldersCount; i++) {
-				Folder mountFolder = mountFolders.get(i);
+			String className = searchResult.getClassName();
 
-				PortletURL searchExternalRepositoryURL = renderResponse.createRenderURL();
-
-				searchExternalRepositoryURL.setParameter("struts_action", "/document_library_display/search");
-				searchExternalRepositoryURL.setParameter("redirect", redirect);
-				searchExternalRepositoryURL.setParameter("repositoryId", String.valueOf(mountFolder.getRepositoryId()));
-				searchExternalRepositoryURL.setParameter("folderId", String.valueOf(mountFolder.getFolderId()));
-				searchExternalRepositoryURL.setParameter("breadcrumbsFolderId", String.valueOf(breadcrumbsFolderId));
-				searchExternalRepositoryURL.setParameter("searchFolderId", String.valueOf(searchFolderId));
-				searchExternalRepositoryURL.setParameter("searchFolderIds", String.valueOf(searchFolderIds));
-				searchExternalRepositoryURL.setParameter("keywords", keywords);
-
-				sb.append("<a href=\"");
-				sb.append(searchExternalRepositoryURL.toString());
-				sb.append("\">");
-				sb.append(mountFolder.getName());
-				sb.append("</a>");
-
-				if ((i + 1) < mountFoldersCount) {
-					sb.append(", ");
-				}
+			if (className.equals(DLFileEntry.class.getName()) || FileEntry.class.isAssignableFrom(Class.forName(className))) {
+				fileEntry = DLAppLocalServiceUtil.getFileEntry(searchResult.getClassPK());
 			}
+			else if (searchResult.getClassName().equals(DLFolder.class.getName())) {
+				folder = DLAppLocalServiceUtil.getFolder(searchResult.getClassPK());
+			}
+
+			request.removeAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
 			%>
 
-			<span class="portlet-msg-info">
-				<liferay-ui:message arguments="<%= sb.toString() %>" key="results-from-the-local-repository-search-in-x" />
-			</span>
-		</c:if>
+			<c:choose>
+				<c:when test="<%= fileEntry != null %>">
 
-		<liferay-ui:search-iterator searchContainer="<%= searchContainer %>" type="more" />
+					<%
+					request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
+					%>
 
-	<%
-	}
-	catch (Exception e) {
-		_log.error(e.getMessage());
-	}
-	%>
+					<portlet:renderURL var="rowURL">
+						<portlet:param name="struts_action" value="/document_library_display/view_file_entry" />
+						<portlet:param name="redirect" value="<%= currentURL %>" />
+						<portlet:param name="fileEntryId" value="<%= String.valueOf(fileEntry.getFileEntryId()) %>" />
+					</portlet:renderURL>
 
+					<liferay-ui:app-view-search-entry
+						actionJsp='<%= (dlActionsDisplayContext.isShowActions()) ? "/html/portlet/document_library/file_entry_action.jsp" : StringPool.BLANK %>'
+						containerName="<%= DLUtil.getAbsolutePath(renderRequest, fileEntry.getFolderId()) %>"
+						cssClass='<%= MathUtil.isEven(index) ? "search" : "search alt" %>'
+						description="<%= (summary != null) ? summary.getContent() : fileEntry.getDescription() %>"
+						mbMessages="<%= searchResult.getMBMessages() %>"
+						queryTerms="<%= hits.getQueryTerms() %>"
+						thumbnailSrc="<%= DLUtil.getThumbnailSrc(fileEntry, null, themeDisplay) %>"
+						title="<%= (summary != null) ? summary.getTitle() : fileEntry.getTitle() %>"
+						url="<%= rowURL %>"
+					/>
+				</c:when>
+				<c:when test="<%= folder != null %>">
+
+					<%
+					String folderImage = "folder_empty_document";
+
+					if (DLAppServiceUtil.getFoldersAndFileEntriesAndFileShortcutsCount(folder.getRepositoryId(), folder.getFolderId(), WorkflowConstants.STATUS_APPROVED, true) > 0) {
+						folderImage = "folder_full_document";
+					}
+
+					request.setAttribute("view.jsp-folder", folder);
+					request.setAttribute("view.jsp-folderId", String.valueOf(folder.getFolderId()));
+					request.setAttribute("view.jsp-repositoryId", String.valueOf(folder.getRepositoryId()));
+					%>
+
+					<portlet:renderURL var="rowURL">
+						<portlet:param name="struts_action" value="/document_library/view" />
+						<portlet:param name="redirect" value="<%= currentURL %>" />
+						<portlet:param name="folderId" value="<%= String.valueOf(folder.getFolderId()) %>" />
+					</portlet:renderURL>
+
+					<liferay-ui:app-view-search-entry
+						actionJsp='<%= (dlActionsDisplayContext.isShowActions()) ? "/html/portlet/document_library/folder_action.jsp" : StringPool.BLANK %>'
+						containerName="<%= DLUtil.getAbsolutePath(renderRequest, folder.getParentFolderId()) %>"
+						cssClass='<%= MathUtil.isEven(index) ? "search" : "search alt" %>'
+						description="<%= (summary != null) ? summary.getContent() : folder.getDescription() %>"
+						queryTerms="<%= hits.getQueryTerms() %>"
+						thumbnailSrc='<%= themeDisplay.getPathThemeImages() + "/file_system/large/" + folderImage + ".png" %>'
+						title="<%= (summary != null) ? summary.getTitle() : folder.getName() %>"
+						url="<%= rowURL %>"
+					/>
+				</c:when>
+			</c:choose>
+		</liferay-ui:search-container-row>
+
+		<liferay-ui:search-paginator searchContainer="<%= searchContainer %>" type="more" />
+	</liferay-ui:search-container>
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />keywords);
-	</aui:script>
-</c:if>
 
 <%
 if (searchFolderId > 0) {
@@ -225,8 +242,4 @@ if (searchFolderId > 0) {
 }
 
 PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "search") + ": " + keywords, currentURL);
-%>
-
-<%!
-private static Log _log = LogFactoryUtil.getLog("portal-web.docroot.html.portlet.document_library_display.search_jsp");
 %>

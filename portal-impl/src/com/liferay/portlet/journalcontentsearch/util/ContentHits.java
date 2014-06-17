@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -42,25 +42,22 @@ public class ContentHits {
 
 		List<Document> docs = new ArrayList<Document>();
 		List<Float> scores = new ArrayList<Float>();
-		List<String> snippets = new ArrayList<String>();
 
 		for (int i = 0; i < hits.getLength(); i++) {
 			Document doc = hits.doc(i);
 
+			String articleId = doc.get(Field.ARTICLE_ID);
 			long articleGroupId = GetterUtil.getLong(doc.get(Field.GROUP_ID));
-			String articleId = doc.get("articleId");
 
-			if (JournalContentSearchLocalServiceUtil.getLayoutIdsCount(
-					groupId, privateLayout, articleId) > 0) {
+			int layoutIdsCount =
+				JournalContentSearchLocalServiceUtil.getLayoutIdsCount(
+					groupId, privateLayout, articleId);
+
+			if ((layoutIdsCount > 0) ||
+				(!isShowListed() && (articleGroupId == groupId))) {
 
 				docs.add(hits.doc(i));
 				scores.add(hits.score(i));
-				snippets.add(hits.snippet(i));
-			}
-			else if (!isShowListed() && (articleGroupId == groupId)) {
-				docs.add(hits.doc(i));
-				scores.add(hits.score(i));
-				snippets.add(hits.snippet(i));
 			}
 		}
 
@@ -74,11 +71,9 @@ public class ContentHits {
 
 		docs = docs.subList(start, end);
 		scores = scores.subList(start, end);
-		snippets = snippets.subList(start, end);
 
 		hits.setDocs(docs.toArray(new Document[docs.size()]));
 		hits.setScores(scores.toArray(new Float[docs.size()]));
-		hits.setSnippets(snippets.toArray(new String[docs.size()]));
 
 		hits.setSearchTime(
 			(float)(System.currentTimeMillis() - hits.getStart()) /

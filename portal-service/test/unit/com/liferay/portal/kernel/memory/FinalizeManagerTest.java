@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,77 +14,148 @@
 
 package com.liferay.portal.kernel.memory;
 
-import com.liferay.portal.kernel.test.BaseTestCase;
+import com.liferay.portal.kernel.test.CodeCoverageAssertor;
+import com.liferay.portal.kernel.test.NewClassLoaderJUnitTestRunner;
+import com.liferay.portal.kernel.util.ThreadUtil;
+
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * @author Shuyang Zhou
  */
-public class FinalizeManagerTest extends BaseTestCase {
+@RunWith(NewClassLoaderJUnitTestRunner.class)
+public class FinalizeManagerTest {
 
-	public void testRegister() throws InterruptedException {
-		if (FinalizeManager.THREAD_ENABLED) {
-			registerWithThread();
-		}
-		else {
-			registerWithoutThread();
-		}
+	@ClassRule
+	public static CodeCoverageAssertor codeCoverageAssertor =
+		new CodeCoverageAssertor();
+
+	@After
+	public void tearDown() {
+		System.clearProperty(_THREAD_ENABLED_KEY);
 	}
 
-	protected void registerWithoutThread() throws InterruptedException {
+	@Test
+	public void testConstructor() {
+		new FinalizeManager();
+	}
+
+	@Test
+	public void testRegisterWithoutThread() throws InterruptedException {
+		System.setProperty(_THREAD_ENABLED_KEY, Boolean.FALSE.toString());
+
 		Object testObject = new Object();
 
 		MarkFinalizeAction markFinalizeAction = new MarkFinalizeAction();
 
 		FinalizeManager.register(testObject, markFinalizeAction);
 
-		assertFalse(markFinalizeAction.isMarked());
+		Assert.assertFalse(markFinalizeAction.isMarked());
 
 		testObject = null;
 
-		long startTime = System.currentTimeMillis();
-
-		while ((System.currentTimeMillis() - startTime) < 100) {
-			System.gc();
-			Thread.sleep(1);
-
-			if (markFinalizeAction.isMarked()) {
-				break;
-			}
-		}
+		gc();
 
 		FinalizeManager.register(new Object(), markFinalizeAction);
 
-		assertTrue(markFinalizeAction.isMarked());
+		Assert.assertTrue(markFinalizeAction.isMarked());
 	}
 
-	protected void registerWithThread() throws InterruptedException {
+	@Test
+	public void testRegisterWithThread() throws InterruptedException {
+		System.setProperty(_THREAD_ENABLED_KEY, Boolean.TRUE.toString());
+
 		Object testObject = new Object();
 
 		MarkFinalizeAction markFinalizeAction = new MarkFinalizeAction();
 
 		FinalizeManager.register(testObject, markFinalizeAction);
 
-		assertFalse(markFinalizeAction.isMarked());
+		Assert.assertFalse(markFinalizeAction.isMarked());
 
 		testObject = null;
 
+		gc();
+
 		long startTime = System.currentTimeMillis();
 
-		while ((System.currentTimeMillis() - startTime) < 100) {
-			System.gc();
+		while (!markFinalizeAction.isMarked() &&
+			   ((System.currentTimeMillis() - startTime) < 10000)) {
 
 			Thread.sleep(1);
+		}
 
-			if (markFinalizeAction.isMarked()) {
+		Assert.assertTrue(markFinalizeAction.isMarked());
+
+		Thread finalizeThread = null;
+
+		for (Thread thread : ThreadUtil.getThreads()) {
+			String name = thread.getName();
+
+			if (name.equals("Finalize Thread")) {
+				finalizeThread = thread;
+
 				break;
 			}
 		}
 
-		assertTrue(markFinalizeAction.isMarked());
+		Assert.assertNotNull(finalizeThread);
+
+		// First waiting state
+
+		startTime = System.currentTimeMillis();
+
+		while (finalizeThread.getState() != Thread.State.WAITING) {
+			if ((System.currentTimeMillis() - startTime) > 10000) {
+				Assert.fail(
+					"Timeout on waiting finialize thread to enter waiting " +
+						"state");
+			}
+		}
+
+		// Interrupt to wake up
+
+		finalizeThread.interrupt();
+
+		// Second waiting state
+
+		while (finalizeThread.getState() != Thread.State.WAITING) {
+			if ((System.currentTimeMillis() - startTime) > 10000) {
+				Assert.fail(
+					"Timeout on waiting finialize thread to enter waiting " +
+						"state");
+			}
+		}
 	}
+
+	private static void gc() throws InterruptedException {
+		ReferenceQueue<Object> referenceQueue = new ReferenceQueue<Object>();
+
+		WeakReference<Object> weakReference = new WeakReference<Object>(
+			new Object(), referenceQueue);
+
+		while (weakReference.get() != null) {
+			System.gc();
+
+			System.runFinalization();
+		}
+
+		Assert.assertSame(weakReference, referenceQueue.remove());
+	}
+
+	private static final String _THREAD_ENABLED_KEY =
+		FinalizeManager.class.getName() + ".thread.enabled";
 
 	private class MarkFinalizeAction implements FinalizeAction {
 
+		@Override
 		public void doFinalize() {
 			_marked = true;
 		}

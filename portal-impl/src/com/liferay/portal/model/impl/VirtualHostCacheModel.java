@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,9 +17,13 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.MVCCModel;
 import com.liferay.portal.model.VirtualHost;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing VirtualHost in entity cache.
@@ -29,12 +33,24 @@ import java.io.Serializable;
  * @generated
  */
 public class VirtualHostCacheModel implements CacheModel<VirtualHost>,
-	Serializable {
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
+		StringBundler sb = new StringBundler(11);
 
-		sb.append("{virtualHostId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", virtualHostId=");
 		sb.append(virtualHostId);
 		sb.append(", companyId=");
 		sb.append(companyId);
@@ -47,9 +63,11 @@ public class VirtualHostCacheModel implements CacheModel<VirtualHost>,
 		return sb.toString();
 	}
 
+	@Override
 	public VirtualHost toEntityModel() {
 		VirtualHostImpl virtualHostImpl = new VirtualHostImpl();
 
+		virtualHostImpl.setMvccVersion(mvccVersion);
 		virtualHostImpl.setVirtualHostId(virtualHostId);
 		virtualHostImpl.setCompanyId(companyId);
 		virtualHostImpl.setLayoutSetId(layoutSetId);
@@ -66,6 +84,32 @@ public class VirtualHostCacheModel implements CacheModel<VirtualHost>,
 		return virtualHostImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		virtualHostId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		layoutSetId = objectInput.readLong();
+		hostname = objectInput.readUTF();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(virtualHostId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(layoutSetId);
+
+		if (hostname == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(hostname);
+		}
+	}
+
+	public long mvccVersion;
 	public long virtualHostId;
 	public long companyId;
 	public long layoutSetId;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,7 +17,7 @@ package com.liferay.portal.spring.hibernate;
 import com.liferay.portal.dao.orm.hibernate.DB2Dialect;
 import com.liferay.portal.dao.orm.hibernate.SQLServer2005Dialect;
 import com.liferay.portal.dao.orm.hibernate.SQLServer2008Dialect;
-import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
+import com.liferay.portal.dao.orm.hibernate.SybaseASE157Dialect;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -37,21 +37,12 @@ import javax.sql.DataSource;
 import org.hibernate.dialect.DB2400Dialect;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.Oracle10gDialect;
-import org.hibernate.dialect.SybaseASE15Dialect;
 import org.hibernate.dialect.resolver.DialectFactory;
 
 /**
  * @author Brian Wing Shun Chan
  */
 public class DialectDetector {
-
-	public static String determineDialect(DataSource dataSource) {
-		Dialect dialect = getDialect(dataSource);
-
-		DBFactoryUtil.setDB(dialect);
-
-		return dialect.getClass().getName();
-	}
 
 	public static Dialect getDialect(DataSource dataSource) {
 		String dialectKey = null;
@@ -97,9 +88,9 @@ public class DialectDetector {
 			}
 
 			if (dbName.equals("ASE") && (dbMajorVersion == 15)) {
-				dialect = new SybaseASE15Dialect();
+				dialect = new SybaseASE157Dialect();
 			}
-			else if (dbName.startsWith("DB2") && (dbMajorVersion == 9)) {
+			else if (dbName.startsWith("DB2") && (dbMajorVersion >= 9)) {
 				dialect = new DB2Dialect();
 			}
 			else if (dbName.startsWith("Microsoft") && (dbMajorVersion == 9)) {
@@ -119,7 +110,7 @@ public class DialectDetector {
 		catch (Exception e) {
 			String msg = GetterUtil.getString(e.getMessage());
 
-			if (msg.indexOf("explicitly set for database: DB2") != -1) {
+			if (msg.contains("explicitly set for database: DB2")) {
 				dialect = new DB2400Dialect();
 
 				if (_log.isWarnEnabled()) {

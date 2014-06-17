@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,15 +15,23 @@
 package com.liferay.portlet.documentlibrary.service.permission;
 
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
+import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.service.ResourceLocalServiceUtil;
+import com.liferay.portal.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.util.PortletKeys;
 
 /**
  * @author Jorge Ferrer
  */
 public class DLPermission {
+
+	public static final String RESOURCE_NAME =
+		"com.liferay.portlet.documentlibrary";
 
 	public static void check(
 			PermissionChecker permissionChecker, long groupId, String actionId)
@@ -38,18 +46,36 @@ public class DLPermission {
 		PermissionChecker permissionChecker, long groupId, String actionId) {
 
 		Boolean hasPermission = StagingPermissionUtil.hasPermission(
-			permissionChecker, groupId, _CLASS_NAME, groupId,
+			permissionChecker, groupId, RESOURCE_NAME, groupId,
 			PortletKeys.DOCUMENT_LIBRARY, actionId);
 
 		if (hasPermission != null) {
 			return hasPermission.booleanValue();
 		}
 
+		try {
+			int count =
+				ResourcePermissionLocalServiceUtil.getResourcePermissionsCount(
+					permissionChecker.getCompanyId(), RESOURCE_NAME,
+					ResourceConstants.SCOPE_INDIVIDUAL,
+					String.valueOf(groupId));
+
+			if (count == 0) {
+				ResourceLocalServiceUtil.addResources(
+					permissionChecker.getCompanyId(), groupId, 0, RESOURCE_NAME,
+					groupId, false, true, true);
+			}
+		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(e, e);
+			}
+		}
+
 		return permissionChecker.hasPermission(
-			groupId, _CLASS_NAME, groupId, actionId);
+			groupId, RESOURCE_NAME, groupId, actionId);
 	}
 
-	private static final String _CLASS_NAME =
-		"com.liferay.portlet.documentlibrary";
+	private static Log _log = LogFactoryUtil.getLog(DLPermission.class);
 
 }

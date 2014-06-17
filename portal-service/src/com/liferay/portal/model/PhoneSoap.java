@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,14 +23,16 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portal.service.http.PhoneServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portal.service.http.PhoneServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portal.service.http.PhoneServiceSoap
  * @generated
  */
 public class PhoneSoap implements Serializable {
 	public static PhoneSoap toSoapModel(Phone model) {
 		PhoneSoap soapModel = new PhoneSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
+		soapModel.setUuid(model.getUuid());
 		soapModel.setPhoneId(model.getPhoneId());
 		soapModel.setCompanyId(model.getCompanyId());
 		soapModel.setUserId(model.getUserId());
@@ -93,6 +95,22 @@ public class PhoneSoap implements Serializable {
 
 	public void setPrimaryKey(long pk) {
 		setPhoneId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	public String getUuid() {
+		return _uuid;
+	}
+
+	public void setUuid(String uuid) {
+		_uuid = uuid;
 	}
 
 	public long getPhoneId() {
@@ -195,6 +213,8 @@ public class PhoneSoap implements Serializable {
 		_primary = primary;
 	}
 
+	private long _mvccVersion;
+	private String _uuid;
 	private long _phoneId;
 	private long _companyId;
 	private long _userId;

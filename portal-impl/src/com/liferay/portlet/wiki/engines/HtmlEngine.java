@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
 import com.liferay.portal.kernel.portlet.Router;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.service.PortletLocalServiceUtil;
@@ -58,6 +59,7 @@ public class HtmlEngine implements WikiEngine {
 		_router = friendlyURLMapper.getRouter();
 	}
 
+	@Override
 	public String convert(
 		WikiPage page, PortletURL viewPageURL, PortletURL editPageURL,
 		String attachmentURLPrefix) {
@@ -65,6 +67,7 @@ public class HtmlEngine implements WikiEngine {
 		return page.getContent();
 	}
 
+	@Override
 	public Map<String, Boolean> getOutgoingLinks(WikiPage page)
 		throws PageContentException {
 
@@ -76,12 +79,15 @@ public class HtmlEngine implements WikiEngine {
 		}
 	}
 
+	@Override
 	public void setInterWikiConfiguration(String interWikiConfiguration) {
 	}
 
+	@Override
 	public void setMainConfiguration(String mainConfiguration) {
 	}
 
+	@Override
 	public boolean validate(long nodeId, String newContent) {
 		return true;
 	}
@@ -107,6 +113,10 @@ public class HtmlEngine implements WikiEngine {
 			}
 
 			int pos = href.lastIndexOf(_friendlyURLMapping);
+
+			if (pos == -1) {
+				continue;
+			}
 
 			String friendlyURL = href.substring(
 				pos + _friendlyURLMapping.length());
@@ -137,7 +147,7 @@ public class HtmlEngine implements WikiEngine {
 			try {
 				WikiNodeLocalServiceUtil.getNode(page.getGroupId(), nodeName);
 
-				links.put(title.toLowerCase(), Boolean.TRUE);
+				links.put(StringUtil.toLowerCase(title), Boolean.TRUE);
 			}
 			catch (NoSuchNodeException nsne) {
 				if (_log.isWarnEnabled()) {

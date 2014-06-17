@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,17 +28,18 @@ public class ActionResponseImpl
 		return PortletRequest.ACTION_PHASE;
 	}
 
+	@Override
 	public void sendRedirect(String location) {
 		if ((location == null) ||
-			(!location.startsWith("/") && (location.indexOf("://") == -1) &&
-			(!location.startsWith("wsrp_rewrite?")))) {
+			(!location.startsWith("/") && !location.contains("://") &&
+			 !location.startsWith("wsrp_rewrite?"))) {
 
 			throw new IllegalArgumentException(
 				location + " is not a valid redirect");
 		}
 
-		// This is needed because app servers will try to prepend a host if
-		// they see an invalid URL
+		// This is needed because app servers will try to prepend a host if they
+		// see an invalid URL
 
 		if (location.startsWith("wsrp_rewrite?")) {
 			location = "http://wsrp-rewrite-holder?" + location;
@@ -52,6 +53,7 @@ public class ActionResponseImpl
 		setRedirectLocation(location);
 	}
 
+	@Override
 	public void sendRedirect(String location, String renderUrlParamName) {
 	}
 

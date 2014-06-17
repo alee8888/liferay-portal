@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.shopping.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link ShoppingCouponService}.
- * </p>
+ * Provides a wrapper for {@link ShoppingCouponService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ShoppingCouponService
+ * @author Brian Wing Shun Chan
+ * @see ShoppingCouponService
  * @generated
  */
+@ProviderType
 public class ShoppingCouponServiceWrapper implements ShoppingCouponService,
 	ServiceWrapper<ShoppingCouponService> {
 	public ShoppingCouponServiceWrapper(
@@ -37,6 +38,7 @@ public class ShoppingCouponServiceWrapper implements ShoppingCouponService,
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _shoppingCouponService.getBeanIdentifier();
 	}
@@ -46,10 +48,12 @@ public class ShoppingCouponServiceWrapper implements ShoppingCouponService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_shoppingCouponService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon addCoupon(
 		java.lang.String code, boolean autoCode, java.lang.String name,
 		java.lang.String description, int startDateMonth, int startDateDay,
@@ -59,8 +63,7 @@ public class ShoppingCouponServiceWrapper implements ShoppingCouponService,
 		java.lang.String limitCategories, java.lang.String limitSkus,
 		double minOrder, double discount, java.lang.String discountType,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _shoppingCouponService.addCoupon(code, autoCode, name,
 			description, startDateMonth, startDateDay, startDateYear,
 			startDateHour, startDateMinute, endDateMonth, endDateDay,
@@ -69,28 +72,29 @@ public class ShoppingCouponServiceWrapper implements ShoppingCouponService,
 			serviceContext);
 	}
 
+	@Override
 	public void deleteCoupon(long groupId, long couponId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		_shoppingCouponService.deleteCoupon(groupId, couponId);
 	}
 
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon getCoupon(
 		long groupId, long couponId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _shoppingCouponService.getCoupon(groupId, couponId);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portlet.shopping.model.ShoppingCoupon> search(
 		long groupId, long companyId, java.lang.String code, boolean active,
 		java.lang.String discountType, boolean andOperator, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _shoppingCouponService.search(groupId, companyId, code, active,
 			discountType, andOperator, start, end);
 	}
 
+	@Override
 	public com.liferay.portlet.shopping.model.ShoppingCoupon updateCoupon(
 		long couponId, java.lang.String name, java.lang.String description,
 		int startDateMonth, int startDateDay, int startDateYear,
@@ -100,8 +104,7 @@ public class ShoppingCouponServiceWrapper implements ShoppingCouponService,
 		java.lang.String limitSkus, double minOrder, double discount,
 		java.lang.String discountType,
 		com.liferay.portal.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _shoppingCouponService.updateCoupon(couponId, name, description,
 			startDateMonth, startDateDay, startDateYear, startDateHour,
 			startDateMinute, endDateMonth, endDateDay, endDateYear,
@@ -110,24 +113,28 @@ public class ShoppingCouponServiceWrapper implements ShoppingCouponService,
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ShoppingCouponService getWrappedShoppingCouponService() {
 		return _shoppingCouponService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedShoppingCouponService(
 		ShoppingCouponService shoppingCouponService) {
 		_shoppingCouponService = shoppingCouponService;
 	}
 
+	@Override
 	public ShoppingCouponService getWrappedService() {
 		return _shoppingCouponService;
 	}
 
+	@Override
 	public void setWrappedService(ShoppingCouponService shoppingCouponService) {
 		_shoppingCouponService = shoppingCouponService;
 	}

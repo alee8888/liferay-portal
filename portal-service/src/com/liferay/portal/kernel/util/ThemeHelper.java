@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,8 @@
 
 package com.liferay.portal.kernel.util;
 
-import com.liferay.portal.kernel.template.TemplateManager;
-import com.liferay.portal.kernel.template.TemplateManagerUtil;
+import com.liferay.portal.kernel.template.TemplateConstants;
+import com.liferay.portal.kernel.template.TemplateResourceLoaderUtil;
 import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.model.Theme;
 import com.liferay.portal.util.PortalUtil;
@@ -30,6 +30,8 @@ import javax.servlet.ServletContext;
 public class ThemeHelper {
 
 	public static final String TEMPLATE_EXTENSION_FTL = "ftl";
+
+	public static final String TEMPLATE_EXTENSION_JSP = "jsp";
 
 	public static final String TEMPLATE_EXTENSION_VM = "vm";
 
@@ -48,7 +50,10 @@ public class ThemeHelper {
 
 		String contextPath = ContextPathUtil.getContextPath(servletContext);
 
-		if (!contextPath.equals(PortalUtil.getPathContext())) {
+		if (!Validator.equals(
+				PortalUtil.getPathContext(contextPath),
+				PortalUtil.getPathContext())) {
+
 			servletContextName = GetterUtil.getString(
 				servletContext.getServletContextName());
 		}
@@ -126,9 +131,7 @@ public class ThemeHelper {
 		if (Validator.isNotNull(portletId)) {
 			exists = _resourceExists(servletContext, theme, portletId, path);
 
-			if (!exists &&
-				portletId.contains(PortletConstants.INSTANCE_SEPARATOR)) {
-
+			if (!exists && PortletConstants.hasInstanceId(portletId)) {
 				String rootPortletId = PortletConstants.getRootPortletId(
 					portletId);
 
@@ -163,12 +166,12 @@ public class ThemeHelper {
 		String extension = theme.getTemplateExtension();
 
 		if (extension.equals(TEMPLATE_EXTENSION_FTL)) {
-			return TemplateManagerUtil.hasTemplate(
-				TemplateManager.FREEMARKER, resourcePath);
+			return TemplateResourceLoaderUtil.hasTemplateResource(
+				TemplateConstants.LANG_TYPE_FTL, resourcePath);
 		}
 		else if (extension.equals(TEMPLATE_EXTENSION_VM)) {
-			return TemplateManagerUtil.hasTemplate(
-				TemplateManager.VELOCITY, resourcePath);
+			return TemplateResourceLoaderUtil.hasTemplateResource(
+				TemplateConstants.LANG_TYPE_VM, resourcePath);
 		}
 		else {
 			URL url = null;

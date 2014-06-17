@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,10 +17,11 @@ package com.liferay.portal.service.impl;
 import com.liferay.portal.LayoutBranchNameException;
 import com.liferay.portal.NoSuchLayoutBranchException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.staging.StagingUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.LayoutBranch;
+import com.liferay.portal.model.LayoutBranchConstants;
 import com.liferay.portal.model.LayoutRevision;
 import com.liferay.portal.model.LayoutRevisionConstants;
 import com.liferay.portal.model.LayoutSetBranch;
@@ -36,10 +37,11 @@ import java.util.List;
 public class LayoutBranchLocalServiceImpl
 	extends LayoutBranchLocalServiceBaseImpl {
 
+	@Override
 	public LayoutBranch addLayoutBranch(
 			long layoutSetBranchId, long plid, String name, String description,
 			boolean master, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		User user = userPersistence.findByPrimaryKey(
 			serviceContext.getUserId());
@@ -63,15 +65,20 @@ public class LayoutBranchLocalServiceImpl
 		layoutBranch.setDescription(description);
 		layoutBranch.setMaster(master);
 
-		layoutBranchPersistence.update(layoutBranch, false);
+		layoutBranchPersistence.update(layoutBranch);
+
+		StagingUtil.setRecentLayoutBranchId(
+			user, layoutBranch.getLayoutSetBranchId(), layoutBranch.getPlid(),
+			layoutBranch.getLayoutBranchId());
 
 		return layoutBranch;
 	}
 
+	@Override
 	public LayoutBranch addLayoutBranch(
 			long layoutRevisionId, String name, String description,
 			boolean master, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LayoutRevision layoutRevision =
 			layoutRevisionPersistence.findByPrimaryKey(layoutRevisionId);
@@ -99,7 +106,7 @@ public class LayoutBranchLocalServiceImpl
 
 	@Override
 	public LayoutBranch deleteLayoutBranch(long layoutBranchId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LayoutBranch layoutBranch = layoutBranchPersistence.findByPrimaryKey(
 			layoutBranchId);
@@ -108,11 +115,12 @@ public class LayoutBranchLocalServiceImpl
 			layoutBranch.getLayoutSetBranchId(), layoutBranchId,
 			layoutBranch.getPlid());
 
-		return layoutBranchLocalService.deleteLayoutBranch(layoutBranch);
+		return deleteLayoutBranch(layoutBranch);
 	}
 
+	@Override
 	public void deleteLayoutSetBranchLayoutBranches(long layoutSetBranchId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		List<LayoutBranch> layoutBranches =
 			layoutBranchPersistence.findByLayoutSetBranchId(layoutSetBranchId);
@@ -122,34 +130,54 @@ public class LayoutBranchLocalServiceImpl
 		}
 	}
 
+	@Override
 	public List<LayoutBranch> getLayoutBranches(
-			long layoutSetBranchId, long plid, int start, int end,
-			OrderByComparator orderByComparator)
-		throws SystemException {
+		long layoutSetBranchId, long plid, int start, int end,
+		OrderByComparator orderByComparator) {
 
 		return layoutBranchPersistence.findByL_P(
 			layoutSetBranchId, plid, start, end, orderByComparator);
 	}
 
+	@Override
 	public List<LayoutBranch> getLayoutSetBranchLayoutBranches(
-			long layoutSetBranchId)
-		throws SystemException {
+		long layoutSetBranchId) {
 
 		return layoutBranchPersistence.findByLayoutSetBranchId(
 			layoutSetBranchId);
 	}
 
+	@Override
 	public LayoutBranch getMasterLayoutBranch(long layoutSetBranchId, long plid)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		return layoutBranchPersistence.findByL_P_M(
-			layoutSetBranchId, plid, true);
+		return layoutBranchPersistence.findByL_P_M_First(
+			layoutSetBranchId, plid, true, null);
 	}
 
+	@Override
+	public LayoutBranch getMasterLayoutBranch(
+			long layoutSetBranchId, long plid, ServiceContext serviceContext)
+		throws PortalException {
+
+		LayoutBranch layoutBranch = layoutBranchPersistence.fetchByL_P_M_First(
+			layoutSetBranchId, plid, true, null);
+
+		if (layoutBranch != null) {
+			return layoutBranch;
+		}
+
+		return layoutBranchLocalService.addLayoutBranch(
+			layoutSetBranchId, plid, LayoutBranchConstants.MASTER_BRANCH_NAME,
+			LayoutBranchConstants.MASTER_BRANCH_DESCRIPTION, true,
+			serviceContext);
+	}
+
+	@Override
 	public LayoutBranch updateLayoutBranch(
 			long layoutBranchId, String name, String description,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LayoutBranch layoutBranch = layoutBranchPersistence.findByPrimaryKey(
 			layoutBranchId);
@@ -161,14 +189,14 @@ public class LayoutBranchLocalServiceImpl
 		layoutBranch.setName(name);
 		layoutBranch.setDescription(description);
 
-		layoutBranchPersistence.update(layoutBranch, false);
+		layoutBranchPersistence.update(layoutBranch);
 
 		return layoutBranch;
 	}
 
 	protected void validate(
 			long layoutBranchId, long layoutSetBranchId, long plid, String name)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (Validator.isNull(name) || (name.length() < 4)) {
 			throw new LayoutBranchNameException(

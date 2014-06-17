@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portal.events;
 
+import com.liferay.portal.deploy.RequiredPluginsUtil;
 import com.liferay.portal.im.AIMConnector;
 import com.liferay.portal.im.ICQConnector;
 import com.liferay.portal.im.MSNConnector;
@@ -33,8 +34,11 @@ import com.liferay.portal.kernel.javadoc.JavadocManagerUtil;
 import com.liferay.portal.kernel.log.Jdk14LogFactoryImpl;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.scheduler.SchedulerEngineUtil;
+import com.liferay.portal.kernel.messaging.MessageBusUtil;
+import com.liferay.portal.kernel.resiliency.mpi.MPIHelperUtil;
+import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
+import com.liferay.portal.kernel.template.TemplateResourceLoaderUtil;
 import com.liferay.portal.kernel.util.CentralizedThreadLocal;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -55,17 +59,45 @@ public class GlobalShutdownAction extends SimpleAction {
 	@Override
 	public void run(String[] ids) {
 
-		// Auto deploy
+		// Lower shutdown levels have dependences on higher levels, therefore
+		// lower ones need to shutdown before higher ones. Components within the
+		// same shutdown level should not depend on each other.
 
-		AutoDeployUtil.unregisterDir(AutoDeployDir.DEFAULT_NAME);
+		shutdownLevel1();
+		shutdownLevel2();
+		shutdownLevel3();
+		shutdownLevel4();
+		shutdownLevel5();
+		shutdownLevel6();
+		shutdownLevel7();
+	}
 
-		// Hot deploy
+	protected ThreadGroup getThreadGroup() {
+		Thread currentThread = Thread.currentThread();
 
-		HotDeployUtil.unregisterListeners();
+		ThreadGroup threadGroup = currentThread.getThreadGroup();
 
-		// Sandbox deploy
+		for (int i = 0; i < 10; i++) {
+			if (threadGroup.getParent() == null) {
+				break;
+			}
+			else {
+				threadGroup = threadGroup.getParent();
+			}
+		}
 
-		SandboxDeployUtil.unregisterDir(SandboxDeployDir.DEFAULT_NAME);
+		return threadGroup;
+	}
+
+	protected Thread[] getThreads(ThreadGroup threadGroup) {
+		Thread[] threads = new Thread[threadGroup.activeCount() * 2];
+
+		threadGroup.enumerate(threads);
+
+		return threads;
+	}
+
+	protected void shutdownLevel1() {
 
 		// Instant messenger AIM
 
@@ -139,10 +171,67 @@ public class GlobalShutdownAction extends SimpleAction {
 
 		DocumentConversionUtil.disconnect();
 
-		// Thread local registry
+		// Plugins
 
-		ThirdPartyThreadLocalRegistry.resetThreadLocals();
-		CentralizedThreadLocal.clearShortLivedThreadLocals();
+		RequiredPluginsUtil.stopCheckingRequiredPlugins();
+
+		// Scheduler engine
+
+		try {
+			SchedulerEngineHelperUtil.shutdown();
+		}
+		catch (Exception e) {
+		}
+
+		// Wait 1 second so Quartz threads can cleanly shutdown
+
+		try {
+			Thread.sleep(1000);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// Template manager
+
+		try {
+			TemplateManagerUtil.destroy();
+		}
+		catch (Exception e) {
+		}
+
+		// Template resource loader
+
+		try {
+			TemplateResourceLoaderUtil.destroy();
+		}
+		catch (Exception e) {
+		}
+	}
+
+	protected void shutdownLevel2() {
+
+		// Auto deploy
+
+		AutoDeployUtil.unregisterDir(AutoDeployDir.DEFAULT_NAME);
+
+		// Hot deploy
+
+		HotDeployUtil.unregisterListeners();
+
+		// Sandbox deploy
+
+		SandboxDeployUtil.unregisterDir(SandboxDeployDir.DEFAULT_NAME);
+	}
+
+	protected void shutdownLevel3() {
+
+		// Messaging
+
+		MessageBusUtil.shutdown(true);
+	}
+
+	protected void shutdownLevel4() {
 
 		// Hypersonic
 
@@ -169,6 +258,20 @@ public class GlobalShutdownAction extends SimpleAction {
 			}
 		}
 
+		// Portal Resiliency
+
+		MPIHelperUtil.shutdown();
+	}
+
+	protected void shutdownLevel5() {
+
+		// Portal executors
+
+		PortalExecutorManagerUtil.shutdown(true);
+	}
+
+	protected void shutdownLevel6() {
+
 		// Reset log to default JDK 1.4 logger. This will allow WARs dependent
 		// on the portal to still log events after the portal WAR has been
 		// destroyed.
@@ -179,34 +282,13 @@ public class GlobalShutdownAction extends SimpleAction {
 		catch (Exception e) {
 		}
 
-		// Scheduler engine
+		// Thread local registry
 
-		try {
-			SchedulerEngineUtil.shutdown();
-		}
-		catch (Exception e) {
-		}
+		ThirdPartyThreadLocalRegistry.resetThreadLocals();
+		CentralizedThreadLocal.clearShortLivedThreadLocals();
+	}
 
-		// Wait 1 second so Quartz threads can cleanly shutdown
-
-		try {
-			Thread.sleep(1000);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		// Template manager
-
-		try {
-			TemplateManagerUtil.destroy();
-		}
-		catch (Exception e) {
-		}
-
-		// Portal executors
-
-		PortalExecutorManagerUtil.shutdown(true);
+	protected void shutdownLevel7() {
 
 		// Programmatically exit
 
@@ -233,31 +315,6 @@ public class GlobalShutdownAction extends SimpleAction {
 
 			threadGroup.destroy();
 		}
-	}
-
-	protected ThreadGroup getThreadGroup() {
-		Thread currentThread = Thread.currentThread();
-
-		ThreadGroup threadGroup = currentThread.getThreadGroup();
-
-		for (int i = 0; i < 10; i++) {
-			if (threadGroup.getParent() == null) {
-				break;
-			}
-			else {
-				threadGroup = threadGroup.getParent();
-			}
-		}
-
-		return threadGroup;
-	}
-
-	protected Thread[] getThreads(ThreadGroup threadGroup) {
-		Thread[] threads = new Thread[threadGroup.activeCount() * 2];
-
-		threadGroup.enumerate(threads);
-
-		return threads;
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(GlobalShutdownAction.class);

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,8 +15,8 @@
 package com.liferay.portal.service.base;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.auth.CompanyThreadLocal;
@@ -27,9 +27,11 @@ import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.service.UserLocalServiceUtil;
 
 /**
- * @author Brian Wing Shun Chan
- * @deprecated {@link com.liferay.portal.service.BaseServiceImpl}
+ * @author     Brian Wing Shun Chan
+ * @deprecated As of 6.2.0, replaced by {@link
+ *             com.liferay.portal.service.BaseServiceImpl}
  */
+@Deprecated
 public class PrincipalBean {
 
 	public static final String[] ANONYMOUS_NAMES = {
@@ -45,7 +47,7 @@ public class PrincipalBean {
 
 	public static final String WEBLOGIC_ANONYMOUS = "<anonymous>";
 
-	public User getGuestOrUser() throws PortalException, SystemException {
+	public User getGuestOrUser() throws PortalException {
 		try {
 			return getUser();
 		}
@@ -86,7 +88,7 @@ public class PrincipalBean {
 		return permissionChecker;
 	}
 
-	public User getUser() throws PortalException, SystemException {
+	public User getUser() throws PortalException {
 		return UserLocalServiceUtil.getUserById(getUserId());
 	}
 
@@ -98,11 +100,11 @@ public class PrincipalBean {
 		}
 
 		if (Validator.isNull(name)) {
-			throw new PrincipalException("Principal cannot be null");
+			throw new PrincipalException("Principal is null");
 		}
 		else {
 			for (int i = 0; i < ANONYMOUS_NAMES.length; i++) {
-				if (name.equalsIgnoreCase(ANONYMOUS_NAMES[i])) {
+				if (StringUtil.equalsIgnoreCase(name, ANONYMOUS_NAMES[i])) {
 					throw new PrincipalException(
 						"Principal cannot be " + ANONYMOUS_NAMES[i]);
 				}

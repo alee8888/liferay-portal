@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,22 +14,20 @@
  */
 --%>
 
-<%@ include file="/html/taglib/init.jsp" %>
-
-<%@ page import="com.liferay.portlet.expando.model.ExpandoBridge" %>
-<%@ page import="com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil" %>
+<%@ include file="/html/taglib/ui/custom_attribute_list/init.jsp" %>
 
 <%
 String className = (String)request.getAttribute("liferay-ui:custom-attribute-list:className");
 long classPK = GetterUtil.getLong((String)request.getAttribute("liferay-ui:custom-attribute-list:classPK"));
 boolean editable = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:custom-attribute-list:editable"));
+String ignoreAttributeNames = GetterUtil.getString((String)request.getAttribute("liferay-ui:custom-attribute-list:ignoreAttributeNames"));
 boolean label = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:custom-attribute-list:label"));
 
 ExpandoBridge expandoBridge = ExpandoBridgeFactoryUtil.getExpandoBridge(company.getCompanyId(), className, classPK);
 
 String modelResourceName = ResourceActionsUtil.getModelResource(pageContext, className);
 
-List<String> attributeNames = Collections.list(expandoBridge.getAttributeNames());
+List<String> attributeNames = ListUtil.remove(Collections.list(expandoBridge.getAttributeNames()), ListUtil.fromString(ignoreAttributeNames, StringPool.COMMA));
 %>
 
 <div class="taglib-custom-attributes-list">
@@ -51,9 +49,9 @@ List<String> attributeNames = Collections.list(expandoBridge.getAttributeNames()
 	%>
 
 	<c:if test="<%= attributeNames.isEmpty() %>">
-		<span class="aui-field">
-			<span class="aui-field-content">
-				<label><%= LanguageUtil.format(pageContext, "no-custom-fields-are-defined-for-x", modelResourceName) %></label>
+		<span class="field">
+			<span class="field-content">
+				<label><%= LanguageUtil.format(pageContext, "no-custom-fields-are-defined-for-x", modelResourceName, false) %></label>
 			</span>
 		</span>
 	</c:if>

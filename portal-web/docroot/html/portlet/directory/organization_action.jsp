@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,11 +26,9 @@ ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_
 Organization organization = (Organization)row.getObject();
 
 long organizationId = organization.getOrganizationId();
-
-long organizationGroupId = organization.getGroup().getGroupId();
 %>
 
-<liferay-ui:icon-menu>
+<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>">
 	<portlet:renderURL var="viewUsersURL">
 		<portlet:param name="struts_action" value="/directory/view" />
 		<portlet:param name="tabs1" value="users" />
@@ -39,7 +37,7 @@ long organizationGroupId = organization.getGroup().getGroupId();
 	</portlet:renderURL>
 
 	<liferay-ui:icon
-		image="view_users"
+		iconCssClass="icon-search"
 		message="view-users"
 		method="get" url="<%= viewUsersURL %>"
 	/>
@@ -52,6 +50,6 @@ long organizationGroupId = organization.getGroup().getGroupId();
 			<portlet:param name="parentOrganizationId" value="<%= String.valueOf(organizationId) %>" />
 		</portlet:renderURL>
 
-		<liferay-ui:icon image="view_locations" message="view-suborganizations" method="get" url="<%= viewSuborganizationsURL %>" />
+		<liferay-ui:icon iconCssClass="icon-search" message="view-suborganizations" method="get" url="<%= viewSuborganizationsURL %>" />
 	</c:if>
 </liferay-ui:icon-menu>

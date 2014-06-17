@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,106 +14,152 @@
 
 package com.liferay.portlet.blogs.social;
 
-import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.security.permission.PermissionChecker;
-import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
 import com.liferay.portlet.blogs.service.permission.BlogsEntryPermission;
 import com.liferay.portlet.social.model.BaseSocialActivityInterpreter;
 import com.liferay.portlet.social.model.SocialActivity;
 import com.liferay.portlet.social.model.SocialActivityConstants;
-import com.liferay.portlet.social.model.SocialActivityFeedEntry;
+
+import java.text.Format;
 
 /**
  * @author Brian Wing Shun Chan
  * @author Ryan Park
+ * @author Zsolt Berentey
  */
 public class BlogsActivityInterpreter extends BaseSocialActivityInterpreter {
 
+	@Override
 	public String[] getClassNames() {
 		return _CLASS_NAMES;
 	}
 
 	@Override
-	protected SocialActivityFeedEntry doInterpret(
-			SocialActivity activity, ThemeDisplay themeDisplay)
+	protected String getPath(
+		SocialActivity activity, ServiceContext serviceContext) {
+
+		return "/blogs/find_entry?entryId=" + activity.getClassPK();
+	}
+
+	@Override
+	protected Object[] getTitleArguments(
+			String groupName, SocialActivity activity, String link,
+			String title, ServiceContext serviceContext)
 		throws Exception {
 
-		PermissionChecker permissionChecker =
-			themeDisplay.getPermissionChecker();
-
-		if (!BlogsEntryPermission.contains(
-				permissionChecker, activity.getClassPK(), ActionKeys.VIEW)) {
-
-			return null;
-		}
-
-		String groupName = StringPool.BLANK;
-
-		if (activity.getGroupId() != themeDisplay.getScopeGroupId()) {
-			groupName = getGroupName(activity.getGroupId(), themeDisplay);
-		}
-
 		String creatorUserName = getUserName(
-			activity.getUserId(), themeDisplay);
+			activity.getUserId(), serviceContext);
 		String receiverUserName = getUserName(
-			activity.getReceiverUserId(), themeDisplay);
-
-		int activityType = activity.getType();
-
-		// Link
+			activity.getReceiverUserId(), serviceContext);
 
 		BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(
 			activity.getClassPK());
 
-		String link =
-			themeDisplay.getPortalURL() + themeDisplay.getPathMain() +
-				"/blogs/find_entry?entryId=" + activity.getClassPK();
+		String displayDate = StringPool.BLANK;
 
-		// Title
+		if ((activity.getType() == BlogsActivityKeys.ADD_ENTRY) &&
+			(entry.getStatus() == WorkflowConstants.STATUS_SCHEDULED)) {
 
-		String titlePattern = null;
+			link = null;
+
+			Format dateFormatDate =
+				FastDateFormatFactoryUtil.getSimpleDateFormat(
+					"MMMM d", serviceContext.getLocale(),
+					serviceContext.getTimeZone());
+
+			displayDate = dateFormatDate.format(entry.getDisplayDate());
+		}
+
+		return new Object[] {
+			groupName, creatorUserName, receiverUserName, wrapLink(link, title),
+			displayDate
+		};
+	}
+
+	@Override
+	protected String getTitlePattern(String groupName, SocialActivity activity)
+		throws Exception {
+
+		int activityType = activity.getType();
 
 		if ((activityType == BlogsActivityKeys.ADD_COMMENT) ||
 			(activityType == SocialActivityConstants.TYPE_ADD_COMMENT)) {
 
 			if (Validator.isNull(groupName)) {
-				titlePattern = "activity-blogs-add-comment";
+				return "activity-blogs-entry-add-comment";
 			}
 			else {
-				titlePattern = "activity-blogs-add-comment-in";
+				return "activity-blogs-entry-add-comment-in";
 			}
 		}
 		else if (activityType == BlogsActivityKeys.ADD_ENTRY) {
-			if (Validator.isNull(groupName)) {
-				titlePattern = "activity-blogs-add-entry";
+			BlogsEntry entry = BlogsEntryLocalServiceUtil.getEntry(
+				activity.getClassPK());
+
+			if (entry.getStatus() == WorkflowConstants.STATUS_SCHEDULED) {
+				if (Validator.isNull(groupName)) {
+					return "activity-blogs-entry-schedule-entry";
+				}
+				else {
+					return "activity-blogs-entry-schedule-entry-in";
+				}
 			}
 			else {
-				titlePattern = "activity-blogs-add-entry-in";
+				if (Validator.isNull(groupName)) {
+					return "activity-blogs-entry-add-entry";
+				}
+				else {
+					return "activity-blogs-entry-add-entry-in";
+				}
+			}
+		}
+		else if (activityType == SocialActivityConstants.TYPE_MOVE_TO_TRASH) {
+			if (Validator.isNull(groupName)) {
+				return "activity-blogs-entry-move-to-trash";
+			}
+			else {
+				return "activity-blogs-entry-move-to-trash-in";
+			}
+		}
+		else if (activityType ==
+					SocialActivityConstants.TYPE_RESTORE_FROM_TRASH) {
+
+			if (Validator.isNull(groupName)) {
+				return "activity-blogs-entry-restore-from-trash";
+			}
+			else {
+				return "activity-blogs-entry-restore-from-trash-in";
+			}
+		}
+		else if (activityType == BlogsActivityKeys.UPDATE_ENTRY) {
+			if (Validator.isNull(groupName)) {
+				return "activity-blogs-entry-update-entry";
+			}
+			else {
+				return "activity-blogs-entry-update-entry-in";
 			}
 		}
 
-		String entryTitle = wrapLink(link, HtmlUtil.escape(entry.getTitle()));
-
-		Object[] titleArguments = new Object[] {
-			groupName, creatorUserName, receiverUserName, entryTitle
-		};
-
-		String title = themeDisplay.translate(titlePattern, titleArguments);
-
-		// Body
-
-		String body = StringPool.BLANK;
-
-		return new SocialActivityFeedEntry(link, title, body);
+		return null;
 	}
 
-	private static final String[] _CLASS_NAMES = new String[] {
-		BlogsEntry.class.getName()
-	};
+	@Override
+	protected boolean hasPermissions(
+			PermissionChecker permissionChecker, SocialActivity activity,
+			String actionId, ServiceContext serviceContext)
+		throws Exception {
+
+		return BlogsEntryPermission.contains(
+			permissionChecker, activity.getClassPK(), actionId);
+	}
+
+	private static final String[] _CLASS_NAMES = {BlogsEntry.class.getName()};
 
 }

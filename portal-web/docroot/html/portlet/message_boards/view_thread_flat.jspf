@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -56,27 +56,28 @@ if (threadView.equals(MBThreadConstants.THREAD_VIEW_FLAT)) {
 </c:if>
 
 <%
-boolean editable = true;
-
 int depth = 0;
 
 for (int i = 0; i < messages.size(); i++) {
 	message = messages.get(i);
 
-	if ((!message.isApproved() && (message.getUserId() != user.getUserId()) && !permissionChecker.isGroupAdmin(scopeGroupId)) || !MBMessagePermission.contains(permissionChecker, message, ActionKeys.VIEW)) {
+	if (!MBUtil.isViewableMessage(themeDisplay, message)) {
 		continue;
 	}
 
-	String className = "portlet-section-alternate results-row alt";
-	String classHoverName = "portlet-section-alternate-hover results-row alt hover";
+	viewableThread = true;
 
-	if (MathUtil.isOdd(i)) {
-		className = "portlet-section-body results-row";
-		classHoverName = "portlet-section-body-hover results-row hover";
-	}
+	request.setAttribute("edit_message.jsp-category", category);
+	request.setAttribute("edit_message.jsp-depth", depth);
+	request.setAttribute("edit_message.jsp-editable", Boolean.TRUE);
+	request.setAttribute("edit_message.jsp-message", message);
+	request.setAttribute("edit-message.jsp-showDeletedAttachmentsFileEntries", Boolean.TRUE);
+	request.setAttribute("edit-message.jsp-showPermanentLink", Boolean.TRUE);
+	request.setAttribute("edit-message.jsp-showRecentPosts", Boolean.TRUE);
+	request.setAttribute("edit_message.jsp-thread", thread);
 %>
 
-	<%@ include file="/html/portlet/message_boards/view_thread_message.jspf" %>
+	<liferay-util:include page="/html/portlet/message_boards/view_thread_message.jsp" />
 
 <%
 }

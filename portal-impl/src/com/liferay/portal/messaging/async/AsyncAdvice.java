@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,12 +18,14 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.messaging.async.Async;
+import com.liferay.portal.kernel.transaction.TransactionCommitCallbackRegistryUtil;
 import com.liferay.portal.spring.aop.AnnotationChainableMethodAdvice;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import org.aopalliance.intercept.MethodInvocation;
 
@@ -36,6 +38,10 @@ public class AsyncAdvice extends AnnotationChainableMethodAdvice<Async> {
 	@Override
 	public Object before(final MethodInvocation methodInvocation)
 		throws Throwable {
+
+		if (AsyncInvokeThreadLocal.isEnabled()) {
+			return null;
+		}
 
 		Async async = findAnnotation(methodInvocation);
 
@@ -67,22 +73,18 @@ public class AsyncAdvice extends AnnotationChainableMethodAdvice<Async> {
 			destinationName = _defaultDestinationName;
 		}
 
-		MessageBusUtil.sendMessage(
-			destinationName,
-			new Runnable() {
+		final String callbackDestinationName = destinationName;
 
-				public void run() {
-					try {
-						nextMethodInterceptor.invoke(methodInvocation);
-					}
-					catch (Throwable t) {
-						throw new RuntimeException(t);
-					}
-				}
+		TransactionCommitCallbackRegistryUtil.registerCallback(
+			new Callable<Void>() {
 
 				@Override
-				public String toString() {
-					return methodInvocation.toString();
+				public Void call() throws Exception {
+					MessageBusUtil.sendMessage(
+						callbackDestinationName,
+						new AsyncProcessCallable(methodInvocation));
+
+					return null;
 				}
 
 			});
@@ -112,6 +114,7 @@ public class AsyncAdvice extends AnnotationChainableMethodAdvice<Async> {
 	private static Async _nullAsync =
 		new Async() {
 
+			@Override
 			public Class<? extends Annotation> annotationType() {
 				return Async.class;
 			}

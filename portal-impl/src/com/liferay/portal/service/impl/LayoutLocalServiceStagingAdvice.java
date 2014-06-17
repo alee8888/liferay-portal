@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,19 @@
 
 package com.liferay.portal.service.impl;
 
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.staging.LayoutStagingUtil;
 import com.liferay.portal.kernel.staging.MergeLayoutPrototypesThreadLocal;
 import com.liferay.portal.kernel.staging.StagingUtil;
+import com.liferay.portal.kernel.systemevent.SystemEventHierarchyEntry;
+import com.liferay.portal.kernel.systemevent.SystemEventHierarchyEntryThreadLocal;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -30,17 +34,29 @@ import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutRevision;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.LayoutStagingHandler;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.service.LayoutFriendlyURLLocalServiceUtil;
+import com.liferay.portal.service.LayoutLocalService;
+import com.liferay.portal.service.LayoutRevisionLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextThreadLocal;
+import com.liferay.portal.service.SystemEventLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
-import com.liferay.portlet.expando.model.ExpandoBridge;
+import com.liferay.portal.service.persistence.LayoutRevisionUtil;
+import com.liferay.portal.service.persistence.LayoutUtil;
+import com.liferay.portal.staging.ProxiedLayoutsThreadLocal;
+import com.liferay.portal.staging.StagingAdvicesThreadLocal;
+import com.liferay.portal.util.ClassLoaderUtil;
+import com.liferay.portal.util.PortalUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -57,44 +73,65 @@ import org.springframework.core.annotation.Order;
  * @author Brian Wing Shun Chan
  */
 @Order(1)
-public class LayoutLocalServiceStagingAdvice
-	extends LayoutLocalServiceImpl implements MethodInterceptor {
+public class LayoutLocalServiceStagingAdvice implements MethodInterceptor {
 
-	@Override
+	public LayoutLocalServiceStagingAdvice() {
+		if (_log.isDebugEnabled()) {
+			_log.debug("Instantiating " + hashCode());
+		}
+	}
+
 	public void deleteLayout(
-			Layout layout, boolean updateLayoutSet,
-			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+			LayoutLocalService layoutLocalService, Layout layout,
+			boolean updateLayoutSet, ServiceContext serviceContext)
+		throws PortalException {
 
 		long layoutSetBranchId = ParamUtil.getLong(
 			serviceContext, "layoutSetBranchId");
 
 		if (layoutSetBranchId > 0) {
-			layoutRevisionLocalService.deleteLayoutRevisions(
+			LayoutRevisionLocalServiceUtil.deleteLayoutRevisions(
 				layoutSetBranchId, layout.getPlid());
 
 			List<LayoutRevision> notIncompleteLayoutRevisions =
-				layoutRevisionPersistence.findByP_NotS(
+				LayoutRevisionUtil.findByP_NotS(
 					layout.getPlid(), WorkflowConstants.STATUS_INCOMPLETE);
 
 			if (notIncompleteLayoutRevisions.isEmpty()) {
-				layoutRevisionLocalService.deleteLayoutLayoutRevisions(
+				LayoutRevisionLocalServiceUtil.deleteLayoutLayoutRevisions(
 					layout.getPlid());
 
-				super.deleteLayout(layout, updateLayoutSet, serviceContext);
+				doDeleteLayout(
+					layoutLocalService, layout, updateLayoutSet,
+					serviceContext);
 			}
 		}
 		else {
-			super.deleteLayout(layout, updateLayoutSet, serviceContext);
+			doDeleteLayout(
+				layoutLocalService, layout, updateLayoutSet, serviceContext);
 		}
 	}
 
+	public void deleteLayout(
+			LayoutLocalService layoutLocalService, long groupId,
+			boolean privateLayout, long layoutId, ServiceContext serviceContext)
+		throws PortalException {
+
+		Layout layout = layoutLocalService.getLayout(
+			groupId, privateLayout, layoutId);
+
+		deleteLayout(layoutLocalService, layout, true, serviceContext);
+	}
+
+	@Override
 	public Object invoke(MethodInvocation methodInvocation) throws Throwable {
+		if (!StagingAdvicesThreadLocal.isEnabled()) {
+			return methodInvocation.proceed();
+		}
+
 		Method method = methodInvocation.getMethod();
 
 		String methodName = method.getName();
-
-		Object[] arguments = methodInvocation.getArguments();
 
 		boolean showIncomplete = false;
 
@@ -104,14 +141,37 @@ public class LayoutLocalServiceStagingAdvice
 
 		Object returnValue = null;
 
-		if (methodName.equals("deleteLayout") && (arguments.length == 3)) {
-			deleteLayout(
-				(Layout)arguments[0], (Boolean)arguments[1],
-				(ServiceContext)arguments[2]);
+		Class<?>[] parameterTypes = method.getParameterTypes();
+
+		Object thisObject = methodInvocation.getThis();
+		Object[] arguments = methodInvocation.getArguments();
+
+		if (methodName.equals("createLayout")) {
+			return methodInvocation.proceed();
+		}
+		else if (methodName.equals("deleteLayout")) {
+			if (arguments.length == 3) {
+				deleteLayout(
+					(LayoutLocalService)thisObject, (Layout)arguments[0],
+					(Boolean)arguments[1], (ServiceContext)arguments[2]);
+			}
+			else if (arguments.length == 4) {
+				deleteLayout(
+					(LayoutLocalService)thisObject, (Long)arguments[0],
+					(Boolean)arguments[1], (Long)arguments[2],
+					(ServiceContext)arguments[3]);
+			}
+			else {
+				return wrapReturnValue(
+					methodInvocation.proceed(), showIncomplete);
+			}
 		}
 		else if (methodName.equals("getLayouts")) {
 			if (arguments.length == 6) {
 				showIncomplete = (Boolean)arguments[3];
+			}
+			else if (Arrays.equals(parameterTypes, _GET_LAYOUTS_TYPES)) {
+				showIncomplete = true;
 			}
 
 			return wrapReturnValue(methodInvocation.proceed(), showIncomplete);
@@ -119,31 +179,50 @@ public class LayoutLocalServiceStagingAdvice
 		else if (methodName.equals("updateLayout") &&
 				 (arguments.length == 15)) {
 
+			Map<Locale, String> friendlyURLMap = null;
+
+			if (Arrays.equals(parameterTypes, _UPDATE_LAYOUT_PARAMETER_TYPES)) {
+				friendlyURLMap = new HashMap<Locale, String>();
+
+				friendlyURLMap.put(
+					LocaleUtil.getSiteDefault(), (String)arguments[11]);
+			}
+			else {
+				friendlyURLMap = (Map<Locale, String>)arguments[11];
+			}
+
 			returnValue = updateLayout(
-				(Long)arguments[0], (Boolean)arguments[1], (Long)arguments[2],
-				(Long)arguments[3], (Map<Locale, String>)arguments[4],
+				(LayoutLocalService)thisObject, (Long)arguments[0],
+				(Boolean)arguments[1], (Long)arguments[2], (Long)arguments[3],
+				(Map<Locale, String>)arguments[4],
 				(Map<Locale, String>)arguments[5],
 				(Map<Locale, String>)arguments[6],
 				(Map<Locale, String>)arguments[7],
 				(Map<Locale, String>)arguments[8], (String)arguments[9],
-				(Boolean)arguments[10], (String)arguments[11],
-				(Boolean)arguments[12], (byte[])arguments[13],
-				(ServiceContext)arguments[14]);
+				(Boolean)arguments[10], friendlyURLMap, (Boolean)arguments[12],
+				(byte[])arguments[13], (ServiceContext)arguments[14]);
 		}
 		else {
 			try {
 				Class<?> clazz = getClass();
 
-				Method localMethod = clazz.getMethod(
-					methodName, method.getParameterTypes());
+				parameterTypes = ArrayUtil.append(
+					new Class<?>[] {LayoutLocalService.class}, parameterTypes);
 
-				returnValue = localMethod.invoke(this, arguments);
+				Method layoutLocalServiceStagingAdviceMethod = clazz.getMethod(
+					methodName, parameterTypes);
+
+				arguments = ArrayUtil.append(
+					new Object[] {thisObject}, arguments);
+
+				returnValue = layoutLocalServiceStagingAdviceMethod.invoke(
+					this, arguments);
 			}
 			catch (InvocationTargetException ite) {
 				throw ite.getTargetException();
 			}
 			catch (NoSuchMethodException nsme) {
-				throw new SystemException(nsme);
+				returnValue = methodInvocation.proceed();
 			}
 		}
 
@@ -152,32 +231,33 @@ public class LayoutLocalServiceStagingAdvice
 		return returnValue;
 	}
 
-	@Override
 	public Layout updateLayout(
-			long groupId, boolean privateLayout, long layoutId,
-			long parentLayoutId, Map<Locale, String> nameMap,
-			Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
-			Map<Locale, String> keywordsMap, Map<Locale, String> robotsMap,
-			String type, boolean hidden, String friendlyURL, Boolean iconImage,
+			LayoutLocalService layoutLocalService, long groupId,
+			boolean privateLayout, long layoutId, long parentLayoutId,
+			Map<Locale, String> nameMap, Map<Locale, String> titleMap,
+			Map<Locale, String> descriptionMap, Map<Locale, String> keywordsMap,
+			Map<Locale, String> robotsMap, String type, boolean hidden,
+			Map<Locale, String> friendlyURLMap, boolean iconImage,
 			byte[] iconBytes, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		// Layout
 
-		parentLayoutId = getParentLayoutId(
+		parentLayoutId = layoutLocalServiceHelper.getParentLayoutId(
 			groupId, privateLayout, parentLayoutId);
-		String name = nameMap.get(LocaleUtil.getDefault());
-		friendlyURL = getFriendlyURL(
-			groupId, privateLayout, layoutId, StringPool.BLANK, friendlyURL);
+		String name = nameMap.get(LocaleUtil.getSiteDefault());
+		friendlyURLMap = layoutLocalServiceHelper.getFriendlyURLMap(
+			groupId, privateLayout, layoutId, StringPool.BLANK, friendlyURLMap);
+		String friendlyURL = friendlyURLMap.get(LocaleUtil.getSiteDefault());
 
-		validate(
+		layoutLocalServiceHelper.validate(
 			groupId, privateLayout, layoutId, parentLayoutId, name, type,
-			hidden, friendlyURL);
+			hidden, friendlyURLMap);
 
-		validateParentLayoutId(
+		layoutLocalServiceHelper.validateParentLayoutId(
 			groupId, privateLayout, layoutId, parentLayoutId);
 
-		Layout originalLayout = layoutPersistence.findByG_P_L(
+		Layout originalLayout = LayoutUtil.findByG_P_L(
 			groupId, privateLayout, layoutId);
 
 		Layout layout = wrapLayout(originalLayout);
@@ -186,14 +266,14 @@ public class LayoutLocalServiceStagingAdvice
 			layout);
 
 		if (layoutRevision == null) {
-			return super.updateLayout(
+			return layoutLocalService.updateLayout(
 				groupId, privateLayout, layoutId, parentLayoutId, nameMap,
 				titleMap, descriptionMap, keywordsMap, robotsMap, type, hidden,
-				friendlyURL, iconImage, iconBytes, serviceContext);
+				friendlyURLMap, iconImage, iconBytes, serviceContext);
 		}
 
 		if (parentLayoutId != originalLayout.getParentLayoutId()) {
-			int priority = getNextPriority(
+			int priority = layoutLocalServiceHelper.getNextPriority(
 				groupId, privateLayout, parentLayoutId,
 				originalLayout.getSourcePrototypeLayoutUuid(), -1);
 
@@ -210,21 +290,23 @@ public class LayoutLocalServiceStagingAdvice
 		originalLayout.setHidden(hidden);
 		originalLayout.setFriendlyURL(friendlyURL);
 
-		if (iconImage != null) {
-			originalLayout.setIconImage(iconImage.booleanValue());
+		PortalUtil.updateImageId(
+			layoutRevision, iconImage, iconBytes, "iconImageId", 0, 0, 0);
 
-			if (iconImage.booleanValue()) {
-				long iconImageId = originalLayout.getIconImageId();
+		boolean layoutPrototypeLinkEnabled = ParamUtil.getBoolean(
+			serviceContext, "layoutPrototypeLinkEnabled");
 
-				if (iconImageId <= 0) {
-					iconImageId = counterLocalService.increment();
+		originalLayout.setLayoutPrototypeLinkEnabled(
+			layoutPrototypeLinkEnabled);
 
-					originalLayout.setIconImageId(iconImageId);
-				}
-			}
-		}
+		originalLayout.setExpandoBridgeAttributes(serviceContext);
 
-		layoutPersistence.update(originalLayout, false);
+		LayoutUtil.update(originalLayout);
+
+		LayoutFriendlyURLLocalServiceUtil.updateLayoutFriendlyURLs(
+			originalLayout.getUserId(), originalLayout.getCompanyId(),
+			originalLayout.getGroupId(), originalLayout.getPlid(),
+			originalLayout.isPrivateLayout(), friendlyURLMap, serviceContext);
 
 		boolean hasWorkflowTask = StagingUtil.hasWorkflowTask(
 			serviceContext.getUserId(), layoutRevision);
@@ -233,7 +315,7 @@ public class LayoutLocalServiceStagingAdvice
 
 		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
 
-		layoutRevisionLocalService.updateLayoutRevision(
+		LayoutRevisionLocalServiceUtil.updateLayoutRevision(
 			serviceContext.getUserId(), layoutRevision.getLayoutRevisionId(),
 			layoutRevision.getLayoutBranchId(), layoutRevision.getName(),
 			layoutRevision.getTitle(), layoutRevision.getDescription(),
@@ -244,31 +326,15 @@ public class LayoutLocalServiceStagingAdvice
 			layoutRevision.getWapColorSchemeId(), layoutRevision.getCss(),
 			serviceContext);
 
-		// Icon
-
-		if (iconImage != null) {
-			if ((iconBytes != null) && (iconBytes.length > 0)) {
-				imageLocalService.updateImage(
-					originalLayout.getIconImageId(), iconBytes);
-			}
-		}
-
-		// Expando
-
-		ExpandoBridge expandoBridge = originalLayout.getExpandoBridge();
-
-		expandoBridge.setAttributes(serviceContext);
-
 		return layout;
 	}
 
-	@Override
 	public Layout updateLayout(
-			long groupId, boolean privateLayout, long layoutId,
-			String typeSettings)
-		throws PortalException, SystemException {
+			LayoutLocalService layoutLocalService, long groupId,
+			boolean privateLayout, long layoutId, String typeSettings)
+		throws PortalException {
 
-		Layout layout = layoutPersistence.findByG_P_L(
+		Layout layout = LayoutUtil.findByG_P_L(
 			groupId, privateLayout, layoutId);
 
 		layout = wrapLayout(layout);
@@ -277,7 +343,7 @@ public class LayoutLocalServiceStagingAdvice
 			layout);
 
 		if (layoutRevision == null) {
-			return super.updateLayout(
+			return layoutLocalService.updateLayout(
 				groupId, privateLayout, layoutId, typeSettings);
 		}
 
@@ -296,7 +362,7 @@ public class LayoutLocalServiceStagingAdvice
 				WorkflowConstants.ACTION_SAVE_DRAFT);
 		}
 
-		layoutRevisionLocalService.updateLayoutRevision(
+		LayoutRevisionLocalServiceUtil.updateLayoutRevision(
 			serviceContext.getUserId(), layoutRevision.getLayoutRevisionId(),
 			layoutRevision.getLayoutBranchId(), layoutRevision.getName(),
 			layoutRevision.getTitle(), layoutRevision.getDescription(),
@@ -310,13 +376,13 @@ public class LayoutLocalServiceStagingAdvice
 		return layout;
 	}
 
-	@Override
 	public Layout updateLookAndFeel(
-			long groupId, boolean privateLayout, long layoutId, String themeId,
+			LayoutLocalService layoutLocalService, long groupId,
+			boolean privateLayout, long layoutId, String themeId,
 			String colorSchemeId, String css, boolean wapTheme)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		Layout layout = layoutPersistence.findByG_P_L(
+		Layout layout = LayoutUtil.findByG_P_L(
 			groupId, privateLayout, layoutId);
 
 		layout = wrapLayout(layout);
@@ -325,7 +391,7 @@ public class LayoutLocalServiceStagingAdvice
 			layout);
 
 		if (layoutRevision == null) {
-			return super.updateLookAndFeel(
+			return layoutLocalService.updateLookAndFeel(
 				groupId, privateLayout, layoutId, themeId, colorSchemeId, css,
 				wapTheme);
 		}
@@ -353,7 +419,7 @@ public class LayoutLocalServiceStagingAdvice
 				WorkflowConstants.ACTION_SAVE_DRAFT);
 		}
 
-		layoutRevisionLocalService.updateLayoutRevision(
+		LayoutRevisionLocalServiceUtil.updateLayoutRevision(
 			serviceContext.getUserId(), layoutRevision.getLayoutRevisionId(),
 			layoutRevision.getLayoutBranchId(), layoutRevision.getName(),
 			layoutRevision.getTitle(), layoutRevision.getDescription(),
@@ -367,9 +433,10 @@ public class LayoutLocalServiceStagingAdvice
 		return layout;
 	}
 
-	@Override
-	public Layout updateName(Layout layout, String name, String languageId)
-		throws PortalException, SystemException {
+	public Layout updateName(
+			LayoutLocalService layoutLocalService, Layout layout, String name,
+			String languageId)
+		throws PortalException {
 
 		layout = wrapLayout(layout);
 
@@ -377,10 +444,10 @@ public class LayoutLocalServiceStagingAdvice
 			layout);
 
 		if (layoutRevision == null) {
-			return super.updateName(layout, name, languageId);
+			return layoutLocalService.updateName(layout, name, languageId);
 		}
 
-		validateName(name, languageId);
+		layoutLocalServiceHelper.validateName(name, languageId);
 
 		layout.setName(name, LocaleUtil.fromLanguageId(languageId));
 
@@ -394,7 +461,7 @@ public class LayoutLocalServiceStagingAdvice
 
 		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
 
-		layoutRevisionLocalService.updateLayoutRevision(
+		LayoutRevisionLocalServiceUtil.updateLayoutRevision(
 			serviceContext.getUserId(), layoutRevision.getLayoutRevisionId(),
 			layoutRevision.getLayoutBranchId(), layoutRevision.getName(),
 			layoutRevision.getTitle(), layoutRevision.getDescription(),
@@ -406,6 +473,57 @@ public class LayoutLocalServiceStagingAdvice
 			serviceContext);
 
 		return layout;
+	}
+
+	protected void doDeleteLayout(
+			LayoutLocalService layoutLocalService, Layout layout,
+			boolean updateLayoutSet, ServiceContext serviceContext)
+		throws PortalException {
+
+		if (SystemEventHierarchyEntryThreadLocal.push(
+				Layout.class, layout.getPlid()) == null) {
+
+			layoutLocalService.deleteLayout(
+				layout, updateLayoutSet, serviceContext);
+		}
+		else {
+			try {
+				layoutLocalService.deleteLayout(
+					layout, updateLayoutSet, serviceContext);
+
+				SystemEventHierarchyEntry systemEventHierarchyEntry =
+					SystemEventHierarchyEntryThreadLocal.peek();
+
+				SystemEventLocalServiceUtil.addSystemEvent(
+					0, layout.getGroupId(), Layout.class.getName(),
+					layout.getPlid(), layout.getUuid(), null,
+					SystemEventConstants.TYPE_DELETE,
+					systemEventHierarchyEntry.getExtraData());
+			}
+			finally {
+				SystemEventHierarchyEntryThreadLocal.pop(
+					Layout.class, layout.getPlid());
+			}
+		}
+	}
+
+	protected Layout getProxiedLayout(Layout layout) {
+		Map<Layout, Object> proxiedLayouts =
+			ProxiedLayoutsThreadLocal.getProxiedLayouts();
+
+		Object proxiedLayout = proxiedLayouts.get(layout);
+
+		if (proxiedLayout != null) {
+			return (Layout)proxiedLayout;
+		}
+
+		proxiedLayout = ProxyUtil.newProxyInstance(
+			ClassLoaderUtil.getPortalClassLoader(), new Class[] {Layout.class},
+			new LayoutStagingHandler(layout));
+
+		proxiedLayouts.put(layout, proxiedLayout);
+
+		return (Layout)proxiedLayout;
 	}
 
 	protected Layout unwrapLayout(Layout layout) {
@@ -431,9 +549,7 @@ public class LayoutLocalServiceStagingAdvice
 			return layout;
 		}
 
-		return (Layout)ProxyUtil.newProxyInstance(
-			PortalClassLoaderUtil.getClassLoader(), new Class[] {Layout.class},
-			new LayoutStagingHandler(layout));
+		return getProxiedLayout(layout);
 	}
 
 	protected List<Layout> wrapLayouts(
@@ -454,9 +570,10 @@ public class LayoutLocalServiceStagingAdvice
 		long layoutSetBranchId = 0;
 
 		if (!showIncomplete) {
+			long userId = 0;
+
 			try {
-				long userId = GetterUtil.getLong(
-					PrincipalThreadLocal.getName());
+				userId = GetterUtil.getLong(PrincipalThreadLocal.getName());
 
 				if (userId > 0) {
 					User user = UserLocalServiceUtil.getUser(userId);
@@ -468,6 +585,9 @@ public class LayoutLocalServiceStagingAdvice
 				}
 			}
 			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("No layout set branch found for user " + userId);
+				}
 			}
 		}
 
@@ -493,17 +613,42 @@ public class LayoutLocalServiceStagingAdvice
 			returnValue = wrapLayout((Layout)returnValue);
 		}
 		else if (returnValue instanceof List<?>) {
-			returnValue = wrapLayouts(
-				(List<Layout>)returnValue, showIncomplete);
+			List<?> list = (List<?>)returnValue;
+
+			if (!list.isEmpty()) {
+				Object object = list.get(0);
+
+				if (object instanceof Layout) {
+					returnValue = wrapLayouts(
+						(List<Layout>)returnValue, showIncomplete);
+				}
+			}
 		}
 
 		return returnValue;
 	}
 
+	@BeanReference(type = LayoutLocalServiceHelper.class)
+	protected LayoutLocalServiceHelper layoutLocalServiceHelper;
+
+	private static final Class<?>[] _GET_LAYOUTS_TYPES = {
+		Long.TYPE, Boolean.TYPE, Long.TYPE
+	};
+
+	private static final Class<?>[] _UPDATE_LAYOUT_PARAMETER_TYPES = {
+		long.class, boolean.class, long.class, long.class, Map.class, Map.class,
+		Map.class, Map.class, Map.class, String.class, boolean.class,
+		String.class, Boolean.class, byte[].class, ServiceContext.class
+	};
+
+	private static Log _log = LogFactoryUtil.getLog(
+		LayoutLocalServiceStagingAdvice.class);
+
 	private static Set<String> _layoutLocalServiceStagingAdviceMethodNames =
 		new HashSet<String>();
 
 	static {
+		_layoutLocalServiceStagingAdviceMethodNames.add("createLayout");
 		_layoutLocalServiceStagingAdviceMethodNames.add("deleteLayout");
 		_layoutLocalServiceStagingAdviceMethodNames.add("getLayouts");
 		_layoutLocalServiceStagingAdviceMethodNames.add("updateLayout");

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,7 +20,10 @@ import com.liferay.portal.model.CacheModel;
 
 import com.liferay.portlet.trash.model.TrashEntry;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import java.util.Date;
 
@@ -32,10 +35,10 @@ import java.util.Date;
  * @generated
  */
 public class TrashEntryCacheModel implements CacheModel<TrashEntry>,
-	Serializable {
+	Externalizable {
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(21);
+		StringBundler sb = new StringBundler(23);
 
 		sb.append("{entryId=");
 		sb.append(entryId);
@@ -53,6 +56,8 @@ public class TrashEntryCacheModel implements CacheModel<TrashEntry>,
 		sb.append(classNameId);
 		sb.append(", classPK=");
 		sb.append(classPK);
+		sb.append(", systemEventSetKey=");
+		sb.append(systemEventSetKey);
 		sb.append(", typeSettings=");
 		sb.append(typeSettings);
 		sb.append(", status=");
@@ -62,6 +67,7 @@ public class TrashEntryCacheModel implements CacheModel<TrashEntry>,
 		return sb.toString();
 	}
 
+	@Override
 	public TrashEntry toEntityModel() {
 		TrashEntryImpl trashEntryImpl = new TrashEntryImpl();
 
@@ -86,6 +92,7 @@ public class TrashEntryCacheModel implements CacheModel<TrashEntry>,
 
 		trashEntryImpl.setClassNameId(classNameId);
 		trashEntryImpl.setClassPK(classPK);
+		trashEntryImpl.setSystemEventSetKey(systemEventSetKey);
 
 		if (typeSettings == null) {
 			trashEntryImpl.setTypeSettings(StringPool.BLANK);
@@ -101,6 +108,51 @@ public class TrashEntryCacheModel implements CacheModel<TrashEntry>,
 		return trashEntryImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		entryId = objectInput.readLong();
+		groupId = objectInput.readLong();
+		companyId = objectInput.readLong();
+		userId = objectInput.readLong();
+		userName = objectInput.readUTF();
+		createDate = objectInput.readLong();
+		classNameId = objectInput.readLong();
+		classPK = objectInput.readLong();
+		systemEventSetKey = objectInput.readLong();
+		typeSettings = objectInput.readUTF();
+		status = objectInput.readInt();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(entryId);
+		objectOutput.writeLong(groupId);
+		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(userId);
+
+		if (userName == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(userName);
+		}
+
+		objectOutput.writeLong(createDate);
+		objectOutput.writeLong(classNameId);
+		objectOutput.writeLong(classPK);
+		objectOutput.writeLong(systemEventSetKey);
+
+		if (typeSettings == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(typeSettings);
+		}
+
+		objectOutput.writeInt(status);
+	}
+
 	public long entryId;
 	public long groupId;
 	public long companyId;
@@ -109,6 +161,7 @@ public class TrashEntryCacheModel implements CacheModel<TrashEntry>,
 	public long createDate;
 	public long classNameId;
 	public long classPK;
+	public long systemEventSetKey;
 	public String typeSettings;
 	public int status;
 }

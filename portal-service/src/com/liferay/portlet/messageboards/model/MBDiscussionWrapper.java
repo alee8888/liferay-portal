@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,13 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,28 +29,39 @@ import java.util.Map;
  * This class is a wrapper for {@link MBDiscussion}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       MBDiscussion
+ * @author Brian Wing Shun Chan
+ * @see MBDiscussion
  * @generated
  */
+@ProviderType
 public class MBDiscussionWrapper implements MBDiscussion,
 	ModelWrapper<MBDiscussion> {
 	public MBDiscussionWrapper(MBDiscussion mbDiscussion) {
 		_mbDiscussion = mbDiscussion;
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return MBDiscussion.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return MBDiscussion.class.getName();
 	}
 
+	@Override
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("uuid", getUuid());
 		attributes.put("discussionId", getDiscussionId());
+		attributes.put("groupId", getGroupId());
+		attributes.put("companyId", getCompanyId());
+		attributes.put("userId", getUserId());
+		attributes.put("userName", getUserName());
+		attributes.put("createDate", getCreateDate());
+		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classPK", getClassPK());
 		attributes.put("threadId", getThreadId());
@@ -53,11 +69,54 @@ public class MBDiscussionWrapper implements MBDiscussion,
 		return attributes;
 	}
 
+	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		String uuid = (String)attributes.get("uuid");
+
+		if (uuid != null) {
+			setUuid(uuid);
+		}
+
 		Long discussionId = (Long)attributes.get("discussionId");
 
 		if (discussionId != null) {
 			setDiscussionId(discussionId);
+		}
+
+		Long groupId = (Long)attributes.get("groupId");
+
+		if (groupId != null) {
+			setGroupId(groupId);
+		}
+
+		Long companyId = (Long)attributes.get("companyId");
+
+		if (companyId != null) {
+			setCompanyId(companyId);
+		}
+
+		Long userId = (Long)attributes.get("userId");
+
+		if (userId != null) {
+			setUserId(userId);
+		}
+
+		String userName = (String)attributes.get("userName");
+
+		if (userName != null) {
+			setUserName(userName);
+		}
+
+		Date createDate = (Date)attributes.get("createDate");
+
+		if (createDate != null) {
+			setCreateDate(createDate);
+		}
+
+		Date modifiedDate = (Date)attributes.get("modifiedDate");
+
+		if (modifiedDate != null) {
+			setModifiedDate(modifiedDate);
 		}
 
 		Long classNameId = (Long)attributes.get("classNameId");
@@ -84,6 +143,7 @@ public class MBDiscussionWrapper implements MBDiscussion,
 	*
 	* @return the primary key of this message boards discussion
 	*/
+	@Override
 	public long getPrimaryKey() {
 		return _mbDiscussion.getPrimaryKey();
 	}
@@ -93,8 +153,29 @@ public class MBDiscussionWrapper implements MBDiscussion,
 	*
 	* @param primaryKey the primary key of this message boards discussion
 	*/
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_mbDiscussion.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the uuid of this message boards discussion.
+	*
+	* @return the uuid of this message boards discussion
+	*/
+	@Override
+	public java.lang.String getUuid() {
+		return _mbDiscussion.getUuid();
+	}
+
+	/**
+	* Sets the uuid of this message boards discussion.
+	*
+	* @param uuid the uuid of this message boards discussion
+	*/
+	@Override
+	public void setUuid(java.lang.String uuid) {
+		_mbDiscussion.setUuid(uuid);
 	}
 
 	/**
@@ -102,6 +183,7 @@ public class MBDiscussionWrapper implements MBDiscussion,
 	*
 	* @return the discussion ID of this message boards discussion
 	*/
+	@Override
 	public long getDiscussionId() {
 		return _mbDiscussion.getDiscussionId();
 	}
@@ -111,8 +193,149 @@ public class MBDiscussionWrapper implements MBDiscussion,
 	*
 	* @param discussionId the discussion ID of this message boards discussion
 	*/
+	@Override
 	public void setDiscussionId(long discussionId) {
 		_mbDiscussion.setDiscussionId(discussionId);
+	}
+
+	/**
+	* Returns the group ID of this message boards discussion.
+	*
+	* @return the group ID of this message boards discussion
+	*/
+	@Override
+	public long getGroupId() {
+		return _mbDiscussion.getGroupId();
+	}
+
+	/**
+	* Sets the group ID of this message boards discussion.
+	*
+	* @param groupId the group ID of this message boards discussion
+	*/
+	@Override
+	public void setGroupId(long groupId) {
+		_mbDiscussion.setGroupId(groupId);
+	}
+
+	/**
+	* Returns the company ID of this message boards discussion.
+	*
+	* @return the company ID of this message boards discussion
+	*/
+	@Override
+	public long getCompanyId() {
+		return _mbDiscussion.getCompanyId();
+	}
+
+	/**
+	* Sets the company ID of this message boards discussion.
+	*
+	* @param companyId the company ID of this message boards discussion
+	*/
+	@Override
+	public void setCompanyId(long companyId) {
+		_mbDiscussion.setCompanyId(companyId);
+	}
+
+	/**
+	* Returns the user ID of this message boards discussion.
+	*
+	* @return the user ID of this message boards discussion
+	*/
+	@Override
+	public long getUserId() {
+		return _mbDiscussion.getUserId();
+	}
+
+	/**
+	* Sets the user ID of this message boards discussion.
+	*
+	* @param userId the user ID of this message boards discussion
+	*/
+	@Override
+	public void setUserId(long userId) {
+		_mbDiscussion.setUserId(userId);
+	}
+
+	/**
+	* Returns the user uuid of this message boards discussion.
+	*
+	* @return the user uuid of this message boards discussion
+	*/
+	@Override
+	public java.lang.String getUserUuid() {
+		return _mbDiscussion.getUserUuid();
+	}
+
+	/**
+	* Sets the user uuid of this message boards discussion.
+	*
+	* @param userUuid the user uuid of this message boards discussion
+	*/
+	@Override
+	public void setUserUuid(java.lang.String userUuid) {
+		_mbDiscussion.setUserUuid(userUuid);
+	}
+
+	/**
+	* Returns the user name of this message boards discussion.
+	*
+	* @return the user name of this message boards discussion
+	*/
+	@Override
+	public java.lang.String getUserName() {
+		return _mbDiscussion.getUserName();
+	}
+
+	/**
+	* Sets the user name of this message boards discussion.
+	*
+	* @param userName the user name of this message boards discussion
+	*/
+	@Override
+	public void setUserName(java.lang.String userName) {
+		_mbDiscussion.setUserName(userName);
+	}
+
+	/**
+	* Returns the create date of this message boards discussion.
+	*
+	* @return the create date of this message boards discussion
+	*/
+	@Override
+	public java.util.Date getCreateDate() {
+		return _mbDiscussion.getCreateDate();
+	}
+
+	/**
+	* Sets the create date of this message boards discussion.
+	*
+	* @param createDate the create date of this message boards discussion
+	*/
+	@Override
+	public void setCreateDate(java.util.Date createDate) {
+		_mbDiscussion.setCreateDate(createDate);
+	}
+
+	/**
+	* Returns the modified date of this message boards discussion.
+	*
+	* @return the modified date of this message boards discussion
+	*/
+	@Override
+	public java.util.Date getModifiedDate() {
+		return _mbDiscussion.getModifiedDate();
+	}
+
+	/**
+	* Sets the modified date of this message boards discussion.
+	*
+	* @param modifiedDate the modified date of this message boards discussion
+	*/
+	@Override
+	public void setModifiedDate(java.util.Date modifiedDate) {
+		_mbDiscussion.setModifiedDate(modifiedDate);
 	}
 
 	/**
@@ -120,10 +343,12 @@ public class MBDiscussionWrapper implements MBDiscussion,
 	*
 	* @return the fully qualified class name of this message boards discussion
 	*/
+	@Override
 	public java.lang.String getClassName() {
 		return _mbDiscussion.getClassName();
 	}
 
+	@Override
 	public void setClassName(java.lang.String className) {
 		_mbDiscussion.setClassName(className);
 	}
@@ -133,6 +358,7 @@ public class MBDiscussionWrapper implements MBDiscussion,
 	*
 	* @return the class name ID of this message boards discussion
 	*/
+	@Override
 	public long getClassNameId() {
 		return _mbDiscussion.getClassNameId();
 	}
@@ -142,6 +368,7 @@ public class MBDiscussionWrapper implements MBDiscussion,
 	*
 	* @param classNameId the class name ID of this message boards discussion
 	*/
+	@Override
 	public void setClassNameId(long classNameId) {
 		_mbDiscussion.setClassNameId(classNameId);
 	}
@@ -151,6 +378,7 @@ public class MBDiscussionWrapper implements MBDiscussion,
 	*
 	* @return the class p k of this message boards discussion
 	*/
+	@Override
 	public long getClassPK() {
 		return _mbDiscussion.getClassPK();
 	}
@@ -160,6 +388,7 @@ public class MBDiscussionWrapper implements MBDiscussion,
 	*
 	* @param classPK the class p k of this message boards discussion
 	*/
+	@Override
 	public void setClassPK(long classPK) {
 		_mbDiscussion.setClassPK(classPK);
 	}
@@ -169,6 +398,7 @@ public class MBDiscussionWrapper implements MBDiscussion,
 	*
 	* @return the thread ID of this message boards discussion
 	*/
+	@Override
 	public long getThreadId() {
 		return _mbDiscussion.getThreadId();
 	}
@@ -178,42 +408,64 @@ public class MBDiscussionWrapper implements MBDiscussion,
 	*
 	* @param threadId the thread ID of this message boards discussion
 	*/
+	@Override
 	public void setThreadId(long threadId) {
 		_mbDiscussion.setThreadId(threadId);
 	}
 
+	@Override
 	public boolean isNew() {
 		return _mbDiscussion.isNew();
 	}
 
+	@Override
 	public void setNew(boolean n) {
 		_mbDiscussion.setNew(n);
 	}
 
+	@Override
 	public boolean isCachedModel() {
 		return _mbDiscussion.isCachedModel();
 	}
 
+	@Override
 	public void setCachedModel(boolean cachedModel) {
 		_mbDiscussion.setCachedModel(cachedModel);
 	}
 
+	@Override
 	public boolean isEscapedModel() {
 		return _mbDiscussion.isEscapedModel();
 	}
 
+	@Override
 	public java.io.Serializable getPrimaryKeyObj() {
 		return _mbDiscussion.getPrimaryKeyObj();
 	}
 
+	@Override
 	public void setPrimaryKeyObj(java.io.Serializable primaryKeyObj) {
 		_mbDiscussion.setPrimaryKeyObj(primaryKeyObj);
 	}
 
+	@Override
 	public com.liferay.portlet.expando.model.ExpandoBridge getExpandoBridge() {
 		return _mbDiscussion.getExpandoBridge();
 	}
 
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portal.model.BaseModel<?> baseModel) {
+		_mbDiscussion.setExpandoBridgeAttributes(baseModel);
+	}
+
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portlet.expando.model.ExpandoBridge expandoBridge) {
+		_mbDiscussion.setExpandoBridgeAttributes(expandoBridge);
+	}
+
+	@Override
 	public void setExpandoBridgeAttributes(
 		com.liferay.portal.service.ServiceContext serviceContext) {
 		_mbDiscussion.setExpandoBridgeAttributes(serviceContext);
@@ -224,6 +476,7 @@ public class MBDiscussionWrapper implements MBDiscussion,
 		return new MBDiscussionWrapper((MBDiscussion)_mbDiscussion.clone());
 	}
 
+	@Override
 	public int compareTo(
 		com.liferay.portlet.messageboards.model.MBDiscussion mbDiscussion) {
 		return _mbDiscussion.compareTo(mbDiscussion);
@@ -234,12 +487,19 @@ public class MBDiscussionWrapper implements MBDiscussion,
 		return _mbDiscussion.hashCode();
 	}
 
+	@Override
 	public com.liferay.portal.model.CacheModel<com.liferay.portlet.messageboards.model.MBDiscussion> toCacheModel() {
 		return _mbDiscussion.toCacheModel();
 	}
 
+	@Override
 	public com.liferay.portlet.messageboards.model.MBDiscussion toEscapedModel() {
 		return new MBDiscussionWrapper(_mbDiscussion.toEscapedModel());
+	}
+
+	@Override
+	public com.liferay.portlet.messageboards.model.MBDiscussion toUnescapedModel() {
+		return new MBDiscussionWrapper(_mbDiscussion.toUnescapedModel());
 	}
 
 	@Override
@@ -247,26 +507,64 @@ public class MBDiscussionWrapper implements MBDiscussion,
 		return _mbDiscussion.toString();
 	}
 
+	@Override
 	public java.lang.String toXmlString() {
 		return _mbDiscussion.toXmlString();
 	}
 
-	public void persist()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void persist() {
 		_mbDiscussion.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof MBDiscussionWrapper)) {
+			return false;
+		}
+
+		MBDiscussionWrapper mbDiscussionWrapper = (MBDiscussionWrapper)obj;
+
+		if (Validator.equals(_mbDiscussion, mbDiscussionWrapper._mbDiscussion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _mbDiscussion.getStagedModelType();
+	}
+
 	/**
-	 * @deprecated Renamed to {@link #getWrappedModel}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public MBDiscussion getWrappedMBDiscussion() {
 		return _mbDiscussion;
 	}
 
+	@Override
 	public MBDiscussion getWrappedModel() {
 		return _mbDiscussion;
 	}
 
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _mbDiscussion.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _mbDiscussion.isFinderCacheEnabled();
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		_mbDiscussion.resetOriginalValues();
 	}

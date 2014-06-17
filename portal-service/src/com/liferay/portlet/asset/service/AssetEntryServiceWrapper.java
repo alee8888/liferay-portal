@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link AssetEntryService}.
- * </p>
+ * Provides a wrapper for {@link AssetEntryService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetEntryService
+ * @author Brian Wing Shun Chan
+ * @see AssetEntryService
  * @generated
  */
+@ProviderType
 public class AssetEntryServiceWrapper implements AssetEntryService,
 	ServiceWrapper<AssetEntryService> {
 	public AssetEntryServiceWrapper(AssetEntryService assetEntryService) {
@@ -36,6 +37,7 @@ public class AssetEntryServiceWrapper implements AssetEntryService,
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _assetEntryService.getBeanIdentifier();
 	}
@@ -45,71 +47,76 @@ public class AssetEntryServiceWrapper implements AssetEntryService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_assetEntryService.setBeanIdentifier(beanIdentifier);
 	}
 
+	@Override
 	public java.util.List<com.liferay.portlet.asset.model.AssetEntry> getCompanyEntries(
-		long companyId, int start, int end)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		long companyId, int start, int end) {
 		return _assetEntryService.getCompanyEntries(companyId, start, end);
 	}
 
-	public int getCompanyEntriesCount(long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public int getCompanyEntriesCount(long companyId) {
 		return _assetEntryService.getCompanyEntriesCount(companyId);
 	}
 
-	public com.liferay.portlet.asset.model.AssetEntryDisplay[] getCompanyEntryDisplays(
-		long companyId, int start, int end, java.lang.String languageId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _assetEntryService.getCompanyEntryDisplays(companyId, start,
-			end, languageId);
-	}
-
+	@Override
 	public java.util.List<com.liferay.portlet.asset.model.AssetEntry> getEntries(
 		com.liferay.portlet.asset.service.persistence.AssetEntryQuery entryQuery)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _assetEntryService.getEntries(entryQuery);
 	}
 
+	@Override
 	public int getEntriesCount(
 		com.liferay.portlet.asset.service.persistence.AssetEntryQuery entryQuery)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _assetEntryService.getEntriesCount(entryQuery);
 	}
 
+	@Override
 	public com.liferay.portlet.asset.model.AssetEntry getEntry(long entryId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _assetEntryService.getEntry(entryId);
 	}
 
+	@Override
 	public com.liferay.portlet.asset.model.AssetEntry incrementViewCounter(
 		java.lang.String className, long classPK)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _assetEntryService.incrementViewCounter(className, classPK);
 	}
 
-	public com.liferay.portlet.asset.model.AssetEntryDisplay[] searchEntryDisplays(
-		long companyId, long[] groupIds, java.lang.String className,
-		java.lang.String keywords, java.lang.String languageId, int start,
-		int end) throws com.liferay.portal.kernel.exception.SystemException {
-		return _assetEntryService.searchEntryDisplays(companyId, groupIds,
-			className, keywords, languageId, start, end);
+	@Override
+	public com.liferay.portlet.asset.model.AssetEntry updateEntry(
+		long groupId, java.util.Date createDate, java.util.Date modifiedDate,
+		java.lang.String className, long classPK, java.lang.String classUuid,
+		long classTypeId, long[] categoryIds, java.lang.String[] tagNames,
+		boolean visible, java.util.Date startDate, java.util.Date endDate,
+		java.util.Date expirationDate, java.lang.String mimeType,
+		java.lang.String title, java.lang.String description,
+		java.lang.String summary, java.lang.String url,
+		java.lang.String layoutUuid, int height, int width,
+		java.lang.Integer priority, boolean sync)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _assetEntryService.updateEntry(groupId, createDate,
+			modifiedDate, className, classPK, classUuid, classTypeId,
+			categoryIds, tagNames, visible, startDate, endDate, expirationDate,
+			mimeType, title, description, summary, url, layoutUuid, height,
+			width, priority, sync);
 	}
 
-	public int searchEntryDisplaysCount(long companyId, long[] groupIds,
-		java.lang.String className, java.lang.String keywords,
-		java.lang.String languageId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _assetEntryService.searchEntryDisplaysCount(companyId, groupIds,
-			className, keywords, languageId);
-	}
-
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #updateEntry(long, String,
+	long, String, long, long[], String[], boolean, Date, Date,
+	Date, String, String, String, String, String, String, int,
+	int, Integer, boolean)}
+	*/
+	@Deprecated
+	@Override
 	public com.liferay.portlet.asset.model.AssetEntry updateEntry(
 		long groupId, java.lang.String className, long classPK,
 		java.lang.String classUuid, long classTypeId, long[] categoryIds,
@@ -120,8 +127,7 @@ public class AssetEntryServiceWrapper implements AssetEntryService,
 		java.lang.String summary, java.lang.String url,
 		java.lang.String layoutUuid, int height, int width,
 		java.lang.Integer priority, boolean sync)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException {
 		return _assetEntryService.updateEntry(groupId, className, classPK,
 			classUuid, classTypeId, categoryIds, tagNames, visible, startDate,
 			endDate, publishDate, expirationDate, mimeType, title, description,
@@ -129,23 +135,51 @@ public class AssetEntryServiceWrapper implements AssetEntryService,
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	* @deprecated As of 6.2.0, replaced by {@link #updateEntry(long, Date,
+	Date, String, long, String, long, long[], String[], boolean,
+	Date, Date, Date, String, String, String, String, String,
+	String, int, int, Integer, boolean)}
+	*/
+	@Deprecated
+	@Override
+	public com.liferay.portlet.asset.model.AssetEntry updateEntry(
+		long groupId, java.lang.String className, long classPK,
+		java.lang.String classUuid, long classTypeId, long[] categoryIds,
+		java.lang.String[] tagNames, boolean visible, java.util.Date startDate,
+		java.util.Date endDate, java.util.Date expirationDate,
+		java.lang.String mimeType, java.lang.String title,
+		java.lang.String description, java.lang.String summary,
+		java.lang.String url, java.lang.String layoutUuid, int height,
+		int width, java.lang.Integer priority, boolean sync)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _assetEntryService.updateEntry(groupId, className, classPK,
+			classUuid, classTypeId, categoryIds, tagNames, visible, startDate,
+			endDate, expirationDate, mimeType, title, description, summary,
+			url, layoutUuid, height, width, priority, sync);
+	}
+
+	/**
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AssetEntryService getWrappedAssetEntryService() {
 		return _assetEntryService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAssetEntryService(AssetEntryService assetEntryService) {
 		_assetEntryService = assetEntryService;
 	}
 
+	@Override
 	public AssetEntryService getWrappedService() {
 		return _assetEntryService;
 	}
 
+	@Override
 	public void setWrappedService(AssetEntryService assetEntryService) {
 		_assetEntryService = assetEntryService;
 	}

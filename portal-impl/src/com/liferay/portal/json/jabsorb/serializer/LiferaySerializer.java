@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,6 @@ package com.liferay.portal.json.jabsorb.serializer;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.ArrayUtil;
 
 import java.io.Serializable;
 
@@ -65,14 +64,17 @@ public class LiferaySerializer extends AbstractSerializer {
 		return false;
 	}
 
+	@Override
 	public Class<?>[] getJSONClasses() {
 		return _JSON_CLASSES;
 	}
 
+	@Override
 	public Class<?>[] getSerializableClasses() {
 		return _SERIALIZABLE_CLASSES;
 	}
 
+	@Override
 	public Object marshall(
 			SerializerState serializerState, Object parentObject, Object object)
 		throws MarshallException {
@@ -168,6 +170,7 @@ public class LiferaySerializer extends AbstractSerializer {
 		return jsonObject;
 	}
 
+	@Override
 	public ObjectMatch tryUnmarshall(
 			SerializerState serializerState,
 			@SuppressWarnings("rawtypes") Class clazz, Object object)
@@ -241,6 +244,7 @@ public class LiferaySerializer extends AbstractSerializer {
 		return objectMatch;
 	}
 
+	@Override
 	public Object unmarshall(
 			SerializerState serializerState,
 			@SuppressWarnings("rawtypes") Class clazz, Object object)
@@ -334,7 +338,7 @@ public class LiferaySerializer extends AbstractSerializer {
 
 					try {
 						value = ser.unmarshall(
-							serializerState, null,
+							serializerState, field.getType(),
 							serializableJSONObject.get(fieldName));
 					}
 					catch (Exception e) {
@@ -342,8 +346,6 @@ public class LiferaySerializer extends AbstractSerializer {
 
 					if (value != null) {
 						try {
-							value = getValue(field, value);
-
 							field.set(javaClassInstance, value);
 						}
 						catch (Exception e) {
@@ -361,47 +363,6 @@ public class LiferaySerializer extends AbstractSerializer {
 		}
 
 		return javaClassInstance;
-	}
-
-	protected Object getValue(Field field, Object value) {
-		Class<?> type = field.getType();
-
-		if (!type.isArray()) {
-			return value;
-		}
-
-		Class<?> componentType = type.getComponentType();
-
-		if (!componentType.isPrimitive()) {
-			return value;
-		}
-
-		if (type.isAssignableFrom(boolean[].class)) {
-			value = ArrayUtil.toArray((Boolean[])value);
-		}
-		else if (type.isAssignableFrom(byte[].class)) {
-			value = ArrayUtil.toArray((Byte[])value);
-		}
-		else if (type.isAssignableFrom(char[].class)) {
-			value = ArrayUtil.toArray((Character[])value);
-		}
-		else if (type.isAssignableFrom(double[].class)) {
-			value = ArrayUtil.toArray((Double[])value);
-		}
-		else if (type.isAssignableFrom(float[].class)) {
-			value = ArrayUtil.toArray((Float[])value);
-		}
-		else if (type.isAssignableFrom(int[].class)) {
-			value = ArrayUtil.toArray((Integer[])value);
-		}
-		else if (type.isAssignableFrom(long[].class)) {
-			value = ArrayUtil.toArray((Long[])value);
-		}
-		else if (type.isAssignableFrom(short[].class)) {
-			value = ArrayUtil.toArray((Short[])value);
-		}
-
-		return value;
 	}
 
 	private static final Class<?>[] _JSON_CLASSES = {JSONObject.class};

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,13 +18,17 @@ import java.lang.reflect.Method;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Igor Spasic
  */
 public interface JSONWebServiceActionsManager {
+
+	public Set<String> getContextPaths();
 
 	public JSONWebServiceAction getJSONWebServiceAction(
 		HttpServletRequest request);
@@ -37,12 +41,28 @@ public interface JSONWebServiceActionsManager {
 		String signature);
 
 	public List<JSONWebServiceActionMapping> getJSONWebServiceActionMappings(
-		String servletContextPath);
+		String contextPath);
+
+	public int getJSONWebServiceActionsCount(String contextPath);
+
+	public JSONWebServiceNaming getJSONWebServiceNaming();
 
 	public void registerJSONWebServiceAction(
-		String servletContextPath, Class<?> actionClass, Method actionMethod,
+		String contextPath, Class<?> actionClass, Method actionMethod,
 		String path, String method);
 
-	public int unregisterJSONWebServiceActions(String servletContextPath);
+	public void registerJSONWebServiceAction(
+		String contextPath, Object actionObject, Class<?> actionClass,
+		Method actionMethod, String path, String method);
+
+	public int registerServletContext(ServletContext servletContext);
+
+	public int registerServletContext(String contextPath);
+
+	public int unregisterJSONWebServiceActions(Object actionObject);
+
+	public int unregisterJSONWebServiceActions(String contextPath);
+
+	public int unregisterServletContext(ServletContext servletContext);
 
 }

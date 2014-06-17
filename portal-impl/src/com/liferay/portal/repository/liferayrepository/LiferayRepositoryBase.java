@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,13 +15,14 @@
 package com.liferay.portal.repository.liferayrepository;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.repository.capabilities.Capability;
+import com.liferay.portal.kernel.repository.capabilities.CapabilityProvider;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.SortedArrayList;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.repository.liferayrepository.util.LiferayBase;
 import com.liferay.portal.service.RepositoryLocalService;
 import com.liferay.portal.service.RepositoryService;
+import com.liferay.portal.service.ResourceLocalService;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
@@ -30,6 +31,7 @@ import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppHelperLocalService;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryLocalService;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryService;
+import com.liferay.portlet.documentlibrary.service.DLFileEntryTypeLocalService;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryTypeLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileVersionLocalService;
 import com.liferay.portlet.documentlibrary.service.DLFileVersionService;
@@ -46,7 +48,7 @@ import java.util.List;
 /**
  * @author Alexander Chow
  */
-public abstract class LiferayRepositoryBase extends LiferayBase {
+public abstract class LiferayRepositoryBase implements CapabilityProvider {
 
 	public LiferayRepositoryBase(
 		RepositoryLocalService repositoryLocalService,
@@ -54,70 +56,61 @@ public abstract class LiferayRepositoryBase extends LiferayBase {
 		DLAppHelperLocalService dlAppHelperLocalService,
 		DLFileEntryLocalService dlFileEntryLocalService,
 		DLFileEntryService dlFileEntryService,
+		DLFileEntryTypeLocalService dlFileEntryTypeLocalService,
 		DLFileVersionLocalService dlFileVersionLocalService,
 		DLFileVersionService dlFileVersionService,
 		DLFolderLocalService dlFolderLocalService,
-		DLFolderService dlFolderService, long repositoryId) {
+		DLFolderService dlFolderService,
+		ResourceLocalService resourceLocalService, long groupId,
+		long repositoryId, long dlFolderId) {
 
 		this.repositoryLocalService = repositoryLocalService;
 		this.repositoryService = repositoryService;
 		this.dlAppHelperLocalService = dlAppHelperLocalService;
 		this.dlFileEntryLocalService = dlFileEntryLocalService;
 		this.dlFileEntryService = dlFileEntryService;
+		this.dlFileEntryTypeLocalService = dlFileEntryTypeLocalService;
 		this.dlFileVersionLocalService = dlFileVersionLocalService;
 		this.dlFileVersionService = dlFileVersionService;
 		this.dlFolderLocalService = dlFolderLocalService;
 		this.dlFolderService = dlFolderService;
-
-		initByRepositoryId(repositoryId);
+		this.resourceLocalService = resourceLocalService;
+		_repositoryId = repositoryId;
+		_groupId = groupId;
+		_dlFolderId = dlFolderId;
 	}
 
-	public LiferayRepositoryBase(
-		RepositoryLocalService repositoryLocalService,
-		RepositoryService repositoryService,
-		DLAppHelperLocalService dlAppHelperLocalService,
-		DLFileEntryLocalService dlFileEntryLocalService,
-		DLFileEntryService dlFileEntryService,
-		DLFileVersionLocalService dlFileVersionLocalService,
-		DLFileVersionService dlFileVersionService,
-		DLFolderLocalService dlFolderLocalService,
-		DLFolderService dlFolderService, long folderId, long fileEntryId,
-		long fileVersionId) {
-
-		this.repositoryLocalService = repositoryLocalService;
-		this.repositoryService = repositoryService;
-		this.dlAppHelperLocalService = dlAppHelperLocalService;
-		this.dlFileEntryLocalService = dlFileEntryLocalService;
-		this.dlFileEntryService = dlFileEntryService;
-		this.dlFileVersionLocalService = dlFileVersionLocalService;
-		this.dlFileVersionService = dlFileVersionService;
-		this.dlFolderLocalService = dlFolderLocalService;
-		this.dlFolderService = dlFolderService;
-
-		if (folderId != 0) {
-			initByFolderId(folderId);
-		}
-		else if (fileEntryId != 0) {
-			initByFileEntryId(fileEntryId);
-		}
-		else if (fileVersionId != 0) {
-			initByFileVersionId(fileVersionId);
-		}
+	@Override
+	public <T extends Capability> T getCapability(Class<T> capabilityClass) {
+		throw new IllegalArgumentException(
+			String.format(
+				"Capability %s is not supported by repository %s",
+				capabilityClass.getName(), getRepositoryId()));
 	}
 
 	public long getRepositoryId() {
 		return _repositoryId;
 	}
 
+	@Override
+	public <T extends Capability> boolean isCapabilityProvided(
+		Class<T> capabilityClass) {
+
+		return false;
+	}
+
 	protected void addFileEntryResources(
 			DLFileEntry dlFileEntry, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (serviceContext.isAddGroupPermissions() ||
 			serviceContext.isAddGuestPermissions()) {
 
-			dlFileEntryLocalService.addFileEntryResources(
-				dlFileEntry, serviceContext.isAddGroupPermissions(),
+			resourceLocalService.addResources(
+				dlFileEntry.getCompanyId(), dlFileEntry.getGroupId(),
+				dlFileEntry.getUserId(), DLFileEntry.class.getName(),
+				dlFileEntry.getFileEntryId(), false,
+				serviceContext.isAddGroupPermissions(),
 				serviceContext.isAddGuestPermissions());
 		}
 		else {
@@ -127,15 +120,28 @@ public abstract class LiferayRepositoryBase extends LiferayBase {
 					DLFileEntryConstants.getClassName());
 			}
 
-			dlFileEntryLocalService.addFileEntryResources(
-				dlFileEntry, serviceContext.getGroupPermissions(),
+			resourceLocalService.addModelResources(
+				dlFileEntry.getCompanyId(), dlFileEntry.getGroupId(),
+				dlFileEntry.getUserId(), DLFileEntry.class.getName(),
+				dlFileEntry.getFileEntryId(),
+				serviceContext.getGroupPermissions(),
 				serviceContext.getGuestPermissions());
 		}
 	}
 
+	protected long getDefaultFileEntryTypeId(
+			ServiceContext serviceContext, long folderId)
+		throws PortalException {
+
+		folderId = dlFolderLocalService.getFolderId(
+			serviceContext.getCompanyId(), folderId);
+
+		return dlFileEntryTypeLocalService.getDefaultFileEntryTypeId(folderId);
+	}
+
 	protected HashMap<String, Fields> getFieldsMap(
 			ServiceContext serviceContext, long fileEntryTypeId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		HashMap<String, Fields> fieldsMap = new HashMap<String, Fields>();
 
@@ -189,14 +195,6 @@ public abstract class LiferayRepositoryBase extends LiferayBase {
 		return longList;
 	}
 
-	protected abstract void initByFileEntryId(long fileEntryId);
-
-	protected abstract void initByFileVersionId(long fileVersionId);
-
-	protected abstract void initByFolderId(long folderId);
-
-	protected abstract void initByRepositoryId(long repositoryId);
-
 	protected boolean isDefaultRepository() {
 		if (_groupId == _repositoryId) {
 			return true;
@@ -204,18 +202,6 @@ public abstract class LiferayRepositoryBase extends LiferayBase {
 		else {
 			return false;
 		}
-	}
-
-	protected void setDlFolderId(long dlFolderId) {
-		_dlFolderId = dlFolderId;
-	}
-
-	protected void setGroupId(long groupId) {
-		_groupId = groupId;
-	}
-
-	protected void setRepositoryId(long repositoryId) {
-		_repositoryId = repositoryId;
 	}
 
 	protected long toFolderId(long folderId) {
@@ -240,12 +226,14 @@ public abstract class LiferayRepositoryBase extends LiferayBase {
 	protected DLAppHelperLocalService dlAppHelperLocalService;
 	protected DLFileEntryLocalService dlFileEntryLocalService;
 	protected DLFileEntryService dlFileEntryService;
+	protected DLFileEntryTypeLocalService dlFileEntryTypeLocalService;
 	protected DLFileVersionLocalService dlFileVersionLocalService;
 	protected DLFileVersionService dlFileVersionService;
 	protected DLFolderLocalService dlFolderLocalService;
 	protected DLFolderService dlFolderService;
 	protected RepositoryLocalService repositoryLocalService;
 	protected RepositoryService repositoryService;
+	protected ResourceLocalService resourceLocalService;
 
 	private long _dlFolderId;
 	private long _groupId;

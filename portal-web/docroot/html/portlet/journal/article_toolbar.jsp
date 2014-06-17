@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,136 +17,30 @@
 <%@ include file="/html/portlet/journal/init.jsp" %>
 
 <%
-String originalRedirect = ParamUtil.getString(request, "originalRedirect");
+String referringPortletResource = ParamUtil.getString(request, "referringPortletResource");
 
 JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_ARTICLE);
 
 long classNameId = BeanParamUtil.getLong(article, request, "classNameId");
-
-String structureId = BeanParamUtil.getString(article, request, "structureId");
-
-String deleteButtonLabel = "delete-this-version";
-
-if ((article != null) && article.isDraft()) {
-	deleteButtonLabel = "discard-draft";
-}
 %>
 
-<div class="article-toolbar" id="<portlet:namespace />articleToolbar"></div>
+<div class="article-toolbar toolbar" id="<portlet:namespace />articleToolbar">
+	<div class="btn-group">
+		<c:if test="<%= classNameId == JournalArticleConstants.CLASSNAME_ID_DEFAULT %>">
+			<aui:button data-title='<%= LanguageUtil.get(pageContext, "in-order-to-preview-your-changes,-the-web-content-will-be-saved-as-a-draft") %>' icon="icon-search" name="basicPreviewButton" value="basic-preview" />
+		</c:if>
 
-<aui:script use="aui-toolbar,aui-dialog-iframe,liferay-util-window">
-	var permissionPopUp = null;
+		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.PERMISSIONS) %>">
+			<aui:button icon="icon-lock" name="articlePermissionsButton" value="permissions" />
+		</c:if>
 
-	var toolbarChildren = [];
-
-	<c:if test="<%= (article != null) && Validator.isNotNull(structureId) && (classNameId == 0) %>">
-		toolbarChildren.push(
-			{
-				icon: 'preview',
-				id: '<portlet:namespace />previewArticleButton',
-				label: '<%= UnicodeLanguageUtil.get(pageContext, "preview") %>'
-			}
-		);
-	</c:if>
-
-	<c:if test="<%= (article != null) && Validator.isNotNull(structureId) %>">
-		toolbarChildren.push(
-			{
-				icon: 'download',
-				id: '<portlet:namespace />downloadArticleContentButton',
-				label: '<%= UnicodeLanguageUtil.get(pageContext, "download") %>'
-			}
-		);
-	</c:if>
-
-	<c:if test="<%= (article != null) && JournalArticlePermission.contains(permissionChecker, article, ActionKeys.PERMISSIONS) %>">
-		<liferay-security:permissionsURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"
-			modelResource="<%= JournalArticle.class.getName() %>"
-			modelResourceDescription="<%= article.getTitle(locale) %>"
-			resourcePrimKey="<%= String.valueOf(article.getResourcePrimKey()) %>"
-			var="permissionsURL"
-		/>
-
-		toolbarChildren.push(
-			{
-				handler: function(event) {
-					if (!permissionPopUp) {
-						permissionPopUp = Liferay.Util.openWindow(
-							{
-								dialog: {
-									align: Liferay.Util.Window.ALIGN_CENTER,
-									cssClass: 'portlet-asset-categories-admin-dialog permissions-change',
-									width: 700
-								},
-								id: '<portlet:namespace />articlePermissions',
-								title: '<%= UnicodeLanguageUtil.get(pageContext, "permissions") %>',
-								uri: '<%= permissionsURL %>'
-							}
-						);
-					}
-					else {
-						permissionPopUp.iframe.node.get('contentWindow.location').reload(true);
-					}
-
-					permissionPopUp.show();
-					permissionPopUp.centered();
-
-				},
-				icon: 'permissions',
-				label: '<%= UnicodeLanguageUtil.get(pageContext, "permissions") %>'
-			}
-		);
-	</c:if>
-
-	<c:if test="<%= (article != null) && !article.isExpired() && JournalArticlePermission.contains(permissionChecker, article, ActionKeys.EXPIRE) && !article.isApproved() %>">
-		toolbarChildren.push(
-			{
-				handler: function() {
-					<portlet:namespace />expireArticle();
-				},
-				icon: 'expire',
-				label: '<%= UnicodeLanguageUtil.get(pageContext, "expire-this-version") %>'
-			}
-		);
-	</c:if>
-
-	<c:if test="<%= (article != null) && JournalArticlePermission.contains(permissionChecker, article, ActionKeys.DELETE) && !article.isApproved() && !article.isDraft() %>">
-		toolbarChildren.push(
-			{
-				handler: function() {
-					<portlet:namespace />deleteArticle();
-				},
-				icon: 'delete',
-				label: '<liferay-ui:message key="<%= deleteButtonLabel %>" />'
-			}
-		);
-	</c:if>
-
-	<c:if test="<%= article != null %>">
 		<portlet:renderURL var="viewHistoryURL">
 			<portlet:param name="struts_action" value="/journal/view_article_history" />
 			<portlet:param name="redirect" value="<%= currentURL %>" />
-			<portlet:param name="originalRedirect" value="<%= originalRedirect %>" />
-			<portlet:param name="groupId" value="<%= String.valueOf(article.getGroupId()) %>" />
+			<portlet:param name="referringPortletResource" value="<%= referringPortletResource %>" />
 			<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
 		</portlet:renderURL>
 
-		toolbarChildren.push(
-			{
-				handler: function (event) {
-					window.location = '<%= viewHistoryURL %>';
-				},
-				icon: 'history',
-				label: '<%= UnicodeLanguageUtil.get(pageContext, "view-history") %>'
-			}
-		);
-	</c:if>
-
-	new A.Toolbar(
-		{
-			activeState: false,
-			boundingBox: '#<portlet:namespace />articleToolbar',
-			children: toolbarChildren
-		}
-	).render();
-</aui:script>
+		<aui:button href="<%= viewHistoryURL %>" icon="icon-time" name="articleHistoryButton" value="view-history" />
+	</div>
+</div>

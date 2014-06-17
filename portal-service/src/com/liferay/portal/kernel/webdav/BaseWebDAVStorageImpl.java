@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,8 @@
 
 package com.liferay.portal.kernel.webdav;
 
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.webdav.methods.MethodFactory;
+import com.liferay.portal.kernel.webdav.methods.MethodFactoryRegistryUtil;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Lock;
 import com.liferay.portal.service.GroupLocalServiceUtil;
@@ -24,46 +25,58 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Fabio Pezzutto
  */
 public abstract class BaseWebDAVStorageImpl implements WebDAVStorage {
 
+	@Override
 	@SuppressWarnings("unused")
 	public int copyCollectionResource(
-			WebDAVRequest webDavRequest, Resource resource, String destination,
+			WebDAVRequest webDAVRequest, Resource resource, String destination,
 			boolean overwrite, long depth)
 		throws WebDAVException {
 
 		return HttpServletResponse.SC_FORBIDDEN;
 	}
 
+	@Override
 	@SuppressWarnings("unused")
 	public int copySimpleResource(
-			WebDAVRequest webDavRequest, Resource resource, String destination,
+			WebDAVRequest webDAVRequest, Resource resource, String destination,
 			boolean overwrite)
 		throws WebDAVException {
 
 		return HttpServletResponse.SC_FORBIDDEN;
 	}
 
+	@Override
 	@SuppressWarnings("unused")
-	public int deleteResource(WebDAVRequest webDavRequest)
+	public int deleteResource(WebDAVRequest webDAVRequest)
 		throws WebDAVException {
 
 		return HttpServletResponse.SC_FORBIDDEN;
 	}
 
+	@Override
+	public MethodFactory getMethodFactory() {
+		return MethodFactoryRegistryUtil.getDefaultMethodFactory();
+	}
+
+	@Override
 	public String getRootPath() {
 		return _rootPath;
 	}
 
+	@Override
 	public String getToken() {
 		return _token;
 	}
 
-	public boolean isAvailable(WebDAVRequest webDavRequest)
+	@Override
+	public boolean isAvailable(WebDAVRequest webDAVRequest)
 		throws WebDAVException {
 
-		if (getResource(webDavRequest) == null) {
+		if (getResource(webDAVRequest) == null) {
 			return false;
 		}
 		else {
@@ -71,72 +84,82 @@ public abstract class BaseWebDAVStorageImpl implements WebDAVStorage {
 		}
 	}
 
+	@Override
 	public boolean isSupportsClassTwo() {
 		return false;
 	}
 
+	@Override
 	@SuppressWarnings("unused")
 	public Status lockResource(
-			WebDAVRequest webDavRequest, String owner, long timeout)
+			WebDAVRequest webDAVRequest, String owner, long timeout)
 		throws WebDAVException {
 
 		return null;
 	}
 
+	@Override
 	@SuppressWarnings("unused")
-	public Status makeCollection(WebDAVRequest webDavRequest)
+	public Status makeCollection(WebDAVRequest webDAVRequest)
 		throws WebDAVException {
 
 		return new Status(HttpServletResponse.SC_FORBIDDEN);
 	}
 
+	@Override
 	@SuppressWarnings("unused")
 	public int moveCollectionResource(
-			WebDAVRequest webDavRequest, Resource resource, String destination,
+			WebDAVRequest webDAVRequest, Resource resource, String destination,
 			boolean overwrite)
 		throws WebDAVException {
 
 		return HttpServletResponse.SC_FORBIDDEN;
 	}
 
+	@Override
 	@SuppressWarnings("unused")
 	public int moveSimpleResource(
-			WebDAVRequest webDavRequest, Resource resource, String destination,
+			WebDAVRequest webDAVRequest, Resource resource, String destination,
 			boolean overwrite)
 		throws WebDAVException {
 
 		return HttpServletResponse.SC_FORBIDDEN;
 	}
 
+	@Override
 	@SuppressWarnings("unused")
-	public int putResource(WebDAVRequest webDavRequest) throws WebDAVException {
+	public int putResource(WebDAVRequest webDAVRequest) throws WebDAVException {
 		return HttpServletResponse.SC_FORBIDDEN;
 	}
 
+	@Override
 	@SuppressWarnings("unused")
 	public Lock refreshResourceLock(
-			WebDAVRequest webDavRequest, String uuid, long timeout)
+			WebDAVRequest webDAVRequest, String uuid, long timeout)
 		throws WebDAVException {
 
 		return null;
 	}
 
+	@Override
 	public void setRootPath(String rootPath) {
 		_rootPath = rootPath;
 	}
 
+	@Override
 	public void setToken(String token) {
 		_token = token;
 	}
 
+	@Override
 	@SuppressWarnings("unused")
-	public boolean unlockResource(WebDAVRequest webDavRequest, String token)
+	public boolean unlockResource(WebDAVRequest webDAVRequest, String token)
 		throws WebDAVException {
 
 		return false;
 	}
 
-	protected long getPlid(long groupId) throws SystemException {
+	protected long getPlid(long groupId) {
 		return LayoutLocalServiceUtil.getDefaultPlid(groupId);
 	}
 

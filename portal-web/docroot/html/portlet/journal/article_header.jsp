@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,15 +19,6 @@
 <%
 String redirect = ParamUtil.getString(request, "redirect");
 
-String originalRedirect = ParamUtil.getString(request, "originalRedirect", StringPool.BLANK);
-
-if (originalRedirect.equals(StringPool.BLANK)) {
-	originalRedirect = redirect;
-}
-else {
-	redirect = originalRedirect;
-}
-
 String backURL = ParamUtil.getString(request, "backURL");
 
 JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_ARTICLE);
@@ -43,10 +34,10 @@ if ((article != null) && Validator.isNotNull(toLanguageId)) {
 boolean localizeTitle = true;
 String title = "new-web-content";
 
-if (classNameId > 0) {
+if (classNameId > JournalArticleConstants.CLASSNAME_ID_DEFAULT) {
 	title = "structure-default-values";
 }
-else if (article != null) {
+else if ((article != null) && !article.isNew()) {
 	localizeTitle = false;
 
 	if (Validator.isNotNull(toLanguageId)) {
@@ -59,7 +50,7 @@ else if (article != null) {
 %>
 
 <liferay-ui:header
-	backURL="<%= article != null ? redirect : backURL %>"
+	backURL="<%= article == null ? redirect : backURL %>"
 	localizeTitle="<%= localizeTitle %>"
 	title="<%= title %>"
 />

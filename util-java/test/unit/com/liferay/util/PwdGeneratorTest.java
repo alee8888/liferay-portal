@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,25 +27,6 @@ public class PwdGeneratorTest {
 
 	@Test
 	public void testGetPassword() {
-		long start = System.currentTimeMillis();
-
-		for (int i = 0; i < 100000; i++) {
-			PwdGenerator.getPassword();
-		}
-
-		long end = System.currentTimeMillis();
-
-		long delta = end - start;
-
-		if (_log.isInfoEnabled()) {
-			_log.info("Generated 100 thousand passwords in " + delta + " ms");
-		}
-
-		Assert.assertTrue(delta < 1000);
-	}
-
-	@Test
-	public void testGetSecurePassword() {
 		long start = System.currentTimeMillis();
 
 		for (int i = 0; i < 100000; i++) {

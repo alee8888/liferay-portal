@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,15 +15,16 @@
 package com.liferay.portlet.asset.model.impl;
 
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.service.UserLocalServiceUtil;
 
 import com.liferay.portlet.asset.model.AssetLink;
 import com.liferay.portlet.asset.model.AssetLinkModel;
@@ -89,32 +90,39 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 	public static long ENTRYID1_COLUMN_BITMASK = 1L;
 	public static long ENTRYID2_COLUMN_BITMASK = 2L;
 	public static long TYPE_COLUMN_BITMASK = 4L;
+	public static long WEIGHT_COLUMN_BITMASK = 8L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.asset.model.AssetLink"));
 
 	public AssetLinkModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _linkId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setLinkId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_linkId);
+		return _linkId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return AssetLink.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return AssetLink.class.getName();
 	}
@@ -132,6 +140,9 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 		attributes.put("entryId2", getEntryId2());
 		attributes.put("type", getType());
 		attributes.put("weight", getWeight());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -193,38 +204,53 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 		}
 	}
 
+	@Override
 	public long getLinkId() {
 		return _linkId;
 	}
 
+	@Override
 	public void setLinkId(long linkId) {
 		_linkId = linkId;
 	}
 
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_companyId = companyId;
 	}
 
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
 
+	@Override
 	public void setUserId(long userId) {
 		_userId = userId;
 	}
 
-	public String getUserUuid() throws SystemException {
-		return PortalUtil.getUserValue(getUserId(), "uuid", _userUuid);
+	@Override
+	public String getUserUuid() {
+		try {
+			User user = UserLocalServiceUtil.getUserById(getUserId());
+
+			return user.getUuid();
+		}
+		catch (PortalException pe) {
+			return StringPool.BLANK;
+		}
 	}
 
+	@Override
 	public void setUserUuid(String userUuid) {
-		_userUuid = userUuid;
 	}
 
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -234,22 +260,27 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 		}
 	}
 
+	@Override
 	public void setUserName(String userName) {
 		_userName = userName;
 	}
 
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
 
+	@Override
 	public void setCreateDate(Date createDate) {
 		_createDate = createDate;
 	}
 
+	@Override
 	public long getEntryId1() {
 		return _entryId1;
 	}
 
+	@Override
 	public void setEntryId1(long entryId1) {
 		_columnBitmask |= ENTRYID1_COLUMN_BITMASK;
 
@@ -266,10 +297,12 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 		return _originalEntryId1;
 	}
 
+	@Override
 	public long getEntryId2() {
 		return _entryId2;
 	}
 
+	@Override
 	public void setEntryId2(long entryId2) {
 		_columnBitmask |= ENTRYID2_COLUMN_BITMASK;
 
@@ -286,10 +319,12 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 		return _originalEntryId2;
 	}
 
+	@Override
 	public int getType() {
 		return _type;
 	}
 
+	@Override
 	public void setType(int type) {
 		_columnBitmask |= TYPE_COLUMN_BITMASK;
 
@@ -306,10 +341,12 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 		return _originalType;
 	}
 
+	@Override
 	public int getWeight() {
 		return _weight;
 	}
 
+	@Override
 	public void setWeight(int weight) {
 		_columnBitmask = -1L;
 
@@ -318,17 +355,6 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public AssetLink toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (AssetLink)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -342,6 +368,16 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public AssetLink toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (AssetLink)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -363,6 +399,7 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 		return assetLinkImpl;
 	}
 
+	@Override
 	public int compareTo(AssetLink assetLink) {
 		int value = 0;
 
@@ -385,18 +422,15 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AssetLink)) {
 			return false;
 		}
 
-		AssetLink assetLink = null;
-
-		try {
-			assetLink = (AssetLink)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		AssetLink assetLink = (AssetLink)obj;
 
 		long primaryKey = assetLink.getPrimaryKey();
 
@@ -411,6 +445,16 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -497,6 +541,7 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(31);
 
@@ -547,13 +592,12 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 	}
 
 	private static ClassLoader _classLoader = AssetLink.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			AssetLink.class
 		};
 	private long _linkId;
 	private long _companyId;
 	private long _userId;
-	private String _userUuid;
 	private String _userName;
 	private Date _createDate;
 	private long _entryId1;
@@ -567,5 +611,5 @@ public class AssetLinkModelImpl extends BaseModelImpl<AssetLink>
 	private boolean _setOriginalType;
 	private int _weight;
 	private long _columnBitmask;
-	private AssetLink _escapedModelProxy;
+	private AssetLink _escapedModel;
 }

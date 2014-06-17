@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -42,8 +42,10 @@ public class PasswordPolicyDescriptionComparator extends OrderByComparator {
 		PasswordPolicy passwordPolicy1 = (PasswordPolicy)obj1;
 		PasswordPolicy passwordPolicy2 = (PasswordPolicy)obj2;
 
-		int value = passwordPolicy1.getDescription().compareTo(
-			passwordPolicy2.getDescription());
+		String description1 = passwordPolicy1.getDescription();
+		String description2 = passwordPolicy2.getDescription();
+
+		int value = description1.compareTo(description2);
 
 		if (_ascending) {
 			return value;

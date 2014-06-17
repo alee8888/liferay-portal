@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,28 +19,28 @@ import com.liferay.portal.kernel.cache.ThreadLocalCache;
 import com.liferay.portal.kernel.cache.ThreadLocalCacheManager;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.User;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
 import com.liferay.portlet.asset.model.AssetEntry;
-import com.liferay.portlet.asset.model.AssetEntryDisplay;
 import com.liferay.portlet.asset.model.AssetRendererFactory;
 import com.liferay.portlet.asset.service.base.AssetEntryServiceBaseImpl;
-import com.liferay.portlet.asset.service.permission.AssetCategoryPermission;
-import com.liferay.portlet.asset.service.permission.AssetTagPermission;
+import com.liferay.portlet.asset.service.permission.AssetEntryPermission;
 import com.liferay.portlet.asset.service.persistence.AssetEntryQuery;
-import com.liferay.portlet.social.model.SocialActivityConstants;
+import com.liferay.portlet.asset.util.AssetUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 /**
+ * Provides the remote service for accessing and updating asset entries. Its
+ * methods include permission checks.
+ *
  * @author Brian Wing Shun Chan
  * @author Jorge Ferrer
  * @author Bruno Farache
@@ -48,27 +48,41 @@ import java.util.List;
  */
 public class AssetEntryServiceImpl extends AssetEntryServiceBaseImpl {
 
+	@Override
 	public List<AssetEntry> getCompanyEntries(
-			long companyId, int start, int end)
-		throws SystemException {
+		long companyId, int start, int end) {
 
-		return assetEntryLocalService.getCompanyEntries(companyId, start, end);
+		List<AssetEntry> entries = new ArrayList<AssetEntry>();
+
+		List<AssetEntry> companyEntries =
+			assetEntryLocalService.getCompanyEntries(companyId, start, end);
+
+		for (AssetEntry entry : companyEntries) {
+			try {
+				if (AssetEntryPermission.contains(
+						getPermissionChecker(), entry, ActionKeys.VIEW)) {
+
+					entries.add(entry);
+				}
+			}
+			catch (PortalException pe) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(pe, pe);
+				}
+			}
+		}
+
+		return entries;
 	}
 
-	public int getCompanyEntriesCount(long companyId) throws SystemException {
+	@Override
+	public int getCompanyEntriesCount(long companyId) {
 		return assetEntryLocalService.getCompanyEntriesCount(companyId);
 	}
 
-	public AssetEntryDisplay[] getCompanyEntryDisplays(
-			long companyId, int start, int end, String languageId)
-		throws SystemException {
-
-		return assetEntryLocalService.getCompanyEntryDisplays(
-			companyId, start, end, languageId);
-	}
-
+	@Override
 	public List<AssetEntry> getEntries(AssetEntryQuery entryQuery)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		AssetEntryQuery filteredEntryQuery = buildFilteredEntryQuery(
 			entryQuery);
@@ -77,13 +91,14 @@ public class AssetEntryServiceImpl extends AssetEntryServiceBaseImpl {
 			return new ArrayList<AssetEntry>();
 		}
 
-		Object[] results = filterEntryQuery(filteredEntryQuery);
+		Object[] results = filterEntryQuery(filteredEntryQuery, false);
 
 		return (List<AssetEntry>)results[0];
 	}
 
+	@Override
 	public int getEntriesCount(AssetEntryQuery entryQuery)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		AssetEntryQuery filteredEntryQuery = buildFilteredEntryQuery(
 			entryQuery);
@@ -92,59 +107,59 @@ public class AssetEntryServiceImpl extends AssetEntryServiceBaseImpl {
 			return 0;
 		}
 
-		Object[] results = filterEntryQuery(filteredEntryQuery);
+		Object[] results = filterEntryQuery(filteredEntryQuery, true);
 
 		return (Integer)results[1];
 	}
 
-	public AssetEntry getEntry(long entryId)
-		throws PortalException, SystemException {
+	@Override
+	public AssetEntry getEntry(long entryId) throws PortalException {
+		AssetEntryPermission.check(
+			getPermissionChecker(), entryId, ActionKeys.VIEW);
 
 		return assetEntryLocalService.getEntry(entryId);
 	}
 
+	@Override
 	public AssetEntry incrementViewCounter(String className, long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		if (!PropsValues.ASSET_ENTRY_INCREMENT_VIEW_COUNTER_ENABLED) {
-			return null;
-		}
+		AssetEntryPermission.check(
+			getPermissionChecker(), className, classPK, ActionKeys.VIEW);
 
-		User user = getGuestOrUser();
-
-		assetEntryLocalService.incrementViewCounter(
-			user.getUserId(), className, classPK, 1);
-
-		AssetEntry assetEntry = assetEntryLocalService.getEntry(
-			className, classPK);
-
-		if (!user.isDefaultUser()) {
-			socialActivityLocalService.addActivity(
-				user.getUserId(), assetEntry.getGroupId(), className, classPK,
-				SocialActivityConstants.TYPE_VIEW, StringPool.BLANK, 0);
-		}
-
-		return assetEntry;
+		return assetEntryLocalService.incrementViewCounter(
+			getGuestOrUserId(), className, classPK);
 	}
 
-	public AssetEntryDisplay[] searchEntryDisplays(
-			long companyId, long[] groupIds, String className, String keywords,
-			String languageId, int start, int end)
-		throws SystemException {
+	@Override
+	public AssetEntry updateEntry(
+			long groupId, Date createDate, Date modifiedDate, String className,
+			long classPK, String classUuid, long classTypeId,
+			long[] categoryIds, String[] tagNames, boolean visible,
+			Date startDate, Date endDate, Date expirationDate, String mimeType,
+			String title, String description, String summary, String url,
+			String layoutUuid, int height, int width, Integer priority,
+			boolean sync)
+		throws PortalException {
 
-		return assetEntryLocalService.searchEntryDisplays(
-			companyId, groupIds, className, keywords, languageId, start, end);
+		AssetEntryPermission.check(
+			getPermissionChecker(), className, classPK, ActionKeys.UPDATE);
+
+		return assetEntryLocalService.updateEntry(
+			getUserId(), groupId, createDate, modifiedDate, className, classPK,
+			classUuid, classTypeId, categoryIds, tagNames, visible, startDate,
+			endDate, expirationDate, mimeType, title, description, summary, url,
+			layoutUuid, height, width, priority, sync);
 	}
 
-	public int searchEntryDisplaysCount(
-			long companyId, long[] groupIds, String className, String keywords,
-			String languageId)
-		throws SystemException {
-
-		return assetEntryLocalService.searchEntryDisplaysCount(
-			companyId, groupIds, className, keywords, languageId);
-	}
-
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #updateEntry(long, String,
+	 *             long, String, long, long[], String[], boolean, Date, Date,
+	 *             Date, String, String, String, String, String, String, int,
+	 *             int, Integer, boolean)}
+	 */
+	@Deprecated
+	@Override
 	public AssetEntry updateEntry(
 			long groupId, String className, long classPK, String classUuid,
 			long classTypeId, long[] categoryIds, String[] tagNames,
@@ -152,18 +167,45 @@ public class AssetEntryServiceImpl extends AssetEntryServiceBaseImpl {
 			Date expirationDate, String mimeType, String title,
 			String description, String summary, String url, String layoutUuid,
 			int height, int width, Integer priority, boolean sync)
-		throws PortalException, SystemException {
+		throws PortalException {
+
+		AssetEntryPermission.check(
+			getPermissionChecker(), className, classPK, ActionKeys.UPDATE);
 
 		return assetEntryLocalService.updateEntry(
 			getUserId(), groupId, className, classPK, classUuid, classTypeId,
-			categoryIds, tagNames, visible, startDate, endDate, publishDate,
+			categoryIds, tagNames, visible, startDate, endDate, expirationDate,
+			mimeType, title, description, summary, url, layoutUuid, height,
+			width, priority, sync);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #updateEntry(long, Date,
+	 *             Date, String, long, String, long, long[], String[], boolean,
+	 *             Date, Date, Date, String, String, String, String, String,
+	 *             String, int, int, Integer, boolean)}
+	 */
+	@Deprecated
+	@Override
+	public AssetEntry updateEntry(
+			long groupId, String className, long classPK, String classUuid,
+			long classTypeId, long[] categoryIds, String[] tagNames,
+			boolean visible, Date startDate, Date endDate, Date expirationDate,
+			String mimeType, String title, String description, String summary,
+			String url, String layoutUuid, int height, int width,
+			Integer priority, boolean sync)
+		throws PortalException {
+
+		return assetEntryLocalService.updateEntry(
+			getUserId(), groupId, null, null, className, classPK, classUuid,
+			classTypeId, categoryIds, tagNames, visible, startDate, endDate,
 			expirationDate, mimeType, title, description, summary, url,
 			layoutUuid, height, width, priority, sync);
 	}
 
 	protected AssetEntryQuery buildFilteredEntryQuery(
 			AssetEntryQuery entryQuery)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		// Return an entry query with only the category ids and tag ids that the
 		// user has access to
@@ -171,36 +213,24 @@ public class AssetEntryServiceImpl extends AssetEntryServiceBaseImpl {
 		AssetEntryQuery filteredEntryQuery = new AssetEntryQuery(entryQuery);
 
 		filteredEntryQuery.setAllCategoryIds(
-			filterCategoryIds(entryQuery.getAllCategoryIds()));
+			AssetUtil.filterCategoryIds(
+				getPermissionChecker(), entryQuery.getAllCategoryIds()));
 		filteredEntryQuery.setAllTagIdsArray(
-			filterTagIdsArray(entryQuery.getAllTagIdsArray()));
+			AssetUtil.filterTagIdsArray(
+				getPermissionChecker(), entryQuery.getAllTagIdsArray()));
 		filteredEntryQuery.setAnyCategoryIds(
-			filterCategoryIds(entryQuery.getAnyCategoryIds()));
+			AssetUtil.filterCategoryIds(
+				getPermissionChecker(), entryQuery.getAnyCategoryIds()));
 		filteredEntryQuery.setAnyTagIds(
-			filterTagIds(entryQuery.getAnyTagIds()));
+			AssetUtil.filterTagIds(
+				getPermissionChecker(), entryQuery.getAnyTagIds()));
 
 		return filteredEntryQuery;
 	}
 
-	protected long[] filterCategoryIds(long[] categoryIds)
-		throws PortalException, SystemException {
-
-		List<Long> viewableCategoryIds = new ArrayList<Long>();
-
-		for (long categoryId : categoryIds) {
-			if (AssetCategoryPermission.contains(
-					getPermissionChecker(), categoryId, ActionKeys.VIEW)) {
-
-				viewableCategoryIds.add(categoryId);
-			}
-		}
-
-		return ArrayUtil.toArray(
-			viewableCategoryIds.toArray(new Long[viewableCategoryIds.size()]));
-	}
-
-	protected Object[] filterEntryQuery(AssetEntryQuery entryQuery)
-		throws PortalException, SystemException {
+	protected Object[] filterEntryQuery(
+			AssetEntryQuery entryQuery, boolean returnEntriesCountOnly)
+		throws PortalException {
 
 		ThreadLocalCache<Object[]> threadLocalCache =
 			ThreadLocalCacheManager.getThreadLocalCache(
@@ -208,9 +238,23 @@ public class AssetEntryServiceImpl extends AssetEntryServiceBaseImpl {
 
 		String key = entryQuery.toString();
 
+		key = key.concat(StringPool.POUND).concat(
+			Boolean.toString(returnEntriesCountOnly));
+
 		Object[] results = threadLocalCache.get(key);
 
 		if (results != null) {
+			return results;
+		}
+
+		if (returnEntriesCountOnly && !entryQuery.isEnablePermissions()) {
+			int entriesCount = assetEntryLocalService.getEntriesCount(
+				entryQuery);
+
+			results = new Object[] {null, entriesCount};
+
+			threadLocalCache.put(key, results);
+
 			return results;
 		}
 
@@ -277,8 +321,7 @@ public class AssetEntryServiceImpl extends AssetEntryServiceBaseImpl {
 		}
 		else {
 			filteredEntries = entries;
-			filteredEntriesCount = assetEntryLocalService.getEntriesCount(
-				entryQuery);
+			filteredEntriesCount = filteredEntries.size();
 		}
 
 		results = new Object[] {filteredEntries, filteredEntriesCount};
@@ -286,50 +329,6 @@ public class AssetEntryServiceImpl extends AssetEntryServiceBaseImpl {
 		threadLocalCache.put(key, results);
 
 		return results;
-	}
-
-	protected long[] filterTagIds(long[] tagIds)
-		throws PortalException, SystemException {
-
-		List<Long> viewableTagIds = new ArrayList<Long>();
-
-		for (long tagId : tagIds) {
-			if (AssetTagPermission.contains(
-					getPermissionChecker(), tagId, ActionKeys.VIEW)) {
-
-				viewableTagIds.add(tagId);
-			}
-		}
-
-		return ArrayUtil.toArray(
-			viewableTagIds.toArray(new Long[viewableTagIds.size()]));
-	}
-
-	protected long[][] filterTagIdsArray(long[][] tagIdsArray)
-		throws PortalException, SystemException {
-
-		List<long[]> viewableTagIdsArray = new ArrayList<long[]>();
-
-		for (int i = 0; i< tagIdsArray.length; i++) {
-			long tagIds[] = tagIdsArray[i];
-
-			List<Long> viewableTagIds = new ArrayList<Long>();
-
-			for (long tagId : tagIds) {
-				if (AssetTagPermission.contains(
-						getPermissionChecker(), tagId, ActionKeys.VIEW)) {
-
-					viewableTagIds.add(tagId);
-				}
-			}
-
-			viewableTagIdsArray.add(
-				ArrayUtil.toArray(
-					viewableTagIds.toArray(new Long[viewableTagIds.size()])));
-		}
-
-		return viewableTagIdsArray.toArray(
-			new long[viewableTagIdsArray.size()][]);
 	}
 
 	protected boolean hasEntryQueryResults(
@@ -371,13 +370,16 @@ public class AssetEntryServiceImpl extends AssetEntryServiceBaseImpl {
 			(filteredEntryQuery.getAnyTagIds().length == 0)) {
 
 			// No results will be available if the original entry query
-			// specified at least one tag id, but the filtered entry query
-			// shows that the user does not have access to any tag ids
+			// specified at least one tag id, but the filtered entry query shows
+			// that the user does not have access to any tag ids
 
 			return true;
 		}
 
 		return false;
 	}
+
+	private static Log _log = LogFactoryUtil.getLog(
+		AssetEntryServiceImpl.class);
 
 }

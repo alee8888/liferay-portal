@@ -7,11 +7,11 @@ AUI.add(
 
 		var CSS_ACTION_UNDO = 'lfr-action-undo';
 
-		var CSS_HELPER_CLEARFIX = 'aui-helper-clearfix';
+		var CSS_HELPER_CLEARFIX = 'helper-clearfix';
 
 		var CSS_ITEMS_LEFT = 'lfr-items-left';
 
-		var CSS_MESSAGE_INFO = 'portlet-msg-info';
+		var CSS_MESSAGE_INFO = 'alert alert-info';
 
 		var CSS_QUEUE = 'lfr-undo-queue';
 
@@ -132,7 +132,7 @@ AUI.add(
 						var undoCache = instance._undoCache;
 
 						undoCache.each(
-							function(item, index, collection) {
+							function(item, index) {
 								if (index < limit) {
 									item.handler.call(instance, item.stateData);
 
@@ -209,6 +209,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-data-set', 'base']
+		requires: ['aui-data-set-deprecated', 'base']
 	}
 );

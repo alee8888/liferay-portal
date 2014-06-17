@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +29,9 @@ public class ServletRequestUtil {
 		HttpServletRequest tempRequest = request;
 
 		while (true) {
-			_log.info("Request class " + tempRequest.getClass().getName());
+			if (_log.isInfoEnabled()) {
+				_log.info("Request class " + tempRequest.getClass().getName());
+			}
 
 			if (tempRequest instanceof HttpServletRequestWrapper) {
 				HttpServletRequestWrapper requestWrapper =

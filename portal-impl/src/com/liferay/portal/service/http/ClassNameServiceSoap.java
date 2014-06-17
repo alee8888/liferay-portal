@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.ClassNameServiceUtil;
@@ -21,13 +23,11 @@ import com.liferay.portal.service.ClassNameServiceUtil;
 import java.rmi.RemoteException;
 
 /**
- * <p>
- * This class provides a SOAP utility for the
+ * Provides the SOAP utility for the
  * {@link com.liferay.portal.service.ClassNameServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it is difficult for SOAP to
  * support certain types.
- * </p>
  *
  * <p>
  * ServiceBuilder follows certain rules in translating the methods. For example,
@@ -47,9 +47,8 @@ import java.rmi.RemoteException;
  * </p>
  *
  * <p>
- * You can see a list of services at
- * http://localhost:8080/api/secure/axis. Set the property
- * <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
+ * You can see a list of services at http://localhost:8080/api/axis. Set the
+ * property <b>axis.servlet.hosts.allowed</b> in portal.properties to configure
  * security.
  * </p>
  *
@@ -57,31 +56,18 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ClassNameServiceHttp
- * @see       com.liferay.portal.model.ClassNameSoap
- * @see       com.liferay.portal.service.ClassNameServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see ClassNameServiceHttp
+ * @see com.liferay.portal.model.ClassNameSoap
+ * @see com.liferay.portal.service.ClassNameServiceUtil
  * @generated
  */
+@ProviderType
 public class ClassNameServiceSoap {
-	public static com.liferay.portal.model.ClassNameSoap getClassName(
-		long classNameId) throws RemoteException {
-		try {
-			com.liferay.portal.model.ClassName returnValue = ClassNameServiceUtil.getClassName(classNameId);
-
-			return com.liferay.portal.model.ClassNameSoap.toSoapModel(returnValue);
-		}
-		catch (Exception e) {
-			_log.error(e, e);
-
-			throw new RemoteException(e.getMessage());
-		}
-	}
-
-	public static com.liferay.portal.model.ClassNameSoap getClassName(
+	public static com.liferay.portal.model.ClassNameSoap fetchClassName(
 		java.lang.String value) throws RemoteException {
 		try {
-			com.liferay.portal.model.ClassName returnValue = ClassNameServiceUtil.getClassName(value);
+			com.liferay.portal.model.ClassName returnValue = ClassNameServiceUtil.fetchClassName(value);
 
 			return com.liferay.portal.model.ClassNameSoap.toSoapModel(returnValue);
 		}
@@ -92,10 +78,10 @@ public class ClassNameServiceSoap {
 		}
 	}
 
-	public static long getClassNameId(java.lang.Class<?> clazz)
+	public static long fetchClassNameId(java.lang.Class<?> clazz)
 		throws RemoteException {
 		try {
-			long returnValue = ClassNameServiceUtil.getClassNameId(clazz);
+			long returnValue = ClassNameServiceUtil.fetchClassNameId(clazz);
 
 			return returnValue;
 		}
@@ -106,10 +92,10 @@ public class ClassNameServiceSoap {
 		}
 	}
 
-	public static long getClassNameId(java.lang.String value)
+	public static long fetchClassNameId(java.lang.String value)
 		throws RemoteException {
 		try {
-			long returnValue = ClassNameServiceUtil.getClassNameId(value);
+			long returnValue = ClassNameServiceUtil.fetchClassNameId(value);
 
 			return returnValue;
 		}

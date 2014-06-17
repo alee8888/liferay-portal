@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,7 +19,6 @@ import java.text.SimpleDateFormat;
 
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import org.junit.Assert;
@@ -87,6 +86,11 @@ public class DateUtilTest extends PowerMockito {
 	}
 
 	@Test
+	public void testGetISOFormatLength8() {
+		_testGetISOFormat("01234567","yyyyMMdd");
+	}
+
+	@Test
 	public void testGetISOFormatLength12() {
 		_testGetISOFormat("012345678901","yyyyMMddHHmm");
 	}
@@ -107,11 +111,6 @@ public class DateUtilTest extends PowerMockito {
 	}
 
 	@Test
-	public void testGetISOFormatLength8() {
-		_testGetISOFormat("01234567","yyyyMMdd");
-	}
-
-	@Test
 	public void testGetISOFormatT() {
 		_testGetISOFormat("01234567T9012345","yyyyMMdd'T'HHmmssz");
 	}
@@ -127,7 +126,7 @@ public class DateUtilTest extends PowerMockito {
 		when(
 			DateFormatFactoryUtil.getSimpleDateFormat(pattern)
 		).thenReturn(
-			new SimpleDateFormat(pattern, new Locale("es_ES"))
+			new SimpleDateFormat(pattern, LocaleUtil.SPAIN)
 		);
 	}
 
@@ -163,6 +162,7 @@ public class DateUtilTest extends PowerMockito {
 		).thenAnswer(
 			new Answer<SimpleDateFormat>() {
 
+				@Override
 				public SimpleDateFormat answer(
 						InvocationOnMock invocationOnMock)
 					throws Throwable {
@@ -190,8 +190,6 @@ public class DateUtilTest extends PowerMockito {
 
 	private class TestSimpleDateFormat extends SimpleDateFormat {
 
-		private String _pattern;
-
 		public TestSimpleDateFormat(String pattern) {
 			super(pattern);
 
@@ -201,6 +199,9 @@ public class DateUtilTest extends PowerMockito {
 		public String getPattern() {
 			return _pattern;
 		}
+
+		private String _pattern;
+
 	}
 
 }

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -28,16 +28,14 @@
 	property="userName"
 />
 
-<liferay-ui:search-container-column-text
+<liferay-ui:search-container-column-date
 	href="<%= rowURL %>"
 	name="create-date"
 	orderable="<%= false %>"
 	property="createDate"
 />
 
-<liferay-ui:search-container-column-text
+<liferay-ui:search-container-column-status
 	href="<%= rowURL %>"
 	name="status"
->
-	<liferay-ui:message key="<%= WorkflowConstants.toLabel(entry.getStatus()) %>" />
-</liferay-ui:search-container-column-text>
+/>

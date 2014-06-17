@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,14 +17,14 @@
 <%@ include file="/html/portlet/workflow_instances/init.jsp" %>
 
 <%
-String randomId = PwdGenerator.getPassword(PwdGenerator.KEY3, 4);
+String randomId = StringUtil.randomId();
 
 ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
 
 WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 %>
 
-<liferay-ui:icon-menu>
+<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>">
 	<c:if test="<%= portletName.equals(PortletKeys.WORKFLOW_DEFINITIONS) && !workflowTask.isCompleted() && !_isAssignedToUser(workflowTask, user) %>">
 		<portlet:actionURL var="assignToMeURL">
 			<portlet:param name="struts_action" value="/workflow_instances/edit_workflow_instance_task" />
@@ -36,7 +36,7 @@ WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 
 		<liferay-ui:icon
 			cssClass='<%= "workflow-task-" + randomId + " task-assign-to-me-link" %>'
-			image="assign"
+			iconCssClass="icon-signin"
 			message="assign-to-me"
 			method="get"
 			url="<%= assignToMeURL %>"
@@ -52,7 +52,7 @@ WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 			String message = "proceed";
 
 			if (Validator.isNotNull(transitionName)) {
-				message = transitionName;
+				message = HtmlUtil.escape(transitionName);
 			}
 		%>
 
@@ -70,7 +70,7 @@ WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 
 			<liferay-ui:icon
 				cssClass='<%= "workflow-task-" + randomId + " task-change-status-link" %>'
-				image="../aui/shuffle"
+				iconCssClass="icon-random"
 				message="<%= message %>"
 				method="get"
 				url="<%= editURL %>"
@@ -83,11 +83,11 @@ WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 	</c:if>
 </liferay-ui:icon-menu>
 
-<div class="aui-helper-hidden" id="<%= randomId %>updateComments">
+<div class="hide" id="<%= randomId %>updateComments">
 	<aui:input cols="55" name="comment" rows="10" type="textarea" />
 </div>
 
-<aui:script use="aui-dialog">
+<aui:script use="aui-io-plugin-deprecated,liferay-util-window">
 	var showPopup = function(url, title) {
 		var form = A.Node.create('<form />');
 
@@ -102,29 +102,36 @@ WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 			comments.show();
 		}
 
-		var dialog = new A.Dialog(
+		var dialog = Liferay.Util.Window.getWindow(
 			{
-				align: Liferay.Util.Window.ALIGN_CENTER,
-				bodyContent: form,
-				buttons: [
-					{
-						handler: function() {
-							submitForm(form);
-						},
-						label: '<%= UnicodeLanguageUtil.get(pageContext, "ok") %>'
+				dialog: {
+					bodyContent: form,
+					height: 420,
+					toolbars: {
+						footer: [
+							{
+								label: '<%= UnicodeLanguageUtil.get(pageContext, "ok") %>',
+								on: {
+									click: function() {
+										submitForm(form);
+									}
+								}
+							},
+							{
+								label: '<%= UnicodeLanguageUtil.get(pageContext, "cancel") %>',
+								on: {
+									click: function() {
+										dialog.hide();
+									}
+								}
+							}
+						]
 					},
-					{
-						handler: function() {
-							dialog.close();
-						},
-						label: '<%= UnicodeLanguageUtil.get(pageContext, "cancel") %>'
-					}
-				],
-				modal: true,
-				title: title,
-				width: 400
+					width: 350
+				},
+				title: Liferay.Util.escapeHTML(title)
 			}
-		).render();
+		);
 	};
 
 	A.all('.workflow-task-<%= randomId %> a').on(

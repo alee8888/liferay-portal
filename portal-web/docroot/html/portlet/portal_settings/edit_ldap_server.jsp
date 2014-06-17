@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -51,58 +51,62 @@ if (ldapUserMappings != null) {
 	userMappingArray = ldapUserMappings.split("\n");
 }
 
-String userMappingScreenName = StringPool.BLANK;
-String userMappingPassword = StringPool.BLANK;
 String userMappingEmailAddress = StringPool.BLANK;
-String userMappingFullName = StringPool.BLANK;
 String userMappingFirstName = StringPool.BLANK;
-String userMappingMiddleName = StringPool.BLANK;
-String userMappingLastName = StringPool.BLANK;
-String userMappingJobTitle = StringPool.BLANK;
-String userMappingPortrait= StringPool.BLANK;
+String userMappingFullName = StringPool.BLANK;
 String userMappingGroup = StringPool.BLANK;
+String userMappingJobTitle = StringPool.BLANK;
+String userMappingLastName = StringPool.BLANK;
+String userMappingMiddleName = StringPool.BLANK;
+String userMappingPassword = StringPool.BLANK;
+String userMappingPortrait= StringPool.BLANK;
+String userMappingScreenName = StringPool.BLANK;
+String userMappingStatus = StringPool.BLANK;
 String userMappingUuid = StringPool.BLANK;
 
 for (int i = 0 ; i < userMappingArray.length ; i++) {
-	if (userMappingArray[i].indexOf("=") == -1) {
+	if (!userMappingArray[i].contains("=")) {
 		continue;
 	}
 
-	String mapping[] = userMappingArray[i].split("=");
+	String[] mapping = userMappingArray[i].split("=");
 
 	if (mapping.length != 2) {
 		continue;
 	}
 
-	if (mapping[0].equals("screenName")) {
-		userMappingScreenName = mapping[1];
-	}
-	else if (mapping[0].equals("password")) {
-		userMappingPassword = mapping[1];
-	}
-	else if (mapping[0].equals("emailAddress")) {
+	if (mapping[0].equals("emailAddress")) {
 		userMappingEmailAddress = mapping[1];
-	}
-	else if (mapping[0].equals("fullName")) {
-		userMappingFullName = mapping[1];
 	}
 	else if (mapping[0].equals("firstName")) {
 		userMappingFirstName = mapping[1];
 	}
-	else if (mapping[0].equals("middleName")) {
-		userMappingMiddleName = mapping[1];
+	else if (mapping[0].equals("fullName")) {
+		userMappingFullName = mapping[1];
 	}
-	else if (mapping[0].equals("lastName")) {
-		userMappingLastName = mapping[1];
+	else if (mapping[0].equals("group")) {
+		userMappingGroup = mapping[1];
 	}
 	else if (mapping[0].equals("jobTitle")) {
 		userMappingJobTitle = mapping[1];
 	}
+	else if (mapping[0].equals("lastName")) {
+		userMappingLastName = mapping[1];
+	}
+	else if (mapping[0].equals("middleName")) {
+		userMappingMiddleName = mapping[1];
+	}
+	else if (mapping[0].equals("password")) {
+		userMappingPassword = mapping[1];
+	}
 	else if (mapping[0].equals("portrait")) {
 		userMappingPortrait = mapping[1];
 	}
-	else if (mapping[0].equals("group")) {
-		userMappingGroup = mapping[1];
+	else if (mapping[0].equals("screenName")) {
+		userMappingScreenName = mapping[1];
+	}
+	else if (mapping[0].equals("status")) {
+		userMappingStatus = mapping[1];
 	}
 	else if (mapping[0].equals("uuid")) {
 		userMappingUuid = mapping[1];
@@ -119,26 +123,26 @@ if (ldapGroupMappings != null) {
 	groupMappingArray = ldapGroupMappings.split("\n");
 }
 
-String groupMappingGroupName = StringPool.BLANK;
 String groupMappingDescription = StringPool.BLANK;
+String groupMappingGroupName = StringPool.BLANK;
 String groupMappingUser = StringPool.BLANK;
 
 for (int i = 0 ; i < groupMappingArray.length ; i++) {
-	if (groupMappingArray[i].indexOf("=") == -1) {
+	if (!groupMappingArray[i].contains("=")) {
 		continue;
 	}
 
-	String mapping[] = groupMappingArray[i].split("=");
+	String[] mapping = groupMappingArray[i].split("=");
 
 	if (mapping.length != 2) {
 		continue;
 	}
 
-	if (mapping[0].equals("groupName")) {
-		groupMappingGroupName = mapping[1];
-	}
-	else if (mapping[0].equals("description")) {
+	if (mapping[0].equals("description")) {
 		groupMappingDescription = mapping[1];
+	}
+	else if (mapping[0].equals("groupName")) {
+		groupMappingGroupName = mapping[1];
 	}
 	else if (mapping[0].equals("user")) {
 		groupMappingUser = mapping[1];
@@ -156,6 +160,10 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 </portlet:actionURL>
 
 <aui:form action="<%= editLDAPServerURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveEntry(false);" %>'>
+	<liferay-ui:error exception="<%= DuplicateLDAPServerNameException.class %>" message="please-enter-a-unique-ldap-server-name" />
+	<liferay-ui:error exception="<%= LDAPFilterException.class %>" message="please-enter-a-valid-ldap-search-filter" />
+	<liferay-ui:error exception="<%= LDAPServerNameException.class %>" message="please-enter-a-valid-ldap-server-name" />
+
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="ldapServerId" type="hidden" value="<%= ldapServerId %>" />
@@ -200,7 +208,7 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 			String taglibOnClick = renderResponse.getNamespace() + "testSettings('ldapConnection');";
 			%>
 
-			<aui:button onClick='<%= taglibOnClick %>' value="test-ldap-connection" />
+			<aui:button onClick="<%= taglibOnClick %>" value="test-ldap-connection" />
 		</aui:button-row>
 	</aui:fieldset>
 
@@ -213,27 +221,23 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 
 		<h4><liferay-ui:message key="user-mapping" /></h4>
 
-		<aui:input cssClass="lfr-input-text-container" label="screen-name" name="userMappingScreenName" type="text" value="<%= userMappingScreenName %>" />
+		<aui:input cssClass="lfr-input-text-container" label="uuid" name="userMappingUuid" type="text" value="<%= userMappingUuid %>" />
 
-		<aui:input cssClass="lfr-input-text-container" label="password" name="userMappingPassword" type="text" value="<%= userMappingPassword %>" />
+		<aui:input cssClass="lfr-input-text-container" label="screen-name" name="userMappingScreenName" type="text" value="<%= userMappingScreenName %>" />
 
 		<aui:input cssClass="lfr-input-text-container" label="email-address" name="userMappingEmailAddress" type="text" value="<%= userMappingEmailAddress %>" />
 
-		<aui:input cssClass="lfr-input-text-container" helpMessage="ldap-full-name-attribute-help" label="full-name" name="userMappingFullName" type="text" value="<%= userMappingFullName %>" />
+		<aui:input cssClass="lfr-input-text-container" label="password" name="userMappingPassword" type="text" value="<%= userMappingPassword %>" />
 
-		<aui:input cssClass="lfr-input-text-container" label="first-name" name="userMappingFirstName" type="text" value="<%= userMappingFirstName %>" />
-
-		<aui:input cssClass="lfr-input-text-container" label="middle-name" name="userMappingMiddleName" type="text" value="<%= userMappingMiddleName %>" />
-
-		<aui:input cssClass="lfr-input-text-container" label="last-name" name="userMappingLastName" type="text" value="<%= userMappingLastName %>" />
+		<%@ include file="/html/portlet/portal_settings/edit_ldap_server_user_name.jspf" %>
 
 		<aui:input cssClass="lfr-input-text-container" label="job-title" name="userMappingJobTitle" type="text" value="<%= userMappingJobTitle %>" />
 
-		<aui:input cssClass="lfr-input-text-container" label="portrait" name="userMappingPortrait" type="text" value="<%= userMappingPortrait %>" />
+		<aui:input cssClass="lfr-input-text-container" label="status" name="userMappingStatus" type="text" value="<%= userMappingStatus %>" />
 
 		<aui:input cssClass="lfr-input-text-container" label="group" name="userMappingGroup" type="text" value="<%= userMappingGroup %>" />
 
-		<aui:input cssClass="lfr-input-text-container" label="uuid" name="userMappingUuid" type="text" value="<%= userMappingUuid %>" />
+		<aui:input cssClass="lfr-input-text-container" label="portrait" name="userMappingPortrait" type="text" value="<%= userMappingPortrait %>" />
 
 		<aui:input name='<%= "settings--" + PropsKeys.LDAP_USER_MAPPINGS + postfix + "--" %>' type="hidden" />
 
@@ -296,7 +300,7 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 		String taglibOnClick = renderResponse.getNamespace() + "saveLdap();";
 		%>
 
-		<aui:button name="saveButton" onClick='<%= taglibOnClick %>' value="save" />
+		<aui:button name="saveButton" onClick="<%= taglibOnClick %>" value="save" />
 
 		<aui:button href="<%= redirect %>" name="cancelButton" type="cancel" />
 	</aui:button-row>
@@ -304,8 +308,8 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 
 <aui:script>
 	function <portlet:namespace />saveLdap() {
-		var userMappingFields = ['screenName', 'password', 'emailAddress', 'fullName', 'firstName', 'middleName', 'lastName', 'jobTitle', 'portrait', 'group', 'uuid'];
-		var userMappingFieldValues = ['userMappingScreenName', 'userMappingPassword', 'userMappingEmailAddress', 'userMappingFullName', 'userMappingFirstName', 'userMappingMiddleName', 'userMappingLastName', 'userMappingJobTitle', 'userMappingPortrait', 'userMappingGroup', 'userMappingUuid'];
+		var userMappingFields = ['emailAddress', 'firstName', 'fullName', 'group', 'jobTitle', 'lastName', 'middleName', 'password', 'portrait', 'screenName', 'status', 'uuid'];
+		var userMappingFieldValues = ['userMappingEmailAddress', 'userMappingFirstName', 'userMappingFullName', 'userMappingGroup', 'userMappingJobTitle', 'userMappingLastName', 'userMappingMiddleName', 'userMappingPassword', 'userMappingPortrait', 'userMappingScreenName', 'userMappingStatus', 'userMappingUuid'];
 		var userMappingInput = document.<portlet:namespace />fm['<portlet:namespace />settings--<%= PropsKeys.LDAP_USER_MAPPINGS + postfix %>--'];
 
 		userMappingInput.value = '';
@@ -319,13 +323,13 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 			}
 		}
 
-		var groupMappingFields = ['groupName','description','user'];
-		var groupMappingFieldValues = ['groupMappingGroupName','groupMappingDescription','groupMappingUser'];
+		var groupMappingFields = ['description', 'groupName', 'user'];
+		var groupMappingFieldValues = ['groupMappingDescription', 'groupMappingGroupName', 'groupMappingUser'];
 		var groupMappingInput = document.<portlet:namespace />fm['<portlet:namespace />settings--<%= PropsKeys.LDAP_GROUP_MAPPINGS + postfix %>--'];
 
 		groupMappingInput.value = '';
 
-		for (var i = 0; i<groupMappingFields.length; i++) {
+		for (var i = 0; i < groupMappingFields.length; i++) {
 			var groupMappingField = groupMappingFields[i];
 			var groupMappingValue = document.<portlet:namespace />fm['<portlet:namespace />' + groupMappingFieldValues[i]].value;
 
@@ -334,7 +338,7 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 			}
 		}
 
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= ldapServerId <= 0 ? Constants.ADD : Constants.UPDATE %>";
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= ldapServerId <= 0 ? Constants.ADD : Constants.UPDATE %>';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
@@ -349,31 +353,32 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 
 			var data = {};
 
-			if (type == "ldapConnection") {
-				url = "<portlet:renderURL windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>"><portlet:param name="struts_action" value="/portal_settings/test_ldap_connection" /></portlet:renderURL>";
+			if (type == 'ldapConnection') {
+				url = '<portlet:renderURL windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>"><portlet:param name="struts_action" value="/portal_settings/test_ldap_connection" /></portlet:renderURL>';
 			}
-			else if (type == "ldapGroups") {
-				url = "<portlet:renderURL windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>"><portlet:param name="struts_action" value="/portal_settings/test_ldap_groups" /></portlet:renderURL>";
+			else if (type == 'ldapGroups') {
+				url = '<portlet:renderURL windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>"><portlet:param name="struts_action" value="/portal_settings/test_ldap_groups" /></portlet:renderURL>';
 
 				data.<portlet:namespace />importGroupSearchFilter = document.<portlet:namespace />fm['<portlet:namespace />settings--<%= PropsKeys.LDAP_IMPORT_GROUP_SEARCH_FILTER + postfix %>--'].value;
-				data.<portlet:namespace />groupMappingGroupName = document.<portlet:namespace />fm['<portlet:namespace />groupMappingGroupName'].value;
 				data.<portlet:namespace />groupMappingDescription = document.<portlet:namespace />fm['<portlet:namespace />groupMappingDescription'].value;
+				data.<portlet:namespace />groupMappingGroupName = document.<portlet:namespace />fm['<portlet:namespace />groupMappingGroupName'].value;
 				data.<portlet:namespace />groupMappingUser = document.<portlet:namespace />fm['<portlet:namespace />groupMappingUser'].value;
 			}
-			else if (type == "ldapUsers") {
-				url = "<portlet:renderURL windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>"><portlet:param name="struts_action" value="/portal_settings/test_ldap_users" /></portlet:renderURL>";
+			else if (type == 'ldapUsers') {
+				url = '<portlet:renderURL windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>"><portlet:param name="struts_action" value="/portal_settings/test_ldap_users" /></portlet:renderURL>';
 
 				data.<portlet:namespace />importUserSearchFilter = document.<portlet:namespace />fm['<portlet:namespace />settings--<%= PropsKeys.LDAP_IMPORT_USER_SEARCH_FILTER + postfix %>--'].value;
-				data.<portlet:namespace />userMappingScreenName = document.<portlet:namespace />fm['<portlet:namespace />userMappingScreenName'].value;
-				data.<portlet:namespace />userMappingPassword = document.<portlet:namespace />fm['<portlet:namespace />userMappingPassword'].value;
 				data.<portlet:namespace />userMappingEmailAddress = document.<portlet:namespace />fm['<portlet:namespace />userMappingEmailAddress'].value;
-				data.<portlet:namespace />userMappingFullName = document.<portlet:namespace />fm['<portlet:namespace />userMappingFullName'].value;
 				data.<portlet:namespace />userMappingFirstName = document.<portlet:namespace />fm['<portlet:namespace />userMappingFirstName'].value;
-				data.<portlet:namespace />userMappingMiddleName = document.<portlet:namespace />fm['<portlet:namespace />userMappingMiddleName'].value;
-				data.<portlet:namespace />userMappingLastName = document.<portlet:namespace />fm['<portlet:namespace />userMappingLastName'].value;
-				data.<portlet:namespace />userMappingJobTitle = document.<portlet:namespace />fm['<portlet:namespace />userMappingJobTitle'].value;
-				data.<portlet:namespace />userMappingPortrait = document.<portlet:namespace />fm['<portlet:namespace />userMappingPortrait'].value;
+				data.<portlet:namespace />userMappingFullName = document.<portlet:namespace />fm['<portlet:namespace />userMappingFullName'].value;
 				data.<portlet:namespace />userMappingGroup = document.<portlet:namespace />fm['<portlet:namespace />userMappingGroup'].value;
+				data.<portlet:namespace />userMappingJobTitle = document.<portlet:namespace />fm['<portlet:namespace />userMappingJobTitle'].value;
+				data.<portlet:namespace />userMappingLastName = document.<portlet:namespace />fm['<portlet:namespace />userMappingLastName'].value;
+				data.<portlet:namespace />userMappingMiddleName = document.<portlet:namespace />fm['<portlet:namespace />userMappingMiddleName'].value;
+				data.<portlet:namespace />userMappingPassword = document.<portlet:namespace />fm['<portlet:namespace />userMappingPassword'].value;
+				data.<portlet:namespace />userMappingPortrait = document.<portlet:namespace />fm['<portlet:namespace />userMappingPortrait'].value;
+				data.<portlet:namespace />userMappingScreenName = document.<portlet:namespace />fm['<portlet:namespace />userMappingScreenName'].value;
+				data.<portlet:namespace />userMappingStatus = document.<portlet:namespace />fm['<portlet:namespace />userMappingStatus'].value;
 				data.<portlet:namespace />userMappingUuid = document.<portlet:namespace />fm['<portlet:namespace />userMappingUuid'].value;
 			}
 
@@ -384,15 +389,14 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 				data.<portlet:namespace />principal = document.<portlet:namespace />fm['<portlet:namespace />settings--<%= PropsKeys.LDAP_SECURITY_PRINCIPAL + postfix %>--'].value;
 				data.<portlet:namespace />credentials = document.<portlet:namespace />fm['<portlet:namespace />settings--<%= PropsKeys.LDAP_SECURITY_CREDENTIALS + postfix %>--'].value;
 
-				var dialog = new A.Dialog(
+				var dialog = Liferay.Util.Window.getWindow(
 					{
-						align: Liferay.Util.Window.ALIGN_CENTER,
-						destroyOnClose: true,
-						modal: true,
-						title: Liferay.Language.get('LDAP'),
-						width: 600
+						dialog: {
+							destroyOnHide: true
+						},
+						title: '<%= UnicodeLanguageUtil.get(pageContext, "ldap") %>'
 					}
-				).render();
+				);
 
 				dialog.plug(
 					A.Plugin.IO,
@@ -403,7 +407,7 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 				);
 			}
 		},
-		['aui-dialog', 'aui-io']
+		['aui-io-plugin-deprecated', 'aui-io', 'liferay-util-window']
 	);
 
 	Liferay.provide(
@@ -412,29 +416,30 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 		function(ldapType) {
 			var A = AUI();
 
-			var baseProviderURL = "";
-			var baseDN = "";
-			var principal = "";
-			var credentials = "";
-			var searchFilter = "";
-			var importUserSearchFilter = "";
-			var userMappingScreenName = "";
-			var userMappingPassword = "";
-			var userMappingEmailAddress = "";
-			var userMappingFullName = "";
-			var userMappingFirstName = "";
-			var userMappingMiddleName = "";
-			var userMappingLastName = "";
-			var userMappingJobTitle = "";
-			var userMappingPortrait = "";
-			var userMappingGroup = "";
-			var userMappingUuid = "";
-			var importGroupSearchFilter = "";
-			var groupMappingGroupName = "";
-			var groupMappingDescription = "";
-			var groupMappingUser = "";
-			var exportMappingUserDefaultObjectClass = "";
-			var exportMappingGroupDefaultObjectClass = "";
+			var baseProviderURL = '';
+			var baseDN = '';
+			var principal = '';
+			var credentials = '';
+			var searchFilter = '';
+			var importUserSearchFilter = '';
+			var userMappingEmailAddress = '';
+			var userMappingFirstName = '';
+			var userMappingFullName = '';
+			var userMappingGroup = '';
+			var userMappingJobTitle = '';
+			var userMappingLastName = '';
+			var userMappingMiddleName = '';
+			var userMappingPassword = '';
+			var userMappingPortrait = '';
+			var userMappingScreenName = '';
+			var userMappingStatus = '';
+			var userMappingUuid = '';
+			var importGroupSearchFilter = '';
+			var groupMappingDescription = '';
+			var groupMappingGroupName = '';
+			var groupMappingUser = '';
+			var exportMappingUserDefaultObjectClass = '';
+			var exportMappingGroupDefaultObjectClass = '';
 
 			if (!ldapType) {
 				A.all(document.<portlet:namespace />fm.<portlet:namespace />defaultLdap).some(
@@ -450,130 +455,135 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 				);
 			}
 
-			if (ldapType == "apache") {
-				baseProviderURL = "ldap://localhost:10389";
-				baseDN = "dc=example,dc=com";
-				principal = "uid=admin,ou=system";
-				credentials = "secret";
-				searchFilter = "(mail=@email_address@)";
-				importUserSearchFilter = "(objectClass=person)";
-				userMappingScreenName = "cn";
-				userMappingPassword = "userPassword";
-				userMappingEmailAddress = "mail";
-				userMappingFullName = "";
-				userMappingFirstName = "givenName";
-				userMappingMiddleName = "";
-				userMappingLastName = "sn";
-				userMappingJobTitle = "title";
-				userMappingPortrait = "";
-				userMappingGroup = "";
-				userMappingUuid = "";
-				importGroupSearchFilter = "(objectClass=groupOfUniqueNames)";
-				groupMappingGroupName = "cn";
-				groupMappingDescription = "description";
-				groupMappingUser = "uniqueMember";
-				exportMappingUserDefaultObjectClass = "top,person,inetOrgPerson,organizationalPerson";
-				exportMappingGroupDefaultObjectClass = "top,groupOfUniqueNames";
+			if (ldapType == 'apache') {
+				baseProviderURL = 'ldap://localhost:10389';
+				baseDN = 'dc=example,dc=com';
+				principal = 'uid=admin,ou=system';
+				credentials = 'secret';
+				searchFilter = '(mail=@email_address@)';
+				importUserSearchFilter = '(objectClass=person)';
+				userMappingEmailAddress = 'mail';
+				userMappingFirstName = 'givenName';
+				userMappingFullName = '';
+				userMappingGroup = '';
+				userMappingJobTitle = 'title';
+				userMappingLastName = 'sn';
+				userMappingMiddleName = '';
+				userMappingPassword = 'userPassword';
+				userMappingPortrait = '';
+				userMappingScreenName = 'cn';
+				userMappingStatus = '';
+				userMappingUuid = '';
+				importGroupSearchFilter = '(objectClass=groupOfUniqueNames)';
+				groupMappingDescription = 'description';
+				groupMappingGroupName = 'cn';
+				groupMappingUser = 'uniqueMember';
+				exportMappingUserDefaultObjectClass = 'top,person,inetOrgPerson,organizationalPerson';
+				exportMappingGroupDefaultObjectClass = 'top,groupOfUniqueNames';
 			}
-			else if (ldapType == "fedora") {
-				baseProviderURL = "ldap://localhost:19389";
-				baseDN = "dc=localdomain";
-				principal = "cn=Directory Manager";
-				credentials = "";
-				searchFilter = "(mail=@email_address@)";
-				importUserSearchFilter = "(objectClass=inetOrgPerson)";
-				userMappingScreenName = "uid";
-				userMappingPassword = "userPassword";
-				userMappingEmailAddress = "mail";
-				userMappingFullName = "cn";
-				userMappingFirstName = "givenName";
-				userMappingMiddleName = "";
-				userMappingLastName = "sn";
-				userMappingJobTitle = "title";
-				userMappingPortrait = "";
-				userMappingGroup = "";
-				userMappingUuid = "";
-				importGroupSearchFilter = "";
-				groupMappingGroupName = "";
-				groupMappingDescription = "";
-				groupMappingUser = "";
-				exportMappingUserDefaultObjectClass = "";
-				exportMappingGroupDefaultObjectClass = "";
+			else if (ldapType == 'fedora') {
+				baseProviderURL = 'ldap://localhost:19389';
+				baseDN = 'dc=localdomain';
+				principal = 'cn=Directory Manager';
+				credentials = '';
+				searchFilter = '(mail=@email_address@)';
+				importUserSearchFilter = '(objectClass=inetOrgPerson)';
+				userMappingEmailAddress = 'mail';
+				userMappingFirstName = 'givenName';
+				userMappingFullName = 'cn';
+				userMappingGroup = '';
+				userMappingJobTitle = 'title';
+				userMappingLastName = 'sn';
+				userMappingMiddleName = '';
+				userMappingPassword = 'userPassword';
+				userMappingPortrait = '';
+				userMappingScreenName = 'uid';
+				userMappingStatus = '';
+				userMappingUuid = '';
+				importGroupSearchFilter = '';
+				groupMappingDescription = '';
+				groupMappingGroupName = '';
+				groupMappingUser = '';
+				exportMappingUserDefaultObjectClass = '';
+				exportMappingGroupDefaultObjectClass = '';
 			}
-			else if (ldapType == "microsoft") {
-				baseProviderURL = "ldap://localhost:389";
-				baseDN = "dc=example,dc=com";
-				principal = "admin";
-				credentials = "secret";
-				searchFilter = "(&(objectCategory=person)(sAMAccountName=@user_id@))";
-				importUserSearchFilter = "(objectClass=person)";
-				userMappingScreenName = "sAMAccountName";
-				userMappingPassword = "userPassword";
-				userMappingEmailAddress = "userprincipalname";
-				userMappingFullName = "cn";
-				userMappingFirstName = "givenName";
-				userMappingMiddleName = "middleName";
-				userMappingLastName = "sn";
-				userMappingJobTitle = "";
-				userMappingPortrait = "";
-				userMappingGroup = "memberOf";
-				userMappingUuid = "";
-				importGroupSearchFilter = "(objectClass=group)";
-				groupMappingGroupName = "cn";
-				groupMappingDescription = "sAMAccountName";
-				groupMappingUser = "member";
-				exportMappingUserDefaultObjectClass = "";
-				exportMappingGroupDefaultObjectClass = "";
+			else if (ldapType == 'microsoft') {
+				baseProviderURL = 'ldap://localhost:389';
+				baseDN = 'dc=example,dc=com';
+				principal = 'admin';
+				credentials = 'secret';
+				searchFilter = '(&(objectCategory=person)(sAMAccountName=@user_id@))';
+				importUserSearchFilter = '(objectClass=person)';
+				userMappingEmailAddress = 'userprincipalname';
+				userMappingFirstName = 'givenName';
+				userMappingFullName = 'cn';
+				userMappingGroup = 'memberOf';
+				userMappingJobTitle = '';
+				userMappingLastName = 'sn';
+				userMappingMiddleName = 'middleName';
+				userMappingPassword = 'unicodePwd';
+				userMappingPortrait = '';
+				userMappingScreenName = 'sAMAccountName';
+				userMappingStatus = '';
+				userMappingUuid = '';
+				importGroupSearchFilter = '(objectClass=group)';
+				groupMappingDescription = 'sAMAccountName';
+				groupMappingGroupName = 'cn';
+				groupMappingUser = 'member';
+				exportMappingUserDefaultObjectClass = '';
+				exportMappingGroupDefaultObjectClass = '';
 			}
-			else if (ldapType == "novell") {
-				url = "ldap://localhost:389";
-				baseDN = "";
-				principal = "cn=admin,ou=test";
-				credentials = "secret";
-				searchFilter = "(mail=@email_address@)";
-				importUserSearchFilter = "";
-				userMappingScreenName = "cn";
-				userMappingPassword = "userPassword";
-				userMappingEmailAddress = "mail";
-				userMappingFullName = "";
-				userMappingFirstName = "givenName";
-				userMappingMiddleName = "";
-				userMappingLastName = "sn";
-				userMappingJobTitle = "title";
-				userMappingPortrait = "";
-				userMappingGroup = "";
-				userMappingUuid = "";
-				importGroupSearchFilter = "";
-				groupMappingGroupName = "";
-				groupMappingDescription = "";
-				groupMappingUser = "";
-				exportMappingUserDefaultObjectClass = "";
-				exportMappingGroupDefaultObjectClass = "";
+			else if (ldapType == 'novell') {
+				url = 'ldap://localhost:389';
+				baseDN = '';
+				principal = 'cn=admin,ou=test';
+				credentials = 'secret';
+				searchFilter = '(mail=@email_address@)';
+				importUserSearchFilter = '';
+				userMappingEmailAddress = 'mail';
+				userMappingFirstName = 'givenName';
+				userMappingFullName = '';
+				userMappingGroup = '';
+				userMappingJobTitle = 'title';
+				userMappingLastName = 'sn';
+				userMappingMiddleName = '';
+				userMappingPassword = 'userPassword';
+				userMappingPortrait = '';
+				userMappingScreenName = 'cn';
+				userMappingStatus = '';
+				userMappingUuid = '';
+				importGroupSearchFilter = '';
+				groupMappingDescription = '';
+				groupMappingGroupName = '';
+				groupMappingUser = '';
+				exportMappingUserDefaultObjectClass = '';
+				exportMappingGroupDefaultObjectClass = '';
 			}
-			else if (ldapType == "open") {
-				url = "ldap://localhost:389";
-				baseDN = "dc=example,dc=com";
-				principal = "cn=admin,ou=test";
-				credentials = "secret";
-				searchFilter = "(mail=@email_address@)";
-				importUserSearchFilter = "(objectClass=inetOrgPerson)";
-				userMappingScreenName = "cn";
-				userMappingPassword = "userPassword";
-				userMappingEmailAddress = "mail";
-				userMappingFullName = "";
-				userMappingFirstName = "givenName";
-				userMappingMiddleName = "";
-				userMappingLastName = "sn";
-				userMappingPortrait = "";
-				userMappingJobTitle = "title";
-				userMappingGroup = "";
-				userMappingUuid = "";
-				importGroupSearchFilter = "(objectClass=groupOfUniqueNames)";
-				groupMappingGroupName = "cn";
-				groupMappingDescription = "description";
-				groupMappingUser = "uniqueMember";
-				exportMappingUserDefaultObjectClass = "";
-				exportMappingGroupDefaultObjectClass = "";
+			else if (ldapType == 'open') {
+				url = 'ldap://localhost:389';
+				baseDN = 'dc=example,dc=com';
+				principal = 'cn=admin,ou=test';
+				credentials = 'secret';
+				searchFilter = '(mail=@email_address@)';
+				importUserSearchFilter = '(objectClass=inetOrgPerson)';
+				userMappingEmailAddress = 'mail';
+				userMappingFirstName = 'givenName';
+				userMappingFullName = '';
+				userMappingGroup = '';
+				userMappingJobTitle = 'title';
+				userMappingLastName = 'sn';
+				userMappingMiddleName = '';
+				userMappingPassword = 'userPassword';
+				userMappingPortrait = '';
+				userMappingScreenName = 'cn';
+				userMappingStatus = '';
+				userMappingUuid = '';
+				importGroupSearchFilter = '(objectClass=groupOfUniqueNames)';
+				groupMappingGroupName = 'cn';
+				groupMappingDescription = 'description';
+				groupMappingUser = 'uniqueMember';
+				exportMappingUserDefaultObjectClass = '';
+				exportMappingGroupDefaultObjectClass = '';
 			}
 
 			document.<portlet:namespace />fm['<portlet:namespace />settings--<%= PropsKeys.LDAP_BASE_PROVIDER_URL + postfix %>--'].value = baseProviderURL;
@@ -582,20 +592,21 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 			document.<portlet:namespace />fm['<portlet:namespace />settings--<%= PropsKeys.LDAP_SECURITY_CREDENTIALS + postfix %>--'].value = credentials;
 			document.<portlet:namespace />fm['<portlet:namespace />settings--<%= PropsKeys.LDAP_AUTH_SEARCH_FILTER + postfix %>--'].value = searchFilter;
 			document.<portlet:namespace />fm['<portlet:namespace />settings--<%= PropsKeys.LDAP_IMPORT_USER_SEARCH_FILTER + postfix %>--'].value = importUserSearchFilter;
-			document.<portlet:namespace />fm['<portlet:namespace />userMappingScreenName'].value = userMappingScreenName;
-			document.<portlet:namespace />fm['<portlet:namespace />userMappingPassword'].value = userMappingPassword;
 			document.<portlet:namespace />fm['<portlet:namespace />userMappingEmailAddress'].value = userMappingEmailAddress;
-			document.<portlet:namespace />fm['<portlet:namespace />userMappingFullName'].value = userMappingFullName;
 			document.<portlet:namespace />fm['<portlet:namespace />userMappingFirstName'].value = userMappingFirstName;
-			document.<portlet:namespace />fm['<portlet:namespace />userMappingMiddleName'].value = userMappingMiddleName;
-			document.<portlet:namespace />fm['<portlet:namespace />userMappingLastName'].value = userMappingLastName;
-			document.<portlet:namespace />fm['<portlet:namespace />userMappingJobTitle'].value = userMappingJobTitle;
-			document.<portlet:namespace />fm['<portlet:namespace />userMappingPortrait'].value = userMappingPortrait;
+			document.<portlet:namespace />fm['<portlet:namespace />userMappingFullName'].value = userMappingFullName;
 			document.<portlet:namespace />fm['<portlet:namespace />userMappingGroup'].value = userMappingGroup;
+			document.<portlet:namespace />fm['<portlet:namespace />userMappingJobTitle'].value = userMappingJobTitle;
+			document.<portlet:namespace />fm['<portlet:namespace />userMappingLastName'].value = userMappingLastName;
+			document.<portlet:namespace />fm['<portlet:namespace />userMappingMiddleName'].value = userMappingMiddleName;
+			document.<portlet:namespace />fm['<portlet:namespace />userMappingPassword'].value = userMappingPassword;
+			document.<portlet:namespace />fm['<portlet:namespace />userMappingPortrait'].value = userMappingPortrait;
+			document.<portlet:namespace />fm['<portlet:namespace />userMappingScreenName'].value = userMappingScreenName;
+			document.<portlet:namespace />fm['<portlet:namespace />userMappingStatus'].value = userMappingStatus;
 			document.<portlet:namespace />fm['<portlet:namespace />userMappingUuid'].value = userMappingUuid;
 			document.<portlet:namespace />fm['<portlet:namespace />settings--<%= PropsKeys.LDAP_IMPORT_GROUP_SEARCH_FILTER + postfix %>--'].value = importGroupSearchFilter;
-			document.<portlet:namespace />fm['<portlet:namespace />groupMappingGroupName'].value = groupMappingGroupName;
 			document.<portlet:namespace />fm['<portlet:namespace />groupMappingDescription'].value = groupMappingDescription;
+			document.<portlet:namespace />fm['<portlet:namespace />groupMappingGroupName'].value = groupMappingGroupName;
 			document.<portlet:namespace />fm['<portlet:namespace />groupMappingUser'].value = groupMappingUser;
 			document.<portlet:namespace />fm['<portlet:namespace />settings--<%= PropsKeys.LDAP_USERS_DN + postfix %>--'].value = baseDN;
 			document.<portlet:namespace />fm['<portlet:namespace />settings--<%= PropsKeys.LDAP_USER_DEFAULT_OBJECT_CLASSES + postfix %>--'].value = exportMappingUserDefaultObjectClass;
@@ -605,9 +616,6 @@ for (int i = 0 ; i < groupMappingArray.length ; i++) {
 		['aui-base']
 	);
 
-	<c:if test="<%= (ldapServerId <= 0) && Validator.isNull(ldapBaseProviderUrl) %>">
-		<portlet:namespace />updateDefaultLdap('apache');
-	</c:if>
 </aui:script>
 
 <%

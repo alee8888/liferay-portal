@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -65,22 +65,31 @@ public class PortalContextImpl implements PortalContext {
 		return windowStates.contains(windowState);
 	}
 
+	@Override
 	public String getPortalInfo() {
 		return ReleaseInfo.getReleaseInfo();
 	}
 
+	@Override
 	public String getProperty(String name) {
+		if (name == null) {
+			throw new IllegalArgumentException();
+		}
+
 		return properties.getProperty(name);
 	}
 
+	@Override
 	public Enumeration<String> getPropertyNames() {
 		return (Enumeration<String>)properties.propertyNames();
 	}
 
+	@Override
 	public Enumeration<PortletMode> getSupportedPortletModes() {
 		return Collections.enumeration(portletModes);
 	}
 
+	@Override
 	public Enumeration<WindowState> getSupportedWindowStates() {
 		return Collections.enumeration(windowStates);
 	}

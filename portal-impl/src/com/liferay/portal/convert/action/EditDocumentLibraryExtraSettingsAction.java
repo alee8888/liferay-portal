@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -43,8 +43,9 @@ public class EditDocumentLibraryExtraSettingsAction extends EditExpandoAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -58,11 +59,12 @@ public class EditDocumentLibraryExtraSettingsAction extends EditExpandoAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(
 				renderRequest,
 				"portlet.admin.edit_document_library_extra_settings"));
@@ -77,13 +79,12 @@ public class EditDocumentLibraryExtraSettingsAction extends EditExpandoAction {
 		if (preset.startsWith("Preset")) {
 			return addPresetExpando(expandoBridge, preset, name);
 		}
-		else {
-			int type = GetterUtil.getInteger(preset);
 
-			expandoBridge.addAttribute(name, type);
+		int type = GetterUtil.getInteger(preset);
 
-			return type;
-		}
+		expandoBridge.addAttribute(name, type);
+
+		return type;
 	}
 
 	protected void convert(

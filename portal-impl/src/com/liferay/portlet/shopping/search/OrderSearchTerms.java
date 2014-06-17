@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,6 @@
 
 package com.liferay.portlet.shopping.search;
 
-import com.liferay.portal.kernel.dao.search.DAOParamUtil;
 import com.liferay.portlet.shopping.model.ShoppingOrderConstants;
 
 import javax.portlet.PortletRequest;
@@ -26,12 +25,6 @@ public class OrderSearchTerms extends OrderDisplayTerms {
 
 	public OrderSearchTerms(PortletRequest portletRequest) {
 		super(portletRequest);
-
-		emailAddress = DAOParamUtil.getLike(portletRequest, EMAIL_ADDRESS);
-		firstName = DAOParamUtil.getLike(portletRequest, FIRST_NAME);
-		lastName = DAOParamUtil.getLike(portletRequest, LAST_NAME);
-		number = DAOParamUtil.getLike(portletRequest, NUMBER);
-		status = DAOParamUtil.getString(portletRequest, STATUS);
 	}
 
 	@Override

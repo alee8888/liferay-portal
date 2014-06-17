@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,8 @@ package com.liferay.portal.util;
 
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -98,6 +100,84 @@ public class HttpImplTest extends PowerMockito {
 	public void testEncodeSingleCharacterEncodedPath() {
 		Assert.assertEquals(
 			"http%3A//foo%23anchor", _httpImpl.encodePath("http://foo#anchor"));
+	}
+
+	@Test
+	public void testGetParameterMapWithCorrectQuery() {
+		Map<String, String[]> parameterMap = _httpImpl.getParameterMap(
+			"a=1&b=2");
+
+		Assert.assertNotNull(parameterMap);
+
+		Assert.assertEquals("1", parameterMap.get("a")[0]);
+		Assert.assertEquals("2", parameterMap.get("b")[0]);
+	}
+
+	@Test
+	public void testGetParameterMapWithMultipleBadParameter() {
+		Map<String, String[]> parameterMap = _httpImpl.getParameterMap(
+			"null&a=1&null");
+
+		Assert.assertNotNull(parameterMap);
+
+		Assert.assertEquals("1", parameterMap.get("a")[0]);
+	}
+
+	@Test
+	public void testGetParameterMapWithSingleBadParameter() {
+		Map<String, String[]> parameterMap = _httpImpl.getParameterMap(
+			"null&a=1");
+
+		Assert.assertNotNull(parameterMap);
+
+		Assert.assertEquals("1", parameterMap.get("a")[0]);
+	}
+
+	@Test
+	public void testProtocolizeMalformedURL() {
+		Assert.assertEquals(
+			"foo.com", _httpImpl.protocolize("foo.com", 8080, true));
+	}
+
+	@Test
+	public void testProtocolizeNonsecure() {
+		Assert.assertEquals(
+			"http://foo.com:8080",
+			_httpImpl.protocolize("https://foo.com", 8080, false));
+	}
+
+	@Test
+	public void testProtocolizeSecure() {
+		Assert.assertEquals(
+			"https://foo.com:8443",
+			_httpImpl.protocolize("http://foo.com", 8443, true));
+	}
+
+	@Test
+	public void testProtocolizeWithoutPort() {
+		Assert.assertEquals(
+			"http://foo.com:8443/web/guest",
+			_httpImpl.protocolize("https://foo.com:8443/web/guest", -1, false));
+	}
+
+	@Test
+	public void testRemovePathParameters() {
+		Assert.assertEquals(
+			"/TestServlet/one/two",
+			_httpImpl.removePathParameters(
+				"/TestServlet;jsessionid=ae01b0f2af/one;test=$one@two/two"));
+
+		Assert.assertEquals(
+			"/TestServlet/one/two",
+			_httpImpl.removePathParameters(
+				"/TestServlet;jsessionid=ae01b0f2af;test2=123,456" +
+					"/one;test=$one@two/two"));
+
+		Assert.assertEquals(
+			"/TestServlet/one/two",
+			_httpImpl.removePathParameters(
+				"/TestServlet/one;test=$one@two/two;jsessionid=ae01b0f2af" +
+					";test2=123,456"));
 	}
 
 	private void _addParameter(

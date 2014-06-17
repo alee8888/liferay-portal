@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.xml.Document;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,34 +34,26 @@ import java.util.Properties;
 public class PropertiesTransformerListener extends BaseTransformerListener {
 
 	@Override
-	public String onOutput(String s) {
+	public String onOutput(
+		String output, String languageId, Map<String, String> tokens) {
+
 		if (_log.isDebugEnabled()) {
 			_log.debug("onOutput");
 		}
 
-		s = replace(s);
-
-		return s;
+		return replace(output, languageId, tokens);
 	}
 
 	@Override
-	public String onScript(String s) {
+	public String onScript(
+		String script, Document document, String languageId,
+		Map<String, String> tokens) {
+
 		if (_log.isDebugEnabled()) {
 			_log.debug("onScript");
 		}
 
-		s = replace(s);
-
-		return s;
-	}
-
-	@Override
-	public String onXml(String s) {
-		if (_log.isDebugEnabled()) {
-			_log.debug("onXml");
-		}
-
-		return s;
+		return replace(script, languageId, tokens);
 	}
 
 	/**
@@ -69,8 +62,8 @@ public class PropertiesTransformerListener extends BaseTransformerListener {
 	 *
 	 * @return the processed string
 	 */
-	protected String replace(String s) {
-		Map<String, String> tokens = getTokens();
+	protected String replace(
+		String s, String languageId, Map<String, String> tokens) {
 
 		String templateId = tokens.get("template_id");
 
@@ -92,10 +85,11 @@ public class PropertiesTransformerListener extends BaseTransformerListener {
 
 			newTokens.put("template_id", _GLOBAL_PROPERTIES);
 
-			long groupId = GetterUtil.getLong(tokens.get("group_id"));
+			long articleGroupId = GetterUtil.getLong(
+				tokens.get("article_group_id"));
 
 			String script = JournalUtil.getTemplateScript(
-				groupId, _GLOBAL_PROPERTIES, newTokens, getLanguageId());
+				articleGroupId, _GLOBAL_PROPERTIES, newTokens, languageId);
 
 			PropertiesUtil.load(properties, script);
 		}

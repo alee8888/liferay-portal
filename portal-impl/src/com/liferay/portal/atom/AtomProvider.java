@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -45,6 +45,7 @@ public class AtomProvider extends AbstractWorkspaceProvider {
 			new AtomCollectionAdapterWrapper<E>(atomCollectionAdapter));
 	}
 
+	@Override
 	public CollectionAdapter getCollectionAdapter(RequestContext request) {
 		String path = request.getTargetPath();
 
@@ -57,12 +58,10 @@ public class AtomProvider extends AbstractWorkspaceProvider {
 		String baseUri = request.getBaseUri().toString();
 
 		for (WorkspaceInfo workspaceInfo : workspaces) {
-
 			Collection<CollectionInfo> collections =
 				workspaceInfo.getCollections(request);
 
 			for (CollectionInfo collectionInfo : collections) {
-
 				String href = collectionInfo.getHref(request);
 
 				if (href == null) {
@@ -93,26 +92,17 @@ public class AtomProvider extends AbstractWorkspaceProvider {
 	}
 
 	private void _initTargetResolver() {
-
 		RegexTargetResolver targetResolver = new RegexTargetResolver();
 
-		for (String base : _BASES) {
-
-			targetResolver.setPattern(
-				base + "?(\\?[^#]*)?", TargetType.TYPE_SERVICE);
-
-			targetResolver.setPattern(
-				base + "/([^/#?;]+)(\\?[^#]*)?", TargetType.TYPE_COLLECTION,
-				"collection");
-
-			targetResolver.setPattern(
-				base + "/([^/#?]+)/([^/#?:]+)(\\?[^#]*)?",
-				TargetType.TYPE_ENTRY, "collection", "entry");
-
-			targetResolver.setPattern(
-				base + "/([^/#?]+)/([^/#?]+):media(\\?[^#]*)?",
-				TargetType.TYPE_MEDIA, "collection", "media");
-		}
+		targetResolver.setPattern(
+			_COLLECTION_ENTRY_REGEXP, TargetType.TYPE_ENTRY, "collection",
+			"entry");
+		targetResolver.setPattern(
+			_COLLECTION_MEDIA_REGEXP, TargetType.TYPE_MEDIA, "collection",
+			"media");
+		targetResolver.setPattern(
+			_COLLECTION_REGEXP, TargetType.TYPE_COLLECTION, "collection");
+		targetResolver.setPattern(_SERVICE_REGEXP, TargetType.TYPE_SERVICE);
 
 		setTargetResolver(targetResolver);
 	}
@@ -125,7 +115,16 @@ public class AtomProvider extends AbstractWorkspaceProvider {
 		addWorkspace(_workspace);
 	}
 
-	private static final String[] _BASES = {"/api/secure/atom", "/api/atom"};
+	private static final String _COLLECTION_ENTRY_REGEXP =
+		"/api/atom/([^/#?]+)/([^/#?:]+)(\\?[^#]*)?";
+
+	private static final String _COLLECTION_MEDIA_REGEXP =
+		"/api/atom/([^/#?]+)/([^/#?]+):media(\\?[^#]*)?";
+
+	private static final String _COLLECTION_REGEXP =
+		"/api/atom/([^/#?;]+)(\\?[^#]*)?";
+
+	private static final String _SERVICE_REGEXP = "/api/atom?(\\?[^#]*)?";
 
 	private SimpleWorkspaceInfo _workspace;
 

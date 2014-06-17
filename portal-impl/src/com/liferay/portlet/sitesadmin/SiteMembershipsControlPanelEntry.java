@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,44 +19,40 @@ import com.liferay.portal.model.Portlet;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.permission.GroupPermissionUtil;
-import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.PortletCategoryKeys;
 import com.liferay.portlet.BaseControlPanelEntry;
 
 /**
  * @author Raymond Augé
+ * @author Jorge Ferrer
  */
 public class SiteMembershipsControlPanelEntry extends BaseControlPanelEntry {
 
-	public boolean isVisible(
-			PermissionChecker permissionChecker, Portlet portlet)
+	@Override
+	protected boolean hasAccessPermissionDenied(
+			PermissionChecker permissionChecker, Group group, Portlet portlet)
 		throws Exception {
+
+		if (group.isCompany() || group.isLayoutSetPrototype() ||
+			!group.isManualMembership() || group.isUser()) {
+
+			return true;
+		}
 
 		return false;
 	}
 
 	@Override
-	public boolean isVisible(
-			Portlet portlet, String category, ThemeDisplay themeDisplay)
+	protected boolean hasPermissionImplicitlyGranted(
+			PermissionChecker permissionChecker, Group group, Portlet portlet)
 		throws Exception {
 
-		String controlPanelCategory = themeDisplay.getControlPanelCategory();
+		if (GroupPermissionUtil.contains(
+				permissionChecker, group, ActionKeys.ASSIGN_MEMBERS)) {
 
-		if (controlPanelCategory.equals(PortletCategoryKeys.CONTENT)) {
-			return false;
+			return true;
 		}
 
-		Group scopeGroup = themeDisplay.getScopeGroup();
-
-		if (scopeGroup.isCompany() || scopeGroup.isUser() ||
-			!GroupPermissionUtil.contains(
-				themeDisplay.getPermissionChecker(), scopeGroup.getGroupId(),
-				ActionKeys.ASSIGN_MEMBERS)) {
-
-			return false;
-		}
-
-		return super.isVisible(portlet, category, themeDisplay);
+		return false;
 	}
 
 }

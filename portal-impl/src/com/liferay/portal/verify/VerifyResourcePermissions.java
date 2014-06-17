@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.model.Contact;
+import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutSetBranch;
 import com.liferay.portal.model.PasswordPolicy;
 import com.liferay.portal.model.ResourceConstants;
@@ -28,6 +29,7 @@ import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.model.Team;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ContactLocalServiceUtil;
+import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.ResourceLocalServiceUtil;
 import com.liferay.portal.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.service.RoleLocalServiceUtil;
@@ -38,9 +40,6 @@ import com.liferay.portlet.asset.model.AssetCategory;
 import com.liferay.portlet.asset.model.AssetTag;
 import com.liferay.portlet.asset.model.AssetVocabulary;
 import com.liferay.portlet.blogs.model.BlogsEntry;
-import com.liferay.portlet.bookmarks.model.BookmarksEntry;
-import com.liferay.portlet.bookmarks.model.BookmarksFolder;
-import com.liferay.portlet.calendar.model.CalEvent;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
@@ -48,8 +47,6 @@ import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalFeed;
-import com.liferay.portlet.journal.model.JournalStructure;
-import com.liferay.portlet.journal.model.JournalTemplate;
 import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.polls.model.PollsQuestion;
@@ -64,8 +61,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import java.util.List;
+
 /**
  * @author Raymond Augé
+ * @author James Lefeu
  */
 public class VerifyResourcePermissions extends VerifyProcess {
 
@@ -80,12 +80,36 @@ public class VerifyResourcePermissions extends VerifyProcess {
 			for (String[] model : _MODELS) {
 				verifyModel(role, model[0], model[1], model[2]);
 			}
+
+			verifyLayout(role);
+		}
+	}
+
+	protected void verifyLayout(Role role) throws Exception {
+		List<Layout> layouts = LayoutLocalServiceUtil.getNoPermissionLayouts(
+			role.getRoleId());
+
+		int total = layouts.size();
+
+		for (int i = 0; i < total; i++) {
+			Layout layout = layouts.get(i);
+
+			verifyModel(
+				role.getCompanyId(), Layout.class.getName(), layout.getPlid(),
+				role, 0, i, total);
 		}
 	}
 
 	protected void verifyModel(
-			long companyId, String name, long primKey, Role role, long ownerId)
+			long companyId, String name, long primKey, Role role, long ownerId,
+			int cur, int total)
 		throws Exception {
+
+		if (_log.isInfoEnabled() && ((cur % 100) == 0)) {
+			_log.info(
+				"Processed " + cur + " of " + total + " resource permissions " +
+					"for company = " + companyId + " and model " + name);
+		}
 
 		ResourcePermission resourcePermission = null;
 
@@ -121,12 +145,16 @@ public class VerifyResourcePermissions extends VerifyProcess {
 		}
 
 		if (name.equals(User.class.getName())) {
-			User user = UserLocalServiceUtil.getUserById(ownerId);
+			User user = UserLocalServiceUtil.fetchUserById(ownerId);
 
-			Contact contact = ContactLocalServiceUtil.getContact(
-				user.getContactId());
+			if (user != null) {
+				Contact contact = ContactLocalServiceUtil.fetchContact(
+					user.getContactId());
 
-			ownerId = contact.getUserId();
+				if (contact != null) {
+					ownerId = contact.getUserId();
+				}
+			}
 		}
 
 		if (ownerId != resourcePermission.getOwnerId()) {
@@ -134,12 +162,6 @@ public class VerifyResourcePermissions extends VerifyProcess {
 
 			ResourcePermissionLocalServiceUtil.updateResourcePermission(
 				resourcePermission);
-		}
-
-		if (_log.isInfoEnabled() &&
-			((resourcePermission.getResourcePermissionId() % 100) == 0)) {
-
-			_log.info("Processed 100 resource permissions for " + name);
 		}
 	}
 
@@ -151,21 +173,40 @@ public class VerifyResourcePermissions extends VerifyProcess {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 
+		int total = 0;
+
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
-				"select " + pkColumnName + ", userId AS ownerId " +
-					"from " + modelName + " where companyId = " +
-						role.getCompanyId());
+				"select count(*) from " + modelName + " where companyId = " +
+					role.getCompanyId());
 
 			rs = ps.executeQuery();
 
-			while (rs.next()) {
-				long primKey = rs.getLong(pkColumnName);
-				long ownerId = rs.getLong("ownerId");
+			if (rs.next()) {
+				total = rs.getInt(1);
+			}
+		}
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
+		}
 
-				verifyModel(role.getCompanyId(), name, primKey, role, ownerId);
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection();
+
+			ps = con.prepareStatement(
+				"select " + pkColumnName + ", userId from " + modelName +
+					" where companyId = " + role.getCompanyId());
+
+			rs = ps.executeQuery();
+
+			for (int i = 0; rs.next(); i++) {
+				long primKey = rs.getLong(pkColumnName);
+				long userId = rs.getLong("userId");
+
+				verifyModel(
+					role.getCompanyId(), name, primKey, role, userId, i, total);
 			}
 		}
 		finally {
@@ -190,15 +231,6 @@ public class VerifyResourcePermissions extends VerifyProcess {
 			BlogsEntry.class.getName(), "BlogsEntry", "entryId"
 		},
 		new String[] {
-			BookmarksEntry.class.getName(), "BookmarksEntry", "entryId"
-		},
-		new String[] {
-			BookmarksFolder.class.getName(), "BookmarksFolder", "folderId"
-		},
-		new String[] {
-			CalEvent.class.getName(), "CalEvent", "eventId"
-		},
-		new String[] {
 			DDMStructure.class.getName(), "DDMStructure", "structureId"
 		},
 		new String[] {
@@ -220,10 +252,7 @@ public class VerifyResourcePermissions extends VerifyProcess {
 			JournalFeed.class.getName(), "JournalFeed", "id_"
 		},
 		new String[] {
-			JournalStructure.class.getName(), "JournalStructure", "id_"
-		},
-		new String[] {
-			JournalTemplate.class.getName(), "JournalTemplate", "id_"
+			Layout.class.getName(), "Layout", "plid"
 		},
 		new String[] {
 			LayoutSetBranch.class.getName(), "LayoutSetBranch",

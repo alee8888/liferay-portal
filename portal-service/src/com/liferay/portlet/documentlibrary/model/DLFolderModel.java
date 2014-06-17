@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,21 @@
 
 package com.liferay.portlet.documentlibrary.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.ContainerModel;
+import com.liferay.portal.model.StagedGroupedModel;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
+import com.liferay.portlet.trash.model.TrashEntry;
 
 import java.io.Serializable;
 
@@ -41,8 +47,9 @@ import java.util.Date;
  * @see com.liferay.portlet.documentlibrary.model.impl.DLFolderModelImpl
  * @generated
  */
-public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
-	WorkflowedModel {
+@ProviderType
+public interface DLFolderModel extends BaseModel<DLFolder>, ContainerModel,
+	StagedGroupedModel, TrashedModel, WorkflowedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -69,6 +76,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 * @return the uuid of this document library folder
 	 */
 	@AutoEscape
+	@Override
 	public String getUuid();
 
 	/**
@@ -76,6 +84,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @param uuid the uuid of this document library folder
 	 */
+	@Override
 	public void setUuid(String uuid);
 
 	/**
@@ -97,6 +106,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @return the group ID of this document library folder
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -104,6 +114,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @param groupId the group ID of this document library folder
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -111,6 +122,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @return the company ID of this document library folder
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -118,6 +130,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @param companyId the company ID of this document library folder
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -125,6 +138,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @return the user ID of this document library folder
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -132,21 +146,23 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @param userId the user ID of this document library folder
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
 	 * Returns the user uuid of this document library folder.
 	 *
 	 * @return the user uuid of this document library folder
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getUserUuid() throws SystemException;
+	@Override
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this document library folder.
 	 *
 	 * @param userUuid the user uuid of this document library folder
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -155,6 +171,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 * @return the user name of this document library folder
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -162,6 +179,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @param userName the user name of this document library folder
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -169,6 +187,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @return the create date of this document library folder
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -176,6 +195,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @param createDate the create date of this document library folder
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -183,6 +203,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @return the modified date of this document library folder
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -190,6 +211,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @param modifiedDate the modified date of this document library folder
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -240,6 +262,21 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 * @param parentFolderId the parent folder ID of this document library folder
 	 */
 	public void setParentFolderId(long parentFolderId);
+
+	/**
+	 * Returns the tree path of this document library folder.
+	 *
+	 * @return the tree path of this document library folder
+	 */
+	@AutoEscape
+	public String getTreePath();
+
+	/**
+	 * Sets the tree path of this document library folder.
+	 *
+	 * @param treePath the tree path of this document library folder
+	 */
+	public void setTreePath(String treePath);
 
 	/**
 	 * Returns the name of this document library folder.
@@ -300,6 +337,27 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	public void setDefaultFileEntryTypeId(long defaultFileEntryTypeId);
 
 	/**
+	 * Returns the hidden of this document library folder.
+	 *
+	 * @return the hidden of this document library folder
+	 */
+	public boolean getHidden();
+
+	/**
+	 * Returns <code>true</code> if this document library folder is hidden.
+	 *
+	 * @return <code>true</code> if this document library folder is hidden; <code>false</code> otherwise
+	 */
+	public boolean isHidden();
+
+	/**
+	 * Sets whether this document library folder is hidden.
+	 *
+	 * @param hidden the hidden of this document library folder
+	 */
+	public void setHidden(boolean hidden);
+
+	/**
 	 * Returns the override file entry types of this document library folder.
 	 *
 	 * @return the override file entry types of this document library folder
@@ -325,6 +383,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @return the status of this document library folder
 	 */
+	@Override
 	public int getStatus();
 
 	/**
@@ -332,6 +391,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @param status the status of this document library folder
 	 */
+	@Override
 	public void setStatus(int status);
 
 	/**
@@ -339,6 +399,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @return the status by user ID of this document library folder
 	 */
+	@Override
 	public long getStatusByUserId();
 
 	/**
@@ -346,21 +407,23 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @param statusByUserId the status by user ID of this document library folder
 	 */
+	@Override
 	public void setStatusByUserId(long statusByUserId);
 
 	/**
 	 * Returns the status by user uuid of this document library folder.
 	 *
 	 * @return the status by user uuid of this document library folder
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getStatusByUserUuid() throws SystemException;
+	@Override
+	public String getStatusByUserUuid();
 
 	/**
 	 * Sets the status by user uuid of this document library folder.
 	 *
 	 * @param statusByUserUuid the status by user uuid of this document library folder
 	 */
+	@Override
 	public void setStatusByUserUuid(String statusByUserUuid);
 
 	/**
@@ -369,6 +432,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 * @return the status by user name of this document library folder
 	 */
 	@AutoEscape
+	@Override
 	public String getStatusByUserName();
 
 	/**
@@ -376,6 +440,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @param statusByUserName the status by user name of this document library folder
 	 */
+	@Override
 	public void setStatusByUserName(String statusByUserName);
 
 	/**
@@ -383,6 +448,7 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @return the status date of this document library folder
 	 */
+	@Override
 	public Date getStatusDate();
 
 	/**
@@ -390,11 +456,60 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @param statusDate the status date of this document library folder
 	 */
+	@Override
 	public void setStatusDate(Date statusDate);
 
 	/**
-	 * @deprecated Renamed to {@link #isApproved()}
+	 * Returns the trash entry created when this document library folder was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this document library folder.
+	 *
+	 * @return the trash entry created when this document library folder was moved to the Recycle Bin
 	 */
+	@Override
+	public TrashEntry getTrashEntry() throws PortalException;
+
+	/**
+	 * Returns the class primary key of the trash entry for this document library folder.
+	 *
+	 * @return the class primary key of the trash entry for this document library folder
+	 */
+	@Override
+	public long getTrashEntryClassPK();
+
+	/**
+	 * Returns the trash handler for this document library folder.
+	 *
+	 * @return the trash handler for this document library folder
+	 */
+	@Override
+	public TrashHandler getTrashHandler();
+
+	/**
+	 * Returns <code>true</code> if this document library folder is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if this document library folder is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInTrash();
+
+	/**
+	 * Returns <code>true</code> if the parent of this document library folder is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if the parent of this document library folder is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInTrashContainer();
+
+	@Override
+	public boolean isInTrashExplicitly();
+
+	@Override
+	public boolean isInTrashImplicitly();
+
+	/**
+	 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
+	 */
+	@Deprecated
+	@Override
 	public boolean getApproved();
 
 	/**
@@ -402,13 +517,23 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @return <code>true</code> if this document library folder is approved; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isApproved();
+
+	/**
+	 * Returns <code>true</code> if this document library folder is denied.
+	 *
+	 * @return <code>true</code> if this document library folder is denied; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isDenied();
 
 	/**
 	 * Returns <code>true</code> if this document library folder is a draft.
 	 *
 	 * @return <code>true</code> if this document library folder is a draft; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isDraft();
 
 	/**
@@ -416,44 +541,135 @@ public interface DLFolderModel extends BaseModel<DLFolder>, GroupedModel,
 	 *
 	 * @return <code>true</code> if this document library folder is expired; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isExpired();
+
+	/**
+	 * Returns <code>true</code> if this document library folder is inactive.
+	 *
+	 * @return <code>true</code> if this document library folder is inactive; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInactive();
+
+	/**
+	 * Returns <code>true</code> if this document library folder is incomplete.
+	 *
+	 * @return <code>true</code> if this document library folder is incomplete; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isIncomplete();
 
 	/**
 	 * Returns <code>true</code> if this document library folder is pending.
 	 *
 	 * @return <code>true</code> if this document library folder is pending; <code>false</code> otherwise
 	 */
+	@Override
 	public boolean isPending();
 
+	/**
+	 * Returns <code>true</code> if this document library folder is scheduled.
+	 *
+	 * @return <code>true</code> if this document library folder is scheduled; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isScheduled();
+
+	/**
+	 * Returns the container model ID of this document library folder.
+	 *
+	 * @return the container model ID of this document library folder
+	 */
+	@Override
+	public long getContainerModelId();
+
+	/**
+	 * Sets the container model ID of this document library folder.
+	 *
+	 * @param containerModelId the container model ID of this document library folder
+	 */
+	@Override
+	public void setContainerModelId(long containerModelId);
+
+	/**
+	 * Returns the container name of this document library folder.
+	 *
+	 * @return the container name of this document library folder
+	 */
+	@Override
+	public String getContainerModelName();
+
+	/**
+	 * Returns the parent container model ID of this document library folder.
+	 *
+	 * @return the parent container model ID of this document library folder
+	 */
+	@Override
+	public long getParentContainerModelId();
+
+	/**
+	 * Sets the parent container model ID of this document library folder.
+	 *
+	 * @param parentContainerModelId the parent container model ID of this document library folder
+	 */
+	@Override
+	public void setParentContainerModelId(long parentContainerModelId);
+
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(DLFolder dlFolder);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<DLFolder> toCacheModel();
 
+	@Override
 	public DLFolder toEscapedModel();
 
+	@Override
+	public DLFolder toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

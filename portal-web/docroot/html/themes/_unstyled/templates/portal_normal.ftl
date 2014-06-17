@@ -2,15 +2,19 @@
 
 <#include init />
 
-<html class="<@liferay.language key="lang.dir" />" dir="<@liferay.language key="lang.dir" />" lang="${w3c_language_id}">
+<html class="${root_css_class}" dir="<@liferay.language key="lang.dir" />" lang="${w3c_language_id}">
 
 <head>
 	<title>${the_title} - ${company_name}</title>
+
+	<meta content="initial-scale=1.0, width=device-width" name="viewport" />
 
 	${theme.include(top_head_include)}
 </head>
 
 <body class="${css_class}">
+
+<@liferay.quick_access contentId="#main-content" />
 
 ${theme.include(body_top_include)}
 
@@ -18,30 +22,24 @@ ${theme.include(body_top_include)}
 	<@liferay.dockbar />
 </#if>
 
-<div id="wrapper">
-	<a href="#main-content" id="skip-to-content"><@liferay.language key="skip-to-content" /></a>
-
+<div class="container-fluid" id="wrapper">
 	<header id="banner" role="banner">
 		<div id="heading">
 			<h1 class="site-title">
-				<a class="${logo_css_class}" href="${site_default_url}" title="<@liferay.language key="go-to" /> ${site_name}">
+				<a class="${logo_css_class}" href="${site_default_url}" title="<@liferay.language_format arguments="${site_name}" key="go-to-x" />">
 					<img alt="${logo_description}" height="${site_logo_height}" src="${site_logo}" width="${site_logo_width}" />
 				</a>
 
 				<#if show_site_name>
-					<span class="site-name" title="<@liferay.language key="go-to" /> ${site_name}">
+					<span class="site-name" title="<@liferay.language_format arguments="${site_name}" key="go-to-x" />">
 						${site_name}
 					</span>
 				</#if>
 			</h1>
-
-			<h2 class="page-title">
-				<span>${the_title}</span>
-			</h2>
 		</div>
 
 		<#if !is_signed_in>
-			<a href="${sign_in_url}" id="sign-in" rel="nofollow">${sign_in_text}</a>
+			<a href="${sign_in_url}" data-redirect="${is_login_redirect_required?string}" id="sign-in" rel="nofollow">${sign_in_text}</a>
 		</#if>
 
 		<#if has_navigation || is_signed_in>
@@ -49,12 +47,10 @@ ${theme.include(body_top_include)}
 		</#if>
 	</header>
 
-	<div id="content">
-		<nav class="site-breadcrumbs" id="breadcrumbs">
-			<h1>
-				<span><@liferay.language key="breadcrumbs" /></span>
-			</h1>
+	<section id="content">
+		<h1 class="hide-accessible">${the_title}</h1>
 
+		<nav id="breadcrumbs">
 			<@liferay.breadcrumbs />
 		</nav>
 
@@ -67,7 +63,7 @@ ${theme.include(body_top_include)}
 
 			${theme.wrapPortlet("portlet.ftl", content_include)}
 		</#if>
-	</div>
+	</section>
 
 	<footer id="footer" role="contentinfo">
 		<p class="powered-by">
@@ -78,8 +74,8 @@ ${theme.include(body_top_include)}
 
 ${theme.include(body_bottom_include)}
 
-</body>
-
 ${theme.include(bottom_include)}
+
+</body>
 
 </html>

@@ -1,54 +1,49 @@
-<#assign totalMBThreadCount = maxMBCategoryCount * maxMBThreadCount>
-<#assign totalMBMessageCount = totalMBThreadCount * maxMBMessageCount>
+<#assign mbCategoryModels = dataFactory.newMBCategoryModels(groupId)>
 
-<#assign categoryCounterOffset = maxGroupCount + ((groupId - 1) * (maxMBCategoryCount + totalMBThreadCount + totalMBMessageCount))>
+<#list mbCategoryModels as mbCategoryModel>
+	insert into MBCategory values ('${mbCategoryModel.uuid}', ${mbCategoryModel.categoryId}, ${mbCategoryModel.groupId}, ${mbCategoryModel.companyId}, ${mbCategoryModel.userId}, '${mbCategoryModel.userName}', '${dataFactory.getDateString(mbCategoryModel.createDate)}', '${dataFactory.getDateString(mbCategoryModel.modifiedDate)}', ${mbCategoryModel.parentCategoryId}, '${mbCategoryModel.name}', '${mbCategoryModel.description}', '${mbCategoryModel.displayStyle}', ${mbCategoryModel.threadCount}, ${mbCategoryModel.messageCount}, '${dataFactory.getDateString(mbCategoryModel.lastPostDate)}', ${mbCategoryModel.status}, ${mbCategoryModel.statusByUserId}, '${mbCategoryModel.statusByUserName}', '${dataFactory.getDateString(mbCategoryModel.statusDate)}');
 
-<#if (maxMBCategoryCount > 0)>
-	<#list 1..maxMBCategoryCount as mbCategoryCount>
-		<#assign categoryId = categoryCounterOffset + mbCategoryCount>
+	<@insertResourcePermissions
+		_entry = mbCategoryModel
+	/>
 
-		<#assign mbCategory = dataFactory.addMBCategory(categoryId, groupId, companyId, firstUserId, "Test Category " + mbCategoryCount, "This is a test category " + mbCategoryCount + ".", maxMBThreadCount, maxMBThreadCount * maxMBMessageCount)>
+	<#assign mbMailingListModel = dataFactory.newMBMailingListModel(mbCategoryModel)>
 
-		${sampleSQLBuilder.insertMBCategory(mbCategory)}
+	insert into MBMailingList values ('${mbMailingListModel.uuid}', ${mbMailingListModel.mailingListId}, ${mbMailingListModel.groupId}, ${mbMailingListModel.companyId}, ${mbMailingListModel.userId}, '${mbMailingListModel.userName}', '${dataFactory.getDateString(mbMailingListModel.createDate)}', '${dataFactory.getDateString(mbMailingListModel.modifiedDate)}', ${mbMailingListModel.categoryId}, '${mbMailingListModel.emailAddress}', '${mbMailingListModel.inProtocol}', '${mbMailingListModel.inServerName}', ${mbMailingListModel.inServerPort}, ${mbMailingListModel.inUseSSL?string}, '${mbMailingListModel.inUserName}', '${mbMailingListModel.inPassword}', ${mbMailingListModel.inReadInterval}, '${mbMailingListModel.outEmailAddress}', ${mbMailingListModel.outCustom?string}, '${mbMailingListModel.outServerName}', ${mbMailingListModel.outServerPort}, ${mbMailingListModel.outUseSSL?string}, '${mbMailingListModel.outUserName}', '${mbMailingListModel.outPassword}', ${mbMailingListModel.allowAnonymous?string}, ${mbMailingListModel.active?string});
 
-		<#if (maxMBThreadCount > 0) && (maxMBMessageCount > 0)>
-			<#assign threadCounterOffset = categoryCounterOffset + maxMBCategoryCount + ((mbCategoryCount - 1) * maxMBThreadCount)>
+	<#assign mbThreadModels = dataFactory.newMBThreadModels(mbCategoryModel)>
 
-			<#list 1..maxMBThreadCount as mbThreadCount>
-				<#assign messageCounterOffset = categoryCounterOffset + maxMBCategoryCount + totalMBThreadCount + ((mbCategoryCount - 1) * maxMBThreadCount * maxMBMessageCount) + ((mbThreadCount - 1) * maxMBMessageCount)>
+	<#list mbThreadModels as mbThreadModel>
+		insert into MBThread values ('${mbThreadModel.uuid}', ${mbThreadModel.threadId}, ${mbThreadModel.groupId}, ${mbThreadModel.companyId}, ${mbThreadModel.userId}, '${mbThreadModel.userName}', '${dataFactory.getDateString(mbThreadModel.createDate)}', '${dataFactory.getDateString(mbThreadModel.modifiedDate)}', ${mbThreadModel.categoryId}, ${mbThreadModel.rootMessageId}, ${mbThreadModel.rootMessageUserId}, ${mbThreadModel.messageCount}, ${mbThreadModel.viewCount}, ${mbThreadModel.lastPostByUserId}, '${dataFactory.getDateString(mbThreadModel.lastPostDate)}', ${mbThreadModel.priority}, ${mbThreadModel.question?string}, ${mbThreadModel.status}, ${mbThreadModel.statusByUserId}, '${mbThreadModel.statusByUserName}', '${dataFactory.getDateString(mbThreadModel.statusDate)}');
 
-				<#assign threadId = threadCounterOffset + mbThreadCount>
-				<#assign rootMessageId = 0>
-				<#assign parentMessageId = 0>
+		<@insertSubscription
+			_entry = mbThreadModel
+		/>
 
-				<#list 1..maxMBMessageCount as mbMessageCount>
-					<#assign mbMessageCounterIncrement = mbMessageCounter.increment()>
+		<@insertAssetEntry
+			_entry = mbThreadModel
+		/>
 
-					<#assign messageId = messageCounterOffset + mbMessageCount>
+		<#assign mbThreadFlagModel = dataFactory.newMBThreadFlagModel(mbThreadModel)>
 
-					<#if (mbMessageCount = 1)>
-						<#assign rootMessageId = messageId>
-					</#if>
+		insert into MBThreadFlag values ('${mbThreadFlagModel.uuid}', ${mbThreadFlagModel.threadFlagId}, ${mbThreadFlagModel.groupId}, ${mbThreadFlagModel.companyId}, ${mbThreadFlagModel.userId}, '${mbThreadFlagModel.userName}', '${dataFactory.getDateString(mbThreadFlagModel.createDate)}', '${dataFactory.getDateString(mbThreadFlagModel.modifiedDate)}', ${mbThreadFlagModel.threadId});
 
-					<#assign mbMessage = dataFactory.addMBMessage(messageId, mbCategory.groupId, firstUserId, 0, 0, categoryId, threadId, rootMessageId, parentMessageId, "Test Message " + mbMessageCount, "This is a test message " + mbMessageCount + ".")>
+		<#assign mbMessageModels = dataFactory.newMBMessageModels(mbThreadModel)>
 
-					${sampleSQLBuilder.insertMBMessage(mbMessage)}
+		<#list mbMessageModels as mbMessageModel>
+			<@insertMBMessage
+				_mbMessageModel = mbMessageModel
+			/>
 
-					<#if (mbMessageCount_index = 0)>
-						<#assign parentMessageId = mbMessage.messageId>
-					</#if>
-				</#list>
+			<@insertResourcePermissions
+				_entry = mbMessageModel
+			/>
 
-				<#assign mbThread = dataFactory.addMBThread(threadId, mbCategory.groupId, companyId, categoryId, rootMessageId, maxMBCategoryCount, firstUserId)>
+			<@insertSocialActivity
+				_entry = mbMessageModel
+			/>
+		</#list>
 
-				insert into MBThread values (${mbThread.threadId}, ${mbThread.groupId}, ${mbThread.companyId}, ${mbThread.categoryId}, ${mbThread.rootMessageId}, ${mbThread.rootMessageUserId}, ${mbThread.messageCount}, 0, ${mbThread.lastPostByUserId}, CURRENT_TIMESTAMP, 0, FALSE, 0, ${mbThread.lastPostByUserId}, '', CURRENT_TIMESTAMP);
-
-				${writerMessageBoardsCSV.write(categoryId + "," + threadId + "," + rootMessageId + ",")}
-
-				<#if (mbMessageCounter.value < (maxGroupCount * totalMBMessageCount))>
-					${writerMessageBoardsCSV.write("\n")}
-				</#if>
-			</#list>
-		</#if>
+		${messageBoardCSVWriter.write(mbCategoryModel.categoryId + "," + mbThreadModel.threadId + "," + mbThreadModel.rootMessageId + "\n")}
 	</#list>
-</#if>
+</#list>

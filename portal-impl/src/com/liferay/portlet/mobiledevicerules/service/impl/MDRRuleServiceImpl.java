@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,8 @@
 package com.liferay.portlet.mobiledevicerules.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
+import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceMode;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.ServiceContext;
@@ -31,11 +32,12 @@ import java.util.Map;
  */
 public class MDRRuleServiceImpl extends MDRRuleServiceBaseImpl {
 
+	@Override
 	public MDRRule addRule(
 			long ruleGroupId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, String type,
 			String typeSettings, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		MDRRuleGroupPermissionUtil.check(
 			getPermissionChecker(), ruleGroupId, ActionKeys.UPDATE);
@@ -45,11 +47,13 @@ public class MDRRuleServiceImpl extends MDRRuleServiceBaseImpl {
 			serviceContext);
 	}
 
+	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
+	@Override
 	public MDRRule addRule(
 			long ruleGroupId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, String type,
 			UnicodeProperties typeSettings, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		MDRRuleGroupPermissionUtil.check(
 			getPermissionChecker(), ruleGroupId, ActionKeys.UPDATE);
@@ -59,9 +63,8 @@ public class MDRRuleServiceImpl extends MDRRuleServiceBaseImpl {
 			serviceContext);
 	}
 
-	public void deleteRule(long ruleId)
-		throws PortalException, SystemException {
-
+	@Override
+	public void deleteRule(long ruleId) throws PortalException {
 		MDRRule rule = mdrRulePersistence.findByPrimaryKey(ruleId);
 
 		MDRRuleGroupPermissionUtil.check(
@@ -70,9 +73,8 @@ public class MDRRuleServiceImpl extends MDRRuleServiceBaseImpl {
 		mdrRuleLocalService.deleteRule(rule);
 	}
 
-	public MDRRule fetchRule(long ruleId)
-		throws PortalException, SystemException {
-
+	@Override
+	public MDRRule fetchRule(long ruleId) throws PortalException {
 		MDRRule rule = mdrRuleLocalService.fetchRule(ruleId);
 
 		if (rule != null) {
@@ -83,9 +85,8 @@ public class MDRRuleServiceImpl extends MDRRuleServiceBaseImpl {
 		return rule;
 	}
 
-	public MDRRule getRule(long ruleId)
-		throws PortalException, SystemException {
-
+	@Override
+	public MDRRule getRule(long ruleId) throws PortalException {
 		MDRRule rule = mdrRulePersistence.findByPrimaryKey(ruleId);
 
 		MDRRuleGroupPermissionUtil.check(
@@ -94,11 +95,12 @@ public class MDRRuleServiceImpl extends MDRRuleServiceBaseImpl {
 		return rule;
 	}
 
+	@Override
 	public MDRRule updateRule(
 			long ruleId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, String type,
 			String typeSettings, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		MDRRule rule = mdrRulePersistence.findByPrimaryKey(ruleId);
 
@@ -110,12 +112,13 @@ public class MDRRuleServiceImpl extends MDRRuleServiceBaseImpl {
 			serviceContext);
 	}
 
+	@Override
 	public MDRRule updateRule(
 			long ruleId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, String type,
 			UnicodeProperties typeSettingsProperties,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		MDRRule rule = mdrRulePersistence.findByPrimaryKey(ruleId);
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.util.dao.orm;
 
+import com.liferay.portal.kernel.dao.orm.QueryDefinition;
+import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -35,8 +37,22 @@ public class CustomSQLUtil {
 		return _instance._customSQL.get(id);
 	}
 
+	public static String get(String id, QueryDefinition queryDefinition) {
+		return _instance._customSQL.get(id, queryDefinition);
+	}
+
+	public static String get(
+		String id, QueryDefinition queryDefinition, String tableName) {
+
+		return _instance._customSQL.get(id, queryDefinition, tableName);
+	}
+
 	public static boolean isVendorDB2() {
 		return _instance._customSQL.isVendorDB2();
+	}
+
+	public static boolean isVendorHSQL() {
+		return _instance._customSQL.isVendorHSQL();
 	}
 
 	public static boolean isVendorInformix() {
@@ -61,6 +77,18 @@ public class CustomSQLUtil {
 
 	public static String[] keywords(String keywords, boolean lowerCase) {
 		return _instance._customSQL.keywords(keywords, lowerCase);
+	}
+
+	public static String[] keywords(
+		String keywords, boolean lowerCase, WildcardMode wildcardMode) {
+
+		return _instance._customSQL.keywords(keywords, lowerCase, wildcardMode);
+	}
+
+	public static String[] keywords(
+		String keywords, WildcardMode wildcardMode) {
+
+		return _instance._customSQL.keywords(keywords, wildcardMode);
 	}
 
 	public static String[] keywords(String[] keywordsArray) {

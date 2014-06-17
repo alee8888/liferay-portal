@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,7 +20,6 @@
 JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_ARTICLE);
 
 boolean smallImage = BeanParamUtil.getBoolean(article, request, "smallImage");
-String smallImageURL = BeanParamUtil.getString(article, request, "smallImageURL");
 
 String defaultLanguageId = (String)request.getAttribute("edit_article.jsp-defaultLanguageId");
 String toLanguageId = (String)request.getAttribute("edit_article.jsp-toLanguageId");
@@ -44,22 +43,104 @@ String toLanguageId = (String)request.getAttribute("edit_article.jsp-toLanguageI
 <liferay-ui:error exception="<%= ArticleSmallImageSizeException.class %>">
 
 	<%
-	long imageMaxSize = PrefsPropsUtil.getLong(PropsKeys.JOURNAL_IMAGE_SMALL_MAX_SIZE) / 1024;
+	long imageMaxSize = PrefsPropsUtil.getLong(PropsKeys.JOURNAL_IMAGE_SMALL_MAX_SIZE);
 	%>
 
-	<liferay-ui:message arguments="<%= imageMaxSize %>" key="please-enter-a-small-image-with-a-valid-file-size-no-larger-than-x" />
+	<liferay-ui:message arguments="<%= TextFormatter.formatStorageSize(imageMaxSize, locale) %>" key="please-enter-a-small-image-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
 </liferay-ui:error>
 
 <aui:fieldset>
 	<aui:input label="summary" languageId="<%= Validator.isNotNull(toLanguageId) ? toLanguageId : defaultLanguageId %>" name="description" />
 
 	<c:if test="<%= Validator.isNull(toLanguageId) %>">
-		<aui:input label="use-small-image" name="smallImage" />
+		<div id="<portlet:namespace />smallImageContainer">
+			<div class="lfr-journal-small-image-header">
+				<aui:input label="use-small-image" name="smallImage" />
+			</div>
 
-		<aui:input label="small-image-url" name="smallImageURL" />
+			<div class="lfr-journal-small-image-content toggler-content-collapsed">
+				<aui:row>
+					<c:if test="<%= smallImage && (article != null) %>">
+						<aui:col width="<%= 50 %>">
+							<img alt="<liferay-ui:message key="preview" />" class="lfr-journal-small-image-preview" src="<%= Validator.isNotNull(article.getSmallImageURL()) ? HtmlUtil.escapeAttribute(article.getSmallImageURL()) : themeDisplay.getPathImage() + "/template?img_id=" + article.getSmallImageId() + "&t=" + WebServerServletTokenUtil.getToken(article.getSmallImageId()) %>" />
+						</aui:col>
+					</c:if>
 
-		<span style="font-size: xx-small;">-- <%= LanguageUtil.get(pageContext, "or").toUpperCase() %> --</span>
+					<aui:col width="<%= (smallImage && (article != null)) ? 50 : 100 %>">
+						<aui:fieldset>
+							<aui:input cssClass="lfr-journal-small-image-type" inlineField="<%= true %>" label="small-image-url" name="smallImageType" type="radio" />
 
-		<aui:input cssClass="lfr-input-text-container" label="small-image" name="smallFile" type="file" />
+							<aui:input cssClass="lfr-journal-small-image-value" inlineField="<%= true %>" label="" name="smallImageURL" title="small-image-url" />
+						</aui:fieldset>
+
+						<aui:fieldset>
+							<aui:input cssClass="lfr-journal-small-image-type" inlineField="<%= true %>" label="small-image" name="smallImageType" type="radio" />
+
+							<aui:input cssClass="lfr-journal-small-image-value" inlineField="<%= true %>" label="" name="smallFile" type="file" />
+						</aui:fieldset>
+					</aui:col>
+				</aui:row>
+			</div>
+		</div>
+
+		<aui:script use="aui-toggler">
+			var container = A.one('#<portlet:namespace />smallImageContainer');
+
+			var types = container.all('.lfr-journal-small-image-type');
+			var values = container.all('.lfr-journal-small-image-value');
+
+			var selectSmallImageType = function(index) {
+				types.set('checked', false);
+
+				types.item(index).set('checked', true);
+
+				values.set('disabled', true);
+
+				values.item(index).set('disabled', false);
+			};
+
+			container.delegate(
+				'change',
+				function(event) {
+					var index = types.indexOf(event.currentTarget);
+
+					selectSmallImageType(index);
+				},
+				'.lfr-journal-small-image-type'
+			);
+
+			new A.Toggler(
+				{
+					animated: true,
+					content: '#<portlet:namespace />smallImageContainer .lfr-journal-small-image-content',
+					expanded: <%= smallImage %>,
+					header: '#<portlet:namespace />smallImageContainer .lfr-journal-small-image-header',
+					on: {
+						animatingChange: function(event) {
+							var instance = this;
+
+							var expanded = !instance.get('expanded');
+
+							A.one('#<portlet:namespace />smallImage').set('checked', expanded);
+
+							if (expanded) {
+								types.each(
+									function(item, index) {
+										if (item.get('checked')) {
+											values.item(index).set('disabled', false);
+										}
+									}
+								);
+							}
+							else {
+								values.set('disabled', true);
+							}
+						}
+					}
+				}
+			);
+
+			selectSmallImageType('<%= (article != null) && Validator.isNotNull(article.getSmallImageURL()) ? 0 : 1 %>');
+		</aui:script>
 	</c:if>
 </aui:fieldset>

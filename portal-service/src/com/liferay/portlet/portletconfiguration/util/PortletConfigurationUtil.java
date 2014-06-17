@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -65,14 +65,8 @@ public class PortletConfigurationUtil {
 			return null;
 		}
 
-		String defaultLanguageId = LocaleUtil.toLanguageId(
-			LocaleUtil.getDefault());
-
-		String defaultPortletTitle = portletSetup.getValue(
-			"portletSetupTitle_" + defaultLanguageId, StringPool.BLANK);
-
 		String portletTitle = portletSetup.getValue(
-			"portletSetupTitle_" + languageId, defaultPortletTitle);
+			"portletSetupTitle_" + languageId, null);
 
 		if (Validator.isNotNull(portletTitle)) {
 			return portletTitle;
@@ -89,6 +83,9 @@ public class PortletConfigurationUtil {
 			portletTitle = oldPortletTitle;
 
 			try {
+				String defaultLanguageId = LocaleUtil.toLanguageId(
+					LocaleUtil.getSiteDefault());
+
 				portletSetup.setValue(
 					"portletSetupTitle_" + defaultLanguageId, portletTitle);
 				portletSetup.setValue(

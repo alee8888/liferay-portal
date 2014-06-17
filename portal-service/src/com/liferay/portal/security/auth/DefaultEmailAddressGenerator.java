@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,10 +23,12 @@ import com.liferay.portal.model.UserConstants;
  */
 public class DefaultEmailAddressGenerator implements EmailAddressGenerator {
 
+	@Override
 	public String generate(long companyId, long userId) {
 		return userId + UserConstants.USERS_EMAIL_ADDRESS_AUTO_SUFFIX;
 	}
 
+	@Override
 	public boolean isFake(String emailAddress) {
 		if (Validator.isNull(emailAddress) ||
 			StringUtil.endsWith(
@@ -39,6 +41,7 @@ public class DefaultEmailAddressGenerator implements EmailAddressGenerator {
 		}
 	}
 
+	@Override
 	public boolean isGenerated(String emailAddress) {
 		return isFake(emailAddress);
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.HttpUtil;
@@ -40,10 +41,11 @@ import javax.servlet.http.HttpSession;
  * @author Wilson Man
  * @author Mika Koivisto
  */
+@DoPrivileged
 public class FacebookConnectImpl implements FacebookConnect {
 
-	public String getAccessToken(long companyId, String redirect, String code)
-		throws SystemException {
+	@Override
+	public String getAccessToken(long companyId, String redirect, String code) {
 
 		String url = HttpUtil.addParameter(
 			getAccessTokenURL(companyId), "client_id", getAppId(companyId));
@@ -92,30 +94,35 @@ public class FacebookConnectImpl implements FacebookConnect {
 		return null;
 	}
 
-	public String getAccessTokenURL(long companyId) throws SystemException {
+	@Override
+	public String getAccessTokenURL(long companyId) {
 		return PrefsPropsUtil.getString(
 			companyId, PropsKeys.FACEBOOK_CONNECT_OAUTH_TOKEN_URL,
 			PropsValues.FACEBOOK_CONNECT_OAUTH_TOKEN_URL);
 	}
 
-	public String getAppId(long companyId) throws SystemException {
+	@Override
+	public String getAppId(long companyId) {
 		return PrefsPropsUtil.getString(
 			companyId, PropsKeys.FACEBOOK_CONNECT_APP_ID,
 			PropsValues.FACEBOOK_CONNECT_APP_ID);
 	}
 
-	public String getAppSecret(long companyId) throws SystemException {
+	@Override
+	public String getAppSecret(long companyId) {
 		return PrefsPropsUtil.getString(
 			companyId, PropsKeys.FACEBOOK_CONNECT_APP_SECRET,
 			PropsValues.FACEBOOK_CONNECT_APP_SECRET);
 	}
 
-	public String getAuthURL(long companyId) throws SystemException {
+	@Override
+	public String getAuthURL(long companyId) {
 		return PrefsPropsUtil.getString(
 			companyId, PropsKeys.FACEBOOK_CONNECT_OAUTH_AUTH_URL,
 			PropsValues.FACEBOOK_CONNECT_OAUTH_AUTH_URL);
 	}
 
+	@Override
 	public JSONObject getGraphResources(
 		long companyId, String path, String accessToken, String fields) {
 
@@ -145,12 +152,14 @@ public class FacebookConnectImpl implements FacebookConnect {
 		return null;
 	}
 
-	public String getGraphURL(long companyId) throws SystemException {
+	@Override
+	public String getGraphURL(long companyId) {
 		return PrefsPropsUtil.getString(
 			companyId, PropsKeys.FACEBOOK_CONNECT_GRAPH_URL,
 			PropsValues.FACEBOOK_CONNECT_GRAPH_URL);
 	}
 
+	@Override
 	public String getProfileImageURL(PortletRequest portletRequest) {
 		HttpServletRequest request = PortalUtil.getHttpServletRequest(
 			portletRequest);
@@ -177,20 +186,22 @@ public class FacebookConnectImpl implements FacebookConnect {
 		return jsonObject.getString("picture");
 	}
 
-	public String getRedirectURL(long companyId) throws SystemException {
+	@Override
+	public String getRedirectURL(long companyId) {
 		return PrefsPropsUtil.getString(
 			companyId, PropsKeys.FACEBOOK_CONNECT_OAUTH_REDIRECT_URL,
 			PropsValues.FACEBOOK_CONNECT_OAUTH_REDIRECT_URL);
 	}
 
-	public boolean isEnabled(long companyId) throws SystemException {
+	@Override
+	public boolean isEnabled(long companyId) {
 		return PrefsPropsUtil.getBoolean(
 			companyId, PropsKeys.FACEBOOK_CONNECT_AUTH_ENABLED,
 			PropsValues.FACEBOOK_CONNECT_AUTH_ENABLED);
 	}
 
-	public boolean isVerifiedAccountRequired(long companyId)
-		throws SystemException {
+	@Override
+	public boolean isVerifiedAccountRequired(long companyId) {
 
 		return PrefsPropsUtil.getBoolean(
 			companyId, PropsKeys.FACEBOOK_CONNECT_VERIFIED_ACCOUNT_REQUIRED,

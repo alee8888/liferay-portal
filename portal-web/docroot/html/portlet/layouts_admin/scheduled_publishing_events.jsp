@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,33 +31,31 @@ headerNames.add("end-date");
 headerNames.add(StringPool.BLANK);
 
 searchContainer.setHeaderNames(headerNames);
-searchContainer.setEmptyResultsMessage("there-are-no-scheduled-events");
+searchContainer.setEmptyResultsMessage("there-are-no-scheduled-publication-processes");
 
-List<SchedulerResponse> results = SchedulerEngineUtil.getScheduledJobs(StagingUtil.getSchedulerGroupName(destinationName, groupId), StorageType.PERSISTED);
+List<SchedulerResponse> scheduledJobs = SchedulerEngineHelperUtil.getScheduledJobs(StagingUtil.getSchedulerGroupName(destinationName, groupId), StorageType.PERSISTED);
 
 List resultRows = searchContainer.getResultRows();
 
-for (int i = 0; i < results.size(); i++) {
-	SchedulerResponse schedulerResponse = results.get(i);
+for (int i = 0; i < scheduledJobs.size(); i++) {
+	SchedulerResponse schedulerResponse = scheduledJobs.get(i);
 
 	ResultRow row = new ResultRow(schedulerResponse, schedulerResponse.getJobName(), i);
 
 	// Title
 
-	row.addText(schedulerResponse.getDescription());
+	row.addText(HtmlUtil.escape(schedulerResponse.getDescription()));
 
 	// Start date
 
-	Date startDate = SchedulerEngineUtil.getStartTime(schedulerResponse);
-
-	row.addText(dateFormatDateTime.format(startDate));
+	row.addDate(SchedulerEngineHelperUtil.getStartTime(schedulerResponse));
 
 	// End date
 
-	Date endDate = SchedulerEngineUtil.getEndTime(schedulerResponse);
+	Date endDate = SchedulerEngineHelperUtil.getEndTime(schedulerResponse);
 
 	if (endDate != null) {
-		row.addText(dateFormatDateTime.format(endDate));
+		row.addDate(endDate);
 	}
 	else {
 		row.addText(LanguageUtil.get(pageContext, "no-end-date"));

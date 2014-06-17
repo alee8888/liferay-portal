@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,9 @@
 
 package com.liferay.portlet.asset.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.AuditedModel;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
@@ -40,6 +41,7 @@ import java.util.Date;
  * @see com.liferay.portlet.asset.model.impl.AssetCategoryPropertyModelImpl
  * @generated
  */
+@ProviderType
 public interface AssetCategoryPropertyModel extends AuditedModel,
 	BaseModel<AssetCategoryProperty> {
 	/*
@@ -81,6 +83,7 @@ public interface AssetCategoryPropertyModel extends AuditedModel,
 	 *
 	 * @return the company ID of this asset category property
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -88,6 +91,7 @@ public interface AssetCategoryPropertyModel extends AuditedModel,
 	 *
 	 * @param companyId the company ID of this asset category property
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -95,6 +99,7 @@ public interface AssetCategoryPropertyModel extends AuditedModel,
 	 *
 	 * @return the user ID of this asset category property
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -102,21 +107,23 @@ public interface AssetCategoryPropertyModel extends AuditedModel,
 	 *
 	 * @param userId the user ID of this asset category property
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
 	 * Returns the user uuid of this asset category property.
 	 *
 	 * @return the user uuid of this asset category property
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getUserUuid() throws SystemException;
+	@Override
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this asset category property.
 	 *
 	 * @param userUuid the user uuid of this asset category property
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -125,6 +132,7 @@ public interface AssetCategoryPropertyModel extends AuditedModel,
 	 * @return the user name of this asset category property
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -132,6 +140,7 @@ public interface AssetCategoryPropertyModel extends AuditedModel,
 	 *
 	 * @param userName the user name of this asset category property
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -139,6 +148,7 @@ public interface AssetCategoryPropertyModel extends AuditedModel,
 	 *
 	 * @return the create date of this asset category property
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -146,6 +156,7 @@ public interface AssetCategoryPropertyModel extends AuditedModel,
 	 *
 	 * @param createDate the create date of this asset category property
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -153,6 +164,7 @@ public interface AssetCategoryPropertyModel extends AuditedModel,
 	 *
 	 * @return the modified date of this asset category property
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -160,6 +172,7 @@ public interface AssetCategoryPropertyModel extends AuditedModel,
 	 *
 	 * @param modifiedDate the modified date of this asset category property
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -206,35 +219,60 @@ public interface AssetCategoryPropertyModel extends AuditedModel,
 	 */
 	public void setValue(String value);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(AssetCategoryProperty assetCategoryProperty);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<AssetCategoryProperty> toCacheModel();
 
+	@Override
 	public AssetCategoryProperty toEscapedModel();
 
+	@Override
+	public AssetCategoryProperty toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,12 +17,14 @@
 <liferay-ui:search-container
 	iteratorURL="<%= portletURL %>"
 >
-	<%@ include file="/html/portlet/workflow_instances/workflow_search_results.jspf" %>
 
-	<liferay-ui:search-container-results
-		results="<%= resultsInstances %>"
-		total="<%= totalInstances %>"
-	/>
+	<%
+	boolean allInstances = false;
+	%>
+
+	<liferay-ui:search-container-results>
+		<%@ include file="/html/portlet/workflow_instances/workflow_search_results.jspf" %>
+	</liferay-ui:search-container-results>
 
 	<liferay-ui:search-container-row
 		className="com.liferay.portal.kernel.workflow.WorkflowInstance"
@@ -37,8 +39,6 @@
 		<%
 		Map<String, Serializable> workflowContext = workflowInstance.getWorkflowContext();
 
-		long companyId = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_COMPANY_ID));
-		long groupId = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_GROUP_ID));
 		String className = (String)workflowContext.get(WorkflowConstants.CONTEXT_ENTRY_CLASS_NAME);
 		long classPK = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_ENTRY_CLASS_PK));
 
@@ -52,94 +52,55 @@
 		</portlet:renderURL>
 
 		<liferay-ui:search-container-column-text
-			buffer="buffer"
 			href="<%= rowURL %>"
 			name="definition"
-		>
-
-			<%
-			buffer.append(LanguageUtil.get(pageContext, workflowInstance.getWorkflowDefinitionName()));
-			%>
-
-		</liferay-ui:search-container-column-text>
+			value="<%= LanguageUtil.get(pageContext, HtmlUtil.escape(workflowInstance.getWorkflowDefinitionName())) %>"
+		/>
 
 		<liferay-ui:search-container-column-text
-			buffer="buffer"
 			href="<%= rowURL %>"
 			name="asset-title"
-		>
-
-			<%
-			buffer.append(HtmlUtil.escape(workflowHandler.getTitle(classPK, locale)));
-			%>
-
-		</liferay-ui:search-container-column-text>
+			value="<%= HtmlUtil.escape(workflowHandler.getTitle(classPK, locale)) %>"
+		/>
 
 		<liferay-ui:search-container-column-text
-			buffer="buffer"
 			href="<%= rowURL %>"
 			name="asset-type"
-		>
-
-			<%
-			buffer.append(workflowHandler.getType(locale));
-			%>
-
-		</liferay-ui:search-container-column-text>
+			value="<%= workflowHandler.getType(locale) %>"
+		/>
 
 		<liferay-ui:search-container-column-text
-			buffer="buffer"
 			href="<%= rowURL %>"
 			name="status"
-		>
+			value="<%= LanguageUtil.get(pageContext, HtmlUtil.escape(workflowInstance.getState())) %>"
+		/>
 
-			<%
-			buffer.append(LanguageUtil.get(pageContext, workflowInstance.getState()));
-			%>
+		<%
+		List<WorkflowLog> workflowLogs = WorkflowLogManagerUtil.getWorkflowLogsByWorkflowInstance(company.getCompanyId(), workflowInstance.getWorkflowInstanceId(), null, 0, 1, WorkflowComparatorFactoryUtil.getLogCreateDateComparator());
 
-		</liferay-ui:search-container-column-text>
+		WorkflowLog workflowLog = null;
+
+		if (!workflowLogs.isEmpty()) {
+			workflowLog = workflowLogs.get(0);
+		}
+		%>
 
 		<liferay-ui:search-container-column-text
-			buffer="buffer"
 			href="<%= rowURL %>"
 			name="last-activity-date"
-		>
-
-			<%
-			List<WorkflowLog> workflowLogs = WorkflowLogManagerUtil.getWorkflowLogsByWorkflowInstance(company.getCompanyId(), workflowInstance.getWorkflowInstanceId(), null, 0, 1, WorkflowComparatorFactoryUtil.getLogCreateDateComparator());
-
-			if (workflowLogs.isEmpty()) {
-				buffer.append(LanguageUtil.get(pageContext, "never"));
-			}
-			else {
-				WorkflowLog workflowLog = workflowLogs.get(0);
-
-				buffer.append(dateFormatDateTime.format(workflowLog.getCreateDate()));
-			}
-			%>
-
-		</liferay-ui:search-container-column-text>
+			value='<%= (workflowLog == null) ? LanguageUtil.get(pageContext, "never") : dateFormatDateTime.format(workflowLog.getCreateDate()) %>'
+		/>
 
 		<liferay-ui:search-container-column-text
-			buffer="buffer"
 			href="<%= rowURL %>"
 			name="end-date"
-		>
+			value='<%= (workflowInstance.getEndDate() == null ) ? LanguageUtil.get(pageContext, "never") : dateFormatDateTime.format(workflowInstance.getEndDate()) %>'
+		/>
 
-			<%
-			if (workflowInstance.getEndDate() == null) {
-				buffer.append(LanguageUtil.get(pageContext, "never"));
-			}
-			else {
-				buffer.append(dateFormatDateTime.format(workflowInstance.getEndDate()));
-			}
-			%>
-
-		</liferay-ui:search-container-column-text>
-
-		<c:if test="<%= !allInstances %>">
+		<c:if test='<%= !allInstances && !tabs2.equals("completed") %>'>
 			<liferay-ui:search-container-column-jsp
 				align="right"
+				cssClass="entry-action"
 				path="/html/portlet/workflow_instances/workflow_instance_action.jsp"
 			/>
 		</c:if>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,9 @@
 
 package com.liferay.portal.kernel.search;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.StringPool;
+
 import java.io.Serializable;
 
 import java.util.Locale;
@@ -27,22 +30,39 @@ import java.util.Map;
  */
 public class Field implements Serializable {
 
+	public static final String ANY = StringPool.STAR;
+
+	public static final String ARTICLE_ID = "articleId";
+
+	public static final String ASSET_CATEGORY_ID = "assetCategoryId";
+
 	public static final String ASSET_CATEGORY_IDS = "assetCategoryIds";
 
 	/**
-	 * @deprecated {@link #ASSET_CATEGORY_TITLES}
+	 * @deprecated As of 6.2.0, replaced by {@link #ASSET_CATEGORY_TITLES}
 	 */
+	@Deprecated
 	public static final String ASSET_CATEGORY_NAMES = "assetCategoryNames";
+
+	public static final String ASSET_CATEGORY_TITLE = "assetCategoryTitle";
 
 	public static final String ASSET_CATEGORY_TITLES = "assetCategoryTitles";
 
+	public static final String ASSET_TAG_IDS = "assetTagIds";
+
 	public static final String ASSET_TAG_NAMES = "assetTagNames";
+
+	public static final String ASSET_VOCABULARY_ID = "assetVocabularyId";
+
+	public static final String ASSET_VOCABULARY_IDS = "assetVocabularyIds";
 
 	public static final String CATEGORY_ID = "categoryId";
 
 	public static final String CLASS_NAME_ID = "classNameId";
 
 	public static final String CLASS_PK = "classPK";
+
+	public static final String CLASS_TYPE_ID = "classTypeId";
 
 	public static final String COMMENTS = "comments";
 
@@ -52,11 +72,17 @@ public class Field implements Serializable {
 
 	public static final String CREATE_DATE = "createDate";
 
+	public static final String DECK_TITLE = "deckTitle";
+
+	public static final String DEFAULT_LANGUAGE_ID = "defaultLanguageId";
+
 	public static final String DESCRIPTION = "description";
 
 	public static final String ENTRY_CLASS_NAME = "entryClassName";
 
 	public static final String ENTRY_CLASS_PK = "entryClassPK";
+
+	public static final String EXPIRATION_DATE = "expirationDate";
 
 	public static final String FOLDER_ID = "folderId";
 
@@ -64,15 +90,24 @@ public class Field implements Serializable {
 
 	public static final String GROUP_ROLE_ID = "groupRoleId";
 
+	public static final String HIDDEN = "hidden";
+
+	public static final String KEYWORD_SEARCH = "keywordSearch";
+
 	public static final String[] KEYWORDS = {
 		Field.ASSET_CATEGORY_TITLES, Field.ASSET_TAG_NAMES, Field.COMMENTS,
 		Field.CONTENT, Field.DESCRIPTION, Field.PROPERTIES, Field.TITLE,
 		Field.URL, Field.USER_NAME
 	};
 
+	public static final String LANGUAGE_ID = "languageId";
+
+	public static final String LAYOUT_UUID = "layoutUuid";
+
 	/**
-	 * @deprecated {@link #MODIFIED_DATE}
+	 * @deprecated As of 6.1.0, replaced by {@link #MODIFIED_DATE}
 	 */
+	@Deprecated
 	public static final String MODIFIED = "modified";
 
 	public static final String MODIFIED_DATE = "modified";
@@ -85,9 +120,23 @@ public class Field implements Serializable {
 
 	public static final String PORTLET_ID = "portletId";
 
+	public static final String PRIORITY = "priority";
+
 	public static final String PROPERTIES = "properties";
 
+	public static final String PUBLISH_DATE = "publishDate";
+
+	public static final String RATINGS = "ratings";
+
+	public static final String RELATED_ENTRY = "relatedEntry";
+
+	public static final String REMOVED_BY_USER_NAME = "removedByUserName";
+
+	public static final String REMOVED_DATE = "removedDate";
+
 	public static final String ROLE_ID = "roleId";
+
+	public static final String ROOT_ENTRY_CLASS_NAME = "rootEntryClassName";
 
 	public static final String ROOT_ENTRY_CLASS_PK = "rootEntryClassPK";
 
@@ -95,11 +144,15 @@ public class Field implements Serializable {
 
 	public static final String SNIPPET = "snippet";
 
+	public static final String SPELL_CHECK_WORD = "spellCheckWord";
+
 	public static final String STAGING_GROUP = "stagingGroup";
 
 	public static final String STATUS = "status";
 
 	public static final String TITLE = "title";
+
+	public static final String TREE_PATH = "treePath";
 
 	public static final String TYPE = "type";
 
@@ -114,11 +167,15 @@ public class Field implements Serializable {
 
 	public static final String URL = "url";
 
+	public static final String USER_GROUP_ID = "userGroupId";
+
 	public static final String USER_ID = "userId";
 
 	public static final String USER_NAME = "userName";
 
 	public static final String VERSION = "version";
+
+	public static final String VIEW_COUNT = "viewCount";
 
 	public Field(String name, Map<Locale, String> localizedValues) {
 		_name = name;
@@ -129,23 +186,25 @@ public class Field implements Serializable {
 		this(name, new String[] {value});
 	}
 
-	public Field(String name, String[] values) {
-		_name = name;
-		_values = values;
-	}
-
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public Field(String name, String value, boolean tokenized) {
 		this(name, value);
 
 		setTokenized(tokenized);
 	}
 
+	public Field(String name, String[] values) {
+		_name = name;
+		_values = values;
+	}
+
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public Field(String name, String[] values, boolean tokenized) {
 		this(name, values);
 
@@ -153,8 +212,9 @@ public class Field implements Serializable {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public Field(String name, String[] values, boolean tokenized, float boost) {
 		this(name, values);
 
@@ -174,8 +234,12 @@ public class Field implements Serializable {
 		return _name;
 	}
 
+	public Class<? extends Number> getNumericClass() {
+		return _numericClass;
+	}
+
 	public String getValue() {
-		if ((_values != null) && (_values.length > 0)) {
+		if (ArrayUtil.isNotEmpty(_values)) {
 			return _values[0];
 		}
 		else {
@@ -216,6 +280,10 @@ public class Field implements Serializable {
 		_numeric = numeric;
 	}
 
+	public void setNumericClass(Class<? extends Number> numericClass) {
+		_numericClass = numericClass;
+	}
+
 	public void setTokenized(boolean tokenized) {
 		_tokenized = tokenized;
 	}
@@ -232,6 +300,7 @@ public class Field implements Serializable {
 	private Map<Locale, String> _localizedValues;
 	private String _name;
 	private boolean _numeric;
+	private Class<? extends Number> _numericClass;
 	private boolean _tokenized;
 	private String[] _values;
 

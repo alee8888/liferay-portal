@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,10 @@
 
 <%@ include file="/html/portlet/document_library_display/init.jsp" %>
 
+<%
+DLActionsDisplayContext dlActionsDisplayContext = new DLActionsDisplayContext(request, dlPortletInstanceSettings);
+%>
+
 <c:choose>
 	<c:when test="<%= portletName.equals(PortletKeys.DOCUMENT_LIBRARY_DISPLAY) || portletName.equals(PortletKeys.MEDIA_GALLERY_DISPLAY) %>">
 
@@ -24,105 +28,80 @@
 
 		long folderId = GetterUtil.getLong((String)request.getAttribute("view.jsp-folderId"));
 
-		long defaultFolderId = GetterUtil.getLong((String)request.getAttribute("view.jsp-defaultFolderId"));
-
 		long repositoryId = GetterUtil.getLong((String)request.getAttribute("view.jsp-repositoryId"));
-
-		boolean viewFolder = GetterUtil.getBoolean((String)request.getAttribute("view.jsp-viewFolder"));
-
-		boolean useAssetEntryQuery = GetterUtil.getBoolean((String)request.getAttribute("view.jsp-useAssetEntryQuery"));
 		%>
 
-		<div class="top-links-container">
-			<div class="top-links">
-				<c:if test="<%= showTabs %>">
-					<ul class="top-links-navigation">
-						<li class="top-link first">
+		<c:if test="<%= dlActionsDisplayContext.isShowTabs() || dlPortletInstanceSettings.isShowFoldersSearch() %>">
+			<aui:nav-bar>
+				<c:if test="<%= dlActionsDisplayContext.isShowTabs() %>">
+					<aui:nav cssClass="navbar-nav">
 
-							<%
-							String homeMessage = "home";
-							String recentMessage = "recent";
-							String mineMessage = "mine";
+						<%
+						PortletURL portletURL = renderResponse.createRenderURL();
 
-							PortletURL portletURL = renderResponse.createRenderURL();
+						String label = "home";
+						boolean selected = topLink.equals(label);
 
-							portletURL.setParameter("categoryId", StringPool.BLANK);
-							portletURL.setParameter("tag", StringPool.BLANK);
-							portletURL.setParameter("topLink", homeMessage);
-							%>
+						portletURL.setParameter("topLink", label);
+						portletURL.setParameter("categoryId", StringPool.BLANK);
+						portletURL.setParameter("tag", StringPool.BLANK);
+						%>
 
-							<liferay-ui:icon
-								image="../aui/home"
-								label="<%= true %>"
-								message="<%= homeMessage %>"
-								url="<%= (topLink.equals(homeMessage) && (folderId == defaultFolderId) && viewFolder && !useAssetEntryQuery) ? StringPool.BLANK : portletURL.toString() %>"
-							/>
-						</li>
+						<aui:nav-item className='<%= selected ? "active" : StringPool.BLANK %>' href="<%= portletURL.toString() %>" label="<%= label %>" selected="<%= selected %>" />
 
-						<li class="top-link <%= (themeDisplay.isSignedIn() ? StringPool.BLANK : " last") %>">
+						<%
+						label = "recent";
+						selected = topLink.equals(label);
 
-							<%
-							portletURL.setParameter("topLink", recentMessage);
-							%>
+						portletURL.setParameter("topLink", label);
+						%>
 
-							<liferay-ui:icon
-								image="../aui/clock"
-								label="<%= true %>"
-								message="<%= recentMessage %>"
-								url="<%= (topLink.equals(recentMessage) && !useAssetEntryQuery) ? StringPool.BLANK : portletURL.toString() %>"
-							/>
-						</li>
+						<aui:nav-item className='<%= selected ? "active" : StringPool.BLANK %>' href="<%= portletURL.toString() %>" label="<%= label %>" selected="<%= selected %>" />
 
 						<c:if test="<%= themeDisplay.isSignedIn() %>">
-							<li class="top-link last">
 
-								<%
-								portletURL.setParameter("topLink", mineMessage);
-								%>
+							<%
+							label = "mine";
+							selected = topLink.equals(label);
 
-								<liferay-ui:icon
-									image="../aui/person"
-									label="<%= true %>"
-									message="<%= mineMessage %>"
-									url="<%= (topLink.equals(mineMessage) && !useAssetEntryQuery) ? StringPool.BLANK : portletURL.toString() %>"
-								/>
-							</li>
+							portletURL.setParameter("topLink", label);
+							%>
+
+							<aui:nav-item className='<%= selected ? "active" : StringPool.BLANK %>' href="<%= portletURL.toString() %>" label="<%= label %>" selected="<%= selected %>" />
 						</c:if>
-					</ul>
+					</aui:nav>
 				</c:if>
 
-				<c:if test="<%= showFoldersSearch %>">
+				<c:if test="<%= dlPortletInstanceSettings.isShowFoldersSearch() %>">
 					<liferay-portlet:renderURL varImpl="searchURL">
 						<portlet:param name="struts_action" value="/document_library_display/search" />
 					</liferay-portlet:renderURL>
 
-					<div class="folder-search">
-						<aui:form action="<%= searchURL %>" method="get" name="searchFm">
-							<liferay-portlet:renderURLParams varImpl="searchURL" />
-							<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
-							<aui:input name="repositoryId" type="hidden" value="<%= repositoryId %>" />
-							<aui:input name="folderId" type="hidden" value="<%= folderId %>" />
-							<aui:input name="breadcrumbsFolderId" type="hidden" value="<%= folderId %>" />
-							<aui:input name="searchFolderIds" type="hidden" value="<%= folderId %>" />
+					<aui:nav-bar-search>
+						<div class="col-xs-12 form-search">
+							<aui:form action="<%= searchURL %>" method="get" name="searchFm">
+								<liferay-portlet:renderURLParams varImpl="searchURL" />
+								<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
+								<aui:input name="repositoryId" type="hidden" value="<%= repositoryId %>" />
+								<aui:input name="folderId" type="hidden" value="<%= folderId %>" />
+								<aui:input name="breadcrumbsFolderId" type="hidden" value="<%= folderId %>" />
+								<aui:input name="searchFolderIds" type="hidden" value="<%= folderId %>" />
 
-							<span class="aui-search-bar">
-								<aui:input id="keywords1" inlineField="<%= true %>" label="" name="keywords" size="30" title="search-documents" type="text" />
-
-								<aui:button type="submit" value="search" />
-							</span>
-						</aui:form>
-					</div>
+								<liferay-ui:input-search id="keywords1" />
+							</aui:form>
+						</div>
+					</aui:nav-bar-search>
 
 					<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
 						<aui:script>
-							Liferay.Util.focusFormField(document.<portlet:namespace />searchFm.<portlet:namespace />keywords);
+							Liferay.Util.focusFormField(document.getElementById('<portlet:namespace />keywords1'));
 						</aui:script>
 					</c:if>
 				</c:if>
-			</div>
-		</div>
+			</aui:nav-bar>
+		</c:if>
 	</c:when>
-	<c:when test="<%= (showTabs || showFoldersSearch) && portletName.equals(PortletKeys.DOCUMENT_LIBRARY_DISPLAY) %>">
+	<c:when test="<%= (dlActionsDisplayContext.isShowTabs() || dlPortletInstanceSettings.isShowFoldersSearch()) && portletName.equals(PortletKeys.DOCUMENT_LIBRARY_DISPLAY) %>">
 		<liferay-ui:header
 			title="home"
 		/>

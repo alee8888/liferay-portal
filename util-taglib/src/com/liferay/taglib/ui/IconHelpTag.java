@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,8 +16,8 @@ package com.liferay.taglib.ui;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.servlet.taglib.FileAvailabilityUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.util.PwdGenerator;
 
 import javax.servlet.jsp.JspWriter;
 
@@ -44,7 +44,7 @@ public class IconHelpTag extends IconTag {
 
 		JspWriter jspWriter = pageContext.getOut();
 
-		String id = PwdGenerator.getPassword(PwdGenerator.KEY3, 4);
+		String id = StringUtil.randomId();
 
 		jspWriter.write("<span class=\"taglib-icon-help\"><img alt=\"\" ");
 		jspWriter.write("aria-labelledby=\"");
@@ -57,7 +57,7 @@ public class IconHelpTag extends IconTag {
 		jspWriter.write(themeDisplay.getPathThemeImages());
 		jspWriter.write("/portlet/help.png\" tabIndex=\"0\" ");
 		jspWriter.write("/><span ");
-		jspWriter.write("class=\"aui-helper-hidden-accessible tooltip-text\" ");
+		jspWriter.write("class=\"hide-accessible tooltip-text\" ");
 		jspWriter.write("id=\"");
 		jspWriter.write(id);
 		jspWriter.write("\" >");

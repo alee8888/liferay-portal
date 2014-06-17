@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portlet.mobiledevicerules.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.ServiceContext;
@@ -32,10 +31,11 @@ import java.util.Map;
  */
 public class MDRRuleGroupServiceImpl extends MDRRuleGroupServiceBaseImpl {
 
+	@Override
 	public MDRRuleGroup addRuleGroup(
 			long groupId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		MDRPermissionUtil.check(
 			getPermissionChecker(), groupId, ActionKeys.ADD_RULE_GROUP);
@@ -44,9 +44,10 @@ public class MDRRuleGroupServiceImpl extends MDRRuleGroupServiceBaseImpl {
 			groupId, nameMap, descriptionMap, serviceContext);
 	}
 
+	@Override
 	public MDRRuleGroup copyRuleGroup(
 			long ruleGroupId, long groupId, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		PermissionChecker permissionChecker = getPermissionChecker();
 
@@ -62,9 +63,8 @@ public class MDRRuleGroupServiceImpl extends MDRRuleGroupServiceBaseImpl {
 			ruleGroup, groupId, serviceContext);
 	}
 
-	public void deleteRuleGroup(long ruleGroupId)
-		throws PortalException, SystemException {
-
+	@Override
+	public void deleteRuleGroup(long ruleGroupId) throws PortalException {
 		MDRRuleGroup ruleGroup = mdrRuleGroupPersistence.findByPrimaryKey(
 			ruleGroupId);
 
@@ -74,8 +74,9 @@ public class MDRRuleGroupServiceImpl extends MDRRuleGroupServiceBaseImpl {
 		mdrRuleGroupLocalService.deleteRuleGroup(ruleGroup);
 	}
 
+	@Override
 	public MDRRuleGroup fetchRuleGroup(long ruleGroupId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		MDRRuleGroup ruleGroup = mdrRuleGroupPersistence.fetchByPrimaryKey(
 			ruleGroupId);
@@ -88,9 +89,8 @@ public class MDRRuleGroupServiceImpl extends MDRRuleGroupServiceBaseImpl {
 		return ruleGroup;
 	}
 
-	public MDRRuleGroup getRuleGroup(long ruleGroupId)
-		throws PortalException, SystemException {
-
+	@Override
+	public MDRRuleGroup getRuleGroup(long ruleGroupId) throws PortalException {
 		MDRRuleGroup ruleGroup = mdrRuleGroupPersistence.findByPrimaryKey(
 			ruleGroupId);
 
@@ -100,10 +100,11 @@ public class MDRRuleGroupServiceImpl extends MDRRuleGroupServiceBaseImpl {
 		return ruleGroup;
 	}
 
+	@Override
 	public MDRRuleGroup updateRuleGroup(
 			long ruleGroupId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		MDRRuleGroup ruleGroup = mdrRuleGroupPersistence.findByPrimaryKey(
 			ruleGroupId);

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,14 +26,17 @@ import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.asset.model.BaseAssetRenderer;
+import com.liferay.portlet.asset.model.DDMFieldReader;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecord;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecordSet;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecordVersion;
 import com.liferay.portlet.dynamicdatalists.service.permission.DDLRecordSetPermission;
+import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 
 import java.util.Locale;
 
 import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
@@ -52,6 +55,8 @@ public class DDLRecordAssetRenderer extends BaseAssetRenderer {
 
 		try {
 			_recordSet = record.getRecordSet();
+
+			_ddmStructure = _recordSet.getDDMStructure();
 		}
 		catch (Exception e) {
 			if (_log.isWarnEnabled()) {
@@ -60,26 +65,42 @@ public class DDLRecordAssetRenderer extends BaseAssetRenderer {
 		}
 	}
 
-	public String getAssetRendererFactoryClassName() {
-		return DDLRecordAssetRendererFactory.CLASS_NAME;
+	@Override
+	public String getClassName() {
+		return DDLRecord.class.getName();
 	}
 
+	@Override
 	public long getClassPK() {
 		return _record.getRecordId();
 	}
 
+	@Override
+	public DDMFieldReader getDDMFieldReader() {
+		return new DDLRecordDDMFieldReader(_record);
+	}
+
+	@Override
 	public long getGroupId() {
 		return _record.getGroupId();
 	}
 
-	public String getSummary(Locale locale) {
+	@Override
+	public String getSummary(
+		PortletRequest portletRequest, PortletResponse portletResponse) {
+
 		return StringPool.BLANK;
 	}
 
+	@Override
 	public String getTitle(Locale locale) {
-		String name = _recordSet.getName(locale);
+		String ddmStructureName = _ddmStructure.getName(locale);
 
-		return LanguageUtil.format(locale, "new-record-for-list-x", name);
+		String recordSetName = _recordSet.getName(locale);
+
+		return LanguageUtil.format(
+			locale, "new-x-for-list-x",
+			new Object[] {ddmStructureName, recordSetName}, false);
 	}
 
 	@Override
@@ -100,14 +121,17 @@ public class DDLRecordAssetRenderer extends BaseAssetRenderer {
 		return portletURL;
 	}
 
+	@Override
 	public long getUserId() {
 		return _record.getUserId();
 	}
 
+	@Override
 	public String getUserName() {
 		return _record.getUserName();
 	}
 
+	@Override
 	public String getUuid() {
 		return _record.getUuid();
 	}
@@ -124,6 +148,7 @@ public class DDLRecordAssetRenderer extends BaseAssetRenderer {
 			permissionChecker, _recordSet, ActionKeys.VIEW);
 	}
 
+	@Override
 	public String render(
 			RenderRequest renderRequest, RenderResponse renderResponse,
 			String template)
@@ -155,6 +180,7 @@ public class DDLRecordAssetRenderer extends BaseAssetRenderer {
 	private static Log _log = LogFactoryUtil.getLog(
 		DDLRecordAssetRenderer.class);
 
+	private DDMStructure _ddmStructure;
 	private DDLRecord _record;
 	private DDLRecordSet _recordSet;
 	private DDLRecordVersion _recordVersion;

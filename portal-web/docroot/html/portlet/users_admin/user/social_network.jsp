@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,25 +30,18 @@ Contact selContact = (Contact)request.getAttribute("user.selContact");
 			<div class="social-network">
 				<aui:input label="facebook" name="facebookSn" />
 
-				<img alt="<liferay-ui:message key="facebook" />" src="<%= themeDisplay.getPathThemeImages() %>/users_admin/facebook.jpg" />
-			</div>
-
-			<div class="social-network">
-				<aui:input label="myspace" name="mySpaceSn" />
-
-				<img alt="<liferay-ui:message key="myspace" />" src="<%= themeDisplay.getPathThemeImages() %>/users_admin/myspace.jpg" />
-
+				<i class="icon-facebook-sign"></i>
 			</div>
 
 			<div class="social-network">
 				<aui:input label="twitter" name="twitterSn" />
 
-				<img alt="<liferay-ui:message key="twitter" />" class="social-network-logo" src="<%= themeDisplay.getPathThemeImages() %>/users_admin/twitter.jpg" />
+				<i class="icon-twitter-sign"></i>
 			</div>
 		</aui:fieldset>
 	</c:when>
 	<c:otherwise>
-		<div class="portlet-msg-info">
+		<div class="alert alert-info">
 			<liferay-ui:message key="this-section-will-be-editable-after-creating-the-user" />
 		</div>
 	</c:otherwise>

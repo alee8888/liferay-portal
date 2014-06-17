@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.util.PropsValues;
 
 import java.sql.Connection;
@@ -42,7 +43,7 @@ public class VerifyMySQL extends VerifyProcess {
 		PreparedStatement ps = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
 				"alter table " + tableName + " engine " +
@@ -70,7 +71,7 @@ public class VerifyMySQL extends VerifyProcess {
 		ResultSet rs = null;
 
 		try {
-			con = DataAccess.getConnection();
+			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement("show table status");
 
@@ -78,15 +79,20 @@ public class VerifyMySQL extends VerifyProcess {
 
 			while (rs.next()) {
 				String tableName = rs.getString("Name");
-				String engine = GetterUtil.getString(rs.getString("Engine"));
-				String comment = GetterUtil.getString(rs.getString("Comment"));
 
-				if (comment.equalsIgnoreCase("VIEW")) {
+				if (!isPortalTableName(tableName)) {
 					continue;
 				}
 
-				if (engine.equalsIgnoreCase(
-						PropsValues.DATABASE_MYSQL_ENGINE)) {
+				String engine = GetterUtil.getString(rs.getString("Engine"));
+				String comment = GetterUtil.getString(rs.getString("Comment"));
+
+				if (StringUtil.equalsIgnoreCase(comment, "VIEW")) {
+					continue;
+				}
+
+				if (StringUtil.equalsIgnoreCase(
+						engine, PropsValues.DATABASE_MYSQL_ENGINE)) {
 
 					continue;
 				}

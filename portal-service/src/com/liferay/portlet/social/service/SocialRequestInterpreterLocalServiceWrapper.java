@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
- * <p>
- * This class is a wrapper for {@link SocialRequestInterpreterLocalService}.
- * </p>
+ * Provides a wrapper for {@link SocialRequestInterpreterLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialRequestInterpreterLocalService
+ * @author Brian Wing Shun Chan
+ * @see SocialRequestInterpreterLocalService
  * @generated
  */
+@ProviderType
 public class SocialRequestInterpreterLocalServiceWrapper
 	implements SocialRequestInterpreterLocalService,
 		ServiceWrapper<SocialRequestInterpreterLocalService> {
@@ -38,6 +39,7 @@ public class SocialRequestInterpreterLocalServiceWrapper
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _socialRequestInterpreterLocalService.getBeanIdentifier();
 	}
@@ -47,6 +49,7 @@ public class SocialRequestInterpreterLocalServiceWrapper
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_socialRequestInterpreterLocalService.setBeanIdentifier(beanIdentifier);
 	}
@@ -57,6 +60,7 @@ public class SocialRequestInterpreterLocalServiceWrapper
 	*
 	* @param requestInterpreter the social request interpreter
 	*/
+	@Override
 	public void addRequestInterpreter(
 		com.liferay.portlet.social.model.SocialRequestInterpreter requestInterpreter) {
 		_socialRequestInterpreterLocalService.addRequestInterpreter(requestInterpreter);
@@ -68,6 +72,7 @@ public class SocialRequestInterpreterLocalServiceWrapper
 	*
 	* @param requestInterpreter the social request interpreter
 	*/
+	@Override
 	public void deleteRequestInterpreter(
 		com.liferay.portlet.social.model.SocialRequestInterpreter requestInterpreter) {
 		_socialRequestInterpreterLocalService.deleteRequestInterpreter(requestInterpreter);
@@ -89,6 +94,7 @@ public class SocialRequestInterpreterLocalServiceWrapper
 	links and get localized text fragments
 	* @return the social request feed entry
 	*/
+	@Override
 	public com.liferay.portlet.social.model.SocialRequestFeedEntry interpret(
 		com.liferay.portlet.social.model.SocialRequest request,
 		com.liferay.portal.theme.ThemeDisplay themeDisplay) {
@@ -110,6 +116,7 @@ public class SocialRequestInterpreterLocalServiceWrapper
 	* @param themeDisplay the theme display needed by interpreters to create
 	links and get localized text fragments
 	*/
+	@Override
 	public void processConfirmation(
 		com.liferay.portlet.social.model.SocialRequest request,
 		com.liferay.portal.theme.ThemeDisplay themeDisplay) {
@@ -132,6 +139,7 @@ public class SocialRequestInterpreterLocalServiceWrapper
 	* @param themeDisplay the theme display needed by interpreters to create
 	links and get localized text fragments
 	*/
+	@Override
 	public void processRejection(
 		com.liferay.portlet.social.model.SocialRequest request,
 		com.liferay.portal.theme.ThemeDisplay themeDisplay) {
@@ -140,24 +148,28 @@ public class SocialRequestInterpreterLocalServiceWrapper
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SocialRequestInterpreterLocalService getWrappedSocialRequestInterpreterLocalService() {
 		return _socialRequestInterpreterLocalService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSocialRequestInterpreterLocalService(
 		SocialRequestInterpreterLocalService socialRequestInterpreterLocalService) {
 		_socialRequestInterpreterLocalService = socialRequestInterpreterLocalService;
 	}
 
+	@Override
 	public SocialRequestInterpreterLocalService getWrappedService() {
 		return _socialRequestInterpreterLocalService;
 	}
 
+	@Override
 	public void setWrappedService(
 		SocialRequestInterpreterLocalService socialRequestInterpreterLocalService) {
 		_socialRequestInterpreterLocalService = socialRequestInterpreterLocalService;

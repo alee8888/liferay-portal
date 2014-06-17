@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,9 +15,7 @@
 package com.liferay.portlet.expando.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.security.auth.CompanyThreadLocal;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.expando.model.ExpandoRow;
 import com.liferay.portlet.expando.model.ExpandoTable;
 import com.liferay.portlet.expando.model.ExpandoTableConstants;
@@ -32,8 +30,9 @@ import java.util.List;
  */
 public class ExpandoRowLocalServiceImpl extends ExpandoRowLocalServiceBaseImpl {
 
+	@Override
 	public ExpandoRow addRow(long tableId, long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ExpandoTable table = expandoTablePersistence.findByPrimaryKey(tableId);
 
@@ -45,12 +44,13 @@ public class ExpandoRowLocalServiceImpl extends ExpandoRowLocalServiceBaseImpl {
 		row.setTableId(tableId);
 		row.setClassPK(classPK);
 
-		expandoRowPersistence.update(row, false);
+		expandoRowPersistence.update(row);
 
 		return row;
 	}
 
-	public void deleteRow(ExpandoRow row) throws SystemException {
+	@Override
+	public void deleteRow(ExpandoRow row) {
 
 		// Row
 
@@ -61,23 +61,24 @@ public class ExpandoRowLocalServiceImpl extends ExpandoRowLocalServiceBaseImpl {
 		expandoValueLocalService.deleteRowValues(row.getRowId());
 	}
 
-	public void deleteRow(long rowId) throws PortalException, SystemException {
+	@Override
+	public void deleteRow(long rowId) throws PortalException {
 		ExpandoRow row = expandoRowPersistence.findByPrimaryKey(rowId);
 
 		deleteRow(row);
 	}
 
-	public void deleteRow(long tableId, long classPK)
-		throws PortalException, SystemException {
-
+	@Override
+	public void deleteRow(long tableId, long classPK) throws PortalException {
 		ExpandoRow row = expandoRowPersistence.findByT_C(tableId, classPK);
 
 		deleteRow(row);
 	}
 
+	@Override
 	public void deleteRow(
 			long companyId, long classNameId, String tableName, long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ExpandoTable table = expandoTableLocalService.getTable(
 			companyId, classNameId, tableName);
@@ -85,66 +86,76 @@ public class ExpandoRowLocalServiceImpl extends ExpandoRowLocalServiceBaseImpl {
 		expandoRowLocalService.deleteRow(table.getTableId(), classPK);
 	}
 
+	@Override
 	public void deleteRow(
 			long companyId, String className, String tableName, long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		expandoRowLocalService.deleteRow(
 			companyId, classNameId, tableName, classPK);
 	}
 
+	@Override
+	public void deleteRows(long classPK) {
+		List<ExpandoRow> rows = expandoRowPersistence.findByClassPK(classPK);
+
+		for (ExpandoRow row : rows) {
+			deleteRow(row);
+		}
+	}
+
+	@Override
 	public List<ExpandoRow> getDefaultTableRows(
-			long companyId, long classNameId, int start, int end)
-		throws SystemException {
+		long companyId, long classNameId, int start, int end) {
 
 		return expandoRowLocalService.getRows(
 			companyId, classNameId, ExpandoTableConstants.DEFAULT_TABLE_NAME,
 			start, end);
 	}
 
+	@Override
 	public List<ExpandoRow> getDefaultTableRows(
-			long companyId, String className, int start, int end)
-		throws SystemException {
+		long companyId, String className, int start, int end) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return expandoRowLocalService.getDefaultTableRows(
 			companyId, classNameId, start, end);
 	}
 
-	public int getDefaultTableRowsCount(long companyId, long classNameId)
-		throws SystemException {
+	@Override
+	public int getDefaultTableRowsCount(long companyId, long classNameId) {
 
 		return expandoRowLocalService.getRowsCount(
 			companyId, classNameId, ExpandoTableConstants.DEFAULT_TABLE_NAME);
 	}
 
-	public int getDefaultTableRowsCount(long companyId, String className)
-		throws SystemException {
+	@Override
+	public int getDefaultTableRowsCount(long companyId, String className) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return expandoRowLocalService.getDefaultTableRowsCount(
 			companyId, classNameId);
 	}
 
-	public ExpandoRow getRow(long rowId)
-		throws PortalException, SystemException {
-
+	@Override
+	public ExpandoRow getRow(long rowId) throws PortalException {
 		return expandoRowPersistence.findByPrimaryKey(rowId);
 	}
 
+	@Override
 	public ExpandoRow getRow(long tableId, long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return expandoRowPersistence.findByT_C(tableId, classPK);
 	}
 
+	@Override
 	public ExpandoRow getRow(
-			long companyId, long classNameId, String tableName, long classPK)
-		throws SystemException {
+		long companyId, long classNameId, String tableName, long classPK) {
 
 		ExpandoTable table = expandoTablePersistence.fetchByC_C_N(
 			companyId, classNameId, tableName);
@@ -156,26 +167,26 @@ public class ExpandoRowLocalServiceImpl extends ExpandoRowLocalServiceBaseImpl {
 		return expandoRowPersistence.fetchByT_C(table.getTableId(), classPK);
 	}
 
+	@Override
 	public ExpandoRow getRow(
-			long companyId, String className, String tableName, long classPK)
-		throws SystemException {
+		long companyId, String className, String tableName, long classPK) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return expandoRowLocalService.getRow(
 			companyId, classNameId, tableName, classPK);
 	}
 
-	public List<ExpandoRow> getRows(long tableId, int start, int end)
-		throws SystemException {
+	@Override
+	public List<ExpandoRow> getRows(long tableId, int start, int end) {
 
 		return expandoRowPersistence.findByTableId(tableId, start, end);
 	}
 
+	@Override
 	public List<ExpandoRow> getRows(
-			long companyId, long classNameId, String tableName, int start,
-			int end)
-		throws SystemException {
+		long companyId, long classNameId, String tableName, int start,
+		int end) {
 
 		ExpandoTable table = expandoTablePersistence.fetchByC_C_N(
 			companyId, classNameId, tableName);
@@ -188,23 +199,25 @@ public class ExpandoRowLocalServiceImpl extends ExpandoRowLocalServiceBaseImpl {
 			table.getTableId(), start, end);
 	}
 
+	@Override
 	public List<ExpandoRow> getRows(
-			long companyId, String className, String tableName, int start,
-			int end)
-		throws SystemException {
+		long companyId, String className, String tableName, int start,
+		int end) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return expandoRowLocalService.getRows(
 			companyId, classNameId, tableName, start, end);
 	}
 
 	/**
-	 * @deprecated {@link #getRows(long, String, String, int, int)}
+	 * @deprecated As of 6.1.0, replaced by {@link #getRows(long, String,
+	 *             String, int, int)}
 	 */
+	@Deprecated
+	@Override
 	public List<ExpandoRow> getRows(
-			String className, String tableName, int start, int end)
-		throws SystemException {
+		String className, String tableName, int start, int end) {
 
 		long companyId = CompanyThreadLocal.getCompanyId();
 
@@ -212,12 +225,14 @@ public class ExpandoRowLocalServiceImpl extends ExpandoRowLocalServiceBaseImpl {
 			companyId, className, tableName, start, end);
 	}
 
-	public int getRowsCount(long tableId) throws SystemException {
+	@Override
+	public int getRowsCount(long tableId) {
 		return expandoRowPersistence.countByTableId(tableId);
 	}
 
-	public int getRowsCount(long companyId, long classNameId, String tableName)
-		throws SystemException {
+	@Override
+	public int getRowsCount(
+		long companyId, long classNameId, String tableName) {
 
 		ExpandoTable table = expandoTablePersistence.fetchByC_C_N(
 			companyId, classNameId, tableName);
@@ -229,20 +244,23 @@ public class ExpandoRowLocalServiceImpl extends ExpandoRowLocalServiceBaseImpl {
 		return expandoRowPersistence.countByTableId(table.getTableId());
 	}
 
-	public int getRowsCount(long companyId, String className, String tableName)
-		throws SystemException {
+	@Override
+	public int getRowsCount(
+		long companyId, String className, String tableName) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return expandoRowLocalService.getRowsCount(
 			companyId, classNameId, tableName);
 	}
 
 	/**
-	 * @deprecated {@link #getRowsCount(long, String, String)}
+	 * @deprecated As of 6.1.0, replaced by {@link #getRowsCount(long, String,
+	 *             String)}
 	 */
-	public int getRowsCount(String className, String tableName)
-		throws SystemException {
+	@Deprecated
+	@Override
+	public int getRowsCount(String className, String tableName) {
 
 		long companyId = CompanyThreadLocal.getCompanyId();
 

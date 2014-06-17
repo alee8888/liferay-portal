@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,13 @@
 
 package com.liferay.portal.kernel.template;
 
+import com.liferay.portal.kernel.configuration.Filter;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,118 +28,108 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Tina Tian
+ * @author Raymond Augé
  */
 public class TemplateManagerUtil {
 
-	public static void clearCache(String templateManagerName)
-		throws TemplateException {
-
-		TemplateManager templateManager = _getTemplateManager(
-			templateManagerName);
-
-		templateManager.clearCache();
-	}
-
-	public static void clearCache(String templateManagerName, String templateId)
-		throws TemplateException {
-
-		TemplateManager templateManager = _getTemplateManager(
-			templateManagerName);
-
-		templateManager.clearCache(templateId);
-	}
-
 	public static void destroy() {
-		for (TemplateManager templateManager : _templateManagers.values()) {
+		Map<String, TemplateManager> templateManagers = _getTemplateManagers();
+
+		for (TemplateManager templateManager : templateManagers.values()) {
 			templateManager.destroy();
 		}
 
-		_templateManagers.clear();
+		templateManagers.clear();
+	}
+
+	public static void destroy(ClassLoader classLoader) {
+		Map<String, TemplateManager> templateManagers = _getTemplateManagers();
+
+		for (TemplateManager templateManager : templateManagers.values()) {
+			templateManager.destroy(classLoader);
+		}
+	}
+
+	public static Set<String> getSupportedLanguageTypes(String propertyKey) {
+		Set<String> supportedLanguageTypes = _supportedLanguageTypes.get(
+			propertyKey);
+
+		if (supportedLanguageTypes != null) {
+			return supportedLanguageTypes;
+		}
+
+		Map<String, TemplateManager> templateManagers = _getTemplateManagers();
+
+		supportedLanguageTypes = new HashSet<String>();
+
+		for (String templateManagerName : templateManagers.keySet()) {
+			String content = PropsUtil.get(
+				propertyKey, new Filter(templateManagerName));
+
+			if (Validator.isNotNull(content)) {
+				supportedLanguageTypes.add(templateManagerName);
+			}
+		}
+
+		supportedLanguageTypes = Collections.unmodifiableSet(
+			supportedLanguageTypes);
+
+		_supportedLanguageTypes.put(propertyKey, supportedLanguageTypes);
+
+		return supportedLanguageTypes;
 	}
 
 	public static Template getTemplate(
-			String templateManagerName, String templateId,
-			String templateContent, String errorTemplateId,
-			String errorTemplateContent,
-			TemplateContextType templateContextType)
+			String templateManagerName, TemplateResource templateResource,
+			boolean restricted)
+		throws TemplateException {
+
+		TemplateManager templateManager = _getTemplateManager(
+			templateManagerName);
+
+		return templateManager.getTemplate(templateResource, restricted);
+	}
+
+	public static Template getTemplate(
+			String templateManagerName, TemplateResource templateResource,
+			TemplateResource errorTemplateResource, boolean restricted)
 		throws TemplateException {
 
 		TemplateManager templateManager = _getTemplateManager(
 			templateManagerName);
 
 		return templateManager.getTemplate(
-			templateId, templateContent, errorTemplateId, errorTemplateContent,
-			templateContextType);
-	}
-
-	public static Template getTemplate(
-			String templateManagerName, String templateId,
-			String templateContent, String errorTemplateId,
-			TemplateContextType templateContextType)
-		throws TemplateException {
-
-		TemplateManager templateManager = _getTemplateManager(
-			templateManagerName);
-
-		return templateManager.getTemplate(
-			templateId, templateContent, errorTemplateId, templateContextType);
-	}
-
-	public static Template getTemplate(
-			String templateManagerName, String templateId,
-			String templateContent, TemplateContextType templateContextType)
-		throws TemplateException {
-
-		TemplateManager templateManager = _getTemplateManager(
-			templateManagerName);
-
-		return templateManager.getTemplate(
-			templateId, templateContent, templateContextType);
-	}
-
-	public static Template getTemplate(
-			String templateManagerName, String templateId,
-			TemplateContextType templateContextType)
-		throws TemplateException {
-
-		TemplateManager templateManager = _getTemplateManager(
-			templateManagerName);
-
-		return templateManager.getTemplate(templateId, templateContextType);
+			templateResource, errorTemplateResource, restricted);
 	}
 
 	public static TemplateManager getTemplateManager(
 		String templateManagerName) {
 
-		return _templateManagers.get(templateManagerName);
+		Map<String, TemplateManager> templateManagers = _getTemplateManagers();
+
+		return templateManagers.get(templateManagerName);
 	}
 
-	public static Set<String> getTemplateManagerNames(
-		String templateManagerName) {
+	public static Set<String> getTemplateManagerNames() {
+		Map<String, TemplateManager> templateManagers = _getTemplateManagers();
 
-		return _templateManagers.keySet();
+		return templateManagers.keySet();
 	}
 
 	public static Map<String, TemplateManager> getTemplateManagers() {
-		return Collections.unmodifiableMap(_templateManagers);
-	}
-
-	public static boolean hasTemplate(
-			String templateManagerName, String templateId)
-		throws TemplateException {
-
-		TemplateManager templateManager = _getTemplateManager(
-			templateManagerName);
-
-		return templateManager.hasTemplate(templateId);
+		return Collections.unmodifiableMap(_getTemplateManagers());
 	}
 
 	public static boolean hasTemplateManager(String templateManagerName) {
-		return _templateManagers.containsKey(templateManagerName);
+		Map<String, TemplateManager> templateManagers = _getTemplateManagers();
+
+		return templateManagers.containsKey(templateManagerName);
 	}
 
 	public static void init() throws TemplateException {
-		for (TemplateManager templateManager : _templateManagers.values()) {
+		Map<String, TemplateManager> templateManagers = _getTemplateManagers();
+
+		for (TemplateManager templateManager : templateManagers.values()) {
 			templateManager.init();
 		}
 	}
@@ -143,12 +139,15 @@ public class TemplateManagerUtil {
 
 		templateManager.init();
 
-		_templateManagers.put(
-			templateManager.getTemplateManagerName(), templateManager);
+		Map<String, TemplateManager> templateManagers = _getTemplateManagers();
+
+		templateManagers.put(templateManager.getName(), templateManager);
 	}
 
 	public static void unregisterTemplateManager(String templateManagerName) {
-		TemplateManager templateManager = _templateManagers.remove(
+		Map<String, TemplateManager> templateManagers = _getTemplateManagers();
+
+		TemplateManager templateManager = templateManagers.remove(
 			templateManagerName);
 
 		if (templateManager != null) {
@@ -157,9 +156,13 @@ public class TemplateManagerUtil {
 	}
 
 	public void setTemplateManagers(List<TemplateManager> templateManagers) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
+		Map<String, TemplateManager> templateManagersMap =
+			_getTemplateManagers();
+
 		for (TemplateManager templateManager : templateManagers) {
-			_templateManagers.put(
-				templateManager.getTemplateManagerName(), templateManager);
+			templateManagersMap.put(templateManager.getName(), templateManager);
 		}
 	}
 
@@ -167,7 +170,9 @@ public class TemplateManagerUtil {
 			String templateManagerName)
 		throws TemplateException {
 
-		TemplateManager templateManager = _templateManagers.get(
+		Map<String, TemplateManager> templateManagers = _getTemplateManagers();
+
+		TemplateManager templateManager = templateManagers.get(
 			templateManagerName);
 
 		if (templateManager == null) {
@@ -178,6 +183,14 @@ public class TemplateManagerUtil {
 		return templateManager;
 	}
 
+	private static Map<String, TemplateManager> _getTemplateManagers() {
+		PortalRuntimePermission.checkGetBeanProperty(TemplateManagerUtil.class);
+
+		return _templateManagers;
+	}
+
+	private static Map<String, Set<String>> _supportedLanguageTypes =
+		new ConcurrentHashMap<String, Set<String>>();
 	private static Map<String, TemplateManager> _templateManagers =
 		new ConcurrentHashMap<String, TemplateManager>();
 

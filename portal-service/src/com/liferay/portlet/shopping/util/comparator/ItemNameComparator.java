@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portlet.shopping.util.comparator;
 
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portlet.shopping.model.ShoppingItem;
 
 /**
@@ -43,14 +44,23 @@ public class ItemNameComparator extends OrderByComparator {
 		ShoppingItem item1 = (ShoppingItem)obj1;
 		ShoppingItem item2 = (ShoppingItem)obj2;
 
-		Long categoryId1 = new Long(item1.getCategoryId());
-		Long categoryId2 = new Long(item2.getCategoryId());
+		Long categoryId1 = item1.getCategoryId();
+		Long categoryId2 = item2.getCategoryId();
 
 		int value = categoryId1.compareTo(categoryId2);
 
 		if (value == 0) {
-			value = item1.getName().toLowerCase().compareTo(
-				item2.getName().toLowerCase());
+			String name1 = StringUtil.toLowerCase(item1.getName());
+			String name2 = StringUtil.toLowerCase(item2.getName());
+
+			value = name1.compareTo(name2);
+
+			if (value == 0) {
+				Long itemId1 = item1.getItemId();
+				Long itemId2 = item2.getItemId();
+
+				value = itemId1.compareTo(itemId2);
+			}
 		}
 
 		if (_ascending) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,14 +14,21 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.GroupedModel;
+import com.liferay.portal.model.ContainerModel;
+import com.liferay.portal.model.StagedGroupedModel;
+import com.liferay.portal.model.TrashedModel;
+import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
+import com.liferay.portlet.trash.model.TrashEntry;
 
 import java.io.Serializable;
 
@@ -40,7 +47,9 @@ import java.util.Date;
  * @see com.liferay.portlet.messageboards.model.impl.MBCategoryModelImpl
  * @generated
  */
-public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
+@ProviderType
+public interface MBCategoryModel extends BaseModel<MBCategory>, ContainerModel,
+	StagedGroupedModel, TrashedModel, WorkflowedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -67,6 +76,7 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 * @return the uuid of this message boards category
 	 */
 	@AutoEscape
+	@Override
 	public String getUuid();
 
 	/**
@@ -74,6 +84,7 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 *
 	 * @param uuid the uuid of this message boards category
 	 */
+	@Override
 	public void setUuid(String uuid);
 
 	/**
@@ -95,6 +106,7 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 *
 	 * @return the group ID of this message boards category
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -102,6 +114,7 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 *
 	 * @param groupId the group ID of this message boards category
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -109,6 +122,7 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 *
 	 * @return the company ID of this message boards category
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -116,6 +130,7 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 *
 	 * @param companyId the company ID of this message boards category
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -123,6 +138,7 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 *
 	 * @return the user ID of this message boards category
 	 */
+	@Override
 	public long getUserId();
 
 	/**
@@ -130,21 +146,23 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 *
 	 * @param userId the user ID of this message boards category
 	 */
+	@Override
 	public void setUserId(long userId);
 
 	/**
 	 * Returns the user uuid of this message boards category.
 	 *
 	 * @return the user uuid of this message boards category
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getUserUuid() throws SystemException;
+	@Override
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this message boards category.
 	 *
 	 * @param userUuid the user uuid of this message boards category
 	 */
+	@Override
 	public void setUserUuid(String userUuid);
 
 	/**
@@ -153,6 +171,7 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 * @return the user name of this message boards category
 	 */
 	@AutoEscape
+	@Override
 	public String getUserName();
 
 	/**
@@ -160,6 +179,7 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 *
 	 * @param userName the user name of this message boards category
 	 */
+	@Override
 	public void setUserName(String userName);
 
 	/**
@@ -167,6 +187,7 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 *
 	 * @return the create date of this message boards category
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -174,6 +195,7 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 *
 	 * @param createDate the create date of this message boards category
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -181,6 +203,7 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 *
 	 * @return the modified date of this message boards category
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -188,6 +211,7 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 *
 	 * @param modifiedDate the modified date of this message boards category
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -291,35 +315,298 @@ public interface MBCategoryModel extends BaseModel<MBCategory>, GroupedModel {
 	 */
 	public void setLastPostDate(Date lastPostDate);
 
+	/**
+	 * Returns the status of this message boards category.
+	 *
+	 * @return the status of this message boards category
+	 */
+	@Override
+	public int getStatus();
+
+	/**
+	 * Sets the status of this message boards category.
+	 *
+	 * @param status the status of this message boards category
+	 */
+	@Override
+	public void setStatus(int status);
+
+	/**
+	 * Returns the status by user ID of this message boards category.
+	 *
+	 * @return the status by user ID of this message boards category
+	 */
+	@Override
+	public long getStatusByUserId();
+
+	/**
+	 * Sets the status by user ID of this message boards category.
+	 *
+	 * @param statusByUserId the status by user ID of this message boards category
+	 */
+	@Override
+	public void setStatusByUserId(long statusByUserId);
+
+	/**
+	 * Returns the status by user uuid of this message boards category.
+	 *
+	 * @return the status by user uuid of this message boards category
+	 */
+	@Override
+	public String getStatusByUserUuid();
+
+	/**
+	 * Sets the status by user uuid of this message boards category.
+	 *
+	 * @param statusByUserUuid the status by user uuid of this message boards category
+	 */
+	@Override
+	public void setStatusByUserUuid(String statusByUserUuid);
+
+	/**
+	 * Returns the status by user name of this message boards category.
+	 *
+	 * @return the status by user name of this message boards category
+	 */
+	@AutoEscape
+	@Override
+	public String getStatusByUserName();
+
+	/**
+	 * Sets the status by user name of this message boards category.
+	 *
+	 * @param statusByUserName the status by user name of this message boards category
+	 */
+	@Override
+	public void setStatusByUserName(String statusByUserName);
+
+	/**
+	 * Returns the status date of this message boards category.
+	 *
+	 * @return the status date of this message boards category
+	 */
+	@Override
+	public Date getStatusDate();
+
+	/**
+	 * Sets the status date of this message boards category.
+	 *
+	 * @param statusDate the status date of this message boards category
+	 */
+	@Override
+	public void setStatusDate(Date statusDate);
+
+	/**
+	 * Returns the trash entry created when this message boards category was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this message boards category.
+	 *
+	 * @return the trash entry created when this message boards category was moved to the Recycle Bin
+	 */
+	@Override
+	public TrashEntry getTrashEntry() throws PortalException;
+
+	/**
+	 * Returns the class primary key of the trash entry for this message boards category.
+	 *
+	 * @return the class primary key of the trash entry for this message boards category
+	 */
+	@Override
+	public long getTrashEntryClassPK();
+
+	/**
+	 * Returns the trash handler for this message boards category.
+	 *
+	 * @return the trash handler for this message boards category
+	 */
+	@Override
+	public TrashHandler getTrashHandler();
+
+	/**
+	 * Returns <code>true</code> if this message boards category is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if this message boards category is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInTrash();
+
+	/**
+	 * Returns <code>true</code> if the parent of this message boards category is in the Recycle Bin.
+	 *
+	 * @return <code>true</code> if the parent of this message boards category is in the Recycle Bin; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInTrashContainer();
+
+	@Override
+	public boolean isInTrashExplicitly();
+
+	@Override
+	public boolean isInTrashImplicitly();
+
+	/**
+	 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
+	 */
+	@Deprecated
+	@Override
+	public boolean getApproved();
+
+	/**
+	 * Returns <code>true</code> if this message boards category is approved.
+	 *
+	 * @return <code>true</code> if this message boards category is approved; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isApproved();
+
+	/**
+	 * Returns <code>true</code> if this message boards category is denied.
+	 *
+	 * @return <code>true</code> if this message boards category is denied; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isDenied();
+
+	/**
+	 * Returns <code>true</code> if this message boards category is a draft.
+	 *
+	 * @return <code>true</code> if this message boards category is a draft; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isDraft();
+
+	/**
+	 * Returns <code>true</code> if this message boards category is expired.
+	 *
+	 * @return <code>true</code> if this message boards category is expired; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isExpired();
+
+	/**
+	 * Returns <code>true</code> if this message boards category is inactive.
+	 *
+	 * @return <code>true</code> if this message boards category is inactive; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isInactive();
+
+	/**
+	 * Returns <code>true</code> if this message boards category is incomplete.
+	 *
+	 * @return <code>true</code> if this message boards category is incomplete; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isIncomplete();
+
+	/**
+	 * Returns <code>true</code> if this message boards category is pending.
+	 *
+	 * @return <code>true</code> if this message boards category is pending; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isPending();
+
+	/**
+	 * Returns <code>true</code> if this message boards category is scheduled.
+	 *
+	 * @return <code>true</code> if this message boards category is scheduled; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isScheduled();
+
+	/**
+	 * Returns the container model ID of this message boards category.
+	 *
+	 * @return the container model ID of this message boards category
+	 */
+	@Override
+	public long getContainerModelId();
+
+	/**
+	 * Sets the container model ID of this message boards category.
+	 *
+	 * @param containerModelId the container model ID of this message boards category
+	 */
+	@Override
+	public void setContainerModelId(long containerModelId);
+
+	/**
+	 * Returns the container name of this message boards category.
+	 *
+	 * @return the container name of this message boards category
+	 */
+	@Override
+	public String getContainerModelName();
+
+	/**
+	 * Returns the parent container model ID of this message boards category.
+	 *
+	 * @return the parent container model ID of this message boards category
+	 */
+	@Override
+	public long getParentContainerModelId();
+
+	/**
+	 * Sets the parent container model ID of this message boards category.
+	 *
+	 * @param parentContainerModelId the parent container model ID of this message boards category
+	 */
+	@Override
+	public void setParentContainerModelId(long parentContainerModelId);
+
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(MBCategory mbCategory);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<MBCategory> toCacheModel();
 
+	@Override
 	public MBCategory toEscapedModel();
 
+	@Override
+	public MBCategory toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

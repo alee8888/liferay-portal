@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,9 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -37,7 +38,8 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.UserModelImpl
  * @generated
  */
-public interface UserModel extends BaseModel<User> {
+@ProviderType
+public interface UserModel extends BaseModel<User>, MVCCModel, StagedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -59,11 +61,28 @@ public interface UserModel extends BaseModel<User> {
 	public void setPrimaryKey(long primaryKey);
 
 	/**
+	 * Returns the mvcc version of this user.
+	 *
+	 * @return the mvcc version of this user
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this user.
+	 *
+	 * @param mvccVersion the mvcc version of this user
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
 	 * Returns the uuid of this user.
 	 *
 	 * @return the uuid of this user
 	 */
 	@AutoEscape
+	@Override
 	public String getUuid();
 
 	/**
@@ -71,6 +90,7 @@ public interface UserModel extends BaseModel<User> {
 	 *
 	 * @param uuid the uuid of this user
 	 */
+	@Override
 	public void setUuid(String uuid);
 
 	/**
@@ -91,9 +111,8 @@ public interface UserModel extends BaseModel<User> {
 	 * Returns the user uuid of this user.
 	 *
 	 * @return the user uuid of this user
-	 * @throws SystemException if a system exception occurred
 	 */
-	public String getUserUuid() throws SystemException;
+	public String getUserUuid();
 
 	/**
 	 * Sets the user uuid of this user.
@@ -107,6 +126,7 @@ public interface UserModel extends BaseModel<User> {
 	 *
 	 * @return the company ID of this user
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -114,6 +134,7 @@ public interface UserModel extends BaseModel<User> {
 	 *
 	 * @param companyId the company ID of this user
 	 */
+	@Override
 	public void setCompanyId(long companyId);
 
 	/**
@@ -121,6 +142,7 @@ public interface UserModel extends BaseModel<User> {
 	 *
 	 * @return the create date of this user
 	 */
+	@Override
 	public Date getCreateDate();
 
 	/**
@@ -128,6 +150,7 @@ public interface UserModel extends BaseModel<User> {
 	 *
 	 * @param createDate the create date of this user
 	 */
+	@Override
 	public void setCreateDate(Date createDate);
 
 	/**
@@ -135,6 +158,7 @@ public interface UserModel extends BaseModel<User> {
 	 *
 	 * @return the modified date of this user
 	 */
+	@Override
 	public Date getModifiedDate();
 
 	/**
@@ -142,6 +166,7 @@ public interface UserModel extends BaseModel<User> {
 	 *
 	 * @param modifiedDate the modified date of this user
 	 */
+	@Override
 	public void setModifiedDate(Date modifiedDate);
 
 	/**
@@ -352,6 +377,20 @@ public interface UserModel extends BaseModel<User> {
 	 * @param facebookId the facebook ID of this user
 	 */
 	public void setFacebookId(long facebookId);
+
+	/**
+	 * Returns the ldap server ID of this user.
+	 *
+	 * @return the ldap server ID of this user
+	 */
+	public long getLdapServerId();
+
+	/**
+	 * Sets the ldap server ID of this user.
+	 *
+	 * @param ldapServerId the ldap server ID of this user
+	 */
+	public void setLdapServerId(long ldapServerId);
 
 	/**
 	 * Returns the open ID of this user.
@@ -679,35 +718,60 @@ public interface UserModel extends BaseModel<User> {
 	 */
 	public void setStatus(int status);
 
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(User user);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<User> toCacheModel();
 
+	@Override
 	public User toEscapedModel();
 
+	@Override
+	public User toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

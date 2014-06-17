@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,13 +14,19 @@
 
 package com.liferay.portal.service.impl;
 
+import com.liferay.portal.kernel.dao.orm.DynamicQuery;
+import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.Property;
+import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.staging.MergeLayoutPrototypesThreadLocal;
+import com.liferay.portal.kernel.util.AutoResetThreadLocal;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.LayoutSet;
@@ -52,6 +58,7 @@ import org.springframework.core.annotation.Order;
 public class LayoutLocalServiceVirtualLayoutsAdvice
 	implements MethodInterceptor {
 
+	@Override
 	public Object invoke(MethodInvocation methodInvocation) throws Throwable {
 		if (MergeLayoutPrototypesThreadLocal.isInProgress()) {
 			return methodInvocation.proceed();
@@ -60,10 +67,9 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 		Method method = methodInvocation.getMethod();
 
 		String methodName = method.getName();
+		Class<?>[] parameterTypes = method.getParameterTypes();
 
 		Object[] arguments = methodInvocation.getArguments();
-
-		Class<?>[] parameterTypes = method.getParameterTypes();
 
 		boolean workflowEnabled = WorkflowThreadLocal.isEnabled();
 
@@ -73,29 +79,36 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 
 			Layout layout = (Layout)methodInvocation.proceed();
 
-			if (Validator.isNull(layout.getLayoutPrototypeUuid()) &&
-				Validator.isNull(layout.getSourcePrototypeLayoutUuid())) {
+			Group group = layout.getGroup();
+
+			if (isMergeComplete(method, arguments, group)) {
+				return layout;
+			}
+
+			if ((Validator.isNull(layout.getLayoutPrototypeUuid()) &&
+				 Validator.isNull(layout.getSourcePrototypeLayoutUuid())) ||
+				!layout.getLayoutPrototypeLinkEnabled()) {
 
 				return layout;
 			}
 
-			Group group = layout.getGroup();
 			LayoutSet layoutSet = layout.getLayoutSet();
 
 			try {
 				MergeLayoutPrototypesThreadLocal.setInProgress(true);
 				WorkflowThreadLocal.setEnabled(false);
 
-				SitesUtil.mergeLayoutProtypeLayout(group, layout);
+				SitesUtil.mergeLayoutPrototypeLayout(group, layout);
 
 				if (Validator.isNotNull(
 						layout.getSourcePrototypeLayoutUuid())) {
 
-					SitesUtil.mergeLayoutSetProtypeLayouts(group, layoutSet);
+					SitesUtil.mergeLayoutSetPrototypeLayouts(group, layoutSet);
 				}
 			}
 			finally {
-				MergeLayoutPrototypesThreadLocal.setInProgress(false);
+				MergeLayoutPrototypesThreadLocal.setMergeComplete(
+					method, arguments);
 				WorkflowThreadLocal.setEnabled(workflowEnabled);
 			}
 		}
@@ -104,46 +117,60 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 				  Arrays.equals(parameterTypes, _TYPES_L_B_L_B_I_I))) {
 
 			long groupId = (Long)arguments[0];
+
+			Group group = GroupLocalServiceUtil.getGroup(groupId);
+
+			if (isMergeComplete(method, arguments, group)) {
+				return methodInvocation.proceed();
+			}
+
 			boolean privateLayout = (Boolean)arguments[1];
 			long parentLayoutId = (Long)arguments[2];
 
 			try {
-				Group group = GroupLocalServiceUtil.getGroup(groupId);
-
 				LayoutSet layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
 					groupId, privateLayout);
 
-				try {
-					MergeLayoutPrototypesThreadLocal.setInProgress(true);
-					WorkflowThreadLocal.setEnabled(false);
+				mergeLayoutSetPrototypeLayouts(
+					method, arguments, group, layoutSet, privateLayout,
+					workflowEnabled);
 
-					SitesUtil.mergeLayoutSetProtypeLayouts(group, layoutSet);
+				List<Layout> layouts = (List<Layout>)methodInvocation.proceed();
+
+				if (PropsValues.
+						USER_GROUPS_COPY_LAYOUTS_TO_USER_PERSONAL_SITE) {
+
+					return layouts;
 				}
-				finally {
-					MergeLayoutPrototypesThreadLocal.setInProgress(false);
-					WorkflowThreadLocal.setEnabled(workflowEnabled);
-				}
 
-				Object returnValue = methodInvocation.proceed();
-
-				if (!PropsValues.
-						USER_GROUPS_COPY_LAYOUTS_TO_USER_PERSONAL_SITE &&
-					group.isUser()) {
+				if (group.isUser()) {
+					_virtualLayoutTargetGroupId.set(group.getGroupId());
 
 					if (parentLayoutId ==
 							LayoutConstants.DEFAULT_PARENT_LAYOUT_ID) {
 
 						return addUserGroupLayouts(
-							group, layoutSet, (List<Layout>)returnValue,
-							parentLayoutId);
+							group, layoutSet, layouts, parentLayoutId);
 					}
 					else {
-						return addChildUserGroupLayouts(
-							group, (List<Layout>)returnValue);
+						return addChildUserGroupLayouts(group, layouts);
+					}
+				}
+				else if (group.isUserGroup() &&
+						 (parentLayoutId !=
+							 LayoutConstants.DEFAULT_PARENT_LAYOUT_ID)) {
+
+					long targetGroupId = _virtualLayoutTargetGroupId.get();
+
+					if (targetGroupId != GroupConstants.DEFAULT_LIVE_GROUP_ID) {
+						Group targetGroup = GroupLocalServiceUtil.getGroup(
+							targetGroupId);
+
+						return addChildUserGroupLayouts(targetGroup, layouts);
 					}
 				}
 
-				return returnValue;
+				return layouts;
 			}
 			catch (Exception e) {
 				_log.error(e, e);
@@ -206,6 +233,77 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 		return layouts;
 	}
 
+	protected List<Layout> getPrototypeLinkedLayouts(
+		long groupId, boolean privateLayout) {
+
+		Class<?> clazz = getClass();
+
+		DynamicQuery dynamicQuery = DynamicQueryFactoryUtil.forClass(
+			Layout.class, clazz.getClassLoader());
+
+		Property groupIdProperty = PropertyFactoryUtil.forName("groupId");
+
+		dynamicQuery.add(groupIdProperty.eq(groupId));
+
+		Property layoutPrototypeUuidProperty = PropertyFactoryUtil.forName(
+			"layoutPrototypeUuid");
+
+		dynamicQuery.add(layoutPrototypeUuidProperty.isNotNull());
+
+		Property privateLayoutProperty = PropertyFactoryUtil.forName(
+			"privateLayout");
+
+		dynamicQuery.add(privateLayoutProperty.eq(privateLayout));
+
+		Property sourcePrototypeLayoutUuidProperty =
+			PropertyFactoryUtil.forName("sourcePrototypeLayoutUuid");
+
+		dynamicQuery.add(sourcePrototypeLayoutUuidProperty.isNotNull());
+
+		return LayoutLocalServiceUtil.dynamicQuery(dynamicQuery);
+	}
+
+	protected boolean isMergeComplete(
+		Method method, Object[] arguments, Group group) {
+
+		if (MergeLayoutPrototypesThreadLocal.isMergeComplete(
+				method, arguments) &&
+			(!group.isUser() ||
+			 PropsValues.USER_GROUPS_COPY_LAYOUTS_TO_USER_PERSONAL_SITE)) {
+
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	protected void mergeLayoutSetPrototypeLayouts(
+		Method method, Object[] arguments, Group group, LayoutSet layoutSet,
+		boolean privateLayout, boolean workflowEnabled) {
+
+		try {
+			if (!SitesUtil.isLayoutSetMergeable(group, layoutSet)) {
+				return;
+			}
+
+			MergeLayoutPrototypesThreadLocal.setInProgress(true);
+			WorkflowThreadLocal.setEnabled(false);
+
+			SitesUtil.mergeLayoutSetPrototypeLayouts(group, layoutSet);
+		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn("Unable to merge layouts for site template", e);
+			}
+		}
+		finally {
+			MergeLayoutPrototypesThreadLocal.setMergeComplete(
+				method, arguments);
+			WorkflowThreadLocal.setEnabled(workflowEnabled);
+		}
+	}
+
 	private static final Class<?>[] _TYPES_L = {Long.TYPE};
 
 	private static final Class<?>[] _TYPES_L_B_L = {
@@ -219,5 +317,11 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 
 	private static Log _log = LogFactoryUtil.getLog(
 		LayoutLocalServiceVirtualLayoutsAdvice.class);
+
+	private static ThreadLocal<Long> _virtualLayoutTargetGroupId =
+		new AutoResetThreadLocal<Long>(
+			LayoutLocalServiceVirtualLayoutsAdvice.class +
+				"._virtualLayoutTargetGroupId",
+			GroupConstants.DEFAULT_LIVE_GROUP_ID);
 
 }

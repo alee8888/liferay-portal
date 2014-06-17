@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,7 +25,7 @@ public interface Plugin {
 
 	public static final String TYPE_HOOK = "hook";
 
-	public static final String TYPE_LAYOUT_TEMPLATE = "layout-template";
+	public static final String TYPE_LAYOUT_TEMPLATE = "layouttpl";
 
 	public static final String TYPE_PORTLET = "portlet";
 

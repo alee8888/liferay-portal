@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -61,14 +61,17 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 	 */
 	public static final String TABLE_NAME = "Portlet";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "id_", Types.BIGINT },
 			{ "companyId", Types.BIGINT },
 			{ "portletId", Types.VARCHAR },
 			{ "roles", Types.VARCHAR },
 			{ "active_", Types.BOOLEAN }
 		};
-	public static final String TABLE_SQL_CREATE = "create table Portlet (id_ LONG not null primary key,companyId LONG,portletId VARCHAR(200) null,roles STRING null,active_ BOOLEAN)";
+	public static final String TABLE_SQL_CREATE = "create table Portlet (mvccVersion LONG default 0,id_ LONG not null primary key,companyId LONG,portletId VARCHAR(200) null,roles STRING null,active_ BOOLEAN)";
 	public static final String TABLE_SQL_DROP = "drop table Portlet";
+	public static final String ORDER_BY_JPQL = " ORDER BY portlet.id ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY Portlet.id_ ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -83,6 +86,7 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 			true);
 	public static long COMPANYID_COLUMN_BITMASK = 1L;
 	public static long PORTLETID_COLUMN_BITMASK = 2L;
+	public static long ID_COLUMN_BITMASK = 4L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -91,8 +95,13 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 	 * @return the normal model instance
 	 */
 	public static Portlet toModel(PortletSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		Portlet model = new PortletImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setId(soapModel.getId());
 		model.setCompanyId(soapModel.getCompanyId());
 		model.setPortletId(soapModel.getPortletId());
@@ -109,6 +118,10 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 	 * @return the normal model instances
 	 */
 	public static List<Portlet> toModels(PortletSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<Portlet> models = new ArrayList<Portlet>(soapModels.length);
 
 		for (PortletSoap soapModel : soapModels) {
@@ -124,26 +137,32 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 	public PortletModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _id;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_id);
+		return _id;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return Portlet.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return Portlet.class.getName();
 	}
@@ -152,17 +171,27 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("id", getId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("portletId", getPortletId());
 		attributes.put("roles", getRoles());
 		attributes.put("active", getActive());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long id = (Long)attributes.get("id");
 
 		if (id != null) {
@@ -195,19 +224,34 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 	}
 
 	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
 	public long getId() {
 		return _id;
 	}
 
+	@Override
 	public void setId(long id) {
 		_id = id;
 	}
 
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_columnBitmask |= COMPANYID_COLUMN_BITMASK;
 
@@ -225,6 +269,7 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 	}
 
 	@JSON
+	@Override
 	public String getPortletId() {
 		if (_portletId == null) {
 			return StringPool.BLANK;
@@ -234,6 +279,7 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 		}
 	}
 
+	@Override
 	public void setPortletId(String portletId) {
 		_columnBitmask |= PORTLETID_COLUMN_BITMASK;
 
@@ -249,6 +295,7 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 	}
 
 	@JSON
+	@Override
 	public String getRoles() {
 		if (_roles == null) {
 			return StringPool.BLANK;
@@ -258,36 +305,29 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 		}
 	}
 
+	@Override
 	public void setRoles(String roles) {
 		_roles = roles;
 	}
 
 	@JSON
+	@Override
 	public boolean getActive() {
 		return _active;
 	}
 
+	@Override
 	public boolean isActive() {
 		return _active;
 	}
 
+	@Override
 	public void setActive(boolean active) {
 		_active = active;
 	}
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public Portlet toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (Portlet)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -304,9 +344,20 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 	}
 
 	@Override
+	public Portlet toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (Portlet)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
+	}
+
+	@Override
 	public Object clone() {
 		PortletImpl portletImpl = new PortletImpl();
 
+		portletImpl.setMvccVersion(getMvccVersion());
 		portletImpl.setId(getId());
 		portletImpl.setCompanyId(getCompanyId());
 		portletImpl.setPortletId(getPortletId());
@@ -318,6 +369,7 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 		return portletImpl;
 	}
 
+	@Override
 	public int compareTo(Portlet portlet) {
 		long primaryKey = portlet.getPrimaryKey();
 
@@ -334,18 +386,15 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof Portlet)) {
 			return false;
 		}
 
-		Portlet portlet = null;
-
-		try {
-			portlet = (Portlet)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		Portlet portlet = (Portlet)obj;
 
 		long primaryKey = portlet.getPrimaryKey();
 
@@ -360,6 +409,16 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -378,6 +437,8 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 	@Override
 	public CacheModel<Portlet> toCacheModel() {
 		PortletCacheModel portletCacheModel = new PortletCacheModel();
+
+		portletCacheModel.mvccVersion = getMvccVersion();
 
 		portletCacheModel.id = getId();
 
@@ -406,9 +467,11 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(11);
+		StringBundler sb = new StringBundler(13);
 
-		sb.append("{id=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", id=");
 		sb.append(getId());
 		sb.append(", companyId=");
 		sb.append(getCompanyId());
@@ -423,13 +486,18 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(22);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.Portlet");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>id</column-name><column-value><![CDATA[");
 		sb.append(getId());
@@ -457,9 +525,10 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 	}
 
 	private static ClassLoader _classLoader = Portlet.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			Portlet.class
 		};
+	private long _mvccVersion;
 	private long _id;
 	private long _companyId;
 	private long _originalCompanyId;
@@ -469,5 +538,5 @@ public class PortletModelImpl extends BaseModelImpl<Portlet>
 	private String _roles;
 	private boolean _active;
 	private long _columnBitmask;
-	private Portlet _escapedModelProxy;
+	private Portlet _escapedModel;
 }

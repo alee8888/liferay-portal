@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,6 @@ package com.liferay.portal.service;
 
 import com.liferay.portal.NoSuchUserException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
@@ -52,7 +51,7 @@ import javax.servlet.http.HttpServletRequest;
 public class ServiceContextFactory {
 
 	public static ServiceContext getInstance(HttpServletRequest request)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ServiceContext serviceContext = new ServiceContext();
 
@@ -67,16 +66,23 @@ public class ServiceContextFactory {
 			serviceContext.setLayoutFullURL(
 				PortalUtil.getCanonicalURL(
 					PortalUtil.getLayoutFullURL(themeDisplay), themeDisplay,
-					themeDisplay.getLayout()));
+					themeDisplay.getLayout(), true));
 			serviceContext.setLayoutURL(
 				PortalUtil.getCanonicalURL(
 					PortalUtil.getLayoutURL(themeDisplay), themeDisplay,
-					themeDisplay.getLayout()));
+					themeDisplay.getLayout(), true));
 			serviceContext.setPathMain(PortalUtil.getPathMain());
+			serviceContext.setPathFriendlyURLPrivateGroup(
+				PortalUtil.getPathFriendlyURLPrivateGroup());
+			serviceContext.setPathFriendlyURLPrivateUser(
+				PortalUtil.getPathFriendlyURLPrivateUser());
+			serviceContext.setPathFriendlyURLPublic(
+				PortalUtil.getPathFriendlyURLPublic());
 			serviceContext.setPlid(themeDisplay.getPlid());
 			serviceContext.setPortalURL(PortalUtil.getPortalURL(request));
 			serviceContext.setScopeGroupId(themeDisplay.getScopeGroupId());
 			serviceContext.setSignedIn(themeDisplay.isSignedIn());
+			serviceContext.setTimeZone(themeDisplay.getTimeZone());
 
 			User user = themeDisplay.getUser();
 
@@ -88,6 +94,12 @@ public class ServiceContextFactory {
 
 			serviceContext.setCompanyId(companyId);
 
+			serviceContext.setPathFriendlyURLPrivateGroup(
+				PortalUtil.getPathFriendlyURLPrivateGroup());
+			serviceContext.setPathFriendlyURLPrivateUser(
+				PortalUtil.getPathFriendlyURLPrivateUser());
+			serviceContext.setPathFriendlyURLPublic(
+				PortalUtil.getPathFriendlyURLPublic());
 			serviceContext.setPathMain(PortalUtil.getPathMain());
 
 			User user = null;
@@ -121,7 +133,7 @@ public class ServiceContextFactory {
 			String name = entry.getKey();
 			String[] values = entry.getValue();
 
-			if ((values != null) && (values.length > 0)) {
+			if (ArrayUtil.isNotEmpty(values)) {
 				if (values.length == 1) {
 					attributes.put(name, values[0]);
 				}
@@ -237,11 +249,15 @@ public class ServiceContextFactory {
 
 		serviceContext.setAssetEntryVisible(assetEntryVisible);
 
-		long[] assetLinkEntryIds = StringUtil.split(
-			ParamUtil.getString(
-				request, "assetLinksSearchContainerPrimaryKeys"), 0L);
+		String assetLinkEntryIdsString = request.getParameter(
+			"assetLinksSearchContainerPrimaryKeys");
 
-		serviceContext.setAssetLinkEntryIds(assetLinkEntryIds);
+		if (assetLinkEntryIdsString != null) {
+			long[] assetLinkEntryIds = StringUtil.split(
+				assetLinkEntryIdsString, 0L);
+
+			serviceContext.setAssetLinkEntryIds(assetLinkEntryIds);
+		}
 
 		String assetTagNamesString = request.getParameter("assetTagNames");
 
@@ -262,15 +278,15 @@ public class ServiceContextFactory {
 	}
 
 	public static ServiceContext getInstance(PortletRequest portletRequest)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		// Theme display
 
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
 
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)portletRequest.getAttribute(WebKeys.THEME_DISPLAY);
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
 		if (serviceContext != null) {
 			serviceContext = (ServiceContext)serviceContext.clone();
@@ -283,11 +299,18 @@ public class ServiceContextFactory {
 			serviceContext.setLayoutFullURL(
 				PortalUtil.getLayoutFullURL(themeDisplay));
 			serviceContext.setLayoutURL(PortalUtil.getLayoutURL(themeDisplay));
+			serviceContext.setPathFriendlyURLPrivateGroup(
+				PortalUtil.getPathFriendlyURLPrivateGroup());
+			serviceContext.setPathFriendlyURLPrivateUser(
+				PortalUtil.getPathFriendlyURLPrivateUser());
+			serviceContext.setPathFriendlyURLPublic(
+				PortalUtil.getPathFriendlyURLPublic());
 			serviceContext.setPathMain(PortalUtil.getPathMain());
 			serviceContext.setPlid(themeDisplay.getPlid());
 			serviceContext.setPortalURL(
 				PortalUtil.getPortalURL(portletRequest));
 			serviceContext.setSignedIn(themeDisplay.isSignedIn());
+			serviceContext.setTimeZone(themeDisplay.getTimeZone());
 
 			User user = themeDisplay.getUser();
 
@@ -309,7 +332,7 @@ public class ServiceContextFactory {
 
 			String[] values = portletRequest.getParameterValues(param);
 
-			if ((values != null) && (values.length > 0)) {
+			if (ArrayUtil.isNotEmpty(values)) {
 				if (values.length == 1) {
 					attributes.put(param, values[0]);
 				}
@@ -428,11 +451,15 @@ public class ServiceContextFactory {
 
 		serviceContext.setAssetEntryVisible(assetEntryVisible);
 
-		long[] assetLinkEntryIds = StringUtil.split(
-			ParamUtil.getString(
-				portletRequest, "assetLinksSearchContainerPrimaryKeys"), 0L);
+		String assetLinkEntryIdsString = request.getParameter(
+			"assetLinksSearchContainerPrimaryKeys");
 
-		serviceContext.setAssetLinkEntryIds(assetLinkEntryIds);
+		if (assetLinkEntryIdsString != null) {
+			long[] assetLinkEntryIds = StringUtil.split(
+				assetLinkEntryIdsString, 0L);
+
+			serviceContext.setAssetLinkEntryIds(assetLinkEntryIds);
+		}
 
 		String assetTagNamesString = request.getParameter("assetTagNames");
 
@@ -454,9 +481,24 @@ public class ServiceContextFactory {
 
 	public static ServiceContext getInstance(
 			String className, PortletRequest portletRequest)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ServiceContext serviceContext = getInstance(portletRequest);
+
+		// Permissions
+
+		String[] groupPermissions = PortalUtil.getGroupPermissions(
+			portletRequest, className);
+		String[] guestPermissions = PortalUtil.getGuestPermissions(
+			portletRequest, className);
+
+		if (groupPermissions != null) {
+			serviceContext.setGroupPermissions(groupPermissions);
+		}
+
+		if (guestPermissions != null) {
+			serviceContext.setGuestPermissions(guestPermissions);
+		}
 
 		// Expando
 
@@ -473,9 +515,24 @@ public class ServiceContextFactory {
 
 	public static ServiceContext getInstance(
 			String className, UploadPortletRequest uploadPortletRequest)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ServiceContext serviceContext = getInstance(uploadPortletRequest);
+
+		// Permissions
+
+		String[] groupPermissions = PortalUtil.getGroupPermissions(
+			uploadPortletRequest, className);
+		String[] guestPermissions = PortalUtil.getGuestPermissions(
+			uploadPortletRequest, className);
+
+		if (groupPermissions != null) {
+			serviceContext.setGroupPermissions(groupPermissions);
+		}
+
+		if (guestPermissions != null) {
+			serviceContext.setGuestPermissions(guestPermissions);
+		}
 
 		// Expando
 

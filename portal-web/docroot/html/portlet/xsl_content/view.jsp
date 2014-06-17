@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -66,7 +66,7 @@ try {
 								variablePropertyValue = assetTagProperty.getValue();
 							}
 
-							xmlUrl = StringUtil.replace(xmlUrl, "[" + variablePropertyKey + "]", variablePropertyValue.toUpperCase());
+							xmlUrl = StringUtil.replace(xmlUrl, "[" + variablePropertyKey + "]", StringUtil.toUpperCase(variablePropertyValue));
 
 							break;
 						}
@@ -93,7 +93,7 @@ catch (Exception e) {
 	_log.error(e.getMessage());
 %>
 
-	<div class="portlet-msg-error">
+	<div class="alert alert-danger">
 		<liferay-ui:message key="an-error-occurred-while-processing-your-xml-and-xsl" />
 	</div>
 

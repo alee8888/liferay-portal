@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -45,6 +45,7 @@ public class ICQConnector implements Observer {
 		_instance._send(to, msg);
 	}
 
+	@Override
 	public void update(Observable obs, Object obj) {
 		_connecting = false;
 
@@ -77,7 +78,9 @@ public class ICQConnector implements Observer {
 			}
 		}
 		catch (Exception e) {
-			_log.warn(e);
+			if (_log.isWarnEnabled()) {
+				_log.warn(e);
+			}
 		}
 	}
 

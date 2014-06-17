@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portlet.dynamicdatamapping.storage.query;
+
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 
 /**
  * @author Marcellus Tavares
@@ -32,6 +34,9 @@ public class ConditionFactoryUtil {
 	}
 
 	public static ConditionFactory getConditionFactory() {
+		PortalRuntimePermission.checkGetBeanProperty(
+			ConditionFactoryUtil.class);
+
 		return _conditionFactory;
 	}
 
@@ -68,6 +73,8 @@ public class ConditionFactoryUtil {
 	}
 
 	public void setConditionFactory(ConditionFactory conditionFactory) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_conditionFactory = conditionFactory;
 	}
 

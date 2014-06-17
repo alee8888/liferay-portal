@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,22 +15,31 @@
 package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ColorScheme;
+import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutBranch;
 import com.liferay.portal.model.LayoutRevision;
 import com.liferay.portal.model.LayoutSet;
+import com.liferay.portal.model.LayoutTypePortletConstants;
 import com.liferay.portal.model.Theme;
 import com.liferay.portal.service.LayoutBranchLocalServiceUtil;
+import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.LayoutRevisionLocalServiceUtil;
 import com.liferay.portal.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.service.ThemeLocalServiceUtil;
+import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.WebKeys;
 
 import java.util.List;
 import java.util.Locale;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Brian Wing Shun Chan
@@ -40,14 +49,14 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 	public LayoutRevisionImpl() {
 	}
 
-	public List<LayoutRevision> getChildren() throws SystemException {
+	@Override
+	public List<LayoutRevision> getChildren() {
 		return LayoutRevisionLocalServiceUtil.getChildLayoutRevisions(
 			getLayoutSetBranchId(), getLayoutRevisionId(), getPlid());
 	}
 
-	public ColorScheme getColorScheme()
-		throws PortalException, SystemException {
-
+	@Override
+	public ColorScheme getColorScheme() throws PortalException {
 		if (isInheritLookAndFeel()) {
 			return getLayoutSet().getColorScheme();
 		}
@@ -58,7 +67,8 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 		}
 	}
 
-	public String getCssText() throws PortalException, SystemException {
+	@Override
+	public String getCssText() throws PortalException {
 		if (isInheritLookAndFeel()) {
 			return getLayoutSet().getCss();
 		}
@@ -67,12 +77,14 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 		}
 	}
 
+	@Override
 	public String getHTMLTitle(Locale locale) {
 		String localeLanguageId = LocaleUtil.toLanguageId(locale);
 
 		return getHTMLTitle(localeLanguageId);
 	}
 
+	@Override
 	public String getHTMLTitle(String localeLanguageId) {
 		String htmlTitle = getTitle(localeLanguageId);
 
@@ -83,19 +95,52 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 		return htmlTitle;
 	}
 
-	public LayoutBranch getLayoutBranch()
-		throws PortalException, SystemException {
+	@Override
+	public boolean getIconImage() {
+		if (getIconImageId() > 0) {
+			return true;
+		}
 
+		return false;
+	}
+
+	@Override
+	public LayoutBranch getLayoutBranch() throws PortalException {
 		return LayoutBranchLocalServiceUtil.getLayoutBranch(
 			getLayoutBranchId());
 	}
 
-	public LayoutSet getLayoutSet() throws PortalException, SystemException {
+	@Override
+	public LayoutSet getLayoutSet() throws PortalException {
 		return LayoutSetLocalServiceUtil.getLayoutSet(
 			getGroupId(), isPrivateLayout());
 	}
 
-	public Theme getTheme() throws PortalException, SystemException {
+	@Override
+	public String getRegularURL(HttpServletRequest request)
+		throws PortalException {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		String portalURL = PortalUtil.getPortalURL(request);
+
+		Layout layout = LayoutLocalServiceUtil.getLayout(getPlid());
+
+		String url = PortalUtil.getLayoutURL(layout, themeDisplay);
+
+		if (!CookieKeys.hasSessionId(request) &&
+			(url.startsWith(portalURL) || url.startsWith(StringPool.SLASH))) {
+
+			url = PortalUtil.getURLWithSessionId(
+				url, request.getSession().getId());
+		}
+
+		return url;
+	}
+
+	@Override
+	public Theme getTheme() throws PortalException {
 		if (isInheritLookAndFeel()) {
 			return getLayoutSet().getTheme();
 		}
@@ -103,6 +148,38 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 			return ThemeLocalServiceUtil.getTheme(
 				getCompanyId(), getThemeId(), false);
 		}
+	}
+
+	@Override
+	public String getThemeSetting(String key, String device) {
+		UnicodeProperties typeSettingsProperties = getTypeSettingsProperties();
+
+		String value = typeSettingsProperties.getProperty(
+			ThemeSettingImpl.namespaceProperty(device, key));
+
+		if (value != null) {
+			return value;
+		}
+
+		if (!isInheritLookAndFeel()) {
+			try {
+				Theme theme = getTheme(device);
+
+				return theme.getSetting(key);
+			}
+			catch (Exception e) {
+			}
+		}
+
+		try {
+			LayoutSet layoutSet = getLayoutSet();
+
+			value = layoutSet.getThemeSetting(key, device);
+		}
+		catch (Exception e) {
+		}
+
+		return value;
 	}
 
 	@Override
@@ -115,6 +192,7 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 		}
 	}
 
+	@Override
 	public UnicodeProperties getTypeSettingsProperties() {
 		if (_typeSettingsProperties == null) {
 			_typeSettingsProperties = new UnicodeProperties(true);
@@ -125,9 +203,22 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 		return _typeSettingsProperties;
 	}
 
-	public ColorScheme getWapColorScheme()
-		throws PortalException, SystemException {
+	@Override
+	public String getTypeSettingsProperty(String key) {
+		UnicodeProperties typeSettingsProperties = getTypeSettingsProperties();
 
+		return typeSettingsProperties.getProperty(key);
+	}
+
+	@Override
+	public String getTypeSettingsProperty(String key, String defaultValue) {
+		UnicodeProperties typeSettingsProperties = getTypeSettingsProperties();
+
+		return typeSettingsProperties.getProperty(key, defaultValue);
+	}
+
+	@Override
+	public ColorScheme getWapColorScheme() throws PortalException {
 		if (isInheritLookAndFeel()) {
 			return getLayoutSet().getWapColorScheme();
 		}
@@ -138,7 +229,8 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 		}
 	}
 
-	public Theme getWapTheme() throws PortalException, SystemException {
+	@Override
+	public Theme getWapTheme() throws PortalException {
 		if (isInheritWapLookAndFeel()) {
 			return getLayoutSet().getWapTheme();
 		}
@@ -148,7 +240,8 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 		}
 	}
 
-	public boolean hasChildren() throws SystemException {
+	@Override
+	public boolean hasChildren() {
 		if (!getChildren().isEmpty()) {
 			return true;
 		}
@@ -156,6 +249,28 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 		return false;
 	}
 
+	@Override
+	public boolean isContentDisplayPage() {
+		UnicodeProperties typeSettingsProperties = getTypeSettingsProperties();
+
+		String defaultAssetPublisherPortletId =
+			typeSettingsProperties.getProperty(
+				LayoutTypePortletConstants.DEFAULT_ASSET_PUBLISHER_PORTLET_ID);
+
+		if (Validator.isNotNull(defaultAssetPublisherPortletId)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean isIconImage() {
+		return getIconImage();
+	}
+
+	@Override
 	public boolean isInheritLookAndFeel() {
 		if (Validator.isNull(getThemeId()) ||
 			Validator.isNull(getColorSchemeId())) {
@@ -167,6 +282,7 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 		}
 	}
 
+	@Override
 	public boolean isInheritWapLookAndFeel() {
 		if (Validator.isNull(getWapThemeId()) ||
 			Validator.isNull(getWapColorSchemeId())) {
@@ -185,12 +301,22 @@ public class LayoutRevisionImpl extends LayoutRevisionBaseImpl {
 		super.setTypeSettings(typeSettings);
 	}
 
+	@Override
 	public void setTypeSettingsProperties(
 		UnicodeProperties typeSettingsProperties) {
 
 		_typeSettingsProperties = typeSettingsProperties;
 
 		super.setTypeSettings(_typeSettingsProperties.toString());
+	}
+
+	protected Theme getTheme(String device) throws PortalException {
+		if (device.equals("regular")) {
+			return getTheme();
+		}
+		else {
+			return getWapTheme();
+		}
 	}
 
 	private UnicodeProperties _typeSettingsProperties;

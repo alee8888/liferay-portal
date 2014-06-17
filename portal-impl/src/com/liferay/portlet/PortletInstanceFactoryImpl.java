@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,11 +16,12 @@ package com.liferay.portlet;
 
 import com.liferay.portal.kernel.portlet.PortletBag;
 import com.liferay.portal.kernel.portlet.PortletBagPool;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.PortletApp;
 import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.service.PortletLocalServiceUtil;
+import com.liferay.portal.util.ClassLoaderUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,16 +36,19 @@ import javax.servlet.ServletContext;
  * @author Brian Wing Shun Chan
  * @author Shuyang Zhou
  */
+@DoPrivileged
 public class PortletInstanceFactoryImpl implements PortletInstanceFactory {
 
 	public PortletInstanceFactoryImpl() {
 		_pool = new ConcurrentHashMap<String, Map<String, InvokerPortlet>>();
 	}
 
+	@Override
 	public void clear(Portlet portlet) {
 		clear(portlet, true);
 	}
 
+	@Override
 	public void clear(Portlet portlet, boolean resetRemotePortletBag) {
 		String rootPortletId = portlet.getRootPortletId();
 
@@ -65,10 +69,15 @@ public class PortletInstanceFactoryImpl implements PortletInstanceFactory {
 		PortletApp portletApp = portlet.getPortletApp();
 
 		if (resetRemotePortletBag && portletApp.isWARFile()) {
-			PortletBagPool.remove(rootPortletId);
+			PortletBag portletBag = PortletBagPool.remove(rootPortletId);
+
+			if (portletBag != null) {
+				portletBag.destroy();
+			}
 		}
 	}
 
+	@Override
 	public InvokerPortlet create(Portlet portlet, ServletContext servletContext)
 		throws PortletException {
 
@@ -122,7 +131,7 @@ public class PortletInstanceFactoryImpl implements PortletInstanceFactory {
 				PortletBagFactory portletBagFactory = new PortletBagFactory();
 
 				portletBagFactory.setClassLoader(
-					PortalClassLoaderUtil.getClassLoader());
+					ClassLoaderUtil.getPortalClassLoader());
 				portletBagFactory.setServletContext(servletContext);
 				portletBagFactory.setWARFile(false);
 
@@ -176,6 +185,7 @@ public class PortletInstanceFactoryImpl implements PortletInstanceFactory {
 		return instanceInvokerPortletInstance;
 	}
 
+	@Override
 	public void delete(Portlet portlet) {
 		if (PortletConstants.hasInstanceId(portlet.getPortletId())) {
 			Map<String, InvokerPortlet> portletInstances = _pool.get(
@@ -193,6 +203,7 @@ public class PortletInstanceFactoryImpl implements PortletInstanceFactory {
 
 	}
 
+	@Override
 	public void destroy(Portlet portlet) {
 		clear(portlet);
 

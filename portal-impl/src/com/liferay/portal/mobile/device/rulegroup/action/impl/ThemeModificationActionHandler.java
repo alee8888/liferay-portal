@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,11 +16,11 @@ package com.liferay.portal.mobile.device.rulegroup.action.impl;
 
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.mobile.device.rulegroup.action.ActionHandler;
+import com.liferay.portal.kernel.util.ColorSchemeFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.model.ColorScheme;
 import com.liferay.portal.model.Theme;
-import com.liferay.portal.model.impl.ColorSchemeImpl;
 import com.liferay.portal.service.ThemeLocalService;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
@@ -43,6 +43,7 @@ public class ThemeModificationActionHandler implements ActionHandler {
 		return ThemeModificationActionHandler.class.getName();
 	}
 
+	@Override
 	public void applyAction(
 		MDRAction mdrAction, HttpServletRequest request,
 		HttpServletResponse response) {
@@ -70,7 +71,7 @@ public class ThemeModificationActionHandler implements ActionHandler {
 			companyId, themeId, colorSchemeId);
 
 		if (colorScheme == null) {
-			colorScheme = ColorSchemeImpl.getNullColorScheme();
+			colorScheme = ColorSchemeFactoryUtil.getColorScheme();
 		}
 
 		request.setAttribute(WebKeys.COLOR_SCHEME, colorScheme);
@@ -81,10 +82,12 @@ public class ThemeModificationActionHandler implements ActionHandler {
 		themeDisplay.setLookAndFeel(theme, colorScheme);
 	}
 
+	@Override
 	public Collection<String> getPropertyNames() {
 		return _propertyNames;
 	}
 
+	@Override
 	public String getType() {
 		return getHandlerType();
 	}

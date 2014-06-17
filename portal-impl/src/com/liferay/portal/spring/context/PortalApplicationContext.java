@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,15 +16,12 @@ package com.liferay.portal.spring.context;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.util.PropsValues;
 
 import java.io.FileNotFoundException;
 
-import java.util.List;
-
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 
 /**
@@ -36,6 +33,7 @@ import org.springframework.web.context.support.XmlWebApplicationContext;
  *
  * @author Brian Wing Shun Chan
  * @author Alexander Chow
+ * @author Tomas Polesovsky
  */
 public class PortalApplicationContext extends XmlWebApplicationContext {
 
@@ -52,23 +50,14 @@ public class PortalApplicationContext extends XmlWebApplicationContext {
 			}
 		}
 
-		xmlBeanDefinitionReader.setResourceLoader(new DefaultResourceLoader());
+		xmlBeanDefinitionReader.setResourceLoader(
+			new PathMatchingResourcePatternResolver());
 
 		if (PropsValues.SPRING_CONFIGS == null) {
 			return;
 		}
 
-		List<String> configLocations = ListUtil.fromArray(
-			PropsValues.SPRING_CONFIGS);
-
-		if (PropsValues.PERSISTENCE_PROVIDER.equalsIgnoreCase("jpa")) {
-			configLocations.remove("META-INF/hibernate-spring.xml");
-		}
-		else {
-			configLocations.remove("META-INF/jpa-spring.xml");
-		}
-
-		for (String configLocation : configLocations) {
+		for (String configLocation : PropsValues.SPRING_CONFIGS) {
 			try {
 				xmlBeanDefinitionReader.loadBeanDefinitions(configLocation);
 			}

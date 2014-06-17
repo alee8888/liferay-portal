@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,14 +18,13 @@ import com.liferay.portal.cache.key.HashCodeCacheKeyGenerator;
 import com.liferay.portal.kernel.cache.key.CacheKeyGeneratorUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
-import com.liferay.portal.util.MinifierUtil;
+import com.liferay.portal.minifier.MinifierUtil;
 
 import java.io.StringWriter;
 
 import java.nio.CharBuffer;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -182,7 +181,7 @@ public class StripFilterTest extends PowerMockito {
 		StringWriter stringWriter = new StringWriter();
 
 		stripFilter.processJavaScript(
-			charBuffer, stringWriter, "script".toCharArray());
+			"test.js", charBuffer, stringWriter, "script".toCharArray());
 
 		Assert.assertEquals("script>", stringWriter.toString());
 		Assert.assertEquals(7, charBuffer.position());
@@ -193,7 +192,7 @@ public class StripFilterTest extends PowerMockito {
 		stringWriter = new StringWriter();
 
 		stripFilter.processJavaScript(
-			charBuffer, stringWriter, "script".toCharArray());
+			"test.js", charBuffer, stringWriter, "script".toCharArray());
 
 		Assert.assertEquals("script></script>", stringWriter.toString());
 		Assert.assertEquals(16, charBuffer.position());
@@ -204,7 +203,7 @@ public class StripFilterTest extends PowerMockito {
 		stringWriter = new StringWriter();
 
 		stripFilter.processJavaScript(
-			charBuffer, stringWriter, "script".toCharArray());
+			"test.js", charBuffer, stringWriter, "script".toCharArray());
 
 		Assert.assertEquals("script></script>", stringWriter.toString());
 		Assert.assertEquals(20, charBuffer.position());
@@ -212,17 +211,16 @@ public class StripFilterTest extends PowerMockito {
 		// Minifier code
 
 		String code = "function(){ var abcd; var efgh; }";
-		String minifiedCode = MinifierUtil.minifyJavaScript(code);
+		String minifiedCode = MinifierUtil.minifyJavaScript("test.js", code);
 
 		charBuffer = CharBuffer.wrap("script>" + code + "</script>");
 		stringWriter = new StringWriter();
 
 		stripFilter.processJavaScript(
-			charBuffer, stringWriter, "script".toCharArray());
+			"test.js", charBuffer, stringWriter, "script".toCharArray());
 
 		Assert.assertEquals(
-			"script>/*<![CDATA[*/" + minifiedCode + "/*]]>*/</script>",
-			stringWriter.toString());
+			"script>" + minifiedCode + "</script>", stringWriter.toString());
 		Assert.assertEquals(code.length() + 16, charBuffer.position());
 
 		// Minifier code with trailing spaces
@@ -231,11 +229,10 @@ public class StripFilterTest extends PowerMockito {
 		stringWriter = new StringWriter();
 
 		stripFilter.processJavaScript(
-			charBuffer, stringWriter, "script".toCharArray());
+			"test.js", charBuffer, stringWriter, "script".toCharArray());
 
 		Assert.assertEquals(
-			"script>/*<![CDATA[*/" + minifiedCode + "/*]]>*/</script> ",
-			stringWriter.toString());
+			"script>" + minifiedCode + "</script> ", stringWriter.toString());
 		Assert.assertEquals(code.length() + 20, charBuffer.position());
 
 		verifyStatic(Mockito.times(5));

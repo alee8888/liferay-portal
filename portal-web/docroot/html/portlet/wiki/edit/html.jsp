@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,15 +19,25 @@
 WikiPage wikiPage = (WikiPage)request.getAttribute("edit_page.jsp-wikiPage");
 
 String content = BeanParamUtil.getString(wikiPage, request, "content");
+
+String format = "html";
 %>
 
-<liferay-ui:input-editor editorImpl="<%= EDITOR_WYSIWYG_IMPL_KEY %>" width="100%" />
+<%@ include file="/html/portlet/wiki/edit/editor_config.jspf" %>
+
+<liferay-ui:input-editor
+	configParams="<%= configParams %>"
+	editorImpl="<%= EDITOR_WYSIWYG_IMPL_KEY %>"
+	fileBrowserParams="<%= fileBrowserParams %>"
+	name="content"
+	width="100%"
+/>
 
 <aui:input name="content" type="hidden" />
 
 <aui:script>
 	function <portlet:namespace />initEditor() {
-		return "<%= UnicodeFormatter.toString(content) %>";
+		return '<%= UnicodeFormatter.toString(content) %>';
 	}
 </aui:script>
 

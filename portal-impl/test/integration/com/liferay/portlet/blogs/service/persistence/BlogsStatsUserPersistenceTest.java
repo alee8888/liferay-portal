@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,45 +15,93 @@
 package com.liferay.portlet.blogs.service.persistence;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.AssertUtils;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.Time;
-import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.model.ModelListener;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.AssertUtils;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
 import com.liferay.portlet.blogs.NoSuchStatsUserException;
 import com.liferay.portlet.blogs.model.BlogsStatsUser;
 import com.liferay.portlet.blogs.model.impl.BlogsStatsUserModelImpl;
+import com.liferay.portlet.blogs.service.BlogsStatsUserLocalServiceUtil;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class BlogsStatsUserPersistenceTest {
 	@Before
-	public void setUp() throws Exception {
-		_persistence = (BlogsStatsUserPersistence)PortalBeanLocatorUtil.locate(BlogsStatsUserPersistence.class.getName());
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<BlogsStatsUser> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<BlogsStatsUser> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		BlogsStatsUser blogsStatsUser = _persistence.create(pk);
 
@@ -80,27 +128,27 @@ public class BlogsStatsUserPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		BlogsStatsUser newBlogsStatsUser = _persistence.create(pk);
 
-		newBlogsStatsUser.setGroupId(ServiceTestUtil.nextLong());
+		newBlogsStatsUser.setGroupId(RandomTestUtil.nextLong());
 
-		newBlogsStatsUser.setCompanyId(ServiceTestUtil.nextLong());
+		newBlogsStatsUser.setCompanyId(RandomTestUtil.nextLong());
 
-		newBlogsStatsUser.setUserId(ServiceTestUtil.nextLong());
+		newBlogsStatsUser.setUserId(RandomTestUtil.nextLong());
 
-		newBlogsStatsUser.setEntryCount(ServiceTestUtil.nextInt());
+		newBlogsStatsUser.setEntryCount(RandomTestUtil.nextInt());
 
-		newBlogsStatsUser.setLastPostDate(ServiceTestUtil.nextDate());
+		newBlogsStatsUser.setLastPostDate(RandomTestUtil.nextDate());
 
-		newBlogsStatsUser.setRatingsTotalEntries(ServiceTestUtil.nextInt());
+		newBlogsStatsUser.setRatingsTotalEntries(RandomTestUtil.nextInt());
 
-		newBlogsStatsUser.setRatingsTotalScore(ServiceTestUtil.nextDouble());
+		newBlogsStatsUser.setRatingsTotalScore(RandomTestUtil.nextDouble());
 
-		newBlogsStatsUser.setRatingsAverageScore(ServiceTestUtil.nextDouble());
+		newBlogsStatsUser.setRatingsAverageScore(RandomTestUtil.nextDouble());
 
-		_persistence.update(newBlogsStatsUser, false);
+		_persistence.update(newBlogsStatsUser);
 
 		BlogsStatsUser existingBlogsStatsUser = _persistence.findByPrimaryKey(newBlogsStatsUser.getPrimaryKey());
 
@@ -126,6 +174,82 @@ public class BlogsStatsUserPersistenceTest {
 	}
 
 	@Test
+	public void testCountByGroupId() {
+		try {
+			_persistence.countByGroupId(RandomTestUtil.nextLong());
+
+			_persistence.countByGroupId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUserId() {
+		try {
+			_persistence.countByUserId(RandomTestUtil.nextLong());
+
+			_persistence.countByUserId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_U() {
+		try {
+			_persistence.countByG_U(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
+
+			_persistence.countByG_U(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByG_NotE() {
+		try {
+			_persistence.countByG_NotE(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
+
+			_persistence.countByG_NotE(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_NotE() {
+		try {
+			_persistence.countByC_NotE(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
+
+			_persistence.countByC_NotE(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByU_L() {
+		try {
+			_persistence.countByU_L(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextDate());
+
+			_persistence.countByU_L(0L, RandomTestUtil.nextDate());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		BlogsStatsUser newBlogsStatsUser = addBlogsStatsUser();
 
@@ -136,7 +260,7 @@ public class BlogsStatsUserPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -145,6 +269,25 @@ public class BlogsStatsUserPersistenceTest {
 		}
 		catch (NoSuchStatsUserException nsee) {
 		}
+	}
+
+	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("BlogsStatsUser",
+			"statsUserId", true, "groupId", true, "companyId", true, "userId",
+			true, "entryCount", true, "lastPostDate", true,
+			"ratingsTotalEntries", true, "ratingsTotalScore", true,
+			"ratingsAverageScore", true);
 	}
 
 	@Test
@@ -158,11 +301,115 @@ public class BlogsStatsUserPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		BlogsStatsUser missingBlogsStatsUser = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingBlogsStatsUser);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		BlogsStatsUser newBlogsStatsUser1 = addBlogsStatsUser();
+		BlogsStatsUser newBlogsStatsUser2 = addBlogsStatsUser();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newBlogsStatsUser1.getPrimaryKey());
+		primaryKeys.add(newBlogsStatsUser2.getPrimaryKey());
+
+		Map<Serializable, BlogsStatsUser> blogsStatsUsers = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, blogsStatsUsers.size());
+		Assert.assertEquals(newBlogsStatsUser1,
+			blogsStatsUsers.get(newBlogsStatsUser1.getPrimaryKey()));
+		Assert.assertEquals(newBlogsStatsUser2,
+			blogsStatsUsers.get(newBlogsStatsUser2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, BlogsStatsUser> blogsStatsUsers = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(blogsStatsUsers.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		BlogsStatsUser newBlogsStatsUser = addBlogsStatsUser();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newBlogsStatsUser.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, BlogsStatsUser> blogsStatsUsers = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, blogsStatsUsers.size());
+		Assert.assertEquals(newBlogsStatsUser,
+			blogsStatsUsers.get(newBlogsStatsUser.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, BlogsStatsUser> blogsStatsUsers = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(blogsStatsUsers.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		BlogsStatsUser newBlogsStatsUser = addBlogsStatsUser();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newBlogsStatsUser.getPrimaryKey());
+
+		Map<Serializable, BlogsStatsUser> blogsStatsUsers = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, blogsStatsUsers.size());
+		Assert.assertEquals(newBlogsStatsUser,
+			blogsStatsUsers.get(newBlogsStatsUser.getPrimaryKey()));
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = BlogsStatsUserLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
+				@Override
+				public void performAction(Object object) {
+					BlogsStatsUser blogsStatsUser = (BlogsStatsUser)object;
+
+					Assert.assertNotNull(blogsStatsUser);
+
+					count.increment();
+				}
+			});
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -191,7 +438,7 @@ public class BlogsStatsUserPersistenceTest {
 				BlogsStatsUser.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("statsUserId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<BlogsStatsUser> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -230,7 +477,7 @@ public class BlogsStatsUserPersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("statsUserId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("statsUserId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -256,30 +503,33 @@ public class BlogsStatsUserPersistenceTest {
 	}
 
 	protected BlogsStatsUser addBlogsStatsUser() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		BlogsStatsUser blogsStatsUser = _persistence.create(pk);
 
-		blogsStatsUser.setGroupId(ServiceTestUtil.nextLong());
+		blogsStatsUser.setGroupId(RandomTestUtil.nextLong());
 
-		blogsStatsUser.setCompanyId(ServiceTestUtil.nextLong());
+		blogsStatsUser.setCompanyId(RandomTestUtil.nextLong());
 
-		blogsStatsUser.setUserId(ServiceTestUtil.nextLong());
+		blogsStatsUser.setUserId(RandomTestUtil.nextLong());
 
-		blogsStatsUser.setEntryCount(ServiceTestUtil.nextInt());
+		blogsStatsUser.setEntryCount(RandomTestUtil.nextInt());
 
-		blogsStatsUser.setLastPostDate(ServiceTestUtil.nextDate());
+		blogsStatsUser.setLastPostDate(RandomTestUtil.nextDate());
 
-		blogsStatsUser.setRatingsTotalEntries(ServiceTestUtil.nextInt());
+		blogsStatsUser.setRatingsTotalEntries(RandomTestUtil.nextInt());
 
-		blogsStatsUser.setRatingsTotalScore(ServiceTestUtil.nextDouble());
+		blogsStatsUser.setRatingsTotalScore(RandomTestUtil.nextDouble());
 
-		blogsStatsUser.setRatingsAverageScore(ServiceTestUtil.nextDouble());
+		blogsStatsUser.setRatingsAverageScore(RandomTestUtil.nextDouble());
 
-		_persistence.update(blogsStatsUser, false);
+		_persistence.update(blogsStatsUser);
 
 		return blogsStatsUser;
 	}
 
-	private BlogsStatsUserPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(BlogsStatsUserPersistenceTest.class);
+	private ModelListener<BlogsStatsUser>[] _modelListeners;
+	private BlogsStatsUserPersistence _persistence = (BlogsStatsUserPersistence)PortalBeanLocatorUtil.locate(BlogsStatsUserPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

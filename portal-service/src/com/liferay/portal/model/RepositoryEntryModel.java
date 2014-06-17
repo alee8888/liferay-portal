@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,12 +14,16 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
 
 import java.io.Serializable;
+
+import java.util.Date;
 
 /**
  * The base model interface for the RepositoryEntry service. Represents a row in the &quot;RepositoryEntry&quot; database table, with each column mapped to a property of this class.
@@ -34,7 +38,9 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.RepositoryEntryModelImpl
  * @generated
  */
-public interface RepositoryEntryModel extends BaseModel<RepositoryEntry> {
+@ProviderType
+public interface RepositoryEntryModel extends BaseModel<RepositoryEntry>,
+	MVCCModel, StagedGroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -56,11 +62,28 @@ public interface RepositoryEntryModel extends BaseModel<RepositoryEntry> {
 	public void setPrimaryKey(long primaryKey);
 
 	/**
+	 * Returns the mvcc version of this repository entry.
+	 *
+	 * @return the mvcc version of this repository entry
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this repository entry.
+	 *
+	 * @param mvccVersion the mvcc version of this repository entry
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
 	 * Returns the uuid of this repository entry.
 	 *
 	 * @return the uuid of this repository entry
 	 */
 	@AutoEscape
+	@Override
 	public String getUuid();
 
 	/**
@@ -68,6 +91,7 @@ public interface RepositoryEntryModel extends BaseModel<RepositoryEntry> {
 	 *
 	 * @param uuid the uuid of this repository entry
 	 */
+	@Override
 	public void setUuid(String uuid);
 
 	/**
@@ -89,6 +113,7 @@ public interface RepositoryEntryModel extends BaseModel<RepositoryEntry> {
 	 *
 	 * @return the group ID of this repository entry
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -96,7 +121,105 @@ public interface RepositoryEntryModel extends BaseModel<RepositoryEntry> {
 	 *
 	 * @param groupId the group ID of this repository entry
 	 */
+	@Override
 	public void setGroupId(long groupId);
+
+	/**
+	 * Returns the company ID of this repository entry.
+	 *
+	 * @return the company ID of this repository entry
+	 */
+	@Override
+	public long getCompanyId();
+
+	/**
+	 * Sets the company ID of this repository entry.
+	 *
+	 * @param companyId the company ID of this repository entry
+	 */
+	@Override
+	public void setCompanyId(long companyId);
+
+	/**
+	 * Returns the user ID of this repository entry.
+	 *
+	 * @return the user ID of this repository entry
+	 */
+	@Override
+	public long getUserId();
+
+	/**
+	 * Sets the user ID of this repository entry.
+	 *
+	 * @param userId the user ID of this repository entry
+	 */
+	@Override
+	public void setUserId(long userId);
+
+	/**
+	 * Returns the user uuid of this repository entry.
+	 *
+	 * @return the user uuid of this repository entry
+	 */
+	@Override
+	public String getUserUuid();
+
+	/**
+	 * Sets the user uuid of this repository entry.
+	 *
+	 * @param userUuid the user uuid of this repository entry
+	 */
+	@Override
+	public void setUserUuid(String userUuid);
+
+	/**
+	 * Returns the user name of this repository entry.
+	 *
+	 * @return the user name of this repository entry
+	 */
+	@AutoEscape
+	@Override
+	public String getUserName();
+
+	/**
+	 * Sets the user name of this repository entry.
+	 *
+	 * @param userName the user name of this repository entry
+	 */
+	@Override
+	public void setUserName(String userName);
+
+	/**
+	 * Returns the create date of this repository entry.
+	 *
+	 * @return the create date of this repository entry
+	 */
+	@Override
+	public Date getCreateDate();
+
+	/**
+	 * Sets the create date of this repository entry.
+	 *
+	 * @param createDate the create date of this repository entry
+	 */
+	@Override
+	public void setCreateDate(Date createDate);
+
+	/**
+	 * Returns the modified date of this repository entry.
+	 *
+	 * @return the modified date of this repository entry
+	 */
+	@Override
+	public Date getModifiedDate();
+
+	/**
+	 * Sets the modified date of this repository entry.
+	 *
+	 * @param modifiedDate the modified date of this repository entry
+	 */
+	@Override
+	public void setModifiedDate(Date modifiedDate);
 
 	/**
 	 * Returns the repository ID of this repository entry.
@@ -127,35 +250,81 @@ public interface RepositoryEntryModel extends BaseModel<RepositoryEntry> {
 	 */
 	public void setMappedId(String mappedId);
 
+	/**
+	 * Returns the manual check in required of this repository entry.
+	 *
+	 * @return the manual check in required of this repository entry
+	 */
+	public boolean getManualCheckInRequired();
+
+	/**
+	 * Returns <code>true</code> if this repository entry is manual check in required.
+	 *
+	 * @return <code>true</code> if this repository entry is manual check in required; <code>false</code> otherwise
+	 */
+	public boolean isManualCheckInRequired();
+
+	/**
+	 * Sets whether this repository entry is manual check in required.
+	 *
+	 * @param manualCheckInRequired the manual check in required of this repository entry
+	 */
+	public void setManualCheckInRequired(boolean manualCheckInRequired);
+
+	@Override
 	public boolean isNew();
 
+	@Override
 	public void setNew(boolean n);
 
+	@Override
 	public boolean isCachedModel();
 
+	@Override
 	public void setCachedModel(boolean cachedModel);
 
+	@Override
 	public boolean isEscapedModel();
 
+	@Override
 	public Serializable getPrimaryKeyObj();
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj);
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
+	@Override
+	public void setExpandoBridgeAttributes(BaseModel<?> baseModel);
+
+	@Override
+	public void setExpandoBridgeAttributes(ExpandoBridge expandoBridge);
+
+	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
 
+	@Override
 	public Object clone();
 
+	@Override
 	public int compareTo(RepositoryEntry repositoryEntry);
 
+	@Override
 	public int hashCode();
 
+	@Override
 	public CacheModel<RepositoryEntry> toCacheModel();
 
+	@Override
 	public RepositoryEntry toEscapedModel();
 
+	@Override
+	public RepositoryEntry toUnescapedModel();
+
+	@Override
 	public String toString();
 
+	@Override
 	public String toXmlString();
 }

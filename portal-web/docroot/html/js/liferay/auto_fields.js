@@ -1,20 +1,29 @@
 AUI.add(
 	'liferay-auto-fields',
 	function(A) {
+		var AArray = A.Array;
+		var AObject = A.Object;
 		var Lang = A.Lang;
 
 		var CSS_AUTOROW_CONTROLS = 'lfr-autorow-controls';
 
 		var CSS_ICON_LOADING = 'loading-animation';
 
+		var CSS_VALIDATION_HELPER_CLASSES = [
+			'error',
+			'error-field',
+			'success',
+			'success-field'
+		];
+
 		var TPL_INPUT_HIDDEN = '<input name="{name}" type="hidden" />';
 
-		var TPL_ADD_BUTTON = '<button type="button" class="add-row aui-buttonitem-content aui-buttonitem aui-state-default aui-buttonitem-icon-only aui-toolbar-first aui-toolbar-item" title=""><span class="aui-buttonitem-icon aui-icon aui-icon-plus"></span></button>';
+		var TPL_ADD_BUTTON = '<button type="button" class="add-row btn-content btn btn-icon-only toolbar-first toolbar-item" title=""><span class="btn-icon icon icon-plus"></span></button>';
 
-		var TPL_DELETE_BUTTON = '<button type="button" class="delete-row aui-buttonitem-content aui-buttonitem aui-state-default aui-buttonitem-icon-only aui-toolbar-last aui-toolbar-item" title=""><span class="aui-buttonitem-icon aui-icon aui-icon-minus"></span></button>';
+		var TPL_DELETE_BUTTON = '<button type="button" class="delete-row btn-content btn btn-icon-only toolbar-last toolbar-item" title=""><span class="btn-icon icon icon-minus"></span></button>';
 
 		var TPL_AUTOROW_CONTROLS =
-			'<span class="lfr-autorow-controls aui-toolbar aui-toolbar-horizontal"><span class="aui-toolbar-content">' +
+			'<span class="lfr-autorow-controls toolbar toolbar-horizontal"><span class="toolbar-content">' +
 				TPL_ADD_BUTTON +
 				TPL_DELETE_BUTTON +
 			'</span></span>';
@@ -37,6 +46,8 @@ AUI.add(
 
 		var AutoFields = A.Component.create(
 			{
+				AUGMENTS: [Liferay.PortletBase],
+
 				EXTENDS: A.Base,
 
 				NAME: 'autofields',
@@ -94,11 +105,11 @@ AUI.add(
 									instance.deleteRow(currentRow);
 								}
 							},
-							'.lfr-autorow-controls .aui-buttonitem'
+							'.lfr-autorow-controls .btn'
 						);
 
 						baseRows.each(
-							function(item, index, collection) {
+							function(item, index) {
 								var formRow;
 								var firstChild;
 
@@ -117,14 +128,14 @@ AUI.add(
 									contentBox.append(formRow);
 								}
 
-								if (index == 0) {
+								if (index === 0) {
 									instance._rowTemplate = formRow.clone();
 									instance._clearForm(instance._rowTemplate);
 								}
 							}
 						);
 
-						if (config.sortable){
+						if (config.sortable) {
 							instance._makeSortable(config.sortableHandle);
 						}
 
@@ -186,11 +197,72 @@ AUI.add(
 						}
 
 						if (deleteRow) {
+							var form = node.ancestor('form');
+
 							node.hide();
+
+							AArray.each(
+								CSS_VALIDATION_HELPER_CLASSES,
+								function(item, index) {
+									var disabledClass = item + '-disabled';
+
+									node.all('.' + item).replaceClass(item, disabledClass);
+								}
+							);
+
+							var rules;
+
+							var deletedRules = {};
+
+							var formValidator = instance._getFormValidator(node);
+
+							if (formValidator) {
+								var errors = formValidator.errors;
+
+								rules = formValidator.get('rules');
+
+								node.all('input, select, textarea').each(
+									function(item, index) {
+										var name = item.attr('name') || item.attr('id');
+
+										if (rules && rules[name]) {
+											deletedRules[name] = rules[name];
+
+											delete rules[name];
+										}
+
+										if (errors && errors[name]) {
+											delete errors[name];
+										}
+									}
+								);
+							}
 
 							instance._undoManager.add(
 								function(stateData) {
+									if (rules) {
+										AObject.each(
+											deletedRules,
+											function(item, index) {
+												rules[index] = item;
+											}
+										);
+									}
+
+									AArray.each(
+										CSS_VALIDATION_HELPER_CLASSES,
+										function(item, index) {
+											var disabledClass = item + '-disabled';
+
+											node.all('.' + disabledClass).replaceClass(disabledClass, item);
+										}
+									);
+
 									node.show();
+
+									if (form) {
+										form.fire('autofields:update');
+									}
 								}
 							);
 
@@ -201,6 +273,10 @@ AUI.add(
 									guid: instance._guid
 								}
 							);
+
+							if (form) {
+								form.fire('autofields:update');
+							}
 						}
 					},
 
@@ -210,7 +286,7 @@ AUI.add(
 						var contentBox = instance._contentBox;
 
 						contentBox.all('.lfr-form-row').each(
-							function(item, index, collection) {
+							function(item, index) {
 								instance.deleteRow(item);
 							}
 						);
@@ -242,7 +318,7 @@ AUI.add(
 						}
 						else {
 							visibleRows.each(
-								function(item, index, collection) {
+								function(item, index) {
 									var formField = item.one('input, textarea, select');
 									var fieldId = formField.attr('id');
 
@@ -275,14 +351,14 @@ AUI.add(
 					_attachSubmitListener: function() {
 						var instance = this;
 
-						Liferay.on('submitForm', A.bind(Liferay.fire, Liferay, 'saveAutoFields'));
+						Liferay.on('submitForm', A.bind('fire', Liferay, 'saveAutoFields'));
 
 						AutoFields.prototype._attachSubmitListener = Lang.emptyFn;
 					},
 
 					_clearForm: function(node) {
 						node.all('input, select, textarea').each(
-							function(item, index, collection) {
+							function(item, index) {
 								var type = item.getAttribute('type');
 								var tag = item.get('nodeName').toLowerCase();
 
@@ -293,13 +369,26 @@ AUI.add(
 									item.set('checked', false);
 								}
 								else if (tag == 'select') {
-									item.set('selectedIndex', -1);
+									var selectedIndex = 0;
+
+									if (item.getAttribute('showEmptyOption')) {
+										selectedIndex = -1;
+									}
+
+									item.set('selectedIndex', selectedIndex);
 								}
+							}
+						);
+
+						AArray.each(
+							CSS_VALIDATION_HELPER_CLASSES,
+							function(item, index) {
+								node.all('.' + item).removeClass(item);
 							}
 						);
 					},
 
-					_clearHiddenRows: function(item, index, collection) {
+					_clearHiddenRows: function(item, index) {
 						var instance = this;
 
 						if (instance._isHiddenRow(item)) {
@@ -314,23 +403,31 @@ AUI.add(
 						var clone = currentRow.clone();
 						var guid = (++instance._guid);
 
+						var formValidator = instance._getFormValidator(node);
+
 						var clonedRow;
 
 						if (instance.url) {
 							clonedRow = instance._createCloneFromURL(clone, guid);
 						}
 						else {
-							clonedRow = instance._createCloneFromMarkup(clone, guid);
+							clonedRow = instance._createCloneFromMarkup(clone, guid, formValidator);
 						}
 
 						return clonedRow;
 					},
 
-					_createCloneFromMarkup: function(node, guid) {
+					_createCloneFromMarkup: function(node, guid, formValidator) {
 						var instance = this;
 
+						var rules;
+
+						if (formValidator) {
+							rules = formValidator.get('rules');
+						}
+
 						node.all('input, select, textarea, span').each(
-							function(item, index, collection) {
+							function(item, index) {
 								var oldName = item.attr('name') || item.attr('id');
 								var originalName = oldName.replace(/([0-9]+)$/, '');
 								var newName = originalName + guid;
@@ -354,9 +451,15 @@ AUI.add(
 									item.attr('id', newName);
 								}
 
+								if (rules && rules[oldName]) {
+									rules[newName] = rules[oldName];
+								}
+
 								node.all('label[for=' + oldName + ']').attr('for', newName);
 							}
 						);
+
+						node.all('.help-inline').remove();
 
 						instance._clearForm(node);
 
@@ -377,9 +480,11 @@ AUI.add(
 						A.io.request(
 							instance.url,
 							{
-								data: {
-									index: guid
-								},
+								data: instance.ns(
+									{
+										index: guid
+									}
+								),
 								on: {
 									success: function(event, id, obj) {
 										var responseData = this.get('responseData');
@@ -393,10 +498,26 @@ AUI.add(
 						return node;
 					},
 
+					_getFormValidator: function(node) {
+						var instance = this;
+
+						var formValidator;
+
+						var form = node.ancestor('form');
+
+						if (form) {
+							var formId = form.attr('id');
+
+							formValidator = Liferay.Form.get(formId).formValidator;
+						}
+
+						return formValidator;
+					},
+
 					_isHiddenRow: function(row) {
 						var instance = this;
 
-						return row.hasClass(row._hideClass || 'aui-helper-hidden');
+						return row.hasClass(row._hideClass || 'hide');
 					},
 
 					_makeSortable: function(sortableHandle) {
@@ -419,7 +540,7 @@ AUI.add(
 							'clearList',
 							function(event) {
 								rows.all('.lfr-form-row').each(
-									function(item, index, collection) {
+									function(item, index) {
 										if (instance._isHiddenRow(item)) {
 											A.DD.DDM.getDrag(item).destroy();
 										}
@@ -438,6 +559,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-base', 'aui-data-set', 'aui-io-request', 'aui-parse-content', 'sortable', 'base', 'liferay-undo-manager']
+		requires: ['aui-base', 'aui-data-set-deprecated', 'aui-io-request', 'aui-parse-content', 'base', 'liferay-portlet-base', 'liferay-undo-manager', 'sortable']
 	}
 );

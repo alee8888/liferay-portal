@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,15 +30,10 @@ if (layoutPrototype == null) {
 }
 
 long layoutPrototypeId = BeanParamUtil.getLong(layoutPrototype, request, "layoutPrototypeId");
-
-Locale defaultLocale = LocaleUtil.getDefault();
-String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
-
-Locale[] locales = LanguageUtil.getAvailableLocales();
 %>
 
 <liferay-util:include page="/html/portlet/layout_prototypes/toolbar.jsp">
-	<liferay-util:param name="toolbarItem" value='<%= layoutPrototype.isNew() ? "add" : "view-all" %>' />
+	<liferay-util:param name="toolbarItem" value='<%= layoutPrototype.isNew() ? "add" : StringPool.BLANK %>' />
 </liferay-util:include>
 
 <liferay-ui:header
@@ -46,6 +41,13 @@ Locale[] locales = LanguageUtil.getAvailableLocales();
 	localizeTitle="<%= layoutPrototype.isNew() %>"
 	title='<%= layoutPrototype.isNew() ? "new-page-template" : layoutPrototype.getName(locale) %>'
 />
+
+<%
+request.setAttribute("edit_layout_prototype.jsp-layoutPrototype", layoutPrototype);
+request.setAttribute("edit_layout_prototype.jsp-redirect", redirect);
+%>
+
+<liferay-util:include page="/html/portlet/layout_prototypes/merge_alert.jsp" />
 
 <aui:form method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveLayoutPrototype();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
@@ -55,7 +57,7 @@ Locale[] locales = LanguageUtil.getAvailableLocales();
 	<aui:model-context bean="<%= layoutPrototype %>" model="<%= LayoutPrototype.class %>" />
 
 	<aui:fieldset>
-		<aui:input name="name" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="name" />
 
 		<aui:input name="description" />
 
@@ -70,7 +72,7 @@ Locale[] locales = LanguageUtil.getAvailableLocales();
 				</liferay-portlet:actionURL>
 
 				<liferay-ui:icon
-					image="view"
+					iconCssClass="icon-search"
 					label="<%= true %>"
 					message="open-page-template"
 					method="get"
@@ -90,13 +92,10 @@ Locale[] locales = LanguageUtil.getAvailableLocales();
 
 <aui:script>
 	function <portlet:namespace />saveLayoutPrototype() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (layoutPrototype == null) ? Constants.ADD : Constants.UPDATE %>";
-		submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/layout_prototypes/edit_layout_prototype" /></portlet:actionURL>");
-	}
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= (layoutPrototype == null) ? Constants.ADD : Constants.UPDATE %>';
 
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-	</c:if>
+		submitForm(document.<portlet:namespace />fm, '<portlet:actionURL><portlet:param name="struts_action" value="/layout_prototypes/edit_layout_prototype" /></portlet:actionURL>');
+	}
 </aui:script>
 
 <%

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,13 +20,13 @@ import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
+import com.liferay.portal.kernel.upgrade.util.UpgradeProcessUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.upgrade.UpgradeProcessUtil;
+import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.verify.VerifyException;
 import com.liferay.portal.verify.VerifyProcessUtil;
@@ -40,36 +40,16 @@ import java.sql.Connection;
  */
 public class StartupHelper {
 
-	public static void updateIndexes(
-		DB db, Connection con, boolean dropIndexes) {
-
-		try {
-			Thread currentThread = Thread.currentThread();
-
-			ClassLoader classLoader = currentThread.getContextClassLoader();
-
-			String tablesSQL = StringUtil.read(
-				classLoader,
-				"com/liferay/portal/tools/sql/dependencies/portal-tables.sql");
-
-			String indexesSQL = StringUtil.read(
-				classLoader,
-				"com/liferay/portal/tools/sql/dependencies/indexes.sql");
-
-			String indexesProperties = StringUtil.read(
-				classLoader,
-				"com/liferay/portal/tools/sql/dependencies/indexes.properties");
-
-			db.updateIndexes(
-				con, tablesSQL, indexesSQL, indexesProperties, dropIndexes);
-		}
-		catch (Exception e) {
-			_log.error(e, e);
-		}
+	public boolean isStartupFinished() {
+		return _startupFinished;
 	}
 
 	public boolean isUpgraded() {
 		return _upgraded;
+	}
+
+	public boolean isUpgrading() {
+		return _upgrading;
 	}
 
 	public boolean isVerified() {
@@ -80,61 +60,105 @@ public class StartupHelper {
 		_dropIndexes = dropIndexes;
 	}
 
+	public void setStartupFinished(boolean startupFinished) {
+		_startupFinished = startupFinished;
+	}
+
 	public void updateIndexes() {
+		updateIndexes(_dropIndexes);
+	}
+
+	public void updateIndexes(boolean dropIndexes) {
 		DB db = DBFactoryUtil.getDB();
 
-		Connection con = null;
+		Connection connection = null;
 
 		try {
-			con = DataAccess.getConnection();
+			connection = DataAccess.getConnection();
 
-			updateIndexes(db, con, _dropIndexes);
+			updateIndexes(db, connection, dropIndexes);
 		}
 		catch (Exception e) {
-			_log.error(e, e);
+			if (_log.isWarnEnabled()) {
+				_log.warn(e, e);
+			}
 		}
 		finally {
-			DataAccess.cleanUp(con);
+			DataAccess.cleanUp(connection);
+		}
+	}
+
+	public void updateIndexes(
+		DB db, Connection connection, boolean dropIndexes) {
+
+		try {
+			ClassLoader classLoader = ClassLoaderUtil.getContextClassLoader();
+
+			String tablesSQL = StringUtil.read(
+				classLoader,
+				"com/liferay/portal/tools/sql/dependencies/portal-tables.sql");
+
+			String indexesSQL = StringUtil.read(
+				classLoader,
+				"com/liferay/portal/tools/sql/dependencies/indexes.sql");
+
+			db.updateIndexes(connection, tablesSQL, indexesSQL, dropIndexes);
+		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(e, e);
+			}
 		}
 	}
 
 	public void upgradeProcess(int buildNumber) throws UpgradeException {
-		if (buildNumber == ReleaseInfo.getParentBuildNumber()) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(
-					"Skipping upgrade process from " + buildNumber + " to " +
-						ReleaseInfo.getParentBuildNumber());
-			}
+		_upgrading = true;
 
-			return;
-		}
-
-		String[] upgradeProcessClassNames = getUpgradeProcessClassNames(
-			PropsKeys.UPGRADE_PROCESSES);
-
-		if (upgradeProcessClassNames.length == 0) {
-			upgradeProcessClassNames = getUpgradeProcessClassNames(
-				PropsKeys.UPGRADE_PROCESSES + StringPool.PERIOD + buildNumber);
-
-			if (upgradeProcessClassNames.length == 0) {
-				if (_log.isInfoEnabled()) {
-					_log.info(
-						"Upgrading from " + buildNumber + " to " +
-							ReleaseInfo.getParentBuildNumber() + " is not " +
-								"supported");
+		try {
+			if (buildNumber == ReleaseInfo.getParentBuildNumber()) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Skipping upgrade process from " + buildNumber +
+							" to " + ReleaseInfo.getParentBuildNumber());
 				}
 
-				System.exit(0);
+				return;
 			}
-		}
 
-		_upgraded = UpgradeProcessUtil.upgradeProcess(
-			buildNumber, upgradeProcessClassNames,
-			PortalClassLoaderUtil.getClassLoader());
+			String[] upgradeProcessClassNames = getUpgradeProcessClassNames(
+				PropsKeys.UPGRADE_PROCESSES);
+
+			if (upgradeProcessClassNames.length == 0) {
+				upgradeProcessClassNames = getUpgradeProcessClassNames(
+					PropsKeys.UPGRADE_PROCESSES + StringPool.PERIOD +
+						buildNumber);
+
+				if (upgradeProcessClassNames.length == 0) {
+					if (_log.isInfoEnabled()) {
+						_log.info(
+							"Upgrading from " + buildNumber + " to " +
+								ReleaseInfo.getParentBuildNumber() +
+									" is not supported");
+					}
+
+					System.exit(0);
+				}
+			}
+
+			_upgraded = UpgradeProcessUtil.upgradeProcess(
+				buildNumber, upgradeProcessClassNames,
+				ClassLoaderUtil.getPortalClassLoader());
+		}
+		finally {
+			_upgrading = false;
+		}
 	}
 
-	public void verifyProcess(boolean verified) throws VerifyException {
-		_verified = VerifyProcessUtil.verifyProcess(_upgraded, verified);
+	public void verifyProcess(boolean newBuildNumber, boolean verified)
+		throws VerifyException {
+
+		_verified = VerifyProcessUtil.verifyProcess(
+			_upgraded, newBuildNumber, verified);
 	}
 
 	protected String[] getUpgradeProcessClassNames(String key) {
@@ -154,7 +178,9 @@ public class StartupHelper {
 	private static Log _log = LogFactoryUtil.getLog(StartupHelper.class);
 
 	private boolean _dropIndexes;
+	private boolean _startupFinished;
 	private boolean _upgraded;
+	private boolean _upgrading;
 	private boolean _verified;
 
 }

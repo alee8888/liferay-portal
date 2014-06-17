@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -52,7 +52,10 @@ public class RoleTypeComparator extends OrderByComparator {
 		}
 
 		if (value == 0) {
-			value = role1.getName().compareTo(role2.getName());
+			String name1 = role1.getName();
+			String name2 = role2.getName();
+
+			value = name1.compareTo(name2);
 		}
 
 		if (_ascending) {

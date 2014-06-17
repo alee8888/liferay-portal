@@ -1,23 +1,12 @@
+@import "compass";
+
 .portlet-journal-content {
-	.icon-actions {
-		float: left;
-		margin: 1px 10px 1px 1px;
-	}
-
-	.icons-container {
-		clear: both;
-		height: auto;
-		margin-top: 1em;
-		overflow: hidden;
-		width: auto;
-	}
-
 	.journal-content-article {
 		clear: right;
 
 		&:after {
 			clear: both;
-			content: "";
+			content: '';
 			display: block;
 			height: 0;
 		}
@@ -31,7 +20,7 @@
 		margin-top: 1em;
 	}
 
-	.aui-tabview-list {
+	.tabview-list {
 		margin: 18px 0;
 	}
 
@@ -53,6 +42,26 @@
 			padding: 0.8em 0.5em;
 		}
 	}
+
+	.portlet-borderless-container, .portlet-content {
+		.lfr-icon-actions {
+			.btn.dropdown-toggle {
+				background-color: inherit;
+			}
+
+			.lfr-icon-action-add {
+				font-size: 14px;
+				vertical-align: inherit;
+
+				a {
+					background: none;
+					border: 0;
+					padding: 0;
+					vertical-align: inherit;
+				}
+			}
+		}
+	}
 }
 
 .portlet-configuration {
@@ -66,6 +75,14 @@
 		.journal-content-article {
 			zoom: 1;
 		}
+
+		.lfr-icon-actions {
+			@include opacity(0.2);
+		}
+
+		&:hover .lfr-icon-actions {
+			@include opacity(1);
+		}
 	}
 }
 
@@ -73,6 +90,10 @@
 	.portlet-journal-content {
 		.icons-container {
 			height: 1%;
+		}
+
+		.lfr-icon-actions {
+			@include opacity(0.9);
 		}
 	}
 }

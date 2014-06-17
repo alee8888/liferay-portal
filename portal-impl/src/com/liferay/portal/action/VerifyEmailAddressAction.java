@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -50,8 +50,8 @@ public class VerifyEmailAddressAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
@@ -60,13 +60,13 @@ public class VerifyEmailAddressAction extends Action {
 		String cmd = ParamUtil.getString(request, Constants.CMD);
 
 		if (Validator.isNull(cmd)) {
-			return mapping.findForward("portal.verify_email_address");
+			return actionMapping.findForward("portal.verify_email_address");
 		}
 
 		if (themeDisplay.isSignedIn() && cmd.equals(Constants.SEND)) {
 			sendEmailAddressVerification(request, response, themeDisplay);
 
-			return mapping.findForward("portal.verify_email_address");
+			return actionMapping.findForward("portal.verify_email_address");
 		}
 
 		try {
@@ -82,20 +82,20 @@ public class VerifyEmailAddressAction extends Action {
 				return null;
 			}
 			else {
-				return mapping.findForward(ActionConstants.COMMON_REFERER_JSP);
+				return actionMapping.findForward(
+					ActionConstants.COMMON_REFERER_JSP);
 			}
 		}
 		catch (Exception e) {
 			if (e instanceof PortalException || e instanceof SystemException) {
 				SessionErrors.add(request, e.getClass());
 
-				return mapping.findForward("portal.verify_email_address");
+				return actionMapping.findForward("portal.verify_email_address");
 			}
-			else {
-				PortalUtil.sendError(e, request, response);
 
-				return null;
-			}
+			PortalUtil.sendError(e, request, response);
+
+			return null;
 		}
 	}
 
@@ -118,7 +118,8 @@ public class VerifyEmailAddressAction extends Action {
 			ThemeDisplay themeDisplay)
 		throws Exception {
 
-		AuthTokenUtil.check(request);
+		AuthTokenUtil.checkCSRFToken(
+			request, VerifyEmailAddressAction.class.getName());
 
 		String ticketKey = ParamUtil.getString(request, "ticketKey");
 

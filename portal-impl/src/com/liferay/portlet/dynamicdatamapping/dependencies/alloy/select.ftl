@@ -7,9 +7,11 @@
 </#if>
 
 <#if required>
-	<#assign label = label + " (" + languageUtil.get(locale, "required") + ")">
+	<#assign label = label + " (" + languageUtil.get(requestedLocale, "required") + ")">
 </#if>
 
-<@aui.select cssClass=cssClass helpMessage=fieldStructure.tip label=label multiple=multiple name=namespacedFieldName>
-	${fieldStructure.children}
-</@aui.select>
+<@aui["field-wrapper"] data=data>
+	<@aui.select cssClass=cssClass helpMessage=escape(fieldStructure.tip) label=escape(label) multiple=multiple name=namespacedFieldName>
+		${fieldStructure.children}
+	</@aui.select>
+</@>

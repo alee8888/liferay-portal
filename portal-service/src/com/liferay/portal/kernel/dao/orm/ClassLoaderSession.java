@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,9 @@
 
 package com.liferay.portal.kernel.dao.orm;
 
+import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.security.pacl.NotPrivileged;
+
 import java.io.Serializable;
 
 import java.sql.Connection;
@@ -22,6 +25,7 @@ import java.sql.Connection;
  * @author Shuyang Zhou
  * @author Brian Wing Shun Chan
  */
+@DoPrivileged
 public class ClassLoaderSession implements Session {
 
 	public ClassLoaderSession(Session session, ClassLoader classLoader) {
@@ -29,6 +33,8 @@ public class ClassLoaderSession implements Session {
 		_classLoader = classLoader;
 	}
 
+	@NotPrivileged
+	@Override
 	public void clear() throws ORMException {
 		Thread currentThread = Thread.currentThread();
 
@@ -43,12 +49,13 @@ public class ClassLoaderSession implements Session {
 		}
 		finally {
 			if (contextClassLoader != _classLoader) {
-
 				currentThread.setContextClassLoader(contextClassLoader);
 			}
 		}
 	}
 
+	@NotPrivileged
+	@Override
 	public Connection close() throws ORMException {
 		Thread currentThread = Thread.currentThread();
 
@@ -68,6 +75,8 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@NotPrivileged
+	@Override
 	public boolean contains(Object object) throws ORMException {
 		Thread currentThread = Thread.currentThread();
 
@@ -87,6 +96,7 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@Override
 	public Query createQuery(String queryString) throws ORMException {
 		Thread currentThread = Thread.currentThread();
 
@@ -106,6 +116,7 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@Override
 	public Query createQuery(String queryString, boolean strictName)
 		throws ORMException {
 
@@ -127,6 +138,7 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@Override
 	public SQLQuery createSQLQuery(String queryString) throws ORMException {
 		Thread currentThread = Thread.currentThread();
 
@@ -146,6 +158,7 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@Override
 	public SQLQuery createSQLQuery(String queryString, boolean strictName)
 		throws ORMException {
 
@@ -167,6 +180,53 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@Override
+	public SQLQuery createSynchronizedSQLQuery(String queryString)
+		throws ORMException {
+
+		Thread currentThread = Thread.currentThread();
+
+		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+
+		try {
+			if (contextClassLoader != _classLoader) {
+				currentThread.setContextClassLoader(_classLoader);
+			}
+
+			return _session.createSynchronizedSQLQuery(queryString);
+		}
+		finally {
+			if (contextClassLoader != _classLoader) {
+				currentThread.setContextClassLoader(contextClassLoader);
+			}
+		}
+	}
+
+	@Override
+	public SQLQuery createSynchronizedSQLQuery(
+			String queryString, boolean strictName)
+		throws ORMException {
+
+		Thread currentThread = Thread.currentThread();
+
+		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+
+		try {
+			if (contextClassLoader != _classLoader) {
+				currentThread.setContextClassLoader(_classLoader);
+			}
+
+			return _session.createSynchronizedSQLQuery(queryString, strictName);
+		}
+		finally {
+			if (contextClassLoader != _classLoader) {
+				currentThread.setContextClassLoader(contextClassLoader);
+			}
+		}
+	}
+
+	@NotPrivileged
+	@Override
 	public void delete(Object object) throws ORMException {
 		Thread currentThread = Thread.currentThread();
 
@@ -186,6 +246,8 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@NotPrivileged
+	@Override
 	public void evict(Object object) throws ORMException {
 		Thread currentThread = Thread.currentThread();
 
@@ -205,6 +267,8 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@NotPrivileged
+	@Override
 	public void flush() throws ORMException {
 		Thread currentThread = Thread.currentThread();
 
@@ -224,6 +288,8 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@NotPrivileged
+	@Override
 	public Object get(Class<?> clazz, Serializable id) throws ORMException {
 		Thread currentThread = Thread.currentThread();
 
@@ -243,6 +309,8 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@NotPrivileged
+	@Override
 	public Object get(Class<?> clazz, Serializable id, LockMode lockMode)
 		throws ORMException {
 
@@ -264,6 +332,8 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@NotPrivileged
+	@Override
 	public Object getWrappedSession() throws ORMException {
 		Thread currentThread = Thread.currentThread();
 
@@ -283,6 +353,29 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@NotPrivileged
+	@Override
+	public boolean isDirty() throws ORMException {
+		Thread currentThread = Thread.currentThread();
+
+		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+
+		try {
+			if (contextClassLoader != _classLoader) {
+				currentThread.setContextClassLoader(_classLoader);
+			}
+
+			return _session.isDirty();
+		}
+		finally {
+			if (contextClassLoader != _classLoader) {
+				currentThread.setContextClassLoader(contextClassLoader);
+			}
+		}
+	}
+
+	@NotPrivileged
+	@Override
 	public Object load(Class<?> clazz, Serializable id) throws ORMException {
 		Thread currentThread = Thread.currentThread();
 
@@ -302,6 +395,8 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@NotPrivileged
+	@Override
 	public Object merge(Object object) throws ORMException {
 		Thread currentThread = Thread.currentThread();
 
@@ -321,6 +416,8 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@NotPrivileged
+	@Override
 	public Serializable save(Object object) throws ORMException {
 		Thread currentThread = Thread.currentThread();
 
@@ -340,6 +437,8 @@ public class ClassLoaderSession implements Session {
 		}
 	}
 
+	@NotPrivileged
+	@Override
 	public void saveOrUpdate(Object object) throws ORMException {
 		Thread currentThread = Thread.currentThread();
 

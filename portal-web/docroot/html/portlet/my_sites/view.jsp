@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,7 +29,7 @@ pageContext.setAttribute("portletURL", portletURL);
 request.setAttribute("view.jsp-tabs1", tabs1);
 %>
 
-<liferay-ui:success key="membership_request_sent" message="your-request-was-sent-you-will-receive-a-reply-by-email" />
+<liferay-ui:success key="membershipRequestSent" message="your-request-was-sent-you-will-receive-a-reply-by-email" />
 
 <aui:form action="<%= portletURL.toString() %>" method="get" name="fm">
 	<liferay-portlet:renderURLParams varImpl="portletURL" />
@@ -46,7 +46,7 @@ request.setAttribute("view.jsp-tabs1", tabs1);
 		<%
 		GroupSearchTerms searchTerms = (GroupSearchTerms)searchContainer.getSearchTerms();
 
-		LinkedHashMap groupParams = new LinkedHashMap();
+		LinkedHashMap<String, Object> groupParams = new LinkedHashMap<String, Object>();
 
 		groupParams.put("site", Boolean.TRUE);
 
@@ -65,16 +65,32 @@ request.setAttribute("view.jsp-tabs1", tabs1);
 		}
 		%>
 
-		<liferay-ui:search-container-results
-			results="<%= GroupLocalServiceUtil.search(company.getCompanyId(), classNameIds, searchTerms.getName(), searchTerms.getDescription(), groupParams, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator()) %>"
-			total="<%= GroupLocalServiceUtil.searchCount(company.getCompanyId(), classNameIds, searchTerms.getName(), searchTerms.getDescription(), groupParams) %>"
-		/>
+		<liferay-ui:search-container-results>
 
-		<liferay-ui:search-form
-			page="/html/portlet/users_admin/group_search.jsp"
-			searchContainer="<%= searchContainer %>"
-			showAddButton="<%= false %>"
-		/>
+			<%
+			if (searchTerms.isAdvancedSearch()) {
+				total = GroupLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator());
+
+				searchContainer.setTotal(total);
+
+				results = GroupLocalServiceUtil.search(company.getCompanyId(), searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator(), searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
+			}
+			else {
+				total = GroupLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getKeywords(), groupParams);
+
+				searchContainer.setTotal(total);
+
+				results = GroupLocalServiceUtil.search(company.getCompanyId(), searchTerms.getKeywords(), groupParams, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
+			}
+
+			searchContainer.setResults(results);
+			%>
+
+		</liferay-ui:search-container-results>
+
+		<aui:nav-bar>
+			<aui:nav-bar-search cssClass="pull-right" file="/html/portlet/users_admin/group_search.jsp" searchContainer="<%= searchContainer %>" />
+		</aui:nav-bar>
 
 		<liferay-ui:error exception="<%= RequiredGroupException.class %>">
 
@@ -86,7 +102,7 @@ request.setAttribute("view.jsp-tabs1", tabs1);
 				<liferay-ui:message key="you-cannot-delete-this-site-because-you-are-currently-accessing-this-site" />
 			</c:if>
 
-			<c:if test="<%=rge.getType() == RequiredGroupException.PARENT_GROUP%>">
+			<c:if test="<%= rge.getType() == RequiredGroupException.PARENT_GROUP %>">
 				<liferay-ui:message key="you-cannot-delete-sites-that-have-subsites" />
 			</c:if>
 
@@ -97,7 +113,6 @@ request.setAttribute("view.jsp-tabs1", tabs1);
 
 		<liferay-ui:search-container-row
 			className="com.liferay.portal.model.Group"
-			escapedModel="<%= true %>"
 			keyProperty="groupId"
 			modelVar="group"
 			rowIdProperty="friendlyURL"
@@ -109,58 +124,49 @@ request.setAttribute("view.jsp-tabs1", tabs1);
 			if (group.getPublicLayoutsPageCount() > 0) {
 				rowURL = renderResponse.createActionURL();
 
-				rowURL.setWindowState(WindowState.NORMAL);
-
 				rowURL.setParameter("struts_action", "/sites_admin/page");
 				rowURL.setParameter("redirect", currentURL);
 				rowURL.setParameter("groupId", String.valueOf(group.getGroupId()));
 				rowURL.setParameter("privateLayout", Boolean.FALSE.toString());
+				rowURL.setWindowState(WindowState.NORMAL);
 			}
 			else if (tabs1.equals("my-sites") && (group.getPrivateLayoutsPageCount() > 0)) {
 				rowURL = renderResponse.createActionURL();
-
-				rowURL.setWindowState(WindowState.NORMAL);
 
 				rowURL.setParameter("struts_action", "/sites_admin/page");
 				rowURL.setParameter("redirect", currentURL);
 				rowURL.setParameter("groupId", String.valueOf(group.getGroupId()));
 				rowURL.setParameter("privateLayout", Boolean.TRUE.toString());
+				rowURL.setWindowState(WindowState.NORMAL);
 			}
 			%>
 
 			<liferay-ui:search-container-column-text
-				buffer="buffer"
 				name="name"
 				orderable="<%= true %>"
 			>
+				<c:choose>
+					<c:when test="<%= rowURL != null %>">
+						<a href="<%= rowURL %>" target="_blank">
+							<strong><%= HtmlUtil.escape(group.getDescriptiveName(locale)) %></strong>
+						</a>
+					</c:when>
+					<c:otherwise>
+						<strong><%= HtmlUtil.escape(group.getDescriptiveName(locale)) %></strong>
+					</c:otherwise>
+				</c:choose>
 
-			<%
-			if (rowURL != null) {
-				buffer.append("<a href=\"");
-				buffer.append(rowURL.toString());
-				buffer.append("\" target=\"_blank\"><strong>");
-				buffer.append(HtmlUtil.escape(group.getDescriptiveName(locale)));
-				buffer.append("</strong></a>");
-			}
-			else {
-				buffer.append("<strong>");
-				buffer.append(HtmlUtil.escape(group.getDescriptiveName(locale)));
-				buffer.append("</strong>");
-			}
+				<c:if test='<%= !tabs1.equals("my-sites") && Validator.isNotNull(group.getDescription()) %>'>
+					<br />
 
-			if (!tabs1.equals("my-sites") && Validator.isNotNull(group.getDescription())) {
-				buffer.append("<br /><em>");
-				buffer.append(group.getDescription());
-				buffer.append("</em>");
-			}
-			%>
-
+					<em><%= HtmlUtil.escape(group.getDescription()) %></em>
+				</c:if>
 			</liferay-ui:search-container-column-text>
 
 			<%
-			LinkedHashMap userParams = new LinkedHashMap();
+			LinkedHashMap<String, Object> userParams = new LinkedHashMap<String, Object>();
 
-			userParams.put("inherit", true);
+			userParams.put("inherit", Boolean.TRUE);
 			userParams.put("usersGroups", new Long(group.getGroupId()));
 			%>
 
@@ -187,9 +193,9 @@ request.setAttribute("view.jsp-tabs1", tabs1);
 
 			<liferay-ui:search-container-column-jsp
 				align="right"
+				cssClass="entry-action"
 				path="/html/portlet/my_sites/site_action.jsp"
 			/>
-
 		</liferay-ui:search-container-row>
 
 		<liferay-ui:search-iterator />

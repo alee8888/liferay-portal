@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -68,11 +68,13 @@ public class DoAsURLTag extends TagSupport {
 			}
 
 			if (Validator.isNull(doAsURL)) {
-				doAsURL = _COMPANY_DEFAULT_HOME_URL;
+				doAsURL =
+					themeDisplay.getPathContext() + _COMPANY_DEFAULT_HOME_URL;
 			}
 		}
-
-		doAsURL = themeDisplay.getPathContext() + doAsURL;
+		else {
+			doAsURL = themeDisplay.getPathContext() + doAsURL;
+		}
 
 		if (doAsUserId <= 0) {
 			doAsUserId = company.getDefaultUser().getUserId();

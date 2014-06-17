@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,7 +25,7 @@ long categoryId = ParamUtil.getLong(request, "categoryId");
 List<AssetVocabulary> vocabularies = null;
 
 if (vocabularyIds == null) {
-	vocabularies = AssetVocabularyServiceUtil.getGroupsVocabularies(new long[] {scopeGroupId, themeDisplay.getCompanyGroupId()});
+	vocabularies = AssetVocabularyServiceUtil.getGroupVocabularies(PortalUtil.getCurrentAndAncestorSiteGroupIds(scopeGroupId));
 }
 else {
 	vocabularies = new ArrayList<AssetVocabulary>();
@@ -56,7 +56,7 @@ PortletURL portletURL = renderResponse.createRenderURL();
 			hidePortletWhenEmpty = false;
 	%>
 
-			<liferay-ui:panel collapsible="<%= false %>" extended="<%= true %>" persistState="<%= true %>" title="<%= vocabulary.getTitle(locale) %>">
+			<liferay-ui:panel collapsible="<%= false %>" extended="<%= true %>" persistState="<%= true %>" title="<%= vocabulary.getUnambiguousTitle(vocabularies, themeDisplay.getSiteGroupId(), themeDisplay.getLocale()) %>">
 				<%= vocabularyNavigation %>
 			</liferay-ui:panel>
 
@@ -72,11 +72,15 @@ if (hidePortletWhenEmpty) {
 	renderRequest.setAttribute(WebKeys.PORTLET_CONFIGURATOR_VISIBILITY, Boolean.TRUE);
 %>
 
-	<div class="portlet-msg-info">
+	<div class="alert alert-info">
 		<liferay-ui:message key="there-are-no-categories" />
 	</div>
 
 <%
+}
+
+if (categoryId > 0) {
+	AssetUtil.addPortletBreadcrumbEntries(categoryId, request, portletURL);
 }
 %>
 
@@ -95,7 +99,7 @@ if (hidePortletWhenEmpty) {
 				}
 			).render();
 
-			var selected = assetCategoryList.one('.aui-tree-node .tag-selected');
+			var selected = assetCategoryList.one('.tree-node .tag-selected');
 
 			if (selected) {
 				var selectedChild = treeView.getNodeByChild(selected);
@@ -123,7 +127,7 @@ private void _buildCategoriesNavigation(List<AssetCategory> categories, long cat
 
 		List<AssetCategory> categoriesChildren = AssetCategoryServiceUtil.getChildCategories(category.getCategoryId(), QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 
-		sb.append("<li><span>");
+		sb.append("<li class=\"tree-node\"><span>");
 
 		if (categoryId == category.getCategoryId()) {
 			portletURL.setParameter("categoryId", StringPool.BLANK);
@@ -137,7 +141,7 @@ private void _buildCategoriesNavigation(List<AssetCategory> categories, long cat
 			sb.append("<a href=\"");
 		}
 
-		sb.append(portletURL.toString());
+		sb.append(HtmlUtil.escape(portletURL.toString()));
 		sb.append("\">");
 		sb.append(title);
 		sb.append("</a>");

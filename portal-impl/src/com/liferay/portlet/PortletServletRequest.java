@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,12 +17,12 @@ package com.liferay.portlet;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.HttpMethods;
+import com.liferay.portal.kernel.servlet.ServletInputStreamAdapter;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
-import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.util.servlet.GenericServletInputStream;
+import com.liferay.portal.util.ClassLoaderUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -220,7 +220,7 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 				clientDataRequest.getPortletInputStream();
 
 			ServletInputStream servletInputStream =
-				new GenericServletInputStream(portletInputStream);
+				new ServletInputStreamAdapter(portletInputStream);
 
 			return servletInputStream;
 		}
@@ -268,14 +268,14 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 
 			return clientDataRequest.getMethod();
 		}
-		else if (_lifecycle.equals(PortletRequest.RENDER_PHASE)) {
+
+		if (_lifecycle.equals(PortletRequest.RENDER_PHASE)) {
 			return HttpMethods.GET;
 		}
-		else {
-			EventRequest eventRequest = _getEventRequest();
 
-			return eventRequest.getMethod();
-		}
+		EventRequest eventRequest = _getEventRequest();
+
+		return eventRequest.getMethod();
 	}
 
 	@Override
@@ -399,25 +399,18 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 
 	@Override
 	public HttpSession getSession() {
-		HttpSession session = new PortletServletSession(
-			_request.getSession(), _portletRequestImpl);
-
-		if (ServerDetector.isJetty()) {
-			try {
-				session = wrapJettySession(session);
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
-		}
-
-		return session;
+		return getSession(true);
 	}
 
 	@Override
 	public HttpSession getSession(boolean create) {
-		HttpSession session = new PortletServletSession(
-			_request.getSession(create), _portletRequestImpl);
+		HttpSession session = _request.getSession(create);
+
+		if (session == null) {
+			return null;
+		}
+
+		session = new PortletServletSession(session, _portletRequestImpl);
 
 		if (ServerDetector.isJetty()) {
 			try {
@@ -442,8 +435,9 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	@Override
 	public boolean isRequestedSessionIdFromUrl() {
 		return _request.isRequestedSessionIdFromUrl();
@@ -498,7 +492,7 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 		// This must be called through reflection because Resin tries to load
 		// org/mortbay/jetty/servlet/AbstractSessionManager$SessionIf
 
-		ClassLoader classLoader = PortalClassLoaderUtil.getClassLoader();
+		ClassLoader classLoader = ClassLoaderUtil.getPortalClassLoader();
 
 		Class<?> jettyHttpSessionWrapperClass = classLoader.loadClass(
 			"com.liferay.portal.servlet.JettyHttpSessionWrapper");

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,14 +15,17 @@
 package com.liferay.portal.format;
 
 import com.liferay.portal.kernel.format.PhoneNumberFormat;
-import com.liferay.portal.util.BaseTestCase;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author Brian Wing Shun Chan
  * @author Manuel de la Peña
  */
-public abstract class BasePhoneNumberFormatImplTestCase extends BaseTestCase {
+public abstract class BasePhoneNumberFormatImplTestCase {
 
+	@Test
 	public void testInvalidPhoneNumbers() {
 		PhoneNumberFormat phoneNumberFormat = getPhoneNumberFormat();
 
@@ -30,11 +33,12 @@ public abstract class BasePhoneNumberFormatImplTestCase extends BaseTestCase {
 
 		for (String phoneNumber : phoneNumbers) {
 			if (phoneNumberFormat.validate(phoneNumber)) {
-				fail(phoneNumber);
+				Assert.fail(phoneNumber);
 			}
 		}
 	}
 
+	@Test
 	public void testValidPhoneNumbers() {
 		PhoneNumberFormat phoneNumberFormat = getPhoneNumberFormat();
 
@@ -42,7 +46,7 @@ public abstract class BasePhoneNumberFormatImplTestCase extends BaseTestCase {
 
 		for (String phoneNumber : phoneNumbers) {
 			if (!phoneNumberFormat.validate(phoneNumber)) {
-				fail(phoneNumber);
+				Assert.fail(phoneNumber);
 			}
 		}
 	}

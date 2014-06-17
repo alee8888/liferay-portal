@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,18 +21,18 @@ String currentURL = PortalUtil.getCurrentURL(request);
 
 String referer = ParamUtil.getString(request, WebKeys.REFERER, currentURL);
 
-if (referer.equals(themeDisplay.getPathMain() + "/portal/update_password")) {
-	referer = themeDisplay.getPathMain() + "?doAsUserId=" + themeDisplay.getDoAsUserId();
+String ticketKey = ParamUtil.getString(request, "ticketKey");
+
+if (referer.startsWith(themeDisplay.getPathMain() + "/portal/update_password") && Validator.isNotNull(ticketKey)) {
+	referer = themeDisplay.getPathMain();
 }
 
 PasswordPolicy passwordPolicy = user.getPasswordPolicy();
-
-String ticketKey = ParamUtil.getString(request, "ticketKey");
 %>
 
 <c:choose>
 	<c:when test="<%= SessionErrors.contains(request, UserLockoutException.class.getName()) %>">
-		<div class="portlet-msg-error">
+		<div class="alert alert-danger">
 			<liferay-ui:message key="this-account-has-been-locked" />
 		</div>
 	</c:when>
@@ -45,7 +45,7 @@ String ticketKey = ParamUtil.getString(request, "ticketKey");
 			<aui:input name="<%= WebKeys.REFERER %>" type="hidden" value="<%= referer %>" />
 			<aui:input name="ticketKey" type="hidden" value="<%= ticketKey %>" />
 
-			<div class="portlet-msg-info">
+			<div class="alert alert-info">
 				<liferay-ui:message key="please-set-a-new-password" />
 			</div>
 
@@ -55,7 +55,7 @@ String ticketKey = ParamUtil.getString(request, "ticketKey");
 				UserPasswordException upe = (UserPasswordException)SessionErrors.get(request, UserPasswordException.class.getName());
 				%>
 
-				<div class="portlet-msg-error">
+				<div class="alert alert-danger">
 					<c:if test="<%= upe.getType() == UserPasswordException.PASSWORD_ALREADY_USED %>">
 						<liferay-ui:message key="that-password-has-already-been-used-please-enter-in-a-different-password" />
 					</c:if>
@@ -95,7 +95,7 @@ String ticketKey = ParamUtil.getString(request, "ticketKey");
 			</c:if>
 
 			<aui:fieldset label="new-password">
-				<aui:input class="lfr-input-text-container" label="password" name="password1" type="password" />
+				<aui:input autoFocus="<%= true %>" class="lfr-input-text-container" label="password" name="password1" type="password" />
 
 				<aui:input class="lfr-input-text-container" label="enter-again" name="password2" type="password" />
 			</aui:fieldset>
@@ -104,9 +104,5 @@ String ticketKey = ParamUtil.getString(request, "ticketKey");
 				<aui:button type="submit" />
 			</aui:button-row>
 		</aui:form>
-
-		<aui:script>
-			Liferay.Util.focusFormField(document.fm.password1);
-		</aui:script>
 	</c:otherwise>
 </c:choose>

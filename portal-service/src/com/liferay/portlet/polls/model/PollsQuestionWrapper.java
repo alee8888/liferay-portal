@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.polls.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,24 +29,28 @@ import java.util.Map;
  * This class is a wrapper for {@link PollsQuestion}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PollsQuestion
+ * @author Brian Wing Shun Chan
+ * @see PollsQuestion
  * @generated
  */
+@ProviderType
 public class PollsQuestionWrapper implements PollsQuestion,
 	ModelWrapper<PollsQuestion> {
 	public PollsQuestionWrapper(PollsQuestion pollsQuestion) {
 		_pollsQuestion = pollsQuestion;
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return PollsQuestion.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return PollsQuestion.class.getName();
 	}
 
+	@Override
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
@@ -62,6 +70,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 		return attributes;
 	}
 
+	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
 		String uuid = (String)attributes.get("uuid");
 
@@ -141,6 +150,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the primary key of this polls question
 	*/
+	@Override
 	public long getPrimaryKey() {
 		return _pollsQuestion.getPrimaryKey();
 	}
@@ -150,6 +160,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param primaryKey the primary key of this polls question
 	*/
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_pollsQuestion.setPrimaryKey(primaryKey);
 	}
@@ -159,6 +170,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the uuid of this polls question
 	*/
+	@Override
 	public java.lang.String getUuid() {
 		return _pollsQuestion.getUuid();
 	}
@@ -168,6 +180,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param uuid the uuid of this polls question
 	*/
+	@Override
 	public void setUuid(java.lang.String uuid) {
 		_pollsQuestion.setUuid(uuid);
 	}
@@ -177,6 +190,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the question ID of this polls question
 	*/
+	@Override
 	public long getQuestionId() {
 		return _pollsQuestion.getQuestionId();
 	}
@@ -186,6 +200,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param questionId the question ID of this polls question
 	*/
+	@Override
 	public void setQuestionId(long questionId) {
 		_pollsQuestion.setQuestionId(questionId);
 	}
@@ -195,6 +210,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the group ID of this polls question
 	*/
+	@Override
 	public long getGroupId() {
 		return _pollsQuestion.getGroupId();
 	}
@@ -204,6 +220,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param groupId the group ID of this polls question
 	*/
+	@Override
 	public void setGroupId(long groupId) {
 		_pollsQuestion.setGroupId(groupId);
 	}
@@ -213,6 +230,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the company ID of this polls question
 	*/
+	@Override
 	public long getCompanyId() {
 		return _pollsQuestion.getCompanyId();
 	}
@@ -222,6 +240,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param companyId the company ID of this polls question
 	*/
+	@Override
 	public void setCompanyId(long companyId) {
 		_pollsQuestion.setCompanyId(companyId);
 	}
@@ -231,6 +250,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the user ID of this polls question
 	*/
+	@Override
 	public long getUserId() {
 		return _pollsQuestion.getUserId();
 	}
@@ -240,6 +260,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param userId the user ID of this polls question
 	*/
+	@Override
 	public void setUserId(long userId) {
 		_pollsQuestion.setUserId(userId);
 	}
@@ -248,10 +269,9 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* Returns the user uuid of this polls question.
 	*
 	* @return the user uuid of this polls question
-	* @throws SystemException if a system exception occurred
 	*/
-	public java.lang.String getUserUuid()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public java.lang.String getUserUuid() {
 		return _pollsQuestion.getUserUuid();
 	}
 
@@ -260,6 +280,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param userUuid the user uuid of this polls question
 	*/
+	@Override
 	public void setUserUuid(java.lang.String userUuid) {
 		_pollsQuestion.setUserUuid(userUuid);
 	}
@@ -269,6 +290,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the user name of this polls question
 	*/
+	@Override
 	public java.lang.String getUserName() {
 		return _pollsQuestion.getUserName();
 	}
@@ -278,6 +300,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param userName the user name of this polls question
 	*/
+	@Override
 	public void setUserName(java.lang.String userName) {
 		_pollsQuestion.setUserName(userName);
 	}
@@ -287,6 +310,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the create date of this polls question
 	*/
+	@Override
 	public java.util.Date getCreateDate() {
 		return _pollsQuestion.getCreateDate();
 	}
@@ -296,6 +320,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param createDate the create date of this polls question
 	*/
+	@Override
 	public void setCreateDate(java.util.Date createDate) {
 		_pollsQuestion.setCreateDate(createDate);
 	}
@@ -305,6 +330,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the modified date of this polls question
 	*/
+	@Override
 	public java.util.Date getModifiedDate() {
 		return _pollsQuestion.getModifiedDate();
 	}
@@ -314,6 +340,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param modifiedDate the modified date of this polls question
 	*/
+	@Override
 	public void setModifiedDate(java.util.Date modifiedDate) {
 		_pollsQuestion.setModifiedDate(modifiedDate);
 	}
@@ -323,6 +350,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the title of this polls question
 	*/
+	@Override
 	public java.lang.String getTitle() {
 		return _pollsQuestion.getTitle();
 	}
@@ -333,6 +361,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param locale the locale of the language
 	* @return the localized title of this polls question
 	*/
+	@Override
 	public java.lang.String getTitle(java.util.Locale locale) {
 		return _pollsQuestion.getTitle(locale);
 	}
@@ -344,6 +373,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param useDefault whether to use the default language if no localization exists for the requested language
 	* @return the localized title of this polls question. If <code>useDefault</code> is <code>false</code> and no localization exists for the requested language, an empty string will be returned.
 	*/
+	@Override
 	public java.lang.String getTitle(java.util.Locale locale, boolean useDefault) {
 		return _pollsQuestion.getTitle(locale, useDefault);
 	}
@@ -354,6 +384,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param languageId the ID of the language
 	* @return the localized title of this polls question
 	*/
+	@Override
 	public java.lang.String getTitle(java.lang.String languageId) {
 		return _pollsQuestion.getTitle(languageId);
 	}
@@ -365,15 +396,18 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param useDefault whether to use the default language if no localization exists for the requested language
 	* @return the localized title of this polls question
 	*/
+	@Override
 	public java.lang.String getTitle(java.lang.String languageId,
 		boolean useDefault) {
 		return _pollsQuestion.getTitle(languageId, useDefault);
 	}
 
+	@Override
 	public java.lang.String getTitleCurrentLanguageId() {
 		return _pollsQuestion.getTitleCurrentLanguageId();
 	}
 
+	@Override
 	public java.lang.String getTitleCurrentValue() {
 		return _pollsQuestion.getTitleCurrentValue();
 	}
@@ -383,6 +417,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the locales and localized titles of this polls question
 	*/
+	@Override
 	public java.util.Map<java.util.Locale, java.lang.String> getTitleMap() {
 		return _pollsQuestion.getTitleMap();
 	}
@@ -392,6 +427,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param title the title of this polls question
 	*/
+	@Override
 	public void setTitle(java.lang.String title) {
 		_pollsQuestion.setTitle(title);
 	}
@@ -402,6 +438,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param title the localized title of this polls question
 	* @param locale the locale of the language
 	*/
+	@Override
 	public void setTitle(java.lang.String title, java.util.Locale locale) {
 		_pollsQuestion.setTitle(title, locale);
 	}
@@ -413,11 +450,13 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param locale the locale of the language
 	* @param defaultLocale the default locale
 	*/
+	@Override
 	public void setTitle(java.lang.String title, java.util.Locale locale,
 		java.util.Locale defaultLocale) {
 		_pollsQuestion.setTitle(title, locale, defaultLocale);
 	}
 
+	@Override
 	public void setTitleCurrentLanguageId(java.lang.String languageId) {
 		_pollsQuestion.setTitleCurrentLanguageId(languageId);
 	}
@@ -427,6 +466,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param titleMap the locales and localized titles of this polls question
 	*/
+	@Override
 	public void setTitleMap(
 		java.util.Map<java.util.Locale, java.lang.String> titleMap) {
 		_pollsQuestion.setTitleMap(titleMap);
@@ -438,6 +478,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param titleMap the locales and localized titles of this polls question
 	* @param defaultLocale the default locale
 	*/
+	@Override
 	public void setTitleMap(
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
 		java.util.Locale defaultLocale) {
@@ -449,6 +490,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the description of this polls question
 	*/
+	@Override
 	public java.lang.String getDescription() {
 		return _pollsQuestion.getDescription();
 	}
@@ -459,6 +501,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param locale the locale of the language
 	* @return the localized description of this polls question
 	*/
+	@Override
 	public java.lang.String getDescription(java.util.Locale locale) {
 		return _pollsQuestion.getDescription(locale);
 	}
@@ -470,6 +513,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param useDefault whether to use the default language if no localization exists for the requested language
 	* @return the localized description of this polls question. If <code>useDefault</code> is <code>false</code> and no localization exists for the requested language, an empty string will be returned.
 	*/
+	@Override
 	public java.lang.String getDescription(java.util.Locale locale,
 		boolean useDefault) {
 		return _pollsQuestion.getDescription(locale, useDefault);
@@ -481,6 +525,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param languageId the ID of the language
 	* @return the localized description of this polls question
 	*/
+	@Override
 	public java.lang.String getDescription(java.lang.String languageId) {
 		return _pollsQuestion.getDescription(languageId);
 	}
@@ -492,15 +537,18 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param useDefault whether to use the default language if no localization exists for the requested language
 	* @return the localized description of this polls question
 	*/
+	@Override
 	public java.lang.String getDescription(java.lang.String languageId,
 		boolean useDefault) {
 		return _pollsQuestion.getDescription(languageId, useDefault);
 	}
 
+	@Override
 	public java.lang.String getDescriptionCurrentLanguageId() {
 		return _pollsQuestion.getDescriptionCurrentLanguageId();
 	}
 
+	@Override
 	public java.lang.String getDescriptionCurrentValue() {
 		return _pollsQuestion.getDescriptionCurrentValue();
 	}
@@ -510,6 +558,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the locales and localized descriptions of this polls question
 	*/
+	@Override
 	public java.util.Map<java.util.Locale, java.lang.String> getDescriptionMap() {
 		return _pollsQuestion.getDescriptionMap();
 	}
@@ -519,6 +568,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param description the description of this polls question
 	*/
+	@Override
 	public void setDescription(java.lang.String description) {
 		_pollsQuestion.setDescription(description);
 	}
@@ -529,6 +579,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param description the localized description of this polls question
 	* @param locale the locale of the language
 	*/
+	@Override
 	public void setDescription(java.lang.String description,
 		java.util.Locale locale) {
 		_pollsQuestion.setDescription(description, locale);
@@ -541,11 +592,13 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param locale the locale of the language
 	* @param defaultLocale the default locale
 	*/
+	@Override
 	public void setDescription(java.lang.String description,
 		java.util.Locale locale, java.util.Locale defaultLocale) {
 		_pollsQuestion.setDescription(description, locale, defaultLocale);
 	}
 
+	@Override
 	public void setDescriptionCurrentLanguageId(java.lang.String languageId) {
 		_pollsQuestion.setDescriptionCurrentLanguageId(languageId);
 	}
@@ -555,6 +608,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param descriptionMap the locales and localized descriptions of this polls question
 	*/
+	@Override
 	public void setDescriptionMap(
 		java.util.Map<java.util.Locale, java.lang.String> descriptionMap) {
 		_pollsQuestion.setDescriptionMap(descriptionMap);
@@ -566,6 +620,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	* @param descriptionMap the locales and localized descriptions of this polls question
 	* @param defaultLocale the default locale
 	*/
+	@Override
 	public void setDescriptionMap(
 		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
 		java.util.Locale defaultLocale) {
@@ -577,6 +632,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the expiration date of this polls question
 	*/
+	@Override
 	public java.util.Date getExpirationDate() {
 		return _pollsQuestion.getExpirationDate();
 	}
@@ -586,6 +642,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param expirationDate the expiration date of this polls question
 	*/
+	@Override
 	public void setExpirationDate(java.util.Date expirationDate) {
 		_pollsQuestion.setExpirationDate(expirationDate);
 	}
@@ -595,6 +652,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @return the last vote date of this polls question
 	*/
+	@Override
 	public java.util.Date getLastVoteDate() {
 		return _pollsQuestion.getLastVoteDate();
 	}
@@ -604,45 +662,90 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	*
 	* @param lastVoteDate the last vote date of this polls question
 	*/
+	@Override
 	public void setLastVoteDate(java.util.Date lastVoteDate) {
 		_pollsQuestion.setLastVoteDate(lastVoteDate);
 	}
 
+	@Override
 	public boolean isNew() {
 		return _pollsQuestion.isNew();
 	}
 
+	@Override
 	public void setNew(boolean n) {
 		_pollsQuestion.setNew(n);
 	}
 
+	@Override
 	public boolean isCachedModel() {
 		return _pollsQuestion.isCachedModel();
 	}
 
+	@Override
 	public void setCachedModel(boolean cachedModel) {
 		_pollsQuestion.setCachedModel(cachedModel);
 	}
 
+	@Override
 	public boolean isEscapedModel() {
 		return _pollsQuestion.isEscapedModel();
 	}
 
+	@Override
 	public java.io.Serializable getPrimaryKeyObj() {
 		return _pollsQuestion.getPrimaryKeyObj();
 	}
 
+	@Override
 	public void setPrimaryKeyObj(java.io.Serializable primaryKeyObj) {
 		_pollsQuestion.setPrimaryKeyObj(primaryKeyObj);
 	}
 
+	@Override
 	public com.liferay.portlet.expando.model.ExpandoBridge getExpandoBridge() {
 		return _pollsQuestion.getExpandoBridge();
 	}
 
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portal.model.BaseModel<?> baseModel) {
+		_pollsQuestion.setExpandoBridgeAttributes(baseModel);
+	}
+
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portlet.expando.model.ExpandoBridge expandoBridge) {
+		_pollsQuestion.setExpandoBridgeAttributes(expandoBridge);
+	}
+
+	@Override
 	public void setExpandoBridgeAttributes(
 		com.liferay.portal.service.ServiceContext serviceContext) {
 		_pollsQuestion.setExpandoBridgeAttributes(serviceContext);
+	}
+
+	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _pollsQuestion.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _pollsQuestion.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_pollsQuestion.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport(
+		java.util.Locale defaultImportLocale)
+		throws com.liferay.portal.LocaleException {
+		_pollsQuestion.prepareLocalizedFieldsForImport(defaultImportLocale);
 	}
 
 	@Override
@@ -650,6 +753,7 @@ public class PollsQuestionWrapper implements PollsQuestion,
 		return new PollsQuestionWrapper((PollsQuestion)_pollsQuestion.clone());
 	}
 
+	@Override
 	public int compareTo(
 		com.liferay.portlet.polls.model.PollsQuestion pollsQuestion) {
 		return _pollsQuestion.compareTo(pollsQuestion);
@@ -660,12 +764,19 @@ public class PollsQuestionWrapper implements PollsQuestion,
 		return _pollsQuestion.hashCode();
 	}
 
+	@Override
 	public com.liferay.portal.model.CacheModel<com.liferay.portlet.polls.model.PollsQuestion> toCacheModel() {
 		return _pollsQuestion.toCacheModel();
 	}
 
+	@Override
 	public com.liferay.portlet.polls.model.PollsQuestion toEscapedModel() {
 		return new PollsQuestionWrapper(_pollsQuestion.toEscapedModel());
+	}
+
+	@Override
+	public com.liferay.portlet.polls.model.PollsQuestion toUnescapedModel() {
+		return new PollsQuestionWrapper(_pollsQuestion.toUnescapedModel());
 	}
 
 	@Override
@@ -673,46 +784,97 @@ public class PollsQuestionWrapper implements PollsQuestion,
 		return _pollsQuestion.toString();
 	}
 
+	@Override
 	public java.lang.String toXmlString() {
 		return _pollsQuestion.toXmlString();
 	}
 
-	public void persist()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void persist() {
 		_pollsQuestion.persist();
 	}
 
-	public java.util.List<com.liferay.portlet.polls.model.PollsChoice> getChoices()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public java.util.List<com.liferay.portlet.polls.model.PollsChoice> getChoices() {
 		return _pollsQuestion.getChoices();
 	}
 
-	public int getVotesCount()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public java.util.List<com.liferay.portlet.polls.model.PollsVote> getVotes() {
+		return _pollsQuestion.getVotes();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.polls.model.PollsVote> getVotes(
+		int start, int end) {
+		return _pollsQuestion.getVotes(start, end);
+	}
+
+	@Override
+	public int getVotesCount() {
 		return _pollsQuestion.getVotesCount();
 	}
 
+	@Override
 	public boolean isExpired() {
 		return _pollsQuestion.isExpired();
 	}
 
+	@Override
 	public boolean isExpired(
 		com.liferay.portal.service.ServiceContext serviceContext,
 		java.util.Date defaultCreateDate) {
 		return _pollsQuestion.isExpired(serviceContext, defaultCreateDate);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof PollsQuestionWrapper)) {
+			return false;
+		}
+
+		PollsQuestionWrapper pollsQuestionWrapper = (PollsQuestionWrapper)obj;
+
+		if (Validator.equals(_pollsQuestion, pollsQuestionWrapper._pollsQuestion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _pollsQuestion.getStagedModelType();
+	}
+
 	/**
-	 * @deprecated Renamed to {@link #getWrappedModel}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public PollsQuestion getWrappedPollsQuestion() {
 		return _pollsQuestion;
 	}
 
+	@Override
 	public PollsQuestion getWrappedModel() {
 		return _pollsQuestion;
 	}
 
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _pollsQuestion.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _pollsQuestion.isFinderCacheEnabled();
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		_pollsQuestion.resetOriginalValues();
 	}

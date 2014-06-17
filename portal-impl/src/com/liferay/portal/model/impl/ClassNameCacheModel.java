@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,8 +18,12 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.ClassName;
+import com.liferay.portal.model.MVCCModel;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * The cache model class for representing ClassName in entity cache.
@@ -28,12 +32,25 @@ import java.io.Serializable;
  * @see ClassName
  * @generated
  */
-public class ClassNameCacheModel implements CacheModel<ClassName>, Serializable {
+public class ClassNameCacheModel implements CacheModel<ClassName>,
+	Externalizable, MVCCModel {
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
+		StringBundler sb = new StringBundler(7);
 
-		sb.append("{classNameId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", classNameId=");
 		sb.append(classNameId);
 		sb.append(", value=");
 		sb.append(value);
@@ -42,9 +59,11 @@ public class ClassNameCacheModel implements CacheModel<ClassName>, Serializable 
 		return sb.toString();
 	}
 
+	@Override
 	public ClassName toEntityModel() {
 		ClassNameImpl classNameImpl = new ClassNameImpl();
 
+		classNameImpl.setMvccVersion(mvccVersion);
 		classNameImpl.setClassNameId(classNameId);
 
 		if (value == null) {
@@ -59,6 +78,28 @@ public class ClassNameCacheModel implements CacheModel<ClassName>, Serializable 
 		return classNameImpl;
 	}
 
+	@Override
+	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+		classNameId = objectInput.readLong();
+		value = objectInput.readUTF();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput objectOutput)
+		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+		objectOutput.writeLong(classNameId);
+
+		if (value == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(value);
+		}
+	}
+
+	public long mvccVersion;
 	public long classNameId;
 	public String value;
 }

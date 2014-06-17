@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -37,8 +37,13 @@ if (selGroup.isStagingGroup()) {
 else {
 	liveGroup = selGroup;
 
-	if (selGroup.hasStagingGroup()) {
-		stagingGroup = selGroup.getStagingGroup();
+	if (selGroup.isStaged()) {
+		if (selGroup.isStagedRemotely()) {
+			stagingGroup = selGroup;
+		}
+		else {
+			stagingGroup = selGroup.getStagingGroup();
+		}
 	}
 }
 
@@ -68,7 +73,7 @@ if (stagingGroup != null) {
 long selPlid = ParamUtil.getLong(request, "selPlid", LayoutConstants.DEFAULT_PLID);
 long refererPlid = ParamUtil.getLong(request, "refererPlid", LayoutConstants.DEFAULT_PLID);
 
-boolean privateLayout = tabs1.equals("private-pages");
+boolean privateLayout = tabs1.equals("my-dashboard") || tabs1.equals("private-pages");
 long layoutId = LayoutConstants.DEFAULT_PARENT_LAYOUT_ID;
 
 UnicodeProperties groupTypeSettings = null;
@@ -105,10 +110,6 @@ try {
 catch (NoSuchLayoutException nsle) {
 }
 
-if (selLayout != null) {
-	layoutId = selLayout.getLayoutId();
-}
-
 Organization organization = null;
 User selUser = null;
 UserGroup userGroup = null;
@@ -128,21 +129,21 @@ String tabs1Names = "public-pages,private-pages";
 if (liveGroup.isUser()) {
 	boolean hasPowerUserRole = RoleLocalServiceUtil.hasUserRole(selUser.getUserId(), company.getCompanyId(), RoleConstants.POWER_USER, true);
 
-	boolean privateLayoutsModifiable = !PropsValues.LAYOUT_USER_PRIVATE_LAYOUTS_POWER_USER_REQUIRED || hasPowerUserRole;
-	boolean publicLayoutsModifiable = !PropsValues.LAYOUT_USER_PUBLIC_LAYOUTS_POWER_USER_REQUIRED || hasPowerUserRole;
+	boolean privateLayoutsModifiable = (!PropsValues.LAYOUT_USER_PRIVATE_LAYOUTS_POWER_USER_REQUIRED || hasPowerUserRole) && PropsValues.LAYOUT_USER_PRIVATE_LAYOUTS_ENABLED;
+	boolean publicLayoutsModifiable = (!PropsValues.LAYOUT_USER_PUBLIC_LAYOUTS_POWER_USER_REQUIRED || hasPowerUserRole) && PropsValues.LAYOUT_USER_PUBLIC_LAYOUTS_ENABLED;
 
 	if (privateLayoutsModifiable && publicLayoutsModifiable) {
-		tabs1Names = "public-pages,private-pages";
+		tabs1Names = "my-profile,my-dashboard";
 	}
 	else if (privateLayoutsModifiable) {
-		tabs1Names = "private-pages";
+		tabs1Names = "my-dashboard";
 	}
 	else if (publicLayoutsModifiable) {
-		tabs1Names = "public-pages";
+		tabs1Names = "my-profile";
 	}
 
 	if (!publicLayoutsModifiable && privateLayoutsModifiable && !privateLayout) {
-		tabs1 = "private-pages";
+		tabs1 = "my-dashboard";
 
 		privateLayout = true;
 	}
@@ -154,36 +155,41 @@ if (selGroup.isLayoutSetPrototype()) {
 
 LayoutSet selLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(groupId, privateLayout);
 
-LayoutLister layoutLister = new LayoutLister();
-
 String pagesName = null;
 
 if (liveGroup.isLayoutPrototype() || liveGroup.isLayoutSetPrototype() || liveGroup.isUserGroup()) {
 	pagesName = "pages";
 }
 else if (privateLayout) {
-	pagesName = "private-pages";
+	if (liveGroup.isUser()) {
+		pagesName = "my-dashboard";
+	}
+	else {
+		pagesName = "private-pages";
+	}
 }
 else {
-	pagesName = "public-pages";
+	if (liveGroup.isUser()) {
+		pagesName = "my-profile";
+	}
+	else {
+		pagesName = "public-pages";
+	}
 }
 
-String rootNodeName = LanguageUtil.get(pageContext, pagesName);
+String rootNodeName = liveGroup.getLayoutRootNodeName(privateLayout, locale);
 
-LayoutView layoutView = layoutLister.getLayoutView(groupId, privateLayout, rootNodeName, locale);
+List<LayoutDescription> layoutDescriptions = LayoutListUtil.getLayoutDescriptions(groupId, privateLayout, rootNodeName, locale);
 
-List layoutList = layoutView.getList();
-
-request.setAttribute(WebKeys.LAYOUT_LISTER_LIST, layoutList);
+request.setAttribute(WebKeys.LAYOUT_DESCRIPTIONS, layoutDescriptions);
 %>
 
 <liferay-portlet:renderURL varImpl="redirectURL">
 	<portlet:param name="struts_action" value="/layouts_admin/edit_layouts" />
 	<portlet:param name="tabs1" value="<%= tabs1 %>" />
 	<portlet:param name="redirect" value="<%= redirect %>" />
-	<portlet:param name="closeRedirect" value="<%= closeRedirect %>" />
 
-	<c:if test="<%= (portletName.equals(PortletKeys.LAYOUTS_ADMIN) || portletName.equals(PortletKeys.MY_ACCOUNT)) %>">
+	<c:if test="<%= (portletName.equals(PortletKeys.LAYOUTS_ADMIN) || portletName.equals(PortletKeys.MY_ACCOUNT) || portletName.equals(PortletKeys.USERS_ADMIN)) %>">
 		<portlet:param name="backURL" value="<%= backURL %>" />
 	</c:if>
 
@@ -196,7 +202,7 @@ request.setAttribute(WebKeys.LAYOUT_LISTER_LIST, layoutList);
 	<portlet:param name="redirect" value="<%= redirect %>" />
 	<portlet:param name="closeRedirect" value="<%= closeRedirect %>" />
 
-	<c:if test="<%= (portletName.equals(PortletKeys.LAYOUTS_ADMIN) || portletName.equals(PortletKeys.MY_ACCOUNT)) %>">
+	<c:if test="<%= (portletName.equals(PortletKeys.LAYOUTS_ADMIN) || portletName.equals(PortletKeys.MY_ACCOUNT) || portletName.equals(PortletKeys.USERS_ADMIN)) %>">
 		<portlet:param name="backURL" value="<%= backURL %>" />
 	</c:if>
 
@@ -222,12 +228,6 @@ request.setAttribute("edit_pages.jsp-selLayoutSet", selLayoutSet);
 
 request.setAttribute("edit_pages.jsp-rootNodeName", rootNodeName);
 
-request.setAttribute("edit_pages.jsp-layoutList", layoutList);
-
 request.setAttribute("edit_pages.jsp-portletURL", portletURL);
 request.setAttribute("edit_pages.jsp-redirectURL", redirectURL);
-%>
-
-<%!
-private static Log _log = LogFactoryUtil.getLog("portal-web.docroot.html.portlet.layout_admin.init_attributes_jsp");
 %>

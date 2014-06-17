@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -67,6 +67,8 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 		};
 	public static final String TABLE_SQL_CREATE = "create table JournalContentSearch (contentSearchId LONG not null primary key,groupId LONG,companyId LONG,privateLayout BOOLEAN,layoutId LONG,portletId VARCHAR(200) null,articleId VARCHAR(75) null)";
 	public static final String TABLE_SQL_DROP = "drop table JournalContentSearch";
+	public static final String ORDER_BY_JPQL = " ORDER BY journalContentSearch.contentSearchId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY JournalContentSearch.contentSearchId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -84,32 +86,39 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 	public static long LAYOUTID_COLUMN_BITMASK = 4L;
 	public static long PORTLETID_COLUMN_BITMASK = 8L;
 	public static long PRIVATELAYOUT_COLUMN_BITMASK = 16L;
+	public static long CONTENTSEARCHID_COLUMN_BITMASK = 32L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.journal.model.JournalContentSearch"));
 
 	public JournalContentSearchModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _contentSearchId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setContentSearchId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_contentSearchId);
+		return _contentSearchId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return JournalContentSearch.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return JournalContentSearch.class.getName();
 	}
@@ -125,6 +134,9 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 		attributes.put("layoutId", getLayoutId());
 		attributes.put("portletId", getPortletId());
 		attributes.put("articleId", getArticleId());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -174,18 +186,22 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 		}
 	}
 
+	@Override
 	public long getContentSearchId() {
 		return _contentSearchId;
 	}
 
+	@Override
 	public void setContentSearchId(long contentSearchId) {
 		_contentSearchId = contentSearchId;
 	}
 
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
 
+	@Override
 	public void setGroupId(long groupId) {
 		_columnBitmask |= GROUPID_COLUMN_BITMASK;
 
@@ -202,22 +218,27 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 		return _originalGroupId;
 	}
 
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_companyId = companyId;
 	}
 
+	@Override
 	public boolean getPrivateLayout() {
 		return _privateLayout;
 	}
 
+	@Override
 	public boolean isPrivateLayout() {
 		return _privateLayout;
 	}
 
+	@Override
 	public void setPrivateLayout(boolean privateLayout) {
 		_columnBitmask |= PRIVATELAYOUT_COLUMN_BITMASK;
 
@@ -234,10 +255,12 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 		return _originalPrivateLayout;
 	}
 
+	@Override
 	public long getLayoutId() {
 		return _layoutId;
 	}
 
+	@Override
 	public void setLayoutId(long layoutId) {
 		_columnBitmask |= LAYOUTID_COLUMN_BITMASK;
 
@@ -254,6 +277,7 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 		return _originalLayoutId;
 	}
 
+	@Override
 	public String getPortletId() {
 		if (_portletId == null) {
 			return StringPool.BLANK;
@@ -263,6 +287,7 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 		}
 	}
 
+	@Override
 	public void setPortletId(String portletId) {
 		_columnBitmask |= PORTLETID_COLUMN_BITMASK;
 
@@ -277,6 +302,7 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 		return GetterUtil.getString(_originalPortletId);
 	}
 
+	@Override
 	public String getArticleId() {
 		if (_articleId == null) {
 			return StringPool.BLANK;
@@ -286,6 +312,7 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 		}
 	}
 
+	@Override
 	public void setArticleId(String articleId) {
 		_columnBitmask |= ARTICLEID_COLUMN_BITMASK;
 
@@ -305,17 +332,6 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 	}
 
 	@Override
-	public JournalContentSearch toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (JournalContentSearch)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			JournalContentSearch.class.getName(), getPrimaryKey());
@@ -326,6 +342,16 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public JournalContentSearch toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (JournalContentSearch)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -345,6 +371,7 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 		return journalContentSearchImpl;
 	}
 
+	@Override
 	public int compareTo(JournalContentSearch journalContentSearch) {
 		long primaryKey = journalContentSearch.getPrimaryKey();
 
@@ -361,18 +388,15 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof JournalContentSearch)) {
 			return false;
 		}
 
-		JournalContentSearch journalContentSearch = null;
-
-		try {
-			journalContentSearch = (JournalContentSearch)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		JournalContentSearch journalContentSearch = (JournalContentSearch)obj;
 
 		long primaryKey = journalContentSearch.getPrimaryKey();
 
@@ -387,6 +411,16 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -468,6 +502,7 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(25);
 
@@ -510,7 +545,7 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 	}
 
 	private static ClassLoader _classLoader = JournalContentSearch.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			JournalContentSearch.class
 		};
 	private long _contentSearchId;
@@ -529,5 +564,5 @@ public class JournalContentSearchModelImpl extends BaseModelImpl<JournalContentS
 	private String _articleId;
 	private String _originalArticleId;
 	private long _columnBitmask;
-	private JournalContentSearch _escapedModelProxy;
+	private JournalContentSearch _escapedModel;
 }

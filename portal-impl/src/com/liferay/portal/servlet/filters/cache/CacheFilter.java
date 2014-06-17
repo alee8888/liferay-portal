@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,12 +15,12 @@
 package com.liferay.portal.servlet.filters.cache;
 
 import com.liferay.portal.NoSuchLayoutException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
-import com.liferay.portal.kernel.servlet.ByteBufferServletResponse;
+import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.struts.LastPath;
 import com.liferay.portal.kernel.util.CharPool;
@@ -32,16 +32,13 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
-import com.liferay.portal.model.LayoutTypePortletConstants;
-import com.liferay.portal.model.Portlet;
-import com.liferay.portal.model.PortletConstants;
+import com.liferay.portal.model.LayoutTypePortlet;
+import com.liferay.portal.security.auth.AuthTokenUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
-import com.liferay.portal.service.PortletLocalServiceUtil;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
 import com.liferay.portal.util.PortalInstances;
 import com.liferay.portal.util.PortalUtil;
@@ -146,14 +143,14 @@ public class CacheFilter extends BasePortalFilter {
 			request.getHeader(HttpHeaders.USER_AGENT));
 
 		sb.append(StringPool.POUND);
-		sb.append(userAgent.toLowerCase().hashCode());
+		sb.append(StringUtil.toLowerCase(userAgent).hashCode());
 
 		// Gzip compression
 
 		sb.append(StringPool.POUND);
 		sb.append(BrowserSnifferUtil.acceptsGzip(request));
 
-		return sb.toString().trim().toUpperCase();
+		return StringUtil.toUpperCase(sb.toString().trim());
 	}
 
 	protected long getPlid(
@@ -218,7 +215,7 @@ public class CacheFilter extends BasePortalFilter {
 		}
 		catch (Exception e) {
 			if (_log.isWarnEnabled()) {
-				_log.error(e);
+				_log.warn(e);
 			}
 
 			return 0;
@@ -278,25 +275,6 @@ public class CacheFilter extends BasePortalFilter {
 		}
 	}
 
-	protected boolean isCacheableColumn(long companyId, String columnSettings)
-		throws SystemException {
-
-		String[] portletIds = StringUtil.split(columnSettings);
-
-		for (String portletId : portletIds) {
-			portletId = PortletConstants.getRootPortletId(portletId);
-
-			Portlet portlet = PortletLocalServiceUtil.getPortletById(
-				companyId, portletId);
-
-			if (!portlet.isLayoutCacheable()) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	protected boolean isCacheableData(
 		long companyId, HttpServletRequest request) {
 
@@ -319,36 +297,10 @@ public class CacheFilter extends BasePortalFilter {
 				return false;
 			}
 
-			UnicodeProperties properties = layout.getTypeSettingsProperties();
+			LayoutTypePortlet layoutTypePortlet =
+				(LayoutTypePortlet)layout.getLayoutType();
 
-			for (int i = 0; i < 10; i++) {
-				String columnId = "column-" + i;
-
-				String settings = properties.getProperty(
-					columnId, StringPool.BLANK);
-
-				if (!isCacheableColumn(companyId, settings)) {
-					return false;
-				}
-			}
-
-			String columnIdsString = properties.get(
-				LayoutTypePortletConstants.NESTED_COLUMN_IDS);
-
-			if (columnIdsString != null) {
-				String[] columnIds = StringUtil.split(columnIdsString);
-
-				for (String columnId : columnIds) {
-					String settings = properties.getProperty(
-						columnId, StringPool.BLANK);
-
-					if (!isCacheableColumn(companyId, settings)) {
-						return false;
-					}
-				}
-			}
-
-			return true;
+			return layoutTypePortlet.isCacheable();
 		}
 		catch (Exception e) {
 			return false;
@@ -383,10 +335,11 @@ public class CacheFilter extends BasePortalFilter {
 	}
 
 	protected boolean isCacheableResponse(
-		ByteBufferServletResponse byteBufferResponse) {
+		BufferCacheServletResponse bufferCacheServletResponse) {
 
-		if ((byteBufferResponse.getStatus() == HttpServletResponse.SC_OK) &&
-			(byteBufferResponse.getBufferSize() <
+		if ((bufferCacheServletResponse.getStatus() ==
+				HttpServletResponse.SC_OK) &&
+			(bufferCacheServletResponse.getBufferSize() <
 				PropsValues.CACHE_CONTENT_THRESHOLD_SIZE)) {
 
 			return true;
@@ -418,6 +371,29 @@ public class CacheFilter extends BasePortalFilter {
 
 		String key = getCacheKey(request);
 
+		String pAuth = request.getParameter("p_auth");
+
+		if (Validator.isNotNull(pAuth)) {
+			try {
+				AuthTokenUtil.checkCSRFToken(
+					request, CacheFilter.class.getName());
+			}
+			catch (PortalException pe) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Request is not cacheable " + key +
+							", invalid token received");
+				}
+
+				processFilter(
+					CacheFilter.class, request, response, filterChain);
+
+				return;
+			}
+
+			key = key.replace(StringUtil.toUpperCase(pAuth), "VALID");
+		}
+
 		long companyId = PortalInstances.getCompanyId(request);
 
 		CacheResponseData cacheResponseData = CacheUtil.getCacheResponseData(
@@ -439,13 +415,15 @@ public class CacheFilter extends BasePortalFilter {
 				_log.info("Caching request " + key);
 			}
 
-			ByteBufferServletResponse byteBufferResponse =
-				new ByteBufferServletResponse(response);
+			BufferCacheServletResponse bufferCacheServletResponse =
+				new BufferCacheServletResponse(response);
 
 			processFilter(
-				CacheFilter.class, request, byteBufferResponse, filterChain);
+				CacheFilter.class, request, bufferCacheServletResponse,
+				filterChain);
 
-			cacheResponseData = new CacheResponseData(byteBufferResponse);
+			cacheResponseData = new CacheResponseData(
+				bufferCacheServletResponse);
 
 			LastPath lastPath = (LastPath)request.getAttribute(
 				WebKeys.LAST_PATH);
@@ -455,17 +433,19 @@ public class CacheFilter extends BasePortalFilter {
 			}
 
 			// Cache the result if and only if there is a result and the request
-			// is cacheable. We have to test the cacheability of a request
-			// twice because the user could have been authenticated after the
-			// initial test.
+			// is cacheable. We have to test the cacheability of a request twice
+			// because the user could have been authenticated after the initial
+			// test.
 
 			String cacheControl = GetterUtil.getString(
-				byteBufferResponse.getHeader(HttpHeaders.CACHE_CONTROL));
+				bufferCacheServletResponse.getHeader(
+					HttpHeaders.CACHE_CONTROL));
 
-			if ((byteBufferResponse.getStatus() == HttpServletResponse.SC_OK) &&
+			if ((bufferCacheServletResponse.getStatus() ==
+					HttpServletResponse.SC_OK) &&
 				!cacheControl.contains(HttpHeaders.PRAGMA_NO_CACHE_VALUE) &&
 				isCacheableRequest(request) &&
-				isCacheableResponse(byteBufferResponse)) {
+				isCacheableResponse(bufferCacheServletResponse)) {
 
 				CacheUtil.putCacheResponseData(
 					companyId, key, cacheResponseData);

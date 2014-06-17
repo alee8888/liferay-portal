@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,22 +20,32 @@ import com.liferay.portal.kernel.ldap.LDAPUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
+import com.liferay.portal.kernel.util.DateUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Contact;
 import com.liferay.portal.model.ContactConstants;
+import com.liferay.portal.model.ListType;
+import com.liferay.portal.model.ListTypeConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.auth.FullNameGenerator;
 import com.liferay.portal.security.auth.FullNameGeneratorFactory;
+import com.liferay.portal.service.ListTypeServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.persistence.ContactUtil;
 import com.liferay.portal.service.persistence.UserUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
 
+import java.text.ParseException;
+
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -49,6 +59,7 @@ import javax.naming.directory.Attributes;
  */
 public class DefaultLDAPToPortalConverter implements LDAPToPortalConverter {
 
+	@Override
 	public LDAPGroup importLDAPGroup(
 			long companyId, Attributes attributes, Properties groupMappings)
 		throws Exception {
@@ -71,6 +82,7 @@ public class DefaultLDAPToPortalConverter implements LDAPToPortalConverter {
 		return ldapGroup;
 	}
 
+	@Override
 	public LDAPUser importLDAPUser(
 			long companyId, Attributes attributes, Properties userMappings,
 			Properties userExpandoMappings, Properties contactMappings,
@@ -137,18 +149,82 @@ public class DefaultLDAPToPortalConverter implements LDAPToPortalConverter {
 
 		Contact contact = ContactUtil.create(0);
 
-		Calendar birthdayCalendar = CalendarFactoryUtil.getCalendar(
-			1970, Calendar.JANUARY, 1);
+		int prefixId = getListTypeId(
+			attributes, contactMappings, ContactConverterKeys.PREFIX,
+			ListTypeConstants.CONTACT_PREFIX);
 
-		contact.setBirthday(birthdayCalendar.getTime());
+		contact.setPrefixId(prefixId);
 
-		contact.setMale(true);
-		contact.setPrefixId(0);
-		contact.setSuffixId(0);
+		int suffixId = getListTypeId(
+			attributes, contactMappings, ContactConverterKeys.SUFFIX,
+			ListTypeConstants.CONTACT_SUFFIX);
+
+		contact.setSuffixId(suffixId);
+
+		String gender = LDAPUtil.getAttributeString(
+			attributes, contactMappings, ContactConverterKeys.GENDER);
+
+		gender = StringUtil.toLowerCase(gender);
+
+		if (GetterUtil.getBoolean(gender) || gender.equals("female")) {
+			contact.setMale(false);
+		}
+		else {
+			contact.setMale(true);
+		}
+
+		try {
+			Date birthday = DateUtil.parseDate(
+				LDAPUtil.getAttributeString(
+					attributes, contactMappings, ContactConverterKeys.BIRTHDAY),
+				LocaleUtil.getDefault());
+
+			contact.setBirthday(birthday);
+		}
+		catch (ParseException pe) {
+			Calendar birthdayCalendar = CalendarFactoryUtil.getCalendar(
+				1970, Calendar.JANUARY, 1);
+
+			contact.setBirthday(birthdayCalendar.getTime());
+		}
+
+		contact.setSmsSn(
+			LDAPUtil.getAttributeString(
+				attributes, contactMappings, ContactConverterKeys.SMS_SN));
+		contact.setAimSn(
+			LDAPUtil.getAttributeString(
+				attributes, contactMappings, ContactConverterKeys.AIM_SN));
+		contact.setFacebookSn(
+			LDAPUtil.getAttributeString(
+				attributes, contactMappings, ContactConverterKeys.FACEBOOK_SN));
+		contact.setIcqSn(
+			LDAPUtil.getAttributeString(
+				attributes, contactMappings, ContactConverterKeys.ICQ_SN));
+		contact.setJabberSn(
+			LDAPUtil.getAttributeString(
+				attributes, contactMappings, ContactConverterKeys.JABBER_SN));
+		contact.setMsnSn(
+			LDAPUtil.getAttributeString(
+				attributes, contactMappings, ContactConverterKeys.MSN_SN));
+		contact.setMySpaceSn(
+			LDAPUtil.getAttributeString(
+				attributes, contactMappings, ContactConverterKeys.MYSPACE_SN));
+		contact.setSkypeSn(
+			LDAPUtil.getAttributeString(
+				attributes, contactMappings, ContactConverterKeys.SKYPE_SN));
+		contact.setTwitterSn(
+			LDAPUtil.getAttributeString(
+				attributes, contactMappings, ContactConverterKeys.TWITTER_SN));
+		contact.setYmSn(
+			LDAPUtil.getAttributeString(
+				attributes, contactMappings, ContactConverterKeys.YM_SN));
+		contact.setJobTitle(
+			LDAPUtil.getAttributeString(
+				attributes, contactMappings, ContactConverterKeys.JOB_TITLE));
 
 		ldapUser.setContact(contact);
 
-		Map<String, String> contactExpandoAttributes = getExpandoAttributes(
+		Map<String, String[]> contactExpandoAttributes = getExpandoAttributes(
 			attributes, contactExpandoMappings);
 
 		ldapUser.setContactExpandoAttributes(contactExpandoAttributes);
@@ -206,9 +282,16 @@ public class DefaultLDAPToPortalConverter implements LDAPToPortalConverter {
 		user.setPasswordUnencrypted(password);
 		user.setScreenName(screenName);
 
+		String status = LDAPUtil.getAttributeString(
+			attributes, userMappings, UserConverterKeys.STATUS);
+
+		if (Validator.isNotNull(status)) {
+			user.setStatus(GetterUtil.getInteger(status));
+		}
+
 		ldapUser.setUser(user);
 
-		Map<String, String> userExpandoAttributes = getExpandoAttributes(
+		Map<String, String[]> userExpandoAttributes = getExpandoAttributes(
 			attributes, userExpandoMappings);
 
 		ldapUser.setUserExpandoAttributes(userExpandoAttributes);
@@ -219,24 +302,45 @@ public class DefaultLDAPToPortalConverter implements LDAPToPortalConverter {
 		return ldapUser;
 	}
 
-	protected Map<String, String> getExpandoAttributes(
+	protected Map<String, String[]> getExpandoAttributes(
 			Attributes attributes, Properties expandoMappings)
 		throws NamingException {
 
-		Map<String, String> expandoAttributes = new HashMap<String, String>();
+		Map<String, String[]> expandoAttributes =
+			new HashMap<String, String[]>();
 
 		for (Object key : expandoMappings.keySet()) {
 			String name = (String)key;
 
-			String value = LDAPUtil.getAttributeString(
+			String[] value = LDAPUtil.getAttributeStringArray(
 				attributes, expandoMappings, name);
 
-			if (Validator.isNotNull(value)) {
+			if (value != null) {
 				expandoAttributes.put(name, value);
 			}
 		}
 
 		return expandoAttributes;
+	}
+
+	protected int getListTypeId(
+			Attributes attributes, Properties contactMappings,
+			String contactMappingsKey, String listTypeType)
+		throws Exception {
+
+		List<ListType> contactPrefixListTypes =
+			ListTypeServiceUtil.getListTypes(listTypeType);
+
+		String name = LDAPUtil.getAttributeString(
+			attributes, contactMappings, contactMappingsKey);
+
+		for (ListType listType : contactPrefixListTypes) {
+			if (name.equals(listType.getName())) {
+				return listType.getListTypeId();
+			}
+		}
+
+		return 0;
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,13 +14,15 @@
 
 package com.liferay.portal.kernel.xuggler;
 
+import com.liferay.portal.kernel.util.ProgressTracker;
+
 /**
  * @author Alexander Chow
  */
 public interface Xuggler {
 
 	public void installNativeLibraries(
-			String name, XugglerInstallStatus xugglerInstallStatus)
+			String name, ProgressTracker progressTracker)
 		throws Exception;
 
 	public boolean isEnabled();

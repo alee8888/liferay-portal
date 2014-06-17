@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,11 +17,13 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.ThemeSetting;
 
+import java.io.Serializable;
+
 /**
  * @author Julio Camarero
  * @author Raymond Augé
  */
-public class ThemeSettingImpl implements ThemeSetting {
+public class ThemeSettingImpl implements Serializable, ThemeSetting {
 
 	public static String namespaceProperty(String device) {
 		return _PROPERTY_NAMESPACE.concat(device);
@@ -42,47 +44,59 @@ public class ThemeSettingImpl implements ThemeSetting {
 		_value = value;
 	}
 
+	@Override
 	public String[] getOptions() {
 		return _options;
 	}
 
+	@Override
 	public String getScript() {
 		return _script;
 	}
 
+	@Override
 	public String getType() {
 		return _type;
 	}
 
+	@Override
 	public String getValue() {
 		return _value;
 	}
 
+	@Override
 	public boolean isConfigurable() {
 		return _configurable;
 	}
 
+	@Override
 	public void setConfigurable(boolean configurable) {
 		this._configurable = configurable;
 	}
 
+	@Override
 	public void setOptions(String[] options) {
 		_options = options;
 	}
 
+	@Override
 	public void setScript(String script) {
 		_script = script;
 	}
 
+	@Override
 	public void setType(String type) {
 		_type = type;
 	}
 
+	@Override
 	public void setValue(String value) {
 		_value = value;
 	}
 
 	private static final String _PROPERTY_NAMESPACE = "lfr-theme:";
+
+	private static final long serialVersionUID = 1L;
 
 	private boolean _configurable;
 	private String[] _options;

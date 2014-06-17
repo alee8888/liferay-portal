@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,9 +17,11 @@ package com.liferay.portal.kernel.dao.jdbc;
 import com.liferay.portal.kernel.jndi.JNDIUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.upgrade.dao.orm.UpgradeOptimizedConnectionHandler;
 import com.liferay.portal.kernel.util.InfrastructureUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.ProxyUtil;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -92,7 +94,7 @@ public class DataAccess {
 	}
 
 	public static Connection getConnection() throws SQLException {
-		DataSource dataSource = InfrastructureUtil.getDataSource();
+		DataSource dataSource = _pacl.getDataSource();
 
 		return dataSource.getConnection();
 	}
@@ -100,16 +102,56 @@ public class DataAccess {
 	public static Connection getConnection(String location)
 		throws NamingException, SQLException {
 
-		Properties properties = PropsUtil.getProperties(
-			PropsKeys.JNDI_ENVIRONMENT, true);
-
-		Context context = new InitialContext(properties);
-
-		DataSource dataSource = (DataSource)JNDIUtil.lookup(context, location);
+		DataSource dataSource = _pacl.getDataSource(location);
 
 		return dataSource.getConnection();
 	}
 
+	public static Connection getUpgradeOptimizedConnection()
+		throws SQLException {
+
+		Connection con = getConnection();
+
+		Thread currentThread = Thread.currentThread();
+
+		ClassLoader classLoader = currentThread.getContextClassLoader();
+
+		return (Connection)ProxyUtil.newProxyInstance(
+			classLoader, new Class[] {Connection.class},
+			new UpgradeOptimizedConnectionHandler(con));
+	}
+
+	public interface PACL {
+
+		public DataSource getDataSource();
+
+		public DataSource getDataSource(String location) throws NamingException;
+
+	}
+
 	private static Log _log = LogFactoryUtil.getLog(DataAccess.class);
+
+	private static PACL _pacl = new NoPACL();
+
+	private static class NoPACL implements PACL {
+
+		@Override
+		public DataSource getDataSource() {
+			return InfrastructureUtil.getDataSource();
+		}
+
+		@Override
+		public DataSource getDataSource(String location)
+			throws NamingException {
+
+			Properties properties = PropsUtil.getProperties(
+				PropsKeys.JNDI_ENVIRONMENT, true);
+
+			Context context = new InitialContext(properties);
+
+			return (DataSource)JNDIUtil.lookup(context, location);
+		}
+
+	}
 
 }

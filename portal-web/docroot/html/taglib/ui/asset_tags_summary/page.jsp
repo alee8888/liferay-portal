@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,9 +15,6 @@
 --%>
 
 <%@ include file="/html/taglib/init.jsp" %>
-
-<%@ page import="com.liferay.portlet.asset.model.AssetTag" %>
-<%@ page import="com.liferay.portlet.asset.service.AssetTagServiceUtil" %>
 
 <%
 String[] assetTagNames = StringUtil.split((String)request.getAttribute("liferay-ui:asset-tags-summary:assetTagNames"));
@@ -45,7 +42,7 @@ if (assetTagNames.length == 0) {
 					portletURL.setParameter("tag", assetTagNames[i]);
 				%>
 
-					<a class="tag" href="<%= HtmlUtil.escape(portletURL.toString()) %>"><%= assetTagNames[i] %></a>
+					<a class=" icon-tag tag" href="<%= HtmlUtil.escape(portletURL.toString()) %>"><%= assetTagNames[i] %></a>
 
 				<%
 				}
@@ -58,7 +55,7 @@ if (assetTagNames.length == 0) {
 				for (int i = 0; i < assetTagNames.length; i++) {
 				%>
 
-					<span class="tag"><%= assetTagNames[i] %></span>
+					<span class="icon-tag tag"><%= assetTagNames[i] %></span>
 
 				<%
 				}

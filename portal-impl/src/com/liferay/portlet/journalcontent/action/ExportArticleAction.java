@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.portlet.PortletRequestModel;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -58,8 +59,9 @@ public class ExportArticleAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		try {
@@ -69,16 +71,17 @@ public class ExportArticleAction extends PortletAction {
 			String targetExtension = ParamUtil.getString(
 				actionRequest, "targetExtension");
 
-			PortletPreferences preferences = actionRequest.getPreferences();
+			PortletPreferences portletPreferences =
+				actionRequest.getPreferences();
 
-			String[] allowedExtensions = preferences.getValues(
+			String[] allowedExtensions = portletPreferences.getValues(
 				"extensions", null);
 
 			String languageId = LanguageUtil.getLanguageId(actionRequest);
-
+			PortletRequestModel portletRequestModel = new PortletRequestModel(
+				actionRequest, actionResponse);
 			ThemeDisplay themeDisplay =
 				(ThemeDisplay)actionRequest.getAttribute(WebKeys.THEME_DISPLAY);
-
 			HttpServletRequest request = PortalUtil.getHttpServletRequest(
 				actionRequest);
 			HttpServletResponse response = PortalUtil.getHttpServletResponse(
@@ -86,7 +89,8 @@ public class ExportArticleAction extends PortletAction {
 
 			getFile(
 				groupId, articleId, targetExtension, allowedExtensions,
-				languageId, themeDisplay, request, response);
+				languageId, portletRequestModel, themeDisplay, request,
+				response);
 
 			setForward(actionRequest, ActionConstants.COMMON_NULL);
 		}
@@ -98,14 +102,15 @@ public class ExportArticleAction extends PortletAction {
 	protected void getFile(
 			long groupId, String articleId, String targetExtension,
 			String[] allowedExtensions, String languageId,
-			ThemeDisplay themeDisplay, HttpServletRequest request,
-			HttpServletResponse response)
+			PortletRequestModel portletRequestModel, ThemeDisplay themeDisplay,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		try {
 			JournalArticleDisplay articleDisplay =
 				JournalContentUtil.getDisplay(
-					groupId, articleId, null, languageId, themeDisplay);
+					groupId, articleId, null, "export", languageId, 1,
+					portletRequestModel, themeDisplay);
 
 			int pages = articleDisplay.getNumberOfPages();
 
@@ -128,7 +133,7 @@ public class ExportArticleAction extends PortletAction {
 
 			for (int i = 2; i <= pages; i++) {
 				articleDisplay = JournalContentUtil.getDisplay(
-					groupId, articleId, "export", languageId, themeDisplay, i);
+					groupId, articleId, "export", languageId, i, themeDisplay);
 
 				sb.append(articleDisplay.getContent());
 			}

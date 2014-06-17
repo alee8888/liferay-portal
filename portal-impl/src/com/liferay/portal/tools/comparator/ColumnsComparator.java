@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,18 +22,19 @@ import java.util.List;
  */
 public class ColumnsComparator implements Comparator<Object> {
 
-	public ColumnsComparator(String columnName) {
-		this(new String[] {columnName});
-	}
-
 	public ColumnsComparator(List<String> columnNames) {
 		this(columnNames.toArray(new String[columnNames.size()]));
+	}
+
+	public ColumnsComparator(String columnName) {
+		this(new String[] {columnName});
 	}
 
 	public ColumnsComparator(String[] columnNames) {
 		_columnNames = columnNames;
 	}
 
+	@Override
 	public int compare(Object obj1, Object obj2) {
 		Object[] column1 = (Object[])obj1;
 		Object[] column2 = (Object[])obj2;

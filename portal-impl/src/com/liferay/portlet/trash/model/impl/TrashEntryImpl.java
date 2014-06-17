@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,11 +15,17 @@
 package com.liferay.portlet.trash.model.impl;
 
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portlet.trash.model.TrashEntry;
 
 /**
  * @author Zsolt Berentey
  */
 public class TrashEntryImpl extends TrashEntryBaseImpl {
+
+	@Override
+	public TrashEntry getRootEntry() {
+		return _rootEntry;
+	}
 
 	@Override
 	public String getTypeSettings() {
@@ -31,6 +37,7 @@ public class TrashEntryImpl extends TrashEntryBaseImpl {
 		}
 	}
 
+	@Override
 	public UnicodeProperties getTypeSettingsProperties() {
 		if (_typeSettingsProperties == null) {
 			_typeSettingsProperties = new UnicodeProperties(true);
@@ -41,16 +48,41 @@ public class TrashEntryImpl extends TrashEntryBaseImpl {
 		return _typeSettingsProperties;
 	}
 
+	@Override
 	public String getTypeSettingsProperty(String key) {
 		UnicodeProperties typeSettingsProperties = getTypeSettingsProperties();
 
 		return typeSettingsProperties.getProperty(key);
 	}
 
+	@Override
 	public String getTypeSettingsProperty(String key, String defaultValue) {
 		UnicodeProperties typeSettingsProperties = getTypeSettingsProperties();
 
 		return typeSettingsProperties.getProperty(key, defaultValue);
+	}
+
+	@Override
+	public boolean isTrashEntry(Class<?> clazz, long classPK) {
+		if (clazz == null) {
+			return false;
+		}
+
+		return isTrashEntry(clazz.getName(), classPK);
+	}
+
+	@Override
+	public boolean isTrashEntry(String className, long classPK) {
+		if (className.equals(getClassName()) && (classPK == getClassPK())) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public void setRootEntry(TrashEntry rootEntry) {
+		_rootEntry = rootEntry;
 	}
 
 	@Override
@@ -60,6 +92,7 @@ public class TrashEntryImpl extends TrashEntryBaseImpl {
 		super.setTypeSettings(typeSettings);
 	}
 
+	@Override
 	public void setTypeSettingsProperties(
 		UnicodeProperties typeSettingsProperties) {
 
@@ -68,6 +101,7 @@ public class TrashEntryImpl extends TrashEntryBaseImpl {
 		super.setTypeSettings(_typeSettingsProperties.toString());
 	}
 
+	private TrashEntry _rootEntry;
 	private UnicodeProperties _typeSettingsProperties;
 
 }

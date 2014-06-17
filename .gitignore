@@ -1,25 +1,34 @@
 *~
-*.ant-*
 *.bak
 *.iml
+*.ipr
+*.iws
 *.swp
-.sass-cache/
+.ant_targets
+.ant-targets-build.xml
+.sass-cache
 .sass_cache_*.css
 _sass_cache_*.css
+cobertura.ser
+
+**/.sonar
 
 /*.ant-*
 /*.ipr
 /*.iws
 /*.patch
 /*.sublime-*
+/.bnd
 /.checkstyle
 /.idea
 /.settings
+/.sonar
 /.xmlcatalog
 /ActiveMQ
 /ant.install.log
 /api
 /app.server.*.properties
+/baseline-reports
 /bin
 /build.*.properties
 /dist
@@ -30,6 +39,9 @@ _sass_cache_*.css
 /test.*.properties
 /WEB-INF
 
+/.ivy/cache/com.liferay-*.xml
+/.ivy/cache/resolved-*
+
 /benchmarks/*.csv
 /benchmarks/*.sql
 /benchmarks/lib
@@ -37,9 +49,26 @@ _sass_cache_*.css
 
 /classes/Test.class
 
+/intellij
+
+/lib/development/db2jcc.jar
+/lib/development/db2jcc_license_cu.jar
 /lib/development/ojdbc14.jar
+/lib/development/ojdbc5.jar
+/lib/development/ojdbc6.jar
 
 /nbproject/private
+
+/osgi/bootstrap/classes
+/osgi/bootstrap/osgi-bootstrap.jar
+/osgi/modules/*/*.jar
+/osgi/modules/*/classes
+/osgi/modules/*/docroot/WEB-INF/classes
+/osgi/modules/*/lib/*.jar
+/osgi/modules/*/test-classes
+/osgi/modules/*/test-coverage
+/osgi/modules/*/test-results
+/osgi/modules/*/woven-classes
 
 /portal-client/*.iml
 /portal-client/*.ipr
@@ -60,6 +89,7 @@ _sass_cache_*.css
 /portal-impl/test-classes
 /portal-impl/test-coverage
 /portal-impl/test-results
+/portal-impl/woven-classes
 
 /portal-impl/src/portal-ext.properties
 /portal-impl/src/system-ext.properties
@@ -70,6 +100,13 @@ _sass_cache_*.css
 /portal-impl/test/portal-test-ext.properties
 /portal-impl/test/test-portal-impl-ext.properties
 
+/portal-pacl/*.iml
+/portal-pacl/*.ipr
+/portal-pacl/*.iws
+/portal-pacl/classes
+/portal-pacl/portal-pacl*.asc
+/portal-pacl/portal-pacl*.jar
+
 /portal-service/*.iml
 /portal-service/*.ipr
 /portal-service/*.iws
@@ -79,6 +116,14 @@ _sass_cache_*.css
 /portal-service/test-classes
 /portal-service/test-coverage
 /portal-service/test-results
+/portal-service/woven-classes
+
+/portal-test/*.iml
+/portal-test/*.ipr
+/portal-test/*.iws
+/portal-test/classes
+/portal-test/portal-test*.asc
+/portal-test/portal-test*.jar
 
 /portal-web/*.iml
 /portal-web/*.ipr
@@ -88,17 +133,20 @@ _sass_cache_*.css
 /portal-web/portal-web.war
 /portal-web/portal-web.war.asc
 /portal-web/ROOT.war
+/portal-web/test/functional-generated
 /portal-web/test-ant-scripts
 /portal-web/test-classes
 /portal-web/test-output
 /portal-web/test-results
 
 /portal-web/docroot/dtd
+/portal-web/docroot/favicon.ico
 /portal-web/docroot/wsrp
 
 /portal-web/docroot/html/ALLOY_ZIP
 
-/portal-web/docroot/html/css/portal/aui.css
+/portal-web/docroot/html/css/portal/aui_deprecated.css
+/portal-web/docroot/html/css/portal/bootstrap.css
 
 /portal-web/docroot/html/icons/_sprite.*
 
@@ -109,6 +157,7 @@ _sass_cache_*.css
 /portal-web/docroot/html/js/editor/fckeditor
 /portal-web/docroot/html/js/editor/tiny_mce
 
+/portal-web/docroot/html/themes/_unstyled/css/aui
 /portal-web/docroot/html/themes/_unstyled/images/aui
 
 /portal-web/docroot/html/themes/classic/css
@@ -138,13 +187,16 @@ _sass_cache_*.css
 /portal-web/docroot/WEB-INF/tmp
 
 /portal-web/docroot/WEB-INF/tld/aui.tld
+/portal-web/docroot/WEB-INF/tld/ddm.tld
 /portal-web/docroot/WEB-INF/tld/liferay-*.tld
 
 /portal-web/test/test-portal-web-ext.properties
 
+/selenium-output
+
 /sql/create
+/sql/create-bare
 /sql/create-sharded
-/sql/create-minimal
 /sql/indexes
 /sql/legacy
 /sql/log
@@ -158,7 +210,6 @@ _sass_cache_*.css
 /sql/lportal*.properties
 /sql/lportal*.script
 /sql/portal
-/sql/portal-minimal
 /sql/portal-tables
 /sql/sequences
 /sql/sql.*.properties
@@ -166,19 +217,37 @@ _sass_cache_*.css
 !/sql/update-*.sql
 /sql/velocity.log*
 
+/support-resin/*.iml
+/support-resin/*.ipr
+/support-resin/*.iws
+/support-resin/classes
+/support-resin/support-resin*.jar
+
 /support-tomcat/*.iml
 /support-tomcat/*.ipr
 /support-tomcat/*.iws
 /support-tomcat/classes
 /support-tomcat/support-tomcat*.jar
 
+/support-websphere/*.iml
+/support-websphere/*.ipr
+/support-websphere/*.iws
+/support-websphere/classes
+/support-websphere/support-websphere*.jar
+
+/test-coverage
 /test-results
+
+/tools/cobertura-agent/classes
 
 /tools/maven/*.asc
 
 /tools/liferay-doclet
 
+/tools/sdk
+
 /tools/selenium/*.exe
+/tools/selenium/extensions/ide.*.js
 
 /tools/tck
 
@@ -202,13 +271,25 @@ _sass_cache_*.css
 /util-java/*.iws
 /util-java/classes
 /util-java/test-classes
+/util-java/test-coverage
 /util-java/test-results
 /util-java/util-java*.asc
 /util-java/util-java*.jar
+
+/util-slf4j/*.iml
+/util-slf4j/*.ipr
+/util-slf4j/*.iws
+/util-slf4j/classes
+/util-slf4j/test-classes
+/util-slf4j/test-results
+/util-slf4j/util-slf4j*.asc
+/util-slf4j/util-slf4j*.jar
 
 /util-taglib/*.iml
 /util-taglib/*.ipr
 /util-taglib/*.iws
 /util-taglib/classes
+/util-taglib/src/META-INF/liferay-aui.tld
+/util-taglib/src/META-INF/liferay-portlet_2_0.tld
 /util-taglib/util-taglib*.asc
 /util-taglib/util-taglib*.jar

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,9 +21,6 @@ import com.liferay.portal.kernel.concurrent.ConcurrentHashSet;
 
 import java.io.Serializable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,11 +30,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Edward Han
  * @author Shuyang Zhou
  */
-public class MemoryPortalCache implements PortalCache {
+public class MemoryPortalCache<K extends Serializable, V>
+	implements PortalCache<K, V> {
 
 	public MemoryPortalCache(String name, int initialCapacity) {
 		_name = name;
-		_map = new ConcurrentHashMap<Serializable, Object>(initialCapacity);
+		_map = new ConcurrentHashMap<K, V>(initialCapacity);
 	}
 
 	public void destroy() {
@@ -48,100 +46,97 @@ public class MemoryPortalCache implements PortalCache {
 		_name = null;
 	}
 
-	public Collection<Object> get(Collection<Serializable> keys) {
-		List<Object> values = new ArrayList<Object>(keys.size());
-
-		for (Serializable key : keys) {
-			values.add(get(key));
-		}
-
-		return values;
-	}
-
-	public Object get(Serializable key) {
+	@Override
+	public V get(K key) {
 		return _map.get(key);
 	}
 
+	@Override
 	public String getName() {
 		return _name;
 	}
 
-	public void put(Serializable key, Object value) {
-		Object oldValue = _map.put(key, value);
+	@Override
+	public void put(K key, V value) {
+		V oldValue = _map.put(key, value);
 
 		notifyPutEvents(key, value, oldValue != null);
 	}
 
-	public void put(Serializable key, Object value, int timeToLive) {
-		Object oldValue = _map.put(key, value);
+	@Override
+	public void put(K key, V value, int timeToLive) {
+		V oldValue = _map.put(key, value);
 
 		notifyPutEvents(key, value, oldValue != null);
 	}
 
-	public void put(Serializable key, Serializable value) {
-		Object oldValue = _map.put(key, value);
-
-		notifyPutEvents(key, value, oldValue != null);
+	@Override
+	public void putQuiet(K key, V value) {
+		_map.put(key, value);
 	}
 
-	public void put(Serializable key, Serializable value, int timeToLive) {
-		Object oldValue = _map.put(key, value);
-
-		notifyPutEvents(key, value, oldValue != null);
+	@Override
+	public void putQuiet(K key, V value, int timeToLive) {
+		_map.put(key, value);
 	}
 
-	public void registerCacheListener(CacheListener cacheListener) {
+	@Override
+	public void registerCacheListener(CacheListener<K, V> cacheListener) {
 		_cacheListeners.add(cacheListener);
 	}
 
+	@Override
 	public void registerCacheListener(
-		CacheListener cacheListener, CacheListenerScope cacheListenerScope) {
+		CacheListener<K, V> cacheListener,
+		CacheListenerScope cacheListenerScope) {
 
 		registerCacheListener(cacheListener);
 	}
 
-	public void remove(Serializable key) {
-		Object value = _map.remove(key);
+	@Override
+	public void remove(K key) {
+		V value = _map.remove(key);
 
-		for (CacheListener cacheListener : _cacheListeners) {
+		for (CacheListener<K, V> cacheListener : _cacheListeners) {
 			cacheListener.notifyEntryRemoved(this, key, value);
 		}
 	}
 
+	@Override
 	public void removeAll() {
 		_map.clear();
 
-		for (CacheListener cacheListener : _cacheListeners) {
+		for (CacheListener<K, V> cacheListener : _cacheListeners) {
 			cacheListener.notifyRemoveAll(this);
 		}
 	}
 
-	public void unregisterCacheListener(CacheListener cacheListener) {
+	@Override
+	public void unregisterCacheListener(CacheListener<K, V> cacheListener) {
 		_cacheListeners.remove(cacheListener);
 	}
 
+	@Override
 	public void unregisterCacheListeners() {
 		_cacheListeners.clear();
 	}
 
-	protected void notifyPutEvents(
-		Serializable key, Object value, boolean updated) {
-
+	protected void notifyPutEvents(K key, V value, boolean updated) {
 		if (updated) {
-			for (CacheListener cacheListener : _cacheListeners) {
+			for (CacheListener<K, V> cacheListener : _cacheListeners) {
 				cacheListener.notifyEntryUpdated(this, key, value);
 			}
 		}
 		else {
-			for (CacheListener cacheListener : _cacheListeners) {
+			for (CacheListener<K, V> cacheListener : _cacheListeners) {
 				cacheListener.notifyEntryPut(this, key, value);
 			}
 		}
 	}
 
-	private Set<CacheListener> _cacheListeners =
-		new ConcurrentHashSet<CacheListener>();
-	private Map<Serializable, Object> _map;
+	private Set<CacheListener<K, V>> _cacheListeners =
+		new ConcurrentHashSet<CacheListener<K, V>>();
+	private Map<K, V> _map;
 	private String _name;
 
 }

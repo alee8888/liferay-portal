@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,10 +19,12 @@ package com.liferay.portal.kernel.util;
  */
 public class URLStringEncoder implements StringEncoder {
 
+	@Override
 	public String decode(String s) {
 		return HttpUtil.decodeURL(s);
 	}
 
+	@Override
 	public String encode(String s) {
 		return HttpUtil.encodeURL(s);
 	}

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,6 +21,8 @@ JournalFolder folder = (JournalFolder)request.getAttribute(WebKeys.JOURNAL_FOLDE
 
 long folderId = BeanParamUtil.getLong(folder, request, "folderId", JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
+String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectFolder");
+
 String folderName = LanguageUtil.get(pageContext, "home");
 
 if (folder != null) {
@@ -30,7 +32,7 @@ if (folder != null) {
 }
 %>
 
-<aui:form method="post" name="fm">
+<aui:form method="post" name="selectFolderFm">
 	<liferay-ui:header
 		title="home"
 	/>
@@ -42,102 +44,14 @@ if (folder != null) {
 
 	portletURL.setParameter("struts_action", "/journal/select_folder");
 	portletURL.setParameter("folderId", String.valueOf(folderId));
+	%>
 
-	List<String> headerNames = new ArrayList<String>();
-
-	headerNames.add("folder");
-	headerNames.add("num-of-folders");
-	headerNames.add("num-of-articles");
-	headerNames.add(StringPool.BLANK);
-
-	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, null);
-
-	int total = JournalFolderServiceUtil.getFoldersCount(scopeGroupId, folderId);
-
-	searchContainer.setTotal(total);
-
-	List results = JournalFolderServiceUtil.getFolders(scopeGroupId, folderId, searchContainer.getStart(), searchContainer.getEnd());
-
-	searchContainer.setResults(results);
-
-	List resultRows = searchContainer.getResultRows();
-
-	for (int i = 0; i < results.size(); i++) {
-		JournalFolder curFolder = (JournalFolder)results.get(i);
-
-		curFolder = curFolder.toEscapedModel();
-
-		ResultRow row = new ResultRow(curFolder, curFolder.getFolderId(), i);
-
-		PortletURL rowURL = renderResponse.createRenderURL();
-
-		rowURL.setParameter("struts_action", "/journal/select_folder");
-		rowURL.setParameter("folderId", String.valueOf(curFolder.getFolderId()));
-
-		// Name
-
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("<img align=\"left\" border=\"0\" src=\"");
-		sb.append(themeDisplay.getPathThemeImages());
-
-		int foldersCount = 0;
-		int articlesCount = 0;
-
-		List<Long> subfolderIds = JournalFolderServiceUtil.getSubfolderIds(scopeGroupId, curFolder.getFolderId(), false);
-
-		foldersCount = subfolderIds.size();
-
-		subfolderIds.clear();
-		subfolderIds.add(curFolder.getFolderId());
-
-		articlesCount = JournalArticleServiceUtil.getFoldersAndArticlesCount(scopeGroupId, subfolderIds);
-
-		if ((foldersCount + articlesCount) > 0) {
-			sb.append("/common/folder_full_document.png\">");
-		}
-		else {
-			sb.append("/common/folder_empty.png\">");
-		}
-
-		sb.append(curFolder.getName());
-
-		row.addText(sb.toString(), rowURL);
-
-		// Statistics
-
-		row.addText(String.valueOf(foldersCount), rowURL);
-		row.addText(String.valueOf(articlesCount), rowURL);
-
-		// Action
-
-		if (rowURL != null) {
-			sb.setIndex(0);
-
-			sb.append("opener.");
-			sb.append(renderResponse.getNamespace());
-			sb.append("selectFolder('");
-			sb.append(curFolder.getFolderId());
-			sb.append("', '");
-			sb.append(UnicodeFormatter.toString(curFolder.getName()));
-			sb.append("'); window.close();");
-
-			row.addButton("right", SearchEntry.DEFAULT_VALIGN, LanguageUtil.get(pageContext, "choose"), sb.toString());
-		}
-		else {
-			row.addText(StringPool.BLANK);
-		}
-
-		// Add result row
-
-		resultRows.add(row);
-	}
-
-	boolean showAddFolderButton = JournalFolderPermission.contains(permissionChecker, scopeGroupId, folderId, ActionKeys.ADD_FOLDER);
+	<%
+	boolean hasAddFolderPermission = JournalFolderPermission.contains(permissionChecker, scopeGroupId, folderId, ActionKeys.ADD_FOLDER);
 	%>
 
 	<aui:button-row>
-		<c:if test="<%= showAddFolderButton %>">
+		<c:if test="<%= hasAddFolderPermission %>">
 			<portlet:renderURL var="editFolderURL">
 				<portlet:param name="struts_action" value="/journal/edit_folder" />
 				<portlet:param name="redirect" value="<%= currentURL %>" />
@@ -148,15 +62,100 @@ if (folder != null) {
 		</c:if>
 
 		<%
-		String taglibSelectOnClick = "opener." + renderResponse.getNamespace() + "selectFolder('" + folderId + "','" + folderName + "'); window.close();";
+		Map<String, Object> data = new HashMap<String, Object>();
+
+		data.put("folderid", String.valueOf(folderId));
+		data.put("foldername", folderName);
 		%>
 
-		<aui:button onClick="<%= taglibSelectOnClick %>" value="choose-this-folder" />
+		<aui:button cssClass="selector-button" data="<%= data %>" value="choose-this-folder" />
 	</aui:button-row>
 
-	<c:if test="<%= !results.isEmpty() %>">
-		<br />
-	</c:if>
+	<br />
 
-	<liferay-ui:search-iterator searchContainer="<%= searchContainer %>" />
+	<liferay-ui:search-container
+		iteratorURL="<%= portletURL %>"
+		total="<%= JournalFolderServiceUtil.getFoldersCount(scopeGroupId, folderId) %>"
+	>
+		<liferay-ui:search-container-results
+			results="<%= JournalFolderServiceUtil.getFolders(scopeGroupId, folderId, searchContainer.getStart(), searchContainer.getEnd()) %>"
+		/>
+
+		<liferay-ui:search-container-row
+			className="com.liferay.portlet.journal.model.JournalFolderModel"
+			keyProperty="folderId"
+			modelVar="curFolder"
+			rowVar="row"
+		>
+			<liferay-portlet:renderURL varImpl="rowURL">
+				<portlet:param name="struts_action" value="/journal/select_folder" />
+				<portlet:param name="folderId" value="<%= String.valueOf(curFolder.getFolderId()) %>" />
+			</liferay-portlet:renderURL>
+
+			<%
+			AssetRendererFactory assetRendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(JournalFolder.class.getName());
+
+			AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(curFolder.getFolderId());
+
+			int foldersCount = 0;
+			int articlesCount = 0;
+
+			try {
+				List<Long> subfolderIds = JournalFolderServiceUtil.getSubfolderIds(scopeGroupId, curFolder.getFolderId(), false);
+
+				foldersCount = subfolderIds.size();
+
+				subfolderIds.clear();
+				subfolderIds.add(curFolder.getFolderId());
+
+				articlesCount = JournalArticleServiceUtil.getFoldersAndArticlesCount(scopeGroupId, subfolderIds);
+			}
+			catch (com.liferay.portal.kernel.repository.RepositoryException re) {
+				rowURL = null;
+			}
+			%>
+
+			<liferay-ui:search-container-column-text
+				name="folder"
+			>
+				<liferay-ui:icon
+					iconCssClass="<%= assetRenderer.getIconCssClass() %>"
+					label="<%= true %>"
+					message="<%= HtmlUtil.escape(curFolder.getName()) %>"
+					url="<%= (rowURL != null) ? rowURL.toString() : StringPool.BLANK %>"
+				/>
+			</liferay-ui:search-container-column-text>
+
+			<liferay-ui:search-container-column-text
+				name="num-of-folders"
+				value="<%= String.valueOf(foldersCount) %>"
+			/>
+
+			<liferay-ui:search-container-column-text
+				name="num-of-web-content-instances"
+				value="<%= String.valueOf(articlesCount) %>"
+			/>
+
+			<c:if test="<%= rowURL != null %>">
+				<liferay-ui:search-container-column-text>
+
+					<%
+					Map<String, Object> data = new HashMap<String, Object>();
+
+					data.put("folderid", curFolder.getFolderId());
+					data.put("foldername", curFolder.getName());
+					%>
+
+					<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />
+				</liferay-ui:search-container-column-text>
+			</c:if>
+
+		</liferay-ui:search-container-row>
+
+		<liferay-ui:search-iterator />
+	</liferay-ui:search-container>
 </aui:form>
+
+<aui:script use="aui-base">
+	Liferay.Util.selectEntityHandler('#<portlet:namespace />selectFolderFm', '<%= HtmlUtil.escapeJS(eventName) %>');
+</aui:script>

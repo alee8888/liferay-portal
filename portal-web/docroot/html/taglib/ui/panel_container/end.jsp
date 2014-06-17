@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,14 +18,4 @@
 
 </div>
 
-<aui:script use="liferay-panel">
-	var panel = new Liferay.Panel(
-		{
-			accordion: <%= accordion %>,
-			container: '#<%= id %>',
-			persistState: <%= persistState %>
-		}
-	);
-
-	Liferay.Panel.register('<%= id %>', panel);
-</aui:script>
+<%@ include file="/html/taglib/ui/panel_container/javascript.jspf" %>

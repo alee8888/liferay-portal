@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,9 +14,14 @@
 
 package com.liferay.portal.kernel.language;
 
-import java.util.Locale;
+import aQute.bnd.annotation.ProviderType;
 
-import javax.portlet.PortletConfig;
+import com.liferay.portal.kernel.exception.PortalException;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 import javax.portlet.PortletRequest;
 
 import javax.servlet.http.HttpServletRequest;
@@ -26,7 +31,10 @@ import javax.servlet.jsp.PageContext;
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public interface Language {
+
+	public String format(Locale locale, String pattern, List<Object> arguments);
 
 	public String format(Locale locale, String pattern, Object argument);
 
@@ -69,20 +77,18 @@ public interface Language {
 		boolean translateArguments);
 
 	public String format(
-		PortletConfig portletConfig, Locale locale, String pattern,
-		Object argument);
+		ResourceBundle resourceBundle, String pattern, Object argument);
 
 	public String format(
-		PortletConfig portletConfig, Locale locale, String pattern,
-		Object argument, boolean translateArguments);
+		ResourceBundle resourceBundle, String pattern, Object argument,
+		boolean translateArguments);
 
 	public String format(
-		PortletConfig portletConfig, Locale locale, String pattern,
-		Object[] arguments);
+		ResourceBundle resourceBundle, String pattern, Object[] arguments);
 
 	public String format(
-		PortletConfig portletConfig, Locale locale, String pattern,
-		Object[] arguments, boolean translateArguments);
+		ResourceBundle resourceBundle, String pattern, Object[] arguments,
+		boolean translateArguments);
 
 	public String get(Locale locale, String key);
 
@@ -92,13 +98,20 @@ public interface Language {
 
 	public String get(PageContext pageContext, String key, String defaultValue);
 
-	public String get(PortletConfig portletConfig, Locale locale, String key);
+	public String get(ResourceBundle resourceBundle, String key);
 
 	public String get(
-		PortletConfig portletConfig, Locale locale, String key,
-		String defaultValue);
+		ResourceBundle resourceBundle, String key, String defaultValue);
 
 	public Locale[] getAvailableLocales();
+
+	public Locale[] getAvailableLocales(long groupId);
+
+	public String getBCP47LanguageId(HttpServletRequest request);
+
+	public String getBCP47LanguageId(Locale locale);
+
+	public String getBCP47LanguageId(PortletRequest portletRequest);
 
 	public String getCharset(Locale locale);
 
@@ -109,6 +122,8 @@ public interface Language {
 	public String getLanguageId(PortletRequest portletRequest);
 
 	public Locale getLocale(String languageCode);
+
+	public Locale[] getSupportedLocales();
 
 	public String getTimeDescription(Locale locale, long milliseconds);
 
@@ -128,11 +143,27 @@ public interface Language {
 
 	public void init();
 
+	public boolean isAvailableLanguageCode(String languageCode);
+
 	public boolean isAvailableLocale(Locale locale);
+
+	public boolean isAvailableLocale(long groupId, Locale locale);
+
+	public boolean isAvailableLocale(long groupId, String languageId);
+
+	public boolean isAvailableLocale(String languageId);
 
 	public boolean isBetaLocale(Locale locale);
 
 	public boolean isDuplicateLanguageCode(String languageCode);
+
+	public boolean isInheritLocales(long groupId)
+		throws PortalException;
+
+	public String process(
+		ResourceBundle resourceBundle, Locale locale, String content);
+
+	public void resetAvailableGroupLocales(long groupId);
 
 	public void resetAvailableLocales(long companyId);
 

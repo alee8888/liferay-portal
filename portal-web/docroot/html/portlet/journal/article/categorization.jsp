@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,8 @@
 <%@ include file="/html/portlet/journal/init.jsp" %>
 
 <%
+String defaultLanguageId = (String)request.getAttribute("edit_article.jsp-defaultLanguageId");
+
 JournalArticle article = (JournalArticle)request.getAttribute(WebKeys.JOURNAL_ARTICLE);
 
 String type = BeanParamUtil.getString(article, request, "type");
@@ -24,6 +26,8 @@ String type = BeanParamUtil.getString(article, request, "type");
 if (Validator.isNull(type)) {
 	type = "general";
 }
+
+DDMStructure ddmStructure = (DDMStructure)request.getAttribute("edit_article.jsp-structure");
 
 String toLanguageId = (String)request.getAttribute("edit_article.jsp-toLanguageId");
 %>
@@ -75,7 +79,13 @@ String toLanguageId = (String)request.getAttribute("edit_article.jsp-toLanguageI
 	}
 	%>
 
-	<aui:input classPK="<%= classPK %>" name="categories" type="assetCategories" />
+	<aui:input classPK="<%= classPK %>" classTypePK="<%= ddmStructure.getStructureId() %>" name="categories" type="assetCategories" />
 
 	<aui:input classPK="<%= classPK %>" name="tags" type="assetTags" />
 </aui:fieldset>
+
+<aui:script>
+	function <portlet:namespace />getSuggestionsContent() {
+		return document.<portlet:namespace />fm1.<portlet:namespace />title_<%= defaultLanguageId %>.value;
+	}
+</aui:script>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,7 +18,6 @@ import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.taglib.aui.base.BaseFieldWrapperTag;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.jsp.JspException;
 
 /**
  * @author Julio Camarero
@@ -26,13 +25,6 @@ import javax.servlet.jsp.JspException;
  * @author Brian Wing Shun Chan
  */
 public class FieldWrapperTag extends BaseFieldWrapperTag {
-
-	@Override
-	public int doEndTag() throws JspException {
-		setCalledSetAttributes(false);
-
-		return super.doEndTag();
-	}
 
 	@Override
 	protected boolean isCleanUpSetAttributes() {
@@ -46,7 +38,7 @@ public class FieldWrapperTag extends BaseFieldWrapperTag {
 		String label = getLabel();
 
 		if (label == null) {
-			label = TextFormatter.format(getName(), TextFormatter.K);
+			label = TextFormatter.format(getName(), TextFormatter.P);
 		}
 
 		setNamespacedAttribute(request, "label", label);

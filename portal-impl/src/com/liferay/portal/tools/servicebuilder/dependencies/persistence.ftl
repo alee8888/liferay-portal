@@ -1,9 +1,10 @@
 package ${packagePath}.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import ${packagePath}.model.${entity.name};
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.service.persistence.BasePersistence;
@@ -22,6 +23,11 @@ import java.util.Date;
  * @see ${entity.name}Util
  * @generated
  */
+
+<#if pluginName == "">
+	@ProviderType
+</#if>
+
 public interface ${entity.name}Persistence extends BasePersistence<${entity.name}> {
 
 	/*
@@ -33,6 +39,15 @@ public interface ${entity.name}Persistence extends BasePersistence<${entity.name
 	<#list methods as method>
 		<#if !method.isConstructor() && method.isPublic() && serviceBuilder.isCustomMethod(method) && !serviceBuilder.isBasePersistenceMethod(method)>
 			${serviceBuilder.getJavadocComment(method)}
+
+			<#if serviceBuilder.hasAnnotation(method, "Deprecated")>
+				@Deprecated
+			</#if>
+
+			<#if method.name == "fetchByPrimaryKeys">
+				@Override
+			</#if>
+
 			public ${serviceBuilder.getTypeGenericsName(method.returns)} ${method.name} (
 
 			<#assign parameters = method.parameters>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,13 +15,22 @@
 package com.liferay.portlet.journal.search;
 
 import com.liferay.portal.kernel.dao.search.DisplayTerms;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
+import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
+import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
+import com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalServiceUtil;
+import com.liferay.portlet.dynamicdatamapping.service.DDMTemplateLocalServiceUtil;
+import com.liferay.portlet.journal.model.JournalArticle;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.portlet.PortletRequest;
 
@@ -44,6 +53,8 @@ public class ArticleDisplayTerms extends DisplayTerms {
 
 	public static final String GROUP_ID = "groupId";
 
+	public static final String NAVIGATION = "navigation";
+
 	public static final String STATUS = "status";
 
 	public static final String STRUCTURE_ID = "structureId";
@@ -63,7 +74,8 @@ public class ArticleDisplayTerms extends DisplayTerms {
 		content = ParamUtil.getString(portletRequest, CONTENT);
 		description = ParamUtil.getString(portletRequest, DESCRIPTION);
 		folderId = ParamUtil.getLong(portletRequest, FOLDER_ID);
-		status = ParamUtil.getString(portletRequest, STATUS);
+		navigation = ParamUtil.getString(portletRequest, NAVIGATION);
+		status = ParamUtil.getInteger(portletRequest, STATUS);
 		structureId = ParamUtil.getString(portletRequest, STRUCTURE_ID);
 		templateId = ParamUtil.getString(portletRequest, TEMPLATE_ID);
 		title = ParamUtil.getString(portletRequest, TITLE);
@@ -97,11 +109,27 @@ public class ArticleDisplayTerms extends DisplayTerms {
 		return folderId;
 	}
 
+	public List<Long> getFolderIds() {
+		if (folderIds != null) {
+			return folderIds;
+		}
+
+		List<Long> folderIds = new ArrayList<Long>();
+
+		folderIds.add(folderId);
+
+		return folderIds;
+	}
+
 	public long getGroupId() {
 		return groupId;
 	}
 
-	public String getStatus() {
+	public String getNavigation() {
+		return navigation;
+	}
+
+	public int getStatus() {
 		return status;
 	}
 
@@ -134,6 +162,14 @@ public class ArticleDisplayTerms extends DisplayTerms {
 		}
 	}
 
+	public boolean isNavigationRecent() {
+		if (navigation.equals("recent")) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public void setDisplayDateGT(Date displayDateGT) {
 		this.displayDateGT = displayDateGT;
 	}
@@ -142,23 +178,58 @@ public class ArticleDisplayTerms extends DisplayTerms {
 		this.displayDateLT = displayDateLT;
 	}
 
+	public void setFolderIds(List<Long> folderIds) {
+		this.folderIds = folderIds;
+	}
+
 	public long setGroupId(PortletRequest portletRequest) {
 		groupId = ParamUtil.getLong(portletRequest, GROUP_ID);
 
-		if ((groupId == 0) && Validator.isNull(structureId) &&
-			Validator.isNull(templateId)) {
-
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)portletRequest.getAttribute(
-					WebKeys.THEME_DISPLAY);
-
-			groupId = themeDisplay.getScopeGroupId();
+		if (groupId != 0) {
+			return groupId;
 		}
 
-		return groupId;
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		if (Validator.isNotNull(structureId) && !structureId.equals("0")) {
+			DDMStructure ddmStructure = null;
+
+			try {
+				ddmStructure = DDMStructureLocalServiceUtil.fetchStructure(
+					themeDisplay.getSiteGroupId(),
+					PortalUtil.getClassNameId(JournalArticle.class),
+					structureId);
+			}
+			catch (SystemException se) {
+			}
+
+			if (ddmStructure != null) {
+				return 0;
+			}
+		}
+
+		if (Validator.isNotNull(templateId) && !templateId.equals("0")) {
+			DDMTemplate ddmTemplate = null;
+
+			try {
+				ddmTemplate = DDMTemplateLocalServiceUtil.fetchTemplate(
+					themeDisplay.getSiteGroupId(),
+					PortalUtil.getClassNameId(JournalArticle.class),
+					templateId);
+			}
+			catch (SystemException se) {
+			}
+
+			if (ddmTemplate != null) {
+				return 0;
+			}
+		}
+
+		return themeDisplay.getScopeGroupId();
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(int status) {
 		this.status = status;
 	}
 
@@ -168,8 +239,10 @@ public class ArticleDisplayTerms extends DisplayTerms {
 	protected Date displayDateGT;
 	protected Date displayDateLT;
 	protected long folderId;
+	protected List<Long> folderIds;
 	protected long groupId;
-	protected String status;
+	protected String navigation;
+	protected int status;
 	protected String structureId;
 	protected String templateId;
 	protected String title;

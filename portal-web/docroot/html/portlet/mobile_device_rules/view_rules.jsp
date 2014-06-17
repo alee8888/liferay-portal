@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,7 +18,17 @@
 
 <%
 String redirect = ParamUtil.getString(request, "redirect");
+
 String backURL = ParamUtil.getString(request, "backURL");
+
+if (Validator.isNull(redirect) && Validator.isNull(backURL)) {
+	PortletURL portletURL = renderResponse.createRenderURL();
+
+	portletURL.setParameter("struts_action", "/mobile_device_rules/view");
+	portletURL.setParameter("groupId", String.valueOf(groupId));
+
+	backURL = portletURL.toString();
+}
 
 long ruleGroupId = ParamUtil.getLong(request, "ruleGroupId");
 
@@ -35,33 +45,33 @@ portletURL.setParameter("redirect", redirect);
 <liferay-ui:header
 	backURL="<%= backURL %>"
 	localizeTitle="<%= false %>"
-	title='<%= LanguageUtil.format(pageContext, "rules-for-x", ruleGroup.getName(locale), false) %>'
+	title='<%= LanguageUtil.format(pageContext, "classification-rules-for-x", ruleGroup.getName(locale), false) %>'
 />
 
-<div class="lfr-portlet-toolbar">
-	<liferay-portlet:renderURL var="addURL">
-		<portlet:param name="struts_action" value="/mobile_device_rules/edit_rule" />
-		<portlet:param name="redirect" value="<%= portletURL.toString() %>" />
-		<portlet:param name="ruleGroupId" value="<%= String.valueOf(ruleGroupId) %>" />
-	</liferay-portlet:renderURL>
+<aui:nav-bar>
+	<aui:nav cssClass="navbar-nav">
+		<liferay-portlet:renderURL var="addURL">
+			<portlet:param name="struts_action" value="/mobile_device_rules/edit_rule" />
+			<portlet:param name="redirect" value="<%= portletURL.toString() %>" />
+			<portlet:param name="ruleGroupId" value="<%= String.valueOf(ruleGroupId) %>" />
+		</liferay-portlet:renderURL>
 
-	<span class="lfr-toolbar-button add-button">
-		<a href="<%= addURL %>"><liferay-ui:message key="add-rule" /></a>
-	</span>
-</div>
+		<aui:nav-item href="<%= addURL %>" iconCssClass="icon-plus" label="add-classification-rule" />
+	</aui:nav>
+</aui:nav-bar>
 
 <div class="separator"><!-- --></div>
 
 <liferay-ui:search-container
 	delta="<%= 5 %>"
 	deltaConfigurable="<%= false %>"
-	emptyResultsMessage="no-rules-are-configured-for-this-rule-group"
+	emptyResultsMessage="no-classification-rules-are-configured-for-this-device-family"
 	headerNames="name,type"
 	iteratorURL="<%= portletURL %>"
+	total="<%= MDRRuleLocalServiceUtil.getRulesCount(ruleGroupId) %>"
 >
 	<liferay-ui:search-container-results
 		results="<%= MDRRuleLocalServiceUtil.getRules(ruleGroupId, searchContainer.getStart(), searchContainer.getEnd()) %>"
-		total="<%= MDRRuleLocalServiceUtil.getRulesCount(ruleGroupId) %>"
 	/>
 
 	<liferay-ui:search-container-row

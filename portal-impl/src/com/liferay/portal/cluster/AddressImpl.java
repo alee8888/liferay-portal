@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,18 +27,15 @@ public class AddressImpl implements com.liferay.portal.kernel.cluster.Address {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AddressImpl)) {
 			return false;
 		}
 
-		AddressImpl addressImpl = null;
-
-		try {
-			addressImpl = (AddressImpl)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		AddressImpl addressImpl = (AddressImpl)obj;
 
 		if (_address.equals(addressImpl._address)) {
 			return true;
@@ -48,10 +45,12 @@ public class AddressImpl implements com.liferay.portal.kernel.cluster.Address {
 		}
 	}
 
+	@Override
 	public String getDescription() {
 		return _address.toString();
 	}
 
+	@Override
 	public Address getRealAddress() {
 		return _address;
 	}

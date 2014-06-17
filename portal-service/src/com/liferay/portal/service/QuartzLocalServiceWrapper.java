@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
- * <p>
- * This class is a wrapper for {@link QuartzLocalService}.
- * </p>
+ * Provides a wrapper for {@link QuartzLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       QuartzLocalService
+ * @author Brian Wing Shun Chan
+ * @see QuartzLocalService
  * @generated
  */
+@ProviderType
 public class QuartzLocalServiceWrapper implements QuartzLocalService,
 	ServiceWrapper<QuartzLocalService> {
 	public QuartzLocalServiceWrapper(QuartzLocalService quartzLocalService) {
@@ -34,6 +35,7 @@ public class QuartzLocalServiceWrapper implements QuartzLocalService,
 	*
 	* @return the Spring bean ID for this bean
 	*/
+	@Override
 	public java.lang.String getBeanIdentifier() {
 		return _quartzLocalService.getBeanIdentifier();
 	}
@@ -43,34 +45,39 @@ public class QuartzLocalServiceWrapper implements QuartzLocalService,
 	*
 	* @param beanIdentifier the Spring bean ID for this bean
 	*/
+	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_quartzLocalService.setBeanIdentifier(beanIdentifier);
 	}
 
-	public void checkQuartzTables()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void checkQuartzTables() {
 		_quartzLocalService.checkQuartzTables();
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #getWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public QuartzLocalService getWrappedQuartzLocalService() {
 		return _quartzLocalService;
 	}
 
 	/**
-	 * @deprecated Renamed to {@link #setWrappedService}
+	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedQuartzLocalService(
 		QuartzLocalService quartzLocalService) {
 		_quartzLocalService = quartzLocalService;
 	}
 
+	@Override
 	public QuartzLocalService getWrappedService() {
 		return _quartzLocalService;
 	}
 
+	@Override
 	public void setWrappedService(QuartzLocalService quartzLocalService) {
 		_quartzLocalService = quartzLocalService;
 	}

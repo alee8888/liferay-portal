@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,10 @@
 
 package com.liferay.portlet.asset.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.util.Accessor;
+import com.liferay.portal.model.NestedSetsTreeNodeModel;
 import com.liferay.portal.model.PersistedModel;
 
 /**
@@ -26,38 +29,70 @@ import com.liferay.portal.model.PersistedModel;
  * @see com.liferay.portlet.asset.model.impl.AssetCategoryModelImpl
  * @generated
  */
-public interface AssetCategory extends AssetCategoryModel, PersistedModel {
+@ProviderType
+public interface AssetCategory extends AssetCategoryModel,
+	NestedSetsTreeNodeModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to {@link com.liferay.portlet.asset.model.impl.AssetCategoryImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	public static final Accessor<AssetCategory, String> UUID_ACCESSOR = new Accessor<AssetCategory, String>() {
+			@Override
 			public String get(AssetCategory assetCategory) {
 				return assetCategory.getUuid();
+			}
+
+			@Override
+			public Class<String> getAttributeClass() {
+				return String.class;
+			}
+
+			@Override
+			public Class<AssetCategory> getTypeClass() {
+				return AssetCategory.class;
 			}
 		};
 
 	public static final Accessor<AssetCategory, Long> CATEGORY_ID_ACCESSOR = new Accessor<AssetCategory, Long>() {
+			@Override
 			public Long get(AssetCategory assetCategory) {
 				return assetCategory.getCategoryId();
+			}
+
+			@Override
+			public Class<Long> getAttributeClass() {
+				return Long.class;
+			}
+
+			@Override
+			public Class<AssetCategory> getTypeClass() {
+				return AssetCategory.class;
 			}
 		};
 
 	public static final Accessor<AssetCategory, String> NAME_ACCESSOR = new Accessor<AssetCategory, String>() {
+			@Override
 			public String get(AssetCategory assetCategory) {
 				return assetCategory.getName();
+			}
+
+			@Override
+			public Class<String> getAttributeClass() {
+				return String.class;
+			}
+
+			@Override
+			public Class<AssetCategory> getTypeClass() {
+				return AssetCategory.class;
 			}
 		};
 
 	public java.util.List<com.liferay.portlet.asset.model.AssetCategory> getAncestors()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
+		throws com.liferay.portal.kernel.exception.PortalException;
 
-	public java.lang.String getTitle(java.lang.String languageId);
-
-	public java.lang.String getTitle(java.lang.String languageId,
-		boolean useDefault);
+	public java.lang.String getPath(java.util.Locale locale)
+		throws com.liferay.portal.kernel.exception.PortalException;
 
 	public boolean isRootCategory();
 }

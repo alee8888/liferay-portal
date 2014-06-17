@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -76,8 +76,10 @@ public interface WikiEngine {
 	 * Returns <code>true</code> if the content of a wiki page for this engine
 	 * is valid.
 	 *
-	 * @param nodeId the ID of the wiki page node
-	 * @param content the page content
+	 * @param  nodeId the ID of the wiki page node
+	 * @param  content the page content
+	 * @return <code>true</code> if the content of a wiki page for this engine
+	 *         is valid; <code>false</code> otherwise
 	 */
 	public boolean validate(long nodeId, String content);
 

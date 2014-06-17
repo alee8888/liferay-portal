@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,7 +22,6 @@ List results = (List)request.getAttribute("view.jsp-results");
 int assetEntryIndex = ((Integer)request.getAttribute("view.jsp-assetEntryIndex")).intValue();
 
 AssetEntry assetEntry = (AssetEntry)request.getAttribute("view.jsp-assetEntry");
-AssetRendererFactory assetRendererFactory = (AssetRendererFactory)request.getAttribute("view.jsp-assetRendererFactory");
 AssetRenderer assetRenderer = (AssetRenderer)request.getAttribute("view.jsp-assetRenderer");
 
 Group stageableGroup = themeDisplay.getScopeGroup();
@@ -37,47 +36,30 @@ if (Validator.isNull(title)) {
 	title = assetRenderer.getTitle(locale);
 }
 
-boolean show = ((Boolean)request.getAttribute("view.jsp-show")).booleanValue();
-
 PortletURL editPortletURL = assetRenderer.getURLEdit(liferayPortletRequest, liferayPortletResponse);
 
-PortletURL viewFullContentURL = renderResponse.createRenderURL();
+boolean viewInContext = ((Boolean)request.getAttribute("view.jsp-viewInContext")).booleanValue();
 
-viewFullContentURL.setParameter("struts_action", "/asset_publisher/view_content");
-viewFullContentURL.setParameter("assetEntryId", String.valueOf(assetEntry.getEntryId()));
-viewFullContentURL.setParameter("type", assetRendererFactory.getType());
-
-if (Validator.isNotNull(assetRenderer.getUrlTitle())) {
-	if (assetRenderer.getGroupId() != scopeGroupId) {
-		viewFullContentURL.setParameter("groupId", String.valueOf(assetRenderer.getGroupId()));
-	}
-
-	viewFullContentURL.setParameter("urlTitle", assetRenderer.getUrlTitle());
-}
-
-String viewFullContentURLString = viewFullContentURL.toString();
-
-viewFullContentURLString = HttpUtil.setParameter(viewFullContentURLString, "redirect", currentURL);
-
-String viewURL = viewInContext ? assetRenderer.getURLViewInContext(liferayPortletRequest, liferayPortletResponse, viewFullContentURLString) : viewFullContentURL.toString();
-
-viewURL = _checkViewURL(viewURL, currentURL, themeDisplay);
+String viewURL = AssetPublisherHelperUtil.getAssetViewURL(liferayPortletRequest, liferayPortletResponse, assetEntry, viewInContext);
 
 request.setAttribute("view.jsp-showIconLabel", false);
 %>
 
 <c:if test="<%= assetEntryIndex == 0 %>">
-	<table class="taglib-search-iterator">
-	<tr class="portlet-section-header results-header">
-		<th>
+	<table class="table table-bordered table-hover table-striped">
+	<thead class="table-columns">
+	<tr>
+		<th class="table-header table-sortable-column">
 			<liferay-ui:message key="title" />
 		</th>
 
 		<%
+		String[] metadataFields = assetPublisherDisplayContext.getMetadataFields();
+
 		for (int m = 0; m < metadataFields.length; m++) {
 		%>
 
-			<th>
+			<th class="table-header">
 				<liferay-ui:message key="<%= metadataFields[m] %>" />
 			</th>
 
@@ -85,22 +67,17 @@ request.setAttribute("view.jsp-showIconLabel", false);
 		}
 		%>
 
-		<c:if test="<%= assetRenderer.hasEditPermission(permissionChecker) && (editPortletURL != null) && !stageableGroup.hasStagingGroup() %>">
-			<th></th>
+		<c:if test="<%= !stageableGroup.hasStagingGroup() %>">
+			<th class="table-header"></th>
 		</c:if>
 	</tr>
+	</thead>
+
+	<tbody class="table-data">
 </c:if>
 
-<%
-String style = "class=\"portlet-section-body results-row\" onmouseover=\"this.className = 'portlet-section-body-hover results-row hover';\" onmouseout=\"this.className = 'portlet-section-body results-row';\"";
-
-if ((assetEntryIndex % 2) == 0) {
-	style = "class=\"portlet-section-alternate results-row alt\" onmouseover=\"this.className = 'portlet-section-alternate-hover results-row alt hover';\" onmouseout=\"this.className = 'portlet-section-alternate results-row alt';\"";
-}
-%>
-
-<tr <%= style %>>
-	<td>
+<tr>
+	<td class="table-cell">
 		<c:choose>
 			<c:when test="<%= Validator.isNotNull(viewURL) %>">
 				<a href="<%= viewURL %>"><%= HtmlUtil.escape(title) %></a>
@@ -112,6 +89,8 @@ if ((assetEntryIndex % 2) == 0) {
 	</td>
 
 	<%
+	String[] metadataFields = assetPublisherDisplayContext.getMetadataFields();
+
 	for (int m = 0; m < metadataFields.length; m++) {
 		String value = null;
 
@@ -151,10 +130,10 @@ if ((assetEntryIndex % 2) == 0) {
 		else if (metadataFields[m].equals("categories")) {
 		%>
 
-			<td>
+			<td class="table-cell">
 				<liferay-ui:asset-categories-summary
 					className="<%= assetEntry.getClassName() %>"
-					classPK="<%= assetEntry.getClassPK () %>"
+					classPK="<%= assetEntry.getClassPK() %>"
 					portletURL="<%= renderResponse.createRenderURL() %>"
 				/>
 			</td>
@@ -164,10 +143,10 @@ if ((assetEntryIndex % 2) == 0) {
 		else if (metadataFields[m].equals("tags")) {
 		%>
 
-			<td>
+			<td class="table-cell">
 				<liferay-ui:asset-tags-summary
 					className="<%= assetEntry.getClassName() %>"
-					classPK="<%= assetEntry.getClassPK () %>"
+					classPK="<%= assetEntry.getClassPK() %>"
 					portletURL="<%= renderResponse.createRenderURL() %>"
 				/>
 			</td>
@@ -178,7 +157,7 @@ if ((assetEntryIndex % 2) == 0) {
 		if (value != null) {
 	%>
 
-			<td>
+			<td class="table-cell">
 				<liferay-ui:message key="<%= value %>" />
 			</td>
 
@@ -187,13 +166,16 @@ if ((assetEntryIndex % 2) == 0) {
 	}
 	%>
 
-	<c:if test="<%= assetRenderer.hasEditPermission(permissionChecker) && (editPortletURL != null) && !stageableGroup.hasStagingGroup() %>">
-		<td>
-			<liferay-util:include page="/html/portlet/asset_publisher/asset_actions.jsp" />
+	<c:if test="<%= !stageableGroup.hasStagingGroup() %>">
+		<td class="table-cell">
+			<c:if test="<%= assetRenderer.hasEditPermission(permissionChecker) && (editPortletURL != null) %>">
+				<liferay-util:include page="/html/portlet/asset_publisher/asset_actions.jsp" />
+			</c:if>
 		</td>
 	</c:if>
 </tr>
 
 <c:if test="<%= (assetEntryIndex + 1) == results.size() %>">
+	</tbody>
 	</table>
 </c:if>

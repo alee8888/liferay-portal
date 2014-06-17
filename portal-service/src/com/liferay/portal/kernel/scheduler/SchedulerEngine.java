@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,8 @@
  */
 
 package com.liferay.portal.kernel.scheduler;
+
+import aQute.bnd.annotation.ProviderType;
 
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.proxy.MessagingProxy;
@@ -30,11 +32,8 @@ import java.util.List;
  * @author Shuyang Zhou
  * @author Tina Tian
  */
+@ProviderType
 public interface SchedulerEngine {
-
-	public static final String AUDIT_ACTION = "AUDIT_ACTION";
-
-	public static final String CONTEXT_PATH = "CONTEXT_PATH";
 
 	public static final String DESCRIPTION = "DESCRIPTION";
 
@@ -80,6 +79,8 @@ public interface SchedulerEngine {
 
 	public static final String RECEIVER_KEY = "RECEIVER_KEY";
 
+	public static final String SCHEDULER = "SCHEDULER";
+
 	public static final String SCRIPT = "SCRIPT";
 
 	public static final String START_TIME = "START_TIME";
@@ -118,10 +119,10 @@ public interface SchedulerEngine {
 			Message message)
 		throws SchedulerException;
 
-	@MessagingProxy(mode = ProxyMode.SYNC)
+	@MessagingProxy(local = true, mode = ProxyMode.SYNC)
 	public void shutdown() throws SchedulerException;
 
-	@MessagingProxy(mode = ProxyMode.SYNC)
+	@MessagingProxy(local = true, mode = ProxyMode.SYNC)
 	public void start() throws SchedulerException;
 
 	public void suppressError(String jobName, String groupName)

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,24 +28,28 @@ import java.util.Map;
  * This class is a wrapper for {@link MBStatsUser}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       MBStatsUser
+ * @author Brian Wing Shun Chan
+ * @see MBStatsUser
  * @generated
  */
+@ProviderType
 public class MBStatsUserWrapper implements MBStatsUser,
 	ModelWrapper<MBStatsUser> {
 	public MBStatsUserWrapper(MBStatsUser mbStatsUser) {
 		_mbStatsUser = mbStatsUser;
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return MBStatsUser.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return MBStatsUser.class.getName();
 	}
 
+	@Override
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
@@ -55,6 +62,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 		return attributes;
 	}
 
+	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
 		Long statsUserId = (Long)attributes.get("statsUserId");
 
@@ -92,6 +100,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @return the primary key of this message boards stats user
 	*/
+	@Override
 	public long getPrimaryKey() {
 		return _mbStatsUser.getPrimaryKey();
 	}
@@ -101,6 +110,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @param primaryKey the primary key of this message boards stats user
 	*/
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_mbStatsUser.setPrimaryKey(primaryKey);
 	}
@@ -110,6 +120,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @return the stats user ID of this message boards stats user
 	*/
+	@Override
 	public long getStatsUserId() {
 		return _mbStatsUser.getStatsUserId();
 	}
@@ -119,6 +130,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @param statsUserId the stats user ID of this message boards stats user
 	*/
+	@Override
 	public void setStatsUserId(long statsUserId) {
 		_mbStatsUser.setStatsUserId(statsUserId);
 	}
@@ -127,10 +139,9 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	* Returns the stats user uuid of this message boards stats user.
 	*
 	* @return the stats user uuid of this message boards stats user
-	* @throws SystemException if a system exception occurred
 	*/
-	public java.lang.String getStatsUserUuid()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public java.lang.String getStatsUserUuid() {
 		return _mbStatsUser.getStatsUserUuid();
 	}
 
@@ -139,6 +150,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @param statsUserUuid the stats user uuid of this message boards stats user
 	*/
+	@Override
 	public void setStatsUserUuid(java.lang.String statsUserUuid) {
 		_mbStatsUser.setStatsUserUuid(statsUserUuid);
 	}
@@ -148,6 +160,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @return the group ID of this message boards stats user
 	*/
+	@Override
 	public long getGroupId() {
 		return _mbStatsUser.getGroupId();
 	}
@@ -157,6 +170,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @param groupId the group ID of this message boards stats user
 	*/
+	@Override
 	public void setGroupId(long groupId) {
 		_mbStatsUser.setGroupId(groupId);
 	}
@@ -166,6 +180,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @return the user ID of this message boards stats user
 	*/
+	@Override
 	public long getUserId() {
 		return _mbStatsUser.getUserId();
 	}
@@ -175,6 +190,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @param userId the user ID of this message boards stats user
 	*/
+	@Override
 	public void setUserId(long userId) {
 		_mbStatsUser.setUserId(userId);
 	}
@@ -183,10 +199,9 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	* Returns the user uuid of this message boards stats user.
 	*
 	* @return the user uuid of this message boards stats user
-	* @throws SystemException if a system exception occurred
 	*/
-	public java.lang.String getUserUuid()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public java.lang.String getUserUuid() {
 		return _mbStatsUser.getUserUuid();
 	}
 
@@ -195,6 +210,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @param userUuid the user uuid of this message boards stats user
 	*/
+	@Override
 	public void setUserUuid(java.lang.String userUuid) {
 		_mbStatsUser.setUserUuid(userUuid);
 	}
@@ -204,6 +220,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @return the message count of this message boards stats user
 	*/
+	@Override
 	public int getMessageCount() {
 		return _mbStatsUser.getMessageCount();
 	}
@@ -213,6 +230,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @param messageCount the message count of this message boards stats user
 	*/
+	@Override
 	public void setMessageCount(int messageCount) {
 		_mbStatsUser.setMessageCount(messageCount);
 	}
@@ -222,6 +240,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @return the last post date of this message boards stats user
 	*/
+	@Override
 	public java.util.Date getLastPostDate() {
 		return _mbStatsUser.getLastPostDate();
 	}
@@ -231,42 +250,64 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	*
 	* @param lastPostDate the last post date of this message boards stats user
 	*/
+	@Override
 	public void setLastPostDate(java.util.Date lastPostDate) {
 		_mbStatsUser.setLastPostDate(lastPostDate);
 	}
 
+	@Override
 	public boolean isNew() {
 		return _mbStatsUser.isNew();
 	}
 
+	@Override
 	public void setNew(boolean n) {
 		_mbStatsUser.setNew(n);
 	}
 
+	@Override
 	public boolean isCachedModel() {
 		return _mbStatsUser.isCachedModel();
 	}
 
+	@Override
 	public void setCachedModel(boolean cachedModel) {
 		_mbStatsUser.setCachedModel(cachedModel);
 	}
 
+	@Override
 	public boolean isEscapedModel() {
 		return _mbStatsUser.isEscapedModel();
 	}
 
+	@Override
 	public java.io.Serializable getPrimaryKeyObj() {
 		return _mbStatsUser.getPrimaryKeyObj();
 	}
 
+	@Override
 	public void setPrimaryKeyObj(java.io.Serializable primaryKeyObj) {
 		_mbStatsUser.setPrimaryKeyObj(primaryKeyObj);
 	}
 
+	@Override
 	public com.liferay.portlet.expando.model.ExpandoBridge getExpandoBridge() {
 		return _mbStatsUser.getExpandoBridge();
 	}
 
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portal.model.BaseModel<?> baseModel) {
+		_mbStatsUser.setExpandoBridgeAttributes(baseModel);
+	}
+
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portlet.expando.model.ExpandoBridge expandoBridge) {
+		_mbStatsUser.setExpandoBridgeAttributes(expandoBridge);
+	}
+
+	@Override
 	public void setExpandoBridgeAttributes(
 		com.liferay.portal.service.ServiceContext serviceContext) {
 		_mbStatsUser.setExpandoBridgeAttributes(serviceContext);
@@ -277,6 +318,7 @@ public class MBStatsUserWrapper implements MBStatsUser,
 		return new MBStatsUserWrapper((MBStatsUser)_mbStatsUser.clone());
 	}
 
+	@Override
 	public int compareTo(
 		com.liferay.portlet.messageboards.model.MBStatsUser mbStatsUser) {
 		return _mbStatsUser.compareTo(mbStatsUser);
@@ -287,12 +329,19 @@ public class MBStatsUserWrapper implements MBStatsUser,
 		return _mbStatsUser.hashCode();
 	}
 
+	@Override
 	public com.liferay.portal.model.CacheModel<com.liferay.portlet.messageboards.model.MBStatsUser> toCacheModel() {
 		return _mbStatsUser.toCacheModel();
 	}
 
+	@Override
 	public com.liferay.portlet.messageboards.model.MBStatsUser toEscapedModel() {
 		return new MBStatsUserWrapper(_mbStatsUser.toEscapedModel());
+	}
+
+	@Override
+	public com.liferay.portlet.messageboards.model.MBStatsUser toUnescapedModel() {
+		return new MBStatsUserWrapper(_mbStatsUser.toUnescapedModel());
 	}
 
 	@Override
@@ -300,26 +349,59 @@ public class MBStatsUserWrapper implements MBStatsUser,
 		return _mbStatsUser.toString();
 	}
 
+	@Override
 	public java.lang.String toXmlString() {
 		return _mbStatsUser.toXmlString();
 	}
 
-	public void persist()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void persist() {
 		_mbStatsUser.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof MBStatsUserWrapper)) {
+			return false;
+		}
+
+		MBStatsUserWrapper mbStatsUserWrapper = (MBStatsUserWrapper)obj;
+
+		if (Validator.equals(_mbStatsUser, mbStatsUserWrapper._mbStatsUser)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
-	 * @deprecated Renamed to {@link #getWrappedModel}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public MBStatsUser getWrappedMBStatsUser() {
 		return _mbStatsUser;
 	}
 
+	@Override
 	public MBStatsUser getWrappedModel() {
 		return _mbStatsUser;
 	}
 
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _mbStatsUser.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _mbStatsUser.isFinderCacheEnabled();
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		_mbStatsUser.resetOriginalValues();
 	}

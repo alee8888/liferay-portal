@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portal.kernel.repository.model;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 
 import java.io.InputStream;
@@ -29,27 +28,31 @@ public interface FileVersion extends RepositoryModel<FileVersion> {
 
 	public String getChangeLog();
 
+	@Override
 	public long getCompanyId();
 
 	public InputStream getContentStream(boolean incrementCounter)
-		throws PortalException, SystemException;
+		throws PortalException;
 
+	@Override
 	public Date getCreateDate();
 
 	public String getDescription();
 
+	@Override
 	public ExpandoBridge getExpandoBridge();
 
 	public String getExtension();
 
 	public String getExtraSettings();
 
-	public FileEntry getFileEntry() throws PortalException, SystemException;
+	public FileEntry getFileEntry() throws PortalException;
 
 	public long getFileEntryId();
 
 	public long getFileVersionId();
 
+	@Override
 	public long getGroupId();
 
 	public String getIcon();
@@ -66,18 +69,22 @@ public interface FileVersion extends RepositoryModel<FileVersion> {
 
 	public String getStatusByUserName();
 
-	public String getStatusByUserUuid() throws SystemException;
+	public String getStatusByUserUuid();
 
 	public Date getStatusDate();
 
 	public String getTitle();
 
+	@Override
 	public long getUserId();
 
+	@Override
 	public String getUserName();
 
-	public String getUserUuid() throws SystemException;
+	@Override
+	public String getUserUuid();
 
+	@Override
 	public String getUuid();
 
 	public String getVersion();

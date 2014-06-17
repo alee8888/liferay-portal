@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -39,6 +39,7 @@ public class BaseDataSample implements DataSample, Serializable {
 
 		if ((_timeout > 0) && (_duration >= _timeout) &&
 			(requestStatus != RequestStatus.ERROR)) {
+
 			_requestStatus = RequestStatus.TIMEOUT;
 		}
 		else {
@@ -50,26 +51,32 @@ public class BaseDataSample implements DataSample, Serializable {
 		return _attributes;
 	}
 
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public String getDescription() {
 		return _description;
 	}
 
+	@Override
 	public long getDuration() {
 		return _duration;
 	}
 
+	@Override
 	public String getName() {
 		return _name;
 	}
 
+	@Override
 	public String getNamespace() {
 		return _namespace;
 	}
 
+	@Override
 	public RequestStatus getRequestStatus() {
 		return _requestStatus;
 	}
@@ -78,6 +85,7 @@ public class BaseDataSample implements DataSample, Serializable {
 		return _timeout;
 	}
 
+	@Override
 	public String getUser() {
 		return _user;
 	}

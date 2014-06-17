@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.util.mail;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -44,7 +45,7 @@ public class JavaMailUtil {
 	}
 
 	public static String toUnicodeString(InternetAddress[] addresses) {
-		if ((addresses == null) || (addresses.length == 0)) {
+		if (ArrayUtil.isEmpty(addresses)) {
 			return StringPool.BLANK;
 		}
 

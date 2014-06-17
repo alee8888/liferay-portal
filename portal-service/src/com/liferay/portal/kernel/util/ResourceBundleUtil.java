@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,7 @@ package com.liferay.portal.kernel.util;
 import java.text.MessageFormat;
 
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 /**
@@ -24,8 +25,6 @@ import java.util.ResourceBundle;
  * @author Neil Griffin
  */
 public class ResourceBundleUtil {
-
-	public static final String NULL_VALUE = "NULL_VALUE";
 
 	public static String getString(
 		ResourceBundle resourceBundle, Locale locale, String key,
@@ -41,7 +40,7 @@ public class ResourceBundleUtil {
 		// arguuments like {0}, {1}, {2}, etc. with the specified argument
 		// values.
 
-		if ((arguments != null) && (arguments.length > 0)) {
+		if (ArrayUtil.isNotEmpty(arguments)) {
 			MessageFormat messageFormat = new MessageFormat(value, locale);
 
 			value = messageFormat.format(arguments);
@@ -51,22 +50,16 @@ public class ResourceBundleUtil {
 	}
 
 	public static String getString(ResourceBundle resourceBundle, String key) {
-		ResourceBundleThreadLocal.setReplace(true);
-
-		String value = null;
+		if (!resourceBundle.containsKey(key)) {
+			return null;
+		}
 
 		try {
-			value = resourceBundle.getString(key);
+			return resourceBundle.getString(key);
 		}
-		finally {
-			ResourceBundleThreadLocal.setReplace(false);
+		catch (MissingResourceException mre) {
+			return null;
 		}
-
-		if (NULL_VALUE.equals(value)) {
-			value = null;
-		}
-
-		return value;
 	}
 
 }

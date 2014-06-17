@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,19 +16,10 @@
 
 <%@ include file="/html/taglib/ui/panel/init.jsp" %>
 
+		</div>
 	</div>
 </div>
 
 <c:if test="<%= collapsible && (panelCount == null) %>">
-	<aui:script use="liferay-panel">
-		var panel = new Liferay.Panel(
-			{
-				collapsible: <%= collapsible %>,
-				panel: '#<%= id %>',
-				persistState: <%= persistState %>
-			}
-		);
-
-		Liferay.Panel.register('<%= id %>', panel);
-	</aui:script>
+	<%@ include file="/html/taglib/ui/panel_container/javascript.jspf" %>
 </c:if>

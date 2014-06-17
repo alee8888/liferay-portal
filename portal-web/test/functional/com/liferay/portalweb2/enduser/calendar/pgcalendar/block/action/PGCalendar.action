@@ -1,0 +1,23 @@
+<definition>
+	<command name="assertClick">
+		<case locator-key1="ADD_EVENT_BUTTON">
+			<execute function="AssertClick#assertTextClickAtAndWait" />
+		</case>
+
+		<case locator-key1="SCHEDULER_EVENT_REPEAT">
+			<execute function="AssertClick#assertPartialTextClickAtAndWait" />
+		</case>
+	</command>
+
+	<command name="assertElementPresent">
+		<case locator-key1="ADD_EVENT_BUTTON">
+			<execute function="AssertElementPresent#assertVisible" />
+		</case>
+	</command>
+
+	<command name="confirm">
+		<case locator-key1="CONFIRMATION">
+			<execute function="Confirm#waitForConfirmation" />
+		</case>
+	</command>
+</definition>

@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,7 +21,7 @@ if (!useNamespace) {
 
 String baseType = GetterUtil.getString((String)request.getAttribute("aui:input:baseType"));
 String forLabel = namespace + GetterUtil.getString((String)request.getAttribute("aui:input:forLabel"));
-boolean required = GetterUtil.getBoolean((String)request.getAttribute("aui:input:required"));
+boolean wrappedField = GetterUtil.getBoolean(String.valueOf(request.getAttribute("aui:input:wrappedField")));
 
 if (Validator.isNull(label) && changesContext) {
 	StringBundler sb = new StringBundler(5);
@@ -47,21 +47,24 @@ if (type.equals("assetCategories") || baseType.equals(Date.class.getName())) {
 	showForLabel = false;
 }
 
-if (type.equals("assetTags")) {
-	forLabel += "assetTagNames";
-}
-
-if (checkboxField) {
-	forLabel += "Checkbox";
-}
-
 if (choiceField && Validator.isNull(inlineLabel)) {
 	inlineLabel = "right";
 }
 
-String baseTypeCss = TextFormatter.format(baseType.toLowerCase(), TextFormatter.K);
+String addOnCssClass = StringPool.BLANK;
 
-String fieldCss = AUIUtil.buildCss(AUIUtil.FIELD_PREFIX, baseTypeCss, inlineField, disabled, choiceField, first, last, cssClass);
-String inputCss = AUIUtil.buildCss(AUIUtil.INPUT_PREFIX, baseTypeCss, false, false, choiceField, false, false, inputCssClass);
-String labelTag = AUIUtil.buildLabel(inlineLabel, showForLabel, forLabel, choiceField);
+if (helpTextCssClass.equals("input-group-addon")) {
+	addOnCssClass = addOnCssClass.concat("input-group");
+}
+
+String controlGroupCssClass = AUIUtil.buildControlGroupCss(inlineField, inlineLabel, wrapperCssClass, baseType);
+String baseTypeCssClass = TextFormatter.format(StringUtil.toLowerCase(baseType), TextFormatter.K);
+
+String fieldCssClass = AUIUtil.buildCss(AUIUtil.FIELD_PREFIX, disabled, first, last, cssClass);
+
+if (baseType.equals("email") || baseType.equals("password") || baseType.equals("text") || baseType.equals("textarea")) {
+	fieldCssClass += " form-control";
+}
+
+String labelTag = AUIUtil.buildLabel(baseTypeCssClass, inlineField, showForLabel, forLabel);
 %>

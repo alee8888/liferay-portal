@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,7 @@
 package com.liferay.portlet.mobiledevicerules.service.permission;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance;
 
@@ -27,7 +27,7 @@ public class MDRRuleGroupInstancePermissionUtil {
 	public static void check(
 			PermissionChecker permissionChecker, long ruleGroupInstanceId,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		getMDRRuleGroupInstancePermission().check(
 			permissionChecker, ruleGroupInstanceId, actionId);
@@ -45,7 +45,7 @@ public class MDRRuleGroupInstancePermissionUtil {
 	public static boolean contains(
 			PermissionChecker permissionChecker, long ruleGroupInstanceId,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return getMDRRuleGroupInstancePermission().contains(
 			permissionChecker, ruleGroupInstanceId, actionId);
@@ -67,6 +67,8 @@ public class MDRRuleGroupInstancePermissionUtil {
 
 	public void setMDRRuleGroupInstancePermission(
 		MDRRuleGroupInstancePermission mdrRuleGroupInstancePermission) {
+
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
 
 		_mdrRuleGroupInstancePermission = mdrRuleGroupInstancePermission;
 	}

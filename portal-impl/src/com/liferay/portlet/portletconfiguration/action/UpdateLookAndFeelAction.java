@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,11 +24,14 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.permission.PortletPermissionUtil;
 import com.liferay.portal.struts.JSONAction;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.InvokerPortletImpl;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
@@ -52,8 +55,8 @@ public class UpdateLookAndFeelAction extends JSONAction {
 
 	@Override
 	public String getJSON(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		HttpSession session = request.getSession();
@@ -69,14 +72,14 @@ public class UpdateLookAndFeelAction extends JSONAction {
 		String portletId = ParamUtil.getString(request, "portletId");
 
 		if (!PortletPermissionUtil.contains(
-				permissionChecker, themeDisplay.getPlid(), portletId,
+				permissionChecker, layout, portletId,
 				ActionKeys.CONFIGURATION)) {
 
 			return null;
 		}
 
 		PortletPreferences portletSetup =
-			PortletPreferencesFactoryUtil.getLayoutPortletSetup(
+			PortletPreferencesFactoryUtil.getStrictLayoutPortletSetup(
 				layout, portletId);
 
 		String css = ParamUtil.getString(request, "css");
@@ -94,13 +97,14 @@ public class UpdateLookAndFeelAction extends JSONAction {
 		css = jsonObj.toString();
 
 		boolean useCustomTitle = portletData.getBoolean("useCustomTitle");
-		boolean showBorders = portletData.getBoolean("showBorders");
+		String showBorders = portletData.getString("showBorders");
 		String linkToLayoutUuid = GetterUtil.getString(
 			portletData.getString("portletLinksTarget"));
 
 		JSONObject titles = portletData.getJSONObject("titles");
 
-		Locale[] locales = LanguageUtil.getAvailableLocales();
+		Locale[] locales = LanguageUtil.getAvailableLocales(
+			themeDisplay.getSiteGroupId());
 
 		for (int i = 0; i < locales.length; i++) {
 			String languageId = LocaleUtil.toLanguageId(locales[i]);
@@ -111,7 +115,14 @@ public class UpdateLookAndFeelAction extends JSONAction {
 				title = GetterUtil.getString(titles.getString(languageId));
 			}
 
-			if (Validator.isNotNull(title)) {
+			String rootPortletId = PortletConstants.getRootPortletId(portletId);
+
+			String defaultPortletTitle = PortalUtil.getPortletTitle(
+				rootPortletId, languageId);
+
+			if ((title != null) &&
+				!Validator.equals(defaultPortletTitle, title)) {
+
 				portletSetup.setValue("portletSetupTitle_" + languageId, title);
 			}
 			else {
@@ -121,8 +132,16 @@ public class UpdateLookAndFeelAction extends JSONAction {
 
 		portletSetup.setValue(
 			"portletSetupUseCustomTitle", String.valueOf(useCustomTitle));
-		portletSetup.setValue(
-			"portletSetupShowBorders", String.valueOf(showBorders));
+
+		if (Validator.isNotNull(showBorders)) {
+			boolean showBordersBoolean = portletData.getBoolean("showBorders");
+
+			portletSetup.setValue(
+				"portletSetupShowBorders", String.valueOf(showBordersBoolean));
+		}
+		else {
+			portletSetup.reset("portletSetupShowBorders");
+		}
 
 		if (Validator.isNotNull(linkToLayoutUuid)) {
 			portletSetup.setValue(
@@ -134,14 +153,21 @@ public class UpdateLookAndFeelAction extends JSONAction {
 
 		portletSetup.setValue("portletSetupCss", css);
 
-		JSONObject wapData = jsonObj.getJSONObject("wapData");
+		if (PropsValues.MOBILE_DEVICE_STYLING_WAP_ENABLED) {
+			JSONObject wapData = jsonObj.getJSONObject("wapData");
 
-		String wapTitle = wapData.getString("title");
-		String wapInitialWindowState = wapData.getString("initialWindowState");
+			String wapInitialWindowState = wapData.getString(
+				"initialWindowState");
+			String wapTitle = wapData.getString("title");
 
-		portletSetup.setValue("lfrWapTitle", wapTitle);
-		portletSetup.setValue(
-			"lfrWapInitialWindowState", wapInitialWindowState);
+			portletSetup.setValue(
+				"lfrWapInitialWindowState", wapInitialWindowState);
+			portletSetup.setValue("lfrWapTitle", wapTitle);
+		}
+		else {
+			portletSetup.reset("lfrWapInitialWindowState");
+			portletSetup.reset("lfrWapTitle");
+		}
 
 		portletSetup.store();
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.portlet.PortletBag;
 import com.liferay.portal.kernel.portlet.PortletBagPool;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.PortletApp;
+import com.liferay.portal.security.lang.DoPrivilegedUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,35 +63,36 @@ public class PortletContextFactory {
 		PortletContext portletContext = portletContexts.get(
 			portlet.getPortletId());
 
-		if (portletContext == null) {
-			PortletApp portletApp = portlet.getPortletApp();
-
-			if (portletApp.isWARFile()) {
-				PortletBag portletBag = PortletBagPool.get(
-					portlet.getRootPortletId());
-
-				if (portletBag == null) {
-					_log.error(
-						"Portlet " + portlet.getRootPortletId() +
-							" has a null portlet bag");
-				}
-
-				//String mainPath = (String)ctx.getAttribute(WebKeys.MAIN_PATH);
-
-				servletContext = portletBag.getServletContext();
-
-				// Context path for the portal must be passed to individual
-				// portlets
-
-				//ctx.setAttribute(WebKeys.MAIN_PATH, mainPath);
-			}
-
-			portletContext = new PortletContextImpl(portlet, servletContext);
-
-			portletContexts.put(portlet.getPortletId(), portletContext);
+		if (portletContext != null) {
+			return DoPrivilegedUtil.wrap(portletContext);
 		}
 
-		return portletContext;
+		PortletApp portletApp = portlet.getPortletApp();
+
+		if (portletApp.isWARFile()) {
+			PortletBag portletBag = PortletBagPool.get(
+				portlet.getRootPortletId());
+
+			if (portletBag == null) {
+				_log.error(
+					"Portlet " + portlet.getRootPortletId() +
+						" has a null portlet bag");
+			}
+
+			//String mainPath = (String)ctx.getAttribute(WebKeys.MAIN_PATH);
+
+			servletContext = portletBag.getServletContext();
+
+			// Context path for the portal must be passed to individual portlets
+
+			//ctx.setAttribute(WebKeys.MAIN_PATH, mainPath);
+		}
+
+		portletContext = new PortletContextImpl(portlet, servletContext);
+
+		portletContexts.put(portlet.getPortletId(), portletContext);
+
+		return DoPrivilegedUtil.wrap(portletContext);
 	}
 
 	private void _destroy(Portlet portlet) {

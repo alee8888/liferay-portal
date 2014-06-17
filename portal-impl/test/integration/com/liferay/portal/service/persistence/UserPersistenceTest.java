@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,43 +16,92 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.NoSuchUserException;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.util.IntegerWrapper;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.UserModelImpl;
-import com.liferay.portal.service.ServiceTestUtil;
+import com.liferay.portal.service.UserLocalServiceUtil;
+import com.liferay.portal.service.persistence.BasePersistence;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.ExecutionTestListeners;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.persistence.test.TransactionalPersistenceAdvice;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.test.RandomTestUtil;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
 
+import java.io.Serializable;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
  */
 @ExecutionTestListeners(listeners =  {
 	PersistenceExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
+@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class UserPersistenceTest {
 	@Before
-	public void setUp() throws Exception {
-		_persistence = (UserPersistence)PortalBeanLocatorUtil.locate(UserPersistence.class.getName());
+	public void setUp() {
+		_modelListeners = _persistence.getListeners();
+
+		for (ModelListener<User> modelListener : _modelListeners) {
+			_persistence.unregisterListener(modelListener);
+		}
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		Map<Serializable, BasePersistence<?>> basePersistences = _transactionalPersistenceAdvice.getBasePersistences();
+
+		Set<Serializable> primaryKeys = basePersistences.keySet();
+
+		for (Serializable primaryKey : primaryKeys) {
+			BasePersistence<?> basePersistence = basePersistences.get(primaryKey);
+
+			try {
+				basePersistence.remove(primaryKey);
+			}
+			catch (Exception e) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("The model with primary key " + primaryKey +
+						" was already deleted");
+				}
+			}
+		}
+
+		_transactionalPersistenceAdvice.reset();
+
+		for (ModelListener<User> modelListener : _modelListeners) {
+			_persistence.registerListener(modelListener);
+		}
 	}
 
 	@Test
 	public void testCreate() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		User user = _persistence.create(pk);
 
@@ -79,90 +128,96 @@ public class UserPersistenceTest {
 
 	@Test
 	public void testUpdateExisting() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		User newUser = _persistence.create(pk);
 
-		newUser.setUuid(ServiceTestUtil.randomString());
+		newUser.setMvccVersion(RandomTestUtil.nextLong());
 
-		newUser.setCompanyId(ServiceTestUtil.nextLong());
+		newUser.setUuid(RandomTestUtil.randomString());
 
-		newUser.setCreateDate(ServiceTestUtil.nextDate());
+		newUser.setCompanyId(RandomTestUtil.nextLong());
 
-		newUser.setModifiedDate(ServiceTestUtil.nextDate());
+		newUser.setCreateDate(RandomTestUtil.nextDate());
 
-		newUser.setDefaultUser(ServiceTestUtil.randomBoolean());
+		newUser.setModifiedDate(RandomTestUtil.nextDate());
 
-		newUser.setContactId(ServiceTestUtil.nextLong());
+		newUser.setDefaultUser(RandomTestUtil.randomBoolean());
 
-		newUser.setPassword(ServiceTestUtil.randomString());
+		newUser.setContactId(RandomTestUtil.nextLong());
 
-		newUser.setPasswordEncrypted(ServiceTestUtil.randomBoolean());
+		newUser.setPassword(RandomTestUtil.randomString());
 
-		newUser.setPasswordReset(ServiceTestUtil.randomBoolean());
+		newUser.setPasswordEncrypted(RandomTestUtil.randomBoolean());
 
-		newUser.setPasswordModifiedDate(ServiceTestUtil.nextDate());
+		newUser.setPasswordReset(RandomTestUtil.randomBoolean());
 
-		newUser.setDigest(ServiceTestUtil.randomString());
+		newUser.setPasswordModifiedDate(RandomTestUtil.nextDate());
 
-		newUser.setReminderQueryQuestion(ServiceTestUtil.randomString());
+		newUser.setDigest(RandomTestUtil.randomString());
 
-		newUser.setReminderQueryAnswer(ServiceTestUtil.randomString());
+		newUser.setReminderQueryQuestion(RandomTestUtil.randomString());
 
-		newUser.setGraceLoginCount(ServiceTestUtil.nextInt());
+		newUser.setReminderQueryAnswer(RandomTestUtil.randomString());
 
-		newUser.setScreenName(ServiceTestUtil.randomString());
+		newUser.setGraceLoginCount(RandomTestUtil.nextInt());
 
-		newUser.setEmailAddress(ServiceTestUtil.randomString());
+		newUser.setScreenName(RandomTestUtil.randomString());
 
-		newUser.setFacebookId(ServiceTestUtil.nextLong());
+		newUser.setEmailAddress(RandomTestUtil.randomString());
 
-		newUser.setOpenId(ServiceTestUtil.randomString());
+		newUser.setFacebookId(RandomTestUtil.nextLong());
 
-		newUser.setPortraitId(ServiceTestUtil.nextLong());
+		newUser.setLdapServerId(RandomTestUtil.nextLong());
 
-		newUser.setLanguageId(ServiceTestUtil.randomString());
+		newUser.setOpenId(RandomTestUtil.randomString());
 
-		newUser.setTimeZoneId(ServiceTestUtil.randomString());
+		newUser.setPortraitId(RandomTestUtil.nextLong());
 
-		newUser.setGreeting(ServiceTestUtil.randomString());
+		newUser.setLanguageId(RandomTestUtil.randomString());
 
-		newUser.setComments(ServiceTestUtil.randomString());
+		newUser.setTimeZoneId(RandomTestUtil.randomString());
 
-		newUser.setFirstName(ServiceTestUtil.randomString());
+		newUser.setGreeting(RandomTestUtil.randomString());
 
-		newUser.setMiddleName(ServiceTestUtil.randomString());
+		newUser.setComments(RandomTestUtil.randomString());
 
-		newUser.setLastName(ServiceTestUtil.randomString());
+		newUser.setFirstName(RandomTestUtil.randomString());
 
-		newUser.setJobTitle(ServiceTestUtil.randomString());
+		newUser.setMiddleName(RandomTestUtil.randomString());
 
-		newUser.setLoginDate(ServiceTestUtil.nextDate());
+		newUser.setLastName(RandomTestUtil.randomString());
 
-		newUser.setLoginIP(ServiceTestUtil.randomString());
+		newUser.setJobTitle(RandomTestUtil.randomString());
 
-		newUser.setLastLoginDate(ServiceTestUtil.nextDate());
+		newUser.setLoginDate(RandomTestUtil.nextDate());
 
-		newUser.setLastLoginIP(ServiceTestUtil.randomString());
+		newUser.setLoginIP(RandomTestUtil.randomString());
 
-		newUser.setLastFailedLoginDate(ServiceTestUtil.nextDate());
+		newUser.setLastLoginDate(RandomTestUtil.nextDate());
 
-		newUser.setFailedLoginAttempts(ServiceTestUtil.nextInt());
+		newUser.setLastLoginIP(RandomTestUtil.randomString());
 
-		newUser.setLockout(ServiceTestUtil.randomBoolean());
+		newUser.setLastFailedLoginDate(RandomTestUtil.nextDate());
 
-		newUser.setLockoutDate(ServiceTestUtil.nextDate());
+		newUser.setFailedLoginAttempts(RandomTestUtil.nextInt());
 
-		newUser.setAgreedToTermsOfUse(ServiceTestUtil.randomBoolean());
+		newUser.setLockout(RandomTestUtil.randomBoolean());
 
-		newUser.setEmailAddressVerified(ServiceTestUtil.randomBoolean());
+		newUser.setLockoutDate(RandomTestUtil.nextDate());
 
-		newUser.setStatus(ServiceTestUtil.nextInt());
+		newUser.setAgreedToTermsOfUse(RandomTestUtil.randomBoolean());
 
-		_persistence.update(newUser, false);
+		newUser.setEmailAddressVerified(RandomTestUtil.randomBoolean());
+
+		newUser.setStatus(RandomTestUtil.nextInt());
+
+		_persistence.update(newUser);
 
 		User existingUser = _persistence.findByPrimaryKey(newUser.getPrimaryKey());
 
+		Assert.assertEquals(existingUser.getMvccVersion(),
+			newUser.getMvccVersion());
 		Assert.assertEquals(existingUser.getUuid(), newUser.getUuid());
 		Assert.assertEquals(existingUser.getUserId(), newUser.getUserId());
 		Assert.assertEquals(existingUser.getCompanyId(), newUser.getCompanyId());
@@ -195,6 +250,8 @@ public class UserPersistenceTest {
 			newUser.getEmailAddress());
 		Assert.assertEquals(existingUser.getFacebookId(),
 			newUser.getFacebookId());
+		Assert.assertEquals(existingUser.getLdapServerId(),
+			newUser.getLdapServerId());
 		Assert.assertEquals(existingUser.getOpenId(), newUser.getOpenId());
 		Assert.assertEquals(existingUser.getPortraitId(),
 			newUser.getPortraitId());
@@ -234,6 +291,232 @@ public class UserPersistenceTest {
 	}
 
 	@Test
+	public void testCountByUuid() {
+		try {
+			_persistence.countByUuid(StringPool.BLANK);
+
+			_persistence.countByUuid(StringPool.NULL);
+
+			_persistence.countByUuid((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByUuid_C() {
+		try {
+			_persistence.countByUuid_C(StringPool.BLANK,
+				RandomTestUtil.nextLong());
+
+			_persistence.countByUuid_C(StringPool.NULL, 0L);
+
+			_persistence.countByUuid_C((String)null, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByCompanyId() {
+		try {
+			_persistence.countByCompanyId(RandomTestUtil.nextLong());
+
+			_persistence.countByCompanyId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByContactId() {
+		try {
+			_persistence.countByContactId(RandomTestUtil.nextLong());
+
+			_persistence.countByContactId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByEmailAddress() {
+		try {
+			_persistence.countByEmailAddress(StringPool.BLANK);
+
+			_persistence.countByEmailAddress(StringPool.NULL);
+
+			_persistence.countByEmailAddress((String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByPortraitId() {
+		try {
+			_persistence.countByPortraitId(RandomTestUtil.nextLong());
+
+			_persistence.countByPortraitId(0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_U() {
+		try {
+			_persistence.countByC_U(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
+
+			_persistence.countByC_U(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_CD() {
+		try {
+			_persistence.countByC_CD(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextDate());
+
+			_persistence.countByC_CD(0L, RandomTestUtil.nextDate());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_MD() {
+		try {
+			_persistence.countByC_MD(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextDate());
+
+			_persistence.countByC_MD(0L, RandomTestUtil.nextDate());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_DU() {
+		try {
+			_persistence.countByC_DU(RandomTestUtil.nextLong(),
+				RandomTestUtil.randomBoolean());
+
+			_persistence.countByC_DU(0L, RandomTestUtil.randomBoolean());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_SN() {
+		try {
+			_persistence.countByC_SN(RandomTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByC_SN(0L, StringPool.NULL);
+
+			_persistence.countByC_SN(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_EA() {
+		try {
+			_persistence.countByC_EA(RandomTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByC_EA(0L, StringPool.NULL);
+
+			_persistence.countByC_EA(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_FID() {
+		try {
+			_persistence.countByC_FID(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextLong());
+
+			_persistence.countByC_FID(0L, 0L);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_O() {
+		try {
+			_persistence.countByC_O(RandomTestUtil.nextLong(), StringPool.BLANK);
+
+			_persistence.countByC_O(0L, StringPool.NULL);
+
+			_persistence.countByC_O(0L, (String)null);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_S() {
+		try {
+			_persistence.countByC_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextInt());
+
+			_persistence.countByC_S(0L, 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_CD_MD() {
+		try {
+			_persistence.countByC_CD_MD(RandomTestUtil.nextLong(),
+				RandomTestUtil.nextDate(), RandomTestUtil.nextDate());
+
+			_persistence.countByC_CD_MD(0L, RandomTestUtil.nextDate(),
+				RandomTestUtil.nextDate());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testCountByC_DU_S() {
+		try {
+			_persistence.countByC_DU_S(RandomTestUtil.nextLong(),
+				RandomTestUtil.randomBoolean(), RandomTestUtil.nextInt());
+
+			_persistence.countByC_DU_S(0L, RandomTestUtil.randomBoolean(), 0);
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		User newUser = addUser();
 
@@ -244,7 +527,7 @@ public class UserPersistenceTest {
 
 	@Test
 	public void testFindByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		try {
 			_persistence.findByPrimaryKey(pk);
@@ -253,6 +536,36 @@ public class UserPersistenceTest {
 		}
 		catch (NoSuchUserException nsee) {
 		}
+	}
+
+	@Test
+	public void testFindAll() throws Exception {
+		try {
+			_persistence.findAll(QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+				getOrderByComparator());
+		}
+		catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	protected OrderByComparator getOrderByComparator() {
+		return OrderByComparatorFactoryUtil.create("User_", "mvccVersion",
+			true, "uuid", true, "userId", true, "companyId", true,
+			"createDate", true, "modifiedDate", true, "defaultUser", true,
+			"contactId", true, "password", true, "passwordEncrypted", true,
+			"passwordReset", true, "passwordModifiedDate", true, "digest",
+			true, "reminderQueryQuestion", true, "reminderQueryAnswer", true,
+			"graceLoginCount", true, "screenName", true, "emailAddress", true,
+			"facebookId", true, "ldapServerId", true, "openId", true,
+			"portraitId", true, "languageId", true, "timeZoneId", true,
+			"greeting", true, "comments", true, "firstName", true,
+			"middleName", true, "lastName", true, "jobTitle", true,
+			"loginDate", true, "loginIP", true, "lastLoginDate", true,
+			"lastLoginIP", true, "lastFailedLoginDate", true,
+			"failedLoginAttempts", true, "lockout", true, "lockoutDate", true,
+			"agreedToTermsOfUse", true, "emailAddressVerified", true, "status",
+			true);
 	}
 
 	@Test
@@ -266,11 +579,111 @@ public class UserPersistenceTest {
 
 	@Test
 	public void testFetchByPrimaryKeyMissing() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		User missingUser = _persistence.fetchByPrimaryKey(pk);
 
 		Assert.assertNull(missingUser);
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereAllPrimaryKeysExist()
+		throws Exception {
+		User newUser1 = addUser();
+		User newUser2 = addUser();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newUser1.getPrimaryKey());
+		primaryKeys.add(newUser2.getPrimaryKey());
+
+		Map<Serializable, User> users = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(2, users.size());
+		Assert.assertEquals(newUser1, users.get(newUser1.getPrimaryKey()));
+		Assert.assertEquals(newUser2, users.get(newUser2.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereNoPrimaryKeysExist()
+		throws Exception {
+		long pk1 = RandomTestUtil.nextLong();
+
+		long pk2 = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(pk1);
+		primaryKeys.add(pk2);
+
+		Map<Serializable, User> users = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(users.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithMultiplePrimaryKeysWhereSomePrimaryKeysExist()
+		throws Exception {
+		User newUser = addUser();
+
+		long pk = RandomTestUtil.nextLong();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newUser.getPrimaryKey());
+		primaryKeys.add(pk);
+
+		Map<Serializable, User> users = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, users.size());
+		Assert.assertEquals(newUser, users.get(newUser.getPrimaryKey()));
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithNoPrimaryKeys()
+		throws Exception {
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		Map<Serializable, User> users = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertTrue(users.isEmpty());
+	}
+
+	@Test
+	public void testFetchByPrimaryKeysWithOnePrimaryKey()
+		throws Exception {
+		User newUser = addUser();
+
+		Set<Serializable> primaryKeys = new HashSet<Serializable>();
+
+		primaryKeys.add(newUser.getPrimaryKey());
+
+		Map<Serializable, User> users = _persistence.fetchByPrimaryKeys(primaryKeys);
+
+		Assert.assertEquals(1, users.size());
+		Assert.assertEquals(newUser, users.get(newUser.getPrimaryKey()));
+	}
+
+	@Test
+	public void testActionableDynamicQuery() throws Exception {
+		final IntegerWrapper count = new IntegerWrapper();
+
+		ActionableDynamicQuery actionableDynamicQuery = UserLocalServiceUtil.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod() {
+				@Override
+				public void performAction(Object object) {
+					User user = (User)object;
+
+					Assert.assertNotNull(user);
+
+					count.increment();
+				}
+			});
+
+		actionableDynamicQuery.performActions();
+
+		Assert.assertEquals(count.getValue(), _persistence.countAll());
 	}
 
 	@Test
@@ -299,7 +712,7 @@ public class UserPersistenceTest {
 				User.class.getClassLoader());
 
 		dynamicQuery.add(RestrictionsFactoryUtil.eq("userId",
-				ServiceTestUtil.nextLong()));
+				RandomTestUtil.nextLong()));
 
 		List<User> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -338,7 +751,7 @@ public class UserPersistenceTest {
 		dynamicQuery.setProjection(ProjectionFactoryUtil.property("userId"));
 
 		dynamicQuery.add(RestrictionsFactoryUtil.in("userId",
-				new Object[] { ServiceTestUtil.nextLong() }));
+				new Object[] { RandomTestUtil.nextLong() }));
 
 		List<Object> result = _persistence.findWithDynamicQuery(dynamicQuery);
 
@@ -397,90 +810,97 @@ public class UserPersistenceTest {
 	}
 
 	protected User addUser() throws Exception {
-		long pk = ServiceTestUtil.nextLong();
+		long pk = RandomTestUtil.nextLong();
 
 		User user = _persistence.create(pk);
 
-		user.setUuid(ServiceTestUtil.randomString());
+		user.setMvccVersion(RandomTestUtil.nextLong());
 
-		user.setCompanyId(ServiceTestUtil.nextLong());
+		user.setUuid(RandomTestUtil.randomString());
 
-		user.setCreateDate(ServiceTestUtil.nextDate());
+		user.setCompanyId(RandomTestUtil.nextLong());
 
-		user.setModifiedDate(ServiceTestUtil.nextDate());
+		user.setCreateDate(RandomTestUtil.nextDate());
 
-		user.setDefaultUser(ServiceTestUtil.randomBoolean());
+		user.setModifiedDate(RandomTestUtil.nextDate());
 
-		user.setContactId(ServiceTestUtil.nextLong());
+		user.setDefaultUser(RandomTestUtil.randomBoolean());
 
-		user.setPassword(ServiceTestUtil.randomString());
+		user.setContactId(RandomTestUtil.nextLong());
 
-		user.setPasswordEncrypted(ServiceTestUtil.randomBoolean());
+		user.setPassword(RandomTestUtil.randomString());
 
-		user.setPasswordReset(ServiceTestUtil.randomBoolean());
+		user.setPasswordEncrypted(RandomTestUtil.randomBoolean());
 
-		user.setPasswordModifiedDate(ServiceTestUtil.nextDate());
+		user.setPasswordReset(RandomTestUtil.randomBoolean());
 
-		user.setDigest(ServiceTestUtil.randomString());
+		user.setPasswordModifiedDate(RandomTestUtil.nextDate());
 
-		user.setReminderQueryQuestion(ServiceTestUtil.randomString());
+		user.setDigest(RandomTestUtil.randomString());
 
-		user.setReminderQueryAnswer(ServiceTestUtil.randomString());
+		user.setReminderQueryQuestion(RandomTestUtil.randomString());
 
-		user.setGraceLoginCount(ServiceTestUtil.nextInt());
+		user.setReminderQueryAnswer(RandomTestUtil.randomString());
 
-		user.setScreenName(ServiceTestUtil.randomString());
+		user.setGraceLoginCount(RandomTestUtil.nextInt());
 
-		user.setEmailAddress(ServiceTestUtil.randomString());
+		user.setScreenName(RandomTestUtil.randomString());
 
-		user.setFacebookId(ServiceTestUtil.nextLong());
+		user.setEmailAddress(RandomTestUtil.randomString());
 
-		user.setOpenId(ServiceTestUtil.randomString());
+		user.setFacebookId(RandomTestUtil.nextLong());
 
-		user.setPortraitId(ServiceTestUtil.nextLong());
+		user.setLdapServerId(RandomTestUtil.nextLong());
 
-		user.setLanguageId(ServiceTestUtil.randomString());
+		user.setOpenId(RandomTestUtil.randomString());
 
-		user.setTimeZoneId(ServiceTestUtil.randomString());
+		user.setPortraitId(RandomTestUtil.nextLong());
 
-		user.setGreeting(ServiceTestUtil.randomString());
+		user.setLanguageId(RandomTestUtil.randomString());
 
-		user.setComments(ServiceTestUtil.randomString());
+		user.setTimeZoneId(RandomTestUtil.randomString());
 
-		user.setFirstName(ServiceTestUtil.randomString());
+		user.setGreeting(RandomTestUtil.randomString());
 
-		user.setMiddleName(ServiceTestUtil.randomString());
+		user.setComments(RandomTestUtil.randomString());
 
-		user.setLastName(ServiceTestUtil.randomString());
+		user.setFirstName(RandomTestUtil.randomString());
 
-		user.setJobTitle(ServiceTestUtil.randomString());
+		user.setMiddleName(RandomTestUtil.randomString());
 
-		user.setLoginDate(ServiceTestUtil.nextDate());
+		user.setLastName(RandomTestUtil.randomString());
 
-		user.setLoginIP(ServiceTestUtil.randomString());
+		user.setJobTitle(RandomTestUtil.randomString());
 
-		user.setLastLoginDate(ServiceTestUtil.nextDate());
+		user.setLoginDate(RandomTestUtil.nextDate());
 
-		user.setLastLoginIP(ServiceTestUtil.randomString());
+		user.setLoginIP(RandomTestUtil.randomString());
 
-		user.setLastFailedLoginDate(ServiceTestUtil.nextDate());
+		user.setLastLoginDate(RandomTestUtil.nextDate());
 
-		user.setFailedLoginAttempts(ServiceTestUtil.nextInt());
+		user.setLastLoginIP(RandomTestUtil.randomString());
 
-		user.setLockout(ServiceTestUtil.randomBoolean());
+		user.setLastFailedLoginDate(RandomTestUtil.nextDate());
 
-		user.setLockoutDate(ServiceTestUtil.nextDate());
+		user.setFailedLoginAttempts(RandomTestUtil.nextInt());
 
-		user.setAgreedToTermsOfUse(ServiceTestUtil.randomBoolean());
+		user.setLockout(RandomTestUtil.randomBoolean());
 
-		user.setEmailAddressVerified(ServiceTestUtil.randomBoolean());
+		user.setLockoutDate(RandomTestUtil.nextDate());
 
-		user.setStatus(ServiceTestUtil.nextInt());
+		user.setAgreedToTermsOfUse(RandomTestUtil.randomBoolean());
 
-		_persistence.update(user, false);
+		user.setEmailAddressVerified(RandomTestUtil.randomBoolean());
+
+		user.setStatus(RandomTestUtil.nextInt());
+
+		_persistence.update(user);
 
 		return user;
 	}
 
-	private UserPersistence _persistence;
+	private static Log _log = LogFactoryUtil.getLog(UserPersistenceTest.class);
+	private ModelListener<User>[] _modelListeners;
+	private UserPersistence _persistence = (UserPersistence)PortalBeanLocatorUtil.locate(UserPersistence.class.getName());
+	private TransactionalPersistenceAdvice _transactionalPersistenceAdvice = (TransactionalPersistenceAdvice)PortalBeanLocatorUtil.locate(TransactionalPersistenceAdvice.class.getName());
 }

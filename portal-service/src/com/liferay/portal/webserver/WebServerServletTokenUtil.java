@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,8 @@
 
 package com.liferay.portal.webserver;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+
 /**
  * @author Brian Wing Shun Chan
  * @since  6.1, replaced com.liferay.portal.kernel.servlet.ImageServletTokenUtil
@@ -25,6 +27,9 @@ public class WebServerServletTokenUtil {
 	}
 
 	public static WebServerServletToken getWebServerServletToken() {
+		PortalRuntimePermission.checkGetBeanProperty(
+			WebServerServletTokenUtil.class);
+
 		return _webServerServletToken;
 	}
 
@@ -34,6 +39,8 @@ public class WebServerServletTokenUtil {
 
 	public void setWebServerServletToken(
 		WebServerServletToken webServerServletToken) {
+
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
 
 		_webServerServletToken = webServerServletToken;
 	}

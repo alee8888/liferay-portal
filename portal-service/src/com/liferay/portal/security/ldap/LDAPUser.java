@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -47,7 +47,7 @@ public class LDAPUser {
 		return _contact;
 	}
 
-	public Map<String, String> getContactExpandoAttributes() {
+	public Map<String, String[]> getContactExpandoAttributes() {
 		return _contactExpandoAttributes;
 	}
 
@@ -127,6 +127,10 @@ public class LDAPUser {
 		return _portraitBytes;
 	}
 
+	public long getPortraitId() {
+		return _user.getPortraitId();
+	}
+
 	public int getPrefixId() {
 		return _contact.getPrefixId();
 	}
@@ -159,6 +163,10 @@ public class LDAPUser {
 		return _contact.getSmsSn();
 	}
 
+	public int getStatus() {
+		return _user.getStatus();
+	}
+
 	public int getSuffixId() {
 		return _contact.getSuffixId();
 	}
@@ -175,7 +183,7 @@ public class LDAPUser {
 		return _user;
 	}
 
-	public Map<String, String> getUserExpandoAttributes() {
+	public Map<String, String[]> getUserExpandoAttributes() {
 		return _userExpandoAttributes;
 	}
 
@@ -203,8 +211,12 @@ public class LDAPUser {
 		return _contact.isMale();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #setMale(boolean)}
+	 */
+	@Deprecated
 	public void isMale(boolean male) {
-		_contact.setMale(male);
+		setMale(male);
 	}
 
 	public boolean isPasswordReset() {
@@ -248,7 +260,7 @@ public class LDAPUser {
 	}
 
 	public void setContactExpandoAttributes(
-		Map<String, String> contactExpandoAttributes) {
+		Map<String, String[]> contactExpandoAttributes) {
 
 		_contactExpandoAttributes = contactExpandoAttributes;
 	}
@@ -303,6 +315,10 @@ public class LDAPUser {
 
 	public void setLocale(Locale locale) {
 		_user.setLanguageId(LocaleUtil.toLanguageId(locale));
+	}
+
+	public void setMale(boolean male) {
+		_contact.setMale(male);
 	}
 
 	public void setMiddleName(String middleName) {
@@ -369,6 +385,10 @@ public class LDAPUser {
 		_contact.setSmsSn(smsSn);
 	}
 
+	public void setStatus(int status) {
+		_user.setStatus(status);
+	}
+
 	public void setSuffixId(int suffixId) {
 		_contact.setSuffixId(suffixId);
 	}
@@ -394,7 +414,7 @@ public class LDAPUser {
 	}
 
 	public void setUserExpandoAttributes(
-		Map<String, String> userExpandoAttributes) {
+		Map<String, String[]> userExpandoAttributes) {
 
 		_userExpandoAttributes = userExpandoAttributes;
 	}
@@ -414,7 +434,7 @@ public class LDAPUser {
 	private boolean _autoPassword;
 	private boolean _autoScreenName;
 	private Contact _contact;
-	private Map<String, String> _contactExpandoAttributes;
+	private Map<String, String[]> _contactExpandoAttributes;
 	private long _creatorUserId;
 	private long[] _groupIds;
 	private long[] _organizationIds;
@@ -426,7 +446,7 @@ public class LDAPUser {
 	private boolean _updatePassword;
 	private boolean _updatePortrait;
 	private User _user;
-	private Map<String, String> _userExpandoAttributes;
+	private Map<String, String[]> _userExpandoAttributes;
 	private long[] _userGroupIds;
 	private List<UserGroupRole> _userGroupRoles;
 

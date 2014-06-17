@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,8 +17,6 @@
 <%@ include file="/html/portlet/message_boards/init.jsp" %>
 
 <%
-themeDisplay.setIncludeServiceJs(true);
-
 MBMessageDisplay messageDisplay = (MBMessageDisplay)request.getAttribute(WebKeys.MESSAGE_BOARDS_MESSAGE);
 
 MBMessage message = messageDisplay.getMessage();
@@ -28,28 +26,9 @@ MBCategory category = messageDisplay.getCategory();
 MBThread thread = messageDisplay.getThread();
 %>
 
-<c:choose>
-	<c:when test="<%= portletName.equals(PortletKeys.MESSAGE_BOARDS_ADMIN) %>">
-
-		<%
-		PortletURL portletURL = renderResponse.createRenderURL();
-
-		portletURL.setParameter("tabs1", "message-boards-home");
-		%>
-
-		<liferay-ui:tabs
-			names="message-boards-home,recent-posts,statistics,banned-users"
-			url="<%= portletURL.toString() %>"
-		/>
-	</c:when>
-	<c:otherwise>
-		<liferay-util:include page="/html/portlet/message_boards/top_links.jsp" />
-	</c:otherwise>
-</c:choose>
-
 <div id="<portlet:namespace />addAnswerFlagDiv" style="display: none;">
 	<liferay-ui:icon
-		image="checked"
+		iconCssClass="icon-check"
 		label="<%= true %>"
 		message="answer"
 	/>
@@ -71,7 +50,7 @@ MBThread thread = messageDisplay.getThread();
 	%>
 
 	<liferay-ui:icon
-		image="checked"
+		iconCssClass="icon-check"
 		label="<%= true %>"
 		message="mark-as-an-answer"
 		url="<%= taglibMarkAsAnAnswerURL %>"
@@ -94,7 +73,7 @@ MBThread thread = messageDisplay.getThread();
 </c:choose>
 
 <c:if test="<%= MBCategoryPermission.contains(permissionChecker, scopeGroupId, message.getCategoryId(), ActionKeys.REPLY_TO_MESSAGE) && !thread.isLocked() %>">
-	<div class="aui-helper-hidden" id="<portlet:namespace />addQuickReplyDiv">
+	<div class="hide" id="<portlet:namespace />addQuickReplyDiv">
 		<%@ include file="/html/portlet/message_boards/edit_message_quick.jspf" %>
 	</div>
 </c:if>
@@ -106,7 +85,8 @@ MBThread thread = messageDisplay.getThread();
 		function(messageId) {
 			var A = AUI();
 
-			Liferay.Service.MB.MBMessage.updateAnswer(
+			Liferay.Service(
+				'/mbmessage/update-answer',
 				{
 					messageId: messageId,
 					answer: true,
@@ -159,7 +139,8 @@ MBThread thread = messageDisplay.getThread();
 		function(messageId) {
 			var A = AUI();
 
-			Liferay.Service.MB.MBMessage.updateAnswer(
+			Liferay.Service(
+				'/mbmessage/update-answer',
 				{
 					messageId: messageId,
 					answer: false,
@@ -188,12 +169,12 @@ MBThread thread = messageDisplay.getThread();
 	);
 
 	<c:if test="<%= thread.getRootMessageId() != message.getMessageId() %>">
-		document.getElementById("<portlet:namespace />message_" + <%= message.getMessageId() %>).scrollIntoView(true);
+		document.getElementById('<portlet:namespace />message_' + <%= message.getMessageId() %>).scrollIntoView(true);
 	</c:if>
 </aui:script>
 
 <%
-MBThreadFlagLocalServiceUtil.addThreadFlag(themeDisplay.getUserId(), thread);
+MBThreadFlagLocalServiceUtil.addThreadFlag(themeDisplay.getUserId(), thread, new ServiceContext());
 
 message = messageDisplay.getMessage();
 

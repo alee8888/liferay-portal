@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,6 +13,16 @@
  * details.
  */
 --%>
+
+<%
+Group group = GroupLocalServiceUtil.getGroup(action.getGroupId());
+%>
+
+<liferay-ui:search-container-column-text
+	href="<%= rowURL %>"
+	name="scope"
+	value="<%= LanguageUtil.get(pageContext, group.getScopeLabel(themeDisplay)) %>"
+/>
 
 <liferay-ui:search-container-column-text
 	href="<%= rowURL %>"
@@ -33,7 +43,14 @@
 	value="<%= action.getType() %>"
 />
 
+<liferay-ui:search-container-column-date
+	href="<%= rowURL %>"
+	name="modified-date"
+	value="<%= action.getModifiedDate() %>"
+/>
+
 <liferay-ui:search-container-column-jsp
 	align="right"
+	cssClass="entry-action"
 	path="/html/portlet/mobile_device_rules/action_actions.jsp"
 />

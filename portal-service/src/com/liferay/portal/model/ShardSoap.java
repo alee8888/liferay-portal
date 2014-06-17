@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,13 +22,14 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services.
  *
- * @author    Brian Wing Shun Chan
+ * @author Brian Wing Shun Chan
  * @generated
  */
 public class ShardSoap implements Serializable {
 	public static ShardSoap toSoapModel(Shard model) {
 		ShardSoap soapModel = new ShardSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setShardId(model.getShardId());
 		soapModel.setClassNameId(model.getClassNameId());
 		soapModel.setClassPK(model.getClassPK());
@@ -85,6 +86,14 @@ public class ShardSoap implements Serializable {
 		setShardId(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public long getShardId() {
 		return _shardId;
 	}
@@ -117,6 +126,7 @@ public class ShardSoap implements Serializable {
 		_name = name;
 	}
 
+	private long _mvccVersion;
 	private long _shardId;
 	private long _classNameId;
 	private long _classPK;

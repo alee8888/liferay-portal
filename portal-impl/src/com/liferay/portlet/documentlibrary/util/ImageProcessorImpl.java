@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portlet.documentlibrary.util;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.image.ImageBag;
 import com.liferay.portal.kernel.image.ImageToolUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
@@ -25,7 +24,6 @@ import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.InstancePool;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -36,6 +34,7 @@ import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
 import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
 
+import java.awt.image.ColorModel;
 import java.awt.image.RenderedImage;
 
 import java.io.File;
@@ -45,16 +44,18 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
+import java.util.concurrent.Future;
 
 /**
  * @author Sergio González
  * @author Alexander Chow
+ * @author Ivica Cardic
  */
 public class ImageProcessorImpl
 	extends DLPreviewableProcessor implements ImageProcessor {
 
-	public static ImageProcessorImpl getInstance() {
-		return _instance;
+	@Override
+	public void afterPropertiesSet() {
 	}
 
 	@Override
@@ -64,39 +65,43 @@ public class ImageProcessorImpl
 
 	@Override
 	public void cleanUp(FileVersion fileVersion) {
-		String type = _instance.getThumbnailType(fileVersion);
+		String type = getThumbnailType(fileVersion);
 
 		deleteFiles(fileVersion, type);
 	}
 
+	@Override
 	public void generateImages(
 			FileVersion sourceFileVersion, FileVersion destinationFileVersion)
 		throws Exception {
 
-		_instance._generateImages(sourceFileVersion, destinationFileVersion);
+		_generateImages(sourceFileVersion, destinationFileVersion);
 	}
 
+	@Override
 	public Set<String> getImageMimeTypes() {
-		return _instance._imageMimeTypes;
+		return _imageMimeTypes;
 	}
 
+	@Override
 	public InputStream getPreviewAsStream(FileVersion fileVersion)
 		throws Exception {
 
 		if (_previewGenerationRequired(fileVersion)) {
 			String type = getPreviewType(fileVersion);
 
-			return _instance.doGetPreviewAsStream(fileVersion, type);
+			return doGetPreviewAsStream(fileVersion, type);
 		}
 
 		return fileVersion.getContentStream(false);
 	}
 
+	@Override
 	public long getPreviewFileSize(FileVersion fileVersion) throws Exception {
 		if (_previewGenerationRequired(fileVersion)) {
 			String type = getPreviewType(fileVersion);
 
-			return _instance.doGetPreviewFileSize(fileVersion, type);
+			return doGetPreviewFileSize(fileVersion, type);
 		}
 
 		return fileVersion.getSize();
@@ -107,16 +112,18 @@ public class ImageProcessorImpl
 		return _getType(fileVersion);
 	}
 
+	@Override
 	public InputStream getThumbnailAsStream(FileVersion fileVersion, int index)
 		throws Exception {
 
-		return _instance.doGetThumbnailAsStream(fileVersion, index);
+		return doGetThumbnailAsStream(fileVersion, index);
 	}
 
+	@Override
 	public long getThumbnailFileSize(FileVersion fileVersion, int index)
 		throws Exception {
 
-		return _instance.doGetThumbnailFileSize(fileVersion, index);
+		return doGetThumbnailFileSize(fileVersion, index);
 	}
 
 	@Override
@@ -124,6 +131,7 @@ public class ImageProcessorImpl
 		return _getType(fileVersion);
 	}
 
+	@Override
 	public boolean hasImages(FileVersion fileVersion) {
 		if (!PropsValues.DL_FILE_ENTRY_PREVIEW_ENABLED &&
 			!PropsValues.DL_FILE_ENTRY_THUMBNAIL_ENABLED) {
@@ -131,17 +139,19 @@ public class ImageProcessorImpl
 			return false;
 		}
 
+		if (fileVersion.getSize() == 0) {
+			return false;
+		}
+
 		boolean hasImages = false;
 
 		try {
-			if (_instance._hasPreview(fileVersion) &&
-				hasThumbnails(fileVersion)) {
-
+			if (_hasPreview(fileVersion) && hasThumbnails(fileVersion)) {
 				hasImages = true;
 			}
 
-			if (!hasImages && _instance.isSupported(fileVersion)) {
-				_instance._queueGeneration(null, fileVersion);
+			if (!hasImages && isSupported(fileVersion)) {
+				_queueGeneration(null, fileVersion);
 			}
 		}
 		catch (Exception e) {
@@ -151,14 +161,17 @@ public class ImageProcessorImpl
 		return hasImages;
 	}
 
+	@Override
 	public boolean isImageSupported(FileVersion fileVersion) {
-		return _instance.isSupported(fileVersion);
+		return isSupported(fileVersion);
 	}
 
+	@Override
 	public boolean isImageSupported(String mimeType) {
-		return _instance.isSupported(mimeType);
+		return isSupported(mimeType);
 	}
 
+	@Override
 	public boolean isSupported(String mimeType) {
 		if (Validator.isNull(mimeType)) {
 			return false;
@@ -167,21 +180,25 @@ public class ImageProcessorImpl
 		return _imageMimeTypes.contains(mimeType);
 	}
 
+	@Override
 	public void storeThumbnail(
 			long companyId, long groupId, long fileEntryId, long fileVersionId,
 			long custom1ImageId, long custom2ImageId, InputStream is,
 			String type)
 		throws Exception {
 
-		_instance._storeThumbnail(
+		_storeThumbnail(
 			companyId, groupId, fileEntryId, fileVersionId, custom1ImageId,
 			custom2ImageId, is, type);
 	}
 
+	@Override
 	public void trigger(
 		FileVersion sourceFileVersion, FileVersion destinationFileVersion) {
 
-		_instance._queueGeneration(sourceFileVersion, destinationFileVersion);
+		super.trigger(sourceFileVersion, destinationFileVersion);
+
+		_queueGeneration(sourceFileVersion, destinationFileVersion);
 	}
 
 	@Override
@@ -236,7 +253,9 @@ public class ImageProcessorImpl
 			getPreviewType(fileVersion));
 	}
 
-	private ImageProcessorImpl() {
+	@Override
+	protected List<Long> getFileVersionIds() {
+		return _fileVersionIds;
 	}
 
 	private void _generateImages(
@@ -270,11 +289,22 @@ public class ImageProcessorImpl
 				return;
 			}
 
-			if (renderedImage.getColorModel().getNumComponents() == 4) {
-				RenderedImage convertedRenderedImage =
-					ImageToolUtil.convertCMYKtoRGB(
-						bytes, imageBag.getType(),
-						PropsValues.DL_FILE_ENTRY_PREVIEW_FORK_PROCESS_ENABLED);
+			ColorModel colorModel = renderedImage.getColorModel();
+
+			if (colorModel.getNumColorComponents() == 4) {
+				Future<RenderedImage> future = ImageToolUtil.convertCMYKtoRGB(
+					bytes, imageBag.getType());
+
+				if (future == null) {
+					return;
+				}
+
+				String processIdentity = String.valueOf(
+					destinationFileVersion.getFileVersionId());
+
+				futures.put(processIdentity, future);
+
+				RenderedImage convertedRenderedImage = future.get();
 
 				if (convertedRenderedImage != null) {
 					renderedImage = convertedRenderedImage;
@@ -318,7 +348,7 @@ public class ImageProcessorImpl
 	}
 
 	private boolean _hasPreview(FileVersion fileVersion)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (PropsValues.DL_FILE_ENTRY_PREVIEW_ENABLED &&
 			_previewGenerationRequired(fileVersion)) {
@@ -363,7 +393,6 @@ public class ImageProcessorImpl
 
 		sendGenerationMessage(
 			DestinationNames.DOCUMENT_LIBRARY_IMAGE_PROCESSOR,
-			PropsValues.DL_FILE_ENTRY_PROCESSORS_TRIGGER_SYNCHRONOUSLY,
 			sourceFileVersion, destinationFileVersion);
 	}
 
@@ -415,8 +444,10 @@ public class ImageProcessorImpl
 			sb.append(2);
 		}
 
-		sb.append(StringPool.PERIOD);
-		sb.append(type);
+		if (Validator.isNotNull(type)) {
+			sb.append(StringPool.PERIOD);
+			sb.append(type);
+		}
 
 		String filePath = sb.toString();
 
@@ -433,12 +464,6 @@ public class ImageProcessorImpl
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(ImageProcessorImpl.class);
-
-	private static ImageProcessorImpl _instance = new ImageProcessorImpl();
-
-	static {
-		InstancePool.put(ImageProcessorImpl.class.getName(), _instance);
-	}
 
 	private List<Long> _fileVersionIds = new Vector<Long>();
 	private Set<String> _imageMimeTypes = SetUtil.fromArray(

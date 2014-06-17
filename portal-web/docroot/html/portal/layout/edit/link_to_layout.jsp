@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,55 +16,29 @@
 
 <%@ include file="/html/portal/layout/edit/init.jsp" %>
 
-<aui:input name="TypeSettingsProperties--groupId--" type="hidden" value="<%= selLayout.getGroupId() %>" />
-<aui:input name="TypeSettingsProperties--privateLayout--" type="hidden" value="<%= selLayout.isPrivateLayout() %>" />
+<aui:input name="TypeSettingsProperties--groupId--" type="hidden" value="<%= (selLayout == null) ? StringPool.BLANK : selLayout.getGroupId() %>" />
+<aui:input name="TypeSettingsProperties--privateLayout--" type="hidden" value="<%= (selLayout == null) ? StringPool.BLANK : selLayout.isPrivateLayout() %>" />
 
 <%
-UnicodeProperties typeSettingsProperties = selLayout.getTypeSettingsProperties();
+long linkToLayoutId = 0;
 
-long linkToLayoutId = GetterUtil.getLong(typeSettingsProperties.getProperty("linkToLayoutId", StringPool.BLANK));
+if (selLayout != null) {
+	linkToLayoutId = GetterUtil.getLong(selLayout.getTypeSettingsProperty("linkToLayoutId"));
+}
 %>
 
 <aui:select label="link-to-layout" name="TypeSettingsProperties--linkToLayoutId--" showEmptyOption="<%= true %>">
 
 	<%
-	List layoutList = (List)request.getAttribute(WebKeys.LAYOUT_LISTER_LIST);
+	List<LayoutDescription> layoutDescriptions = (List<LayoutDescription>)request.getAttribute(WebKeys.LAYOUT_DESCRIPTIONS);
 
-	for (int i = 0; i < layoutList.size(); i++) {
+	for (LayoutDescription layoutDescription : layoutDescriptions) {
+		Layout layoutDescriptionLayout = LayoutLocalServiceUtil.fetchLayout(layoutDescription.getPlid());
 
-		// id | parentId | ls | obj id | name | img | depth
-
-		String layoutDesc = (String)layoutList.get(i);
-
-		String[] nodeValues = StringUtil.split(layoutDesc, '|');
-
-		long objId = GetterUtil.getLong(nodeValues[3]);
-		String name = nodeValues[4];
-
-		int depth = 0;
-
-		if (i != 0) {
-			depth = GetterUtil.getInteger(nodeValues[6]);
-		}
-
-		name = HtmlUtil.escape(name);
-
-		for (int j = 0; j < depth; j++) {
-			name = "-&nbsp;" + name;
-		}
-
-		Layout linkableLayout = null;
-
-		try {
-			linkableLayout = LayoutLocalServiceUtil.getLayout(objId);
-		}
-		catch (Exception e) {
-		}
-
-		if (linkableLayout != null) {
+		if (layoutDescriptionLayout != null) {
 	%>
 
-			<aui:option disabled="<%= selLayout.getPlid() == linkableLayout.getPlid() %>" label="<%= name %>" selected="<%= (linkToLayoutId == linkableLayout.getLayoutId()) %>" value="<%= linkableLayout.getLayoutId() %>" />
+			<aui:option disabled="<%= (selLayout != null) && (selLayout.getPlid() == layoutDescriptionLayout.getPlid()) %>" label="<%= layoutDescription.getDisplayName() %>" selected="<%= (linkToLayoutId == layoutDescriptionLayout.getLayoutId()) %>" value="<%= layoutDescriptionLayout.getLayoutId() %>" />
 
 	<%
 		}

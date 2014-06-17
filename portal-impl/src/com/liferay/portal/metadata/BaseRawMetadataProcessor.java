@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portal.metadata;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.metadata.RawMetadataProcessor;
@@ -51,22 +50,25 @@ import org.apache.tika.metadata.TikaMimeKeys;
  */
 public abstract class BaseRawMetadataProcessor implements RawMetadataProcessor {
 
+	@Override
 	public Map<String, Field[]> getFields() {
 		return _fields;
 	}
 
+	@Override
 	public Map<String, Fields> getRawMetadataMap(
 			String extension, String mimeType, File file)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Metadata metadata = extractMetadata(extension, mimeType, file);
 
 		return createDDMFieldsMap(metadata, getFields());
 	}
 
+	@Override
 	public Map<String, Fields> getRawMetadataMap(
 			String extension, String mimeType, InputStream inputStream)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Metadata metadata = extractMetadata(extension, mimeType, inputStream);
 
@@ -128,11 +130,11 @@ public abstract class BaseRawMetadataProcessor implements RawMetadataProcessor {
 
 	protected abstract Metadata extractMetadata(
 			String extension, String mimeType, File file)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	protected abstract Metadata extractMetadata(
 			String extension, String mimeType, InputStream inputStream)
-		throws PortalException, SystemException;
+		throws PortalException;
 
 	protected Object getFieldValue(Metadata metadata, Field field) {
 		Object fieldValue = null;
@@ -157,11 +159,10 @@ public abstract class BaseRawMetadataProcessor implements RawMetadataProcessor {
 		if (fieldValue instanceof String) {
 			return metadata.get((String)fieldValue);
 		}
-		else {
-			Property property = (Property)fieldValue;
 
-			return metadata.get(property.getName());
-		}
+		Property property = (Property)fieldValue;
+
+		return metadata.get(property.getName());
 	}
 
 	private static void _addFields(Class<?> clazz, List<Field> fields) {
@@ -192,7 +193,7 @@ public abstract class BaseRawMetadataProcessor implements RawMetadataProcessor {
 		_addFields(XMPDM.class, fields);
 
 		_fields.put(
-			"TikaRawMetadata", fields.toArray(new Field[fields.size()]));
+			TIKA_RAW_METADATA, fields.toArray(new Field[fields.size()]));
 	}
 
 }

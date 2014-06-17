@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,19 +21,19 @@ String strutsAction = ParamUtil.getString(request, "struts_action");
 
 boolean showAnonymousIcon = false;
 
-if (!strutsAction.startsWith("/login/create_anonymous_account") && portletName.equals(PortletKeys.FAST_LOGIN)) {
+if (!strutsAction.startsWith("/login/create_anonymous_account") && company.isStrangers() && portletName.equals(PortletKeys.FAST_LOGIN)) {
 	showAnonymousIcon = true;
 }
 %>
 
 <c:if test="<%= showAnonymousIcon %>">
-	<portlet:renderURL var="anonymousURL">
+	<portlet:renderURL var="anonymousURL" windowState="<%= WindowState.MAXIMIZED.toString() %>">
 		<portlet:param name="struts_action" value="/login/create_anonymous_account" />
 	</portlet:renderURL>
 
 	<liferay-ui:icon
+		iconCssClass="icon-user"
 		message="guest"
-		src='<%= themeDisplay.getPathThemeImages() + "/common/user_icon.png" %>'
 		url="<%= anonymousURL %>"
 	/>
 </c:if>

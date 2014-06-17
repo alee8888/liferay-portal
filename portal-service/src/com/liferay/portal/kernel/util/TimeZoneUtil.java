@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,25 +14,36 @@
 
 package com.liferay.portal.kernel.util;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Raymond Augé
  */
 public class TimeZoneUtil {
 
+	public static TimeZone GMT;
+
 	public static TimeZone getDefault() {
-		return _instance._getDefault();
+		return getInstance()._getDefault();
+	}
+
+	public static TimeZoneUtil getInstance() {
+		PortalRuntimePermission.checkGetBeanProperty(TimeZoneUtil.class);
+
+		return _instance;
 	}
 
 	public static TimeZone getTimeZone(String timeZoneId) {
-		return _instance._getTimeZone(timeZoneId);
+		return getInstance()._getTimeZone(timeZoneId);
 	}
 
 	public static void setDefault(String timeZoneId) {
-		_instance._setDefault(timeZoneId);
+		getInstance()._setDefault(timeZoneId);
 	}
 
 	private TimeZoneUtil() {
@@ -62,12 +73,18 @@ public class TimeZoneUtil {
 	}
 
 	private void _setDefault(String timeZoneId) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		if (Validator.isNotNull(timeZoneId)) {
 			_timeZone = TimeZone.getTimeZone(timeZoneId);
 		}
 	}
 
 	private static TimeZoneUtil _instance = new TimeZoneUtil();
+
+	static {
+		GMT = getTimeZone("GMT");
+	}
 
 	private TimeZone _timeZone;
 	private Map<String, TimeZone> _timeZones = new HashMap<String, TimeZone>();

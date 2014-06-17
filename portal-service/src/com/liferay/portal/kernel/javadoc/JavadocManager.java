@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,6 +22,8 @@ import java.lang.reflect.Method;
 public interface JavadocManager {
 
 	public void load(String servletContextName, ClassLoader classLoader);
+
+	public JavadocClass lookupJavadocClass(Class<?> clazz);
 
 	public JavadocMethod lookupJavadocMethod(Method method);
 

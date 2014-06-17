@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,19 @@
 
 package com.liferay.portlet.blogs.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public class BlogsEntryFinderUtil {
 	public static int countByOrganizationId(long organizationId,
 		java.util.Date displayDate,
-		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
 		return getFinder()
 				   .countByOrganizationId(organizationId, displayDate,
 			queryDefinition);
@@ -33,8 +35,7 @@ public class BlogsEntryFinderUtil {
 	public static int countByOrganizationIds(
 		java.util.List<java.lang.Long> organizationIds,
 		java.util.Date displayDate,
-		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
 		return getFinder()
 				   .countByOrganizationIds(organizationIds, displayDate,
 			queryDefinition);
@@ -42,8 +43,7 @@ public class BlogsEntryFinderUtil {
 
 	public static java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> findByGroupIds(
 		long companyId, long groupId, java.util.Date displayDate,
-		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
 		return getFinder()
 				   .findByGroupIds(companyId, groupId, displayDate,
 			queryDefinition);
@@ -51,8 +51,7 @@ public class BlogsEntryFinderUtil {
 
 	public static java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> findByOrganizationId(
 		long organizationId, java.util.Date displayDate,
-		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
 		return getFinder()
 				   .findByOrganizationId(organizationId, displayDate,
 			queryDefinition);
@@ -61,15 +60,13 @@ public class BlogsEntryFinderUtil {
 	public static java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> findByOrganizationIds(
 		java.util.List<java.lang.Long> organizationIds,
 		java.util.Date displayDate,
-		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition) {
 		return getFinder()
 				   .findByOrganizationIds(organizationIds, displayDate,
 			queryDefinition);
 	}
 
-	public static java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> findByNoAssets()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	public static java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> findByNoAssets() {
 		return getFinder().findByNoAssets();
 	}
 

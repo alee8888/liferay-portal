@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,16 @@
 
 package com.liferay.portal.kernel.scripting;
 
+import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
+import com.liferay.portal.kernel.util.ClassLoaderPool;
+
 import java.util.Map;
 import java.util.Set;
-
-import javax.portlet.PortletConfig;
-import javax.portlet.PortletContext;
-import javax.portlet.PortletRequest;
-import javax.portlet.PortletResponse;
 
 /**
  * @author Alberto Montero
  * @author Brian Wing Shun Chan
+ * @author Shuyang Zhou
  */
 public class ScriptingUtil {
 
@@ -32,32 +31,61 @@ public class ScriptingUtil {
 		getScripting().clearCache(language);
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #eval(Set, Map, Set, String,
+	 *             String, String...)}
+	 */
+	@Deprecated
 	public static Map<String, Object> eval(
 			Set<String> allowedClasses, Map<String, Object> inputObjects,
-			Set<String> outputNames, String language, String script)
+			Set<String> outputNames, String language, String script,
+			ClassLoader... classLoaders)
 		throws ScriptingException {
 
 		return getScripting().eval(
-			allowedClasses, inputObjects, outputNames, language, script);
+			allowedClasses, inputObjects, outputNames, language, script,
+			_getServletContextNames(classLoaders));
+	}
+
+	public static Map<String, Object> eval(
+			Set<String> allowedClasses, Map<String, Object> inputObjects,
+			Set<String> outputNames, String language, String script,
+			String... servletContextNames)
+		throws ScriptingException {
+
+		return getScripting().eval(
+			allowedClasses, inputObjects, outputNames, language, script,
+			servletContextNames);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #exec(Set, Map, String,
+	 *             String, String...)}
+	 */
+	@Deprecated
+	public static void exec(
+			Set<String> allowedClasses, Map<String, Object> inputObjects,
+			String language, String script, ClassLoader... classLoaders)
+		throws ScriptingException {
+
+		getScripting().exec(
+			allowedClasses, inputObjects, language, script,
+			_getServletContextNames(classLoaders));
 	}
 
 	public static void exec(
 			Set<String> allowedClasses, Map<String, Object> inputObjects,
-			String language, String script)
+			String language, String script, String... servletContextNames)
 		throws ScriptingException {
 
-		getScripting().exec(allowedClasses, inputObjects, language, script);
-	}
-
-	public static Map<String, Object> getPortletObjects(
-		PortletConfig portletConfig, PortletContext portletContext,
-		PortletRequest portletRequest, PortletResponse portletResponse) {
-
-		return getScripting().getPortletObjects(
-			portletConfig, portletContext, portletRequest, portletResponse);
+		getScripting().exec(
+			allowedClasses, inputObjects, language, script,
+			servletContextNames);
 	}
 
 	public static Scripting getScripting() {
+		PortalRuntimePermission.checkGetBeanProperty(ScriptingUtil.class);
+
 		return _scripting;
 	}
 
@@ -66,7 +94,22 @@ public class ScriptingUtil {
 	}
 
 	public void setScripting(Scripting scripting) {
+		PortalRuntimePermission.checkSetBeanProperty(getClass());
+
 		_scripting = scripting;
+	}
+
+	private static String[] _getServletContextNames(
+		ClassLoader[] classLoaders) {
+
+		String[] servletContextNames = new String[classLoaders.length];
+
+		for (int i = 0; i < classLoaders.length; i++) {
+			servletContextNames[i] = ClassLoaderPool.getContextName(
+				classLoaders[i]);
+		}
+
+		return servletContextNames;
 	}
 
 	private static Scripting _scripting;

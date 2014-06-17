@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,16 +15,15 @@
 package com.liferay.portlet.flags.messaging;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.BaseMessageListener;
 import com.liferay.portal.kernel.messaging.Message;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
@@ -43,7 +42,6 @@ import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.SubscriptionSender;
-import com.liferay.util.UniqueList;
 
 import java.io.IOException;
 
@@ -81,7 +79,7 @@ public class FlagsRequestMessageListener extends BaseMessageListener {
 
 		Group group = layout.getGroup();
 
-		String groupName = HtmlUtil.escape(group.getDescriptiveName());
+		String groupName = group.getDescriptiveName();
 
 		// Reporter user
 
@@ -111,13 +109,13 @@ public class FlagsRequestMessageListener extends BaseMessageListener {
 			flagsRequest.getReportedUserId());
 
 		if (reportedUser.isDefaultUser()) {
-			reportedUserName = HtmlUtil.escape(group.getDescriptiveName());
+			reportedUserName = group.getDescriptiveName();
 		}
 		else {
-			reportedUserName = HtmlUtil.escape(reportedUser.getFullName());
+			reportedUserName = reportedUser.getFullName();
 			reportedEmailAddress = reportedUser.getEmailAddress();
 			reportedURL = reportedUser.getDisplayURL(
-				serviceContext.getPortalURL(), serviceContext.getPathMain());
+				serviceContext.getThemeDisplay());
 		}
 
 		// Content
@@ -167,7 +165,7 @@ public class FlagsRequestMessageListener extends BaseMessageListener {
 	}
 
 	protected List<User> getRecipients(long companyId, long groupId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		List<User> recipients = new UniqueList<User>();
 
@@ -228,14 +226,17 @@ public class FlagsRequestMessageListener extends BaseMessageListener {
 		subscriptionSender.setBody(body);
 		subscriptionSender.setCompanyId(company.getCompanyId());
 		subscriptionSender.setContextAttributes(
-			"[$CONTENT_ID$]", contentId, "[$CONTENT_TITLE$]", contentTitle,
-			"[$CONTENT_TYPE$]", contentType, "[$CONTENT_URL$]", contentURL,
+			"[$CONTENT_ID$]", contentId, "[$CONTENT_TYPE$]", contentType,
 			"[$DATE$]", now.toString(), "[$REASON$]", reason,
 			"[$REPORTED_USER_ADDRESS$]", reportedEmailAddress,
 			"[$REPORTED_USER_NAME$]", reportedUserName, "[$REPORTED_USER_URL$]",
 			reportedUserURL, "[$REPORTER_USER_ADDRESS$]", reporterEmailAddress,
 			"[$REPORTER_USER_NAME$]", reporterUserName, "[$SITE_NAME$]",
 			groupName);
+		subscriptionSender.setContextAttribute(
+			"[$CONTENT_TITLE$]", contentTitle, false);
+		subscriptionSender.setContextAttribute(
+			"[$CONTENT_URL$]", contentURL, false);
 		subscriptionSender.setFrom(fromAddress, fromName);
 		subscriptionSender.setHtmlFormat(true);
 		subscriptionSender.setMailId("flags_request", contentId);

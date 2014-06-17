@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -67,6 +67,8 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 		};
 	public static final String TABLE_SQL_CREATE = "create table SocialRelation (uuid_ VARCHAR(75) null,relationId LONG not null primary key,companyId LONG,createDate LONG,userId1 LONG,userId2 LONG,type_ INTEGER)";
 	public static final String TABLE_SQL_DROP = "drop table SocialRelation";
+	public static final String ORDER_BY_JPQL = " ORDER BY socialRelation.relationId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY SocialRelation.relationId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -84,32 +86,39 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 	public static long USERID1_COLUMN_BITMASK = 4L;
 	public static long USERID2_COLUMN_BITMASK = 8L;
 	public static long UUID_COLUMN_BITMASK = 16L;
+	public static long RELATIONID_COLUMN_BITMASK = 32L;
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.social.model.SocialRelation"));
 
 	public SocialRelationModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _relationId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setRelationId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_relationId);
+		return _relationId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return SocialRelation.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return SocialRelation.class.getName();
 	}
@@ -125,6 +134,9 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 		attributes.put("userId1", getUserId1());
 		attributes.put("userId2", getUserId2());
 		attributes.put("type", getType());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -174,6 +186,7 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 		}
 	}
 
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -183,6 +196,7 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 		}
 	}
 
+	@Override
 	public void setUuid(String uuid) {
 		if (_originalUuid == null) {
 			_originalUuid = _uuid;
@@ -195,18 +209,22 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 		return GetterUtil.getString(_originalUuid);
 	}
 
+	@Override
 	public long getRelationId() {
 		return _relationId;
 	}
 
+	@Override
 	public void setRelationId(long relationId) {
 		_relationId = relationId;
 	}
 
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_columnBitmask |= COMPANYID_COLUMN_BITMASK;
 
@@ -223,18 +241,22 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 		return _originalCompanyId;
 	}
 
+	@Override
 	public long getCreateDate() {
 		return _createDate;
 	}
 
+	@Override
 	public void setCreateDate(long createDate) {
 		_createDate = createDate;
 	}
 
+	@Override
 	public long getUserId1() {
 		return _userId1;
 	}
 
+	@Override
 	public void setUserId1(long userId1) {
 		_columnBitmask |= USERID1_COLUMN_BITMASK;
 
@@ -251,10 +273,12 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 		return _originalUserId1;
 	}
 
+	@Override
 	public long getUserId2() {
 		return _userId2;
 	}
 
+	@Override
 	public void setUserId2(long userId2) {
 		_columnBitmask |= USERID2_COLUMN_BITMASK;
 
@@ -271,10 +295,12 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 		return _originalUserId2;
 	}
 
+	@Override
 	public int getType() {
 		return _type;
 	}
 
+	@Override
 	public void setType(int type) {
 		_columnBitmask |= TYPE_COLUMN_BITMASK;
 
@@ -296,17 +322,6 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 	}
 
 	@Override
-	public SocialRelation toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (SocialRelation)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
-	}
-
-	@Override
 	public ExpandoBridge getExpandoBridge() {
 		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			SocialRelation.class.getName(), getPrimaryKey());
@@ -317,6 +332,16 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public SocialRelation toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (SocialRelation)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -336,6 +361,7 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 		return socialRelationImpl;
 	}
 
+	@Override
 	public int compareTo(SocialRelation socialRelation) {
 		long primaryKey = socialRelation.getPrimaryKey();
 
@@ -352,18 +378,15 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SocialRelation)) {
 			return false;
 		}
 
-		SocialRelation socialRelation = null;
-
-		try {
-			socialRelation = (SocialRelation)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		SocialRelation socialRelation = (SocialRelation)obj;
 
 		long primaryKey = socialRelation.getPrimaryKey();
 
@@ -378,6 +401,16 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -455,6 +488,7 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(25);
 
@@ -497,7 +531,7 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 	}
 
 	private static ClassLoader _classLoader = SocialRelation.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			SocialRelation.class
 		};
 	private String _uuid;
@@ -517,5 +551,5 @@ public class SocialRelationModelImpl extends BaseModelImpl<SocialRelation>
 	private int _originalType;
 	private boolean _setOriginalType;
 	private long _columnBitmask;
-	private SocialRelation _escapedModelProxy;
+	private SocialRelation _escapedModel;
 }

@@ -19,7 +19,9 @@
 	<target name="clean">
 		<delete dir="classes" />
 		<delete dir="test-classes" />
+		<delete dir="test-coverage" />
 		<delete dir="test-results" />
+		<delete dir="woven-classes" />
 		<delete dir="${doc.dir}/${ant.project.name}/javadocs" />
 		<delete file="${jar.file}.jar" failonerror="false" />
 		<delete file="${jar.file}-javadoc.jar" failonerror="false" />
@@ -28,29 +30,38 @@
 
 	<target name="compile">
 		<if>
-			<available file="$${javac.destdir}" />
+			<not>
+				<uptodate targetfile="classes/.touch">
+					<srcfiles dir="src" includes="**/*.*" />
+				</uptodate>
+			</not>
 			<then>
+				<if>
+					<available file="$${javac.destdir}" />
+					<then>
 
-				<!--
-				Clean up stale dir that was accidentally introduced in
-				0b63ac06aec90d42d428a1b23140303324125042.
-				-->
+						<!--
+						Clean up stale dir that was accidentally introduced in
+						0b63ac06aec90d42d428a1b23140303324125042.
+						-->
 
-				<delete dir="$${javac.destdir}" />
+						<delete dir="$${javac.destdir}" />
+					</then>
+				</if>
+
+				<mkdir dir="classes" />
+
+				<antcall target="compile-java">
+					<param name="javac.classpathref" value="project.classpath" />
+					<param name="javac.destdir" value="classes" />
+					<param name="javac.srcdir" value="src" />
+				</antcall>
 			</then>
 		</if>
-
-		<mkdir dir="classes" />
-
-		<antcall target="compile-java">
-			<param name="javac.classpathref" value="project.classpath" />
-			<param name="javac.destdir" value="classes" />
-			<param name="javac.srcdir" value="src" />
-		</antcall>
 	</target>
 
 	<target name="compile-java">
-		<copy todir="${javac.destdir}">
+		<copy todir="${javac.destdir}" preservelastmodified="true">
 			<fileset dir="${javac.srcdir}" excludes="**/*.java" />
 		</copy>
 
@@ -65,20 +76,54 @@
 			nowarn="${javac.nowarn}"
 			srcdir="${javac.srcdir}"
 		/>
+
+		<echo file="${javac.destdir}/.touch"></echo>
 	</target>
 
 	<target name="deploy" depends="jar">
-		<copy file="${jar.file}.jar" todir="${deploy.dir}" />
+		<if>
+			<not>
+				<uptodate targetfile="${deploy.dir}/${jar.file}.jar">
+					<srcfiles dir="${basedir}" includes="${jar.file}.jar" />
+				</uptodate>
+			</not>
+			<then>
+				<copy file="${jar.file}.jar" todir="${deploy.dir}" preservelastmodified="true" />
+			</then>
+		</if>
 	</target>
 
 	<target name="jar" depends="compile">
-		<antcall target="manifest" />
+		<if>
+			<not>
+				<uptodate targetfile="${jar.file}.jar">
+					<srcfiles dir="classes" includes="**/*.*" />
+				</uptodate>
+			</not>
+			<then>
+				<if>
+					<available file="bnd.bnd" />
+					<then>
+						<baseline-jar-macro
+							bndRootFile="${project.dir}/common.bnd"
+							file="bnd.bnd"
+							outputPath="."
+							rootProjectDir="${project.dir}"
+							sourcePath="."
+						/>
+					</then>
+					<else>
+						<antcall target="manifest" />
 
-		<jar
-			basedir="classes"
-			jarfile="${jar.file}.jar"
-			manifest="classes/META-INF/MANIFEST.MF"
-		/>
+						<jar
+							basedir="classes"
+							jarfile="${jar.file}.jar"
+							manifest="classes/META-INF/MANIFEST.MF"
+						/>
+					</else>
+				</if>
+			</then>
+		</if>
 	</target>
 
 	<target name="jar-javadoc" depends="javadoc">
@@ -102,7 +147,8 @@
 			breakiterator="yes"
 			classpathref="project.classpath"
 			destdir="${doc.dir}/${ant.project.name}/javadocs"
-			maxmemory="768m"
+			encoding="UTF-8"
+			maxmemory="2048m"
 			packagenames="*.*"
 			sourcepath="src"
 			stylesheetfile="${project.dir}/tools/javadoc.css"
@@ -118,77 +164,7 @@
 				<available file="classes/META-INF/MANIFEST.MF" />
 			</not>
 			<then>
-				<script classpathref="project.classpath" language="beanshell">
-					<![CDATA[
-						import com.liferay.portal.kernel.util.PackagingUtil;
-						import com.liferay.portal.kernel.util.ReleaseInfo;
-						import com.liferay.portal.kernel.util.StringUtil;
-
-						import java.io.File;
-
-						String os = System.getProperty("os.name").toLowerCase();
-
-						String buildRevision = "";
-
-						try {
-							File projectDir = new File(project.getProperty("project.dir"));
-
-							File svnDir = new File(projectDir, ".svn");
-
-							String command = null;
-
-							if (svnDir.exists()) {
-								if (os.contains("win")) {
-									command = "cmd /c svnversion .";
-								}
-								else {
-									command = "svnversion .";
-								}
-							}
-
-							File gitDir = new File(projectDir, ".git");
-
-							if (gitDir.exists()) {
-								if (os.contains("win")) {
-									command = "cmd /c git rev-parse HEAD";
-								}
-								else {
-									command = "git rev-parse HEAD";
-								}
-							}
-
-							if (command != null) {
-								Runtime runtime = Runtime.getRuntime();
-
-								Process process = runtime.exec(command);
-
-								buildRevision = StringUtil.read(process.getInputStream());
-							}
-						}
-						catch (Exception e) {
-							e.printStackTrace();
-						}
-
-						project.setProperty("build.revision", buildRevision);
-
-						project.setProperty("release.info.code.name", ReleaseInfo.getCodeName());
-						project.setProperty("release.info.build.date", String.valueOf(ReleaseInfo.getBuildDate()));
-						project.setProperty("release.info.build.number", String.valueOf(ReleaseInfo.getBuildNumber()));
-						project.setProperty("release.info.parent.build.number", String.valueOf(ReleaseInfo.getParentBuildNumber()));
-						project.setProperty("release.info.release.info", ReleaseInfo.getReleaseInfo());
-						project.setProperty("release.info.server.info", ReleaseInfo.getServerInfo());
-						project.setProperty("release.info.vendor", ReleaseInfo.getVendor());
-						project.setProperty("release.info.version", ReleaseInfo.getVersion());
-
-						File classesFolder = new File(project.getBaseDir(), "classes");
-
-						packages = PackagingUtil.getPackagesFromPath(classesFolder);
-
-						packages = StringUtil.merge(packages, ";version=\"" + ReleaseInfo.getVersion() +  "\",") + ";version=\"" + ReleaseInfo.getVersion() +  "\"";
-
-						project.setProperty("export.packages", packages);
-					]]>
-				</script>
+				<manifest-helper analyze="true" />
 
 				<mkdir dir="classes/META-INF" />
 
@@ -202,15 +178,17 @@
 					<attribute name="Bundle-Vendor" value="${release.info.vendor}" />
 					<attribute name="Bundle-Version" value="${release.info.version}" />
 					<attribute name="Export-Package" value="${export.packages}" />
-					<attribute name="Java-Compiler" value="javac.compiler=${javac.compiler}" />
-					<attribute name="Java-Debug" value="javac.debug=${javac.debug}" />
-					<attribute name="Java-Deprecation" value="javac.encoding=${javac.encoding}" />
-					<attribute name="Jsp-Precompile" value="jsp.precompile=${jsp.precompile}" />
-					<attribute name="Liferay-Portal-Code-Name" value="${release.info.code.name}" />
+					<attribute name="Import-Package" value="${import.packages}" />
+					<attribute name="Javac-Compiler" value="${javac.compiler}" />
+					<attribute name="Javac-Debug" value="${javac.debug}" />
+					<attribute name="Javac-Deprecation" value="${javac.deprecation}" />
+					<attribute name="Javac-Encoding" value="${javac.encoding}" />
+					<attribute name="Jsp-Precompile" value="${jsp.precompile}" />
 					<attribute name="Liferay-Portal-Build-Date" value="${release.info.build.date}" />
 					<attribute name="Liferay-Portal-Build-Number" value="${release.info.build.number}" />
 					<attribute name="Liferay-Portal-Build-Revision" value="${build.revision}" />
 					<attribute name="Liferay-Portal-Build-Time" value="${build.time}" />
+					<attribute name="Liferay-Portal-Code-Name" value="${release.info.code.name}" />
 					<attribute name="Liferay-Portal-Parent-Build-Number" value="${release.info.parent.build.number}" />
 					<attribute name="Liferay-Portal-Release-Info" value="${release.info.release.info}" />
 					<attribute name="Liferay-Portal-Server-Info" value="${release.info.server.info}" />
@@ -229,6 +207,29 @@
 						</manifest>
 					</then>
 				</if>
+
+				<if>
+					<isset property="manifest.premain.class" />
+					<then>
+						<manifest file="classes/META-INF/MANIFEST.MF" mode="update">
+							<attribute name="Can-Redefine-Classes" value="${manifest.can.redefine.classes}" />
+							<attribute name="Can-Retransform-Classes" value="${manifest.can.retransform.classes}" />
+							<attribute name="Premain-Class" value="${manifest.premain.class}" />
+						</manifest>
+					</then>
+				</if>
+			</then>
+		</if>
+	</target>
+
+	<target name="release" depends="jar">
+		<if>
+			<available file="bnd.bnd" />
+			<then>
+				<release-to-repo-macro
+					bndRootFile="${project.dir}/common.bnd"
+					file="${jar.file}.jar"
+				/>
 			</then>
 		</if>
 	</target>

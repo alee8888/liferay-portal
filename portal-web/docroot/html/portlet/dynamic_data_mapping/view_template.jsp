@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,8 +19,6 @@
 <%
 String tabs1 = ParamUtil.getString(request, "tabs1", "templates");
 
-String backURL = ParamUtil.getString(request, "backURL");
-
 long classNameId = ParamUtil.getLong(request, "classNameId");
 long classPK = ParamUtil.getLong(request, "classPK");
 
@@ -32,138 +30,235 @@ if ((classPK > 0) && (structureClassNameId == classNameId)) {
 	structure = DDMStructureServiceUtil.getStructure(classPK);
 }
 
+boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
+
 PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("struts_action", "/dynamic_data_mapping/view_template");
 portletURL.setParameter("tabs1", tabs1);
-portletURL.setParameter("backURL", backURL);
 portletURL.setParameter("classNameId", String.valueOf(classNameId));
 portletURL.setParameter("classPK", String.valueOf(classPK));
+
+boolean controlPanel = false;
+
+if (layout != null) {
+	Group group = layout.getGroup();
+
+	controlPanel = group.isControlPanel();
+}
+
+TemplateSearch templateSearch = new TemplateSearch(renderRequest, PortletURLUtil.clone(portletURL, renderResponse));
+
+TemplateSearchTerms templateSearchTerms = (TemplateSearchTerms)templateSearch.getSearchTerms();
+
+String title = ddmDisplay.getViewTemplatesTitle(structure, controlPanel, templateSearchTerms.isSearch(), locale);
 %>
 
-<c:choose>
-	<c:when test="<%= (structure != null) %>">
-		<liferay-ui:header
-			backURL="<%= backURL %>"
-			title='<%= LanguageUtil.format(pageContext, (Validator.isNull(templateHeaderTitle) ? "templates-for-structure-x" : templateHeaderTitle), structure.getName(locale), false) %>'
-		/>
-	</c:when>
-	<c:otherwise>
-		<liferay-ui:header
-			backURL="<%= backURL %>"
-			title="display-styles"
-		/>
-	</c:otherwise>
-</c:choose>
+<liferay-ui:error exception="<%= RequiredTemplateException.class %>">
+	<liferay-ui:message key="required-templates-could-not-be-deleted.-they-are-referenced-by-web-content" />
+</liferay-ui:error>
 
-<liferay-util:include page="/html/portlet/dynamic_data_mapping/template_toolbar.jsp">
-	<liferay-util:param name="classNameId" value="<%= String.valueOf(classNameId) %>" />
-	<liferay-util:param name="classPK" value="<%= String.valueOf(classPK) %>" />
-	<liferay-util:param name="backURL" value="<%= backURL %>" />
-</liferay-util:include>
+<c:if test="<%= showHeader %>">
+	<liferay-ui:header
+		backURL="<%= ddmDisplay.getViewTemplatesBackURL(liferayPortletRequest, liferayPortletResponse, classPK) %>"
+		title="<%= title %>"
+	/>
+</c:if>
 
 <aui:form action="<%= portletURL.toString() %>" method="post" name="fm">
-	<liferay-ui:search-form
-		page="/html/portlet/dynamic_data_mapping/template_search.jsp"
-	/>
-</aui:form>
+	<aui:input name="<%= Constants.CMD %>" type="hidden" />
+	<aui:input name="redirect" type="hidden" value="<%= portletURL.toString() %>" />
+	<aui:input name="deleteTemplateIds" type="hidden" />
 
-<div class="separator"></div>
+	<%
+	String orderByCol = ParamUtil.getString(request, "orderByCol");
+	String orderByType = ParamUtil.getString(request, "orderByType");
 
-<liferay-ui:search-container
-	searchContainer="<%= new TemplateSearch(renderRequest, portletURL) %>"
->
-	<liferay-ui:search-container-results>
-		<%@ include file="/html/portlet/dynamic_data_mapping/template_search_results.jspf" %>
-	</liferay-ui:search-container-results>
+	if (Validator.isNotNull(orderByCol) && Validator.isNotNull(orderByType)) {
+		portalPreferences.setValue(PortletKeys.DYNAMIC_DATA_MAPPING, "entries-order-by-col", orderByCol);
+		portalPreferences.setValue(PortletKeys.DYNAMIC_DATA_MAPPING, "entries-order-by-type", orderByType);
+	}
+	else {
+		orderByCol = portalPreferences.getValue(PortletKeys.DYNAMIC_DATA_MAPPING, "entries-order-by-col", "id");
+		orderByType = portalPreferences.getValue(PortletKeys.DYNAMIC_DATA_MAPPING, "entries-order-by-type", "asc");
+	}
 
-	<liferay-ui:search-container-row
-		className="com.liferay.portlet.dynamicdatamapping.model.DDMTemplate"
-		keyProperty="templateId"
-		modelVar="template"
+	OrderByComparator orderByComparator = DDMUtil.getTemplateOrderByComparator(orderByCol, orderByType);
+	%>
+
+	<liferay-ui:search-container
+		orderByCol="<%= orderByCol %>"
+		orderByComparator="<%= orderByComparator %>"
+		orderByType="<%= orderByType %>"
+		rowChecker="<%= new RowChecker(renderResponse) %>"
+		searchContainer="<%= templateSearch %>"
 	>
 
 		<%
-		String rowHREF = null;
+		request.setAttribute(WebKeys.SEARCH_CONTAINER, searchContainer);
+		%>
 
-		if (Validator.isNotNull(chooseCallback)) {
-			StringBundler sb = new StringBundler(7);
+		<liferay-util:include page="/html/portlet/dynamic_data_mapping/template_toolbar.jsp">
+			<liferay-util:param name="redirect" value="<%= currentURL %>" />
+			<liferay-util:param name="classNameId" value="<%= String.valueOf(classNameId) %>" />
+			<liferay-util:param name="classPK" value="<%= String.valueOf(classPK) %>" />
+		</liferay-util:include>
 
-			sb.append("javascript:Liferay.Util.getOpener()['");
-			sb.append(HtmlUtil.escapeJS(chooseCallback));
-			sb.append("']('");
-			sb.append(template.getTemplateId());
-			sb.append("', '");
-			sb.append(HtmlUtil.escapeJS(template.getName(locale)));
-			sb.append("', Liferay.Util.getWindow());");
+		<liferay-ui:search-container-results>
+			<%@ include file="/html/portlet/dynamic_data_mapping/template_search_results.jspf" %>
+		</liferay-ui:search-container-results>
 
-			rowHREF = sb.toString();
-		}
-		else {
+		<liferay-ui:search-container-row
+			className="com.liferay.portlet.dynamicdatamapping.model.DDMTemplate"
+			keyProperty="templateId"
+			modelVar="template"
+		>
+
+			<%
 			PortletURL rowURL = renderResponse.createRenderURL();
 
 			rowURL.setParameter("struts_action", "/dynamic_data_mapping/edit_template");
 			rowURL.setParameter("redirect", currentURL);
-			rowURL.setParameter("backURL", currentURL);
 			rowURL.setParameter("groupId", String.valueOf(template.getGroupId()));
 			rowURL.setParameter("templateId", String.valueOf(template.getTemplateId()));
 			rowURL.setParameter("classNameId", String.valueOf(classNameId));
-			rowURL.setParameter("classPK", String.valueOf(classPK));
+			rowURL.setParameter("classPK", String.valueOf(template.getClassPK()));
 			rowURL.setParameter("type", template.getType());
+			rowURL.setParameter("structureAvailableFields", renderResponse.getNamespace() + "getAvailableFields");
 
-			rowHREF = rowURL.toString();
-		}
-		%>
-
-		<liferay-ui:search-container-column-text
-			href="<%= rowHREF %>"
-			name="id"
-			property="templateId"
-		/>
-
-		<liferay-ui:search-container-column-text
-			href="<%= rowHREF %>"
-			name="name"
-			value="<%= LanguageUtil.get(pageContext, template.getName(locale)) %>"
-		/>
-
-		<c:if test="<%= Validator.isNull(templateTypeValue) %>">
-			<liferay-ui:search-container-column-text
-				href="<%= rowHREF %>"
-				name="type"
-				value="<%= LanguageUtil.get(pageContext, template.getType()) %>"
-			/>
-		</c:if>
-
-		<liferay-ui:search-container-column-text
-			href="<%= rowHREF %>"
-			name="mode"
-			value="<%= LanguageUtil.get(pageContext, template.getMode()) %>"
-		/>
-
-		<liferay-ui:search-container-column-text
-			href="<%= rowHREF %>"
-			name="language"
-			value="<%= LanguageUtil.get(pageContext, template.getLanguage()) %>"
-		/>
-
-		<liferay-ui:search-container-column-text
-			buffer="buffer"
-			href="<%= rowHREF %>"
-			name="modified-date"
-		>
-
-			<%
-			buffer.append(dateFormatDateTime.format(template.getModifiedDate()));
+			String rowHREF = rowURL.toString();
 			%>
 
-		</liferay-ui:search-container-column-text>
+			<liferay-ui:search-container-row-parameter
+				name="rowHREF"
+				value="<%= rowHREF %>"
+			/>
 
-		<liferay-ui:search-container-column-jsp
-			align="right"
-			path="/html/portlet/dynamic_data_mapping/template_action.jsp"
-		/>
-	</liferay-ui:search-container-row>
+			<%
+			Set<String> excludedColumnNames = ddmDisplay.getViewTemplatesExcludedColumnNames();
+			%>
 
-	<liferay-ui:search-iterator />
-</liferay-ui:search-container>
+			<c:if test='<%= !excludedColumnNames.contains("id") %>'>
+				<liferay-ui:search-container-column-text
+					href="<%= rowHREF %>"
+					name="id"
+					orderable="<%= true %>"
+					orderableProperty="id"
+					property="templateId"
+				/>
+			</c:if>
+
+			<c:if test='<%= !excludedColumnNames.contains("name") %>'>
+				<liferay-ui:search-container-column-text
+					href="<%= rowHREF %>"
+					name="name"
+					value="<%= HtmlUtil.escape(LanguageUtil.get(pageContext, template.getName(locale))) %>"
+				/>
+			</c:if>
+
+			<liferay-ui:search-container-column-jsp
+				name="description"
+				path="/html/portlet/dynamic_data_mapping/template_description.jsp"
+			/>
+
+			<c:if test='<%= !excludedColumnNames.contains("structure") && (structure == null) %>'>
+
+				<%
+				String structureName = StringPool.BLANK;
+
+				if (template.getClassPK() > 0) {
+					DDMStructure templateStructure = DDMStructureServiceUtil.getStructure(template.getClassPK());
+
+					structureName = templateStructure.getName(locale);
+				}
+				%>
+
+				<liferay-ui:search-container-column-text
+					href="<%= rowHREF %>"
+					name="structure"
+					value="<%= structureName %>"
+				/>
+			</c:if>
+
+			<c:if test='<%= !excludedColumnNames.contains("type") && (classNameId == 0) %>'>
+				<liferay-ui:search-container-column-text
+					href="<%= rowHREF %>"
+					name="type"
+					value="<%= ddmDisplay.getTemplateType(template, locale) %>"
+				/>
+			</c:if>
+
+			<c:if test='<%= !excludedColumnNames.contains("mode") %>'>
+				<liferay-ui:search-container-column-text
+					href="<%= rowHREF %>"
+					name="mode"
+					value="<%= LanguageUtil.get(pageContext, template.getMode()) %>"
+				/>
+			</c:if>
+
+			<c:if test='<%= !excludedColumnNames.contains("language") %>'>
+				<liferay-ui:search-container-column-text
+					href="<%= rowHREF %>"
+					name="language"
+					value='<%= LanguageUtil.get(pageContext, template.getLanguage() + "[stands-for]") %>'
+				/>
+			</c:if>
+
+			<c:if test='<%= !excludedColumnNames.contains("modified-date") %>'>
+				<liferay-ui:search-container-column-date
+					href="<%= rowHREF %>"
+					name="modified-date"
+					orderable="<%= true %>"
+					orderableProperty="modified-date"
+					value="<%= template.getModifiedDate() %>"
+				/>
+			</c:if>
+
+			<liferay-ui:search-container-column-jsp
+				align="right"
+				cssClass="entry-action"
+				path="/html/portlet/dynamic_data_mapping/template_action.jsp"
+			/>
+		</liferay-ui:search-container-row>
+
+		<c:if test="<%= total > 0 %>">
+			<aui:button-row>
+				<aui:button cssClass="delete-templates-button" disabled="<%= true %>" name="delete" onClick='<%= renderResponse.getNamespace() + "deleteTemplates();" %>' value="delete" />
+			</aui:button-row>
+
+			<div class="separator"><!-- --></div>
+		</c:if>
+
+		<liferay-ui:search-iterator />
+	</liferay-ui:search-container>
+</aui:form>
+
+<aui:script>
+	Liferay.Util.toggleSearchContainerButton('#<portlet:namespace />delete', '#<portlet:namespace /><%= searchContainerReference.getId() %>SearchContainer', document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
+	function <portlet:namespace />copyTemplate(uri) {
+		Liferay.Util.openWindow(
+			{
+				id: '<portlet:namespace />copyTemplate',
+				refreshWindow: window,
+				title: '<%= UnicodeLanguageUtil.get(pageContext, "copy-template") %>',
+				uri: uri
+			}
+		);
+	}
+
+	Liferay.provide(
+		window,
+		'<portlet:namespace />deleteTemplates',
+		function() {
+			if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "are-you-sure-you-want-to-delete-this") %>')) {
+				document.<portlet:namespace />fm.method = 'post';
+				document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= Constants.DELETE %>';
+				document.<portlet:namespace />fm.<portlet:namespace />deleteTemplateIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
+				submitForm(document.<portlet:namespace />fm, '<portlet:actionURL><portlet:param name="struts_action" value="/dynamic_data_mapping/edit_template" /></portlet:actionURL>');
+			}
+		},
+		['liferay-util-list-fields']
+	);
+</aui:script>

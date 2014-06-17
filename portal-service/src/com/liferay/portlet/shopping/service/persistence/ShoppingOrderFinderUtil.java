@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,12 +14,15 @@
 
 package com.liferay.portlet.shopping.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public class ShoppingOrderFinderUtil {
 	public static int countByG_C_U_N_PPPS(long groupId, long companyId,
 		long userId, java.lang.String number,
@@ -27,8 +30,7 @@ public class ShoppingOrderFinderUtil {
 		java.lang.String billingEmailAddress,
 		java.lang.String shippingFirstName, java.lang.String shippingLastName,
 		java.lang.String shippingEmailAddress,
-		java.lang.String ppPaymentStatus, boolean andOperator)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		java.lang.String ppPaymentStatus, boolean andOperator) {
 		return getFinder()
 				   .countByG_C_U_N_PPPS(groupId, companyId, userId, number,
 			billingFirstName, billingLastName, billingEmailAddress,
@@ -43,8 +45,7 @@ public class ShoppingOrderFinderUtil {
 		java.lang.String shippingFirstName, java.lang.String shippingLastName,
 		java.lang.String shippingEmailAddress,
 		java.lang.String ppPaymentStatus, boolean andOperator, int start,
-		int end, com.liferay.portal.kernel.util.OrderByComparator obc)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		int end, com.liferay.portal.kernel.util.OrderByComparator obc) {
 		return getFinder()
 				   .findByG_C_U_N_PPPS(groupId, companyId, userId, number,
 			billingFirstName, billingLastName, billingEmailAddress,

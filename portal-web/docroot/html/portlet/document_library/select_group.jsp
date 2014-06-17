@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,11 @@
 
 <%@ include file="/html/portlet/document_library/init.jsp" %>
 
-<aui:form method="post" name="fm">
+<%
+String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectGroup");
+%>
+
+<aui:form method="post" name="selectGroupFm">
 	<liferay-ui:header
 		title="sites"
 	/>
@@ -38,19 +42,69 @@
 		<div class="separator"><!-- --></div>
 
 		<%
-		List<Group> mySites = user.getMySites();
+		GroupSearchTerms searchTerms = (GroupSearchTerms)searchContainer.getSearchTerms();
 
-		if (PortalUtil.isCompanyControlPanelPortlet(portletId, themeDisplay)) {
-			mySites = ListUtil.copy(mySites);
+		LinkedHashMap<String, Object> groupParams = new LinkedHashMap<String, Object>();
 
-			mySites.add(0, GroupLocalServiceUtil.getGroup(themeDisplay.getCompanyGroupId()));
-		}
+		groupParams.put("active", true);
+		groupParams.put("usersGroups", user.getUserId());
 		%>
 
-		<liferay-ui:search-container-results
-			results="<%= mySites %>"
-			total="<%= mySites.size() %>"
-		/>
+		<liferay-ui:search-container-results>
+
+			<%
+			int additionalSites = 0;
+
+			if (!searchTerms.hasSearchTerms() && PortalUtil.isCompanyControlPanelPortlet(PortletKeys.DOCUMENT_LIBRARY_ADMIN, themeDisplay)) {
+				if (searchContainer.getStart() == 0) {
+					results.add(company.getGroup());
+				}
+
+				additionalSites++;
+
+				if (searchContainer.getStart() == 0) {
+					Group userPersonalSite = GroupLocalServiceUtil.getGroup(company.getCompanyId(), GroupConstants.USER_PERSONAL_SITE);
+
+					results.add(userPersonalSite);
+				}
+
+				additionalSites++;
+			}
+
+			if (searchTerms.isAdvancedSearch()) {
+				total = GroupLocalServiceUtil.searchCount(company.getCompanyId(), null, searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator());
+			}
+			else {
+				total = GroupLocalServiceUtil.searchCount(company.getCompanyId(), null, searchTerms.getKeywords(), groupParams);
+			}
+
+			total += additionalSites;
+
+			searchContainer.setTotal(total);
+
+			int start = searchContainer.getStart();
+
+			if (searchContainer.getStart() > additionalSites) {
+				start = searchContainer.getStart() - additionalSites;
+			}
+
+			int end = searchContainer.getEnd() - additionalSites;
+
+			List<Group> sites = null;
+
+			if (searchTerms.isAdvancedSearch()) {
+				sites = GroupServiceUtil.search(company.getCompanyId(), null, searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator(), start, end, searchContainer.getOrderByComparator());
+			}
+			else {
+				sites = GroupServiceUtil.search(company.getCompanyId(), null, searchTerms.getKeywords(), groupParams, start, end, searchContainer.getOrderByComparator());
+			}
+
+			results.addAll(sites);
+
+			searchContainer.setResults(results);
+			%>
+
+		</liferay-ui:search-container-results>
 
 		<liferay-ui:search-container-row
 			className="com.liferay.portal.model.Group"
@@ -61,38 +115,40 @@
 		>
 
 			<%
-			String groupName = HtmlUtil.escape(group.getDescriptiveName(locale));
+			String groupDescriptiveName = HtmlUtil.escape(group.getDescriptiveName(locale));
 
 			if (group.isUser()) {
-				groupName = LanguageUtil.get(pageContext, "my-site");
+				groupDescriptiveName = LanguageUtil.get(pageContext, "my-site");
 			}
-
-			StringBundler sb = new StringBundler(7);
-
-			sb.append("javascript:opener.");
-			sb.append(renderResponse.getNamespace());
-			sb.append("selectGroup('");
-			sb.append(group.getGroupId());
-			sb.append("', '");
-			sb.append(UnicodeFormatter.toString(groupName));
-			sb.append("'); window.close();");
-
-			String rowHREF = sb.toString();
 			%>
 
 			<liferay-ui:search-container-column-text
-				href="<%= rowHREF %>"
 				name="name"
-				value="<%= groupName %>"
+				value="<%= groupDescriptiveName %>"
 			/>
 
 			<liferay-ui:search-container-column-text
-				href="<%= rowHREF %>"
 				name="type"
 				value="<%= LanguageUtil.get(pageContext, group.getTypeLabel()) %>"
 			/>
+
+			<liferay-ui:search-container-column-text>
+
+				<%
+				Map<String, Object> data = new HashMap<String, Object>();
+
+				data.put("groupdescriptivename", groupDescriptiveName);
+				data.put("groupid", group.getGroupId());
+				%>
+
+				<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />
+			</liferay-ui:search-container-column-text>
 		</liferay-ui:search-container-row>
 
 		<liferay-ui:search-iterator />
 	</liferay-ui:search-container>
 </aui:form>
+
+<aui:script use="aui-base">
+	Liferay.Util.selectEntityHandler('#<portlet:namespace />selectGroupFm', '<%= HtmlUtil.escapeJS(eventName) %>');
+</aui:script>

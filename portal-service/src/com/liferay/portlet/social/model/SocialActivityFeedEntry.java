@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -64,9 +64,9 @@ public class SocialActivityFeedEntry {
 		_title = GetterUtil.getString(title);
 	}
 
-	private String _body = StringPool.BLANK;
-	private String _link = StringPool.BLANK;
+	private String _body;
+	private String _link;
 	private String _portletId = StringPool.BLANK;
-	private String _title = StringPool.BLANK;
+	private String _title;
 
 }

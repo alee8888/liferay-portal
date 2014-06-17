@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.softwarecatalog.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,24 +27,28 @@ import java.util.Map;
  * This class is a wrapper for {@link SCProductScreenshot}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SCProductScreenshot
+ * @author Brian Wing Shun Chan
+ * @see SCProductScreenshot
  * @generated
  */
+@ProviderType
 public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	ModelWrapper<SCProductScreenshot> {
 	public SCProductScreenshotWrapper(SCProductScreenshot scProductScreenshot) {
 		_scProductScreenshot = scProductScreenshot;
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return SCProductScreenshot.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return SCProductScreenshot.class.getName();
 	}
 
+	@Override
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
@@ -56,6 +63,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 		return attributes;
 	}
 
+	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
 		Long productScreenshotId = (Long)attributes.get("productScreenshotId");
 
@@ -105,6 +113,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @return the primary key of this s c product screenshot
 	*/
+	@Override
 	public long getPrimaryKey() {
 		return _scProductScreenshot.getPrimaryKey();
 	}
@@ -114,6 +123,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @param primaryKey the primary key of this s c product screenshot
 	*/
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_scProductScreenshot.setPrimaryKey(primaryKey);
 	}
@@ -123,6 +133,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @return the product screenshot ID of this s c product screenshot
 	*/
+	@Override
 	public long getProductScreenshotId() {
 		return _scProductScreenshot.getProductScreenshotId();
 	}
@@ -132,6 +143,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @param productScreenshotId the product screenshot ID of this s c product screenshot
 	*/
+	@Override
 	public void setProductScreenshotId(long productScreenshotId) {
 		_scProductScreenshot.setProductScreenshotId(productScreenshotId);
 	}
@@ -141,6 +153,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @return the company ID of this s c product screenshot
 	*/
+	@Override
 	public long getCompanyId() {
 		return _scProductScreenshot.getCompanyId();
 	}
@@ -150,6 +163,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @param companyId the company ID of this s c product screenshot
 	*/
+	@Override
 	public void setCompanyId(long companyId) {
 		_scProductScreenshot.setCompanyId(companyId);
 	}
@@ -159,6 +173,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @return the group ID of this s c product screenshot
 	*/
+	@Override
 	public long getGroupId() {
 		return _scProductScreenshot.getGroupId();
 	}
@@ -168,6 +183,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @param groupId the group ID of this s c product screenshot
 	*/
+	@Override
 	public void setGroupId(long groupId) {
 		_scProductScreenshot.setGroupId(groupId);
 	}
@@ -177,6 +193,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @return the product entry ID of this s c product screenshot
 	*/
+	@Override
 	public long getProductEntryId() {
 		return _scProductScreenshot.getProductEntryId();
 	}
@@ -186,6 +203,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @param productEntryId the product entry ID of this s c product screenshot
 	*/
+	@Override
 	public void setProductEntryId(long productEntryId) {
 		_scProductScreenshot.setProductEntryId(productEntryId);
 	}
@@ -195,6 +213,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @return the thumbnail ID of this s c product screenshot
 	*/
+	@Override
 	public long getThumbnailId() {
 		return _scProductScreenshot.getThumbnailId();
 	}
@@ -204,6 +223,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @param thumbnailId the thumbnail ID of this s c product screenshot
 	*/
+	@Override
 	public void setThumbnailId(long thumbnailId) {
 		_scProductScreenshot.setThumbnailId(thumbnailId);
 	}
@@ -213,6 +233,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @return the full image ID of this s c product screenshot
 	*/
+	@Override
 	public long getFullImageId() {
 		return _scProductScreenshot.getFullImageId();
 	}
@@ -222,6 +243,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @param fullImageId the full image ID of this s c product screenshot
 	*/
+	@Override
 	public void setFullImageId(long fullImageId) {
 		_scProductScreenshot.setFullImageId(fullImageId);
 	}
@@ -231,6 +253,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @return the priority of this s c product screenshot
 	*/
+	@Override
 	public int getPriority() {
 		return _scProductScreenshot.getPriority();
 	}
@@ -240,42 +263,64 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	*
 	* @param priority the priority of this s c product screenshot
 	*/
+	@Override
 	public void setPriority(int priority) {
 		_scProductScreenshot.setPriority(priority);
 	}
 
+	@Override
 	public boolean isNew() {
 		return _scProductScreenshot.isNew();
 	}
 
+	@Override
 	public void setNew(boolean n) {
 		_scProductScreenshot.setNew(n);
 	}
 
+	@Override
 	public boolean isCachedModel() {
 		return _scProductScreenshot.isCachedModel();
 	}
 
+	@Override
 	public void setCachedModel(boolean cachedModel) {
 		_scProductScreenshot.setCachedModel(cachedModel);
 	}
 
+	@Override
 	public boolean isEscapedModel() {
 		return _scProductScreenshot.isEscapedModel();
 	}
 
+	@Override
 	public java.io.Serializable getPrimaryKeyObj() {
 		return _scProductScreenshot.getPrimaryKeyObj();
 	}
 
+	@Override
 	public void setPrimaryKeyObj(java.io.Serializable primaryKeyObj) {
 		_scProductScreenshot.setPrimaryKeyObj(primaryKeyObj);
 	}
 
+	@Override
 	public com.liferay.portlet.expando.model.ExpandoBridge getExpandoBridge() {
 		return _scProductScreenshot.getExpandoBridge();
 	}
 
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portal.model.BaseModel<?> baseModel) {
+		_scProductScreenshot.setExpandoBridgeAttributes(baseModel);
+	}
+
+	@Override
+	public void setExpandoBridgeAttributes(
+		com.liferay.portlet.expando.model.ExpandoBridge expandoBridge) {
+		_scProductScreenshot.setExpandoBridgeAttributes(expandoBridge);
+	}
+
+	@Override
 	public void setExpandoBridgeAttributes(
 		com.liferay.portal.service.ServiceContext serviceContext) {
 		_scProductScreenshot.setExpandoBridgeAttributes(serviceContext);
@@ -286,6 +331,7 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 		return new SCProductScreenshotWrapper((SCProductScreenshot)_scProductScreenshot.clone());
 	}
 
+	@Override
 	public int compareTo(
 		com.liferay.portlet.softwarecatalog.model.SCProductScreenshot scProductScreenshot) {
 		return _scProductScreenshot.compareTo(scProductScreenshot);
@@ -296,12 +342,19 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 		return _scProductScreenshot.hashCode();
 	}
 
+	@Override
 	public com.liferay.portal.model.CacheModel<com.liferay.portlet.softwarecatalog.model.SCProductScreenshot> toCacheModel() {
 		return _scProductScreenshot.toCacheModel();
 	}
 
+	@Override
 	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot toEscapedModel() {
 		return new SCProductScreenshotWrapper(_scProductScreenshot.toEscapedModel());
+	}
+
+	@Override
+	public com.liferay.portlet.softwarecatalog.model.SCProductScreenshot toUnescapedModel() {
+		return new SCProductScreenshotWrapper(_scProductScreenshot.toUnescapedModel());
 	}
 
 	@Override
@@ -309,26 +362,60 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 		return _scProductScreenshot.toString();
 	}
 
+	@Override
 	public java.lang.String toXmlString() {
 		return _scProductScreenshot.toXmlString();
 	}
 
-	public void persist()
-		throws com.liferay.portal.kernel.exception.SystemException {
+	@Override
+	public void persist() {
 		_scProductScreenshot.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SCProductScreenshotWrapper)) {
+			return false;
+		}
+
+		SCProductScreenshotWrapper scProductScreenshotWrapper = (SCProductScreenshotWrapper)obj;
+
+		if (Validator.equals(_scProductScreenshot,
+					scProductScreenshotWrapper._scProductScreenshot)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
-	 * @deprecated Renamed to {@link #getWrappedModel}
+	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SCProductScreenshot getWrappedSCProductScreenshot() {
 		return _scProductScreenshot;
 	}
 
+	@Override
 	public SCProductScreenshot getWrappedModel() {
 		return _scProductScreenshot;
 	}
 
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _scProductScreenshot.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _scProductScreenshot.isFinderCacheEnabled();
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		_scProductScreenshot.resetOriginalValues();
 	}

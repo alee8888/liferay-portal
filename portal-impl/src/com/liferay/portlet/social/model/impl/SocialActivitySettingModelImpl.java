@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -74,6 +74,8 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 		};
 	public static final String TABLE_SQL_CREATE = "create table SocialActivitySetting (activitySettingId LONG not null primary key,groupId LONG,companyId LONG,classNameId LONG,activityType INTEGER,name VARCHAR(75) null,value VARCHAR(1024) null)";
 	public static final String TABLE_SQL_DROP = "drop table SocialActivitySetting";
+	public static final String ORDER_BY_JPQL = " ORDER BY socialActivitySetting.activitySettingId ASC";
+	public static final String ORDER_BY_SQL = " ORDER BY SocialActivitySetting.activitySettingId ASC";
 	public static final String DATA_SOURCE = "liferayDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
@@ -90,6 +92,7 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	public static long CLASSNAMEID_COLUMN_BITMASK = 2L;
 	public static long GROUPID_COLUMN_BITMASK = 4L;
 	public static long NAME_COLUMN_BITMASK = 8L;
+	public static long ACTIVITYSETTINGID_COLUMN_BITMASK = 16L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -99,6 +102,10 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	 */
 	public static SocialActivitySetting toModel(
 		SocialActivitySettingSoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
 		SocialActivitySetting model = new SocialActivitySettingImpl();
 
 		model.setActivitySettingId(soapModel.getActivitySettingId());
@@ -120,6 +127,10 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	 */
 	public static List<SocialActivitySetting> toModels(
 		SocialActivitySettingSoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
 		List<SocialActivitySetting> models = new ArrayList<SocialActivitySetting>(soapModels.length);
 
 		for (SocialActivitySettingSoap soapModel : soapModels) {
@@ -135,26 +146,32 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	public SocialActivitySettingModelImpl() {
 	}
 
+	@Override
 	public long getPrimaryKey() {
 		return _activitySettingId;
 	}
 
+	@Override
 	public void setPrimaryKey(long primaryKey) {
 		setActivitySettingId(primaryKey);
 	}
 
+	@Override
 	public Serializable getPrimaryKeyObj() {
-		return new Long(_activitySettingId);
+		return _activitySettingId;
 	}
 
+	@Override
 	public void setPrimaryKeyObj(Serializable primaryKeyObj) {
 		setPrimaryKey(((Long)primaryKeyObj).longValue());
 	}
 
+	@Override
 	public Class<?> getModelClass() {
 		return SocialActivitySetting.class;
 	}
 
+	@Override
 	public String getModelClassName() {
 		return SocialActivitySetting.class.getName();
 	}
@@ -170,6 +187,9 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 		attributes.put("activityType", getActivityType());
 		attributes.put("name", getName());
 		attributes.put("value", getValue());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -220,19 +240,23 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	}
 
 	@JSON
+	@Override
 	public long getActivitySettingId() {
 		return _activitySettingId;
 	}
 
+	@Override
 	public void setActivitySettingId(long activitySettingId) {
 		_activitySettingId = activitySettingId;
 	}
 
 	@JSON
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
 
+	@Override
 	public void setGroupId(long groupId) {
 		_columnBitmask |= GROUPID_COLUMN_BITMASK;
 
@@ -250,14 +274,17 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	}
 
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
 
+	@Override
 	public void setCompanyId(long companyId) {
 		_companyId = companyId;
 	}
 
+	@Override
 	public String getClassName() {
 		if (getClassNameId() <= 0) {
 			return StringPool.BLANK;
@@ -266,6 +293,7 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 		return PortalUtil.getClassName(getClassNameId());
 	}
 
+	@Override
 	public void setClassName(String className) {
 		long classNameId = 0;
 
@@ -277,10 +305,12 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	}
 
 	@JSON
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
 
+	@Override
 	public void setClassNameId(long classNameId) {
 		_columnBitmask |= CLASSNAMEID_COLUMN_BITMASK;
 
@@ -298,10 +328,12 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	}
 
 	@JSON
+	@Override
 	public int getActivityType() {
 		return _activityType;
 	}
 
+	@Override
 	public void setActivityType(int activityType) {
 		_columnBitmask |= ACTIVITYTYPE_COLUMN_BITMASK;
 
@@ -319,6 +351,7 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	}
 
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -328,6 +361,7 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 		}
 	}
 
+	@Override
 	public void setName(String name) {
 		_columnBitmask |= NAME_COLUMN_BITMASK;
 
@@ -343,6 +377,7 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	}
 
 	@JSON
+	@Override
 	public String getValue() {
 		if (_value == null) {
 			return StringPool.BLANK;
@@ -352,23 +387,13 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 		}
 	}
 
+	@Override
 	public void setValue(String value) {
 		_value = value;
 	}
 
 	public long getColumnBitmask() {
 		return _columnBitmask;
-	}
-
-	@Override
-	public SocialActivitySetting toEscapedModel() {
-		if (_escapedModelProxy == null) {
-			_escapedModelProxy = (SocialActivitySetting)ProxyUtil.newProxyInstance(_classLoader,
-					_escapedModelProxyInterfaces,
-					new AutoEscapeBeanHandler(this));
-		}
-
-		return _escapedModelProxy;
 	}
 
 	@Override
@@ -382,6 +407,16 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 		ExpandoBridge expandoBridge = getExpandoBridge();
 
 		expandoBridge.setAttributes(serviceContext);
+	}
+
+	@Override
+	public SocialActivitySetting toEscapedModel() {
+		if (_escapedModel == null) {
+			_escapedModel = (SocialActivitySetting)ProxyUtil.newProxyInstance(_classLoader,
+					_escapedModelInterfaces, new AutoEscapeBeanHandler(this));
+		}
+
+		return _escapedModel;
 	}
 
 	@Override
@@ -401,6 +436,7 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 		return socialActivitySettingImpl;
 	}
 
+	@Override
 	public int compareTo(SocialActivitySetting socialActivitySetting) {
 		long primaryKey = socialActivitySetting.getPrimaryKey();
 
@@ -417,18 +453,15 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SocialActivitySetting)) {
 			return false;
 		}
 
-		SocialActivitySetting socialActivitySetting = null;
-
-		try {
-			socialActivitySetting = (SocialActivitySetting)obj;
-		}
-		catch (ClassCastException cce) {
-			return false;
-		}
+		SocialActivitySetting socialActivitySetting = (SocialActivitySetting)obj;
 
 		long primaryKey = socialActivitySetting.getPrimaryKey();
 
@@ -443,6 +476,16 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -522,6 +565,7 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 		return sb.toString();
 	}
 
+	@Override
 	public String toXmlString() {
 		StringBundler sb = new StringBundler(25);
 
@@ -564,7 +608,7 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	}
 
 	private static ClassLoader _classLoader = SocialActivitySetting.class.getClassLoader();
-	private static Class<?>[] _escapedModelProxyInterfaces = new Class[] {
+	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			SocialActivitySetting.class
 		};
 	private long _activitySettingId;
@@ -582,5 +626,5 @@ public class SocialActivitySettingModelImpl extends BaseModelImpl<SocialActivity
 	private String _originalName;
 	private String _value;
 	private long _columnBitmask;
-	private SocialActivitySetting _escapedModelProxy;
+	private SocialActivitySetting _escapedModel;
 }

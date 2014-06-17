@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,10 +24,14 @@ import com.liferay.portlet.expando.model.BaseCustomAttributesDisplay;
 public class OrganizationCustomAttributesDisplay
 	extends BaseCustomAttributesDisplay {
 
-	public static final String CLASS_NAME = Organization.class.getName();
-
+	@Override
 	public String getClassName() {
-		return CLASS_NAME;
+		return Organization.class.getName();
+	}
+
+	@Override
+	public String getIconCssClass() {
+		return "icon-globe";
 	}
 
 	@Override

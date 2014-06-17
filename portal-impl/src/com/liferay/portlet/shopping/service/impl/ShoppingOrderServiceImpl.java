@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,6 @@
 package com.liferay.portlet.shopping.service.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.shopping.model.ShoppingOrder;
@@ -28,11 +27,12 @@ import com.liferay.portlet.shopping.service.permission.ShoppingPermission;
  */
 public class ShoppingOrderServiceImpl extends ShoppingOrderServiceBaseImpl {
 
+	@Override
 	public void completeOrder(
 			long groupId, String number, String ppTxnId, String ppPaymentStatus,
 			double ppPaymentGross, String ppReceiverEmail, String ppPayerEmail,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ShoppingOrder order = shoppingOrderPersistence.findByNumber(number);
 
@@ -45,35 +45,35 @@ public class ShoppingOrderServiceImpl extends ShoppingOrderServiceBaseImpl {
 			ppPayerEmail, false, serviceContext);
 	}
 
-	public void deleteOrder(long groupId, long orderId)
-		throws PortalException, SystemException {
-
+	@Override
+	public void deleteOrder(long groupId, long orderId) throws PortalException {
 		ShoppingOrderPermission.check(
 			getPermissionChecker(), groupId, orderId, ActionKeys.DELETE);
 
 		shoppingOrderLocalService.deleteOrder(orderId);
 	}
 
+	@Override
 	public ShoppingOrder getOrder(long groupId, long orderId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ShoppingOrder order = shoppingOrderLocalService.getOrder(orderId);
 
 		if (order.getUserId() == getUserId()) {
 			return order;
 		}
-		else {
-			ShoppingPermission.check(
-				getPermissionChecker(), groupId, ActionKeys.MANAGE_ORDERS);
 
-			return order;
-		}
+		ShoppingPermission.check(
+			getPermissionChecker(), groupId, ActionKeys.MANAGE_ORDERS);
+
+		return order;
 	}
 
+	@Override
 	public void sendEmail(
 			long groupId, long orderId, String emailType,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ShoppingOrderPermission.check(
 			getPermissionChecker(), groupId, orderId, ActionKeys.UPDATE);
@@ -81,10 +81,11 @@ public class ShoppingOrderServiceImpl extends ShoppingOrderServiceBaseImpl {
 		shoppingOrderLocalService.sendEmail(orderId, emailType, serviceContext);
 	}
 
+	@Override
 	public ShoppingOrder updateOrder(
 			long groupId, long orderId, String ppTxnId, String ppPaymentStatus,
 			double ppPaymentGross, String ppReceiverEmail, String ppPayerEmail)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ShoppingOrderPermission.check(
 			getPermissionChecker(), groupId, orderId, ActionKeys.UPDATE);
@@ -94,6 +95,7 @@ public class ShoppingOrderServiceImpl extends ShoppingOrderServiceBaseImpl {
 			ppPayerEmail);
 	}
 
+	@Override
 	public ShoppingOrder updateOrder(
 			long groupId, long orderId, String billingFirstName,
 			String billingLastName, String billingEmailAddress,
@@ -106,7 +108,7 @@ public class ShoppingOrderServiceImpl extends ShoppingOrderServiceBaseImpl {
 			String shippingZip, String shippingCountry, String shippingPhone,
 			String ccName, String ccType, String ccNumber, int ccExpMonth,
 			int ccExpYear, String ccVerNumber, String comments)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ShoppingOrderPermission.check(
 			getPermissionChecker(), groupId, orderId, ActionKeys.UPDATE);

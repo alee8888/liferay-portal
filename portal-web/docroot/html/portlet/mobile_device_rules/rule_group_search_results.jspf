@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,15 +15,24 @@
 --%>
 
 <%
+LinkedHashMap<String, Object> params = new LinkedHashMap<String, Object>();
+
+params.put("includeGlobalScope", Boolean.TRUE);
+
 if (Validator.isNotNull(searchTerms.getName())) {
-	results = MDRRuleGroupLocalServiceUtil.search(searchTerms.getGroupId(), searchTerms.getName(), searchTerms.isAndOperator(), searchContainer.getStart(), searchContainer.getEnd());
-	total = MDRRuleGroupLocalServiceUtil.searchCount(searchTerms.getGroupId(), searchTerms.getName(), searchTerms.isAndOperator());
+	total = MDRRuleGroupLocalServiceUtil.searchCount(searchTerms.getGroupId(), searchTerms.getName(), params, searchTerms.isAndOperator());
+
+	searchContainer.setTotal(total);
+
+	results = MDRRuleGroupLocalServiceUtil.search(searchTerms.getGroupId(), searchTerms.getName(), params, searchTerms.isAndOperator(), searchContainer.getStart(), searchContainer.getEnd());
 }
 else {
-	results = MDRRuleGroupLocalServiceUtil.searchByKeywords(searchTerms.getGroupId(), searchTerms.getKeywords(), searchTerms.isAndOperator(), searchContainer.getStart(), searchContainer.getEnd());
-	total = MDRRuleGroupLocalServiceUtil.searchByKeywordsCount(searchTerms.getGroupId(), searchTerms.getKeywords(), searchTerms.isAndOperator());
+	total = MDRRuleGroupLocalServiceUtil.searchByKeywordsCount(searchTerms.getGroupId(), searchTerms.getKeywords(), params, searchTerms.isAndOperator());
+
+	searchContainer.setTotal(total);
+
+	results = MDRRuleGroupLocalServiceUtil.searchByKeywords(searchTerms.getGroupId(), searchTerms.getKeywords(), params, searchTerms.isAndOperator(), searchContainer.getStart(), searchContainer.getEnd());
 }
 
-pageContext.setAttribute("results", results);
-pageContext.setAttribute("total", total);
+searchContainer.setResults(results);
 %>

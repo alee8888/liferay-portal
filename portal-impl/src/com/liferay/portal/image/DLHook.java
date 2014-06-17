@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,9 +31,8 @@ import java.io.InputStream;
  */
 public class DLHook extends BaseHook {
 
-	public void deleteImage(Image image)
-		throws PortalException, SystemException {
-
+	@Override
+	public void deleteImage(Image image) throws PortalException {
 		String fileName = getFileName(image.getImageId(), image.getType());
 
 		try {
@@ -44,9 +43,8 @@ public class DLHook extends BaseHook {
 		}
 	}
 
-	public byte[] getImageAsBytes(Image image)
-		throws PortalException, SystemException {
-
+	@Override
+	public byte[] getImageAsBytes(Image image) throws PortalException {
 		String fileName = getFileName(image.getImageId(), image.getType());
 
 		InputStream is = DLStoreUtil.getFileAsStream(
@@ -64,17 +62,17 @@ public class DLHook extends BaseHook {
 		return bytes;
 	}
 
-	public InputStream getImageAsStream(Image image)
-		throws PortalException, SystemException {
-
+	@Override
+	public InputStream getImageAsStream(Image image) throws PortalException {
 		String fileName = getFileName(image.getImageId(), image.getType());
 
 		return DLStoreUtil.getFileAsStream(
 			_COMPANY_ID, _REPOSITORY_ID, fileName);
 	}
 
+	@Override
 	public void updateImage(Image image, String type, byte[] bytes)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		String fileName = getFileName(image.getImageId(), image.getType());
 

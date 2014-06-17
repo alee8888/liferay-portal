@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2012 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,6 @@
 
 package com.liferay.portal.util;
 
-import com.liferay.portal.kernel.test.TestCase;
 import com.liferay.portal.kernel.util.StringPool;
 
 import org.junit.Assert;
@@ -23,7 +22,7 @@ import org.junit.Test;
 /**
  * @author Julio Camarero
  */
-public class FriendlyURLNormalizerImplTest extends TestCase {
+public class FriendlyURLNormalizerImplTest {
 
 	@Test
 	public void testNormalizeBlank() {
@@ -88,6 +87,7 @@ public class FriendlyURLNormalizerImplTest extends TestCase {
 			_friendlyURLNormalizerImpl.normalize(StringPool.SPACE));
 	}
 
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testNormalizeWordReplacingChars() {
 		Assert.assertEquals(
