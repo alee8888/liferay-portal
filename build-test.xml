@@ -38,30 +38,26 @@
 	<propertycopy from="testray.build.${testray.build.type}.name" name="testray.build.name" />
 	<propertycopy from="testray.product.${testray.product.type}.version" name="testray.product.version" />
 
-	<macrodef name="prepare-additional-bundle">
-		<attribute default="${app.server.bundle.list}" name="app.server.bundle.list" />
-
+	<macrodef name="prepare-additional-bundles">
 		<sequential>
-			<for list="${app.server.bundle.list}" param="app.server.bundle.count">
-				<sequential>
-					<if>
-						<not>
-							<equals arg1="@{app.server.bundle.count}" arg2="1" />
-						</not>
-						<then>
-							<delete dir="${app.server.parent.dir}-@{app.server.bundle.count}" />
+			<if>
+				<isset property="app.server.bundle.suffixes" />
+				<then>
+					<for list="${app.server.bundle.suffixes}" param="app.server.bundle.suffix">
+						<sequential>
+							<delete dir="${app.server.parent.dir}-@{app.server.bundle.suffix}" />
 
-							<copy todir="${app.server.parent.dir}-@{app.server.bundle.count}/${app.server.type}-${app.server.version}">
+							<copy todir="${app.server.parent.dir}-@{app.server.bundle.suffix}/${app.server.type}-${app.server.version}">
 								<fileset dir="${app.server.dir}" />
 							</copy>
 
-							<copy todir="${app.server.parent.dir}-@{app.server.bundle.count}/osgi">
+							<copy todir="${app.server.parent.dir}-@{app.server.bundle.suffix}/osgi">
 								<fileset dir="${liferay.home}/osgi" />
 							</copy>
-						</then>
-					</if>
-				</sequential>
-			</for>
+						</sequential>
+					</for>
+				</then>
+			</if>
 		</sequential>
 	</macrodef>
 
@@ -145,48 +141,49 @@
 	</macrodef>
 
 	<macrodef name="prepare-test-cluster-properties">
-		<attribute default="${app.server.bundle.list}" name="app.server.bundle.list" />
-
 		<sequential>
-			<for list="${app.server.bundle.list}" param="app.server.bundle.count">
-				<sequential>
-					<if>
-						<equals arg1="${app.server.type}" arg2="tomcat" />
-						<then>
-							<if>
-								<equals arg1="@{app.server.bundle.count}" arg2="1" />
-								<then>
-									<replace
-										file="${app.server.tomcat.dir}/conf/server.xml"
-										token="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot;&gt;"
-										value="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot; jvmRoute=&quot;@{app.server.bundle.count}&quot;&gt;"
-									/>
-								</then>
-								<else>
-									<replaceregexp
-										file="${app.server.parent.dir}-@{app.server.bundle.count}/tomcat-${app.server.tomcat.version}/conf/server.xml"
-										flags="g"
-										match="=&quot;8(\d\d\d)&quot;"
-										replace="=&quot;@{app.server.bundle.count}\1&quot;"
-									/>
+			<if>
+				<not>
+					<equals arg1="${app.server.type}" arg2="tomcat" />
+				</not>
+				<then>
+					<fail>Clustering is only currently supported in Tomcat.</fail>
+				</then>
+			</if>
 
-									<replace
-										file="${app.server.parent.dir}-@{app.server.bundle.count}/tomcat-${app.server.tomcat.version}/conf/server.xml"
-										token="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot;&gt;"
-										value="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot; jvmRoute=&quot;@{app.server.bundle.count}&quot;&gt;"
-									/>
+			<replace
+				file="${app.server.tomcat.dir}/conf/server.xml"
+				token="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot;&gt;"
+				value="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot; jvmRoute=&quot;0&quot;&gt;"
+			/>
 
-									<replace
-										file="${app.server.parent.dir}-@{app.server.bundle.count}/tomcat-${app.server.tomcat.version}/webapps/ROOT/WEB-INF/classes/portal-ext.properties"
-										token="liferay.home=${liferay.home}"
-										value="liferay.home=${app.server.parent.dir}-@{app.server.bundle.count}"
-									/>
-								</else>
-							</if>
-						</then>
-					</if>
-				</sequential>
-			</for>
+			<if>
+				<isset property="app.server.bundle.suffixes" />
+				<then>
+					<for list="${app.server.bundle.suffixes}" param="app.server.bundle.suffix">
+						<sequential>
+							<replaceregexp
+								file="${app.server.parent.dir}-@{app.server.bundle.suffix}/tomcat-${app.server.tomcat.version}/conf/server.xml"
+								flags="g"
+								match="=&quot;8(\d\d\d)&quot;"
+								replace="=&quot;@{app.server.bundle.suffix}\1&quot;"
+							/>
+
+							<replace
+								file="${app.server.parent.dir}-@{app.server.bundle.suffix}/tomcat-${app.server.tomcat.version}/conf/server.xml"
+								token="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot;&gt;"
+								value="&lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot; jvmRoute=&quot;@{app.server.bundle.suffix}&quot;&gt;"
+							/>
+
+							<replace
+								file="${app.server.parent.dir}-@{app.server.bundle.suffix}/tomcat-${app.server.tomcat.version}/webapps/ROOT/WEB-INF/classes/portal-ext.properties"
+								token="liferay.home=${liferay.home}"
+								value="liferay.home=${app.server.parent.dir}-@{app.server.bundle.suffix}"
+							/>
+						</sequential>
+					</for>
+				</then>
+			</if>
 		</sequential>
 	</macrodef>
 
@@ -342,24 +339,22 @@
 		</sequential>
 	</macrodef>
 
-	<macrodef name="start-additional-app-server">
+	<macrodef name="start-additional-app-servers">
 		<sequential>
-			<for list="${app.server.bundle.list}" param="app.server.bundle.count">
-				<sequential>
-					<if>
-						<not>
-							<equals arg1="@{app.server.bundle.count}" arg2="1" />
-						</not>
-						<then>
+			<if>
+				<isset property="app.server.bundle.suffixes" />
+				<then>
+					<for list="${app.server.bundle.suffixes}" param="app.server.bundle.suffix">
+						<sequential>
 							<start-app-server
-								app.server.bin.dir="${app.server.parent.dir}-@{app.server.bundle.count}/${app.server.type}-${app.server.version}/bin"
-								app.server.http.url="http://localhost:@{app.server.bundle.count}080/web/guest"
-								liferay.home="${app.server.parent.dir}-@{app.server.bundle.count}"
+								app.server.bin.dir="${app.server.parent.dir}-@{app.server.bundle.suffix}/${app.server.type}-${app.server.version}/bin"
+								app.server.http.url="http://localhost:@{app.server.bundle.suffix}080/web/guest"
+								liferay.home="${app.server.parent.dir}-@{app.server.bundle.suffix}"
 							/>
-						</then>
-					</if>
-				</sequential>
-			</for>
+						</sequential>
+					</for>
+				</then>
+			</if>
 		</sequential>
 	</macrodef>
 
@@ -411,20 +406,20 @@
 		</sequential>
 	</macrodef>
 
-	<macrodef name="stop-additional-app-server">
+	<macrodef name="stop-additional-app-servers">
 		<sequential>
-			<for list="${app.server.bundle.list}" param="app.server.bundle.count">
-				<sequential>
-					<if>
-						<not>
-							<equals arg1="@{app.server.bundle.count}" arg2="1" />
-						</not>
-						<then>
-							<stop-app-server app.server.bin.dir="${app.server.parent.dir}-@{app.server.bundle.count}/${app.server.type}-${app.server.version}/bin" />
-						</then>
-					</if>
-				</sequential>
-			</for>
+			<if>
+				<isset property="app.server.bundle.suffixes" />
+				<then>
+					<for list="${app.server.bundle.suffixes}" param="app.server.bundle.suffix">
+						<sequential>
+							<stop-app-server
+								app.server.bin.dir="${app.server.parent.dir}-@{app.server.bundle.suffix}/${app.server.type}-${app.server.version}/bin"
+							/>
+						</sequential>
+					</for>
+				</then>
+			</if>
 		</sequential>
 	</macrodef>
 
@@ -3009,7 +3004,7 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 		<if>
 			<equals arg1="${cluster.enabled}" arg2="true" />
 			<then>
-				<prepare-additional-bundle />
+				<prepare-additional-bundles />
 
 				<prepare-test-cluster-properties />
 			</then>
@@ -3160,7 +3155,7 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 				<if>
 					<equals arg1="${cluster.enabled}" arg2="true" />
 					<then>
-						<start-additional-app-server />
+						<start-additional-app-servers />
 					</then>
 				</if>
 
@@ -3258,7 +3253,7 @@ custom.sql.function.isnotnull=CONVERT(VARCHAR,?) IS NOT NULL</echo>
 		<if>
 			<equals arg1="${cluster.enabled}" arg2="true" />
 			<then>
-				<stop-additional-app-server />
+				<stop-additional-app-servers />
 			</then>
 		</if>
 
