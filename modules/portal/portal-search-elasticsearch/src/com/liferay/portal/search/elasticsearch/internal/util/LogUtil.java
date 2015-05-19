@@ -47,7 +47,7 @@ public class LogUtil {
 		throws IOException {
 
 		if (bulkResponse.hasFailures()) {
-			log.error(bulkResponse.buildFailureMessage());
+			log.error(bulkResponse.buildFailureMessage(), new Throwable());
 		}
 
 		logActionResponse(log, (ActionResponse)bulkResponse);
