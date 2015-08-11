@@ -14,12 +14,12 @@
 
 package com.liferay.message.boards.web.asset;
 
+import com.liferay.message.boards.web.constants.MBPortletKeys;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.asset.model.AssetRenderer;
 import com.liferay.portlet.asset.model.AssetRendererFactory;
 import com.liferay.portlet.asset.model.BaseAssetRendererFactory;
@@ -44,23 +44,24 @@ import org.osgi.service.component.annotations.Reference;
 @Component(
 	immediate = true,
 	property = {
-		"javax.portlet.name=" + PortletKeys.MESSAGE_BOARDS,
+		"javax.portlet.name=" + MBPortletKeys.MESSAGE_BOARDS,
 		"search.asset.type=com.liferay.portlet.messageboards.model.MBMessage"
 	},
 	service = AssetRendererFactory.class
 )
-public class MBMessageAssetRendererFactory extends BaseAssetRendererFactory {
+public class MBMessageAssetRendererFactory
+	extends BaseAssetRendererFactory<MBMessage> {
 
 	public static final String TYPE = "message";
 
 	public MBMessageAssetRendererFactory() {
 		setCategorizable(false);
 		setLinkable(true);
-		setPortletId(PortletKeys.MESSAGE_BOARDS);
+		setPortletId(MBPortletKeys.MESSAGE_BOARDS);
 	}
 
 	@Override
-	public AssetRenderer getAssetRenderer(long classPK, int type)
+	public AssetRenderer<MBMessage> getAssetRenderer(long classPK, int type)
 		throws PortalException {
 
 		MBMessage message = _mbMessageLocalService.getMessage(classPK);
@@ -95,7 +96,7 @@ public class MBMessageAssetRendererFactory extends BaseAssetRendererFactory {
 
 		LiferayPortletURL liferayPortletURL =
 			liferayPortletResponse.createLiferayPortletURL(
-				PortletKeys.MESSAGE_BOARDS, PortletRequest.RENDER_PHASE);
+				MBPortletKeys.MESSAGE_BOARDS, PortletRequest.RENDER_PHASE);
 
 		try {
 			liferayPortletURL.setWindowState(windowState);

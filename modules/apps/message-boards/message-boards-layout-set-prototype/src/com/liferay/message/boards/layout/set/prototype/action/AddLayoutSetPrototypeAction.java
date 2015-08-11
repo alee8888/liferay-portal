@@ -14,9 +14,13 @@
 
 package com.liferay.message.boards.layout.set.prototype.action;
 
+import com.liferay.layout.set.prototype.web.constants.LayoutSetPrototypePortletKeys;
+import com.liferay.message.boards.web.constants.MBPortletKeys;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
+import com.liferay.portal.kernel.portlet.PortletProvider;
+import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Layout;
@@ -28,7 +32,8 @@ import com.liferay.portal.service.LayoutSetPrototypeLocalService;
 import com.liferay.portal.service.UserLocalService;
 import com.liferay.portal.util.DefaultLayoutPrototypesUtil;
 import com.liferay.portal.util.DefaultLayoutSetPrototypesUtil;
-import com.liferay.portal.util.PortletKeys;
+import com.liferay.portlet.messageboards.model.MBMessage;
+import com.liferay.social.user.statistics.web.constants.UserStatisticsPortletKeys;
 
 import java.util.List;
 import java.util.ResourceBundle;
@@ -88,12 +93,13 @@ public class AddLayoutSetPrototypeAction {
 
 		Layout layout = DefaultLayoutPrototypesUtil.addLayout(
 			layoutSet, "home", "/home", "2_columns_iii");
+		String portletId = PortletProviderUtil.getPortletId(
+			MBMessage.class.getName(), PortletProvider.Action.EDIT);
+
+		DefaultLayoutPrototypesUtil.addPortletId(layout, portletId, "column-1");
 
 		DefaultLayoutPrototypesUtil.addPortletId(
-			layout, PortletKeys.MESSAGE_BOARDS, "column-1");
-
-		DefaultLayoutPrototypesUtil.addPortletId(
-			layout, PortletKeys.USER_STATISTICS, "column-2");
+			layout, UserStatisticsPortletKeys.USER_STATISTICS, "column-2");
 
 		// Wiki layout
 
@@ -126,14 +132,14 @@ public class AddLayoutSetPrototypeAction {
 	}
 
 	@Reference(
-		target = "(javax.portlet.name=com_liferay_layout_set_prototype_web_portlet_LayoutSetPrototypePortlet)",
+		target = "(javax.portlet.name=" + LayoutSetPrototypePortletKeys.LAYOUT_SET_PROTOTYPE + ")",
 		unbind = "-"
 	)
 	protected void setLayoutSetPrototypePortlet(Portlet portlet) {
 	}
 
 	@Reference(
-		target = "(javax.portlet.name=" + PortletKeys.MESSAGE_BOARDS + ")",
+		target = "(javax.portlet.name=" + MBPortletKeys.MESSAGE_BOARDS + ")",
 		unbind = "-"
 	)
 	protected void setMessageBoardsPortlet(Portlet portlet) {

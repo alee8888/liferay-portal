@@ -14,8 +14,8 @@
 
 package com.liferay.message.boards.web.portlet.action;
 
+import com.liferay.message.boards.web.constants.MBPortletKeys;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
-import com.liferay.portal.util.PortletKeys;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -24,8 +24,8 @@ import org.osgi.service.component.annotations.Component;
  */
 @Component(
 	property = {
-		"javax.portlet.name=" + PortletKeys.MESSAGE_BOARDS,
-		"javax.portlet.name=" + PortletKeys.MESSAGE_BOARDS_ADMIN,
+		"javax.portlet.name=" + MBPortletKeys.MESSAGE_BOARDS,
+		"javax.portlet.name=" + MBPortletKeys.MESSAGE_BOARDS_ADMIN,
 		"mvc.command.name=/message_boards/split_thread"
 	},
 	service = MVCRenderCommand.class

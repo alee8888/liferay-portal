@@ -29,6 +29,7 @@ import com.liferay.gradle.plugins.xsd.builder.XSDBuilderPlugin;
 import com.liferay.gradle.util.FileUtil;
 import com.liferay.gradle.util.GradleUtil;
 import com.liferay.gradle.util.Validator;
+import com.liferay.gradle.util.copy.RenameDependencyClosure;
 
 import groovy.lang.Closure;
 
@@ -659,9 +660,13 @@ public class LiferayOSGiPlugin extends LiferayJavaPlugin {
 
 		super.configureTaskDeploy(project, liferayExtension);
 
-		Copy copy = (Copy)GradleUtil.getTask(project, DEPLOY_TASK_NAME);
+		Task task = GradleUtil.getTask(project, DEPLOY_TASK_NAME);
 
-		configureTaskDeployRename(copy);
+		if (!(task instanceof Copy)) {
+			return;
+		}
+
+		configureTaskDeployRename((Copy)task);
 	}
 
 	@Override

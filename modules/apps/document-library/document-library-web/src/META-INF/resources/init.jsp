@@ -19,13 +19,15 @@
 <%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet" %>
 
 <%@ taglib uri="http://liferay.com/tld/aui" prefix="aui" %><%@
+taglib uri="http://liferay.com/tld/ddm" prefix="liferay-ddm" %><%@
 taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %><%@
 taglib uri="http://liferay.com/tld/security" prefix="liferay-security" %><%@
 taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %><%@
 taglib uri="http://liferay.com/tld/util" prefix="liferay-util" %>
 
-<%@ page import="com.liferay.document.library.web.display.context.DLDisplayContextProviderUtil" %><%@
+<%@ page import="com.liferay.document.library.web.constants.DLPortletKeys" %><%@
+page import="com.liferay.document.library.web.display.context.DLDisplayContextProviderUtil" %><%@
 page import="com.liferay.document.library.web.display.context.IGDisplayContextProviderUtil" %><%@
 page import="com.liferay.document.library.web.display.context.logic.DLPortletInstanceSettingsHelper" %><%@
 page import="com.liferay.document.library.web.display.context.logic.DLVisualizationHelper" %><%@
@@ -35,6 +37,7 @@ page import="com.liferay.document.library.web.display.context.util.IGRequestHelp
 page import="com.liferay.document.library.web.search.EntriesChecker" %><%@
 page import="com.liferay.document.library.web.settings.internal.DLPortletInstanceSettings" %><%@
 page import="com.liferay.document.library.web.util.DLBreadcrumbUtil" %><%@
+page import="com.liferay.dynamic.data.mapping.util.DDMBeanCopyUtil" %><%@
 page import="com.liferay.portal.InvalidRepositoryException" %><%@
 page import="com.liferay.portal.NoSuchRepositoryException" %><%@
 page import="com.liferay.portal.NoSuchWorkflowDefinitionLinkException" %><%@
@@ -133,7 +136,7 @@ page import="com.liferay.portlet.PortalPreferences" %><%@
 page import="com.liferay.portlet.PortletPreferencesFactoryUtil" %><%@
 page import="com.liferay.portlet.PortletURLFactoryUtil" %><%@
 page import="com.liferay.portlet.PortletURLUtil" %><%@
-page import="com.liferay.portlet.admin.util.PortalAdministrationApplicationType" %><%@
+page import="com.liferay.portlet.admin.util.PortalProductMenuApplicationType" %><%@
 page import="com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil" %><%@
 page import="com.liferay.portlet.asset.model.AssetEntry" %><%@
 page import="com.liferay.portlet.asset.model.AssetRenderer" %><%@
