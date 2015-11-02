@@ -751,7 +751,7 @@
 		<if>
 			<isset var="customFieldTextEdit" />
 			<then>
-				<execute function="Type" locator1="Wiki#CUSTOM_FIELD_TEXT_FIELD" value1="${customFieldTextEdit}" />
+				<execute function="Type" locator1="TextInput#CUSTOM_FIELD" value1="${customFieldTextEdit}" />
 			</then>
 		</if>
 
