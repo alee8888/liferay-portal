@@ -821,6 +821,22 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--SITE_ADMIN_APPLICATIONS_BLOGS-->
+<tr>
+	<td>SITE_ADMIN_APPLICATIONS_BLOGS_APPLICATION_PERMISSIONS_CONFIGURATION_CHECKBOX</td>
+	<td>//input[contains(@value,'BlogsPortletCONFIGURATION')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_ADMIN_APPLICATIONS_BLOGS_APPLICATION_PERMISSIONS_PERMISSIONS_CHECKBOX</td>
+	<td>//input[contains(@value,'BlogsPortletPERMISSIONS')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
 <!--SITE_ADMIN_APPLICATIONS_KALEO_FORMS-->
 <tr>
 	<td>SITE_ADMIN_APPLICATIONS_KALEO_FORMS_APPLICATION_PERMISSIONS_ALL_CHECKBOX</td>
