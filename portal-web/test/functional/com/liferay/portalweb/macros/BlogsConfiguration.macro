@@ -205,11 +205,10 @@
 			<then>
 				<execute function="Click" locator1="BasePortlet#OPTIONS_MENULIST_CONFIGURATION" />
 
-				<execute function="SelectFrame" locator1="BasePortletConfiguration#CONFIGURATION_IFRAME" /> 
+				<execute function="SelectFrame" locator1="BasePortletConfiguration#CONFIGURATION_IFRAME" />
 			</then>
-
 		</if>
-		
+
 		<execute function="AssertTextEquals" locator1="PGBlogs#PERMISSIONS_BUTTON" value1="Permissions" />
 	</command>
 
