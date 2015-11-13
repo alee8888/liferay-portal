@@ -25,7 +25,7 @@ if (Validator.isNotNull(keywords)) {
 	keywords = StringUtil.quote(keywords, StringPool.PERCENT);
 }
 
-SearchContainer tagsSearchContainer = new SearchContainer(renderRequest, renderResponse.createRenderURL(), null, "there-are-no-tags.-you-can-add-a-tag-by-clicking-the-plus-button-on-the-right-bottom-corner");
+SearchContainer tagsSearchContainer = new SearchContainer(renderRequest, renderResponse.createRenderURL(), null, "there-are-no-tags.-you-can-add-a-tag-by-clicking-the-plus-button-on-the-bottom-right-corner");
 
 String orderByCol = ParamUtil.getString(request, "orderByCol", "name");
 

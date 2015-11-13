@@ -42,22 +42,14 @@ public class OrganizationLocalServiceWrapper implements OrganizationLocalService
 		_organizationLocalService.addGroupOrganization(groupId, organizationId);
 	}
 
-	/**
-	* @throws PortalException
-	*/
 	@Override
 	public void addGroupOrganizations(long groupId,
-		java.util.List<com.liferay.portal.model.Organization> Organizations)
-		throws com.liferay.portal.kernel.exception.PortalException {
+		java.util.List<com.liferay.portal.model.Organization> Organizations) {
 		_organizationLocalService.addGroupOrganizations(groupId, Organizations);
 	}
 
-	/**
-	* @throws PortalException
-	*/
 	@Override
-	public void addGroupOrganizations(long groupId, long[] organizationIds)
-		throws com.liferay.portal.kernel.exception.PortalException {
+	public void addGroupOrganizations(long groupId, long[] organizationIds) {
 		_organizationLocalService.addGroupOrganizations(groupId, organizationIds);
 	}
 
@@ -1384,12 +1376,8 @@ public class OrganizationLocalServiceWrapper implements OrganizationLocalService
 			country, params, andSearch, start, end, sort);
 	}
 
-	/**
-	* @throws PortalException
-	*/
 	@Override
-	public void setGroupOrganizations(long groupId, long[] organizationIds)
-		throws com.liferay.portal.kernel.exception.PortalException {
+	public void setGroupOrganizations(long groupId, long[] organizationIds) {
 		_organizationLocalService.setGroupOrganizations(groupId, organizationIds);
 	}
 
@@ -1405,8 +1393,7 @@ public class OrganizationLocalServiceWrapper implements OrganizationLocalService
 	* @param organizationIds the primary keys of the organizations
 	*/
 	@Override
-	public void unsetGroupOrganizations(long groupId, long[] organizationIds)
-		throws com.liferay.portal.kernel.exception.PortalException {
+	public void unsetGroupOrganizations(long groupId, long[] organizationIds) {
 		_organizationLocalService.unsetGroupOrganizations(groupId,
 			organizationIds);
 	}

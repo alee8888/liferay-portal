@@ -190,7 +190,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 * @return the trash entry with the primary key
 	 */
 	@Override
-	public TrashEntry deleteEntry(long entryId) throws PortalException {
+	public TrashEntry deleteEntry(long entryId) {
 		TrashEntry entry = trashEntryPersistence.fetchByPrimaryKey(entryId);
 
 		return deleteEntry(entry);
@@ -204,9 +204,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 * @return the trash entry with the entity class name and primary key
 	 */
 	@Override
-	public TrashEntry deleteEntry(String className, long classPK)
-		throws PortalException {
-
+	public TrashEntry deleteEntry(String className, long classPK) {
 		long classNameId = classNameLocalService.getClassNameId(className);
 
 		TrashEntry entry = trashEntryPersistence.fetchByC_C(

@@ -574,6 +574,7 @@ public class UserWrapper implements User, ModelWrapper<User> {
 	intranet(versus extranet)  site home page, if no friendly URL
 	is available for the user's profile
 	* @return the user's display URL
+	* @throws PortalException
 	* @deprecated As of 7.0.0, replaced by {@link #getDisplayURL(ThemeDisplay)}
 	*/
 	@Deprecated
@@ -644,6 +645,7 @@ public class UserWrapper implements User, ModelWrapper<User> {
 	intranet (versus extranet) site home page, if no friendly URL is
 	available for the user's profile
 	* @return the user's display URL
+	* @throws PortalException
 	*/
 	@Override
 	public java.lang.String getDisplayURL(
