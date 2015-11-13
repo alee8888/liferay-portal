@@ -51,18 +51,10 @@ public interface OrganizationLocalService extends BaseLocalService,
 
 	public void addGroupOrganization(long groupId, long organizationId);
 
-	/**
-	* @throws PortalException
-	*/
 	public void addGroupOrganizations(long groupId,
-		java.util.List<com.liferay.portal.model.Organization> Organizations)
-		throws PortalException;
+		java.util.List<com.liferay.portal.model.Organization> Organizations);
 
-	/**
-	* @throws PortalException
-	*/
-	public void addGroupOrganizations(long groupId, long[] organizationIds)
-		throws PortalException;
+	public void addGroupOrganizations(long groupId, long[] organizationIds);
 
 	/**
 	* Adds the organization to the database. Also notifies the appropriate model listeners.
@@ -1128,11 +1120,7 @@ public interface OrganizationLocalService extends BaseLocalService,
 		boolean andSearch, int start, int end,
 		com.liferay.portal.kernel.search.Sort sort) throws PortalException;
 
-	/**
-	* @throws PortalException
-	*/
-	public void setGroupOrganizations(long groupId, long[] organizationIds)
-		throws PortalException;
+	public void setGroupOrganizations(long groupId, long[] organizationIds);
 
 	public void setUserOrganizations(long userId, long[] organizationIds);
 
@@ -1142,8 +1130,7 @@ public interface OrganizationLocalService extends BaseLocalService,
 	* @param groupId the primary key of the group
 	* @param organizationIds the primary keys of the organizations
 	*/
-	public void unsetGroupOrganizations(long groupId, long[] organizationIds)
-		throws PortalException;
+	public void unsetGroupOrganizations(long groupId, long[] organizationIds);
 
 	/**
 	* Removes the organizations from the password policy.
