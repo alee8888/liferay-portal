@@ -57,7 +57,7 @@ if (filterManageableOrganizations) {
 	userParams.put("usersOrgsTree", user.getOrganizations());
 }
 
-RowChecker rowChecker = new UserUserGroupChecker(renderResponse, userGroup);
+RowChecker rowChecker = new SetUserUserGroupChecker(renderResponse, userGroup);
 %>
 
 <aui:nav-bar cssClass="collapse-basic-search" markupView="lexicon">
