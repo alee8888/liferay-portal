@@ -47,8 +47,8 @@ List<String> attributeNames = Collections.list(expandoBridge.getAttributeNames()
 </aui:nav-bar>
 
 <liferay-frontend:management-bar
-	checkBoxContainerId="customFieldsSearchContainer"
 	includeCheckBox="<%= true %>"
+	searchContainerId="customFields"
 >
 	<liferay-frontend:management-bar-filters>
 		<liferay-frontend:management-bar-navigation
@@ -70,7 +70,7 @@ List<String> attributeNames = Collections.list(expandoBridge.getAttributeNames()
 	</liferay-frontend:management-bar-action-buttons>
 </liferay-frontend:management-bar>
 
-<aui:form action="<%= portletURL.toString() %>" class="container-fluid-1280" method="post" name="fm">
+<aui:form action="<%= portletURL.toString() %>" cssClass="container-fluid-1280" method="post" name="fm">
 	<aui:input name="redirect" type="hidden" value="<%= portletURL.toString() %>" />
 	<aui:input name="columnIds" type="hidden" />
 
