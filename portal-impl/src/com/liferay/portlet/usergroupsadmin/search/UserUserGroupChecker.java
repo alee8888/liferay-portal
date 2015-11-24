@@ -19,7 +19,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.UserGroup;
-import com.liferay.portal.security.membershippolicy.UserGroupMembershipPolicyUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
 
 import javax.portlet.RenderResponse;
