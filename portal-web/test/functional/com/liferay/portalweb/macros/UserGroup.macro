@@ -146,17 +146,24 @@
 	</command>
 
 	<command name="assignMemberCP">
+		<execute function="Type" locator1="TextInput#SEARCH" value1="${userGroupName}" />
+
+		<execute function="Click" locator1="Button#SUBMIT" />
+
 		<var name="key_userGroupName" value="${userGroupName}" />
 
-		<execute function="Type" locator1="TextInput#SEARCH" value1="${userGroupName}" />
-		<execute function="Click" locator1="Button#SUBMIT" />
 		<execute function="AssertTextEquals" locator1="UserGroups#USER_GROUP_TABLE_NAME" value1="${userGroupName}" />
+
 		<execute function="Click" locator1="Icon#BODY_VERTICAL_ELLIPSIS" />
+
 		<execute function="AssertClick" locator1="MenuItem#ASSIGN_MEMBERS" value1="Assign Members" />
 
 		<var name="key_userScreenName" value="${userScreenName}" />
 
-		<execute function="AssertClick" locator1="UserGroupsAssignUsers#AVAILABLE_TAB" value1="Available" />
+		<execute function="Click" locator1="Button#ADD_USER" />
+
+
+
 		<execute function="Type" locator1="TextInput#SEARCH" value1="${userScreenName}" />
 		<execute function="Click" locator1="Button#SUBMIT" />
 		<execute function="AssertTextEquals" locator1="UserGroupsAssignUsers#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
