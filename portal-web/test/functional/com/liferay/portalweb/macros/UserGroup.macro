@@ -146,26 +146,34 @@
 	</command>
 
 	<command name="assignMemberCP">
-		<var name="key_userGroupName" value="${userGroupName}" />
-
 		<execute function="Type" locator1="TextInput#SEARCH" value1="${userGroupName}" />
+
 		<execute function="Click" locator1="Button#SUBMIT" />
-		<execute function="AssertTextEquals" locator1="UserGroups#USER_GROUP_TABLE_NAME" value1="${userGroupName}" />
-		<execute function="Click" locator1="Icon#BODY_VERTICAL_ELLIPSIS" />
+
+		<var name="key_assetEntry" value="${userGroupName}" />
+
+		<execute function="Click" locator1="Icon#DESCRIPTIVE_VERTICAL_ELLIPSIS" />
+
 		<execute function="AssertClick" locator1="MenuItem#ASSIGN_MEMBERS" value1="Assign Members" />
+
+		<execute function="Click" locator1="Button#ADD_USER" />
+
+		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
+
+		<execute function="Type" locator1="TextInput#SEARCH" value1="${userScreenName}" />
+
+		<execute function="Click" locator1="Button#SUBMIT" />
 
 		<var name="key_userScreenName" value="${userScreenName}" />
 
-		<execute function="AssertClick" locator1="UserGroupsAssignUsers#AVAILABLE_TAB" value1="Available" />
-		<execute function="Type" locator1="TextInput#SEARCH" value1="${userScreenName}" />
-		<execute function="Click" locator1="Button#SUBMIT" />
-		<execute function="AssertTextEquals" locator1="UserGroupsAssignUsers#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 		<execute function="Check" locator1="UserGroupsAssignUsers#USER_TABLE_CHECKBOX" />
-		<execute function="AssertClick" locator1="Button#UPDATE_ASSOCIATIONS" value1="Update Associations" />
+
+		<execute function="SelectFrameTop" />
+
+		<execute function="AssertClick" locator1="Button#ADD" value1="Add" />
+
 		<execute function="AssertTextEquals" locator1="Message#SUCCESS" value1="Your request completed successfully." />
 
-		<execute function="AssertClick" locator1="UserGroupsAssignUsers#CURRENT_TAB" value1="Current" />
-		<execute function="AssertChecked" locator1="UserGroupsAssignUsers#USER_TABLE_CHECKBOX" />
 		<execute function="AssertTextEquals" locator1="UserGroupsAssignUsers#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 	</command>
 
@@ -306,18 +314,22 @@
 	</command>
 
 	<command name="viewAssignMemberCP">
+		<execute function="Type" locator1="TextInput#SEARCH" value1="${userGroupName}" />
+
+		<execute function="Click" locator1="Button#SUBMIT" />
+
 		<var name="key_userGroupName" value="${userGroupName}" />
 
-		<execute function="Type" locator1="TextInput#SEARCH" value1="${userGroupName}" />
-		<execute function="Click" locator1="Button#SUBMIT" />
 		<execute function="AssertTextEquals" locator1="UserGroups#USER_GROUP_TABLE_NAME" value1="${userGroupName}" />
-		<execute function="Click" locator1="Icon#BODY_VERTICAL_ELLIPSIS" />
+
+		<var name="key_assetEntry" value="${userGroupName}" />
+
+		<execute function="Click" locator1="Icon#DESCRIPTIVE_VERTICAL_ELLIPSIS" />
+
 		<execute function="AssertClick" locator1="MenuItem#ASSIGN_MEMBERS" value1="Assign Members" />
 
 		<var name="key_userScreenName" value="${userScreenName}" />
 
-		<execute function="AssertClick" locator1="UserGroupsAssignUsers#CURRENT_TAB" value1="Current" />
-		<execute function="AssertChecked" locator1="UserGroupsAssignUsers#USER_TABLE_CHECKBOX" />
 		<execute function="AssertTextEquals" locator1="UserGroupsAssignUsers#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 	</command>
 
