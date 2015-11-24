@@ -57,7 +57,7 @@
 		<var name="key_virtualHost" value="${virtualHost}" />
 
 		<execute function="AssertTextEquals" locator1="PortalInstances#INSTANCE_TABLE_VIRTUAL_HOST" value1="${virtualHost}" />
-		<execute function="AssertClick" locator1="PortalInstances#INSTANCE_TABLE_EDIT" value1="Edit" />
+		<execute function="AssertClick" locator1="MenuItem#EDIT" value1="Edit" />
 
 		<execute function="Type" locator1="CPPortalinstancesEdit#MAIL_DOMAIN_FIELD" value1="${mailDomain}" />
 		<execute function="AssertClick" locator1="CPPortalinstancesEdit#SAVE_BUTTON" value1="Save" />
