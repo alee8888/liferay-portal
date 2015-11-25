@@ -29,27 +29,40 @@
 		modelVar="curCompany"
 	>
 
+		<%
+		PortletURL rowURL = renderResponse.createRenderURL();
+
+		rowURL.setParameter("mvcRenderCommandName", "/portal_instances/edit_instance");
+		rowURL.setParameter("redirect", currentURL);
+		rowURL.setParameter("companyId", String.valueOf(curCompany.getCompanyId()));
+		%>
+
 		<liferay-ui:search-container-column-text
+			href="<%= rowURL %>"
 			name="instance-id"
 			property="companyId"
 		/>
 
 		<liferay-ui:search-container-column-text
+			href="<%= rowURL %>"
 			name="web-id"
 			property="webId"
 		/>
 
 		<liferay-ui:search-container-column-text
+			href="<%= rowURL %>"
 			name="virtual-host"
 			value="<%= curCompany.getVirtualHostname() %>"
 		/>
 
 		<liferay-ui:search-container-column-text
+			href="<%= rowURL %>"
 			name="mail-domain"
 			property="mx"
 		/>
 
 		<liferay-ui:search-container-column-text
+			href="<%= rowURL %>"
 			name="num-of-users"
 			value="<%= String.valueOf(UserLocalServiceUtil.searchCount(curCompany.getCompanyId(), null, WorkflowConstants.STATUS_APPROVED, null)) %>"
 		/>
@@ -59,11 +72,13 @@
 		%>
 
 		<liferay-ui:search-container-column-text
+			href="<%= rowURL %>"
 			name="max-num-of-users"
 			value='<%= (maxUsers > 0) ? String.valueOf(maxUsers) : LanguageUtil.get(request, "unlimited") %>'
 		/>
 
 		<liferay-ui:search-container-column-text
+			href="<%= rowURL %>"
 			name="active"
 			value='<%= LanguageUtil.get(request, curCompany.isActive() ? "yes" : "no") %>'
 		/>
