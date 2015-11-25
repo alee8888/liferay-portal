@@ -242,7 +242,7 @@
 		<execute macro="UserGroup#viewDefault" />
 	</command>
 
-	<command name="DeleteUserGroupUser" priority="4">
+	<command name="DeleteUserGroupWithMemberAssigned" priority="4">
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
