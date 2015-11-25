@@ -159,7 +159,7 @@
 
 				<execute function="AssertClick" locator1="AP#ADD_NEW_DROPDOWN_IN_SCOPED_SITE" value1="Add New in ${siteScope}" />
 
-				<execute function="AssertClick" locator1="AP#ADD_BLOGS_ENTRY_BUTTON" value1="Blogs Entry" />
+				<execute function="AssertClick" locator1="AP#ADD_BLOGS_ENTRY_MENU_ITEM" value1="Blogs Entry" />
 			</then>
 			<else>
 				<execute function="AssertClick" locator1="AP#ADD_NEW_DROPDOWN" value1="Add New" />
