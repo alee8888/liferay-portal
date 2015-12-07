@@ -947,10 +947,7 @@
 		<execute function="Type" locator1="TextInput#MINIMUM_SYMBOLS" value1="0" />
 		<execute function="Type" locator1="TextInput#MINIMUM_UPPER_CASE" value1="0" />
 
-		<var name="atLeastFourCharNoNumbers">
-			<![CDATA[(?=.{4})(?:[a-zA-Z]*)
-			]]>
-		</var>
+		<var name="atLeastFourCharNoNumbers" value="(?=.{4})(?:[a-zA-Z]*)" />
 
 		<execute function="Type" locator1="TextInput#REGULAR_EXPRESSION" value1="${atLeastFourCharNoNumbers}" />
 
@@ -962,6 +959,7 @@
 
 		<execute macro="User#editPasswordInvalidCP">
 			<var name="newPassword" value="NO1else" />
+			<var name="regex" value="${atLeastFourCharNoNumbers}" />
 			<var name="userEmailAddress" value="test1@liferay.com" />
 			<var name="userScreenName" value="test1" />
 		</execute>
@@ -985,10 +983,7 @@
 		<execute function="Click" locator1="PasswordPolicies#DEFAULT_PASSWORD_POLICY_TABLE_ACTIONS_BUTTON" />
 		<execute function="AssertClick" locator1="MenuItem#EDIT" value1="Edit" />
 
-		<var name="atLeastSixCharNumbersPermitted">
-			<![CDATA[(?=.{6})(?:[a-zA-Z0-9]*)
-			]]>
-		</var>
+		<var name="atLeastSixCharNumbersPermitted" value="(?=.{6})(?:[a-zA-Z0-9]*)" />
 
 		<execute function="Type" locator1="TextInput#REGULAR_EXPRESSION" value1="${atLeastSixCharNumbersPermitted}" />
 		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
@@ -1023,6 +1018,7 @@
 
 		<execute macro="User#editPasswordInvalidCP">
 			<var name="newPassword" value="1-2-3ABC" />
+			<var name="regex" value="${atLeastSixCharNumbersPermitted}" />
 			<var name="userEmailAddress" value="test1@liferay.com" />
 			<var name="userScreenName" value="test1" />
 		</execute>
@@ -1054,6 +1050,7 @@
 
 		<execute macro="User#editPasswordInvalidCP">
 			<var name="newPassword" value="12AB" />
+			<var name="regex" value="${atLeastSixCharNumbersPermitted}" />
 			<var name="userEmailAddress" value="test1@liferay.com" />
 			<var name="userScreenName" value="test1" />
 		</execute>
