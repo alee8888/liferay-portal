@@ -1738,6 +1738,7 @@
 		<execute macro="Organization#searchCP">
 			<var name="orgName" value="Organization Name" />
 			<var name="orgType" value="Regular Organization" />
+			<var name="searchTerm" value="Organization Name" />
 		</execute>
 	</command>
 
