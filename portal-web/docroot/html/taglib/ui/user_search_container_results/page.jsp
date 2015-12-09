@@ -25,7 +25,7 @@ LinkedHashMap<String, Object> userParams = (LinkedHashMap<String, Object>)reques
 Indexer<?> indexer = IndexerRegistryUtil.nullSafeGetIndexer(User.class);
 %>
 
-<liferay-ui:search-container id="<%= userSearchContainer.getId(request, namespace) %>" searchContainer='<%= userSearchContainer %>'>
+<liferay-ui:search-container id="<%= userSearchContainer.getId(request, namespace) %>" searchContainer="<%= userSearchContainer %>">
 	<liferay-ui:search-container-results>
 		<c:choose>
 			<c:when test="<%= useIndexer && indexer.isIndexerEnabled() && PropsValues.USERS_SEARCH_WITH_INDEX %>">
