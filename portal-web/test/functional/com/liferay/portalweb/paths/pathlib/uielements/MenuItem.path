@@ -465,7 +465,12 @@
 </tr>
 <tr>
 	<td>ORGANIZATION_ROLE</td>
-	<td>//a[@role='menuitem' and contains(.,'Organization Role')]</td>
+	<td>//li/a[contains(@id,'menuItem') and contains(.,'Organization Role')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ORGANIZATION_ROLES</td>
+	<td>//a[@role='menuitem' and contains(.,'Organization Roles')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -510,7 +515,12 @@
 </tr>
 <tr>
 	<td>REGULAR_ROLE</td>
-	<td>//a[@role='menuitem' and contains(.,'Regular Role')]</td>
+	<td>//li/a[contains(@id,'menuItem') and contains(.,'Regular Role')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REGULAR_ROLES</td>
+	<td>//a[@role='menuitem' and contains(.,'Regular Roles')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -600,7 +610,12 @@
 </tr>
 <tr>
 	<td>SITE_ROLE</td>
-	<td>//a[@role='menuitem' and contains(.,'Site Role')]</td>
+	<td>//li/a[contains(@id,'menuItem') and contains(.,'Site Role')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_ROLES</td>
+	<td>//a[@role='menuitem' and contains(.,'Site Roles')]</td>
 	<td></td>
 </tr>
 <tr>
