@@ -12,7 +12,7 @@
  * details.
  */
 
-package com.liferay.document.library.web.portlet.toolbar.item;
+package com.liferay.document.library.web.portlet.toolbar.contributor;
 
 import com.liferay.document.library.web.constants.DLPortletKeys;
 import com.liferay.document.library.web.settings.internal.DLPortletInstanceSettings;
