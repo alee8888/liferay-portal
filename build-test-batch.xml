@@ -1038,7 +1038,7 @@
 	</macrodef>
 
 	<target name="functional-jboss-eap-6.4-postgresql">
-		<run-functional-test app.server.name="jboss-eap-6.4" app.server.type="jboss" database.type="postgresql" />
+		<run-functional-test app.server.type="jboss" database.type="postgresql" />
 	</target>
 
 	<target name="functional-bundle-tomcat-mysql">
