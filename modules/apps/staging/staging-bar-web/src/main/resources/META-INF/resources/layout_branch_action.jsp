@@ -36,7 +36,6 @@ long currentLayoutBranchId = GetterUtil.getLong((String)request.getAttribute("vi
 		</liferay-portlet:renderURL>
 
 		<liferay-ui:icon
-			iconCssClass="icon-edit"
 			message="edit"
 			url="<%= editLayoutBranchURL %>"
 		/>

@@ -34,7 +34,6 @@ long currentLayoutSetBranchId = GetterUtil.getLong((String)request.getAttribute(
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			iconCssClass="icon-edit"
 			message="edit"
 			url="<%= editLayoutSetBranchURL %>"
 		/>
@@ -50,7 +49,6 @@ long currentLayoutSetBranchId = GetterUtil.getLong((String)request.getAttribute(
 		/>
 
 		<liferay-ui:icon
-			iconCssClass="icon-lock"
 			message="permissions"
 			method="get"
 			url="<%= permissionsURL %>"
@@ -68,7 +66,6 @@ long currentLayoutSetBranchId = GetterUtil.getLong((String)request.getAttribute(
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			iconCssClass="icon-copy"
 			message="merge"
 			url="<%= mergeLayoutSetBranchURL %>"
 		/>

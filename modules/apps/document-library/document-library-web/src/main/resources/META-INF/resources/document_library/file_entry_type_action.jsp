@@ -31,7 +31,6 @@ DLFileEntryType fileEntryType = (DLFileEntryType)row.getObject();
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			iconCssClass="icon-edit"
 			message="edit"
 			url="<%= editURL %>"
 		/>
@@ -47,7 +46,6 @@ DLFileEntryType fileEntryType = (DLFileEntryType)row.getObject();
 		/>
 
 		<liferay-ui:icon
-			iconCssClass="icon-lock"
 			message="permissions"
 			method="get"
 			url="<%= permissionsURL %>"

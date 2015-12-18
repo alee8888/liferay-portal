@@ -37,7 +37,6 @@ long organizationId = organization.getOrganizationId();
 	</portlet:renderURL>
 
 	<liferay-ui:icon
-		iconCssClass="icon-search"
 		message="view-users"
 		method="get"
 		url="<%= viewUsersURL %>"
@@ -51,6 +50,10 @@ long organizationId = organization.getOrganizationId();
 			<portlet:param name="parentOrganizationId" value="<%= String.valueOf(organizationId) %>" />
 		</portlet:renderURL>
 
-		<liferay-ui:icon iconCssClass="icon-search" message="view-suborganizations" method="get" url="<%= viewSuborganizationsURL %>" />
+		<liferay-ui:icon
+			message="view-suborganizations"
+			method="get"
+			url="<%= viewSuborganizationsURL %>"
+		/>
 	</c:if>
 </liferay-ui:icon-menu>

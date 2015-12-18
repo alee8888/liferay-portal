@@ -42,7 +42,6 @@ WikiPage socialActivityWikiPage = WikiPageLocalServiceUtil.fetchPage(wikiPage.ge
 			</portlet:actionURL>
 
 			<liferay-ui:icon
-				iconCssClass="icon-undo"
 				message='<%= LanguageUtil.get(request, "restore-version") + " " + String.valueOf(version) %>'
 				url="<%= revertURL %>"
 			/>
@@ -65,7 +64,6 @@ WikiPage socialActivityWikiPage = WikiPageLocalServiceUtil.fetchPage(wikiPage.ge
 		<liferay-ui:icon
 			cssClass="compare-to-link"
 			data="<%= data %>"
-			iconCssClass="icon-copy"
 			label="<%= true %>"
 			message="compare-to"
 			url="javascript:;"
