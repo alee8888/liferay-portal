@@ -26,7 +26,7 @@ FileVersion fileVersion = (FileVersion)row.getObject();
 FileEntry fileEntry = fileVersion.getFileEntry();
 %>
 
-<liferay-ui:icon-menu direction='<%= "down" %>' icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>">
+<liferay-ui:icon-menu direction="left-side" icon="<%= StringPool.BLANK %>" markupView="lexicon" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>">
 	<liferay-ui:icon
 		message="download"
 		method="get"
