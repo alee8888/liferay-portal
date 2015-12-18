@@ -30,7 +30,6 @@ ShoppingCoupon coupon = (ShoppingCoupon)row.getObject();
 	</portlet:renderURL>
 
 	<liferay-ui:icon
-		iconCssClass="icon-edit"
 		message="edit"
 		url="<%= editURL %>"
 	/>

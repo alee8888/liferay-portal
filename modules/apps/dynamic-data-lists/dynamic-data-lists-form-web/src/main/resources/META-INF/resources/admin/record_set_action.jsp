@@ -31,7 +31,6 @@ DDLRecordSet recordSet = (DDLRecordSet)row.getObject();
 		</portlet:renderURL>
 
 		<liferay-ui:icon
-			iconCssClass="icon-view"
 			message="view-entries"
 			url="<%= viewEntriesURL %>"
 		/>

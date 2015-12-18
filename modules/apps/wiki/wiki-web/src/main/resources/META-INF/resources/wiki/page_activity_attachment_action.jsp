@@ -46,7 +46,6 @@ WikiPage wikiPage = (WikiPage)request.getAttribute(WikiWebKeys.WIKI_PAGE);
 		%>
 
 		<liferay-ui:icon
-			iconCssClass="icon-undo"
 			message="restore-attachment"
 			onClick="<%= taglibOnClick %>"
 			url="javascript:;"
