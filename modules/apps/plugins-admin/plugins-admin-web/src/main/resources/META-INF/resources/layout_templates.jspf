@@ -68,23 +68,6 @@ List layoutTemplates = LayoutTemplateLocalServiceUtil.getLayoutTemplates();
 
 				<strong><%= HtmlUtil.escape(layoutTemplate.getName(locale)) %></strong>
 			</aui:a>
-
-			<br />
-
-			<liferay-ui:message key="package" />:
-
-			<c:choose>
-				<c:when test="<%= pluginPackage == null %>">
-					<liferay-ui:message key="unknown" />
-				</c:when>
-				<c:otherwise>
-					<%= HtmlUtil.escape(pluginPackage.getName()) %>
-
-					<c:if test="<%= pluginPackage.getContext() != null %>">
-						(<%= pluginPackage.getContext() %>)
-					</c:if>
-				</c:otherwise>
-			</c:choose>
 		</liferay-ui:search-container-column-text>
 
 		<liferay-ui:search-container-column-text
