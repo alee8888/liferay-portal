@@ -68,19 +68,20 @@ portlets = ListUtil.sort(portlets, new PortletTitleComparator(application, local
 			href="<%= rowURL %>"
 			name="portlet"
 		>
-			<aui:a href="<%= showEditPluginHREF ? rowURL.toString() : null %>">
-				<strong><%= title %></strong>
-			</aui:a>
+			<aui:a href="<%= showEditPluginHREF ? rowURL.toString() : null %>"><strong>
+				<c:choose>
+					<c:when test="<%= Validator.isNotNull(title) %>">
+						<%= title %>
+					</c:when>
+					<c:when test="<%= Validator.isNotNull(portlet.getDisplayName()) %>">
+						<%= portlet.getDisplayName() %>
+					</c:when>
+					<c:otherwise>
+						<%= portlet.getPortletName() %>
+					</c:otherwise>
+				</c:choose>
+			</strong></aui:a>
 
-			<%
-			String displayName = portlet.getDisplayName();
-			%>
-
-			<c:if test="<%= Validator.isNotNull(displayName) && !title.equals(displayName) %>">
-				<br />
-
-				<%= displayName %>
-			</c:if>
 		</liferay-ui:search-container-column-text>
 
 		<liferay-ui:search-container-column-text
