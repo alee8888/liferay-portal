@@ -69,7 +69,7 @@ portlets = ListUtil.sort(portlets, new PortletTitleComparator(application, local
 			name="portlet"
 		>
 			<aui:a href="<%= showEditPluginHREF ? rowURL.toString() : null %>">
-				<%= title %>
+				<strong><%= title %></strong>
 			</aui:a>
 
 			<br />
@@ -103,7 +103,25 @@ portlets = ListUtil.sort(portlets, new PortletTitleComparator(application, local
 			name="active"
 			value='<%= LanguageUtil.get(request, (portlet.isActive() ? "yes" : "no")) %>'
 		/>
+
+		<liferay-ui:search-container-column-text
+			align="right"
+			cssClass="entry-action"
+			name=""
+		>
+			<liferay-ui:icon-menu
+				direction="down"
+				markupView="lexicon"
+				showWhenSingleIcon="<%= true %>"
+			>
+				<liferay-ui:icon
+					message="edit"
+					method="post"
+					url="<%= rowURL.toString() %>"
+				/>
+			</liferay-ui:icon-menu>
+		</liferay-ui:search-container-column-text>
 	</liferay-ui:search-container-row>
 
-	<liferay-ui:search-iterator/>
+	<liferay-ui:search-iterator markupView="lexicon" />
 </liferay-ui:search-container>
