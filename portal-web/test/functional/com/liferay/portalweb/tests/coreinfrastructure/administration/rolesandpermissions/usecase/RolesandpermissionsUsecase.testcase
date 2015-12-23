@@ -1247,9 +1247,9 @@
 			<var name="dmDocumentTitle" value="Test Document" />
 		</execute>
 
-		<execute macro="Role#removePermissionPG">
-			<var name="permissionDefinitionKey" value="CONTENT_PERMISSIONS_VIEW_CHECKBOX" />
-			<var name="roleName" value="site-member" />
+		<execute macro="PermissionsInline#addOrRemoveViewPermissionFromAllRoles">
+			<var name="addOrRemoveViewPermission" value="Remove" />
+			<var name="roleList" value="Guest,Owner,Site Member" />
 		</execute>
 
 		<execute macro="Page#gotoPG">
