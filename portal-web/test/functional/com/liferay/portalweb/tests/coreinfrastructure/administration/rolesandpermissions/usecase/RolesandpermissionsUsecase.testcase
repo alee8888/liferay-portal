@@ -2116,11 +2116,6 @@
 			<var name="pageName" value="Bookmarks Page" />
 		</execute>
 
-		<execute macro="Bookmark#gotoPG">
-			<var name="bookmarkName" value="Test Bookmark Name" />
-			<var name="bookmarkURL" value="http://www.liferay.com" />
-		</execute>
-
 		<execute macro="Bookmark#viewBookmark">
 			<var name="bookmarkName" value="Test Bookmark Name" />
 			<var name="bookmarkURL" value="http://www.liferay.com" />
