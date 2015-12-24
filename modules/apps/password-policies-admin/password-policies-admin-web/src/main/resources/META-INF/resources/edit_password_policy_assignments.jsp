@@ -205,6 +205,8 @@ if (tabs2.equals("organizations")) {
 <aui:script use="liferay-item-selector-dialog">
 	var Util = Liferay.Util;
 
+	var $ = AUI.$;
+
 	var form = $(document.<portlet:namespace />fm);
 
 	<portlet:renderURL var="selectMembersURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
