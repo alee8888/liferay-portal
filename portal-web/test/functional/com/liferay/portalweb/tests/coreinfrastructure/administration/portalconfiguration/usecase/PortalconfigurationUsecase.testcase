@@ -325,9 +325,8 @@
 
 		<execute macro="User#loginUserPG">
 			<var name="password" value="test" />
-			<var name="siteNameURL" value="${virtualHostsURL}" />
 			<var name="userEmailAddress" value="test@liferay.com" />
-			<var name="virtualHostsURL" value="http://www.charlie.com:8080" />
+			<var name="virtualHostsURL" value="http://www.charlie.com:8080/group/guest" />
 		</execute>
 
 		<var name="key_pageName" value="Private Page" />
