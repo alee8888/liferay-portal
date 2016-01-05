@@ -297,14 +297,18 @@
 			<var name="privateVirtualHosts" value="${privatePageVirtualHostURL}" />
 		</execute>
 
-		<execute macro="Page#gotoPagesCP">
-			<var name="portletName" value="Site Pages" />
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Sites" />
 		</execute>
 
 		<execute macro="SitePage#addCP">
 			<var name="page" value="Public Pages" />
 			<var name="sitePageName" value="Public Page" />
 			<var name="siteScopeSelected" value="true" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelSites">
+			<var name="portlet" value="Sites" />
 		</execute>
 
 		<execute macro="SitePage#addCP">
