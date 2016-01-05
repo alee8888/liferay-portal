@@ -321,7 +321,6 @@
 			<var name="virtualHostsURL" value="http://www.charlie.com:8080" />
 		</execute>
 
-		<execute function="AssertHTMLSourceTextPresent" locator1="http://www.charlie.com:8080" />
 		<var name="key_pageName" value="Welcome" />
 
 		<execute function="AssertElementPresent" locator1="Home#PAGE" value1="Welcome" />
@@ -335,7 +334,6 @@
 		<var name="key_pageName" value="Private Page" />
 
 		<execute function="AssertTextEquals" locator1="Home#PAGE" value1="Private Page" />
-		<execute function="AssertHTMLSourceTextPresent" value1="http://www.charlie.com:8080" />
 
 		<execute macro="User#logoutPG" />
 
