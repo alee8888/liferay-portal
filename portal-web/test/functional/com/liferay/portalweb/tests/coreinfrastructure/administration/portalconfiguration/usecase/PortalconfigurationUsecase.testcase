@@ -265,6 +265,8 @@
 	</command>
 
 	<command name="ViewVirtualHostPrivateSitePage" priority="4">
+		<property name="custom.properties" value="virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com,www.baker.com,www.charlie.com" />
+
 		<execute macro="ProductMenu#gotoControlPanelConfiguration">
 			<var name="portlet" value="Instance Settings" />
 		</execute>
