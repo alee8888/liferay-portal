@@ -1607,9 +1607,9 @@
 	</command>
 
 	<command name="searchCP">
-		<execute function="Type" locator1="NavBar#BASIC_SEARCH_FIELD" value1="${searchToken}" />
+		<execute function="Type" locator1="TextInput#SEARCH" value1="${searchToken}" />
 
-		<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+		<execute function="Click" locator1="Button#SUBMIT" />
 	</command>
 
 	<command name="signInPG">
