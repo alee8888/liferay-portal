@@ -59,6 +59,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PAGE_VARIATION_IFRAME</td>
+	<td>//iframe[contains(@id,'pagesVariationsDialog_iframe_')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_ASSIGNEES</td>
+	<td>//iframe[contains(@id,'selectAssignees')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SELECT_CONTENT</td>
 	<td>//iframe[contains(@id,'selectContent')]</td>
 	<td></td>
@@ -99,6 +109,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SITE_VARIATION_IFRAME</td>
+	<td>//iframe[contains(@id,'sitePagesVariationDialog_iframe_')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>STRUCTURES</td>
 	<td>//iframe[contains(@src,'scopeTitle=Structures')]</td>
 	<td></td>
@@ -111,11 +126,6 @@
 <tr>
 	<td>UPLOAD_IMAGE</td>
 	<td>//iframe[contains(@id,'changeLogo_iframe')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>VARIATION_IFRAME</td>
-	<td>//iframe[contains(@id,'layoutSetBranches_iframe')]</td>
 	<td></td>
 </tr>
 </tbody>

@@ -16,7 +16,25 @@
 
 <%@ include file="/export/init.jsp" %>
 
+<%
+String redirect = ParamUtil.getString(request, "redirect");
+
+portletDisplay.setShowBackIcon(true);
+portletDisplay.setURLBack(redirect);
+
+renderResponse.setTitle(LanguageUtil.get(request, "export-templates"));
+%>
+
 <liferay-staging:defineObjects />
+
+<%
+if (liveGroup == null) {
+	liveGroup = group;
+	liveGroupId = groupId;
+}
+%>
+
+<liferay-util:include page="/export/export_templates/navigation.jsp" servletContext="<%= application %>" />
 
 <liferay-portlet:renderURL varImpl="portletURL">
 	<portlet:param name="mvcRenderCommandName" value="viewExportConfigurations" />
@@ -44,17 +62,6 @@
 			orderByType="asc"
 			searchTerms="<%= new ExportImportConfigurationSearchTerms(renderRequest) %>"
 		>
-			<aui:nav-bar>
-				<aui:nav-bar-search searchContainer="<%= searchContainer %>">
-
-					<%
-					request.setAttribute("liferay-ui:search:searchContainer", searchContainer);
-					%>
-
-					<liferay-util:include page="/export_import_configuration_search.jsp" servletContext="<%= application %>" />
-				</aui:nav-bar-search>
-			</aui:nav-bar>
-
 			<liferay-ui:search-container-results>
 
 				<%

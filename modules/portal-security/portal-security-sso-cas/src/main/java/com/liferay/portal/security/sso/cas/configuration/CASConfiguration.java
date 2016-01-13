@@ -29,7 +29,9 @@ import com.liferay.configuration.admin.ConfigurationAdmin;
  *
  * @author Michael C. Han
  */
-@ConfigurationAdmin(category = "platform")
+@ConfigurationAdmin(
+	category = "platform", scope = ConfigurationAdmin.Scope.COMPANY
+)
 @Meta.OCD(
 	id = "com.liferay.portal.security.sso.cas.configuration.CASConfiguration",
 	localization = "content/Language", name ="%cas.configuration.name"
@@ -67,7 +69,7 @@ public interface CASConfiguration {
 	public String noSuchUserRedirectURL();
 
 	@Meta.AD(
-		deflt = "https://localhost:8080",
+		deflt = "http://localhost:8080",
 		description = "Setting server name allows deep linking. See LEP-4423.",
 		required = false
 	)
@@ -76,7 +78,7 @@ public interface CASConfiguration {
 	@Meta.AD(deflt = "https://localhost:8443/cas-web", required = false)
 	public String serverURL();
 
-	@Meta.AD(deflt = "http://localhost:8080", required = false)
+	@Meta.AD(required = false)
 	public String serviceURL();
 
 }

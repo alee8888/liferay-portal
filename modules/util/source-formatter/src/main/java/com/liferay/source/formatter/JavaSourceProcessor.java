@@ -290,11 +290,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 					"Enabled()";
 
 			if (!codeBlock.contains(s)) {
-				int lineCount = StringUtil.count(
-					content.substring(0, matcher.start(1)),
-					StringPool.NEW_LINE);
-
-				lineCount += 1;
+				int lineCount = getLineCount(content, matcher.start(1));
 
 				processErrorMessage(
 					fileName, "Use " + s + ": " + fileName + " " + lineCount);
@@ -684,9 +680,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				match, StringPool.OPEN_PARENTHESIS);
 
 			if (closeParenthesesCount == openParenthesesCount) {
-				String beforeMatch = newContent.substring(0, matcher.start());
-
-				int lineCount = StringUtil.count(beforeMatch, "\n") + 1;
+				int lineCount = getLineCount(newContent, matcher.start());
 
 				processErrorMessage(
 					fileName, "line break: " + fileName + " " + lineCount);
@@ -984,10 +978,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 		if (pos != -1) {
 			String javaClassContent = newContent.substring(pos + 1);
 
-			String beforeJavaClass = newContent.substring(0, pos + 1);
-
-			int javaClassLineCount =
-				StringUtil.count(beforeJavaClass, "\n") + 1;
+			int javaClassLineCount = getLineCount(newContent, pos + 1);
 
 			newContent = formatJavaTerms(
 				className, packagePath, file, fileName, absolutePath,
@@ -1844,6 +1835,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 					if (Validator.isNull(ifClause) &&
 						!previousLine.endsWith(")") &&
 						!previousLine.endsWith(") {") &&
+						!previousLine.endsWith(") +") &&
 						!previousLine.contains("\tthrows ") &&
 						!previousLine.contains(" throws ") &&
 						(previousLineLeadingTabCount ==
@@ -2454,7 +2446,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 
 			StringBundler sb = new StringBundler(5);
 
-			sb.append("private ");
+			sb.append("private volatile ");
 			sb.append(typeName);
 			sb.append("\\s+");
 			sb.append(variableName);
@@ -2468,7 +2460,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				String match = privateVarMatcher.group();
 
 				String replacement = StringUtil.replace(
-					match, "private ", "private volatile ");
+					match, "private volatile ", "private ");
 
 				return StringUtil.replace(content, match, replacement);
 			}
@@ -2721,6 +2713,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 				!previousLine.endsWith(StringPool.OPEN_CURLY_BRACE) &&
 				!previousLine.endsWith(StringPool.OPEN_PARENTHESIS) &&
 				!previousLine.endsWith(StringPool.PERIOD) &&
+				(previousLine.contains("[") || !previousLine.contains("]")) &&
 				(lineTabCount == (previousLineTabCount + 1))) {
 
 				return getCombinedLinesContent(
@@ -3384,7 +3377,7 @@ public class JavaSourceProcessor extends BaseSourceProcessor {
 			"**/service/http/*JSONSerializer.java",
 			"**/service/http/*ServiceHttp.java",
 			"**/service/http/*ServiceJSON.java",
-			"**/service/http/*ServiceSoap.java"
+			"**/service/http/*ServiceSoap.java", "**/tools/templates/**"
 		};
 		String[] includes = new String[] {"**/*.java"};
 

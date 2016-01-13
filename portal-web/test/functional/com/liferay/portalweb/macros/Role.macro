@@ -56,6 +56,7 @@
 		<execute macro="Role#definePermissionsCP">
 			<var name="permissionDefinitionKeys" value="SITE_ADMIN_PAGES_SITE_PAGES_GENERAL_PERMISSIONS_ACTION_CHECKBOX,SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_SITE_ACTION_CHECKBOX,SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_PAGE_ACTION_CHECKBOX,SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_PAGE_VARIATION_ACTION_CHECKBOX,SITE_ADMIN_PAGES_SITE_PAGES_RESOURCE_PERMISSIONS_SITE_PAGES_VARIATION_ACTION_CHECKBOX" />
 			<var name="roleName" value="${roleName}" />
+			<var name="roleType" value="Site" />
 		</execute>
 	</command>
 
@@ -129,15 +130,13 @@
 
 		<execute function="Click" locator1="Button#SUBMIT" />
 
-		<execute function="Click" locator1="Roles#ROLE_TABLE_ACTIONS" />
+		<execute function="AssertClick" locator1="Roles#ROLE_TABLE_TITLE_LINK" value1="${roleName}" />
 
-		<execute function="AssertClick" locator1="MenuItem#ASSIGN_MEMBERS" value1="Assign Members" />
+		<execute function="Click" locator1="Button#PLUS" />
+
+		<execute function="SelectFrame" locator1="IFrame#SELECT_ASSIGNEES" />
 
 		<var name="key_userScreenName" value="${userScreenName}" />
-
-		<execute function="AssertClick" locator1="CPRolesAssignmembersUsergroups#MANAGEMENT_BAR_STATUS_DROPDOWN" value1="Current" />
-
-		<execute function="AssertClick" locator1="CPRolesAssignmembersUsergroups#MANAGEMENT_BAR_STATUS_AVAILABLE" value1="Available" />
 
 		<execute function="Type#sendKeys" locator1="NavBar#BASIC_SEARCH_FIELD" value1="${userScreenName}" />
 
@@ -146,10 +145,15 @@
 		<execute function="AssertTextEquals" locator1="RolesAssignMembers#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 		<execute function="Check" locator1="RolesAssignMembers#USER_TABLE_CHECKBOX" />
 
-		<execute function="AssertClick" locator1="Button#UPDATE_ASSOCIATIONS" value1="Update Associations" />
+		<execute function="SelectFrameTop" value1="relative=top" />
+
+		<execute function="AssertClick" locator1="Button#ADD" value1="Add" />
 
 		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
-		<execute function="AssertChecked" locator1="RolesAssignMembers#USER_TABLE_CHECKBOX" />
+
+		<execute function="Refresh" />
+
+		<execute function="AssertTextEquals" locator1="RolesAssignMembers#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 	</command>
 
 	<command name="definePermissionCmdCP">
@@ -865,7 +869,6 @@
 		<var name="key_roleName" value="${roleName}" />
 
 		<execute function="AssertTextEquals" locator1="Roles#ROLE_TABLE_TITLE" value1="${roleName}" />
-		<execute function="AssertTextEquals" locator1="Roles#ROLE_TABLE_TYPE" value1="${roleType}" />
 
 		<execute function="Click" locator1="Roles#ROLE_TABLE_ACTIONS" />
 

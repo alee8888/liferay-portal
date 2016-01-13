@@ -20,13 +20,17 @@
 SiteAdministrationPanelCategoryDisplayContext siteAdministrationPanelCategoryDisplayContext = new SiteAdministrationPanelCategoryDisplayContext(liferayPortletRequest, liferayPortletResponse, null);
 
 PanelCategory panelCategory = siteAdministrationPanelCategoryDisplayContext.getPanelCategory();
-
-ResourceBundle resourceBundle = ResourceBundleUtil.getBundle("content.Language", locale, getClass());
 %>
 
-<aui:a cssClass="icon-sites" href="javascript:;" id="manageSitesLink" title='<%= LanguageUtil.get(resourceBundle, "go-to-other-site") %>'>
-	<aui:icon image="sites" markupView="lexicon" />
-</aui:a>
+<liferay-ui:icon
+	cssClass="icon-sites"
+	icon="sites"
+	id="manageSitesLink"
+	label="<%= false %>"
+	markupView="lexicon"
+	message='<%= LanguageUtil.get(resourceBundle, "go-to-other-site") %>'
+	url="javascript:;"
+/>
 
 <div class="hide">
 	<div id="<portlet:namespace/>siteSelectorContent">

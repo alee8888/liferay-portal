@@ -63,7 +63,7 @@
 
 		<execute macro="Button#clickSave" />
 
-		<execute macro="Alert#viewSuccess" />
+		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
 			<var name="portlet" value="Forms" />
@@ -245,7 +245,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 
@@ -458,7 +458,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 
@@ -512,7 +512,9 @@
 		</for>
 	</command>
 
-	<command name="SubmitFormWithCustomTextContainingValidation" priority="4">
+	<command name="SubmitFormWithCustomTextContainingValidation" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<execute macro="Navigator#openURL" />
 
 		<execute macro="ProductMenu#gotoSitesContent">
@@ -555,7 +557,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 
@@ -719,7 +721,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 
@@ -872,7 +874,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 
@@ -968,7 +970,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 
@@ -1078,7 +1080,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 
@@ -1137,7 +1139,9 @@
 		</execute>
 	</command>
 
-	<command name="SubmitFormWithRequiredRepeatingTextField" priority="4">
+	<command name="SubmitFormWithRequiredRepeatingTextField" priority="5">
+		<property name="portal.acceptance" value="true" />
+
 		<description message="This is a use case for LPS-59335." />
 
 		<execute macro="Navigator#openURL" />
@@ -1179,7 +1183,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 
@@ -1271,7 +1275,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 
@@ -1366,7 +1370,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 
@@ -1452,7 +1456,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 
@@ -1596,7 +1600,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 
@@ -1726,7 +1730,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 
@@ -1815,7 +1819,7 @@
 
 		<execute macro="Form#save" />
 
-		<execute macro="Page#addPG">
+		<execute macro="Page#add">
 			<var name="pageName" value="Form Page" />
 		</execute>
 

@@ -17,10 +17,19 @@
 <%@ include file="/init.jsp" %>
 
 <%
+String redirect = ParamUtil.getString(request, "redirect");
+
 long layoutSetBranchId = ParamUtil.getLong(request, "layoutSetBranchId");
 String layoutSetBranchName = ParamUtil.getString(request, "layoutSetBranchName");
 boolean localPublishing = ParamUtil.getBoolean(request, "localPublishing", !stagingGroup.isStagedRemotely());
+
+portletDisplay.setShowBackIcon(true);
+portletDisplay.setURLBack(redirect);
+
+renderResponse.setTitle(LanguageUtil.get(request, "publish-templates"));
 %>
+
+<liferay-util:include page="/publish_templates/navigation.jsp" servletContext="<%= application %>" />
 
 <portlet:actionURL name="editExportConfiguration" var="restoreTrashEntriesURL">
 	<portlet:param name="mvcPath" value="editPublishConfiguration" />
@@ -54,17 +63,6 @@ int exportImportConfigurationType = localPublishing ? ExportImportConfigurationC
 			searchTerms="<%= new PublishConfigurationSearchTerms(renderRequest) %>"
 			total="<%= ExportImportConfigurationLocalServiceUtil.getExportImportConfigurationsCount(groupId, exportImportConfigurationType) %>"
 		>
-			<aui:nav-bar>
-				<aui:nav-bar-search searchContainer="<%= searchContainer %>">
-
-					<%
-					request.setAttribute("liferay-ui:search:searchContainer", searchContainer);
-					%>
-
-					<liferay-util:include page="/publish_templates/search.jsp" servletContext="<%= application %>" />
-				</aui:nav-bar-search>
-			</aui:nav-bar>
-
 			<liferay-ui:search-container-results>
 				<%@ include file="/publish_templates/search_results.jspf" %>
 			</liferay-ui:search-container-results>
