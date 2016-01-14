@@ -134,7 +134,12 @@
 
 		<execute function="Click" locator1="Button#PLUS" />
 
-		<execute function="SelectFrame" locator1="IFrame#SELECT_ASSIGNEES" />
+		<if>
+			<condition function="IsElementPresent" locator1="IFrame#SELECT_ASSIGNEES" />
+			<then>
+				<execute function="SelectFrame" locator1="IFrame#SELECT_ASSIGNEES" />
+			</then>
+		</if>
 
 		<var name="key_userScreenName" value="${userScreenName}" />
 
