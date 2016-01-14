@@ -51,27 +51,27 @@
 </tr>
 <tr>
 	<td>SITE_TABLE_ACTIVE</td>
-	<td>//table[contains(@class,'table-list')]//tr[contains(.,'${key_childSiteName}')]/td[5]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SITE_TABLE_PENDING_REQUESTS</td>
 	<td>//table[contains(@class,'table-list')]//tr[contains(.,'${key_childSiteName}')]/td[6]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SITE_TABLE_TAGS</td>
+	<td>SITE_TABLE_PENDING_REQUESTS</td>
 	<td>//table[contains(@class,'table-list')]//tr[contains(.,'${key_childSiteName}')]/td[7]</td>
 	<td></td>
 </tr>
 <tr>
+	<td>SITE_TABLE_TAGS</td>
+	<td>//table[contains(@class,'table-list')]//tr[contains(.,'${key_childSiteName}')]/td[8]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SITE_TABLE_ACTIONS</td>
-	<td>//table[contains(@class,'table-list')]//tr[contains(.,'${key_childSiteName}')]/td[8]/div/a</td>
+	<td>//table[contains(@class,'table-list')]//tr[contains(.,'${key_childSiteName}')]/td[9]/div/a</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SITE_TABLE_ACTIONS_GENERIC</td>
-	<td>//table[contains(@class,'table-list')]//tr/td[8]/div/a</td>
+	<td>//table[contains(@class,'table-list')]//tr/td[9]/div/a</td>
 	<td></td>
 </tr>
 <tr>
