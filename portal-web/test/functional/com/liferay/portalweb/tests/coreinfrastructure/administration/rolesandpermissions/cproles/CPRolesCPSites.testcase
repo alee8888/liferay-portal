@@ -105,6 +105,7 @@
 		</execute>
 
 		<execute macro="Site#addBlankCP">
+			<var name="singlePermission" value="true" />
 			<var name="siteName" value="Site Name" />
 		</execute>
 
