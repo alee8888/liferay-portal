@@ -168,6 +168,14 @@
 	</command>
 
 	<command name="ViewLiferayPortletListNoXSS" priority="4">
+		<execute macro="Page#add">
+			<var name="pageName" value="Asset Publisher Page" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Asset Publisher Page" />
+		</execute>
+
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Asset Publisher" />
 		</execute>
