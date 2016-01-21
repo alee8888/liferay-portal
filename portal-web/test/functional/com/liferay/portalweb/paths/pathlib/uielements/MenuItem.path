@@ -530,7 +530,7 @@
 </tr>
 <tr>
 	<td>ORGANIZATION</td>
-	<td>//li[contains(@class,'open')]//a[@title='Organization']</td>
+	<td>//ul[contains(@class,'dropdown-menu')]//a[contains(@id,'menuItem') and contains(.,'Organization')]</td>
 	<td></td>
 </tr>
 <tr>
