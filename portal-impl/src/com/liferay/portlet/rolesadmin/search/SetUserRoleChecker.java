@@ -17,18 +17,20 @@ package com.liferay.portlet.rolesadmin.search;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Role;
-import com.liferay.portal.service.GroupLocalServiceUtil;
+import com.liferay.portal.model.User;
+import com.liferay.portal.security.membershippolicy.RoleMembershipPolicyUtil;
+import com.liferay.portal.service.UserLocalServiceUtil;
 
 import javax.portlet.RenderResponse;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Drew Brokke
  */
-public class GroupRoleChecker extends EmptyOnClickRowChecker {
+public class SetUserRoleChecker extends EmptyOnClickRowChecker {
 
-	public GroupRoleChecker(RenderResponse renderResponse, Role role) {
+	public SetUserRoleChecker(RenderResponse renderResponse, Role role) {
 		super(renderResponse);
 
 		_role = role;
@@ -36,11 +38,11 @@ public class GroupRoleChecker extends EmptyOnClickRowChecker {
 
 	@Override
 	public boolean isChecked(Object obj) {
-		Group group = (Group)obj;
+		User user = (User)obj;
 
 		try {
-			return GroupLocalServiceUtil.hasRoleGroup(
-				_role.getRoleId(), group.getGroupId());
+			return UserLocalServiceUtil.hasRoleUser(
+				_role.getRoleId(), user.getUserId());
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -51,13 +53,25 @@ public class GroupRoleChecker extends EmptyOnClickRowChecker {
 
 	@Override
 	public boolean isDisabled(Object obj) {
-		Group group = (Group)obj;
+		User user = (User)obj;
 
-		return isChecked(group);
+		try {
+			if (isChecked(user) ||
+				!RoleMembershipPolicyUtil.isRoleAllowed(
+					user.getUserId(), _role.getRoleId())) {
+
+				return true;
+			}
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		return super.isDisabled(obj);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		GroupRoleChecker.class);
+		SetUserRoleChecker.class);
 
 	private final Role _role;
 
