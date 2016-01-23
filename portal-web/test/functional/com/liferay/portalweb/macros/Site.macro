@@ -24,7 +24,7 @@
 		<execute macro="Site#addCP">
 			<var name="membershipType" value="${membershipType}" />
 			<var name="parentSiteName" value="${parentSiteName}" />
-			<var name="singlePermission" value="${singlePermission}" />
+			<var name="singleSiteTypePermission" value="${singleSiteTypePermission}" />
 			<var name="siteLimitMembership" value="${siteLimitMembership}" />
 			<var name="siteName" value="${siteName}" />
 			<var name="siteTemplateName" value="${siteTemplateName}" />
@@ -50,7 +50,7 @@
 
 		<if>
 			<not>
-				<equals arg1="${singlePermission}" arg2="true" />
+				<equals arg1="${singleSiteTypePermission}" arg2="true" />
 			</not>
 			<then>
 				<if>
