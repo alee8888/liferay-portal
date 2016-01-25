@@ -812,7 +812,8 @@
 			<equals arg1="${userBasicSearch}" arg2="Basic" />
 			<then>
 				<execute function="Type" locator1="TextInput#SEARCH" value1="${userScreenName}" />
-				<execute function="AssertClick" locator1="Button#SEARCH" value1="Search" />
+
+				<execute function="Click" locator1="Button#SUBMIT" />
 
 				<var name="key_userScreenName" value="${userScreenName}" />
 
@@ -821,8 +822,10 @@
 				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 
 				<execute function="Type" locator1="TextInput#SEARCH" value1="user1*" />
-				<execute function="AssertClick" locator1="Button#SEARCH" value1="Search" />
-				<execute function="AssertTextPresent" locator1="Message#INFO" value1="No users were found." />
+
+				<execute function="Click" locator1="Button#SUBMIT" />
+
+				<execute function="AssertTextPresent" locator1="Message#EMPTY_INFO" value1="No users were found." />
 			</then>
 			<elseif>
 				<equals arg1="${userBasicSearch}" arg2="Full Name" />
@@ -830,7 +833,8 @@
 					<var name="fullName"><![CDATA["${userFirstName} ${userLastName}"]]></var>
 
 					<execute function="Type" locator1="TextInput#SEARCH" value1="${fullName}" />
-					<execute function="AssertClick" locator1="Button#SEARCH" value1="Search" />
+
+					<execute function="Click" locator1="Button#SUBMIT" />
 
 					<var name="key_userScreenName" value="${userScreenName}" />
 
@@ -841,8 +845,10 @@
 					<var name="fullName"><![CDATA["${userFirstName} 1 ${userLastName}"]]></var>
 
 					<execute function="Type" locator1="TextInput#SEARCH" value1="${fullName}" />
-					<execute function="AssertClick" locator1="Button#SEARCH" value1="Search" />
-					<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+
+					<execute function="Click" locator1="Button#SUBMIT" />
+
+					<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 				</then>
 			</elseif>
 			<elseif>
@@ -851,7 +857,7 @@
 					<var name="quotes"><![CDATA["${userScreenName}"]]></var>
 
 					<execute function="Type" locator1="TextInput#SEARCH" value1="${quotes}" />
-					<execute function="AssertClick" locator1="Button#SEARCH" value1="Search" />
+					<execute function="Click" locator1="Button#SUBMIT" />
 
 					<var name="key_userScreenName" value="${userScreenName}" />
 
@@ -909,7 +915,7 @@
 
 				<execute macro="User#loginUserPG">
 					<var name="password" value="test1" />
-					<var name="userEmailAddress" value="${userEmailAddress}" />
+					<var name="userEmbasicsearchcpailAddress" value="${userEmailAddress}" />
 				</execute>
 
 				<execute macro="User#logoutUserPG" />
@@ -1736,16 +1742,16 @@
 			<then>
 				<execute function="Pause" locator1="1000" />
 				<execute function="Type" locator1="NavBar#BASIC_SEARCH_FIELD" value1="${userEmailAddress}" />
-				<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
-				<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+				<execute function="Click" locator1="Button#SUBMIT" />
+				<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 			</then>
 			<elseif>
 				<equals arg1="${userEmailAddressVariation}" arg2="Period" />
 				<then>
 					<execute function="Pause" locator1="1000" />
 					<execute function="Type" locator1="NavBar#BASIC_SEARCH_FIELD" value1="${userEmailAddress}" />
-					<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
-					<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+					<execute function="Click" locator1="Button#SUBMIT" />
+					<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 				</then>
 			</elseif>
 			<elseif>
@@ -1753,8 +1759,8 @@
 				<then>
 					<execute function="Pause" locator1="1000" />
 					<execute function="Type" locator1="NavBar#BASIC_SEARCH_FIELD" value1="${userScreenName}" />
-					<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
-					<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+					<execute function="Click" locator1="Button#SUBMIT" />
+					<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 				</then>
 			</elseif>
 			<else>
@@ -1765,6 +1771,7 @@
 				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
 				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_LAST_NAME" value1="${userLastName}" />
 				<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
+
 				<execute function="AssertClick" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
 
 				<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditUser#DETAILS_SCREEN_NAME_FIELD" value1="${userScreenName}" />
