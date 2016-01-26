@@ -30,6 +30,8 @@ import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.ResourceBundleUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
@@ -49,6 +51,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Set;
 
 import javax.portlet.PortletRequest;
@@ -166,8 +169,11 @@ public class AssetPublisherPortletToolbarContributor
 		data.put(
 			"id", HtmlUtil.escape(portletDisplay.getNamespace()) + "editAsset");
 
+		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
+			"content.Language", themeDisplay.getLocale(), getClass());
+
 		String title = LanguageUtil.get(
-			themeDisplay.getLocale(), "add-content-select-scope-and-type");
+			resourceBundle, "add-content-select-scope-and-type");
 
 		data.put("title", title);
 
@@ -203,11 +209,29 @@ public class AssetPublisherPortletToolbarContributor
 
 		Menu menu = new Menu();
 
+		Map<String, Object> data = new HashMap<>();
+
+		data.put("qa-id", "addButton");
+
+		menu.setData(data);
+
 		menu.setDirection("down");
 		menu.setExtended(false);
 		menu.setIcon("../aui/plus-sign-2");
 		menu.setMenuItems(portletTitleMenuItems);
 		menu.setShowArrow(false);
+
+		boolean showWhenSingleIcon = true;
+
+		if (portletTitleMenuItems.size() == 1) {
+			MenuItem menuItem = portletTitleMenuItems.get(0);
+
+			if (Validator.isNull(menuItem.getLabel())) {
+				showWhenSingleIcon = false;
+			}
+		}
+
+		menu.setShowWhenSingleIcon(showWhenSingleIcon);
 
 		return menu;
 	}

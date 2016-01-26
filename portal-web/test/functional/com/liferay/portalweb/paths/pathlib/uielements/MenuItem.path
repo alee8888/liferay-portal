@@ -164,6 +164,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ASSIGNEES</td>
+	<td>//a[@role='menuitem' and contains(.,'Assignees')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>BASIC_ARTICLE</td>
 	<td>//a[@role='menuitem' and contains(.,'Basic Article')]</td>
 	<td></td>
@@ -441,6 +446,11 @@
 <tr>
 	<td>MANAGE_TEMPLATES</td>
 	<td>//div[contains(@class,'open')]//a[@role='menuitem' and contains(.,'Manage Templates')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MARK_AS_AN_ANSWER</td>
+	<td>//div[contains(@class,'open') and contains(@class,'dropdown')]//a[@role='menuitem' and contains(.,'Mark as an Answer')]</td>
 	<td></td>
 </tr>
 <tr>
