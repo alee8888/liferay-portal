@@ -228,6 +228,7 @@ if (!defaultFolderView && (folder != null) && (portletName.equals(DLPortletKeys.
 			%>
 
 			decimalSeparator: '<%= decimalFormatSymbols.getDecimalSeparator() %>',
+			displayStyle: '<%= HtmlUtil.escapeJS(displayStyle) %>',
 			editEntryUrl: '<portlet:actionURL name="/document_library/edit_entry" />',
 			folders: {
 				defaultParentFolderId: '<%= folderId %>',

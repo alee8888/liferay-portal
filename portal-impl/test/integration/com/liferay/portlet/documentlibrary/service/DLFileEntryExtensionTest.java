@@ -404,9 +404,6 @@ public class DLFileEntryExtensionTest extends BaseDLAppTestCase {
 		DLAppLocalServiceUtil.deleteFileEntry(fileEntry.getFileEntryId());
 	}
 
-	private static final String _FAIL_DUPLICATE_MESSAGE_SUFFIX =
-		" a file on top of one with the same title and extension";
-
 	private static final String _FILE_NAME = "Test.txt";
 
 	private static final String _STRIPPED_FILE_NAME = "Test";
