@@ -300,7 +300,7 @@
 
 		<if>
 			<and>
-				<condition function="IsElementPresent" locator1="Message#INFO" />
+				<condition function="IsElementPresent#isElementPresentAfterWait" locator1="Message#INFO" />
 				<condition function="IsVisible" locator1="Message#INFO" />
 			</and>
 			<then>
