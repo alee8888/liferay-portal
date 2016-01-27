@@ -49,6 +49,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ADD_FOO</td>
+	<td>//a[contains(.,'Add Foo')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADD_PAGE</td>
 	<td>//a[contains(.,'Add Page')] | //button[contains(.,'Add Page')]</td>
 	<td></td>

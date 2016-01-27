@@ -1,0 +1,80 @@
+<definition>
+	<command name="addFoo">
+		<execute function="AssertClick" locator1="Button#ADD_FOO" value1="Add Foo" />
+
+		<execute function="AssertVisible" locator1="Portlet#H3_HEADER" />
+
+		<execute function="Type" locator1="SampleServiceBuilder#TEXT_INPUT_FIELD1" value1="${field1}" />
+
+		<if>
+			<equals arg1="${field2}" arg2="true" />
+			<then>
+				<execute function="Check" locator1="SampleServiceBuilder#CHECKBOX_FIELD2" />
+			</then>
+		</if>
+
+		<execute function="Type" locator1="SampleServiceBuilder#TEXT_INPUT_FIELD3" value1="${field3}" />
+		<execute function="Type" locator1="SampleServiceBuilder#TEXT_INPUT_FIELD4" value1="${field4}" />
+		<execute function="Type" locator1="SampleServiceBuilder#TEXT_INPUT_FIELD5" value1="${field5}" />
+		<execute function="Type" locator1="SampleServiceBuilder#TEXT_INPUT_FIELD_TAGS" value1="${tag}" />
+
+		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
+
+		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="requestProcessed" />
+	</command>
+
+	<command name="deleteFoo">
+		<var name="key_fooName" value="${field1}" />
+
+		<execute function="AssertVisible" locator1="SampleServiceBuilder#FOO_TABLE_ACTIONS" />
+
+		<execute function="Click" locator1="SampleServiceBuilder#FOO_TABLE_ACTIONS" />
+
+		<execute function="AssertVisible" locator1="MenuItem#DELETE" />
+
+		<execute function="AssertClickNoError" locator1="MenuItem#DELETE" value1="Delete" />
+
+		<execute function="Pause" locator1="3000" />
+
+		<execute function="Confirm" value1="Are you sure you want to delete this? It will be deleted immediately." />
+
+		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="requestProcessed" />
+	</command>
+
+	<command name="view">
+		<var name="key_fooName" value="${field1}" />
+
+		<execute function="AssertVisible" locator1="SampleServiceBuilder#FOO_TABLE_ID" />
+		<execute function="AssertTextEquals" locator1="SampleServiceBuilder#FOO_TABLE_FIELD1" value1="${field1}" />
+
+		<if>
+			<equals arg1="${field2}" arg2="true" />
+			<then>
+				<execute function="AssertTextEquals" locator1="SampleServiceBuilder#FOO_TABLE_FIELD2" value1="${field2}" />
+			</then>
+			<else>
+				<execute function="AssertTextEquals" locator1="SampleServiceBuilder#FOO_TABLE_FIELD2" value1="${field2}"/>
+			</else>
+		</if>
+
+		<execute function="AssertTextEquals" locator1="SampleServiceBuilder#FOO_TABLE_FIELD3" value1="${field3}" />
+		<execute function="AssertTextEquals" locator1="SampleServiceBuilder#FOO_TABLE_FIELD4" value1="${field4}" />
+		<execute function="AssertTextEquals" locator1="SampleServiceBuilder#FOO_TABLE_FIELD5" value1="${field5}" />
+	</command>
+
+	<command name="viewDefault">
+		<execute function="AssertVisible" locator1="Button#ADD_FOO" />
+
+		<var name="key_portletName" value="${portletName}" />
+
+		<execute function="AssertTextEquals" locator1="BasePortlet#TITLE" value1="Sample Service Builder" />
+		<execute function="AssertTextEquals" locator1="BasePortlet#PORTLET_BODY" value1="Welcome to the Sample Service Builder Portlet! Add Foo" />
+		<execute function="AssertElementPresent" locator1="Button#ADD_FOO" />		
+	</command>
+
+	<command name="viewNo">
+		<execute function="AssertVisible" locator1="Button#ADD_FOO" />
+
+		<execute function="AssertElementNotPresent" locator1="SampleServiceBuilder#FOO_TABLE_FIELD1_GENERIC" />
+	</command>
+</definition>
