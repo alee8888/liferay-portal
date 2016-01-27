@@ -1,0 +1,80 @@
+<html>
+<head>
+<title>ReportsAdminConfiguration</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">ReportsAdminConfiguration</td></tr>
+</thead>
+<tbody>
+<tr>
+	<td>TEXT_INPUT_FIELD1</td>
+	<td>//input[contains(@id,'field1')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CHECKBOX_FIELD2</td>
+	<td>//input[contains(@id,'field2')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TEXT_INPUT_FIELD3</td>
+	<td>//input[contains(@id,'field3')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TEXT_INPUT_FIELD4</td>
+	<td>//input[contains(@id,'field4')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TEXT_INPUT_FIELD5</td>
+	<td>//input[contains(@id,'field5')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TEXT_INPUT_FIELD_TAGS</td>
+	<td>//input[contains(@id,'assetTagNames')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--FOO_TABLE-->
+<tr>
+	<td>FOO_TABLE_ID</td>
+	<td>//tr[contains(.,'Foo Bar 1')]/td[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOO_TABLE_FIELD1</td>
+	<td>//tr[contains(.,'Foo Bar 1')]/td[2]/strong</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOO_TABLE_FIELD2</td>
+	<td>//tr[contains(.,'Foo Bar 1')]/td[3]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOO_TABLE_FIELD3</td>
+	<td>//tr[contains(.,'Foo Bar 1')]/td[4]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOO_TABLE_FIELD4</td>
+	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOO_TABLE_FIELD5</td>
+	<td></td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>
