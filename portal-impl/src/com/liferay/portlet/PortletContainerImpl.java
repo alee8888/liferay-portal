@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.portlet.PortletContainer;
 import com.liferay.portal.kernel.portlet.PortletContainerException;
 import com.liferay.portal.kernel.portlet.PortletModeFactory;
 import com.liferay.portal.kernel.portlet.WindowStateFactory;
+import com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIconMenu;
 import com.liferay.portal.kernel.portlet.toolbar.PortletToolbar;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
@@ -53,6 +54,7 @@ import com.liferay.portal.theme.PortletDisplay;
 import com.liferay.portal.theme.PortletDisplayFactory;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.util.PropertyComparator;
 import com.liferay.util.SerializableUtil;
 
 import java.io.Serializable;
@@ -152,6 +154,12 @@ public class PortletContainerImpl implements PortletContainer {
 		catch (Exception e) {
 			throw new PortletContainerException(e);
 		}
+	}
+
+	public void setPortletConfigurationIconMenu(
+		PortletConfigurationIconMenu portletConfigurationIconMenu) {
+
+		_portletConfigurationIconMenu = portletConfigurationIconMenu;
 	}
 
 	public void setPortletToolbar(PortletToolbar portletToolbar) {
@@ -592,6 +600,12 @@ public class PortletContainerImpl implements PortletContainer {
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
 
+		_portletConfigurationIconMenu.setComparator(
+			new PropertyComparator("weight", false, false));
+
+		portletDisplay.setPortletConfigurationIconMenu(
+			_portletConfigurationIconMenu);
+
 		portletDisplay.setPortletToolbar(_portletToolbar);
 
 		PortletDisplay portletDisplayClone = PortletDisplayFactory.create();
@@ -792,6 +806,7 @@ public class PortletContainerImpl implements PortletContainer {
 	private static final Log _log = LogFactoryUtil.getLog(
 		PortletContainerImpl.class);
 
+	private PortletConfigurationIconMenu _portletConfigurationIconMenu;
 	private PortletToolbar _portletToolbar;
 
 }

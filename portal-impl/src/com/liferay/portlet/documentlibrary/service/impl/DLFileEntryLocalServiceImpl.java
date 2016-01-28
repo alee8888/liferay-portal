@@ -1675,14 +1675,28 @@ public class DLFileEntryLocalServiceImpl
 
 		serviceContext.setCommand(Constants.REVERT);
 
-		DLFileEntry dlFileEntry = updateFileEntry(
+		DLFileEntry dlFileEntry = dlFileEntryLocalService.getFileEntry(
+			fileEntryId);
+
+		try {
+			validateFileEntryTypeId(
+				PortalUtil.getCurrentAndAncestorSiteGroupIds(
+					dlFileEntry.getGroupId()),
+				dlFileEntry.getFolderId(), fileEntryTypeId);
+		}
+		catch (InvalidFileEntryTypeException ifete) {
+			fileEntryTypeId =
+				dlFileEntryTypeLocalService.getDefaultFileEntryTypeId(
+					dlFileEntry.getFolderId());
+		}
+
+		updateFileEntry(
 			userId, fileEntryId, sourceFileName, extension, mimeType, title,
 			description, changeLog, majorVersion, extraSettings,
 			fileEntryTypeId, ddmFormValuesMap, null, is, size, serviceContext);
 
 		DLFileVersion newDlFileVersion =
-			dlFileVersionLocalService.getFileVersion(
-				fileEntryId, dlFileEntry.getVersion());
+			dlFileVersionLocalService.getLatestFileVersion(fileEntryId, false);
 
 		copyFileEntryMetadata(
 			dlFileVersion.getCompanyId(), dlFileVersion.getFileEntryTypeId(),
