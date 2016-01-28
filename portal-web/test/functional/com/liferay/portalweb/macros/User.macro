@@ -3,17 +3,20 @@
 	<var name="userEmailAddress" value="test@liferay.com" />
 
 	<command name="activateCP">
-		<execute function="Click" locator1="NavBar#SEARCH_TOGGLE_ADVANCED" />
-		<execute function="Type" locator1="AdvancedSearch#FIRST_NAME_FIELD" value1="${userFirstName}" />
-		<execute function="Select" locator1="Select#USER_STATUS" value1="Inactive" />
-		<execute function="AssertClick" locator1="NavBar#BASIC_SEARCH_BUTTON" value1="Search" />
+		<execute function="Click" locator1="Dropdown#FILTER" />
 
-		<var name="key_userScreenName" value="${userScreenName}" />
+		<var name="key_filterValue" value="Inactive" />
 
-		<execute function="Click" locator1="UsersAndOrganizations#USER_TABLE_ACTIONS" />
+		<execute function="AssertClick" locator1="Dropdown#FILTER_VALUES" value1="Inactive" />
+
+		<var name="key_rowEntry" value="${userScreenName}" />
+
+		<execute function="Click" locator1="Icon#ROW_VERTICAL_ELLIPSIS" />
+
 		<execute function="AssertClick" locator1="MenuItem#ACTIVATE" value1="Activate" />
+
 		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
-		<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Users and Organizations" />
