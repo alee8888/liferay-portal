@@ -216,7 +216,7 @@ public class AnnouncementsDeliveryPersistenceImpl extends BasePersistenceImpl<An
 
 			if (orderByComparator != null) {
 				query = new StringBundler(3 +
-						(orderByComparator.getOrderByFields().length * 3));
+						(orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
 				query = new StringBundler(3);
@@ -284,7 +284,7 @@ public class AnnouncementsDeliveryPersistenceImpl extends BasePersistenceImpl<An
 	 * @param userId the user ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching announcements delivery
-	 * @throws com.liferay.portlet.announcements.exception.NoSuchDeliveryException if a matching announcements delivery could not be found
+	 * @throws NoSuchDeliveryException if a matching announcements delivery could not be found
 	 */
 	@Override
 	public AnnouncementsDelivery findByUserId_First(long userId,
@@ -335,7 +335,7 @@ public class AnnouncementsDeliveryPersistenceImpl extends BasePersistenceImpl<An
 	 * @param userId the user ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching announcements delivery
-	 * @throws com.liferay.portlet.announcements.exception.NoSuchDeliveryException if a matching announcements delivery could not be found
+	 * @throws NoSuchDeliveryException if a matching announcements delivery could not be found
 	 */
 	@Override
 	public AnnouncementsDelivery findByUserId_Last(long userId,
@@ -393,7 +393,7 @@ public class AnnouncementsDeliveryPersistenceImpl extends BasePersistenceImpl<An
 	 * @param userId the user ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next announcements delivery
-	 * @throws com.liferay.portlet.announcements.exception.NoSuchDeliveryException if a announcements delivery with the primary key could not be found
+	 * @throws NoSuchDeliveryException if a announcements delivery with the primary key could not be found
 	 */
 	@Override
 	public AnnouncementsDelivery[] findByUserId_PrevAndNext(long deliveryId,
@@ -433,8 +433,9 @@ public class AnnouncementsDeliveryPersistenceImpl extends BasePersistenceImpl<An
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(6 +
-					(orderByComparator.getOrderByFields().length * 6));
+			query = new StringBundler(4 +
+					(orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
 			query = new StringBundler(3);
@@ -615,7 +616,7 @@ public class AnnouncementsDeliveryPersistenceImpl extends BasePersistenceImpl<An
 	 * @param userId the user ID
 	 * @param type the type
 	 * @return the matching announcements delivery
-	 * @throws com.liferay.portlet.announcements.exception.NoSuchDeliveryException if a matching announcements delivery could not be found
+	 * @throws NoSuchDeliveryException if a matching announcements delivery could not be found
 	 */
 	@Override
 	public AnnouncementsDelivery findByU_T(long userId, String type)
@@ -1469,7 +1470,7 @@ public class AnnouncementsDeliveryPersistenceImpl extends BasePersistenceImpl<An
 
 			if (orderByComparator != null) {
 				query = new StringBundler(2 +
-						(orderByComparator.getOrderByFields().length * 3));
+						(orderByComparator.getOrderByFields().length * 2));
 
 				query.append(_SQL_SELECT_ANNOUNCEMENTSDELIVERY);
 

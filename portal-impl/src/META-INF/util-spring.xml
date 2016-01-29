@@ -148,9 +148,7 @@
 		</property>
 	</bean>
 	<bean id="com.liferay.portal.kernel.language.LanguageUtil" class="com.liferay.portal.kernel.language.LanguageUtil">
-		<property name="language">
-			<bean class="com.liferay.portal.language.LanguageImpl" />
-		</property>
+		<property name="language" ref="com.liferay.portal.language.LanguageImpl" />
 	</bean>
 	<bean id="com.liferay.portal.kernel.language.UnicodeLanguageUtil" class="com.liferay.portal.kernel.language.UnicodeLanguageUtil">
 		<property name="unicodeLanguage">
@@ -202,10 +200,15 @@
 			<bean class="com.liferay.portal.kernel.poller.comet.CometHandlerPool" />
 		</property>
 	</bean>
+	<bean id="com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIconMenu" class="com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIconMenu" />
 	<bean id="com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIconTracker" class="com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIconTracker" />
 	<bean id="com.liferay.portal.kernel.portlet.toolbar.PortletToolbar" class="com.liferay.portal.kernel.portlet.toolbar.PortletToolbar" />
 	<bean id="com.liferay.portal.kernel.portlet.PortletContainerUtil" class="com.liferay.portal.kernel.portlet.PortletContainerUtil">
 		<property name="portletContainer" ref="com.liferay.portlet.RestrictPortletContainerWrapper" />
+	</bean>
+	<bean id="com.liferay.portal.kernel.portletfilerepository.PortletFileRepository" class="com.liferay.portal.portletfilerepository.PortletFileRepositoryImpl" />
+	<bean id="com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil" class="com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil">
+		<property name="portletFileRepository" ref="com.liferay.portal.kernel.portletfilerepository.PortletFileRepository" />
 	</bean>
 	<bean id="com.liferay.portal.kernel.resiliency.spi.SPIRegistryUtil" class="com.liferay.portal.kernel.resiliency.spi.SPIRegistryUtil">
 		<property name="sPIRegistry">
@@ -396,6 +399,7 @@
 	<bean id="com.liferay.portal.kernel.zip.ZipWriterFactoryUtil" class="com.liferay.portal.kernel.zip.ZipWriterFactoryUtil">
 		<property name="zipWriterFactory" ref="com.liferay.portal.kernel.zip.ZipWriterFactory" />
 	</bean>
+	<bean id="com.liferay.portal.language.LanguageImpl" class="com.liferay.portal.language.LanguageImpl" />
 	<bean id="com.liferay.portal.language.LanguageResources" class="com.liferay.portal.language.LanguageResources">
 		<property name="config" value="content.Language,content.Language-ext" />
 	</bean>
@@ -408,10 +412,6 @@
 	</bean>
 	<bean id="com.liferay.portal.model.adapter.builder.ServiceTrackerMapModelAdapterBuilderLocator" class="com.liferay.portal.model.adapter.builder.ServiceTrackerMapModelAdapterBuilderLocator" />
 	<bean id="com.liferay.portal.plugin.PluginPackageIndexer" class="com.liferay.portal.plugin.PluginPackageIndexer" />
-	<bean id="com.liferay.portal.portletfilerepository.PortletFileRepository" class="com.liferay.portal.portletfilerepository.PortletFileRepositoryImpl" />
-	<bean id="com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil" class="com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil">
-		<property name="portletFileRepository" ref="com.liferay.portal.portletfilerepository.PortletFileRepository" />
-	</bean>
 	<bean id="com.liferay.portal.resiliency.mpi.portlet.PortalResiliencyPortletContainerWrapper" class="com.liferay.portal.resiliency.mpi.portlet.PortalResiliencyPortletContainerWrapper" factory-method="createPortalResiliencyPortletContainerWrapper">
 		<constructor-arg name="portletContainer" ref="com.liferay.portlet.PortletContainerImpl" />
 	</bean>
@@ -546,6 +546,7 @@
 	<bean id="com.liferay.portlet.DefaultControlPanelEntry" class="com.liferay.portlet.DefaultControlPanelEntry" />
 	<bean id="com.liferay.portlet.DefaultControlPanelEntryFactory" class="com.liferay.portlet.DefaultControlPanelEntryFactory" />
 	<bean id="com.liferay.portlet.PortletContainerImpl" class="com.liferay.portlet.PortletContainerImpl">
+		<property name="portletConfigurationIconMenu" ref="com.liferay.portal.kernel.portlet.configuration.icon.PortletConfigurationIconMenu" />
 		<property name="portletToolbar" ref="com.liferay.portal.kernel.portlet.toolbar.PortletToolbar" />
 	</bean>
 	<bean id="com.liferay.portlet.SecurityPortletContainerWrapper" class="com.liferay.portlet.SecurityPortletContainerWrapper" factory-method="createSecurityPortletContainerWrapper">

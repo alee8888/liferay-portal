@@ -216,7 +216,7 @@ public class AnnouncementsFlagPersistenceImpl extends BasePersistenceImpl<Announ
 
 			if (orderByComparator != null) {
 				query = new StringBundler(3 +
-						(orderByComparator.getOrderByFields().length * 3));
+						(orderByComparator.getOrderByFields().length * 2));
 			}
 			else {
 				query = new StringBundler(3);
@@ -284,7 +284,7 @@ public class AnnouncementsFlagPersistenceImpl extends BasePersistenceImpl<Announ
 	 * @param entryId the entry ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching announcements flag
-	 * @throws com.liferay.portlet.announcements.exception.NoSuchFlagException if a matching announcements flag could not be found
+	 * @throws NoSuchFlagException if a matching announcements flag could not be found
 	 */
 	@Override
 	public AnnouncementsFlag findByEntryId_First(long entryId,
@@ -335,7 +335,7 @@ public class AnnouncementsFlagPersistenceImpl extends BasePersistenceImpl<Announ
 	 * @param entryId the entry ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching announcements flag
-	 * @throws com.liferay.portlet.announcements.exception.NoSuchFlagException if a matching announcements flag could not be found
+	 * @throws NoSuchFlagException if a matching announcements flag could not be found
 	 */
 	@Override
 	public AnnouncementsFlag findByEntryId_Last(long entryId,
@@ -393,7 +393,7 @@ public class AnnouncementsFlagPersistenceImpl extends BasePersistenceImpl<Announ
 	 * @param entryId the entry ID
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the previous, current, and next announcements flag
-	 * @throws com.liferay.portlet.announcements.exception.NoSuchFlagException if a announcements flag with the primary key could not be found
+	 * @throws NoSuchFlagException if a announcements flag with the primary key could not be found
 	 */
 	@Override
 	public AnnouncementsFlag[] findByEntryId_PrevAndNext(long flagId,
@@ -432,8 +432,9 @@ public class AnnouncementsFlagPersistenceImpl extends BasePersistenceImpl<Announ
 		StringBundler query = null;
 
 		if (orderByComparator != null) {
-			query = new StringBundler(6 +
-					(orderByComparator.getOrderByFields().length * 6));
+			query = new StringBundler(4 +
+					(orderByComparator.getOrderByConditionFields().length * 3) +
+					(orderByComparator.getOrderByFields().length * 3));
 		}
 		else {
 			query = new StringBundler(3);
@@ -622,7 +623,7 @@ public class AnnouncementsFlagPersistenceImpl extends BasePersistenceImpl<Announ
 	 * @param entryId the entry ID
 	 * @param value the value
 	 * @return the matching announcements flag
-	 * @throws com.liferay.portlet.announcements.exception.NoSuchFlagException if a matching announcements flag could not be found
+	 * @throws NoSuchFlagException if a matching announcements flag could not be found
 	 */
 	@Override
 	public AnnouncementsFlag findByU_E_V(long userId, long entryId, int value)
@@ -1460,7 +1461,7 @@ public class AnnouncementsFlagPersistenceImpl extends BasePersistenceImpl<Announ
 
 			if (orderByComparator != null) {
 				query = new StringBundler(2 +
-						(orderByComparator.getOrderByFields().length * 3));
+						(orderByComparator.getOrderByFields().length * 2));
 
 				query.append(_SQL_SELECT_ANNOUNCEMENTSFLAG);
 

@@ -51,6 +51,7 @@ page import="com.liferay.portal.kernel.module.configuration.ConfigurationFactory
 page import="com.liferay.portal.kernel.portlet.LiferayWindowState" %><%@
 page import="com.liferay.portal.kernel.portlet.PortletProvider" %><%@
 page import="com.liferay.portal.kernel.portlet.PortletProviderUtil" %><%@
+page import="com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil" %><%@
 page import="com.liferay.portal.kernel.repository.model.FileEntry" %><%@
 page import="com.liferay.portal.kernel.repository.model.Folder" %><%@
 page import="com.liferay.portal.kernel.search.Document" %><%@
@@ -90,7 +91,6 @@ page import="com.liferay.portal.model.Group" %><%@
 page import="com.liferay.portal.model.Organization" %><%@
 page import="com.liferay.portal.model.Portlet" %><%@
 page import="com.liferay.portal.model.User" %><%@
-page import="com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil" %><%@
 page import="com.liferay.portal.service.GroupLocalServiceUtil" %><%@
 page import="com.liferay.portal.service.OrganizationLocalServiceUtil" %><%@
 page import="com.liferay.portal.service.PortletLocalServiceUtil" %><%@
@@ -146,17 +146,13 @@ page import="java.util.Map" %>
 <%@ page import="javax.portlet.PortletURL" %><%@
 page import="javax.portlet.WindowState" %>
 
+<liferay-frontend:defineObjects />
+
 <liferay-theme:defineObjects />
 
 <portlet:defineObjects />
 
 <%
-WindowState windowState = liferayPortletRequest.getWindowState();
-
-PortletURL currentURLObj = PortletURLUtil.getCurrent(liferayPortletRequest, liferayPortletResponse);
-
-String currentURL = currentURLObj.toString();
-
 PortalPreferences portalPreferences = PortletPreferencesFactoryUtil.getPortalPreferences(liferayPortletRequest);
 
 Format dateFormatDate = FastDateFormatFactoryUtil.getDate(locale, timeZone);

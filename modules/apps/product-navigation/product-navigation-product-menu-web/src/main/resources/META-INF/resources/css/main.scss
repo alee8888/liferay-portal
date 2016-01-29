@@ -221,10 +221,10 @@ body {
 				bottom: 0;
 				content: '';
 				height: 42px;
-				left: -300px;
+				left: -1000px;
 				opacity: 0.3;
 				position: absolute;
-				right: -100px;
+				right: -40px;
 				top: 0;
 				z-index: -1;
 			}
@@ -329,7 +329,7 @@ body {
 
 .toast-animation {
 	height: 20px;
-	margin: 6px 4px 0 4px;
+	margin: 10px 4px 0 4px;
 	position: relative;
 	width: 20px;
 
@@ -357,12 +357,6 @@ body {
 		@include transition-delay(0.2s);
 
 		width: 15px;
-	}
-}
-
-@include sm {
-	.toast-animation {
-		margin: 12px 4px 0 4px;
 	}
 }
 

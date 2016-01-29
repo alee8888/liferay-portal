@@ -7,14 +7,6 @@ LPS-30525.
 
 <#setting number_format = "computer">
 
-<#if PortalJspTagLibs??>
-	<#assign liferay_ui = PortalJspTagLibs["/WEB-INF/tld/liferay-ui.tld"] />
-	<#assign liferay_portlet = PortalJspTagLibs["/WEB-INF/tld/liferay-portlet-ext.tld"] />
-<#elseif taglibLiferayHash??>
-	<#assign liferay_ui = taglibLiferayHash["/WEB-INF/tld/liferay-ui.tld"] />
-	<#assign liferay_portlet = taglibLiferayHash["/WEB-INF/tld/liferay-portlet-ext.tld"] />
-</#if>
-
 <#assign css_main_file = "" />
 <#assign is_signed_in = false />
 <#assign js_main_file = "" />
@@ -55,6 +47,12 @@ LPS-30525.
 		portletProviderAction=portletProviderAction.VIEW
 		portletProviderClassName="com.liferay.portal.kernel.servlet.taglib.ui.BreadcrumbEntry"
 	/>
+</#macro>
+
+<#macro control_menu>
+	<#if themeDisplay.isImpersonated() || (is_setup_complete && is_signed_in)>
+		<@liferay_control_menu["control-menu"] />
+	</#if>
 </#macro>
 
 <#macro css
@@ -105,33 +103,14 @@ ${languageUtil.format(locale, key, arguments)}</#macro>
 
 <#macro navigation_menu
 	default_preferences = ""
+	instance_id = ""
 >
 	<@liferay_portlet["runtime"]
 		defaultPreferences=default_preferences
+		instanceId=instance_id
 		portletProviderAction=portletProviderAction.VIEW
 		portletProviderClassName="com.liferay.portal.theme.NavItem"
 	/>
-</#macro>
-
-<#macro product_menu>
-	<#if themeDisplay.isImpersonated() || (is_setup_complete && is_signed_in)>
-		<@liferay_portlet["runtime"]
-			portletProviderAction=portletProviderAction.VIEW
-			portletProviderClassName="com.liferay.admin.kernel.util.PortalProductMenuApplicationType$ProductMenu"
-		/>
-	</#if>
-</#macro>
-
-<#macro product_menu_sidebar
-	state
->
-	<#if themeDisplay.isImpersonated() || (is_setup_complete && is_signed_in)>
-		<div class="${state} lfr-product-menu-panel sidenav-fixed sidenav-menu-slider" id="sidenavSliderId">
-			<div class="product-menu sidebar sidenav-menu">
-				<@liferay.product_menu />
-			</div>
-		</div>
-	</#if>
 </#macro>
 
 <#macro search

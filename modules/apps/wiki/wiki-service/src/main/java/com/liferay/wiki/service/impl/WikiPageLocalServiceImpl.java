@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationFactory;
 import com.liferay.portal.kernel.notifications.UserNotificationDefinition;
+import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
@@ -60,7 +61,6 @@ import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
-import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 import com.liferay.portal.util.LayoutURLUtil;
@@ -917,6 +917,15 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 		return wikiPagePersistence.findByN_H_P_S(
 			nodeId, head, parentTitle, WorkflowConstants.STATUS_APPROVED, start,
 			end);
+	}
+
+	@Override
+	public List<WikiPage> getChildren(
+		long nodeId, boolean head, String parentTitle, int status, int start,
+		int end, OrderByComparator obc) {
+
+		return wikiPagePersistence.findByN_H_P_S(
+			nodeId, head, parentTitle, status, start, end, obc);
 	}
 
 	@Override

@@ -48,7 +48,7 @@ public class CheckinFileEntryPortletConfigurationIconFactory
 			FileEntry fileEntry = ActionUtil.getFileEntry(portletRequest);
 
 			return new CheckinFileEntryPortletConfigurationIcon(
-				portletRequest, fileEntry);
+				getServletContext(), getJspPath(), portletRequest, fileEntry);
 		}
 		catch (Exception e) {
 		}
@@ -63,7 +63,7 @@ public class CheckinFileEntryPortletConfigurationIconFactory
 
 	@Override
 	public double getWeight() {
-		return 102.0;
+		return 102;
 	}
 
 	@Override

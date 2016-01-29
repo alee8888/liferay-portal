@@ -41,6 +41,7 @@ page import="com.liferay.portal.exception.RoleNameException" %><%@
 page import="com.liferay.portal.exception.RolePermissionsException" %><%@
 page import="com.liferay.portal.kernel.bean.BeanParamUtil" %><%@
 page import="com.liferay.portal.kernel.dao.orm.QueryUtil" %><%@
+page import="com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker" %><%@
 page import="com.liferay.portal.kernel.dao.search.SearchContainer" %><%@
 page import="com.liferay.portal.kernel.exception.SystemException" %><%@
 page import="com.liferay.portal.kernel.language.LanguageUtil" %><%@
@@ -112,8 +113,9 @@ page import="com.liferay.portlet.rolesadmin.search.OrganizationRoleChecker" %><%
 page import="com.liferay.portlet.rolesadmin.search.ResourceActionRowChecker" %><%@
 page import="com.liferay.portlet.rolesadmin.search.RoleSearch" %><%@
 page import="com.liferay.portlet.rolesadmin.search.RoleSearchTerms" %><%@
+page import="com.liferay.portlet.rolesadmin.search.SetUserRoleChecker" %><%@
+page import="com.liferay.portlet.rolesadmin.search.UnsetUserRoleChecker" %><%@
 page import="com.liferay.portlet.rolesadmin.search.UserGroupRoleChecker" %><%@
-page import="com.liferay.portlet.rolesadmin.search.UserRoleChecker" %><%@
 page import="com.liferay.portlet.usergroupsadmin.search.UserGroupDisplayTerms" %><%@
 page import="com.liferay.portlet.usergroupsadmin.search.UserGroupSearch" %><%@
 page import="com.liferay.portlet.usersadmin.search.GroupSearch" %><%@
@@ -141,16 +143,13 @@ page import="java.util.Set" %>
 page import="javax.portlet.ResourceURL" %><%@
 page import="javax.portlet.WindowState" %>
 
+<liferay-frontend:defineObjects />
+
 <liferay-theme:defineObjects />
 
 <portlet:defineObjects />
 
 <%
-WindowState windowState = liferayPortletRequest.getWindowState();
-
-PortletURL currentURLObj = PortletURLUtil.getCurrent(liferayPortletRequest, liferayPortletResponse);
-String currentURL = currentURLObj.toString();
-
 boolean filterManageableGroups = true;
 boolean filterManageableOrganizations = true;
 boolean filterManageableRoles = true;

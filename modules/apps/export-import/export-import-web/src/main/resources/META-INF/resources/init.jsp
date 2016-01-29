@@ -58,6 +58,7 @@ page import="com.liferay.portal.kernel.lock.DuplicateLockException" %><%@
 page import="com.liferay.portal.kernel.portlet.LiferayWindowState" %><%@
 page import="com.liferay.portal.kernel.portlet.PortletBag" %><%@
 page import="com.liferay.portal.kernel.portlet.PortletBagPool" %><%@
+page import="com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil" %><%@
 page import="com.liferay.portal.kernel.repository.model.FileEntry" %><%@
 page import="com.liferay.portal.kernel.security.auth.AuthException" %><%@
 page import="com.liferay.portal.kernel.security.auth.RemoteAuthException" %><%@
@@ -97,7 +98,6 @@ page import="com.liferay.portal.model.Portlet" %><%@
 page import="com.liferay.portal.model.Ticket" %><%@
 page import="com.liferay.portal.model.TicketConstants" %><%@
 page import="com.liferay.portal.model.User" %><%@
-page import="com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil" %><%@
 page import="com.liferay.portal.service.GroupLocalServiceUtil" %><%@
 page import="com.liferay.portal.service.LayoutLocalServiceUtil" %><%@
 page import="com.liferay.portal.service.LayoutServiceUtil" %><%@
@@ -113,7 +113,6 @@ page import="com.liferay.portal.util.SessionClicks" %><%@
 page import="com.liferay.portal.util.comparator.PortletTitleComparator" %><%@
 page import="com.liferay.portlet.PortalPreferences" %><%@
 page import="com.liferay.portlet.PortletPreferencesFactoryUtil" %><%@
-page import="com.liferay.portlet.PortletURLUtil" %><%@
 page import="com.liferay.portlet.exportimport.background.task.BackgroundTaskExecutorNames" %><%@
 page import="com.liferay.portlet.exportimport.configuration.ExportImportConfigurationConstants" %><%@
 page import="com.liferay.portlet.exportimport.exception.LARFileException" %><%@
@@ -161,8 +160,7 @@ page import="java.util.ResourceBundle" %><%@
 page import="java.util.Set" %>
 
 <%@ page import="javax.portlet.ActionRequest" %><%@
-page import="javax.portlet.PortletURL" %><%@
-page import="javax.portlet.WindowState" %>
+page import="javax.portlet.PortletURL" %>
 
 <liferay-frontend:defineObjects />
 
@@ -171,12 +169,6 @@ page import="javax.portlet.WindowState" %>
 <portlet:defineObjects />
 
 <%
-WindowState windowState = liferayPortletRequest.getWindowState();
-
-PortletURL currentURLObj = PortletURLUtil.getCurrent(liferayPortletRequest, liferayPortletResponse);
-
-String currentURL = currentURLObj.toString();
-
 PortalPreferences portalPreferences = PortletPreferencesFactoryUtil.getPortalPreferences(request);
 
 String portletResource = ParamUtil.getString(request, "portletResource");

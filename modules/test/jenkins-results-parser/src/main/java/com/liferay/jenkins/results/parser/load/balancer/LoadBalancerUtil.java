@@ -45,16 +45,6 @@ import org.json.JSONObject;
  */
 public class LoadBalancerUtil {
 
-	public static String getMostAvailableMasterURL(
-			Map<String, String> overrideMap)
-		throws Exception {
-
-		return getMostAvailableMasterURL(
-			"http://mirrors.lax.liferay.com/github.com/liferay" +
-				"/liferay-jenkins-ee/commands/build.properties",
-			overrideMap);
-	}
-
 	public static String getMostAvailableMasterURL(Properties properties)
 		throws Exception {
 
@@ -244,7 +234,17 @@ public class LoadBalancerUtil {
 	}
 
 	public static String getMostAvailableMasterURL(
-			String propertiesURL, Map<String, String> overrideMap)
+			String... overridePropertiesArray)
+		throws Exception {
+
+		return getMostAvailableMasterURL(
+			"http://mirrors.lax.liferay.com/github.com/liferay" +
+				"/liferay-jenkins-ee/commands/build.properties",
+			overridePropertiesArray);
+	}
+
+	public static String getMostAvailableMasterURL(
+			String propertiesURL, String[] overridePropertiesArray)
 		throws Exception {
 
 		Properties properties = new Properties();
@@ -254,8 +254,21 @@ public class LoadBalancerUtil {
 
 		properties.load(new StringReader(propertiesString));
 
-		if (overrideMap != null) {
-			properties.putAll(overrideMap);
+		if ((overridePropertiesArray != null) &&
+			(overridePropertiesArray.length > 0) &&
+			((overridePropertiesArray.length % 2) == 0)) {
+
+			for (int i = 0; i < overridePropertiesArray.length; i += 2) {
+				String overridePropertyName = overridePropertiesArray[i];
+				String overridePropertyValue = overridePropertiesArray[i + 1];
+
+				if (overridePropertyValue == null) {
+					continue;
+				}
+
+				properties.setProperty(
+					overridePropertyName, overridePropertyValue);
+			}
 		}
 
 		return getMostAvailableMasterURL(properties);
