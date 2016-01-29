@@ -609,7 +609,7 @@
 		<execute function="SelectFrameTop" value1="relative=top" />
 
 		<execute function="Pause" locator1="5000" />
-		
+
 		<execute function="Refresh" />
 	</command>
 

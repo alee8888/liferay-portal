@@ -915,7 +915,7 @@
 
 				<execute macro="User#loginUserPG">
 					<var name="password" value="test1" />
-					<var name="userEmbasicsearchcpailAddress" value="${userEmailAddress}" />
+					<var name="userEmailAddress" value="${userEmailAddress}" />
 				</execute>
 
 				<execute macro="User#logoutUserPG" />
