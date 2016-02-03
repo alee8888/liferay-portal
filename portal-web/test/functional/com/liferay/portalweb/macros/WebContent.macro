@@ -797,7 +797,7 @@
 				<execute function="AssertClick" locator1="Button#SAVE_AS_DRAFT" value1="Save as Draft" />
 
 				<execute macro="Alert#viewRequestCompletedSuccessMessage" />
-				<execute function="AssertTextEquals" locator1="AssetWorkflow#WORKFLOW_STATUS" value1="Draft" />
+				<execute function="AssertTextEquals#assertPartialText" locator1="Message#WEB_CONTENT_STATUS" value1="Draft" />
 			</then>
 			<else>
 				<execute macro="WebContent#publish" />
@@ -1337,7 +1337,7 @@
 			<var name="displayStyle" value="Descriptive" />
 		</execute>
 
-		<execute function="AssertTextEquals" locator1="Message#INFO" value1="No web content was found" />
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No web content was found" />
 		<execute function="AssertElementNotPresent" locator1="WC#ENTRY_DESCRIPTIVE_THUMBNAIL" />
 		<execute function="AssertElementNotPresent" locator1="WC#ENTRY_DESCRIPTIVE_TITLE" />
 	</command>

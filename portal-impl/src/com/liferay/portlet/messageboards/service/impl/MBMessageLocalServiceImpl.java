@@ -101,7 +101,7 @@ import com.liferay.portlet.messageboards.util.comparator.MessageCreateDateCompar
 import com.liferay.portlet.messageboards.util.comparator.MessageThreadComparator;
 import com.liferay.portlet.messageboards.util.comparator.ThreadLastPostDateComparator;
 import com.liferay.portlet.social.model.SocialActivityConstants;
-import com.liferay.portlet.trash.util.TrashUtil;
+import com.liferay.trash.kernel.util.TrashUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -1890,7 +1890,7 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 
 					extraDataJSONObject.put("title", message.getSubject());
 
-					if (!message.isDiscussion() ) {
+					if (!message.isDiscussion()) {
 						if (!message.isAnonymous() && !user.isDefaultUser()) {
 							long receiverUserId = 0;
 

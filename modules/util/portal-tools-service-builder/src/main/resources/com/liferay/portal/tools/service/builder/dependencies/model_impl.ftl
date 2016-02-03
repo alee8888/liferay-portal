@@ -56,8 +56,8 @@ import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
-import com.liferay.portlet.trash.model.TrashEntry;
-import com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil;
+import com.liferay.trash.kernel.model.TrashEntry;
+import com.liferay.trash.kernel.service.TrashEntryLocalServiceUtil;
 
 import com.liferay.portlet.exportimport.lar.StagedModelType;
 
@@ -196,7 +196,7 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 
 		public static final boolean FINDER_CACHE_ENABLED = false;
 	<#else>
-		public static final boolean ENTITY_CACHE_ENABLED = GetterUtil.getBoolean(${propsUtil}.get("value.object.entity.cache.enabled.${packagePath}.model.${entity.name}"),
+		public static final boolean ENTITY_CACHE_ENABLED = GetterUtil.getBoolean(${propsUtil}.get("value.object.entity.cache.enabled.${apiPackagePath}.model.${entity.name}"),
 
 		<#if entity.isCacheEnabled()>
 			true
@@ -206,7 +206,7 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 
 		);
 
-		public static final boolean FINDER_CACHE_ENABLED = GetterUtil.getBoolean(${propsUtil}.get("value.object.finder.cache.enabled.${packagePath}.model.${entity.name}"),
+		public static final boolean FINDER_CACHE_ENABLED = GetterUtil.getBoolean(${propsUtil}.get("value.object.finder.cache.enabled.${apiPackagePath}.model.${entity.name}"),
 
 		<#if entity.isCacheEnabled()>
 			true
@@ -231,7 +231,7 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		</#if>
 
 		<#if columnBitmaskEnabled>
-			public static final boolean COLUMN_BITMASK_ENABLED = GetterUtil.getBoolean(${propsUtil}.get("value.object.column.bitmask.enabled.${packagePath}.model.${entity.name}"), true);
+			public static final boolean COLUMN_BITMASK_ENABLED = GetterUtil.getBoolean(${propsUtil}.get("value.object.column.bitmask.enabled.${apiPackagePath}.model.${entity.name}"), true);
 
 			<#assign columnBitmask = 1>
 
@@ -319,7 +319,7 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		</#if>
 	</#list>
 
-	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(${propsUtil}.get("lock.expiration.time.${packagePath}.model.${entity.name}"));
+	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(${propsUtil}.get("lock.expiration.time.${apiPackagePath}.model.${entity.name}"));
 
 	public ${entity.name}ModelImpl() {
 	}

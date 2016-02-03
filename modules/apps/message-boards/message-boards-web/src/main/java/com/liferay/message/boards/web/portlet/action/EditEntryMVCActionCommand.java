@@ -29,7 +29,7 @@ import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.model.MBThread;
 import com.liferay.portlet.messageboards.service.MBCategoryService;
 import com.liferay.portlet.messageboards.service.MBThreadService;
-import com.liferay.portlet.trash.util.TrashUtil;
+import com.liferay.trash.kernel.util.TrashUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -128,7 +128,8 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 	}
 
 	protected void lockThreads(ActionRequest actionRequest) throws Exception {
-		long[] threadIds = ParamUtil.getLongValues(actionRequest, "rowIds");
+		long[] threadIds = ParamUtil.getLongValues(
+			actionRequest, "rowIdsMBThread");
 
 		for (long threadId : threadIds) {
 			_mbThreadService.lockThread(threadId);
@@ -146,7 +147,8 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 	}
 
 	protected void unlockThreads(ActionRequest actionRequest) throws Exception {
-		long[] threadIds = ParamUtil.getLongValues(actionRequest, "rowIds");
+		long[] threadIds = ParamUtil.getLongValues(
+			actionRequest, "rowIdsMBThread");
 
 		for (long threadId : threadIds) {
 			_mbThreadService.unlockThread(threadId);
