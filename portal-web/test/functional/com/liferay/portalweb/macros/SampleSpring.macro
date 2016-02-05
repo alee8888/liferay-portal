@@ -1,0 +1,35 @@
+<definition>
+	<command name="viewDefaultDescriptionUpload">
+		<var name="key_portletName" value="${portletName}" />
+
+		<execute function="AssertTextEquals" locator1="BasePortlet#TITLE" value1="${portletName}" />
+	</command>
+
+	<command name="viewDefaultPets">
+		<var name="key_portletName" value="${portletName}" />
+
+		<execute function="AssertTextEquals" locator1="BasePortlet#TITLE" value1="${portletName}" />
+		<execute function="AssertTextEquals#assertPartialText" locator1="BasePortlet#PORTLET_BODY" value1="Pets Species Breed Name Bird Macaw Polly Remove Cat Calico Boots Remove Dog Poodle Fido Remove Snake Boa Bo Remove Add a Pet" />	
+	</command>
+
+	<command name="viewDefaultPetSites">
+		<var name="key_portletName" value="${portletName}" />
+
+		<execute function="AssertTextEquals" locator1="BasePortlet#TITLE" value1="${portletName}" />
+		<execute function="AssertTextEquals#assertPartialText" locator1="BasePortlet#PORTLET_BODY" value1="There are currently no sites to display. Edit Mode allows you to add sites." />	
+	</command>
+
+	<command name="viewDefaultPortletModes">
+		<var name="key_portletName" value="${portletName}" />
+
+		<execute function="AssertTextEquals" locator1="BasePortlet#TITLE" value1="${portletName}" />
+		<execute function="AssertTextEquals#assertPartialText" locator1="BasePortlet#PORTLET_BODY" value1="This portlet simply displays a different view depending on the mode of the portlet." />	
+	</command>
+
+	<command name="viewDefaultWelcome">
+		<var name="key_portletName" value="${portletName}" />
+
+		<execute function="AssertTextEquals" locator1="BasePortlet#TITLE" value1="${portletName}" />
+		<execute function="AssertTextEquals#assertPartialText" locator1="BasePortlet#PORTLET_BODY" value1="Welcome to the Pet Portal!" />	
+	</command>
+</definition>

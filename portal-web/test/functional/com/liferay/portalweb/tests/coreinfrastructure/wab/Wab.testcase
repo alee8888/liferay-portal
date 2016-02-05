@@ -9,8 +9,12 @@
 		<execute macro="Page#tearDownPG" />
 	</tear-down>
 
-	<command name="SampleServiceBuilder" priority="4">
+	<command name="SampleServiceBuilder" priority="5">
+		<property name="portal.acceptance" value="wab" />
 		<property name="portlet.plugins.includes" value="sample-service-builder-portlet" />
+
+		<execute function="AssertConsoleTextPresent" value1="Deploying sample-service-builder-portlet" />
+		<execute function="AssertConsoleTextPresent" value1="1 portlet for sample-service-builder-portlet is available for use" />
 
 		<execute macro="Page#add">
 			<var name="pageName" value="Sample Service Builder Test Page" />
@@ -57,27 +61,44 @@
 		<execute macro="SampleServiceBuilder#viewNo" />
 	</command>
 
-	<command name="SampleSpring" priority="4">
+	<command name="SampleSpring" priority="5">
+		<property name="portal.acceptance" value="wab" />
 		<property name="portlet.plugins.includes" value="sample-spring-portlet" />
 
-		<execute macro="SampleServiceBuilder#viewDefault" />
+		<execute function="AssertConsoleTextPresent" value1="Deploying sample-spring-portlet" />
 
 		<execute macro="Page#add">
 			<var name="pageName" value="Sample Spring Test Page" />
 		</execute>
 
-		<execute macro="Portlet#addPG">
-			<var name="portletName" value="Sample Spring" />
+		<for list="Description Upload,Pet Sites,Pets,Portlet Modes,Welcome" param="sampleSpringPortlets">
+			<execute macro="Portlet#addPG">
+				<var name="portletName" value="${sampleSpringPortlets}" />
+			</execute>
+
+			<execute function="Refresh" />
+		</for>
+
+		<execute function="Pause" locator1="3000" />
+
+		<execute macro="SampleSpring#viewDefaultDescriptionUpload">
+			<var name="portletName" value="Description Upload" />
 		</execute>
 
-		<execute macro="Page#add">
-			<var name="pageName" value="Knowledge Base Test Page" />
+		<execute macro="SampleSpring#viewDefaultPetSites">
+			<var name="portletName" value="Pet Sites" />
 		</execute>
 
-		<execute macro="Portlet#addPG">
-			<var name="portletName" value="Knowledge Base" />
+		<execute macro="SampleSpring#viewDefaultPets">
+			<var name="portletName" value="Pets" />
 		</execute>
 
-		<execute function="AssertElementNotPresent" locator1="TestBlob#TEST_PORTLET_BODY_FAILED" value1="FAILED" />
+		<execute macro="SampleSpring#viewDefaultPortletModes">
+			<var name="portletName" value="Portlet Modes" />
+		</execute>
+
+		<execute macro="SampleSpring#viewDefaultWelcome">
+			<var name="portletName" value="Welcome" />
+		</execute>
 	</command>
 </definition>
