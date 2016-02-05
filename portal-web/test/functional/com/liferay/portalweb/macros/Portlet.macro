@@ -136,7 +136,7 @@
 		<execute function="Type#sendKeysApplicationSearch" locator1="NavBar#APPLICATION_SEARCH_FIELD" value1="${portletName}" />
 
 		<if>
-			<condition function="IsElementNotPresent" locator1="ControlMenuAddPanel#ADD_PORTLET_LINK" />
+			<condition function="IsElementNotPresent" locator1="ControlMenuAddPanel#ADD_PORTLET_TITLE" />
 			<then>
 				<execute function="Click" locator1="ControlMenuAddPanel#COLLAPSED_NESTED_CATEGORY" />
 			</then>
