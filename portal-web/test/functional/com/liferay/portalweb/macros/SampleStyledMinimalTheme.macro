@@ -1,0 +1,5 @@
+<definition>
+	<command name="viewWelcomePage">
+		<execute function="AssertElementPresent" locator1="SampleStyledMinimalTheme#THEME_SCRIPT" />
+	</command>
+</definition>
