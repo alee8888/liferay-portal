@@ -1,0 +1,178 @@
+<definition component-name="portal-test-plugins">
+	<property name="testray.main.component.name" value="Test Plugins" />
+
+	<set-up>
+		<execute macro="User#firstLoginPG" />
+	</set-up>
+
+	<tear-down>
+		<execute macro="Page#tearDownPG" />
+	</tear-down>
+
+<command name="SampleKnowledgeBase" priority="5">
+		<property name="portal.acceptance" value="wab" />
+		<property name="portlet.plugins.includes" value="knowledge-base-portlet" />
+
+		<execute function="AssertConsoleTextPresent" value1="Deploying knowledge-base-portlet" />
+		<execute function="AssertConsoleTextPresent" value1="5 portlets for knowledge-base-portlet are available for use" />
+
+		<execute macro="Page#add">
+			<var name="pageName" value="Knowledge Base Page" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Knowledge Base Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Knowledge Base Display" />
+		</execute>
+
+		<execute macro="KnowledgeBasePortlet#viewKnowledgeBaseDisplay" />
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Knowledge Base Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Knowledge Base Article" />
+		</execute>
+
+		<execute macro="KnowledgeBasePortlet#viewKnowledgeBaseArticle" />
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Knowledge Base Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Knowledge Base Search" />
+		</execute>
+
+		<execute macro="KnowledgeBasePortlet#viewKnowledgeBaseSearch" />
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Knowledge Base Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Knowledge Base Section" />
+		</execute>
+
+		<execute macro="KnowledgeBasePortlet#viewKnowledgeBaseSection" />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
+		</execute>
+
+		<execute macro="KBArticle#addCP">
+			<var name="kbArticleContent" value="Knowledge Base Article Content" />
+			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
+		</execute>
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
+		</execute>
+
+		<execute macro="KBArticle#viewCP">
+			<var name="kbArticleContent" value="Knowledge Base Article Content" />
+			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
+		</execute>
+	</command>
+
+	<command name="SampleServiceBuilder" priority="5">
+		<property name="portal.acceptance" value="wab" />
+		<property name="portlet.plugins.includes" value="sample-service-builder-portlet" />
+
+		<execute function="AssertConsoleTextPresent" value1="Deploying sample-service-builder-portlet" />
+		<execute function="AssertConsoleTextPresent" value1="1 portlet for sample-service-builder-portlet is available for use" />
+
+		<execute macro="Page#add">
+			<var name="pageName" value="Sample Service Builder Test Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Sample Service Builder" />
+		</execute>
+
+		<execute macro="SampleServiceBuilder#viewDefault">
+			<var name="portletName" value="Sample Service Builder" />
+		</execute>
+
+		<execute macro="SampleServiceBuilder#addFoo">
+			<var name="field1" value="Foo Field 1" />
+			<var name="field2" value="true" />
+			<var name="field3" value="123456789" />
+			<var name="field4" value="08/08/2088" />
+			<var name="field5" value="0--------1---------2---------3---------4---------5----------6--------7----56" />
+			<var name="tag" value="foobartag" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Sample Service Builder Test Page" />
+		</execute>
+
+		<execute macro="SampleServiceBuilder#view">
+			<var name="field1" value="Foo Field 1" />
+			<var name="field2" value="true" />
+			<var name="field3" value="123456789" />
+			<var name="field4" value="Within 72 Years" />
+			<var name="field5" value="0--------1---------2---------3---------4---------5----------6--------7----5" />
+			<var name="tag" value="foobartag" />
+		</execute>
+
+		<execute macro="SampleServiceBuilder#deleteFoo">
+			<var name="field1" value="Foo Field 1" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Sample Service Builder Test Page" />
+		</execute>
+
+		<execute macro="SampleServiceBuilder#viewNo" />
+	</command>
+
+	<command name="SampleSpring" priority="5">
+		<property name="portal.acceptance" value="wab" />
+		<property name="portlet.plugins.includes" value="sample-spring-portlet" />
+
+		<execute function="AssertConsoleTextPresent" value1="Deploying sample-spring-portlet" />
+
+		<execute macro="Page#add">
+			<var name="pageName" value="Sample Spring Test Page" />
+		</execute>
+
+		<for list="Description Upload,Pet Sites,Pets,Portlet Modes,Welcome" param="sampleSpringPortlets">
+			<execute macro="Portlet#addPG">
+				<var name="portletName" value="${sampleSpringPortlets}" />
+			</execute>
+
+			<execute function="Refresh" />
+		</for>
+
+		<execute function="Pause" locator1="3000" />
+
+		<execute macro="SampleSpring#viewDefaultDescriptionUpload">
+			<var name="portletName" value="Description Upload" />
+		</execute>
+
+		<execute macro="SampleSpring#viewDefaultPetSites">
+			<var name="portletName" value="Pet Sites" />
+		</execute>
+
+		<execute macro="SampleSpring#viewDefaultPets">
+			<var name="portletName" value="Pets" />
+		</execute>
+
+		<execute macro="SampleSpring#viewDefaultPortletModes">
+			<var name="portletName" value="Portlet Modes" />
+		</execute>
+
+		<execute macro="SampleSpring#viewDefaultWelcome">
+			<var name="portletName" value="Welcome" />
+		</execute>
+	</command>
+</definition>

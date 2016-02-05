@@ -139,15 +139,7 @@ counter.jdbc.prefix=jdbc.counter.]]></echo>
 				</then>
 			</if>
 
-			<if>
-				<equals arg1="${plugins.deployment.type}" arg2="osgi" />
-				<then>
-					<var name="auto.deploy.dir" value="${liferay.home}/osgi/modules" />
-				</then>
-				<else>
-					<var name="auto.deploy.dir" value="${liferay.home}/deploy" />
-				</else>
-			</if>
+			<var name="auto.deploy.dir" value="${liferay.home}/osgi/modules" />
 		</sequential>
 	</macrodef>
 

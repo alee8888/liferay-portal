@@ -49,6 +49,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>LOOK_AND_FEEL_DEFINE</td>
+	<td>//label[contains(@for,'regularUniqueLookAndFeel')]/input[@type='radio']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>MAJOR_VERSION</td>
 	<td>//input[contains(@id,'MajorVersion_1')]</td>
 	<td></td>
@@ -76,6 +81,16 @@
 <tr>
 	<td>REMOTE_LIVE</td>
 	<td>//label[contains(.,'Remote Live')]/input[@type='radio']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SPECIFIC_THEME</td>
+	<td>//label[contains(.,'${key_themeName}')]/input[@type='radio']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SPECIFIC_THEME_CHECKED</td>
+	<td>//label[contains(.,'${key_themeName}')]/input[@type='radio' and @checked='']</td>
 	<td></td>
 </tr>
 </tbody>

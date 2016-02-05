@@ -1,0 +1,95 @@
+<html>
+<head>
+<title>SampleServiceBuilder</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">SampleServiceBuilder</td></tr>
+</thead>
+<tbody>
+<tr>
+	<td>TEXT_INPUT_FIELD1</td>
+	<td>//input[contains(@id,'field1')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CHECKBOX_FIELD2</td>
+	<td>//input[contains(@id,'field2')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TEXT_INPUT_FIELD3</td>
+	<td>//input[contains(@id,'field3')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TEXT_INPUT_FIELD4</td>
+	<td>//input[contains(@id,'field4')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TEXT_INPUT_FIELD5</td>
+	<td>//input[contains(@id,'field5')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>TEXT_INPUT_FIELD_TAGS</td>
+	<td>//input[contains(@id,'assetTagNames')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--FOO_TABLE-->
+<tr>
+	<td>FOO_TABLE_ID</td>
+	<td>//tr[contains(.,'${key_fooName}')]/td[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOO_TABLE_FIELD1</td>
+	<td>//tr[contains(.,'${key_fooName}')]/td[2]/strong</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOO_TABLE_FIELD1_GENERIC</td>
+	<td>//tr[1]/td[2]/strong</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOO_TABLE_FIELD2</td>
+	<td>//tr[contains(.,'${key_fooName}')]/td[3]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOO_TABLE_FIELD3</td>
+	<td>//tr[contains(.,'${key_fooName}')]/td[4]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOO_TABLE_FIELD4</td>
+	<td>//tr[contains(.,'${key_fooName}')]/td[5]/span[contains(@onmouseover,'8/8/88')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOO_TABLE_FIELD5</td>
+	<td>//tr[contains(.,'${key_fooName}')]/td[6]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOO_TABLE_TAG</td>
+	<td>//tr[contains(.,'${key_fooName}')]/td[2]/div[contains(@class,'asset-tags')]/span/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FOO_TABLE_ACTIONS</td>
+	<td>//tr[contains(.,'${key_fooName}')]/td[7]/div/a</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>
