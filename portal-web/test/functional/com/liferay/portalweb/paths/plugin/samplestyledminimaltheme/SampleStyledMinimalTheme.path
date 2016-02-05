@@ -1,0 +1,19 @@
+<html>
+<head>
+<title>SampleStyledMinimalTheme</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">SampleStyledMinimalTheme</td></tr>
+</thead>
+<tbody>
+<tr>
+	<td>THEME_SCRIPT</td>
+	<td>//script[contains(@src,'/o/sample-styled-minimal-theme')]</td>
+	<td></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>
