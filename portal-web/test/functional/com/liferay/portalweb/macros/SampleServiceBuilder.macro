@@ -47,6 +47,6 @@
 
 		<execute function="AssertTextEquals" locator1="BasePortlet#TITLE" value1="Sample Service Builder" />
 		<execute function="AssertTextEquals" locator1="BasePortlet#PORTLET_BODY" value1="Welcome to the Sample Service Builder Portlet!" />
-		<execute function="AssertElementPresent" locator1="Button#ADD_FOO" />		
+		<execute function="AssertElementPresent" locator1="Button#ADD_FOO" />
 	</command>
 </definition>
