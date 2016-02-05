@@ -66,6 +66,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ADD_PORTLET_TITLE</td>
+	<td>//span[contains(@data-search,'-${portletName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SIDEBAR_PANEL_HEADING_COLLAPSED</td>
 	<td>//div[@aria-expanded='false' and contains(.,'${key_panelHeading}')]</td>]
 	<td></td>

@@ -178,7 +178,7 @@
 
 	<command name="SampleStyledMinimalTheme" priority="5">
 		<property name="portal.acceptance" value="wab" />
-		<property name="portlet.plugins.includes" value="sample-styled-minimal-theme" />
+		<property name="theme.plugins.includes" value="sample-styled-minimal-theme" />
 
 		<execute function="AssertConsoleTextPresent" value1="Deploying sample-styled-minimal-theme" />
 		<execute function="AssertConsoleTextPresent" value1="1 theme for sample-styled-minimal-theme is available for use" />
