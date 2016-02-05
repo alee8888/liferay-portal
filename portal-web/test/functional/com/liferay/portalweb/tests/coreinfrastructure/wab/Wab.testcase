@@ -9,6 +9,80 @@
 		<execute macro="Page#tearDownPG" />
 	</tear-down>
 
+	<command name="SampleKnowledgeBase" priority="5">
+		<property name="portal.acceptance" value="wab" />
+		<property name="portlet.plugins.includes" value="knowledge-base-portlet" />
+
+		<execute function="AssertConsoleTextPresent" value1="Deploying knowledge-base-portlet" />
+		<execute function="AssertConsoleTextPresent" value1="5 portlets for knowledge-base-portlet are available for use" />
+
+		<execute macro="Page#add">
+			<var name="pageName" value="Knowledge Base Page" />
+		</execute>
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Knowledge Base Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Knowledge Base Display" />
+		</execute>
+
+		<execute macro="KnowledgeBasePortlet#viewKnowledgeBaseDisplay" />
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Knowledge Base Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Knowledge Base Article" />
+		</execute>
+
+		<execute macro="KnowledgeBasePortlet#viewKnowledgeBaseArticle" />
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Knowledge Base Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Knowledge Base Search" />
+		</execute>
+
+		<execute macro="KnowledgeBasePortlet#viewKnowledgeBaseSearch" />
+
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="Knowledge Base Page" />
+		</execute>
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Knowledge Base Section" />
+		</execute>
+
+		<execute macro="KnowledgeBasePortlet#viewKnowledgeBaseSection" />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
+		</execute>
+
+		<execute macro="KBArticle#addCP">
+			<var name="kbArticleContent" value="Knowledge Base Article Content" />
+			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
+		</execute>
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="ProductMenu#gotoSitesContent">
+			<var name="portlet" value="Knowledge Base" />
+		</execute>
+
+		<execute macro="KBArticle#viewCP">
+			<var name="kbArticleContent" value="Knowledge Base Article Content" />
+			<var name="kbArticleTitle" value="Knowledge Base Article Title" />
+		</execute>
+	</command>
+
 	<command name="SampleServiceBuilder" priority="5">
 		<property name="portal.acceptance" value="wab" />
 		<property name="portlet.plugins.includes" value="sample-service-builder-portlet" />
@@ -100,5 +174,34 @@
 		<execute macro="SampleSpring#viewDefaultWelcome">
 			<var name="portletName" value="Welcome" />
 		</execute>
+	</command>
+
+	<command name="SampleStyledMinimalTheme" priority="5">
+		<property name="portal.acceptance" value="wab" />
+		<property name="portlet.plugins.includes" value="sample-styled-minimal-theme" />
+
+		<execute function="AssertConsoleTextPresent" value1="Deploying sample-styled-minimal-theme" />
+		<execute function="AssertConsoleTextPresent" value1="1 theme for sample-styled-minimal-theme is available for use" />
+
+		<execute macro="ProductMenu#gotoEditPage">
+			<var name="page" value="Welcome" />
+		</execute>
+
+		<execute macro="Navigator#gotoTab">
+			<var name="tab" value="Look and Feel" />
+		</execute>
+
+		<execute macro="Page#defineLookAndFeel">
+			<var name="themeName" value="Sample Styled Minimal" />
+		</execute>
+
+		<execute macro="Page#viewPageLookAndFeel">
+			<var name="pageName" value="Welcome" />
+			<var name="themeName" value="Sample Styled Minimal" />
+		</execute>
+
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="SampleStyledMinimalTheme#viewWelcomePage" />
 	</command>
 </definition>
