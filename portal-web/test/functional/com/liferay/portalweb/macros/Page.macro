@@ -228,6 +228,18 @@
 		<execute macro="Alert#viewRequestCompletedSuccessMessage" />
 	</command>
 
+	<command name="defineLookAndFeel">
+		<var name="key_themeName" value="${themeName}" />
+
+		<execute function="Click" locator1="Radio#LOOK_AND_FEEL_DEFINE" />
+
+		<execute function="Click" locator1="Radio#SPECIFIC_THEME" />
+
+		<execute function="AssertClick" locator1="Button#SAVE" value1="Save" />
+
+		<execute function="AssertTextEquals#assertPartialText" locator1="Message#SUCCESS" value1="Your request completed successfully." />
+	</command>
+
 	<command name="deleteFriendlyURLPG">
 		<var name="key_friendlyUrlLocalized" value="${friendlyUrlLocalized}" />
 
@@ -577,6 +589,20 @@
 
 		<execute function="AssertElementPresent" locator1="SitePagesEditPage#SEO_HTML_TITLE" />
 		<execute function="AssertElementPresent" locator1="SitePagesEditPage#SEO_HTML_TITLE_META_TAGS" />
+	</command>
+
+	<command name="viewPageLookAndFeel">
+		<execute macro="ProductMenu#gotoEditPage">
+			<var name="page" value="${pageName}" />
+		</execute>
+
+		<execute macro="Navigator#gotoTab">
+			<var name="tab" value="Look and Feel" />
+		</execute>
+
+		<var name="key_themeName" value="${themeName}" />
+
+		<execute function="AssertElementPresent" locator1="Radio#SPECIFIC_THEME_CHECKED" />
 	</command>
 
 	<command name="viewPageOrderStagingLivePG">
