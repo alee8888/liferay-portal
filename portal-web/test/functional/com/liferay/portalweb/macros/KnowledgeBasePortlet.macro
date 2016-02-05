@@ -1,0 +1,29 @@
+<definition>
+	<command name="viewKnowledgeBaseArticle">
+		<var name="key_portletName" value="Knowledge Base Article" />
+
+		<execute function="AssertTextEquals" locator1="BasePortlet#TITLE" value1="Knowledge Base Article" />
+		<execute function="AssertTextEquals" locator1="Message#INFO_1" value1="Please configure this portlet to make it visible to all users." />
+	</command>
+
+	<command name="viewKnowledgeBaseDisplay">
+		<var name="key_portletName" value="Knowledge Base Display" />
+
+		<execute function="AssertTextEquals" locator1="BasePortlet#TITLE" value1="Knowledge Base Display" />
+		<execute function="AssertTextEquals" locator1="Message#INFO_1" value1="Please configure this portlet to make it visible to all users." />
+	</command>
+
+	<command name="viewKnowledgeBaseSearch">
+		<var name="key_portletName" value="Knowledge Base Search" />
+
+		<execute function="AssertTextEquals" locator1="BasePortlet#TITLE" value1="Knowledge Base Search" />
+		<execute function="AssertElementPresent" locator1="Search#PORTLET_SEARCH_FIELD" />
+	</command>
+
+	<command name="viewKnowledgeBaseSection">
+		<var name="key_portletName" value="Knowledge Base Section" />
+
+		<execute function="AssertTextEquals" locator1="BasePortlet#TITLE" value1="Knowledge Base Section" />
+		<execute function="AssertTextEquals" locator1="Message#INFO_1" value1="Please input a list of comma delimited words for portlet property admin.kb.article.sections to enable this portlet." />
+	</command>
+</definition>
