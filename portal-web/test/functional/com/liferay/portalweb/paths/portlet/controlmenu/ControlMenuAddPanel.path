@@ -56,8 +56,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>COLLAPSED_NESTED_CATEGORY</td>
+	<td>//div[contains(@id,'ControlMenuPortlet') and contains(@id,'applicationList')]//div[not(@hidden='hidden')]/a</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADD_PORTLET_LINK</td>
 	<td>//span[contains(@data-search,'-${portletName}') and contains(@class,'add-content-item')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_PORTLET_TITLE</td>
+	<td>//span[contains(@data-search,'-${portletName}')]</td>
 	<td></td>
 </tr>
 <tr>
