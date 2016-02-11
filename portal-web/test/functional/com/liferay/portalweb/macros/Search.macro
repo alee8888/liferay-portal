@@ -115,6 +115,23 @@
 			</else>
 		</if>
 
+		<var name="key_searchScope" value="${searchScope}" />
+
+		<if>
+			<equals arg1="${searchScope}" arg2="Everything" />
+			<then>
+				<execute function="Select" locator1="Select#SCOPE" value1="${searchScope}" />
+			</then>
+			<elseif>
+				<equals arg1="${searchScope}" arg2="This Site" />
+				<then>
+					<execute function="Select" locator1="Select#SCOPE" value1="${searchScope}" />
+				</then>
+			</elseif>
+		</if>
+
+		<var name="key_searchIDName" value="Search" />
+
 		<execute function="KeyPress" locator1="Search#SEARCH_FIELD" value1="\RETURN" />
 	</command>
 
