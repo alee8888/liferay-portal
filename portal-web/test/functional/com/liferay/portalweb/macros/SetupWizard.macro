@@ -10,10 +10,14 @@
 	</command>
 
 	<command name="configureDatabasePG">
+		<execute function="Pause" locator1="3000" />
+
 		<if>
 			<condition function="IsElementNotPresent" locator1="SetupWizard#DATABASE_CHANGE_USE_CONFIGURED_DATABASE_LINK" />
 			<then>
 				<execute function="AssertClick" locator1="SetupWizard#DATABASE_CHANGE_LINK" value1="(Change)" />
+
+				<execute function="Pause" locator1="3000" />
 			</then>
 		</if>
 
@@ -21,10 +25,15 @@
 			<isset var="databaseName" />
 			<then>
 				<var method="StringUtil#replace('${jdbcURL}', 'lportal', '${databaseName}')" name="jdbcURL" />
+
+				<execute function="Pause" locator1="3000" />
 			</then>
 		</if>
 
 		<execute function="Select" locator1="SetupWizard#DATABASE_CHANGE_DATABASE_TYPE_SELECT" value1="${databaseType}" />
+
+		<execute function="Pause" locator1="3000" />
+
 		<execute function="Type" locator1="SetupWizard#DATABASE_CHANGE_JDBC_URL_FIELD" value1="${jdbcURL}" />
 		<execute function="Type" locator1="SetupWizard#DATABASE_CHANGE_JDBC_DRIVER_CLASS_NAME_FIELD" value1="${jdbcDriverClassName}" />
 		<execute function="Type" locator1="SetupWizard#DATABASE_CHANGE_USER_NAME_FIELD" value1="${databaseUserName}" />
@@ -63,11 +72,15 @@
 			<var name="addSampleData" value="${addSampleData}" />
 		</execute>
 
+		<execute function="Pause" locator1="3000" />
+
 		<execute macro="SetupWizard#configureAdministratorUserPG">
 			<var name="administratorEmail" value="${administratorEmail}" />
 			<var name="administratorFirstName" value="${administratorFirstName}" />
 			<var name="administratorLastName" value="${administratorLastName}" />
 		</execute>
+
+		<execute function="Pause" locator1="3000" />
 
 		<execute macro="SetupWizard#configureDatabasePG">
 			<var name="databaseName" value="${databaseName}" />
@@ -78,9 +91,15 @@
 			<var name="jdbcURL" value="${jdbcURL}" />
 		</execute>
 
+		<execute function="Pause" locator1="10000" />
+
 		<execute macro="SetupWizard#finishConfigurationPG" />
 
+		<execute function="Pause" locator1="3000" />
+
 		<execute macro="SetupWizard#viewConfigurationSavedPG" />
+
+		<execute function="Pause" locator1="5000" />
 
 		<execute macro="Portlet#shutdownServer" />
 

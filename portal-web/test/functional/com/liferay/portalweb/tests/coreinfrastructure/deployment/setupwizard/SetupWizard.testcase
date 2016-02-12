@@ -6,6 +6,7 @@
 		<property name="portal.acceptance.tomcat.hypersonic" value="true" />
 
 		<execute macro="SetupWizard#configurePG">
+			<var name="addSampleData" value="false" />
 			<var name="administratorEmail" value="test@liferay.com" />
 			<var name="administratorFirstName" value="Test" />
 			<var name="administratorLastName" value="Test" />
