@@ -1133,6 +1133,8 @@
 	</command>
 
 	<command name="ViewContentInLocationOrganizationSite" priority="4">
+		<property name="custom.properties" value="organizations.types=organization,location${line.separator}organizations.rootable[location]=true${line.separator}organizations.children.types[organization]=organization,location" />
+
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Roles" />
 		</execute>
