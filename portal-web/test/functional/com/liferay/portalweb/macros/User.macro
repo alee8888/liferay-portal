@@ -1654,9 +1654,13 @@
 	</command>
 
 	<command name="searchCP">
+		<execute function="Pause" locator1="5000" />
+
 		<execute function="Type" locator1="TextInput#SEARCH" value1="${searchTerm}" />
 
 		<execute function="Click" locator1="Button#SUBMIT" />
+
+		<execute function="Pause" locator1="5000" />
 	</command>
 
 	<command name="signInPG">
