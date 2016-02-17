@@ -46,17 +46,17 @@
 </tr>
 <tr>
 	<td>SITE_TABLE_ACTIVE</td>
-	<td>//table[contains(@class,'table-list')]//tr[contains(.,'${key_siteName}')]/td[5]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SITE_TABLE_PENDING_REQUESTS</td>
 	<td>//table[contains(@class,'table-list')]//tr[contains(.,'${key_siteName}')]/td[6]</td>
 	<td></td>
 </tr>
 <tr>
-	<td>SITE_TABLE_TAGS</td>
+	<td>SITE_TABLE_PENDING_REQUESTS</td>
 	<td>//table[contains(@class,'table-list')]//tr[contains(.,'${key_siteName}')]/td[7]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SITE_TABLE_TAGS</td>
+	<td>//table[contains(@class,'table-list')]//tr[contains(.,'${key_siteName}')]/td[8]</td>
 	<td></td>
 </tr>
 <tr>
