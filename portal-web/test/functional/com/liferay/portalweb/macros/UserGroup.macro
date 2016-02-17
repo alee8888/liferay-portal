@@ -183,9 +183,9 @@
 
 		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
 
-		<execute function="Type" locator1="TextInput#SEARCH" value1="${userScreenName}" />
-
-		<execute function="Click" locator1="Button#SUBMIT" />
+		<execute macro="User#searchCP">
+			<var name="searchTerm" value="${userScreenName}" />
+		</execute>
 
 		<var name="key_userScreenName" value="${userScreenName}" />
 
