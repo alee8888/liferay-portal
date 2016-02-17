@@ -39,7 +39,15 @@ portletURL.setParameter("searchContainerId", searchContainerId);
 OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFactoryUtil.getBackgroundTaskOrderByComparator(orderByCol, orderByType);
 %>
 
-<div id="<portlet:namespace />exportProcessesSearchContainer">
+<portlet:actionURL name="deleteBackgroundTasks" var="deleteBackgroundTasksURL">
+	<portlet:param name="redirect" value="<%= currentURL.toString() %>" />
+</portlet:actionURL>
+
+<aui:form action="<%= deleteBackgroundTasksURL %>" method="get" name="fm">
+	<aui:input name="<%= Constants.CMD %>" type="hidden" />
+	<aui:input name="redirect" type="hidden" value="<%= currentURL.toString() %>" />
+	<aui:input name="deleteBackgroundTaskIds" type="hidden" />
+
 	<liferay-ui:search-container
 		emptyResultsMessage="no-export-processes-were-found"
 		id="<%= searchContainerId %>"
@@ -81,6 +89,15 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 			keyProperty="backgroundTaskId"
 			modelVar="backgroundTask"
 		>
+
+			<%
+			String backgroundTaskName = backgroundTask.getName();
+
+			if (backgroundTaskName.equals(StringPool.BLANK)) {
+				backgroundTaskName = LanguageUtil.get(request, "untitled");
+			}
+			%>
+
 			<c:choose>
 				<c:when test='<%= displayStyle.equals("descriptive") %>'>
 					<liferay-ui:search-container-column-text>
@@ -106,15 +123,8 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 							<liferay-ui:message arguments="<%= new String[] {HtmlUtil.escape(backgroundTaskUser.getFullName()), modifiedDateDescription} %>" key="x-modified-x-ago" />
 						</h6>
 
-						<%
-						String backgroundTaskName = backgroundTask.getName();
-
-						if (backgroundTaskName.equals(StringPool.BLANK)) {
-							backgroundTaskName = LanguageUtil.get(request, "untitled");
-						}
-						%>
-
 						<h5>
+
 							<%= HtmlUtil.escape(backgroundTaskName) %>
 
 							<%
@@ -145,10 +155,6 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 							<c:if test="<%= backgroundTaskStatus != null %>">
 
 								<%
-								Map<String, Serializable> taskContextMap = backgroundTask.getTaskContextMap();
-
-								String cmd = (String)taskContextMap.get(Constants.CMD);
-
 								int percentage = 100;
 
 								long allModelAdditionCountersTotal = GetterUtil.getLong(backgroundTaskStatus.getAttribute("allModelAdditionCountersTotal"));
@@ -178,17 +184,8 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 								%>
 
 								<c:if test="<%= Validator.isNotNull(stagedModelName) && Validator.isNotNull(stagedModelType) %>">
-
-									<%
-									String messageKey = "exporting";
-
-									if (Validator.equals(cmd, Constants.IMPORT)) {
-										messageKey = "importing";
-									}
-									%>
-
 									<div class="progress-current-item">
-										<strong><liferay-ui:message key="<%= messageKey %>" /><%= StringPool.TRIPLE_PERIOD %></strong> <%= ResourceActionsUtil.getModelResource(locale, stagedModelType) %> <em><%= HtmlUtil.escape(stagedModelName) %></em>
+										<strong><liferay-ui:message key="exporting" /><%= StringPool.TRIPLE_PERIOD %></strong> <%= ResourceActionsUtil.getModelResource(locale, stagedModelType) %> <em><%= HtmlUtil.escape(stagedModelName) %></em>
 									</div>
 								</c:if>
 							</c:if>
@@ -229,15 +226,6 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 					<liferay-ui:search-container-column-text
 						name="title"
 					>
-
-						<%
-						String backgroundTaskName = backgroundTask.getName();
-
-						if (backgroundTaskName.equals(StringPool.BLANK)) {
-							backgroundTaskName = LanguageUtil.get(request, "untitled");
-						}
-						%>
-
 						<liferay-ui:message key="<%= HtmlUtil.escape(backgroundTaskName) %>" />
 					</liferay-ui:search-container-column-text>
 
@@ -291,43 +279,43 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 						%>
 
 					</liferay-ui:search-container-column-text>
-
-					<liferay-ui:search-container-column-text>
-						<c:if test="<%= !backgroundTask.isInProgress() %>">
-							<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" markupView="lexicon" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>">
-								<portlet:actionURL name="editExportConfiguration" var="relaunchURL">
-									<portlet:param name="mvcRenderCommandName" value="editExportConfiguration" />
-									<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.RELAUNCH %>" />
-									<portlet:param name="redirect" value="<%= portletURL.toString() %>" />
-									<portlet:param name="backgroundTaskId" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
-								</portlet:actionURL>
-
-								<liferay-ui:icon icon="reload" markupView="lexicon" message="relaunch" url="<%= relaunchURL %>" />
-
-								<portlet:actionURL name="deleteBackgroundTask" var="deleteBackgroundTaskURL">
-									<portlet:param name="redirect" value="<%= portletURL.toString() %>" />
-									<portlet:param name="backgroundTaskId" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
-								</portlet:actionURL>
-
-								<%
-								Date completionDate = backgroundTask.getCompletionDate();
-								%>
-
-								<liferay-ui:icon-delete
-									label="<%= true %>"
-									message='<%= ((completionDate != null) && completionDate.before(new Date())) ? "clear" : "cancel" %>'
-									url="<%= deleteBackgroundTaskURL %>"
-								/>
-							</liferay-ui:icon-menu>
-						</c:if>
-					</liferay-ui:search-container-column-text>
 				</c:when>
 			</c:choose>
+
+			<liferay-ui:search-container-column-text>
+				<c:if test="<%= !backgroundTask.isInProgress() %>">
+					<liferay-ui:icon-menu icon="<%= StringPool.BLANK %>" markupView="lexicon" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>">
+						<portlet:actionURL name="editExportConfiguration" var="relaunchURL">
+							<portlet:param name="mvcRenderCommandName" value="editExportConfiguration" />
+							<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.RELAUNCH %>" />
+							<portlet:param name="redirect" value="<%= portletURL.toString() %>" />
+							<portlet:param name="backgroundTaskId" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
+						</portlet:actionURL>
+
+						<liferay-ui:icon icon="reload" markupView="lexicon" message="relaunch" url="<%= relaunchURL %>" />
+
+						<portlet:actionURL name="deleteBackgroundTask" var="deleteBackgroundTaskURL">
+							<portlet:param name="redirect" value="<%= portletURL.toString() %>" />
+							<portlet:param name="backgroundTaskId" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
+						</portlet:actionURL>
+
+						<%
+						Date completionDate = backgroundTask.getCompletionDate();
+						%>
+
+						<liferay-ui:icon-delete
+							label="<%= true %>"
+							message='<%= ((completionDate != null) && completionDate.before(new Date())) ? "clear" : "cancel" %>'
+							url="<%= deleteBackgroundTaskURL %>"
+						/>
+					</liferay-ui:icon-menu>
+				</c:if>
+			</liferay-ui:search-container-column-text>
 		</liferay-ui:search-container-row>
 
 		<liferay-ui:search-iterator displayStyle="<%= displayStyle %>" markupView="lexicon" resultRowSplitter="<%= new ExportImportResultRowSplitter() %>" />
 	</liferay-ui:search-container>
-</div>
+</aui:form>
 
 <%
 int incompleteBackgroundTaskCount = BackgroundTaskManagerUtil.getBackgroundTasksCount(groupId, BackgroundTaskExecutorNames.LAYOUT_EXPORT_BACKGROUND_TASK_EXECUTOR, false);
@@ -338,3 +326,17 @@ int incompleteBackgroundTaskCount = BackgroundTaskManagerUtil.getBackgroundTasks
 		<liferay-util:param name="incompleteBackgroundTaskCount" value="<%= String.valueOf(incompleteBackgroundTaskCount) %>" />
 	</liferay-util:include>
 </div>
+
+<aui:script>
+	function <portlet:namespace />deleteEntries() {
+		if (confirm('<%= UnicodeLanguageUtil.get(request, "are-you-sure-you-want-to-delete-the-selected-entries") %>')) {
+			var form = AUI.$(document.<portlet:namespace />fm);
+
+			form.attr('method', 'post');
+			form.fm('<%= Constants.CMD %>').val('<%= Constants.DELETE %>');
+			form.fm('deleteBackgroundTaskIds').val(Liferay.Util.listCheckedExcept(form, '<portlet:namespace />allRowIds'));
+
+			submitForm(form);
+		}
+	}
+</aui:script>
