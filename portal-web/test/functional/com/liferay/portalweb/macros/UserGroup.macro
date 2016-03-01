@@ -1,8 +1,14 @@
 <definition>
 	<command name="addCP">
+		<execute function="AssertVisible" locator1="NavBar#USER_GROUPS" />
+
+		<execute function="Pause" value1="5000" />
+		
 		<var name="key_userGroupName" value="${userGroupName}" />
 
 		<execute function="Click" locator1="Button#PLUS" />
+
+		<execute function="Pause" value1="5000" />
 
 		<execute function="Type" locator1="TextInput#NAME" value1="${userGroupName}" />
 
