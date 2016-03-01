@@ -697,11 +697,13 @@
 			</then>
 		</if>
 
-		<execute function="AssertClick" locator1="Button#PUBLISH" value1="Publish" />
+		<execute macro="PortletEntry#publish" />
+
+		<execute macro="WikiNavigator#gotoPG">
+			<var name="wikiPageTitle" value="Wiki Page Title" />
+		</execute>
 
 		<execute function="AssertTextEquals" locator1="WikiEntry#BODY" value1="${wikiPageContentEdit}" />
-
-		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="linkOrphanPageHtmlPG">
