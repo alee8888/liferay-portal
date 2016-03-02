@@ -1546,7 +1546,7 @@
 		</execute>
 	</command>
 
-	<command name="SubcribeBlogsRegRoleInline" priority="4">
+	<command name="SubscribeBlogsRegRoleInline" priority="4">
 		<execute macro="Permissions#setUpRegRoleLoginUserPG">
 			<var name="pageName" value="Blogs Page" />
 			<var name="portletName" value="Blogs" />
@@ -1625,7 +1625,7 @@
 		</execute>
 	</command>
 
-	<command name="SubcribeBlogsSiteRoleInline" priority="4">
+	<command name="SubscribeBlogsSiteRoleInline" priority="4">
 		<execute macro="Permissions#setUpSiteMemberRoleLoginUserPG">
 			<var name="page" value="Public Pages" />
 			<var name="pageName" value="Blogs Page" />
