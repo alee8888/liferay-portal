@@ -24,7 +24,7 @@
 	</tear-down>
 
 	<command name="AddMember" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="andrew" />
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Users and Organizations" />
@@ -65,7 +65,7 @@
 	</command>
 
 	<command name="AddUserGroup" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="andrew" />
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="User Groups" />
@@ -284,7 +284,7 @@
 	</command>
 
 	<command name="EditUserGroup" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="andrew" />
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="User Groups" />
