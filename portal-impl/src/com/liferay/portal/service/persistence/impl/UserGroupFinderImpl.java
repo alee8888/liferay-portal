@@ -247,7 +247,7 @@ public class UserGroupFinderImpl
 
 			if (inlineSQLHelper) {
 				sql = InlineSQLHelperUtil.replacePermissionCheck(
-					sql, UserGroup.class.getName(), "userGroup.userGroupId",
+					sql, UserGroup.class.getName(), "UserGroup.userGroupId",
 					null, null, new long[] {0}, null);
 			}
 
@@ -333,7 +333,7 @@ public class UserGroupFinderImpl
 
 			if (inlineSQLHelper) {
 				sql = InlineSQLHelperUtil.replacePermissionCheck(
-					sql, UserGroup.class.getName(), "userGroup.userGroupId",
+					sql, UserGroup.class.getName(), "UserGroup.userGroupId",
 					null, null, new long[] {0}, null);
 			}
 
