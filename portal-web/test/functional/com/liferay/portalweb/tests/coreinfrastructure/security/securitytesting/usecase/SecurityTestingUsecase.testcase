@@ -157,9 +157,17 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
+		<execute function="Pause" locator1="5000" />
+
+		<execute function="AssertVisible" locator1="UsersAndOrganizations#USER_TABLE_HEADER_FIRST_NAME" />
+
 		<var name="key_userScreenName" value="test" />
 
 		<execute function="AssertClick" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="test" />
+
+		<execute function="Pause" locator1="5000" />
+
+		<execute function="AssertVisible" locator1="UsersAndOrganizationsEditUser#DETAILS_USER_ID_FIELD"  />
 
 		<var locator="UsersAndOrganizationsEditUser#DETAILS_USER_ID_FIELD" name="userId" />
 
