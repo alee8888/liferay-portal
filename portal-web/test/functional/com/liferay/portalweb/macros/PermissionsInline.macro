@@ -107,8 +107,6 @@
 		<execute function="Click" locator1="Icon#HEADER_VERTICAL_ELLIPSIS" />
 
 		<execute function="AssertClick" locator1="MenuItem#PERMISSIONS_LEXICON" value1="Entries Permissions" />
-
-		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
 	</command>
 
 	<command name="gotoBlogsEntryCP">
