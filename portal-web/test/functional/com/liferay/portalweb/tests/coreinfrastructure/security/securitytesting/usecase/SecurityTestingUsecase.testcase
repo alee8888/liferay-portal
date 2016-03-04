@@ -161,13 +161,12 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute function="Pause" locator1="5000" />
-
-		<execute function="AssertVisible" locator1="UsersAndOrganizations#USER_TABLE_HEADER_FIRST_NAME" />
-
-		<var name="key_userScreenName" value="test" />
-
-		<execute function="AssertClick" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="test" />
+		<execute macro="User#addCP">
+			<var name="userEmailAddress" value="userea@liferay.com" />
+			<var name="userFirstName" value="userfn" />
+			<var name="userLastName" value="userln" />
+			<var name="userScreenName" value="usersn" />
+		</execute>
 
 		<execute function="Pause" locator1="5000" />
 
@@ -181,13 +180,13 @@
 			<var name="userBirthdayDay" value="24" />
 			<var name="userBirthdayMonth" value="10" />
 			<var name="userBirthdayYear" value="1984" />
-			<var name="userEmailAddress" value="test1@liferay.com" />
+			<var name="userEmailAddress" value="kaiten@liferay.com" />
 			<var name="userFacebookId" value="0" />
-			<var name="userFirstName" value="test1" />
+			<var name="userFirstName" value="kaitenfirst" />
 			<var name="userId" value="${userId}" />
-			<var name="userLastName" value="test1" />
+			<var name="userLastName" value="kaitenlast" />
 			<var name="userPrefixId" value="0" />
-			<var name="userScreenName" value="test1" />
+			<var name="userScreenName" value="kaitenscreenname" />
 			<var name="userSuffixId" value="0" />
 		</execute>
 
@@ -197,14 +196,16 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<var name="key_userScreenName" value="test1" />
+		<execute function="Pause" locator1="5000" />
 
-		<execute function="AssertClick" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="test1" />
+		<var name="key_userScreenName" value="kaitenscreenname" />
+
+		<execute function="AssertClick" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="kaitenscreenname" />
 
 		<execute function="AssertValue" locator1="UsersAndOrganizationsEditUser#DETAILS_USER_ID_FIELD" value1="${userId}" />
 		<execute function="AssertValue" locator1="UsersAndOrganizationsEditUser#DETAILS_FIRST_NAME_FIELD" value1="test1" />
 		<execute function="AssertValue" locator1="UsersAndOrganizationsEditUser#DETAILS_LAST_NAME_FIELD" value1="test1" />
 		<execute function="AssertValue" locator1="UsersAndOrganizationsEditUser#DETAILS_EMAIL_ADDRESS_FIELD" value1="test1@liferay.com" />
 		<execute function="AssertValue" locator1="UsersAndOrganizationsEditUser#DETAILS_SCREEN_NAME_FIELD" value1="test1" />
-		<execute function="Asser
+	</command>
 </definition>
