@@ -5,6 +5,8 @@
 	<command name="apiJsonwsUserView">
 		<execute function="Open" locator1="Home#API_JSON_URL" />
 
+		<execute function="Pause" locator1="5000" />
+
 		<execute function="Click" locator1="JSONWS#USER_UPDATE_USER" />
 
 		<execute function="Pause" locator1="5000" />

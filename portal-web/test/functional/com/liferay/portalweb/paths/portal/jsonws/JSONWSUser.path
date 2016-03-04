@@ -36,7 +36,7 @@
 </tr>
 <tr>
 	<td>API_EXECUTE_EMAIL_ADDRESS_FIELD</td>
-	<td>//input[@name='emailAddress']</td>
+	<td>//label[contains(.,'emailAddress')]/..//input[@name='emailAddress']</td>
 	<td></td>
 </tr>
 <tr>
