@@ -556,7 +556,6 @@
 			<var name="orgName" value="Organization Name" />
 			<var name="orgType" value="Organization" />
 			<var name="suborgName" value="Suborganization Name" />
-			<var name="suborgType" value="Regular Organization" />
 		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
@@ -569,7 +568,7 @@
 			<var name="orgName" value="Organization Name" />
 			<var name="orgType" value="Organization" />
 			<var name="suborgName" value="Suborganization Name" />
-			<var name="suborgType" value="Regular Organization" />
+			<var name="suborgType" value="Organization" />
 		</execute>
 	</command>
 
