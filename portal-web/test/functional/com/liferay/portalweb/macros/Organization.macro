@@ -556,7 +556,7 @@
 		<execute function="Uncheck" locator1="UsersAndOrganizationsAssignUsers#USER_TABLE_CHECKBOX" />
 		<execute function="AssertClick" locator1="Button#UPDATE_ASSOCIATIONS" value1="Update Associations" />
 		<execute macro="Alert#viewSuccessMessage" />
-		<execute function="AssertTextEquals" locator1="Message#INFO" value1="No users were found." />
+		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No users were found." />
 	</command>
 
 	<command name="searchCP">
@@ -712,7 +712,7 @@
 
 	<command name="viewRemoveMemberCP">
 		<execute function="Type" locator1="TextInput#SEARCH" value1="${orgName}" />
-		<execute function="AssertClick" locator1="Button#SEARCH" value1="Search" />
+		<execute function="Click" locator1="Icon#BASIC_SEARCH" />
 
 		<var name="key_orgName" value="${orgName}" />
 
