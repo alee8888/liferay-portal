@@ -131,8 +131,6 @@
 			</elseif>
 		</if>
 
-		<var name="key_searchIDName" value="Search" />
-
 		<execute function="KeyPress" locator1="Search#SEARCH_FIELD" value1="\RETURN" />
 	</command>
 
