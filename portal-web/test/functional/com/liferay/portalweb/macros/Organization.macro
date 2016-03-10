@@ -33,15 +33,10 @@
 	</command>
 
 	<command name="addCategorizationCP">
-		<execute macro="Organization#gotoActionsCmd">
+		<execute macro="Organization#editOrganizationInformationCP">
 			<var name="orgName" value="${orgName}" />
+			<var name="panelHeading" value="Categorization" />
 		</execute>
-
-		<var name="key_orgName" value="${orgName}" />
-
-		<execute function="AssertClick" locator1="MenuItem#EDIT" value1="Edit" />
-
-		<execute function="AssertClick" locator1="UsersAndOrganizationsEditOrganization#CATEGORIZATION_TAB" value1="Categorization" />
 
 		<var name="key_tagName" value="${tagName}" />
 
@@ -51,6 +46,11 @@
 		<execute function="AssertElementPresent" locator1="UsersAndOrganizationsEditOrganization#CATEGORIZATION_TAG" value1="${tagName}" />
 
 		<execute macro="PortletEntry#save" />
+
+		<execute macro="Organization#gotoOrganizationInformationCP">
+			<var name="panelHeading" value="Categorization" />
+		</execute>
+
 		<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditOrganization#CATEGORIZATION_TAG" value1="${tagName}" />
 	</command>
 
