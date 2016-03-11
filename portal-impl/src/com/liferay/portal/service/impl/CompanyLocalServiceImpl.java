@@ -490,12 +490,21 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 
 	@Override
 	public Company deleteCompany(long companyId) throws PortalException {
+		System.out.println("###");
+		System.out.println("### Company Id is: " + companyId);
+		System.out.println("###");
+
 		if (companyId == PortalInstances.getDefaultCompanyId()) {
 			throw new RequiredCompanyException();
 		}
 
 		Long currentCompanyId = CompanyThreadLocal.getCompanyId();
 		boolean deleteInProcess = CompanyThreadLocal.isDeleteInProcess();
+
+		System.out.println("###");
+		System.out.println("### Current company Id is: " + currentCompanyId);
+		System.out.println("### Delete in process is: " + deleteInProcess);
+		System.out.println("###");
 
 		try {
 			CompanyThreadLocal.setCompanyId(companyId);
