@@ -69,7 +69,7 @@
 	<command name="addCP">
 		<execute function="AssertClick" locator1="NavBar#ORGANIZATIONS" value1="Organizations" />
 
-		<var name="key_navItem" value="${orgType}" />
+		<var name="key_navItem" value="Organizations" />
 
 		<execute function="AssertElementPresent" locator1="NavBar#ACTIVE_NAV_ITEM_LINK" />
 
@@ -80,6 +80,12 @@
 			<then>
 				<execute function="AssertClick" locator1="MenuItem#LOCATION" value1="Location" />
 			</then>
+			<elseif>
+				<condition function="IsElementPresent" locator1="MenuItem#ORGANIZATION" />
+				<then>
+					<execute function="AssertClick" locator1="MenuItem#ORGANIZATION" value1="Organization" />
+				</then>
+			</elseif>
 		</if>
 
 		<execute function="Type" locator1="UsersAndOrganizationsEditOrganization#DETAILS_NAME_FIELD" value1="${orgName}" />
