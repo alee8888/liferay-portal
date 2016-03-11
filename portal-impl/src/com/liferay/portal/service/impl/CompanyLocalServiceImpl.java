@@ -488,14 +488,35 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		return deleteCompany(company.getCompanyId());
 	}
 
+
+
 	@Override
 	public Company deleteCompany(long companyId) throws PortalException {
+		System.out.println("###");
+		System.out.println("### Company Id is: " + companyId);
+		System.out.println("###");
+
+		Exception exception = new Exception("ATTENTION - SOMEONE IS DELETING A COMPANY JUST CREATED - FOLLOW THE STACKTRACE");
+
+		exception.printStackTrace();
+
+
 		if (companyId == PortalInstances.getDefaultCompanyId()) {
 			throw new RequiredCompanyException();
 		}
 
 		Long currentCompanyId = CompanyThreadLocal.getCompanyId();
 		boolean deleteInProcess = CompanyThreadLocal.isDeleteInProcess();
+
+		System.out.println("###");
+		System.out.println("### Current company Id is: " + currentCompanyId);
+		System.out.println("### Delete in process is: " + deleteInProcess);
+		System.out.println("###");
+
+
+		Exception exception_two = new Exception("ATTENTION - SOMEONE IS DELETING A COMPANY JUST CREATED - FOLLOW THE STACKTRACE");
+
+		exception_two.printStackTrace();
 
 		try {
 			CompanyThreadLocal.setCompanyId(companyId);
