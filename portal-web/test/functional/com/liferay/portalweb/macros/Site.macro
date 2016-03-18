@@ -184,6 +184,10 @@
 	</command>
 
 	<command name="addMemberCP">
+		<execute function="Pause" locator1="10000" />
+
+		<execute function="AssertVisible" locator1="Portlet#HEADER" />
+
 		<var name="key_cardText" value="${userScreenName}" />
 
 		<execute function="Click" locator1="Button#PLUS" />
@@ -364,9 +368,11 @@
 	</command>
 
 	<command name="assignRoleCP">
+   		<execute function="Pause" locator1="10000" />
+
 		<execute function="AssertVisible" locator1="Portlet#HEADER" />
 
-		<var name="${key_cardText}" value="{userScreenName}" />
+		<var name="${key_cardText}" value="${userScreenName}" />
 
 		<execute function="AssertTextEquals" locator1="Card#SPECIFIC_TEXT" value1="${userScreenName}" />
 
