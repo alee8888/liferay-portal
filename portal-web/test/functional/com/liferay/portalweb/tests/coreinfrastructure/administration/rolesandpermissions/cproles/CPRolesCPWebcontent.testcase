@@ -34,7 +34,7 @@
 	</tear-down>
 
 	<command name="AddFolderSiteRole" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="albert" />
 
 		<execute macro="Permissions#setUpSiteRoleLoginUserCP">
 			<var name="page" value="Public Pages" />
