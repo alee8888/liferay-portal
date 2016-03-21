@@ -24,7 +24,9 @@
 		</if>
 	</tear-down>
 
-	<command name="AddWSRPUnitConverter" priority="4">
+	<command name="AddWSRPUnitConverter" priority="5">
+		<property name="portal.acceptance" value="test" />
+
 		<var name="consumerName" value="Consumer Demo" />
 		<var name="consumerPortletName" value="WSRP Unit Converter" />
 		<var name="consumerPortletType" value="Unit Converter" />
