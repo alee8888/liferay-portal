@@ -15,15 +15,11 @@
 package com.liferay.portal.action;
 
 import com.liferay.portal.kernel.deploy.hot.HotDeployUtil;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
-import com.liferay.portal.kernel.servlet.HttpHeaders;
-import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalLifecycleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -31,8 +27,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.setup.SetupWizardUtil;
 import com.liferay.portal.util.PropsValues;
-
-import java.sql.SQLException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -71,11 +65,6 @@ public class SetupWizardAction extends Action {
 				SetupWizardUtil.updateLanguage(request, response);
 
 				return actionMapping.findForward("portal.setup_wizard");
-			}
-			else if (cmd.equals(Constants.TEST)) {
-				testDatabase(request, response);
-
-				return null;
 			}
 			else if (cmd.equals(Constants.UPDATE)) {
 				SetupWizardUtil.updateSetup(request, response);
@@ -117,40 +106,6 @@ public class SetupWizardAction extends Action {
 		String message = themeDisplay.translate(key, arguments);
 
 		jsonObject.put("message", message);
-	}
-
-	protected void testDatabase(
-			HttpServletRequest request, HttpServletResponse response)
-		throws Exception {
-
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
-
-		try {
-			SetupWizardUtil.testDatabase(request);
-
-			jsonObject.put("success", true);
-
-			putMessage(
-				request, jsonObject,
-				"database-connection-was-established-successfully");
-		}
-		catch (ClassNotFoundException cnfe) {
-			putMessage(
-				request, jsonObject, "database-driver-x-is-not-present",
-				cnfe.getLocalizedMessage());
-		}
-		catch (SQLException sqle) {
-			putMessage(
-				request, jsonObject,
-				"database-connection-could-not-be-established");
-		}
-
-		response.setContentType(ContentTypes.APPLICATION_JSON);
-		response.setHeader(
-			HttpHeaders.CACHE_CONTROL,
-			HttpHeaders.CACHE_CONTROL_NO_CACHE_VALUE);
-
-		ServletResponseUtil.write(response, jsonObject.toString());
 	}
 
 }
