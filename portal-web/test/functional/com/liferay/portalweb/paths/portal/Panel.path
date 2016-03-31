@@ -20,12 +20,12 @@
 </tr>
 <tr>
 	<td>PANEL_HEADING_COLLAPSED</td>
-	<td>//div[contains(@class,'panel') and contains(@class,'collapsed')]/span[contains(.,'${key_panelHeading}')] | //div[contains(@class,'panel') and contains(@role,'group')]//a[contains(@class,'collapsed') and contains(.,'${key_panelHeading}')] | //div[contains(@class,'panel-heading') and @role='tab']//a[contains(@class,'collapsed') and contains(.,'${key_panelHeading}')]</td>
+	<td>//div[contains(@class,'panel') and contains(@class,'collapsed')]/span[contains(.,'${key_panelHeading}')] | //div[contains(@class,'panel') and contains(@role,'group')]//a[contains(@class,'collapsed') and contains(.,'${key_panelHeading}')] | //div[contains(@class,'panel-heading') and @role='tab']//a[contains(@class,'collapsed') and contains(.,'${key_panelHeading}')] | //div[contains(@class,'panel-heading') and @role='presentation']//a[contains(@class,'collapsed') and contains(.,'${key_panelHeading}')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PANEL_HEADING_EXPANDED</td>
-	<td>//div[contains(@class,'panel') and contains(@role,'group')]//a[not(contains(@class,'collapsed')) and contains(.,'${key_panelHeading}')] | //div[contains(@class,'panel') and not(contains(@class,'collapsed'))]//span[contains(.,'${key_panelHeading}')] | //div[contains(@class,'panel-group')]//a[contains(@aria-expanded,'true') and contains(.,'${key_panelHeading}')]</td>
+	<td>//div[contains(@class,'panel') and contains(@role,'group')]//a[not(contains(@class,'collapsed')) and contains(.,'${key_panelHeading}')] | //div[contains(@class,'panel') and not(contains(@class,'collapsed'))]//span[contains(.,'${key_panelHeading}')] | //div[contains(@class,'panel-group')]//a[contains(@aria-expanded,'true') and contains(.,'${key_panelHeading}')] | //div[contains(@aria-expanded,'true')]/div[contains(@class,'panel-body')]/../../div//a[not(contains(@class,'collapsed')) and contains(.,'${key_panelHeading}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -68,11 +68,6 @@
 <tr>
 	<td>ENTRY_PERMISSIONS</td>
 	<td>//div[@id='permissionsHeader']//a</td>
-	<td></td>
-</tr>
-<tr>
-	<td></td>
-	<td></td>
 	<td></td>
 </tr>
 </tbody>
