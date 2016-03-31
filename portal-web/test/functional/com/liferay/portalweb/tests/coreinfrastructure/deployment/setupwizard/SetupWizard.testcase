@@ -9,7 +9,6 @@
 			<var name="administratorEmail" value="test@liferay.com" />
 			<var name="administratorFirstName" value="Test" />
 			<var name="administratorLastName" value="Test" />
-			<var name="databasePassword" property-value="database.hypersonic.password" />
 			<var name="databaseType" value="Hypersonic" />
 			<var name="databaseUserName" property-value="database.hypersonic.username" />
 			<var name="jdbcDriverClassName" property-value="database.hypersonic.driver" />
