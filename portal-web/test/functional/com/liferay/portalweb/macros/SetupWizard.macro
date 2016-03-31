@@ -47,6 +47,15 @@
 			<var name="administratorLastName" value="${administratorLastName}" />
 		</execute>
 
+		<execute macro="SetupWizard#viewConfiguredDatabase">
+			<var name="databasePassword" property-value="${databasePassword}" />
+			<var name="databaseType" value="Hypersonic" />
+			<var name="databaseUserName" property-value="${databaseUserName}" />
+			<var name="jdbcDriverClassName" property-value="${jdbcDriverClassName}" />
+			<var name="jdbcURL" property-value="${jdbcURL}" />
+			<var name="panelHeading" value="Database: ${databaseType}" />
+		</execute>
+
 		<execute macro="SetupWizard#finishConfigurationPG" />
 
 		<execute macro="SetupWizard#viewConfigurationSavedPG" />
@@ -85,6 +94,27 @@
 		<execute function="AssertTextEquals#assertPartialText" locator1="SetupWizard#CONFIGURATION_SAVE_MESSAGE" value1="The configuration was saved in" />
 		<execute function="AssertTextEquals#assertPartialText" locator1="SetupWizard#CONFIGURATION_SAVE_LOCATION" value1="portal-setup-wizard.properties" />
 		<execute function="AssertTextEquals" locator1="Message#INFO" value1="Changes will take effect once the portal is restarted. Please restart the portal now." />
+	</command>
+
+	<command name="viewConfiguredDatabase">
+		<var name="key_panelHeading" value="${panelHeading}" />
+
+		<if>
+			<and>
+				<condition function="IsElementPresent" locator1="Panel#PANEL_HEADING_COLLAPSED" value1="${panelHeading}" />
+				<condition function="IsVisible" locator1="Panel#PANEL_HEADING_COLLAPSED" value1="${panelHeading}" />
+			</and>
+			<then>
+				<execute function="AssertClick#assertPartialTextClickAt" locator1="Panel#PANEL_HEADING_COLLAPSED" value1="${panelHeading}" />
+			</then>
+		</if>
+
+		<execute function="AssertElementPresent" locator1="Panel#PANEL_HEADING_EXPANDED" value1="${panelHeading}" />
+
+		<execute function="AssertTextEquals" locator1="SetupWizard#CONFIGURED_DATABASE_JDBC_URL" value1="${jdbcURL}" />
+		<execute function="AssertTextEquals" locator1="SetupWizard#CONFIGURED_DATABASE_JDBC_DRIVER_CLASS_NAME" value1="${jdbcDriverClassName}" />
+		<execute function="AssertTextEquals" locator1="SetupWizard#CONFIGURED_DATABASE_USER" value1="${databaseUserName}" />
+		<execute function="AssertTextEquals" locator1="SetupWizard#CONFIGURED_DATABASE_PASSWORD" value1="${databasePassword}" />
 	</command>
 
 	<command name="viewConfiguredDatabaseInConsole">
