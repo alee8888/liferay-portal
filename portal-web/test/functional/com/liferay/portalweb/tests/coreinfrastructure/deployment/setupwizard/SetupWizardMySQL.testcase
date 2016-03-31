@@ -3,14 +3,6 @@
 	<property name="setup.wizard.enabled" value="true" />
 	<property name="testray.main.component.name" value="Setup Wizard" />
 
-	<command name="MySQLtoMySQL" priority="4">
-		<execute macro="SetupWizard#configureDefaultPG" />
-
-		<execute macro="Smoke#viewWelcomePage" />
-
-		<execute macro="Smoke#runSmoke" />
-	</command>
-
 	<command name="MySQLtoMySQL" priority="5">
 		<property name="portal.acceptance.tomcat.mysql" value="true" />
 		<property name="test.name.skip.portal.instance" value="SetupWizardMySQL#MySQLtoMySQL" />
@@ -46,16 +38,6 @@
 			<var name="databaseUserName" property-value="database.mysql.username" />
 			<var name="jdbcDriverClassName" property-value="database.mysql.driver" />
 			<var name="jdbcURL" property-value="database.mysql.url" />
-		</execute>
-
-		<execute macro="Smoke#viewWelcomePage" />
-
-		<execute macro="Smoke#runSmoke" />
-	</command>
-
-	<command name="MySQLtoMySQLSampleDataDisabled" priority="4">
-		<execute macro="SetupWizard#configureDefaultPG">
-			<var name="addSampleData" value="false" />
 		</execute>
 
 		<execute macro="Smoke#viewWelcomePage" />
