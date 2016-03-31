@@ -65,67 +65,6 @@
 	<td>//h4[@title='Password']/../p[4]</td>
 	<td></td>
 </tr>
-<tr>
-	<td></td>
-	<td></td>
-	<td></td>
-</tr>
-<!--DATABASE_CHANGE-->
-<tr>
-	<td>DATABASE_CHANGE_USE_CONFIGURED_DATABASE_LINK</td>
-	<td>//a[@id='defaultDatabaseOptionsLink']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DATABASE_CHANGE_DATABASE_TYPE_LABEL</td>
-	<td>//label[@for='databaseType']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DATABASE_CHANGE_DATABASE_TYPE_SELECT</td>
-	<td>//select[@id='databaseType']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DATABASE_CHANGE_JDBC_URL_LABEL</td>
-	<td>//label[@for='jdbcDefaultURL']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DATABASE_CHANGE_JDBC_URL_FIELD</td>
-	<td>//input[@id='jdbcDefaultURL']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DATABASE_CHANGE_JDBC_DRIVER_CLASS_NAME_LABEL</td>
-	<td>//label[@for='jdbcDefaultDriverName']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DATABASE_CHANGE_JDBC_DRIVER_CLASS_NAME_FIELD</td>
-	<td>//input[@id='jdbcDefaultDriverName']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DATABASE_CHANGE_USER_NAME_LABEL</td>
-	<td>//label[@for='jdbcDefaultUserName']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DATABASE_CHANGE_USER_NAME_FIELD</td>
-	<td>//input[@id='jdbcDefaultUserName']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DATABASE_CHANGE_PASSWORD_LABEL</td>
-	<td>//label[@for='jdbcDefaultPassword']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>DATABASE_CHANGE_PASSWORD_FIELD</td>
-	<td>//input[@id='jdbcDefaultPassword']</td>
-	<td></td>
-</tr>
 </tbody>
 </table>
 </body>
