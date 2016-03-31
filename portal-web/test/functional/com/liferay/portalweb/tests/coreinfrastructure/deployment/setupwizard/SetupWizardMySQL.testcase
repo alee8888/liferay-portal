@@ -10,16 +10,14 @@
 		<execute macro="Smoke#runSmoke" />
 	</command>
 
-	<command name="MySQLtoMySQLLportal1" priority="5">
-		<property name="databases.size" value="1" />
+	<command name="MySQLtoMySQL" priority="5">
 		<property name="portal.acceptance.tomcat.mysql" value="true" />
-		<property name="test.name.skip.portal.instance" value="SetupWizardMySQL#MySQLtoMySQLLportal1" />
+		<property name="test.name.skip.portal.instance" value="SetupWizardMySQL#MySQLtoMySQL" />
 
 		<execute macro="SetupWizard#configurePG">
 			<var name="administratorEmail" value="test@liferay.com" />
 			<var name="administratorFirstName" value="Test" />
 			<var name="administratorLastName" value="Test" />
-			<var name="databaseName" value="lportal1" />
 			<var name="databasePassword" property-value="database.mysql.password" />
 			<var name="databaseType" value="MySQL" />
 			<var name="databaseUserName" property-value="database.mysql.username" />
@@ -35,17 +33,15 @@
 		<execute macro="Smoke#runSmoke" />
 	</command>
 
-	<command name="MySQLtoMySQLLportal1SampleDataDisabled" priority="5">
-		<property name="databases.size" value="1" />
+	<command name="MySQLtoMySQLSampleDataDisabled" priority="5">
 		<property name="portal.acceptance.tomcat.mysql" value="true" />
-		<property name="test.name.skip.portal.instance" value="SetupWizardMySQL#MySQLtoMySQLLportal1SampleDataDisabled" />
+		<property name="test.name.skip.portal.instance" value="SetupWizardMySQL#MySQLtoMySQLSampleDataDisabled" />
 
 		<execute macro="SetupWizard#configurePG">
 			<var name="addSampleData" value="false" />
 			<var name="administratorEmail" value="test@liferay.com" />
 			<var name="administratorFirstName" value="Test" />
 			<var name="administratorLastName" value="Test" />
-			<var name="databaseName" value="lportal1" />
 			<var name="databasePassword" property-value="database.mysql.password" />
 			<var name="databaseType" value="MySQL" />
 			<var name="databaseUserName" property-value="database.mysql.username" />

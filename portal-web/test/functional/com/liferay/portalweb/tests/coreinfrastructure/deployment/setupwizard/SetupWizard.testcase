@@ -20,23 +20,4 @@
 
 		<execute macro="Smoke#runSmoke" />
 	</command>
-
-	<command name="HypersonicToMySQL" priority="5">
-		<property name="portal.acceptance.tomcat.mysql" value="true" />
-
-		<execute macro="SetupWizard#configurePG">
-			<var name="administratorEmail" value="test@liferay.com" />
-			<var name="administratorFirstName" value="Test" />
-			<var name="administratorLastName" value="Test" />
-			<var name="databasePassword" property-value="database.mysql.password" />
-			<var name="databaseType" value="MySQL" />
-			<var name="databaseUserName" property-value="database.mysql.username" />
-			<var name="jdbcDriverClassName" property-value="database.mysql.driver" />
-			<var name="jdbcURL" property-value="database.mysql.url" />
-		</execute>
-
-		<execute macro="Smoke#viewWelcomePage" />
-
-		<execute macro="Smoke#runSmoke" />
-	</command>
 </definition>
