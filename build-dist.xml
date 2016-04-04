@@ -2696,7 +2696,7 @@ and put it in ${app.server.parent.dir}. Then rerun this task.
 				<var name="java.security.config" value="" />
 			</then>
 			<else>
-				<var name="java.security.config" value="${java.security.manager.option} -Djava.security.policy==${app.server.wildfly.dir}/bin/server.policy -Dwildfly.home.dir=${app.server.wildfly.dir}" />
+				<var name="java.security.config" value="${java.security.manager.option} -Djava.security.policy==${app.server.wildfly.dir}/bin/server.policy -Dwildfly.home.dir=${app.server.wildfly.dir} -Djboss.as.management.blocking.timeout=1000" />
 			</else>
 		</if>
 
@@ -2716,7 +2716,7 @@ and put it in ${app.server.parent.dir}. Then rerun this task.
 			<replacetoken><![CDATA[:JAVA_OPTS_SET]]></replacetoken>
 			<replacevalue>
 				<![CDATA[
-					set "JAVA_OPTS=%JAVA_OPTS% -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true @java.security.config@ -Duser.timezone=GMT -Xmx1024m -XX:MaxMetaspaceSize=384m -XX:MetaspaceSize=200m"
+					set "JAVA_OPTS=%JAVA_OPTS% -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true @java.security.config@ -Duser.timezone=GMT -Xmx1024m -XX:MaxMetaspaceSize=384m -XX:MetaspaceSize=200m -Djboss.as.management.blocking.timeout=1000"
 
 					:JAVA_OPTS_SET
 				]]>
