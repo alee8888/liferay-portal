@@ -573,7 +573,7 @@
 	</command>
 
 	<command name="AddUser" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="albert" />
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Users and Organizations" />
