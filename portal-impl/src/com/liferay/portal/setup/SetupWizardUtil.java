@@ -15,7 +15,6 @@
 package com.liferay.portal.setup;
 
 import com.liferay.portal.events.EventsProcessorUtil;
-import com.liferay.portal.events.StartupHelperUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.dao.jdbc.DataSourceFactoryUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -24,6 +23,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -180,24 +180,16 @@ public class SetupWizardUtil {
 		Boolean addSampleData = ParamUtil.getBoolean(
 			request, "addSampleData", false);
 
-		company = SetupWizardSampleDataUtil.updateCompany(
-			company, companyName, languageId);
+		SetupWizardSampleDataUtil.addSampleData(
+			company.getCompanyId(), companyName, themeDisplay.getLocale(),
+			languageId, firstName, lastName, emailAddress, true, addSampleData);
 
-		User adminUser = SetupWizardSampleDataUtil.updateAdminUser(
-			company, themeDisplay.getLocale(), themeDisplay.getLanguageId(),
-			emailAddress, firstName, lastName, true);
-
-		if (StartupHelperUtil.isDBNew() && addSampleData) {
-			try {
-				SetupWizardSampleDataUtil.addSampleOrganizations(
-					company, adminUser);
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
-		}
+		company = CompanyLocalServiceUtil.fetchCompany(company.getCompanyId());
 
 		themeDisplay.setCompany(company);
+
+		User adminUser = UserLocalServiceUtil.fetchUserByEmailAddress(
+			company.getCompanyId(), emailAddress);
 
 		PropsValues.ADMIN_EMAIL_FROM_NAME = adminUser.getFullName();
 
@@ -208,7 +200,7 @@ public class SetupWizardUtil {
 
 		session.setAttribute(WebKeys.EMAIL_ADDRESS, emailAddress);
 		session.setAttribute(WebKeys.SETUP_WIZARD_PASSWORD_UPDATED, true);
-		session.setAttribute(WebKeys.USER, user);
+		session.setAttribute(WebKeys.USER, adminUser);
 		session.setAttribute(WebKeys.USER_ID, adminUser.getUserId());
 
 		EventsProcessorUtil.process(

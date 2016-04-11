@@ -60,13 +60,16 @@ public class SetupWizardSampleDataUtil {
 	public static void addSampleData(long companyId) throws Exception {
 		addSampleData(
 			companyId, PropsValues.COMPANY_DEFAULT_NAME,
+			LocaleUtil.getDefault(),
+			LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
 			PropsValues.DEFAULT_ADMIN_FIRST_NAME,
 			PropsValues.DEFAULT_ADMIN_LAST_NAME,
 			PropsValues.ADMIN_EMAIL_FROM_NAME, false, true);
 	}
 
 	public static void addSampleData(
-			long companyId, String companyName, String adminUserFirstName,
+			long companyId, String companyName, Locale locale,
+			String languageId, String adminUserFirstName,
 			String adminUserLastName, String adminUserEmailAddress,
 			boolean resetPassword, boolean addSampleOrganizations)
 		throws Exception {
@@ -81,13 +84,11 @@ public class SetupWizardSampleDataUtil {
 
 		Company company = updateCompany(
 			CompanyLocalServiceUtil.getCompanyById(companyId), companyName,
-			LocaleUtil.toLanguageId(LocaleUtil.getDefault()));
+			languageId);
 
 		User user = updateAdminUser(
-			company, LocaleUtil.getDefault(),
-			LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
-			adminUserEmailAddress, adminUserFirstName, adminUserLastName,
-			resetPassword);
+			company, locale, languageId, adminUserEmailAddress,
+			adminUserFirstName, adminUserLastName, resetPassword);
 
 		if (addSampleOrganizations) {
 			addSampleOrganizations(company, user);
