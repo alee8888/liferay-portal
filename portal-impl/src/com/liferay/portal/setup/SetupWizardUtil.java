@@ -149,9 +149,56 @@ public class SetupWizardUtil {
 		unicodeProperties.put(
 			PropsKeys.SETUP_WIZARD_ENABLED, String.valueOf(false));
 
-		Company company = _updateCompany(request, unicodeProperties);
+		Company company = CompanyLocalServiceUtil.getCompanyById(
+			PortalInstances.getDefaultCompanyId());
 
-		User adminUser = _updateAdminUser(request, response, unicodeProperties);
+		String languageId = ParamUtil.getString(
+			request, "companyLocale", getDefaultLanguageId());
+
+		String companyName = ParamUtil.getString(
+			request, "companyName", PropsValues.COMPANY_DEFAULT_NAME);
+
+		company = SetupWizardSampleDataUtil.updateCompany(
+			company, companyName, languageId);
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		themeDisplay.setCompany(company);
+
+		String emailAddress = ParamUtil.getString(
+			request, "adminEmailAddress",
+			PropsValues.DEFAULT_ADMIN_EMAIL_ADDRESS_PREFIX + StringPool.AT +
+				company.getMx());
+
+		PropsValues.ADMIN_EMAIL_FROM_ADDRESS = emailAddress;
+
+		unicodeProperties.put(PropsKeys.ADMIN_EMAIL_FROM_ADDRESS, emailAddress);
+
+		String firstName = ParamUtil.getString(
+			request, "adminFirstName", PropsValues.DEFAULT_ADMIN_FIRST_NAME);
+		String lastName = ParamUtil.getString(
+			request, "adminLastName", PropsValues.DEFAULT_ADMIN_LAST_NAME);
+
+		User adminUser = SetupWizardSampleDataUtil.updateAdminUser(
+			company, themeDisplay.getLocale(), themeDisplay.getLanguageId(),
+			emailAddress, firstName, lastName, true);
+
+		PropsValues.ADMIN_EMAIL_FROM_NAME = adminUser.getFullName();
+
+		unicodeProperties.put(
+			PropsKeys.ADMIN_EMAIL_FROM_NAME, adminUser.getFullName());
+
+		HttpSession session = request.getSession();
+
+		session.setAttribute(WebKeys.EMAIL_ADDRESS, emailAddress);
+		session.setAttribute(WebKeys.SETUP_WIZARD_PASSWORD_UPDATED, true);
+		session.setAttribute(WebKeys.USER, user);
+		session.setAttribute(WebKeys.USER_ID, adminUser.getUserId());
+
+		EventsProcessorUtil.process(
+			PropsKeys.LOGIN_EVENTS_POST, PropsValues.LOGIN_EVENTS_POST, request,
+			response);
 
 		Boolean addSampleData = ParamUtil.getBoolean(
 			request, "addSampleData", false);
@@ -165,8 +212,6 @@ public class SetupWizardUtil {
 				_log.error(e, e);
 			}
 		}
-
-		HttpSession session = request.getSession();
 
 		session.setAttribute(
 			WebKeys.SETUP_WIZARD_PROPERTIES, unicodeProperties);
@@ -274,77 +319,6 @@ public class SetupWizardUtil {
 			DataAccess.cleanUp(connection);
 			DataSourceFactoryUtil.destroyDataSource(dataSource);
 		}
-	}
-
-	private static User _updateAdminUser(
-			HttpServletRequest request, HttpServletResponse response,
-			UnicodeProperties unicodeProperties)
-		throws Exception {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		Company company = CompanyLocalServiceUtil.getCompanyById(
-			themeDisplay.getCompanyId());
-
-		String emailAddress = ParamUtil.getString(
-			request, "adminEmailAddress",
-			PropsValues.DEFAULT_ADMIN_EMAIL_ADDRESS_PREFIX + StringPool.AT +
-				company.getMx());
-
-		PropsValues.ADMIN_EMAIL_FROM_ADDRESS = emailAddress;
-
-		unicodeProperties.put(PropsKeys.ADMIN_EMAIL_FROM_ADDRESS, emailAddress);
-
-		String firstName = ParamUtil.getString(
-			request, "adminFirstName", PropsValues.DEFAULT_ADMIN_FIRST_NAME);
-		String lastName = ParamUtil.getString(
-			request, "adminLastName", PropsValues.DEFAULT_ADMIN_LAST_NAME);
-
-		User user = SetupWizardSampleDataUtil.updateAdminUser(
-			company, themeDisplay.getLocale(), themeDisplay.getLanguageId(),
-			emailAddress, firstName, lastName, true);
-
-		PropsValues.ADMIN_EMAIL_FROM_NAME = user.getFullName();
-
-		unicodeProperties.put(
-			PropsKeys.ADMIN_EMAIL_FROM_NAME, user.getFullName());
-
-		HttpSession session = request.getSession();
-
-		session.setAttribute(WebKeys.EMAIL_ADDRESS, emailAddress);
-		session.setAttribute(WebKeys.SETUP_WIZARD_PASSWORD_UPDATED, true);
-		session.setAttribute(WebKeys.USER, user);
-		session.setAttribute(WebKeys.USER_ID, user.getUserId());
-
-		EventsProcessorUtil.process(
-			PropsKeys.LOGIN_EVENTS_POST, PropsValues.LOGIN_EVENTS_POST, request,
-			response);
-
-		return user;
-	}
-
-	private static Company _updateCompany(HttpServletRequest request)
-		throws Exception {
-
-		Company company = CompanyLocalServiceUtil.getCompanyById(
-			PortalInstances.getDefaultCompanyId());
-
-		String languageId = ParamUtil.getString(
-			request, "companyLocale", getDefaultLanguageId());
-
-		String companyName = ParamUtil.getString(
-			request, "companyName", PropsValues.COMPANY_DEFAULT_NAME);
-
-		company = SetupWizardSampleDataUtil.updateCompany(
-			company, companyName, languageId);
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		themeDisplay.setCompany(company);
-
-		return company;
 	}
 
 	private static boolean _writePropertiesFile(
