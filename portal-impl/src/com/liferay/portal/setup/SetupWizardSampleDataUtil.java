@@ -83,11 +83,21 @@ public class SetupWizardSampleDataUtil {
 			CompanyLocalServiceUtil.getCompanyById(companyId), companyName,
 			LocaleUtil.toLanguageId(LocaleUtil.getDefault()));
 
-		User adminUser = updateAdminUser(
+		User user = updateAdminUser(
 			company, LocaleUtil.getDefault(),
 			LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
 			adminUserEmailAddress, adminUserFirstName, adminUserLastName,
 			resetPassword);
+
+		addSampleOrganizations(company, user);
+
+		if (_log.isInfoEnabled()) {
+			_log.info("Finished adding data in " + stopWatch.getTime() + " ms");
+		}
+	}
+
+	public static void addSampleOrganizations(Company company, User adminUser)
+		throws Exception {
 
 		User defaultUser = company.getDefaultUser();
 
@@ -127,11 +137,7 @@ public class SetupWizardSampleDataUtil {
 		OrganizationLocalServiceUtil.addUserOrganization(
 			adminUser.getUserId(), organization);
 
-		addOrganizations(companyName, defaultUser, organization);
-
-		if (_log.isInfoEnabled()) {
-			_log.info("Finished adding data in " + stopWatch.getTime() + " ms");
-		}
+		addOrganizations(company, organization);
 	}
 
 	public static User updateAdminUser(
@@ -238,12 +244,13 @@ public class SetupWizardSampleDataUtil {
 	}
 
 	protected static void addOrganizations(
-			String companyName, User defaultUser,
-			Organization parentOrganization)
+			Company company, Organization parentOrganization)
 		throws Exception {
 
+		User defaultUser = company.getDefaultUser();
+
 		for (Object[] organizationArray : _ORGANIZATION_ARRAYS) {
-			String name = companyName + organizationArray[0];
+			String name = company.getName() + organizationArray[0];
 			long regionId = (Long)organizationArray[1];
 			long countryId = (Long)organizationArray[2];
 			String type = (String)organizationArray[3];
