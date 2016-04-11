@@ -158,9 +158,6 @@ public class SetupWizardUtil {
 		String companyName = ParamUtil.getString(
 			request, "companyName", PropsValues.COMPANY_DEFAULT_NAME);
 
-		company = SetupWizardSampleDataUtil.updateCompany(
-			company, companyName, languageId);
-
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
@@ -180,9 +177,27 @@ public class SetupWizardUtil {
 		String lastName = ParamUtil.getString(
 			request, "adminLastName", PropsValues.DEFAULT_ADMIN_LAST_NAME);
 
+		Boolean addSampleData = ParamUtil.getBoolean(
+			request, "addSampleData", false);
+
+		company = SetupWizardSampleDataUtil.updateCompany(
+			company, companyName, languageId);
+
 		User adminUser = SetupWizardSampleDataUtil.updateAdminUser(
 			company, themeDisplay.getLocale(), themeDisplay.getLanguageId(),
 			emailAddress, firstName, lastName, true);
+
+		if (StartupHelperUtil.isDBNew() && addSampleData) {
+			try {
+				SetupWizardSampleDataUtil.addSampleOrganizations(
+					company, adminUser);
+			}
+			catch (Exception e) {
+				_log.error(e, e);
+			}
+		}
+
+		themeDisplay.setCompany(company);
 
 		PropsValues.ADMIN_EMAIL_FROM_NAME = adminUser.getFullName();
 
@@ -199,19 +214,6 @@ public class SetupWizardUtil {
 		EventsProcessorUtil.process(
 			PropsKeys.LOGIN_EVENTS_POST, PropsValues.LOGIN_EVENTS_POST, request,
 			response);
-
-		Boolean addSampleData = ParamUtil.getBoolean(
-			request, "addSampleData", false);
-
-		if (StartupHelperUtil.isDBNew() && addSampleData) {
-			try {
-				SetupWizardSampleDataUtil.addSampleOrganizations(
-					company, adminUser);
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
-		}
 
 		session.setAttribute(
 			WebKeys.SETUP_WIZARD_PROPERTIES, unicodeProperties);
