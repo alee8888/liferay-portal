@@ -62,13 +62,13 @@ public class SetupWizardSampleDataUtil {
 			companyId, PropsValues.COMPANY_DEFAULT_NAME,
 			PropsValues.DEFAULT_ADMIN_FIRST_NAME,
 			PropsValues.DEFAULT_ADMIN_LAST_NAME,
-			PropsValues.ADMIN_EMAIL_FROM_NAME, false);
+			PropsValues.ADMIN_EMAIL_FROM_NAME, false, true);
 	}
 
 	public static void addSampleData(
 			long companyId, String companyName, String adminUserFirstName,
 			String adminUserLastName, String adminUserEmailAddress,
-			boolean resetPassword)
+			boolean resetPassword, boolean addSampleOrganizations)
 		throws Exception {
 
 		StopWatch stopWatch = new StopWatch();
@@ -89,7 +89,9 @@ public class SetupWizardSampleDataUtil {
 			adminUserEmailAddress, adminUserFirstName, adminUserLastName,
 			resetPassword);
 
-		addSampleOrganizations(company, user);
+		if (addSampleOrganizations) {
+			addSampleOrganizations(company, user);
+		}
 
 		if (_log.isInfoEnabled()) {
 			_log.info("Finished adding data in " + stopWatch.getTime() + " ms");
