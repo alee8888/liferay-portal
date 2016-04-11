@@ -15,6 +15,7 @@
 package com.liferay.portal.setup;
 
 import com.liferay.portal.events.EventsProcessorUtil;
+import com.liferay.portal.events.StartupHelperUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.dao.jdbc.DataSourceFactoryUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -148,9 +149,22 @@ public class SetupWizardUtil {
 		unicodeProperties.put(
 			PropsKeys.SETUP_WIZARD_ENABLED, String.valueOf(false));
 
-		_updateCompany(request);
+		Company company = _updateCompany(request, unicodeProperties);
 
-		_updateAdminUser(request, response, unicodeProperties);
+		User adminUser = _updateAdminUser(request, response, unicodeProperties);
+
+		Boolean addSampleData = ParamUtil.getBoolean(
+			request, "addSampleData", false);
+
+		if (StartupHelperUtil.isDBNew() && addSampleData) {
+			try {
+				SetupWizardSampleDataUtil.addSampleOrganizations(
+					company, adminUser);
+			}
+			catch (Exception e) {
+				_log.error(e, e);
+			}
+		}
 
 		HttpSession session = request.getSession();
 
@@ -262,7 +276,7 @@ public class SetupWizardUtil {
 		}
 	}
 
-	private static void _updateAdminUser(
+	private static User _updateAdminUser(
 			HttpServletRequest request, HttpServletResponse response,
 			UnicodeProperties unicodeProperties)
 		throws Exception {
@@ -306,9 +320,11 @@ public class SetupWizardUtil {
 		EventsProcessorUtil.process(
 			PropsKeys.LOGIN_EVENTS_POST, PropsValues.LOGIN_EVENTS_POST, request,
 			response);
+
+		return user;
 	}
 
-	private static void _updateCompany(HttpServletRequest request)
+	private static Company _updateCompany(HttpServletRequest request)
 		throws Exception {
 
 		Company company = CompanyLocalServiceUtil.getCompanyById(
@@ -320,13 +336,15 @@ public class SetupWizardUtil {
 		String companyName = ParamUtil.getString(
 			request, "companyName", PropsValues.COMPANY_DEFAULT_NAME);
 
-		SetupWizardSampleDataUtil.updateCompany(
+		company = SetupWizardSampleDataUtil.updateCompany(
 			company, companyName, languageId);
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		themeDisplay.setCompany(company);
+
+		return company;
 	}
 
 	private static boolean _writePropertiesFile(
