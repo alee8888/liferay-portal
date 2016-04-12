@@ -149,6 +149,22 @@ public class SetupWizardUtil {
 		unicodeProperties.put(
 			PropsKeys.SETUP_WIZARD_ENABLED, String.valueOf(false));
 
+		_addDefaultData(request, response, unicodeProperties);
+
+		HttpSession session = request.getSession();
+
+		session.setAttribute(
+			WebKeys.SETUP_WIZARD_PROPERTIES, unicodeProperties);
+		session.setAttribute(
+			WebKeys.SETUP_WIZARD_PROPERTIES_FILE_CREATED,
+			_writePropertiesFile(unicodeProperties));
+	}
+
+	private static void _addDefaultData(
+			HttpServletRequest request, HttpServletResponse response,
+			UnicodeProperties unicodeProperties)
+		throws Exception {
+
 		Company company = CompanyLocalServiceUtil.getCompanyById(
 			PortalInstances.getDefaultCompanyId());
 
@@ -206,12 +222,6 @@ public class SetupWizardUtil {
 		EventsProcessorUtil.process(
 			PropsKeys.LOGIN_EVENTS_POST, PropsValues.LOGIN_EVENTS_POST, request,
 			response);
-
-		session.setAttribute(
-			WebKeys.SETUP_WIZARD_PROPERTIES, unicodeProperties);
-		session.setAttribute(
-			WebKeys.SETUP_WIZARD_PROPERTIES_FILE_CREATED,
-			_writePropertiesFile(unicodeProperties));
 	}
 
 	private static String _getParameter(
