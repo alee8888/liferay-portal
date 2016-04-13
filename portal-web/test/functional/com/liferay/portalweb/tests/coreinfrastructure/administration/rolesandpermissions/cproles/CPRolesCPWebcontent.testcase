@@ -48,6 +48,7 @@
 			<var name="userLastName" value="userln" />
 			<var name="userLoginEmailAddress" value="test@liferay.com" />
 			<var name="userLoginFullName" value="Test Test" />
+			<var name="userPassword" value="Password" />
 			<var name="userScreenName" value="usersn" />
 		</execute>
 
