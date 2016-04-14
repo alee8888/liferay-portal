@@ -103,60 +103,63 @@
 								</div>
 							</aui:fieldset>
 
-							<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label='<%= defaultDatabase ? "default-database" : "configured-database" %>'>
+							<%
+							String helpMessage = defaultDatabase ? "this-database-is-useful-for-development-and-demo'ing-purposes" : StringPool.BLANK;
+
+							StringBuilder sb = new StringBuilder(5);
+							sb.append(LanguageUtil.get(request, "database"));
+							sb.append(StringPool.COLON);
+							sb.append(StringPool.SPACE);
+							sb.append(LanguageUtil.get(request, SetupWizardUtil.getDatabaseName(request)));
+
+							String label = sb.toString();
+							%>
+
+							<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" helpMessage="<%= helpMessage %>" label="<%= label %>">
 								<aui:input name="defaultDatabase" type="hidden" value="<%= defaultDatabase %>" />
 
 								<c:choose>
-									<c:when test="<%= defaultDatabase %>">
-										<strong><liferay-ui:message key="database.hypersonic" /></strong>
+									<c:when test="<%= Validator.isNotNull(PropsValues.JDBC_DEFAULT_JNDI_NAME) %>">
+										<h4 class="text-default" title="<liferay-ui:message key="jdbc-default-jndi-name" />">
+											<liferay-ui:message key="jdbc-default-jndi-name" />
+										</h4>
 
-										<liferay-ui:message key="this-database-is-useful-for-development-and-demo'ing-purposes" />
+										<p class="text-default">
+											<%= PropsValues.JDBC_DEFAULT_JNDI_NAME %>
+										</p>
 									</c:when>
 									<c:otherwise>
-										<c:choose>
-											<c:when test="<%= Validator.isNotNull(PropsValues.JDBC_DEFAULT_JNDI_NAME) %>">
-												<h4 class="text-default" title="<liferay-ui:message key="jdbc-default-jndi-name" />">
-													<liferay-ui:message key="jdbc-default-jndi-name" />
-												</h4>
+										<h4 class="text-default" title="<liferay-ui:message key="jdbc-url" />">
+											<liferay-ui:message key="jdbc-url" />
+										</h4>
 
-												<p class="text-default">
-													<%= PropsValues.JDBC_DEFAULT_JNDI_NAME %>
-												</p>
-											</c:when>
-											<c:otherwise>
-												<h4 class="text-default" title="<liferay-ui:message key="jdbc-url" />">
-													<liferay-ui:message key="jdbc-url" />
-												</h4>
+										<p class="text-default">
+											<%= PropsValues.JDBC_DEFAULT_URL %>
+										</p>
 
-												<p class="text-default">
-													<%= PropsValues.JDBC_DEFAULT_URL %>
-												</p>
+										<h4 class="text-default" title="<liferay-ui:message key="jdbc-driver-class-name" />">
+											<liferay-ui:message key="jdbc-driver-class-name" />
+										</h4>
 
-												<h4 class="text-default" title="<liferay-ui:message key="jdbc-driver-class-name" />">
-													<liferay-ui:message key="jdbc-driver-class-name" />
-												</h4>
+										<p class="text-default">
+											<%= PropsValues.JDBC_DEFAULT_DRIVER_CLASS_NAME %>
+										</p>
 
-												<p class="text-default">
-													<%= PropsValues.JDBC_DEFAULT_DRIVER_CLASS_NAME %>
-												</p>
+										<h4 class="text-default" title="<liferay-ui:message key="user-name" />">
+											<liferay-ui:message key="user-name" />
+										</h4>
 
-												<h4 class="text-default" title="<liferay-ui:message key="user-name" />">
-													<liferay-ui:message key="user-name" />
-												</h4>
+										<p class="text-default">
+											<%= PropsValues.JDBC_DEFAULT_USERNAME %>
+										</p>
 
-												<p class="text-default">
-													<%= PropsValues.JDBC_DEFAULT_USERNAME %>
-												</p>
+										<h4 class="text-default" title="<liferay-ui:message key="password" />">
+											<liferay-ui:message key="password" />
+										</h4>
 
-												<h4 class="text-default" title="<liferay-ui:message key="password" />">
-													<liferay-ui:message key="password" />
-												</h4>
-
-												<p class="text-default">
-													<%= StringPool.EIGHT_STARS %>
-												</p>
-											</c:otherwise>
-										</c:choose>
+										<p class="text-default">
+											<%= StringPool.EIGHT_STARS %>
+										</p>
 									</c:otherwise>
 								</c:choose>
 
