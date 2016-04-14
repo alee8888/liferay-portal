@@ -1,0 +1,41 @@
+<definition>
+	<command name="addUser">
+		<var method="TestPropsUtil#get('portal.url')" name="portalUrl" />
+
+		<execute macro="JSONWS#getCompanyId">
+			<return from="companyId" name="companyId" />
+			<var name="companyId" value="${companyId}" />
+		</execute>
+
+		<var name="curlArgs" value="${portalUrl}/api/jsonws/user/add-user -u test@liferay.com:test -d companyId=${companyId} -d autoPassword=false -d password1=${userPassword} -d password2=${userPassword} -d autoScreenName=false -d screenName=${userScreenName} -d emailAddress=${userEmailAddress} -d facebookId=0 -d openId= -d locale= -d firstName=${userFirstName} -d middleName= -d lastName=${userLastName} -d prefixId=0 -d suffixId=0 -d male=true -d birthdayMonth=10 -d birthdayDay=20 -d birthdayYear=1990 -d jobTitle= -d groupIds= -d organizationIds= -d roleIds= -d userGroupIds= -d addresses= -d emailAddresses= -d phones= -d websites= -d announcementsDelivers= -d sendEmail=true" />
+
+		<execute macro="JSONWS#executeCurl">
+			<var name="curlArgs" value="${curlArgs}" />
+		</execute>
+	</command>
+
+	<command name="executeCurl">
+		<echo>curl ${curlArgs}</echo>
+
+		<var method="JSONCurlUtil#get('${curlArgs}', '$[\'status\']')" name="status" />
+
+		<echo>status: ${status}</echo>
+	</command>
+
+	<command name="getCompanyId" returns="companyId">
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="Instance Settings" />
+		</execute>
+
+		<execute macro="TestCase#getSiteName">
+			<return from="siteName" name="siteName" />
+			<var name="virtualHost" value="${siteName}" />
+		</execute>
+
+		<var name="key_virtualHost" value="${virtualHost}" />
+
+		<var locator="PortalInstances#INSTANCE_TABLE_INSTANCE_ID" name="companyId" />
+
+		<return name="companyId" value="${companyId}" />
+	</command>
+</definition>
