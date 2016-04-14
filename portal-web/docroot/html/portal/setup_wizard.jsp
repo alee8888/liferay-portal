@@ -164,7 +164,7 @@
 								</c:choose>
 
 								<c:if test="<%= Validator.isNull(PropsValues.JDBC_DEFAULT_JNDI_NAME) %>">
-									<aui:a cssClass="btn btn-default" href="https://dev.liferay.com/discover/deployment/-/knowledge_base/7-0/installing-liferay-manually" target="_blank">
+									<aui:a href="https://dev.liferay.com/discover/deployment/-/knowledge_base/7-0/installing-liferay-manually" target="_blank">
 										<liferay-ui:message key="change" />
 									</aui:a>
 								</c:if>
