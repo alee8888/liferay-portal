@@ -15,6 +15,7 @@
 package com.liferay.portal.setup;
 
 import com.liferay.portal.events.EventsProcessorUtil;
+import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -28,6 +29,7 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropertiesParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -56,6 +58,24 @@ public class SetupWizardUtil {
 
 	public static final String PROPERTIES_FILE_NAME =
 		"portal-setup-wizard.properties";
+
+	public static String getDatabaseName(HttpServletRequest request) {
+		for (int i = 0; i < PropsValues.SETUP_DATABASE_TYPES.length; i++) {
+			String databaseType = PropsValues.SETUP_DATABASE_TYPES[i];
+
+			String driverClassName = PropsUtil.get(
+				PropsKeys.SETUP_DATABASE_DRIVER_CLASS_NAME,
+				new Filter(databaseType));
+
+			if (driverClassName.equals(
+					PropsValues.JDBC_DEFAULT_DRIVER_CLASS_NAME)) {
+
+				return LanguageUtil.get(request, "database." + databaseType);
+			}
+		}
+
+		return LanguageUtil.get(request, "unknown");
+	}
 
 	public static String getDefaultLanguageId() {
 		Locale defaultLocale = LocaleUtil.getDefault();
