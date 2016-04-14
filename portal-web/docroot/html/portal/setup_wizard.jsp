@@ -62,7 +62,9 @@
 								<div class="col-md-6">
 									<h2><liferay-ui:message key="portal" /></h2>
 
-									<aui:input helpTextCssClass="help-inline" label="portal-name" name="companyName" value="<%= PropsValues.COMPANY_DEFAULT_NAME %>" />
+									<aui:input helpTextCssClass="help-inline" label="portal-name" name="companyName" value="<%= PropsValues.COMPANY_DEFAULT_NAME %>">
+										<aui:validator name="required" />
+									</aui:input>
 
 									<aui:select label="default-language" name="companyLocale">
 
@@ -86,9 +88,13 @@
 								<div class="col-md-6">
 									<h2><liferay-ui:message key="administrator-user" /></h2>
 
-									<aui:input label="first-name" name="adminFirstName" value="<%= PropsValues.DEFAULT_ADMIN_FIRST_NAME %>" />
+									<aui:input label="first-name" name="adminFirstName" value="<%= PropsValues.DEFAULT_ADMIN_FIRST_NAME %>">
+										<aui:validator name="required" />
+									</aui:input>
 
-									<aui:input label="last-name" name="adminLastName" value="<%= PropsValues.DEFAULT_ADMIN_LAST_NAME %>" />
+									<aui:input label="last-name" name="adminLastName" value="<%= PropsValues.DEFAULT_ADMIN_LAST_NAME %>">
+										<aui:validator name="required" />
+									</aui:input>
 
 									<aui:input label="email" name="adminEmailAddress" value="<%= PropsValues.ADMIN_EMAIL_FROM_ADDRESS %>">
 										<aui:validator name="email" />
