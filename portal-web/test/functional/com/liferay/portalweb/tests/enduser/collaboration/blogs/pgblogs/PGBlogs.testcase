@@ -61,7 +61,7 @@
 	</tear-down>
 
 	<command name="AddBlogsEntries" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="cacheable" />
 
 		<var name="blogsEntryCounterList" value="1,2,3" />
 
@@ -94,7 +94,7 @@
 	</command>
 
 	<command name="AddBlogsEntry" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="cacheable" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="${pageName}" />
@@ -117,7 +117,7 @@
 	</command>
 
 	<command name="AddBlogsEntryComment" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="cacheable" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="${pageName}" />
@@ -555,7 +555,7 @@
 	</command>
 
 	<command name="DeleteBlogsEntries" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="cacheable" />
 
 		<var name="blogsEntryCounterList" value="1,2,3" />
 		<var name="blogsEntryCounterList2" value="3,2,1" />
@@ -649,7 +649,7 @@
 	</command>
 
 	<command name="EditBlogsEntry" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="cacheable" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="${pageName}" />
@@ -687,7 +687,7 @@
 	</command>
 
 	<command name="EditBlogsEntryComment" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="cacheable" />
 
 		<var name="entryComment" value="Blogs Entry Comment" />
 		<var name="entryCommentEdit" value="Blogs Entry Comment Edit" />
@@ -830,7 +830,7 @@
 	</command>
 
 	<command name="MoveToRecycleBinBlogsEntry" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="cacheable" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Blogs Page" />
@@ -911,7 +911,7 @@
 	</command>
 
 	<command name="SaveBlogsEntryDraft" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="cacheable" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Blogs Page" />
@@ -942,7 +942,7 @@
 	</command>
 
 	<command name="SaveBlogsEntryDraftAuto" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="cacheable" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Blogs Page" />
