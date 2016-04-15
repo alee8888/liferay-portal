@@ -4,12 +4,18 @@
 	<var name="userPasswordReminderAnswer" value="test" />
 
 	<command name="_signIn">
+		<execute function="Pause" locator1="10000" />
+
 		<execute function="AssertClick" locator1="UserBar#USER_SIGN_IN" value1="Sign In" />
+
+		<execute function="Pause" locator1="15000" />
 
 		<execute function="AssertVisible" locator1="Modal#BODY" />
 
 		<execute function="Type" locator1="TextInput#EMAIL_ADDRESS" value1="${userEmailAddress}" />
 		<execute function="Type" locator1="TextInput#PASSWORD" value1="${userPassword}" />
+
+		<execute function="Pause" locator1="10000" />
 
 		<if>
 			<equals arg1="${rememberMe}" arg2="true" />
