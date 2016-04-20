@@ -60,9 +60,7 @@ public class SetupWizardUtil {
 		"portal-setup-wizard.properties";
 
 	public static String getDatabaseName(HttpServletRequest request) {
-		for (int i = 0; i < PropsValues.SETUP_DATABASE_TYPES.length; i++) {
-			String databaseType = PropsValues.SETUP_DATABASE_TYPES[i];
-
+		for (String databaseType : PropsValues.SETUP_DATABASE_TYPES) {
 			String driverClassName = PropsUtil.get(
 				PropsKeys.SETUP_DATABASE_DRIVER_CLASS_NAME,
 				new Filter(databaseType));
