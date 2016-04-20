@@ -14,6 +14,7 @@
 
 package com.liferay.portal.setup;
 
+import com.liferay.portal.events.StartupHelperUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -90,7 +91,7 @@ public class SetupWizardSampleDataUtil {
 			company, locale, languageId, adminUserEmailAddress,
 			adminUserFirstName, adminUserLastName, resetPassword);
 
-		if (addSampleOrganizations) {
+		if (addSampleOrganizations && StartupHelperUtil.isDBNew()) {
 			addSampleOrganizations(company, user);
 		}
 
