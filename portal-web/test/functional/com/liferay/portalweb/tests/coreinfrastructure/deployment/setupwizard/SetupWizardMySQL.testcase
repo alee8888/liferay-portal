@@ -40,7 +40,10 @@
 			<var name="jdbcURL" property-value="database.mysql.url" />
 		</execute>
 
-		<execute macro="Smoke#viewWelcomePage" />
+		<execute macro="Smoke#viewWelcomePage">
+			<var name="userFirstName" value="Test" />
+			<var name="userLastName" value="Test" />
+		</execute>
 
 		<execute macro="Smoke#runSmoke" />
 	</command>
