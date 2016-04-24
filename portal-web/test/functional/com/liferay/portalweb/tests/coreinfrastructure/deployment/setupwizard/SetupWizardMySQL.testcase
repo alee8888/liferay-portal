@@ -23,6 +23,20 @@
 		</execute>
 
 		<execute macro="Smoke#runSmoke" />
+
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="User#searchCP">
+			<var name="searchTerm" value="lax" />
+		</execute>
+
+		<execute macro="User#viewSearchResultsCP">
+			<var name="userFirstName" value="Test" />
+			<var name="userLastName" value="LAX 1" />
+			<var name="userScreenName" value="default.lax.1" />
+		</execute>
 	</command>
 
 	<command name="MySQLtoMySQLSampleDataDisabled" priority="5">
@@ -47,5 +61,15 @@
 		</execute>
 
 		<execute macro="Smoke#runSmoke" />
+
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="User#searchCP">
+			<var name="searchTerm" value="lax" />
+		</execute>
+
+		<execute macro="User#viewNoUsersFoundCP" />
 	</command>
 </definition>
