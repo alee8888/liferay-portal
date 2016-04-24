@@ -3,7 +3,7 @@
 	<property name="testray.main.component.name" value="Setup Wizard" />
 
 	<command name="MySQLtoMySQL" priority="5">
-		<property name="portal.acceptance.tomcat.mysql" value="true" />
+		<property name="portal.acceptance.tomcat.mysql" value="albert" />
 		<property name="test.name.skip.portal.instance" value="SetupWizardMySQL#MySQLtoMySQL" />
 
 		<execute macro="SetupWizard#configurePG">
@@ -39,7 +39,7 @@
 	</command>
 
 	<command name="MySQLtoMySQLSampleDataDisabled" priority="5">
-		<property name="portal.acceptance.tomcat.mysql" value="true" />
+		<property name="portal.acceptance.tomcat.mysql" value="albert" />
 		<property name="test.name.skip.portal.instance" value="SetupWizardMySQL#MySQLtoMySQLSampleDataDisabled" />
 
 		<execute macro="SetupWizard#configurePG">
