@@ -17,8 +17,8 @@
 		</execute>
 
 		<execute macro="Smoke#viewWelcomePage">
-			<var name="userFirstName" value="Joe" />
-			<var name="userLastName" value="Bloggs" />
+			<var name="userFirstName" value="Test" />
+			<var name="userLastName" value="Test" />
 		</execute>
 
 		<execute macro="Smoke#runSmoke" />
