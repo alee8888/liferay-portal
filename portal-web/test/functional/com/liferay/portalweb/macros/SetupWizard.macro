@@ -48,11 +48,11 @@
 		</execute>
 
 		<execute macro="SetupWizard#viewConfiguredDatabase">
-			<var name="databasePassword" property-value="${databasePassword}" />
-			<var name="databaseType" value="Hypersonic" />
-			<var name="databaseUserName" property-value="${databaseUserName}" />
-			<var name="jdbcDriverClassName" property-value="${jdbcDriverClassName}" />
-			<var name="jdbcURL" property-value="${jdbcURL}" />
+			<var name="databasePassword" value="${databasePassword}" />
+			<var name="databaseType" value="${databaseType}" />
+			<var name="databaseUserName" value="${databaseUserName}" />
+			<var name="jdbcDriverClassName" value="${jdbcDriverClassName}" />
+			<var name="jdbcURL" value="${jdbcURL}" />
 			<var name="panelHeading" value="Database: ${databaseType}" />
 		</execute>
 
