@@ -9,28 +9,6 @@
 		<execute function="Type" locator1="TextInput#EMAIL" value1="${administratorEmail}" />
 	</command>
 
-	<command name="configureDatabasePG">
-		<if>
-			<condition function="IsElementNotPresent" locator1="SetupWizard#DATABASE_CHANGE_USE_CONFIGURED_DATABASE_LINK" />
-			<then>
-				<execute function="AssertClick" locator1="SetupWizard#DATABASE_CHANGE_LINK" value1="(Change)" />
-			</then>
-		</if>
-
-		<if>
-			<isset var="databaseName" />
-			<then>
-				<var method="StringUtil#replace('${jdbcURL}', 'lportal', '${databaseName}')" name="jdbcURL" />
-			</then>
-		</if>
-
-		<execute function="Select" locator1="SetupWizard#DATABASE_CHANGE_DATABASE_TYPE_SELECT" value1="${databaseType}" />
-		<execute function="Type" locator1="SetupWizard#DATABASE_CHANGE_JDBC_URL_FIELD" value1="${jdbcURL}" />
-		<execute function="Type" locator1="SetupWizard#DATABASE_CHANGE_JDBC_DRIVER_CLASS_NAME_FIELD" value1="${jdbcDriverClassName}" />
-		<execute function="Type" locator1="SetupWizard#DATABASE_CHANGE_USER_NAME_FIELD" value1="${databaseUserName}" />
-		<execute function="Type" locator1="SetupWizard#DATABASE_CHANGE_PASSWORD_FIELD" value1="${databasePassword}" />
-	</command>
-
 	<command name="configureDefaultPG">
 		<execute macro="SetupWizard#viewDefaultPortalNamePG" />
 
@@ -69,13 +47,13 @@
 			<var name="administratorLastName" value="${administratorLastName}" />
 		</execute>
 
-		<execute macro="SetupWizard#configureDatabasePG">
-			<var name="databaseName" value="${databaseName}" />
+		<execute macro="SetupWizard#viewConfiguredDatabase">
 			<var name="databasePassword" value="${databasePassword}" />
 			<var name="databaseType" value="${databaseType}" />
 			<var name="databaseUserName" value="${databaseUserName}" />
 			<var name="jdbcDriverClassName" value="${jdbcDriverClassName}" />
 			<var name="jdbcURL" value="${jdbcURL}" />
+			<var name="panelHeading" value="Database: ${databaseType}" />
 		</execute>
 
 		<execute macro="SetupWizard#finishConfigurationPG" />
@@ -102,7 +80,7 @@
 		<if>
 			<equals arg1="${addSampleData}" arg2="false" />
 			<then>
-				<execute function="Uncheck" locator1="Checkbox#ADD_SAMPLE_DATA" />
+				<execute function="Uncheck#uncheckToggleSwitch" locator1="Checkbox#ADD_SAMPLE_DATA" />
 			</then>
 		</if>
 	</command>
@@ -111,22 +89,39 @@
 		<execute function="AssertClick" locator1="Button#FINISH_CONFIGURATION" value1="Finish Configuration" />
 	</command>
 
-	<command name="populateDatabaseConfiguration">
-		<execute function="Type" locator1="SetupWizard#DATABASE_CHANGE_JDBC_URL_FIELD" value1="${jdbcURL}" />
-		<execute function="Type" locator1="SetupWizard#DATABASE_CHANGE_JDBC_DRIVER_CLASS_NAME_FIELD" value1="${jdbcDriverClassName}" />
-		<execute function="Type" locator1="SetupWizard#DATABASE_CHANGE_USER_NAME_FIELD" value1="${userName}" />
-		<execute function="Type" locator1="SetupWizard#DATABASE_CHANGE_PASSWORD_FIELD" value1="${password}" />
-	</command>
-
-	<command name="selectDatabase">
-		<execute function="Select" locator1="SetupWizard#DATABASE_CHANGE_DATABASE_TYPE_SELECT" value1="${databaseType}" />
-	</command>
-
 	<command name="viewConfigurationSavedPG">
 		<execute function="AssertElementPresent" locator1="Message#SUCCESS" />
 		<execute function="AssertTextEquals#assertPartialText" locator1="SetupWizard#CONFIGURATION_SAVE_MESSAGE" value1="The configuration was saved in" />
 		<execute function="AssertTextEquals#assertPartialText" locator1="SetupWizard#CONFIGURATION_SAVE_LOCATION" value1="portal-setup-wizard.properties" />
 		<execute function="AssertTextEquals" locator1="Message#INFO" value1="Changes will take effect once the portal is restarted. Please restart the portal now." />
+	</command>
+
+	<command name="viewConfiguredDatabase">
+		<var name="key_panelHeading" value="${panelHeading}" />
+
+		<if>
+			<and>
+				<condition function="IsElementPresent" locator1="Panel#PANEL_HEADING_COLLAPSED" value1="${panelHeading}" />
+				<condition function="IsVisible" locator1="Panel#PANEL_HEADING_COLLAPSED" value1="${panelHeading}" />
+			</and>
+			<then>
+				<execute function="AssertClick#assertPartialTextClickAt" locator1="Panel#PANEL_HEADING_COLLAPSED" value1="${panelHeading}" />
+			</then>
+		</if>
+
+		<execute function="AssertElementPresent" locator1="Panel#PANEL_HEADING_EXPANDED" value1="${panelHeading}" />
+
+		<execute function="Pause" locator1="5000" />
+
+		<echo message="## jdbcURL name ${jdbcURL}" />
+		<echo message="## jdbcDriverClassName name ${jdbcDriverClassName}" />
+		<echo message="## databaseUserName name ${databaseUserName}" />
+		<echo message="## databasePassword name ${databasePassword}" />
+
+		<execute function="AssertTextEquals" locator1="SetupWizard#CONFIGURED_DATABASE_JDBC_URL" value1="${jdbcURL}" />
+		<execute function="AssertTextEquals" locator1="SetupWizard#CONFIGURED_DATABASE_JDBC_DRIVER_CLASS_NAME" value1="${jdbcDriverClassName}" />
+		<execute function="AssertTextEquals" locator1="SetupWizard#CONFIGURED_DATABASE_USER" value1="${databaseUserName}" />
+		<execute function="AssertTextEquals" locator1="SetupWizard#CONFIGURED_DATABASE_PASSWORD" value1="${databasePassword}" />
 	</command>
 
 	<command name="viewConfiguredDatabaseInConsole">
@@ -180,23 +175,8 @@
 	</command>
 
 	<command name="viewDefaultDatabasePG">
-		<if>
-			<condition function="IsElementPresent" locator1="Setupwizard#DATABASE_DEFAULT_LABEL" />
-			<then>
-				<execute function="AssertTextEquals#assertText" locator1="Setupwizard#DATABASE_DEFAULT_LABEL" value1="Default Database (Hypersonic)" />
-				<execute function="AssertTextEquals#assertPartialText" locator1="Setupwizard#DATABASE_DEFAULT_DESCRIPTION" value1="This database is useful for development and demo'ing purposes, but it is not recommended for production use." />
-				<execute function="AssertTextEquals#assertText" locator1="SetupWizard#DATABASE_CHANGE_LINK" value1="(Change)" />
-			</then>
-			<else>
-				<execute function="AssertTextEquals#assertText" locator1="SetupWizard#DATABASE_CONFIGURED_JDBC_DRIVER_CLASS_NAME_LABEL" value1="Configured Database" />
-				<execute function="AssertClick" locator1="SetupWizard#DATABASE_CHANGE_LINK" value1="(Change)" />
-				<execute function="AssertTextEquals#assertText" locator1="SetupWizard#DATABASE_CHANGE_DATABASE_TYPE_LABEL" value1="Database Type" />
-				<execute function="AssertTextEquals#assertText" locator1="SetupWizard#DATABASE_CHANGE_JDBC_URL_LABEL" value1="JDBC URL Required" />
-				<execute function="AssertTextEquals#assertText" locator1="SetupWizard#DATABASE_CHANGE_JDBC_DRIVER_CLASS_NAME_LABEL" value1="JDBC Driver Class Name Required" />
-				<execute function="AssertTextEquals#assertText" locator1="SetupWizard#DATABASE_CHANGE_USER_NAME_LABEL" value1="User Name" />
-				<execute function="AssertTextEquals#assertText" locator1="SetupWizard#DATABASE_CHANGE_PASSWORD_LABEL" value1="Password" />
-			</else>
-		</if>
+		<execute function="AssertTextEquals#assertText" locator1="Setupwizard#DATABASE_DEFAULT_LABEL" value1="Default Database (Hypersonic)" />
+		<execute function="AssertTextEquals#assertPartialText" locator1="Setupwizard#DATABASE_DEFAULT_DESCRIPTION" value1="This database is useful for development and demo'ing purposes, but it is not recommended for production use." />
 	</command>
 
 	<command name="viewDefaultPortalNamePG">
