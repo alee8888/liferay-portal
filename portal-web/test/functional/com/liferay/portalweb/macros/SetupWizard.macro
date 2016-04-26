@@ -111,6 +111,13 @@
 
 		<execute function="AssertElementPresent" locator1="Panel#PANEL_HEADING_EXPANDED" value1="${panelHeading}" />
 
+		<execute function="Pause" locator1="5000" />
+
+		<echo message="## jdbcURL name ${jdbcURL}" />
+		<echo message="## jdbcDriverClassName name ${jdbcDriverClassName}" />
+		<echo message="## databaseUserName name ${databaseUserName}" />
+		<echo message="## databasePassword name ${databasePassword}" />
+
 		<execute function="AssertTextEquals" locator1="SetupWizard#CONFIGURED_DATABASE_JDBC_URL" value1="${jdbcURL}" />
 		<execute function="AssertTextEquals" locator1="SetupWizard#CONFIGURED_DATABASE_JDBC_DRIVER_CLASS_NAME" value1="${jdbcDriverClassName}" />
 		<execute function="AssertTextEquals" locator1="SetupWizard#CONFIGURED_DATABASE_USER" value1="${databaseUserName}" />
