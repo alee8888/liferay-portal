@@ -6,36 +6,54 @@
 		<property name="portal.acceptance.tomcat.hypersonic" value="true" />
 		<property name="test.name.skip.portal.instance" value="SetupWizard#HypersonicToHypersonic" />
 
+		<execute macro="SetupWizard#editPortalName">
+			<var name="portalName" value="LiferayTest1" />
+		</execute>
+
+		<execute macro="SetupWizard#editAdministratorUserPG">
+			<var name="administratorEmail" value="testsetupwizardea@liferay.com" />
+			<var name="administratorFirstName" value="testsetupwizardfn" />
+			<var name="administratorLastName" value="testsetupwizardln" />
+		</execute>
+
 		<execute macro="SetupWizard#configurePG">
-			<var name="administratorEmail" value="test@liferay.com" />
-			<var name="administratorFirstName" value="Test" />
-			<var name="administratorLastName" value="Test" />
 			<var name="databaseType" value="Hypersonic" />
 			<var name="databaseUserName" property-value="database.hypersonic.username" />
 			<var name="jdbcDriverClassName" property-value="database.hypersonic.driver" />
 			<var name="jdbcURL" property-value="database.hypersonic.url" />
 		</execute>
 
-		<execute macro="Smoke#viewWelcomePage">
-			<var name="userFirstName" value="Test" />
-			<var name="userLastName" value="Test" />
+		<execute macro="Smoke#viewSiteName">
+			<var name="siteName" value="LiferaySetupWizard" />
 		</execute>
 
-		<execute macro="Smoke#runSmoke" />
+		<execute macro="Smoke#viewWelcomePage">
+			<var name="userFirstName" value="testsetupwizardfn" />
+			<var name="userLastName" value="testsetupwizardln" />
+		</execute>
+
+		<execute macro="Page#gotoMyAccount">
+			<var name="portletName" value="Account Settings" />
+		</execute>
+
+		<execute macro="AccountSettingsPortlet#viewUserInformation">
+			<var name="userEmail" value="testsetupwizardea@liferay.com" />
+			<var name="userFirstName" value="testsetupwizardfn" />
+			<var name="userLastName" value="testsetupwizardln" />
+			<var name="userScreenName" value="testsetupwizardea" />
+		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelUsers">
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#searchCP">
-			<var name="searchTerm" value="lax" />
-		</execute>
-
 		<execute macro="User#viewSearchResultsCP">
 			<var name="userFirstName" value="Test" />
-			<var name="userLastName" value="LAX 1" />
-			<var name="userScreenName" value="default.lax.1" />
+			<var name="userLastName" value="DLC 1" />
+			<var name="userScreenName" value="default.dlc.1" />
 		</execute>
+
+		<execute macro="Smoke#runSmoke" />
 	</command>
 
 	<command name="HypersonicToHypersonicSampleDataDisabled" priority="5">

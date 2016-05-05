@@ -1,0 +1,8 @@
+<definition>
+	<command name="viewUserInformation">
+		<execute function="AssertTextEquals" locator1="TextInput#EMAIL_ADDRESS" value1="testsetupwizardea@liferay.com" />
+		<execute function="AssertTextEquals" locator1="TextInput#FIRST_NAME" value1="testsetupwizardfn" />
+		<execute function="AssertTextEquals" locator1="TextInput#LAST_NAME" value1="testsetupwizardln" />
+		<execute function="AssertTextEquals" locator1="TextInput#SCREEN_NAME" value1="testsetupwizardea" />
+	</command>
+</definition>

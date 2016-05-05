@@ -3,12 +3,6 @@
 		<execute function="AssertClick" locator1="SetupWizard#DATABASE_CHANGE_LINK" value1="(Change)" />
 	</command>
 
-	<command name="configureAdministratorUserPG">
-		<execute function="Type" locator1="TextInput#FIRST_NAME" value1="${administratorFirstName}" />
-		<execute function="Type" locator1="TextInput#LAST_NAME" value1="${administratorLastName}" />
-		<execute function="Type" locator1="TextInput#EMAIL" value1="${administratorEmail}" />
-	</command>
-
 	<command name="configureDefaultPG">
 		<execute macro="SetupWizard#viewDefaultPortalNamePG" />
 
@@ -28,21 +22,11 @@
 	</command>
 
 	<command name="configurePG" summary="Configure JDBC to ${databaseType} for Liferay with the Setup Wizard">
-		<execute macro="SetupWizard#viewDefaultPortalNamePG" />
-
 		<execute macro="SetupWizard#configureSampleDataPG">
 			<var name="addSampleData" value="${addSampleData}" />
 		</execute>
 
-		<execute macro="SetupWizard#configureAdministratorUserPG">
-			<var name="administratorEmail" value="${administratorEmail}" />
-			<var name="administratorFirstName" value="${administratorFirstName}" />
-			<var name="administratorLastName" value="${administratorLastName}" />
-		</execute>
-
 		<execute macro="SetupWizard#viewConfiguredDatabase">
-			<var name="databasePassword" value="${databasePassword}" />
-			<var name="databaseType" value="${databaseType}" />
 			<var name="databaseUserName" value="${databaseUserName}" />
 			<var name="jdbcDriverClassName" value="${jdbcDriverClassName}" />
 			<var name="jdbcURL" value="${jdbcURL}" />
@@ -63,6 +47,16 @@
 				<execute function="Uncheck#uncheckToggleSwitch" locator1="Checkbox#ADD_SAMPLE_DATA" />
 			</then>
 		</if>
+	</command>
+
+	<command name="editAdministratorUserPG">
+		<execute function="Type" locator1="TextInput#FIRST_NAME" value1="${administratorFirstName}" />
+		<execute function="Type" locator1="TextInput#LAST_NAME" value1="${administratorLastName}" />
+		<execute function="Type" locator1="TextInput#EMAIL" value1="${administratorEmail}" />
+	</command>
+
+	<command name="editPortalName">
+		<execute function="Type" locator1="TextInput#PORTAL_NAME" value1="${portalName}" />
 	</command>
 
 	<command name="finishConfigurationPG">
