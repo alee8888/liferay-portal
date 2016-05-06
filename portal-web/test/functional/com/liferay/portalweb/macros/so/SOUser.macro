@@ -52,8 +52,6 @@
 				<execute macro="SetupWizard#configureDefaultPG" />
 
 				<execute macro="SetupWizard#finishConfigurationPG" />
-
-				<execute macro="SetupWizard#viewConfigurationSavedPG" />
 			</then>
 			<elseif>
 				<and>

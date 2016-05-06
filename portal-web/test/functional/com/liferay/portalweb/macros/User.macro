@@ -1551,7 +1551,6 @@
 			</then>
 			<else>
 				<execute macro="User#loginPG">
-					<var name="setupWizardEnabled" value="${setupWizardEnabled}" />
 					<var name="specificURL" value="${virtualHostsURL}" />
 					<var name="userEmailAddress" value="${userEmailAddress}" />
 				</execute>
@@ -1590,65 +1589,72 @@
 
 	<command name="loginPG" summary="Log into Liferay Portal as '${userEmailAddress}' using the password '${password}'">
 		<if>
-			<isset var="nodePort" />
+			<not>
+				<equals arg1="${setupWizardEnabled}" arg2="true" />
+			</not>
 			<then>
-				<execute function="Open" locator1="http://localhost:${nodePort}" />
-			</then>
-			<elseif>
-				<isset var="specificURL" />
-				<then>
-					<execute macro="Navigator#openSpecificURL">
-						<var name="url" value="${specificURL}" />
-					</execute>
-				</then>
-			</elseif>
-			<else>
-				<execute macro="Navigator#openURL" />
-			</else>
-		</if>
+				<if>
+					<isset var="nodePort" />
+					<then>
+						<execute function="Open" locator1="http://localhost:${nodePort}" />
+					</then>
+					<elseif>
+						<isset var="specificURL" />
+						<then>
+							<execute macro="Navigator#openSpecificURL">
+								<var name="url" value="${specificURL}" />
+							</execute>
+						</then>
+					</elseif>
+					<else>
+						<execute macro="Navigator#openURL" />
+					</else>
+				</if>
 
-		<execute function="AssertClick" locator1="UserBar#USER_SIGN_IN" value1="Sign In" />
+				<execute function="AssertClick" locator1="UserBar#USER_SIGN_IN" value1="Sign In" />
 
-		<if>
-			<and>
-				<isset var="authenticationMethod" />
-				<equals arg1="${authenticationMethod}" arg2="By Screen Name" />
-			</and>
-			<then>
-				<execute function="Type" locator1="TextInput#SCREEN_NAME" value1="${userScreenName}" />
-			</then>
-			<else>
-				<execute function="Type" locator1="TextInput#EMAIL_ADDRESS" value1="${userEmailAddress}" />
-			</else>
-		</if>
+				<if>
+					<and>
+						<isset var="authenticationMethod" />
+						<equals arg1="${authenticationMethod}" arg2="By Screen Name" />
+					</and>
+					<then>
+						<execute function="Type" locator1="TextInput#SCREEN_NAME" value1="${userScreenName}" />
+					</then>
+					<else>
+						<execute function="Type" locator1="TextInput#EMAIL_ADDRESS" value1="${userEmailAddress}" />
+					</else>
+				</if>
 
-		<execute function="Type" locator1="TextInput#PASSWORD" value1="${password}" />
+				<execute function="Type" locator1="TextInput#PASSWORD" value1="${password}" />
 
-		<if>
-			<and>
-				<isset var="rememberMeChecked" />
-				<equals arg1="${rememberMeChecked}" arg2="true" />
-			</and>
-			<then>
-				<execute function="Check" locator1="Checkbox#REMEMBER_ME" />
-			</then>
-		</if>
+				<if>
+					<and>
+						<isset var="rememberMeChecked" />
+						<equals arg1="${rememberMeChecked}" arg2="true" />
+					</and>
+					<then>
+						<execute function="Check" locator1="Checkbox#REMEMBER_ME" />
+					</then>
+				</if>
 
-		<take-screenshot />
+				<take-screenshot />
 
-		<execute function="Click" locator1="Button#SIGN_IN" value1="Sign In" />
+				<execute function="Click" locator1="Button#SIGN_IN" value1="Sign In" />
 
-		<execute function="AssertElementNotPresent" locator1="Button#SIGN_IN" value1="Sign In" />
+				<execute function="AssertElementNotPresent" locator1="Button#SIGN_IN" value1="Sign In" />
 
-		<var method="TestPropsUtil#get('browser.type')" name="browserType" />
+				<var method="TestPropsUtil#get('browser.type')" name="browserType" />
 
-		<if>
-			<or>
-				<equals arg1="${browserType}" arg2="edge" />
-				<equals arg1="${browserType}" arg2="internetexplorer" />
-			</or>
-			<then>
-				<execute function="Open" locator1="/web/guest/home" />
+				<if>
+					<or>
+						<equals arg1="${browserType}" arg2="edge" />
+						<equals arg1="${browserType}" arg2="internetexplorer" />
+					</or>
+					<then>
+						<execute function="Open" locator1="/web/guest/home" />
+					</then>
+				</if>
 			</then>
 		</if>
 
@@ -1674,20 +1680,8 @@
 						<execute function="Type" locator1="TextInput#ENTER_AGAIN" value1="${resetPassword}" />
 					</then>
 					<else>
-						<if>
-							<and>
-								<isset var="setupWizardEnabled" />
-								<equals arg1="${setupWizardEnabled}" arg2="true" />
-							</and>
-							<then>
-								<execute function="Type" locator1="TextInput#PASSWORD" value1="test2" />
-								<execute function="Type" locator1="TextInput#ENTER_AGAIN" value1="test2" />
-							</then>
-							<else>
-								<execute function="Type" locator1="TextInput#PASSWORD" value1="test" />
-								<execute function="Type" locator1="TextInput#ENTER_AGAIN" value1="test" />
-							</else>
-						</if>
+						<execute function="Type" locator1="TextInput#PASSWORD" value1="test" />
+						<execute function="Type" locator1="TextInput#ENTER_AGAIN" value1="test" />
 					</else>
 				</if>
 
@@ -2015,6 +2009,14 @@
 
 	<command name="viewNoUsersFoundCP">
 		<execute function="AssertTextEquals" locator1="Card#GENERIC_HORIZONTAL_DETAILS" value1="No users were found." />
+	</command>
+
+	<command name="viewSearchResultsCP">
+		<var name="key_userScreenName" value="${userScreenName}" />
+
+		<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_FIRST_NAME" value1="${userFirstName}" />
+		<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_LAST_NAME" value1="${userLastName}" />
+		<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
 	</command>
 
 	<command name="viewUserInfomationOrganizationSitesCP">

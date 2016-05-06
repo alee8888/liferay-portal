@@ -14,6 +14,7 @@
 
 package com.liferay.portal.setup;
 
+import com.liferay.portal.events.StartupHelperUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -60,15 +61,18 @@ public class SetupWizardSampleDataUtil {
 	public static void addSampleData(long companyId) throws Exception {
 		addSampleData(
 			companyId, PropsValues.COMPANY_DEFAULT_NAME,
+			LocaleUtil.getDefault(),
+			LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
 			PropsValues.DEFAULT_ADMIN_FIRST_NAME,
 			PropsValues.DEFAULT_ADMIN_LAST_NAME,
-			PropsValues.ADMIN_EMAIL_FROM_NAME, false);
+			PropsValues.ADMIN_EMAIL_FROM_NAME, false, true);
 	}
 
 	public static void addSampleData(
-			long companyId, String companyName, String adminUserFirstName,
+			long companyId, String companyName, Locale locale,
+			String languageId, String adminUserFirstName,
 			String adminUserLastName, String adminUserEmailAddress,
-			boolean resetPassword)
+			boolean resetPassword, boolean addSampleOrganizations)
 		throws Exception {
 
 		StopWatch stopWatch = new StopWatch();
@@ -81,13 +85,23 @@ public class SetupWizardSampleDataUtil {
 
 		Company company = updateCompany(
 			CompanyLocalServiceUtil.getCompanyById(companyId), companyName,
-			LocaleUtil.toLanguageId(LocaleUtil.getDefault()));
+			languageId);
 
-		User adminUser = updateAdminUser(
-			company, LocaleUtil.getDefault(),
-			LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
-			adminUserEmailAddress, adminUserFirstName, adminUserLastName,
-			resetPassword);
+		User user = updateAdminUser(
+			company, locale, languageId, adminUserEmailAddress,
+			adminUserFirstName, adminUserLastName, resetPassword);
+
+		if (addSampleOrganizations && StartupHelperUtil.isDBNew()) {
+			addSampleOrganizations(company, user);
+		}
+
+		if (_log.isInfoEnabled()) {
+			_log.info("Finished adding data in " + stopWatch.getTime() + " ms");
+		}
+	}
+
+	public static void addSampleOrganizations(Company company, User adminUser)
+		throws Exception {
 
 		User defaultUser = company.getDefaultUser();
 
@@ -127,11 +141,7 @@ public class SetupWizardSampleDataUtil {
 		OrganizationLocalServiceUtil.addUserOrganization(
 			adminUser.getUserId(), organization);
 
-		addOrganizations(companyName, defaultUser, organization);
-
-		if (_log.isInfoEnabled()) {
-			_log.info("Finished adding data in " + stopWatch.getTime() + " ms");
-		}
+		addOrganizations(company, organization);
 	}
 
 	public static User updateAdminUser(
@@ -238,12 +248,13 @@ public class SetupWizardSampleDataUtil {
 	}
 
 	protected static void addOrganizations(
-			String companyName, User defaultUser,
-			Organization parentOrganization)
+			Company company, Organization parentOrganization)
 		throws Exception {
 
+		User defaultUser = company.getDefaultUser();
+
 		for (Object[] organizationArray : _ORGANIZATION_ARRAYS) {
-			String name = companyName + organizationArray[0];
+			String name = company.getName() + organizationArray[0];
 			long regionId = (Long)organizationArray[1];
 			long countryId = (Long)organizationArray[2];
 			String type = (String)organizationArray[3];
@@ -291,7 +302,8 @@ public class SetupWizardSampleDataUtil {
 				String screenName = sb.toString();
 
 				String emailAddress =
-					screenName + defaultUserEmailAddressParts[1];
+					screenName + StringPool.AT +
+						defaultUserEmailAddressParts[1];
 
 				String lastName = organizationPrefix + StringPool.SPACE + i;
 
