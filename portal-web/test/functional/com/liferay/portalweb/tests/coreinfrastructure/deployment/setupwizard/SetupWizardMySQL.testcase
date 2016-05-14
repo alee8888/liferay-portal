@@ -11,8 +11,10 @@
 		<execute macro="Smoke#runSmoke" />
 	</command>
 
-	<command name="MySQLtoMySQLEditAdministratorUser" priority="4">
+	<command name="MySQLtoMySQLEditAdministratorUser" priority="5">
+		<property name="portal.acceptance.tomcat.mysql" value="albert" />
 		<execute macro="SetupWizard#viewDefaultPortalNamePG" />
+		<property name="test.name.skip.portal.instance" value="SetupWizardMySQL#MySQLtoMySQLEditAdministratorUser" />
 
 		<execute macro="SetupWizard#configureSampleDataPG">
 			<var name="addSampleData" value="false" />
