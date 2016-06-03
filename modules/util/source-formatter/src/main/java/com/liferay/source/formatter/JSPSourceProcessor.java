@@ -390,7 +390,10 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		checkLanguageKeys(
 			fileName, absolutePath, newContent, _taglibLanguageKeyPattern3);
 
-		newContent = formatJSONObject(newContent);
+		newContent = sortPutOrSetCalls(
+			newContent, jsonObjectPutBlockPattern, jsonObjectPutPattern);
+		newContent = sortPutOrSetCalls(
+			newContent, setAttributeBlockPattern, setAttributePattern);
 
 		newContent = formatStringBundler(fileName, newContent, -1);
 
@@ -1484,13 +1487,27 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 				return x;
 			}
 
-			int y = content.lastIndexOf(CharPool.LESS_THAN, x);
+			String tagContent = null;
 
-			while ((y > 0) && (content.charAt(y + 1) == CharPool.PERCENT)) {
+			int y = x;
+
+			while (true) {
 				y = content.lastIndexOf(CharPool.LESS_THAN, y - 1);
-			}
 
-			String tagContent = content.substring(y, x);
+				if (y == -1) {
+					return -1;
+				}
+
+				if (content.charAt(y + 1) == CharPool.PERCENT) {
+					continue;
+				}
+
+				tagContent = content.substring(y, x);
+
+				if (getLevel(tagContent, "<", ">") == 1) {
+					break;
+				}
+			}
 
 			if (!tagContent.startsWith("<aui:") &&
 				!tagContent.startsWith("<liferay-portlet:") &&
