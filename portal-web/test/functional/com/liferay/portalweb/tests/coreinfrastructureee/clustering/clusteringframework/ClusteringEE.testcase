@@ -263,6 +263,7 @@
 	<command name="ValidateSchedulerOnSeparateNodes" priority="4">
 		<property name="app.server.bundles.size" value="1" />
 		<property name="custom.properties" value="dl.store.impl=com.liferay.portal.store.db.DBStore" />
+		<property name="portal.acceptance" value="jason" />
 		<property name="test.name.skip.portal.instance" value="ClusteringEE#ValidateSchedulerOnSeparateNodes" />
 
 		<var name="pageName" value="Home" />
@@ -278,7 +279,7 @@
 		</execute>
 
 		<execute macro="Staging#activateStagingCP">
-			<var name="siteName" value="Liferay" />
+			<var name="siteName" value="Liferay DXP" />
 		</execute>
 
 		<execute macro="Navigator#openURL" />
@@ -335,7 +336,7 @@
 		</execute>
 
 		<execute macro="Staging#deactivateStagingCP">
-			<var name="siteName" value="Liferay" />
+			<var name="siteName" value="Liferay DXP" />
 		</execute>
 
 		<execute macro="User#logoutPG">
