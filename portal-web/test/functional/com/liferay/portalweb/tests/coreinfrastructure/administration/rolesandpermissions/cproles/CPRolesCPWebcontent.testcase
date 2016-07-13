@@ -317,7 +317,7 @@
 	</command>
 
 	<command name="AddTemplateSiteRoleDefinePermission" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="test" />
 		<property name="test.name.skip.portal.instance" value="CPRolesCPWebcontent#AddTemplateSiteRoleDefinePermission" />
 
 		<execute macro="Permissions#setUpSiteRoleCP">
@@ -436,7 +436,7 @@
 	</command>
 
 	<command name="AddWebContentSiteRoleDefinePermission" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="test" />
 		<property name="test.name.skip.portal.instance" value="CPRolesCPWebcontent#AddWebContentSiteRoleDefinePermission" />
 
 		<execute macro="Permissions#setUpSiteRoleCP">
