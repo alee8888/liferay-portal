@@ -412,7 +412,7 @@
 	</command>
 
 	<command name="AddTemplateWithStructure" priority="5">
-		<property name="portal.acceptance" value="true" />
+		<property name="portal.acceptance" value="test" />
 
 		<execute macro="Navigator#openURL" />
 
