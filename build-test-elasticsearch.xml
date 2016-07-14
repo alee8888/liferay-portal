@@ -5,13 +5,6 @@
 
 	<macrodef name="prepare-elasticsearch">
 		<sequential>
-			<copy todir="${elasticsearch.dir}">
-				<fileset
-					dir="modules/apps/foundation/portal-search/portal-search-elasticsearch/src/main/resources/plugins/"
-					includes="analysis*${elasticsearch.version}.zip"
-				/>
-			</copy>
-
 			<chmod file="${elasticsearch.dir}/bin/**" perm="a+x" />
 
 			<if>
@@ -19,22 +12,32 @@
 				<then>
 					<exec dir="${elasticsearch.dir}/bin" executable="/bin/bash">
 						<arg value="-c" />
-						<arg value="./plugin install file:///${elasticsearch.dir}/analysis-icu-${elasticsearch.version}.zip" />
+						<arg value="./plugin install ${elasticsearch.license.zip.url}" />
 					</exec>
 
 					<exec dir="${elasticsearch.dir}/bin" executable="/bin/bash">
 						<arg value="-c" />
-						<arg value="./plugin install file:///${elasticsearch.dir}/analysis-kuromoji-${elasticsearch.version}.zip" />
+						<arg value="./plugin install ${elasticsearch.analysis-icu.zip.url}" />
 					</exec>
 
 					<exec dir="${elasticsearch.dir}/bin" executable="/bin/bash">
 						<arg value="-c" />
-						<arg value="./plugin install file:///${elasticsearch.dir}/analysis-smartcn-${elasticsearch.version}.zip" />
+						<arg value="./plugin install ${elasticsearch.analysis-kuromoji.zip.url}" />
 					</exec>
 
 					<exec dir="${elasticsearch.dir}/bin" executable="/bin/bash">
 						<arg value="-c" />
-						<arg value="./plugin install file:///${elasticsearch.dir}/analysis-stempel-${elasticsearch.version}.zip" />
+						<arg value="./plugin install ${elasticsearch.analysis-smartcn.zip.url}" />
+					</exec>
+
+					<exec dir="${elasticsearch.dir}/bin" executable="/bin/bash">
+						<arg value="-c" />
+						<arg value="./plugin install ${elasticsearch.analysis-stempel.zip.url}" />
+					</exec>
+
+					<exec dir="${elasticsearch.dir}/bin" executable="/bin/bash">
+						<arg value="-c" />
+						<arg value="./plugin install ${marvel-agent.zip.url}" />
 					</exec>
 				</then>
 				<elseif>
@@ -42,22 +45,38 @@
 					<then>
 						<exec dir="${elasticsearch.dir}/bin" executable="cmd">
 							<arg value="/c" />
-							<arg line="plugin install file:///${elasticsearch.dir}/analysis-icu-${elasticsearch.version}.zip" />
+							<arg value="plugin install ${elasticsearch.license.zip.url}" />
 						</exec>
 
 						<exec dir="${elasticsearch.dir}/bin" executable="cmd">
 							<arg value="/c" />
-							<arg line="plugin install file:///${elasticsearch.dir}/analysis-kuromoji-${elasticsearch.version}.zip" />
+							<arg line="plugin install ${elasticsearch.analysis-icu.zip.url}" />
 						</exec>
 
 						<exec dir="${elasticsearch.dir}/bin" executable="cmd">
 							<arg value="/c" />
-							<arg line="plugin install file:///${elasticsearch.dir}/analysis-smartcn-${elasticsearch.version}.zip" />
+							<arg line="plugin install ${elasticsearch.analysis-kuromoji.zip.url}" />
 						</exec>
 
 						<exec dir="${elasticsearch.dir}/bin" executable="cmd">
 							<arg value="/c" />
-							<arg line="plugin install file:///${elasticsearch.dir}/analysis-stempel-${elasticsearch.version}.zip" />
+							<arg line="plugin install ${elasticsearch.analysis-smartcn.zip.url}" />
+						</exec>
+
+						<exec dir="${elasticsearch.dir}/bin" executable="cmd">
+							<arg value="/c" />
+							<arg line="plugin install ${elasticsearch.analysis-stempel.zip.url}" />
+						</exec>
+
+						<exec dir="${elasticsearch.dir}/bin" executable="cmd">
+							<arg value="/c" />
+							<arg line="plugin install ${marvel-agent.zip.url}" />
+						</exec>
+					</then>
+				</elseif>
+			</if>
+		</sequential>
+	</macrodef>
 						</exec>
 					</then>
 				</elseif>
