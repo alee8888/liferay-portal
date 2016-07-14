@@ -8124,12 +8124,20 @@ jdbc.default.password=${database.mysql.password}</echo>
 			</then>
 		</if>
 
+		<get-testcase-property property.name="marvel.kibana.enabled" />
 		<get-testcase-property property.name="remote.elasticsearch.enabled" />
 
 		<if>
 			<equals arg1="${remote.elasticsearch.enabled}" arg2="true" />
 			<then>
 				<ant antfile="build-test-elasticsearch.xml" target="start-elasticsearch" />
+
+				<if>
+					<equals arg1="${marvel.kibana.enabled}" arg2="true" />
+					<then>
+						<ant antfile="build-test-elasticsearch.xml" target="start-marvel-kibana" />
+					</then>
+				</if>
 			</then>
 		</if>
 
