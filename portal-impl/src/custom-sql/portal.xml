@@ -1062,7 +1062,7 @@
 			FROM
 				((
 					SELECT
-						COUNT(Users_Roles.userId) AS TEMP_TABLE
+						COUNT(Users_Roles.userId) TEMP_TABLE
 					FROM
 						Users_Roles
 					WHERE
@@ -1071,7 +1071,7 @@
 				UNION ALL
 				(
 					SELECT
-						COUNT(Groups_Roles.groupId) AS TEMP_TABLE
+						COUNT(Groups_Roles.groupId) TEMP_TABLE
 					FROM
 						Groups_Roles
 					WHERE
@@ -1085,7 +1085,7 @@
 			FROM
 				((
 					SELECT
-						COUNT(DISTINCT UserGroupRole.userId) AS TEMP_TABLE
+						COUNT(DISTINCT UserGroupRole.userId) TEMP_TABLE
 					FROM
 						UserGroupRole
 					WHERE
@@ -1094,7 +1094,7 @@
 				UNION ALL
 				(
 					SELECT
-						COUNT(DISTINCT UserGroupGroupRole.userGroupId) AS TEMP_TABLE
+						COUNT(DISTINCT UserGroupGroupRole.userGroupId) TEMP_TABLE
 					FROM
 						UserGroupGroupRole
 					WHERE
