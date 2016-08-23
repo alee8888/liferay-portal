@@ -73,53 +73,9 @@ boolean wsrp = ParamUtil.getBoolean(PortalUtil.getOriginalServletRequest(request
 		<%@ include file="/html/common/themes/portlet_content_wrapper.jspf" %>
 	</c:when>
 	<c:when test="<%= themeDisplay.isStatePopUp() %>">
-		<div class="portlet-body">
-			<c:if test='<%= !tilesPortletContent.endsWith("/error.jsp") %>'>
-				<%@ include file="/html/common/themes/portlet_messages.jspf" %>
-			</c:if>
-
-			<c:choose>
-				<c:when test="<%= Validator.isNotNull(tilesPortletContent) %>">
-					<liferay-util:include page="<%= StrutsUtil.TEXT_HTML_DIR + tilesPortletContent %>" />
-				</c:when>
-				<c:otherwise>
-
-					<%
-					pageContext.getOut().print(renderRequest.getAttribute(WebKeys.PORTLET_CONTENT));
-					%>
-
-				</c:otherwise>
-			</c:choose>
-		</div>
+	    <%@ include file="/html/common/themes/portlet_popup.jspf" %>
 	</c:when>
 	<c:otherwise>
-
-		<%
-		Boolean renderPortletResource = (Boolean)request.getAttribute(WebKeys.RENDER_PORTLET_RESOURCE);
-
-		boolean runtimePortlet = (renderPortletResource != null) && renderPortletResource.booleanValue();
-
-		boolean freeformPortlet = themeDisplay.isFreeformLayout() && !runtimePortlet && !layoutTypePortlet.hasStateMax();
-
-		String containerStyles = StringPool.BLANK;
-
-		if (freeformPortlet) {
-			Properties freeformStyleProps = PropertiesUtil.load(portletSetup.getValue("portlet-freeform-styles", StringPool.BLANK));
-
-			containerStyles = "style=\"height: ".concat(GetterUtil.getString(HtmlUtil.escapeAttribute(freeformStyleProps.getProperty("height")), "300px")).concat("; overflow: auto;\"");
-		}
-		%>
-
-		<liferay-theme:wrap-portlet page="portlet.jsp">
-			<div class="<%= portletDisplay.isStateMin() ? "hide" : "" %> portlet-content-container" <%= containerStyles %>>
-				<%@ include file="/html/common/themes/portlet_content_wrapper.jspf" %>
-			</div>
-		</liferay-theme:wrap-portlet>
-
-		<c:if test="<%= freeformPortlet %>">
-			<div class="portlet-resize-container">
-				<div class="portlet-resize-handle"></div>
-			</div>
-		</c:if>
+        <%@ include file="/html/common/themes/portlet_wrapper.jspf" %>
 	</c:otherwise>
 </c:choose>
