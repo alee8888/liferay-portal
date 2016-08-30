@@ -582,17 +582,11 @@
 				</elseif>
 			</if>
 
-			<if>
-				<not>
-					<condition function="IsElementPresent" locator1="RolesPermissions#${permissionDefinitionKey}" />
-				</not>
-				<then>
-					<execute function="Type" locator1="RolesPermissionsNavigation#SEARCH_FIELD" value1="${permissionNavigationValue}" />
-					<execute function="AssertClick" locator1="RolesPermissionsNavigation#${permissionNavigationKey}" value1="${permissionNavigationValue}" />
+			<execute function="Type" locator1="RolesPermissionsNavigation#SEARCH_FIELD" value1="${permissionNavigationValue}" />
 
-					<execute function="AssertTextEquals" locator1="RolesPermissions#PERMISSION_HEADER" value1="${permissionNavigationValue}" />
-				</then>
-			</if>
+			<execute function="AssertClick" locator1="RolesPermissionsNavigation#${permissionNavigationKey}" value1="${permissionNavigationValue}" />
+
+			<execute function="AssertTextEquals" locator1="RolesPermissions#PERMISSION_HEADER" value1="${permissionNavigationValue}" />
 
 			<if>
 				<equals arg1="${define}" arg2="true" />
@@ -628,12 +622,13 @@
 					<execute function="AssertTextEquals#assertPartialText" locator1="RolesPermissions#${permissionDefinitionKeySiteScope}" value1="${siteNameScope}" />
 				</then>
 			</if>
+
+			<execute function="ScrollWebElementIntoView" locator1="RolesPermissions#SAVE_BUTTON" />
+
+			<execute function="AssertClick" locator1="RolesPermissions#SAVE_BUTTON" value1="Save" />
+
+			<execute macro="Alert#viewSuccessMessage" />
 		</for>
-
-		<execute function="ScrollWebElementIntoView" locator1="RolesPermissions#SAVE_BUTTON" />
-		<execute function="AssertClick" locator1="RolesPermissions#SAVE_BUTTON" value1="Save" />
-
-		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
 	<command name="localizeRoleDescriptionCmd">
