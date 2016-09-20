@@ -10,6 +10,13 @@ AUI.add(
 
 		var FieldContextSupport = function(config) {};
 
+		FieldContextSupport.ATTRS = {
+			context: {
+				setter: '_setContext',
+				value: {}
+			}
+		};
+
 		FieldContextSupport.prototype = {
 			initializer: function() {
 				var instance = this;
@@ -34,9 +41,18 @@ AUI.add(
 
 				var EXTENDS = fieldClass;
 
+				var context = instance.get('context');
+
 				var setAttributeChangeEvent = function(attributeName) {
 					if (EXTENDS.ATTRS[attributeName].state) {
 						instance._repaintableAttributes[attributeName] = true;
+
+						if (context[attributeName]) {
+							instance.set(attributeName, context[attributeName]);
+						}
+						else {
+							context[attributeName] = instance.get(attributeName);
+						}
 
 						instance.after(attributeName + 'Change', A.bind(instance._afterAttributeChange, instance, attributeName));
 					}
@@ -95,6 +111,12 @@ AUI.add(
 				if (repaint && instance.get('rendered')) {
 					instance.render();
 				}
+			},
+
+			_setContext: function(val) {
+				var instance = this;
+
+				return A.merge(instance.get('context'), val);
 			}
 		};
 
