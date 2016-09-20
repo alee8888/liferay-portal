@@ -7,6 +7,10 @@
 		<execute function="AssertClick" locator1="MenuItem#EDIT" value1="Edit" />
 	</command>
 
+	<command name="enableImportEntry">
+		<execute function="Check" locator1="SystemSettings#IMPORT_ENABLED_CHECKBOX" />
+	</command>
+
 	<command name="exitEditConfiguration">
 		<execute function="Click" locator1="Icon#ANGLE_LEFT_BACK" />
 	</command>
