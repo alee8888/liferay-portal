@@ -430,6 +430,26 @@
 		<execute function="AssertChecked" locator1="PortalSettingsAuthentication#AUTHENTICATION_LDAP_ENABLED_CHECKBOX" />
 	</command>
 
+	<command name="enableUseLDAPPasswordPolicyCP">
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Authentication" />
+		</execute>
+
+		<execute function="AssertClick" locator1="NavTab#LDAP" value1="LDAP" />
+
+		<execute function="Check" locator1="PortalSettingsAuthentication#AUTHENTICATION_LDAP_USE_LDAP_PASSWORD_POLICY_CHECKBOX" />
+
+		<execute macro="PortletEntry#save" />
+
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Authentication" />
+		</execute>
+
+		<execute function="AssertClick" locator1="NavTab#LDAP" value1="LDAP" />
+
+		<execute function="AssertChecked" locator1="PortalSettingsAuthentication#AUTHENTICATION_LDAP_USE_LDAP_PASSWORD_POLICY_CHECKBOX" />
+	</command>
+
 	<command name="enterReservedEmailAddressCP">
 		<execute macro="Panel#expandPanel">
 			<var name="panelHeading" value="Users" />
