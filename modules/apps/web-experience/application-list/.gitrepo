@@ -3,7 +3,7 @@
 ;
 [subrepo]
 	cmdver = liferay
-	commit = 09eb48ebb338c54f7a8c593faeac3834c64c6437
+	commit = b2bd08301a07fee7abdf9bfae8c2bac30478fba9
 	mode = push
-	parent = 91dd2fde592216081924c0e0261eb9b360617348
+	parent = d6c8a6e5808f5c6277709a19833573559060e191
 	remote = git@github.com:liferay/com-liferay-application-list.git

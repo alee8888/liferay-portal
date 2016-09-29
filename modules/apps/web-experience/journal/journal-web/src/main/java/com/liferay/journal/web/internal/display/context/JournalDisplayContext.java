@@ -222,7 +222,7 @@ public class JournalDisplayContext {
 			return _ddmStructureName;
 		}
 
-		ThemeDisplay themeDisplay = (ThemeDisplay) _request.getAttribute(
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		DDMStructure ddmStructure = DDMStructureLocalServiceUtil.fetchStructure(

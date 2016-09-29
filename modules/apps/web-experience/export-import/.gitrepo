@@ -3,7 +3,7 @@
 ;
 [subrepo]
 	cmdver = liferay
-	commit = 880abcbd2ea8b09fc376fa968ad2eb829df3508a
+	commit = 6f8cf6aa09ca74f04beac2425fdbe4c1d38509eb
 	mode = push
-	parent = 1e082fe68e975bcf8f61c605a283098e052770c3
+	parent = 30989327d5723a3be43cb6b85195674516770541
 	remote = git@github.com:liferay/com-liferay-export-import.git

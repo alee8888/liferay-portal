@@ -659,14 +659,23 @@ public class DLAppHelperLocalServiceImpl
 				RestoreEntryException.INVALID_STATUS);
 		}
 
+		FileVersion fileVersion = fileEntry.getFileVersion();
+
+		if (!DLAppHelperThreadLocal.isEnabled()) {
+			dlFileEntryLocalService.updateStatus(
+				userId, fileVersion.getFileVersionId(),
+				WorkflowConstants.STATUS_APPROVED, new ServiceContext(),
+				new HashMap<String, Serializable>());
+
+			return;
+		}
+
 		dlFileEntry.setFileName(
 			TrashUtil.getOriginalTitle(dlFileEntry.getTitle(), "fileName"));
 		dlFileEntry.setTitle(
 			TrashUtil.getOriginalTitle(dlFileEntry.getTitle()));
 
 		dlFileEntryPersistence.update(dlFileEntry);
-
-		FileVersion fileVersion = fileEntry.getFileVersion();
 
 		TrashEntry trashEntry = trashEntryLocalService.getEntry(
 			DLFileEntryConstants.getClassName(), fileEntry.getFileEntryId());
@@ -675,24 +684,21 @@ public class DLAppHelperLocalServiceImpl
 			userId, fileVersion.getFileVersionId(), trashEntry.getStatus(),
 			new ServiceContext(), new HashMap<String, Serializable>());
 
-		if (DLAppHelperThreadLocal.isEnabled()) {
+		// File rank
 
-			// File rank
+		dlFileRankLocalService.enableFileRanks(fileEntry.getFileEntryId());
 
-			dlFileRankLocalService.enableFileRanks(fileEntry.getFileEntryId());
+		// File shortcut
 
-			// File shortcut
+		dlFileShortcutLocalService.enableFileShortcuts(
+			fileEntry.getFileEntryId());
 
-			dlFileShortcutLocalService.enableFileShortcuts(
-				fileEntry.getFileEntryId());
+		// Sync
 
-			// Sync
-
-			triggerRepositoryEvent(
-				fileEntry.getRepositoryId(),
-				TrashRepositoryEventType.EntryRestored.class, FileEntry.class,
-				fileEntry);
-		}
+		triggerRepositoryEvent(
+			fileEntry.getRepositoryId(),
+			TrashRepositoryEventType.EntryRestored.class, FileEntry.class,
+			fileEntry);
 
 		// Trash
 
@@ -710,10 +716,6 @@ public class DLAppHelperLocalServiceImpl
 		}
 
 		trashEntryLocalService.deleteEntry(trashEntry.getEntryId());
-
-		if (!DLAppHelperThreadLocal.isEnabled()) {
-			return;
-		}
 
 		// Social
 
@@ -828,11 +830,15 @@ public class DLAppHelperLocalServiceImpl
 		String[] assetTagNames = assetTagLocalService.getTagNames(
 			DLFileEntryConstants.getClassName(), assetClassPk);
 
-		AssetEntry assetEntry = assetEntryLocalService.getEntry(
+		AssetEntry assetEntry = assetEntryLocalService.fetchEntry(
 			DLFileEntryConstants.getClassName(), assetClassPk);
 
-		List<AssetLink> assetLinks = assetLinkLocalService.getDirectLinks(
-			assetEntry.getEntryId(), false);
+		List<AssetLink> assetLinks = null;
+
+		if (assetEntry != null) {
+			assetLinks = assetLinkLocalService.getDirectLinks(
+				assetEntry.getEntryId(), false);
+		}
 
 		long[] assetLinkIds = ListUtil.toLongArray(
 			assetLinks, AssetLink.ENTRY_ID2_ACCESSOR);
@@ -1397,6 +1403,10 @@ public class DLAppHelperLocalServiceImpl
 
 		DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
 
+		if (!DLAppHelperThreadLocal.isEnabled()) {
+			return fileEntry;
+		}
+
 		UnicodeProperties typeSettingsProperties = new UnicodeProperties();
 
 		typeSettingsProperties.put("fileName", dlFileEntry.getFileName());
@@ -1422,10 +1432,6 @@ public class DLAppHelperLocalServiceImpl
 			DLFileEntry.class);
 
 		indexer.reindex(dlFileEntry);
-
-		if (!DLAppHelperThreadLocal.isEnabled()) {
-			return fileEntry;
-		}
 
 		// Social
 
