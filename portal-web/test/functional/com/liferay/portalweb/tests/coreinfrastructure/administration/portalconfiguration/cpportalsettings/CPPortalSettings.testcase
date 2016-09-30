@@ -311,11 +311,11 @@
 		<execute macro="PortalSettingsNavigator#gotoLDAP" />
 
 		<for list="ENABLED,IMPORT_ENABLED,IMPORT_ON_STARTUP_ENABLED,USE_LDAP_PASSWORD_POLICY" param="enableCheckboxKey">
-			<execute macro="PortalSettingsNavigator#enableLDAPSetting">
+			<execute macro="PortalSettings#enableLDAPSetting">
 				<var name="enableCheckboxKey" value="${enableCheckboxKey}" />
 			</execute>
 
-			<execute macro="PortalSettingsNavigator#viewEnabledLDAPSetting">
+			<execute macro="PortalSettings#viewEnabledLDAPSetting">
 				<var name="enableCheckboxKey" value="${enableCheckboxKey}" />
 			</execute>
 		</for>
@@ -324,11 +324,7 @@
 			<var name="LDAPServerName" value="ApacheDS Server" />
 		</execute>
 
-		<execute macro="Panel#expandPanel">
-			<var name="panelHeading" value="Authentication" />
-		</execute>
-
-		<execute macro="PortalSettingsNavigator#gotoAuthenticationLDAP" />
+		<execute macro="PortalSettingsNavigator#gotoLDAP" />
 
 		<execute macro="PortalSettings#editLDAPServer">
 			<var name="LDAPServerName" value="ApacheDS Server" />
@@ -762,7 +758,13 @@
 			<var name="portlet" value="Instance Settings" />
 		</execute>
 
-		<execute macro="PortalSettings#enableLDAPCP" />
+		<execute macro="PortalSettings#enableLDAPSetting">
+			<var name="enableCheckboxKey" value="ENABLED" />
+		</execute>
+
+		<execute macro="PortalSettings#viewEnabledLDAPSetting">
+			<var name="enableCheckboxKey" value="ENABLED" />
+		</execute>
 
 		<execute macro="ProductMenu#gotoControlPanelConfiguration">
 			<var name="portlet" value="System Settings" />
