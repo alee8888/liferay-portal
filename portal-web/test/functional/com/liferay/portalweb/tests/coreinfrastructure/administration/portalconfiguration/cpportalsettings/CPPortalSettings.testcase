@@ -308,19 +308,17 @@
 			<var name="portlet" value="Instance Settings" />
 		</execute>
 
-		<execute macro="Panel#expandPanel">
-			<var name="panelHeading" value="Authentication" />
-		</execute>
+		<execute macro="PortalSettingsNavigator#gotoLDAP" />
 
-		<execute macro="PortalSettingsNavigator#gotoAuthenticationLDAP" />
+		<for list="ENABLED,IMPORT_ENABLED,IMPORT_ON_STARTUP_ENABLED,USE_LDAP_PASSWORD_POLICY" param="enableCheckboxKey">
+			<execute macro="PortalSettingsNavigator#enableLDAPSetting">
+				<var name="enableCheckboxKey" value="${enableCheckboxKey}" />
+			</execute>
 
-		<execute macro="PortalSettings#enableLDAPCP" />
-
-		<execute macro="PortalSettings#enableImportLDAPCP" />
-
-		<execute macro="PortalSettings#enableImportOnStartupLDAPCP" />
-
-		<execute macro="PortalSettings#enableUseLDAPPasswordPolicyCP" />
+			<execute macro="PortalSettingsNavigator#viewEnabledLDAPSetting">
+				<var name="enableCheckboxKey" value="${enableCheckboxKey}" />
+			</execute>
+		</for>
 
 		<execute macro="PortalSettings#addLDAPServer">
 			<var name="LDAPServerName" value="ApacheDS Server" />
