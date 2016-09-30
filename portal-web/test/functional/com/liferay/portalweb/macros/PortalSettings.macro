@@ -176,7 +176,7 @@
 			<var name="panelHeading" value="Authentication" />
 		</execute>
 
-		<execute function="AssertClick" locator1="NavTab#LDAP" value1="LDAP" />
+		<execute macro="PortalSettingsNavigator#gotoAuthenticationLDAP" />
 
 		<execute function="Uncheck" locator1="PortalSettingsAuthentication#AUTHENTICATION_LDAP_ENABLED_CHECKBOX" />
 
@@ -186,7 +186,7 @@
 			<var name="panelHeading" value="Authentication" />
 		</execute>
 
-		<execute function="AssertClick" locator1="NavTab#LDAP" value1="LDAP" />
+		<execute macro="PortalSettingsNavigator#gotoAuthenticationLDAP" />
 
 		<execute function="AssertNotChecked" locator1="PortalSettingsAuthentication#AUTHENTICATION_LDAP_ENABLED_CHECKBOX" />
 	</command>
@@ -384,7 +384,7 @@
 			<var name="panelHeading" value="Authentication" />
 		</execute>
 
-		<execute function="AssertClick" locator1="NavTab#LDAP" value1="LDAP" />
+		<execute macro="PortalSettingsNavigator#gotoAuthenticationLDAP" />
 
 		<execute function="Check" locator1="PortalSettingsAuthentication#AUTHENTICATION_LDAP_IMPORT_ENABLED_CHECKBOX" />
 
@@ -394,7 +394,7 @@
 			<var name="panelHeading" value="Authentication" />
 		</execute>
 
-		<execute function="AssertClick" locator1="NavTab#LDAP" value1="LDAP" />
+		<execute macro="PortalSettingsNavigator#gotoAuthenticationLDAP" />
 
 		<execute function="AssertChecked" locator1="PortalSettingsAuthentication#AUTHENTICATION_LDAP_IMPORT_ENABLED_CHECKBOX" />
 	</command>
@@ -573,7 +573,7 @@
 			<var name="panelHeading" value="Authentication" />
 		</execute>
 
-		<execute function="AssertClick" locator1="NavTab#LDAP" value1="LDAP" />
+		<execute macro="PortalSettingsNavigator#gotoAuthenticationLDAP" />
 
 		<execute function="AssertElementPresent" locator1="PortalSettingsAuthentication#AUTHENTICATION_LDAP_ENABLED_CHECKBOX" />
 		<execute function="AssertElementPresent" locator1="PortalSettingsAuthentication#AUTHENTICATION_LDAP_REQUIRED_CHECKBOX" />
