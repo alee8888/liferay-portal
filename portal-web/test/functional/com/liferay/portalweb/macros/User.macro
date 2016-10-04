@@ -78,6 +78,7 @@
 		</if>
 
 		<execute function="Type" locator1="TextInput#CITY" value1="${userAddressCity}" />
+
 		<execute function="Click" locator1="Radio#PRIMARY" />
 		<execute function="Check" locator1="Checkbox#MAILING" />
 
@@ -90,7 +91,9 @@
 
 	<command name="addCommentViaMyAccount">
 		<execute function="Click" locator1="NavListItem#COMMENTS" />
+
 		<execute function="Type" locator1="MyAccount#COMMENTS_FIELD" value1="${userIntroduction}" />
+
 		<execute function="Click" locator1="Button#SAVE" />
 
 		<execute macro="Alert#viewSuccessMessage" />
@@ -1117,9 +1120,13 @@
 
 	<command name="deleteProfilePictureViaMyAccount">
 		<execute function="Click" locator1="Button#DELETE" />
+
 		<execute function="Pause" value1="1000" />
+
 		<execute function="Click" locator1="Button#SAVE" />
+
 		<execute macro="Alert#viewSuccessMessage" />
+
 		<execute function="SelectFrame" value1="relative=top" />
 	</command>
 
@@ -1208,6 +1215,7 @@
 		<execute function="AssertClick" locator1="MenuItem#EDIT" value1="Edit" />
 
 		<execute function="Select" locator1="CPUsersandorganizationsUser#LANGUAGE_SELECT" value1="${languageName}" />
+
 		<execute macro="PortletEntry#save" />
 	</command>
 
@@ -1574,6 +1582,7 @@
 		<execute function="SelectWindow" locator1="title=Welcome - ${siteName}" />
 
 		<execute function="AssertElementPresent" locator1="UserBar#USER_AVATAR_IMAGE" />
+
 		<execute function="Click" locator1="UserBar#USER_AVATAR_IMAGE" />
 
 		<execute function="AssertElementPresent" locator1="ProductMenu#PRODUCT_MENU_TABS_USER_EXPANDED" />
@@ -1706,6 +1715,7 @@
 			<condition function="IsElementPresent" locator1="TextInput#ANSWER" />
 			<then>
 				<execute function="Type" locator1="TextInput#ANSWER" value1="test" />
+
 				<execute macro="Button#clickSave" />
 
 				<execute function="AssertElementNotPresent" locator1="Button#SAVE" value1="Save" />
@@ -1737,6 +1747,64 @@
 				<execute function="AssertTextEquals#assertPartialText" locator1="Message#ERROR_2" value1="Authentication failed. Please try again." />
 			</else>
 		</if>
+	</command>
+
+	<command name="loginUserOpenIDPG">
+		<description message="Log into Liferay Portal as ${userEmailAddress} using the password ${password}." />
+
+		<execute macro="Navigator#openURL" />
+
+		<execute function="AssertClick" locator1="UserBar#USER_SIGN_IN" value1="Sign In" />
+
+		<execute function="AssertClick" locator1="Link#OPENID" value1="OpenID" />
+
+		<execute function="Type" locator1="SignInOpenID#OPENID_FIELD" value1="http://${openIDUsername}.openid.org.cn/" />
+
+		<execute function="Click" locator1="Button#SIGN_IN" />
+
+		<execute function="Type" locator1="OpenIDLogin#LOGIN_OPENID_FIELD" value1="${openIDUsername}" />
+		<execute function="Type" locator1="OpenIDLogin#LOGIN_PASSWORD_FIELD" value1="${openIDPassword}" />
+
+		<execute function="AssertClick" locator1="OpenIDLogin#LOGIN_BUTTON" value1="Login" />
+
+		<if>
+			<condition function="IsElementPresent#pauseIsElementPresent" locator1="Button#I_AGREE" value1="I Agree" />
+			<then>
+				<execute function="AssertClick" locator1="Button#I_AGREE" value1="I Agree" />
+			</then>
+		</if>
+
+		<if>
+			<condition function="IsElementPresent#pauseIsElementPresent" locator1="TextInput#PASSWORD" />
+			<then>
+				<if>
+					<and>
+						<isset var="syntaxCheckingEnabled" />
+						<equals arg1="${syntaxCheckingEnabled}" arg2="true" />
+					</and>
+					<then>
+						<execute function="Type" locator1="TextInput#PASSWORD" value1="${resetPassword}" />
+						<execute function="Type" locator1="TextInput#ENTER_AGAIN" value1="${resetPassword}" />
+					</then>
+					<else>
+						<execute function="Type" locator1="TextInput#PASSWORD" value1="test" />
+						<execute function="Type" locator1="TextInput#ENTER_AGAIN" value1="test" />
+					</else>
+				</if>
+
+				<execute macro="Button#clickSave" />
+			</then>
+		</if>
+
+		<if>
+			<condition function="IsElementPresent#pauseIsElementPresent" locator1="TextInput#ANSWER" />
+			<then>
+				<execute function="Type" locator1="TextInput#ANSWER" value1="test" />
+				<execute macro="Button#clickSave" />
+			</then>
+		</if>
+
+		<execute function="AssertElementPresent" locator1="Dockbar#USER_AVATAR_IMAGE" />
 	</command>
 
 	<command name="loginUserPG">

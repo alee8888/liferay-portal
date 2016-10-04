@@ -727,8 +727,8 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 					_log.warn(
 						"Portlet with the name " + portletId +
-							" is described in portlet.xml but does not " +
-								"have a matching entry in liferay-portlet.xml");
+							" is described in portlet.xml but does not have " +
+								"a matching entry in liferay-portlet.xml");
 				}
 			}
 
@@ -817,8 +817,8 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 				_log.warn(
 					"Portlet with the name " + portletId +
-						" is described in portlet.xml but does not " +
-							"have a matching entry in liferay-portlet.xml");
+						" is described in portlet.xml but does not have a " +
+							"matching entry in liferay-portlet.xml");
 			}
 		}
 
@@ -828,8 +828,8 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			if (_log.isWarnEnabled() && !portletsMap.containsKey(portletId)) {
 				_log.warn(
 					"Portlet with the name " + portletId +
-						" is described in liferay-portlet.xml but does " +
-							"not have a matching entry in portlet.xml");
+						" is described in liferay-portlet.xml but does not " +
+							"have a matching entry in portlet.xml");
 			}
 		}
 
@@ -2272,8 +2272,8 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 			if (publicRenderParameter == null) {
 				_log.error(
-					"Supported public render parameter references " +
-						"unknown identifier " + identifier);
+					"Supported public render parameter references unknown " +
+						"identifier " + identifier);
 
 				continue;
 			}

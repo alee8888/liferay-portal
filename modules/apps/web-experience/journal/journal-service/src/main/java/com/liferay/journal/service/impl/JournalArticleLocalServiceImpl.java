@@ -2661,7 +2661,7 @@ public class JournalArticleLocalServiceImpl
 		if (article == null) {
 			throw new NoSuchArticleException(
 				"No approved JournalArticle exists with the key {groupId=" +
-					groupId + ", " + "articleId=" + articleId + "}");
+					groupId + ", articleId=" + articleId + "}");
 		}
 
 		return article;
@@ -5901,7 +5901,7 @@ public class JournalArticleLocalServiceImpl
 				catch (Exception e) {
 					_log.error(
 						"Unable to send email to notify the change of status " +
-							" to " + msg + " for article " + article.getId() +
+							"to " + msg + " for article " + article.getId() +
 								": " + e.getMessage());
 				}
 			}
