@@ -6,4 +6,8 @@
 	<command name="gotoAuthenticationLDAP">
 		<execute function="AssertClick" locator1="NavTab#LDAP" value1="LDAP" />
 	</command>
+
+	<command name="gotoAuthenticationOpenID">
+		<execute function="AssertClick" locator1="NavTab#OPENID" value1="OpenID" />
+	</command>
 </definition>
