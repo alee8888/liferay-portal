@@ -400,8 +400,6 @@
 	</command>
 
 	<command name="enableLDAPSetting">
-		<execute macro="PortalSettingsNavigator#gotoLDAP" />
-
 		<execute function="Check" locator1="PortalSettingsAuthentication#AUTHENTICATION_LDAP_${enableCheckboxKey}_CHECKBOX" />
 
 		<execute macro="PortletEntry#save" />
@@ -773,8 +771,6 @@
 	</command>
 
 	<command name="viewEnabledLDAPSetting">
-		<execute macro="PortalSettingsNavigator#gotoLDAP" />
-
 		<execute function="AssertChecked" locator1="PortalSettingsAuthentication#AUTHENTICATION_LDAP_${enableCheckboxKey}_CHECKBOX" />
 	</command>
 
