@@ -22,6 +22,67 @@
 		</if>
 	</tear-down>
 
+	<command name="CASSmoke" priority="4">
+		<property name="web.plugins.includes" value="cas-web" />
+
+		<var name="userEmailAddress" value="userea@liferay.com" />
+		<var name="userFirstName" value="userfn" />
+		<var name="userLastName" value="userln" />
+		<var name="userScreenName" value="usersn" />
+
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="User#addCP">
+			<var name="userEmailAddress" value="${userEmailAddress}" />
+			<var name="userFirstName" value="${userFirstName}" />
+			<var name="userLastName" value="${userLastName}" />
+			<var name="userScreenName" value="${userScreenName}" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelUsers">
+			<var name="portlet" value="Users and Organizations" />
+		</execute>
+
+		<execute macro="User#editPasswordCP">
+			<var name="userEmailAddress" value="${userEmailAddress}" />
+			<var name="userScreenName" value="${userScreenName}" />
+		</execute>
+
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="Instance Settings" />
+		</execute>
+
+		<execute macro="PortalSettings#editConfigurationAuthenticationGeneral">
+			<var name="authenticationMethod" value="By Screen Name" />
+		</execute>
+
+		<execute macro="PortalSettings#editConfigurationAuthenticationCAS">
+			<var name="casLoginURL" value="http://localhost:8080/cas-web/login" />
+			<var name="casLogoutURL" value="http://localhost:8080/cas-web/logout" />
+			<var name="casServerURL" value="http://localhost:8080/cas-web" />
+			<var name="casServiceURL" value="http://localhost:8080/c/portal/login" />
+		</execute>
+
+		<execute macro="User#logoutPG" />
+
+		<execute function="AssertTextEquals" locator1="CAS#APP_NAME_HEADER" value1="Central Authentication Service (CAS)" />
+		<execute function="AssertTextEquals" locator1="CAS#LOGOUT_SUCCESSFUL_HEADER" value1="Logout successful" />
+		<execute function="AssertTextEquals" locator1="CAS#LOGOUT_SUCCESSFUL_MESSAGE_1" value1="You have successfully logged out of the Central Authentication Service." />
+		<execute function="AssertTextEquals" locator1="CAS#LOGOUT_SUCCESSFUL_MESSAGE_2" value1="For security reasons, exit your web browser." />
+
+		<execute macro="User#loginUserCASPG">
+			<var name="userScreenName" value="${userScreenName}" />
+		</execute>
+
+		<execute macro="User#logoutPG" />
+
+		<execute macro="User#loginUserCASPG">
+			<var name="userScreenName" value="test" />
+		</execute>
+	</command>
+
 	<command name="SessionTimeout" priority="4">
 		<property name="web.xml.timeout" value="1" />
 
