@@ -8437,6 +8437,15 @@ jdbc.default.password=${database.mysql.password}</echo>
 			</then>
 		</if>
 
+		<get-testcase-property property.name="openam.enabled" />
+
+		<if>
+			<equals arg1="${openam.enabled}" arg2="true" />
+			<then>
+				<ant antfile="build-test-openam.xml" target="setup-openam" />
+			</then>
+		</if>
+
 		<get-testcase-property property.name="remote.elasticsearch.enabled" />
 
 		<if>
