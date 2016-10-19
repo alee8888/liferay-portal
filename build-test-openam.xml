@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<project basedir="." name="portal-test-openam" xmlns:antelope="antlib:ise.antelope.tasks">
+	<import file="build-test.xml" />
+
+	<macrodef name="deploy-openam">
+		<sequential>
+			<delete dir="${app.server.dir}/openam" />
+
+			<if>
+				<not>
+					<available file="${app.server.dir}/openam.war" />
+				</not>
+				<then>
+					<mirrors-get
+						dest="${app.server.dir}/${openam.war.name}"
+						src="http://files.liferay.com/private/apps/apache/apacheds/${openam.war.name}"
+						verbose="true"
+					/>
+				</then>
+
+				<move
+					file="${app.server.dir}/${openam.war.name}"
+					tofile="${app.server.dir}/openam.war"
+				/>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="unzip-openam-config">
+		<sequential>
+			<delete dir="${openam.config.dir}" />
+
+			<if>
+				<not>
+					<available file="${app.server.parent.dir}/${openam.config.zip.name}" />
+				</not>
+				<then>
+					<mirrors-get
+						dest="${app.server.parent.dir}/${openam.config.zip.name}"
+						src="http://files.liferay.com/private/apps/apache/apacheds/${openam.config.zip.name}"
+						verbose="true"
+					/>
+				</then>
+			</if>
+
+			<unzip
+				dest="/root"
+				src="${app.server.parent.dir}/${openam.config.zip.name}"
+			/>
+		</sequential>
+	</macrodef>
+
+	<target name="setup-openam">
+		<deploy-openam />
+
+		<unzip-openam-config />
+	</target>
+</project>
