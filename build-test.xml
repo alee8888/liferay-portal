@@ -8560,6 +8560,20 @@ jdbc.default.password=${database.mysql.password}</echo>
 			</then>
 		</if>
 
+		<get-testcase-property property.name="osgi.config.file.name" />
+
+		<get-testcase-property property.name="osgi.config.properties" />
+
+		<if>
+			<and>
+				<isset property="osgi.config.file.name" />
+				<isset property="osgi.config.properties" />
+			</and>
+			<then>
+				<echo file="${liferay.home}/osgi/configs/${osgi.config.file.name}">${osgi.config.properties}</echo>
+			</then>
+		</if>
+
 		<antcall target="deploy-osgi-modules" />
 
 		<antcall target="deploy-specified-plugins">
