@@ -58,7 +58,7 @@
 
 		<execute macro="SystemSettings#editTextAreaSetting">
 			<var name="settingName" value="clusterName" />
-			<var name="settingNameEdit" value="1" />
+			<var name="settingValue" value="LiferayElasticsearchCluster1" />
 		</execute>
 
 		<execute macro="SystemSettings#saveConfiguration" />
