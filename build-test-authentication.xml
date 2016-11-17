@@ -7,6 +7,8 @@
 		<sequential>
 			<delete dir="${app.server.deploy.dir}/openam" />
 
+			<delete dir="${openam.config.dir}" />
+
 			<if>
 				<not>
 					<available file="${app.server.dir}/openam.war" />
