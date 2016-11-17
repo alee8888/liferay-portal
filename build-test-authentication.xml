@@ -52,6 +52,27 @@
 			/>
 		</sequential>
 	</macrodef>
+
+	<macrodef name="unzip-openam-configurator-tools">
+		<sequential>
+			<delete dir="${openam.configurator.tools.dir}" />
+
+			<if>
+				<not>
+					<available file="${app.server.parent.dir}/${openam.configurator.tools.zip.name}" />
+				</not>
+				<then>
+					<mirrors-get
+						dest="${app.server.parent.dir}/${openam.configurator.tools.zip.name}"
+						src="http://files.liferay.com/private/apps/forgerock/openam/${openam.configurator.tools.zip.name}"
+						verbose="true"
+					/>
+				</then>
+			</if>
+
+			<unzip
+				dest="${openam.configurator.tools.dir}"
+				src="${app.server.parent.dir}/${openam.configurator.tools.zip.name}"
 			/>
 		</sequential>
 	</macrodef>
