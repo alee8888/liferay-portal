@@ -84,7 +84,9 @@
 	<target name="setup-openam">
 		<deploy-openam />
 
-		<unzip-openam-config />
+		<unzip-openam-admin-tools />
+
+		<unzip-openam-configurator-tools />
 	</target>
 
 	<target name="verify-token-based-login">
