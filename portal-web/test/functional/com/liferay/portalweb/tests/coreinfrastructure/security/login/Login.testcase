@@ -263,6 +263,7 @@
 		<execute macro="User#logoutPG" />
 
 		<execute macro="User#loginUserWithOpenSSOEnabledPG">
+			<var name="hostsURL" value="http://www.able.com:8080" />
 			<var name="password" value="password" />
 			<var name="userScreenName" value="test" />
 		</execute>
