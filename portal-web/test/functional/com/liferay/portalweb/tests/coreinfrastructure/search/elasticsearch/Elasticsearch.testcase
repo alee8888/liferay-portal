@@ -68,7 +68,7 @@
 		</execute>
 
 		<execute macro="Elasticsearch#viewClusterStatus">
-			<var name="clusterName" value="LiferayElasticsearchCluster1" />
+			<var name="clusterStatus" value="&quot;cluster_name&quot; : &quot;LiferayElasticsearchCluster1&quot;" />
 		</execute>
 	</command>
 </definition>
