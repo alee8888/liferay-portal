@@ -205,6 +205,39 @@
 	<command name="OpenSSOSmoke" priority="5">
 		<property name="openam.enabled" value="true" />
 
+		<execute macro="Navigator#openSpecificURL">
+			<var name="url" value="http://test.able.com:8080/openam" />
+		</execute>
+
+		<execute function="AntCommand" locator1="build-test-authentication.xml" value1="run-openam-tools" />
+
+		<var name="pauseCount" value="0" />
+
+		<while>
+			<and>
+				<not>
+					<equals arg1="${pauseCount}" arg2="20" />
+				</not>
+				<condition function="IsElementNotPresent" locator1="OpenAM#USER_NAME" />
+			</and>
+			<then>
+				<execute function="Refresh" />
+
+				<execute function="Pause" locator1="30000" />
+
+				<var method="MathUtil#sum('${pauseCount}', '1')" name="pauseCount" />
+
+				<echo>Pause ${pauseCount}</echo>
+			</then>
+		</while>
+
+		<if>
+			<equals arg1="${pauseCount}" arg2="20" />
+			<then>
+				<fail message="OpenAM setup took too long." />
+			</then>
+		</if>
+
 		<execute macro="User#firstLoginPG" />
 
 		<execute macro="ProductMenu#gotoControlPanelConfiguration">
