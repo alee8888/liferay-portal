@@ -17,10 +17,7 @@
 	<command name="editTextAreaSetting">
 		<var name="key_fieldName" value="${settingName}" />
 
-		<execute function="Click" locator1="FormFields#TEXT_MULTILINE_FIELD" />
-		
-		<execute function="Type#sendKeys" locator1="FormFields#TEXT_MULTILINE_FIELD" value1="${settingNameEdit}" />
-		
+		<execute function="Type" locator1="DDMField#TEXT_BOX" value1="${settingValue}" />
 	</command>
 
 	<command name="enableSetting">
