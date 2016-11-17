@@ -29,26 +29,29 @@
 		</sequential>
 	</macrodef>
 
-	<macrodef name="unzip-openam-config">
+	<macrodef name="unzip-openam-admin-tools">
 		<sequential>
-			<delete dir="${openam.config.dir}" />
+			<delete dir="${openam.admin.tools.dir}" />
 
 			<if>
 				<not>
-					<available file="${app.server.parent.dir}/${openam.config.zip.name}" />
+					<available file="${app.server.parent.dir}/${openam.admin.tools.zip.name}" />
 				</not>
 				<then>
 					<mirrors-get
-						dest="${app.server.parent.dir}/${openam.config.zip.name}"
-						src="http://files.liferay.com/private/apps/forgerock/openam/${openam.config.zip.name}"
+						dest="${app.server.parent.dir}/${openam.admin.tools.zip.name}"
+						src="http://files.liferay.com/private/apps/forgerock/openam/${openam.admin.tools.zip.name}"
 						verbose="true"
 					/>
 				</then>
 			</if>
 
 			<unzip
-				dest="/root"
-				src="${app.server.parent.dir}/${openam.config.zip.name}"
+				dest="${openam.admin.tools.dir}"
+				src="${app.server.parent.dir}/${openam.admin.tools.zip.name}"
+			/>
+		</sequential>
+	</macrodef>
 			/>
 		</sequential>
 	</macrodef>
