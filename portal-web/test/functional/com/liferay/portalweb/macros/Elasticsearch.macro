@@ -29,4 +29,10 @@
 	<command name="viewReplicaRemovedInConsole">
 		<execute function="AssertConsoleTextPresent" value1="removed.*reason: zen-disco-node_left" />
 	</command>
+
+	<command name="viewClusterStatus">
+		<var name="key_networkDomain" value="${clusterName}" />
+
+		<execute function="AssertTextPresent" locator1="NetworkUtilities#NETWORK_DOMAIN" value1="${clusterName}" />
+	</command>
 </definition>
