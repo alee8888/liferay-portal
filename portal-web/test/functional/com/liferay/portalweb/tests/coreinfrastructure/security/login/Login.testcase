@@ -256,6 +256,10 @@
 			<var name="OpenSSOServiceURL" value="http://test.able.com:8080/openam" />
 		</execute>
 
+		<execute macro="PortalSettingsNavigator#gotoAuthenticationOpenSSO" />
+
+		<execute macro="PortalSettings#testOpenSSOConnection" />
+
 		<execute macro="User#logoutPG" />
 
 		<execute macro="User#loginUserWithOpenSSOEnabledPG">
