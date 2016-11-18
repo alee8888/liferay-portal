@@ -345,7 +345,7 @@
 		</execute>
 	</command>
 
-	<command name="ViewVirtualHostSystemSettings" priority="4">
+	<command name="ViewVirtualInstanceInheritsSystemSettings" priority="4">
 		<execute macro="ProductMenu#gotoControlPanelConfiguration">
 			<var name="portlet" value="System Settings" />
 		</execute>
