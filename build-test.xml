@@ -8698,6 +8698,8 @@ jdbc.default.password=${database.mysql.password}</echo>
 		<if>
 			<equals arg1="${openam.enabled}" arg2="true" />
 			<then>
+				<ant antfile="build-test-authentication.xml" target="delete-openam-config" />
+
 				<ant antfile="build-test-authentication.xml" target="setup-openam" />
 			</then>
 		</if>

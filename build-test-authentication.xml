@@ -7,8 +7,6 @@
 		<sequential>
 			<delete dir="${app.server.deploy.dir}/openam" />
 
-			<delete dir="${openam.config.dir}" />
-
 			<if>
 				<not>
 					<available file="${app.server.dir}/openam.war" />
@@ -83,25 +81,25 @@
 
 	<target name="run-openam-tools">
 		<sequential>
-			<echo file="${openam.configurator.tools.dir}/config.properties">SERVER_URL=http://test.able.com:8080
-DEPLOYMENT_URI=/openam
-BASE_DIR=${openam.config.dir}
-locale=en_US
-PLATFORM_LOCALE=en_US
-AM_ENC_KEY=
+			<echo file="${openam.configurator.tools.dir}/config.properties">ACCEPT_LICENSES=true
 ADMIN_PWD=password
+AM_ENC_KEY=
 AMLDAPUSERPASSWD=liferay01
+BASE_DIR=${openam.config.dir}
 COOKIE_DOMAIN=.able.com
-ACCEPT_LICENSES=true
 DATA_STORE=embedded
-DIRECTORY_SSL=SIMPLE
-DIRECTORY_SERVER=test.able.com
-DIRECTORY_PORT=50389
+DEPLOYMENT_URI=/openam
 DIRECTORY_ADMIN_PORT=4444
 DIRECTORY_JMX_PORT=1689
-ROOT_SUFFIX=dc=openam,dc=forgerock,dc=org
+DIRECTORY_PORT=50389
+DIRECTORY_SERVER=test.able.com
+DIRECTORY_SSL=SIMPLE
 DS_DIRMGRDN=cn=Directory Manager
-DS_DIRMGRPASSWD=11111111</echo>
+DS_DIRMGRPASSWD=11111111
+locale=en_US
+PLATFORM_LOCALE=en_US
+ROOT_SUFFIX=dc=openam,dc=forgerock,dc=org
+SERVER_URL=http://test.able.com:8080</echo>
 
 			<java failonerror="true" fork="true" jar="${openam.configurator.tools.dir}/openam-configurator-tool-12.0.0.jar">
 				<arg line="--file ${openam.configurator.tools.dir}/config.properties" />
