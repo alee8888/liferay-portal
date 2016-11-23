@@ -215,10 +215,10 @@
 
 		<while>
 			<and>
+				<condition function="IsElementNotPresent" locator1="OpenAM#USER_NAME" />
 				<not>
 					<equals arg1="${pauseCount}" arg2="20" />
 				</not>
-				<condition function="IsElementNotPresent" locator1="OpenAM#USER_NAME" />
 			</and>
 			<then>
 				<execute function="Refresh" />
@@ -227,14 +227,14 @@
 
 				<var method="MathUtil#sum('${pauseCount}', '1')" name="pauseCount" />
 
-				<echo>Pause ${pauseCount}</echo>
+				<echo>Pause count: ${pauseCount}</echo>
 			</then>
 		</while>
 
 		<if>
 			<equals arg1="${pauseCount}" arg2="20" />
 			<then>
-				<fail message="OpenAM setup took too long." />
+				<fail message="OpenAM setup timed out after 10 minutes." />
 			</then>
 		</if>
 
