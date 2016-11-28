@@ -396,8 +396,8 @@
 		<execute function="Confirm#waitForConfirmation" value1="Are you sure you want to delete this page?" />
 	</command>
 
-	<command name="disableMDRSamesAsPublicPages">
-		<execute function="Uncheck#uncheckToggleSwitch" locator1="ToggleSwitch#SET_SAME_MOBILE_DEVICE_RULES_AS_PUBLIC_PAGES" />
+	<command name="disableMobileDeviceRulesAreInheritedFromPublicPages">
+		<execute function="Uncheck#uncheckToggleSwitch" locator1="ToggleSwitch#INHERIT_MOBILE_DEVICE_RULES_FROM_PAGE" />
 	</command>
 
 	<command name="disallowEditViaSiteAdminEditCP">
@@ -553,7 +553,7 @@
 		<execute function="Click" locator1="Link#PAGE_LOCALE"  value1="${pageLocale}" />
 	</command>
 
-	<command name="manageMDRDeviceFamilyActions">
+	<command name="manageDeviceFamilyActions">
 		<execute function="Click#waitForMenuToggleJSClick" locator1="Icon#BODY_VERTICAL_ELLIPSIS" />
 
 		<execute function="Click" locator1="MenuItem#MANAGE_ACTIONS" />
@@ -596,7 +596,7 @@
 		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
-	<command name="selectMDRDeviceFamily">
+	<command name="selectDeviceFamily">
 		<execute function="AssertClick" locator1="Button#SELECT_MOBILE_DEVICE_RULES" value1="Select" />
 
 		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
