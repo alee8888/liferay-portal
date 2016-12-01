@@ -33,8 +33,6 @@ String keywords = renderRequest.getParameter("keywords");
 if (keywords != null) {
 	portletDisplay.setShowBackIcon(true);
 	portletDisplay.setURLBack(redirect);
-
-	renderResponse.setTitle(LanguageUtil.get(request, "search-results"));
 }
 %>
 
@@ -51,7 +49,7 @@ if (keywords != null) {
 				</portlet:renderURL>
 
 				<aui:nav-item
-					href="<%= configurationCategoryURL %>"
+					href='<%= !configurationCategory.equals("search-results") ? configurationCategoryURL : null %>'
 					label="<%= curConfigurationCategory %>"
 					selected="<%= curConfigurationCategory.equals(configurationCategory) %>"
 				/>

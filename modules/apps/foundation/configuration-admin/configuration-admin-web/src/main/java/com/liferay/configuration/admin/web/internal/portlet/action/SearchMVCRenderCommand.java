@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
@@ -114,6 +115,14 @@ public class SearchMVCRenderCommand implements MVCRenderCommand {
 			renderRequest.setAttribute(
 				ConfigurationAdminWebKeys.RESOURCE_BUNDLE_LOADER_PROVIDER,
 				_resourceBundleLoaderProvider);
+
+			renderRequest.setAttribute(
+				ConfigurationAdminWebKeys.CONFIGURATION_CATEGORIES,
+				ListUtil.fromArray(new String[] {"search-results"}));
+
+			renderRequest.setAttribute(
+				ConfigurationAdminWebKeys.CONFIGURATION_CATEGORY,
+				"search-results");
 		}
 		catch (Exception e) {
 			throw new PortletException(e);
