@@ -169,10 +169,7 @@
 		<setup-sdk />
 
 		<if>
-			<or>
-				<equals arg1="${app.server.type}" arg2="glassfish" />
-				<equals arg1="${app.server.type}" arg2="websphere" />
-			</or>
+			<equals arg1="${app.server.type}" arg2="websphere" />
 			<then>
 				<delete file="${app.server.portal.war.name}" />
 			</then>
@@ -221,22 +218,6 @@
 		<mkdir dir="${app.server.log.dir}" />
 		<mkdir dir="${app.server.temp.dir}" />
 		<mkdir dir="${app.server.work.dir}" />
-
-		<if>
-			<and>
-				<equals arg1="${app.server.type}" arg2="glassfish" />
-				<not>
-					<available file="${app.server.portal.dir}" type="dir" />
-				</not>
-			</and>
-			<then>
-				<move file="${app.server.portal.war.name}" tofile="${app.server.portal.war.name}-tmp" />
-
-				<mkdir dir="${app.server.portal.dir}" />
-
-				<unzip dest="${app.server.portal.dir}" src="${app.server.portal.war.name}-tmp" />
-			</then>
-		</if>
 
 		<ant dir="portal-web" inheritAll="false" target="war" />
 
@@ -356,19 +337,6 @@
 		</if>
 
 		<stopwatch action="elapsed" name="modules.stopwatch" />
-
-		<if>
-			<and>
-				<available file="${app.server.portal.dir}" type="dir" />
-				<available file="${app.server.portal.war.name}-tmp" type="file" />
-				<equals arg1="${app.server.type}" arg2="glassfish" />
-			</and>
-			<then>
-				<delete dir="${app.server.portal.dir}" />
-
-				<move file="${app.server.portal.war.name}-tmp" tofile="${app.server.portal.war.name}" />
-			</then>
-		</if>
 
 		<copy file="tools/osgi-marketplace-override-README.markdown" tofile="${liferay.home}/osgi/marketplace/override/README.markdown" />
 
@@ -501,10 +469,7 @@
 		</if>
 
 		<if>
-			<or>
-				<equals arg1="${app.server.type}" arg2="glassfish" />
-				<equals arg1="${app.server.type}" arg2="websphere" />
-			</or>
+			<equals arg1="${app.server.type}" arg2="websphere" />
 			<then>
 				<tstamp>
 					<format pattern="yyyyMMddkkmmssSSS" property="tstamp.value" />
