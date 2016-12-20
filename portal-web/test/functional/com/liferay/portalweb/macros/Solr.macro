@@ -54,6 +54,10 @@
 		<execute function="AssertConsoleTextPresent" value1="title_en_US:${searchTerm}" />
 	</command>
 
+	<command name="viewSolrReindexLogsInSolrAdmin">
+		<execute function="AssertElementPresent" locator1="//span[contains(.,'LogUpdateProcessor')]" />
+	</command>
+
 	<command name="viewSolrwithSolrCloudEnabledInConsole">
 		<execute function="AssertConsoleTextPresent" value1="Using default ZkCredentialsProvider" />
 		<execute function="AssertConsoleTextPresent" value1="Using default ZkACLProvider" />
