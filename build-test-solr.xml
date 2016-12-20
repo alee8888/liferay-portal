@@ -101,7 +101,7 @@ trustStorePath=${solr.dir}/server/etc/solr-ssl.keystore.jks</echo>
 					<then>
 						<exec dir="${solr.dir}/bin" executable="cmd" >
 							<arg value="/c" />
-							<arg value="solr create_core -c liferay -d ${solr.dir}/server/solr/liferay/conf" />
+							<arg value="solr create_core -p 8983 -c liferay -d ${solr.dir}/server/solr/liferay/conf" />
 						</exec>
 					</then>
 				</elseif>
@@ -300,7 +300,7 @@ trustStorePath=${solr.dir}/server/etc/solr-ssl.keystore.jks</echo>
 				<then>
 					<exec dir="${solr.dir}/bin" executable="cmd" spawn="true">
 						<arg value="/c" />
-						<arg value="solr -V" />
+						<arg value="solr start -V" />
 					</exec>
 				</then>
 			</elseif>
