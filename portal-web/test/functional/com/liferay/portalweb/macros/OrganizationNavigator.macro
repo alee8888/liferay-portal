@@ -1,0 +1,27 @@
+<definition>
+	<command name="gotoAssignUsers">
+		<execute function="Click" locator1="Button#PLUS" />
+
+		<execute function="AssertClick" locator1="MenuItem#ASSIGN_USERS" value1="Assign Users" />
+
+		<execute function="AssertElementPresent#assertVisible" locator1="Button#DONE" />
+
+		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
+	</command>	
+
+	<command name="gotoOrganization">
+		<execute function="Type" locator1="TextInput#SEARCH" value1="${searchToken}" />
+
+		<execute function="Click" locator1="Button#SUBMIT" />
+
+		<var name="key_orgName" value="${orgName}" />
+
+		<execute function="AssertTextEquals" locator1="UsersAndOrganizations#ORGANIZATION_TABLE_NAME" value1="${orgName}" />
+
+		<execute function="AssertClick" locator1="UsersAndOrganizations#ORGANIZATION_TABLE_NAME" value1="${orgName}" />
+
+		<execute macro="Breadcrumb#viewActiveEntry">
+			<var name="breadcrumbName" value="${orgName}" />
+		</execute>
+	</command>	
+</definition>

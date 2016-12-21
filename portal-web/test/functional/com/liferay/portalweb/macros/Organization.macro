@@ -117,18 +117,12 @@
 	</command>
 
 	<command name="addMemberCP">
-		<execute macro="Organization#gotoCP">
+		<execute macro="OrganizationNavigator#gotoOrganization">
 			<var name="orgName" value="${orgName}" />
-			<var name="searchToken" value="Organization" />
+			<var name="searchToken" value="${orgName}" />
 		</execute>
 
-		<execute function="Click" locator1="Button#PLUS" />
-
-		<execute function="AssertClick" locator1="MenuItem#ASSIGN_USERS" value1="Assign Users" />
-
-		<execute function="AssertElementPresent#assertVisible" locator1="Button#DONE" />
-
-		<execute function="SelectFrame" locator1="IFrame#DIALOG" />
+		<execute macro="OrganizationNavigator#gotoAssignUsers" />
 
 		<var name="key_userScreenName" value="${userScreenName}" />
 
@@ -584,22 +578,24 @@
 	</command>
 
 	<command name="removeMemberCP">
-		<execute macro="Organization#gotoActionsCmd">
+		<execute macro="OrganizationNavigator#gotoOrganization">
 			<var name="orgName" value="${orgName}" />
+			<var name="searchToken" value="${orgName}" />
 		</execute>
 
-		<var name="key_orgName" value="${orgName}" />
-
-		<execute function="AssertClick" locator1="MenuItem#ASSIGN_USERS" value1="Assign Users" />
+		<execute macro="OrganizationNavigator#gotoAssignUsers" />
 
 		<var name="key_userScreenName" value="${userScreenName}" />
 
-		<execute function="AssertClick" locator1="UsersAndOrganizationsAssignUsers#CURRENT_TAB" value1="Current" />
-
 		<execute function="AssertTextEquals" locator1="UsersAndOrganizationsAssignUsers#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
+
 		<execute function="Uncheck" locator1="UsersAndOrganizationsAssignUsers#USER_TABLE_CHECKBOX" />
 
-		<execute function="AssertClick" locator1="Button#UPDATE_ASSOCIATIONS" value1="Update Associations" />
+		<execute function="Pause" locator1="5000" />
+
+		<execute function="SelectFrameTop" />
+
+		<execute function="AssertClick#assertTextClickAtWaitForLastScript" locator1="Button#DONE" value1="Done" />
 
 		<execute macro="Alert#viewSuccessMessage" />
 
