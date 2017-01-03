@@ -270,6 +270,26 @@ trustStorePath=${solr.dir}/server/etc/solr-ssl.keystore.jks</echo>
 
 		<antcall target="start-solr-core" />
 
+		<get-testcase-property property.name="solr.logging.info.level" />
+
+		<if>
+			<equals arg1="${solr.logging.info.level}" arg2="true" />
+			<then>
+				<replace file="${solr.dir}/server/solr/solr.xml">
+					<replacetoken><![CDATA[</solr>]]></replacetoken>
+					<replacevalue expandproperties="true"><![CDATA[
+	<logging>
+		<str name="enabled">true</str>
+		<watcher>
+			<int name="size">100</int>
+			<str name="threshold">INFO</str>
+		</watcher>
+	</logging>
+</solr>]]></replacevalue>
+				</replace>
+			</then>
+		</if>
+
 		<create-solr-core />
 
 		<get-testcase-property property.name="solr.solrcloud.enabled" />
