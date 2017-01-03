@@ -1,7 +1,7 @@
 <definition component-name="portal-plugins-osgi">
 	<property name="portal.release" value="true" />
 	<property name="portal.upstream" value="true" />
-	<property name="testray.main.component.name" value="OSGi" />
+	<property name="testray.main.component.name" value="Elastic Search Impl" />
 
 	<set-up>
 		<execute macro="TestCase#setUpPortalInstance" />
