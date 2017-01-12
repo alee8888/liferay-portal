@@ -1049,30 +1049,6 @@
 		<execute function="AssertTextEquals" locator1="Message#EMPTY_INFO" value1="No roles were found." />
 	</command>
 
-	<command name="viewNoXSSCP">
-		<if>
-			<equals arg1="${roleType}" arg2="Organization" />
-			<then>
-				<execute function="AssertClick" locator1="MenuItem#ORGANIZATION_ROLES" value1="Organization Roles" />
-			</then>
-			<elseif>
-				<equals arg1="${roleType}" arg2="Site" />
-				<then>
-					<execute function="AssertClick" locator1="MenuItem#SITE_ROLES" value1="Site Roles" />
-				</then>
-			</elseif>
-			<else>
-				<execute function="AssertClick" locator1="MenuItem#REGULAR_ROLES" value1="Regular Roles" />
-			</else>
-		</if>
-
-		<var name="key_roleName" value="${roleName}" />
-
-		<execute function="AssertAlertNotPresent" />
-		<execute function="AssertTextEquals" locator1="Roles#ROLE_TABLE_TITLE" value1="${roleName}" />
-		<execute function="AssertTextEquals" locator1="Roles#ROLE_TABLE_DESCRIPTION" value1="${roleDescription}" />
-	</command>
-
 	<command name="viewPermissionCP">
 		<if>
 			<contains string="${permissionDefinitionKey}" substring="CONTROL_PANEL_GENERAL_PERMISSIONS" />
