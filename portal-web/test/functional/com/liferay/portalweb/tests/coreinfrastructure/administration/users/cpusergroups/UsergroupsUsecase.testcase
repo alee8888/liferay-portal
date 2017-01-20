@@ -389,9 +389,16 @@
 			<var name="portlet" value="Roles" />
 		</execute>
 
-		<execute macro="Role#assignMembersUserGroupsCP">
+		<execute macro="RoleNavigator#gotoAssignees">
 			<var name="roleTitle" value="Test UserGroup Role" />
-			<var name="userGroupName" value="UG UserGroup Name" />
+		</execute>
+
+		<execute macro="RoleNavigator#gotoAssigneeType">
+			<var name="assigneeType" value="User Groups" />
+		</execute>
+
+		<execute macro="Role#addAssignees">
+			<var name="assigneeName" value="UG UserGroup Name" />
 		</execute>
 
 		<execute macro="User#logoutPG" />
