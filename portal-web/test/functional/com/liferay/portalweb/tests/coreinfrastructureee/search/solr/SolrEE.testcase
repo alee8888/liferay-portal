@@ -33,25 +33,6 @@
 		</if>
 	</tear-down>
 
-	<command name="AssertReindexLoggedInSolrAdmin" priority="4">
-		<property name="index.on.startup" value="false" />
-		<property name="solr.logging.info.level" value="true" />
-
-		<execute macro="ProductMenu#gotoControlPanelConfiguration">
-			<var name="portlet" value="Server Administration" />
-		</execute>
-
-		<execute macro="ServerAdministration#executeServerResourcesActions">
-			<var name="actionsDescription" value="Reindex all search indexes." />
-		</execute>
-
-		<execute macro="Navigator#openSpecificURL">
-			<var name="url" value="http://localhost:8983/solr/#/~logging" />
-		</execute>
-
-		<execute macro="Solr#viewSolrReindexLogsInSolrAdmin" />
-	</command>
-
 	<command name="SearchAssetsScopeEverythingAcrossMultipleSites" priority="4">
 		<execute macro="ProductMenu#gotoControlPanelSites">
 			<var name="portlet" value="Sites" />
@@ -375,5 +356,24 @@
 			<var name="searchAssetTitle" value="Apple" />
 			<var name="searchAssetType" value="Message Boards Message" />
 		</execute>
+	</command>
+
+	<command name="ViewReindexAllSearchIndexesLoggingInSolrAdmin" priority="4">
+		<property name="index.on.startup" value="false" />
+		<property name="solr.logging.info.level" value="true" />
+
+		<execute macro="ProductMenu#gotoControlPanelConfiguration">
+			<var name="portlet" value="Server Administration" />
+		</execute>
+
+		<execute macro="ServerAdministration#executeServerResourcesActions">
+			<var name="actionsDescription" value="Reindex all search indexes." />
+		</execute>
+
+		<execute macro="Navigator#openSpecificURL">
+			<var name="url" value="http://localhost:8983/solr/#/~logging" />
+		</execute>
+
+		<execute macro="Solr#viewLoggerNameInSolrAdminLogging" />
 	</command>
 </definition>
