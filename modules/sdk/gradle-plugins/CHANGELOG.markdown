@@ -1876,6 +1876,41 @@ to version 2.0.32.
 - [LPS-72705]: Update the [Liferay Source Formatter] dependency to version
 1.0.421.
 
+## 3.4.2 - 2017-07-12
+
+### Added
+- [LPS-73525]: Add the ability to configure the `aspectJAgent` property in the
+`setUpTestableTomcat` task by setting the project property `aspectj.agent`.
+- [LPS-73525]: Add the ability to configure the `aspectJConfiguration` property
+in the `setUpTestableTomcat` task by setting the project property
+`aspectj.configuration`.
+
+### Changed
+- [LPS-73525]: Update the [Liferay Gradle Plugins Test Integration] dependency
+to version 2.0.0.
+
+### Removed
+- [LPS-73525]: The project properties `app.server.tomcat.setenv.gc.new` and
+`app.server.tomcat.setenv.gc.old` are no longer available.
+
+## 3.4.3 - 2017-07-13
+
+### Changed
+- [LPS-72705]: Update the [Liferay Gradle Plugins Source Formatter] dependency
+to version 2.0.33.
+- [LPS-72705]: Update the [Liferay Source Formatter] dependency to version
+1.0.422.
+- [LPS-73584]: Update the [Liferay Gradle Util] dependency to version 1.0.28.
+
+## 3.4.4 - 2017-07-13
+
+### Changed
+- [LPS-72705]: Update the [Liferay Gradle Plugins Source Formatter] dependency
+to version 2.0.34.
+- [LPS-72705]: Update the [Liferay Source Formatter] dependency to version
+1.0.423.
+- [LPS-73584]: Update the [Liferay Gradle Util] dependency to version 1.0.29.
+
 [Gradle Bundle Plugin]: https://github.com/TomDmitriev/gradle-bundle-plugin
 [Liferay Alloy Taglib]: https://github.com/liferay/alloy-taglibs
 [Liferay Ant BND]: https://github.com/liferay/liferay-portal/tree/master/modules/sdk/ant-bnd
@@ -2046,4 +2081,6 @@ to version 2.0.32.
 [LPS-73472]: https://issues.liferay.com/browse/LPS-73472
 [LPS-73489]: https://issues.liferay.com/browse/LPS-73489
 [LPS-73495]: https://issues.liferay.com/browse/LPS-73495
+[LPS-73525]: https://issues.liferay.com/browse/LPS-73525
+[LPS-73584]: https://issues.liferay.com/browse/LPS-73584
 [LRDOCS-3023]: https://issues.liferay.com/browse/LRDOCS-3023
