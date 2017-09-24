@@ -2168,7 +2168,7 @@ app.server.type=@{app.server.type}]]></echo>
 		<run-functional-test app.server.type="tcserver" database.type="mysql" />
 	</target>
 
-	<target name="functional-upgrade-tomcat80-db2-jdk8">
+	<target name="functional-upgrade-tomcat80-db2105-jdk8">
 		<run-functional-test app.server.type="tomcat" database.type="db2" />
 	</target>
 
