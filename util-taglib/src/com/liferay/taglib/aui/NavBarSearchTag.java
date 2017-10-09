@@ -71,9 +71,10 @@ public class NavBarSearchTag extends BaseNavBarSearchTag {
 
 	@Override
 	protected String getEndPage() {
-		if (Validator.isNotNull(getMarkupView())) {
-			return "/html/taglib/aui/nav_bar_search/" + getMarkupView() +
-				"/end.jsp";
+		String markupView = getMarkupView();
+
+		if (Validator.isNotNull(markupView) && !markupView.equals("lexicon")) {
+			return "/html/taglib/aui/nav_bar_search/" + markupView + "/end.jsp";
 		}
 
 		return "/html/taglib/aui/nav_bar_search/end.jsp";
@@ -94,8 +95,10 @@ public class NavBarSearchTag extends BaseNavBarSearchTag {
 
 	@Override
 	protected String getStartPage() {
-		if (Validator.isNotNull(getMarkupView())) {
-			return "/html/taglib/aui/nav_bar_search/" + getMarkupView() +
+		String markupView = getMarkupView();
+
+		if (Validator.isNotNull(markupView) && !markupView.equals("lexicon")) {
+			return "/html/taglib/aui/nav_bar_search/" + markupView +
 				"/start.jsp";
 		}
 
