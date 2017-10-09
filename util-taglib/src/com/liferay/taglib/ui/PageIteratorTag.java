@@ -147,7 +147,9 @@ public class PageIteratorTag extends IncludeTag {
 
 	@Override
 	protected String getStartPage() {
-		if (Validator.isNotNull(_markupView)) {
+		if (Validator.isNotNull(_markupView) &&
+			!_markupView.equals("lexicon")) {
+
 			return "/html/taglib/ui/page_iterator/" + _markupView +
 				"/start.jsp";
 		}
