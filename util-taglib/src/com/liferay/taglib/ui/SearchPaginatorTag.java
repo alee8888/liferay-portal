@@ -46,7 +46,9 @@ public class SearchPaginatorTag<R> extends SearchFormTag<R> {
 
 	@Override
 	protected String getPage() {
-		if (Validator.isNotNull(_markupView)) {
+		if (Validator.isNotNull(_markupView) &&
+			!_markupView.equals("lexicon")) {
+
 			return "/html/taglib/ui/search_paginator/" + _markupView +
 				"/page.jsp";
 		}
