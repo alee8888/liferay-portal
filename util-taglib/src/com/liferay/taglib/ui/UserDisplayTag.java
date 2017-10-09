@@ -176,7 +176,9 @@ public class UserDisplayTag extends TagSupport {
 			return _endPage;
 		}
 
-		if (Validator.isNotNull(_markupView)) {
+		if (Validator.isNotNull(_markupView) &&
+			!_markupView.equals("lexicon")) {
+
 			return "/html/taglib/ui/user_display/" + _markupView + "/end.jsp";
 		}
 
@@ -188,7 +190,9 @@ public class UserDisplayTag extends TagSupport {
 			return _startPage;
 		}
 
-		if (Validator.isNotNull(_markupView)) {
+		if (Validator.isNotNull(_markupView) &&
+			!_markupView.equals("lexicon")) {
+
 			return "/html/taglib/ui/user_display/" + _markupView + "/start.jsp";
 		}
 
