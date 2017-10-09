@@ -69,7 +69,9 @@ public class SearchIteratorTag<R> extends SearchPaginatorTag<R> {
 			displayStyle = DEFAULT_DISPLAY_STYLE;
 		}
 
-		if (Validator.isNotNull(_markupView)) {
+		if (Validator.isNotNull(_markupView) &&
+			!_markupView.equals("lexicon")) {
+
 			return "/html/taglib/ui/search_iterator/" + _markupView + "/" +
 				displayStyle + ".jsp";
 		}
