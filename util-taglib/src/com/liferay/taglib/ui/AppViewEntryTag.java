@@ -232,7 +232,9 @@ public class AppViewEntryTag extends IncludeTag {
 
 	@Override
 	protected String getPage() {
-		if (Validator.isNotNull(_markupView)) {
+		if (Validator.isNotNull(_markupView) &&
+			!_markupView.equals("lexicon")) {
+
 			return "/html/taglib/ui/app_view_entry/" + _markupView + "/" +
 				_displayStyle + ".jsp";
 		}
