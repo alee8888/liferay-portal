@@ -197,7 +197,9 @@ public class FormNavigatorTag extends IncludeTag {
 
 	@Override
 	protected String getPage() {
-		if (Validator.isNotNull(_markupView)) {
+		if (Validator.isNotNull(_markupView) &&
+			!_markupView.equals("lexicon")) {
+
 			return
 				"/html/taglib/ui/form_navigator/" + _markupView + "/page.jsp";
 		}
