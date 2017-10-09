@@ -1083,6 +1083,24 @@ another task with the same name is being executed in a parent project.
 - [LPS-74867]: Update the [Liferay Source Formatter] dependency to version
 1.0.470.
 
+## 2.3.0 - 2017-10-04
+
+### Added
+- [LPS-74314]: Add the property `fileExtensions` to `FormatSourceTask`.
+
+### Changed
+- [LPS-74314]: Update the [Liferay Source Formatter] dependency to version
+1.0.471.
+
+### Fixed
+- [LPS-74314]: Fix passing of the `baseDir` property to Source Formatter.
+
+## 2.3.1 - 2017-10-05
+
+### Changed
+- [LPS-75047]: Update the [Liferay Source Formatter] dependency to version
+1.0.472.
+
 [Liferay Source Formatter]: https://github.com/liferay/liferay-portal/tree/master/modules/util/source-formatter
 [LPS-52675]: https://issues.liferay.com/browse/LPS-52675
 [LPS-62970]: https://issues.liferay.com/browse/LPS-62970
@@ -1146,3 +1164,4 @@ another task with the same name is being executed in a parent project.
 [LPS-74738]: https://issues.liferay.com/browse/LPS-74738
 [LPS-74749]: https://issues.liferay.com/browse/LPS-74749
 [LPS-74867]: https://issues.liferay.com/browse/LPS-74867
+[LPS-75047]: https://issues.liferay.com/browse/LPS-75047
