@@ -56,7 +56,9 @@ public class SearchToggleTag extends IncludeTag {
 
 	@Override
 	protected String getEndPage() {
-		if (Validator.isNotNull(_markupView)) {
+		if (Validator.isNotNull(_markupView) &&
+			!_markupView.equals("lexicon")) {
+
 			return "/html/taglib/ui/search_toggle/" + _markupView + "/end.jsp";
 		}
 
@@ -65,7 +67,9 @@ public class SearchToggleTag extends IncludeTag {
 
 	@Override
 	protected String getStartPage() {
-		if (Validator.isNotNull(_markupView)) {
+		if (Validator.isNotNull(_markupView) &&
+			!_markupView.equals("lexicon")) {
+
 			return
 				"/html/taglib/ui/search_toggle/" + _markupView + "/start.jsp";
 		}
