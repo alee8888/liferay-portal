@@ -151,7 +151,9 @@ public class PanelTag extends IncludeTag {
 	@Override
 	protected String getEndPage() {
 		if (Validator.isNull(_endPage)) {
-			if (Validator.isNotNull(_markupView)) {
+			if (Validator.isNotNull(_markupView) &&
+				!_markupView.equals("lexicon")) {
+
 				return "/html/taglib/ui/panel/" + _markupView + "/end.jsp";
 			}
 
@@ -165,7 +167,9 @@ public class PanelTag extends IncludeTag {
 	@Override
 	protected String getStartPage() {
 		if (Validator.isNull(_startPage)) {
-			if (Validator.isNotNull(_markupView)) {
+			if (Validator.isNotNull(_markupView) &&
+				!_markupView.equals("lexicon")) {
+
 				return "/html/taglib/ui/panel/" + _markupView + "/start.jsp";
 			}
 
