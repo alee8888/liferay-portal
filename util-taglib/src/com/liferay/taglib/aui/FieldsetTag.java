@@ -52,8 +52,10 @@ public class FieldsetTag extends BaseFieldsetTag {
 
 	@Override
 	protected String getEndPage() {
-		if (Validator.isNotNull(getMarkupView())) {
-			return "/html/taglib/aui/fieldset/" + getMarkupView() + "/end.jsp";
+		String markupView = getMarkupView();
+
+		if (Validator.isNotNull(markupView) && !markupView.equals("lexicon")) {
+			return "/html/taglib/aui/fieldset/" + markupView + "/end.jsp";
 		}
 
 		return "/html/taglib/aui/fieldset/end.jsp";
@@ -61,9 +63,10 @@ public class FieldsetTag extends BaseFieldsetTag {
 
 	@Override
 	protected String getStartPage() {
-		if (Validator.isNotNull(getMarkupView())) {
-			return "/html/taglib/aui/fieldset/" + getMarkupView() +
-				"/start.jsp";
+		String markupView = getMarkupView();
+
+		if (Validator.isNotNull(markupView) && !markupView.equals("lexicon")) {
+			return "/html/taglib/aui/fieldset/" + markupView + "/start.jsp";
 		}
 
 		return "/html/taglib/aui/fieldset/start.jsp";
