@@ -92,7 +92,9 @@ public class InputSearchTag extends BaseValidatorTagSupport {
 
 	@Override
 	protected String getPage() {
-		if (Validator.isNotNull(_markupView)) {
+		if (Validator.isNotNull(_markupView) &&
+			!_markupView.equals("lexicon")) {
+
 			return "/html/taglib/ui/input_search/" + _markupView + "/page.jsp";
 		}
 
