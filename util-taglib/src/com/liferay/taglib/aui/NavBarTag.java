@@ -72,7 +72,7 @@ public class NavBarTag extends BaseNavBarTag implements BodyTag {
 	protected String getPage() {
 		String markupView = getMarkupView();
 
-		if (Validator.isNotNull(markupView)) {
+		if (Validator.isNotNull(markupView) && !markupView.equals("lexicon")) {
 			return "/html/taglib/aui/nav_bar/" + markupView + "/page.jsp";
 		}
 
