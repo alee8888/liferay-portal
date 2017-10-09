@@ -251,7 +251,9 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 			return _endPage;
 		}
 
-		if (Validator.isNotNull(_markupView)) {
+		if (Validator.isNotNull(_markupView) &&
+			!_markupView.equals("lexicon")) {
+
 			return "/html/taglib/ui/icon_menu/" + _markupView + "/end.jsp";
 		}
 
@@ -263,7 +265,9 @@ public class IconMenuTag extends BaseBodyTagSupport implements BodyTag {
 			return _startPage;
 		}
 
-		if (Validator.isNotNull(_markupView)) {
+		if (Validator.isNotNull(_markupView) &&
+			!_markupView.equals("lexicon")) {
+
 			return "/html/taglib/ui/icon_menu/" + _markupView + "/start.jsp";
 		}
 
