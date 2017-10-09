@@ -156,8 +156,10 @@ public class NavTag extends BaseNavTag implements BodyTag {
 
 	@Override
 	protected String getPage() {
-		if (Validator.isNotNull(getMarkupView())) {
-			return "/html/taglib/aui/nav/" + getMarkupView() + "/page.jsp";
+		String markupView = getMarkupView();
+
+		if (Validator.isNotNull(markupView) && !markupView.equals("lexicon")) {
+			return "/html/taglib/aui/nav/" + markupView + "/page.jsp";
 		}
 
 		return "/html/taglib/aui/nav/page.jsp";
