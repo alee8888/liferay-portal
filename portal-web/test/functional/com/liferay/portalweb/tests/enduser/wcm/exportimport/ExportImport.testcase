@@ -367,7 +367,7 @@
 		</execute>
 
 		<execute macro="ApplicationDisplayTemplates#selectPortletADT">
-			<var name="adtType" value="Blogs" />
+			<var name="templateName" value="Blogs Test ADT" />
 		</execute>
 
 		<execute macro="Navigator#gotoPage">
@@ -708,7 +708,9 @@
 			<var name="entryTitle" value="Blogs Entry Title" />
 		</execute>
 
-		<execute function="Click#pauseClickAt" locator1="AlloyEditor#CONTENT_FIELD" />
+		<execute function="Click#pauseClickAt" locator1="AlloyEditor#EDITOR">
+			<var name="key_editor" value="content" />
+		</execute>
 
 		<execute function="Click" locator1="AlloyEditor#CONTENT_ADD_BUTTON" />
 
