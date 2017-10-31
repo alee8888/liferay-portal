@@ -40,7 +40,6 @@
 			<var name="idpInitiatedSSOURL" value="${portalURL}/c/portal/saml/sso?entityId=samlsp&amp;RelayState=http://www.able.com:9080" />
 			<var name="password" value="test" />
 			<var name="rememberMeChecked" value="false" />
-			<var name="samlEnabled" value="true" />
 			<var name="spURL" value="http://www.able.com:9080/" />
 			<var name="userEmailAddress" value="test@liferay.com" />
 		</execute>
@@ -87,7 +86,6 @@
 			<var name="idpInitiatedSSOURL" value="${portalURL}/c/portal/saml/sso?entityId=samlsp&amp;RelayState=http://www.able.com:9080" />
 			<var name="password" value="test" />
 			<var name="rememberMeChecked" value="true" />
-			<var name="samlEnabled" value="true" />
 			<var name="spURL" value="http://www.able.com:9080/" />
 			<var name="userEmailAddress" value="test@liferay.com" />
 		</execute>
@@ -150,7 +148,6 @@
 			<var name="idpInitiatedSSOURL" value="${portalURL}/c/portal/saml/sso?entityId=samlsp&amp;RelayState=http://www.able.com:9080" />
 			<var name="password" value="test" />
 			<var name="rememberMeChecked" value="true" />
-			<var name="samlEnabled" value="true" />
 			<var name="spURL" value="http://www.able.com:9080/" />
 			<var name="userEmailAddress" value="test@liferay.com" />
 		</execute>
