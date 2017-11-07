@@ -29,7 +29,7 @@
 		</if>
 	</tear-down>
 
-	<command name="ActivateUserActions" priority="5">
+	<command name="ViewLoginForActivatedUser" priority="5">
 		<property name="portal.acceptance" value="pending" />
 		<property name="testray.component.names" value="Training" />
 
@@ -83,11 +83,7 @@
 
 		<execute macro="User#logoutPG" />
 
-		<execute macro="User#loginPG">
-			<var name="password" value="test" />
-			<var name="userEmailAddress" value="test@liferay.com" />
-			<var name="userScreenName" value="usersn" />
-		</execute>
+		<execute macro="User#loginUserPG" />
 	</command>
 
 	<command name="AddMember" priority="5">
