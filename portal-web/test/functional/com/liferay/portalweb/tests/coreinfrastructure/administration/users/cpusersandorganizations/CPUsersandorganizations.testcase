@@ -1228,7 +1228,7 @@
 		</execute>
 	</command>
 
-	<command name="DeactivateUserActions" priority="4">
+	<command name="ViewInvalidLoginForDeactivatedUserViaActionsMenu" priority="4">
 		<execute macro="ProductMenu#gotoPortlet">
 			<var name="category" value="Users" />
 			<var name="panel" value="Control Panel" />
@@ -1272,11 +1272,7 @@
 			<var name="userEmailAddress" value="userea@liferay.com" />
 		</execute>
 
-		<execute macro="User#loginPG">
-			<var name="password" value="test" />
-			<var name="userEmailAddress" value="test@liferay.com" />
-			<var name="userScreenName" value="usersn" />
-		</execute>
+		<execute macro="User#loginUserPG" />
 	</command>
 
 	<command name="DeactivateUserDeactivateButton" priority="4">
