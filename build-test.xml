@@ -9849,6 +9849,12 @@ module.framework.properties.blacklist.portal.profile.names=${blacklist.portal.pr
 			</then>
 		</if>
 
+		<echo>###</echo>
+		<echo>### Disabling HTTP for Elasticsearch</echo>
+		<echo>###</echo>
+
+		<echo file="${liferay.home}/osgi/configs/com.liferay.portal.search.elasticsearch.configuration.ElasticsearchConfiguration.config">httpEnabled=B"false"</echo>
+
 		<get-testcase-property property.name="solr.enabled" />
 
 		<if>
