@@ -100,7 +100,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="userEmailAddress" value="userea@liferay.com" />
 			<var name="userScreenName" value="usersn" />
 		</execute>
@@ -341,7 +341,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="userEmailAddress" value="userea1@liferay.com" />
 			<var name="userScreenName" value="usersn1" />
 		</execute>
@@ -362,7 +362,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="userEmailAddress" value="userea2@liferay.com" />
 			<var name="userScreenName" value="usersn2" />
 		</execute>
@@ -373,7 +373,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="userEmailAddress" value="userea3@liferay.com" />
 			<var name="userScreenName" value="usersn3" />
 		</execute>
@@ -933,7 +933,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="userEmailAddress" value="userea1@liferay.com" />
 			<var name="userScreenName" value="usersn1" />
 		</execute>
@@ -1299,7 +1299,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="newPassword" value="tryingHARD" />
 			<var name="resetPassword" value="tryingHARDER" />
 			<var name="syntaxCheckingEnabled" value="true" />
@@ -1333,7 +1333,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="newPassword" value="abcABC" />
 			<var name="resetPassword" value="abcdABCD" />
 			<var name="syntaxCheckingEnabled" value="true" />
@@ -1347,7 +1347,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="newPassword" value="123ABC" />
 			<var name="resetPassword" value="1234ABCD" />
 			<var name="syntaxCheckingEnabled" value="true" />
@@ -1420,7 +1420,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="newPassword" value="12ABcd" />
 			<var name="resetPassword" value="123ABcd" />
 			<var name="syntaxCheckingEnabled" value="true" />
@@ -1477,7 +1477,7 @@
 
 		<execute macro="Navigator#gotoBack" />
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="userEmailAddress" value="userea1@liferay.com" />
 			<var name="userScreenName" value="usersn1" />
 		</execute>
@@ -1497,7 +1497,7 @@
 
 		<execute macro="Navigator#gotoBack" />
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="userEmailAddress" value="userea2@liferay.com" />
 			<var name="userScreenName" value="usersn2" />
 		</execute>
