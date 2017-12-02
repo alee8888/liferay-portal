@@ -2178,7 +2178,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="password" value="password" />
 			<var name="userEmailAddress" value="userea@liferay.com" />
 			<var name="userScreenName" value="usersn" />
@@ -2337,7 +2337,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="userEmailAddress" value="userea@liferay.com" />
 			<var name="userScreenName" value="usersn" />
 		</execute>
@@ -2850,7 +2850,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="password" value="password" />
 			<var name="userEmailAddress" value="poweruser@liferay.com" />
 			<var name="userScreenName" value="poweruser" />
@@ -2875,7 +2875,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="password" value="password" />
 			<var name="userEmailAddress" value="user1@liferay.com" />
 			<var name="userScreenName" value="usersn1" />
@@ -2900,7 +2900,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="password" value="password" />
 			<var name="userEmailAddress" value="user2@liferay.com" />
 			<var name="userScreenName" value="usersn2" />

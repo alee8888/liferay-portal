@@ -233,7 +233,7 @@
 				<var name="portlet" value="Users and Organizations" />
 			</execute>
 
-			<execute macro="User#editPasswordCP">
+			<execute macro="User#editPasswordAndReset">
 				<var name="userEmailAddress" value="user${number}@liferay.com" />
 				<var name="userScreenName" value="usersn${number}" />
 			</execute>
@@ -1552,7 +1552,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="userEmailAddress" value="test1@liferay.com" />
 			<var name="userScreenName" value="test1test" />
 		</execute>

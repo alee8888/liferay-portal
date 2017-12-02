@@ -149,7 +149,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="password" value="password" />
 			<var name="userEmailAddress" value="userea@liferay.com" />
 			<var name="userScreenName" value="usersn" />
@@ -307,7 +307,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="password" value="password" />
 			<var name="userEmailAddress" value="userea@liferay.com" />
 			<var name="userScreenName" value="usersn" />
@@ -520,7 +520,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="password" value="password" />
 			<var name="userEmailAddress" value="userea@liferay.com" />
 			<var name="userScreenName" value="usersn" />
@@ -868,7 +868,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="password" value="password" />
 			<var name="userEmailAddress" value="userea@liferay.com" />
 			<var name="userScreenName" value="usersn" />
@@ -1206,7 +1206,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="password" value="password" />
 			<var name="userEmailAddress" value="contentcreator@liferay.com" />
 			<var name="userScreenName" value="contentcreator" />
@@ -1283,7 +1283,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="password" value="password" />
 			<var name="userEmailAddress" value="contentapprover@liferay.com" />
 			<var name="userScreenName" value="contentapprover" />
@@ -1509,7 +1509,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="password" value="password" />
 			<var name="userEmailAddress" value="userea@liferay.com" />
 			<var name="userScreenName" value="usersn" />
