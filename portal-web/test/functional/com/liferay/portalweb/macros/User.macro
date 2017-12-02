@@ -1264,14 +1264,12 @@
 		<execute macro="Alert#viewSuccessMessage" />
 	</command>
 
-	<command name="editPasswordCP">
-		<var name="key_userScreenName" value="${userScreenName}" />
-
+	<command name="editPasswordAndReset">
 		<execute function="Pause" locator1="1000" />
 
-		<execute function="AssertTextEquals" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
-
-		<execute function="AssertClick" locator1="UsersAndOrganizations#USER_TABLE_SCREEN_NAME" value1="${userScreenName}" />
+		<execute macro="User#gotoEditCP">
+			<var name="userScreenName" value="${userScreenName}" />
+		</execute>
 
 		<execute function="Pause" locator1="3000" />
 
@@ -1284,14 +1282,9 @@
 			</then>
 		</if>
 
-		<execute macro="Panel#expandPanel">
-			<var name="panelHeading" value="Password" />
+		<execute macro="User#editPasswordCP">
+			<var name="newPassword" value="${newPassword}" />
 		</execute>
-
-		<execute function="Type" locator1="UsersAndOrganizationsEditUser#PASSWORD_NEW_PASSWORD_FIELD" value1="${newPassword}" />
-		<execute function="Type" locator1="UsersAndOrganizationsEditUser#PASSWORD_ENTER_AGAIN_FIELD" value1="${newPassword}" />
-
-		<execute macro="PortletEntry#save" />
 
 		<execute macro="User#logoutPG" />
 
@@ -1308,12 +1301,21 @@
 		<execute macro="User#logoutPG" />
 
 		<execute macro="User#loginPG">
-			<var name="authenticationMethod" value="${authenticationMethod}" />
 			<var name="nodePort" value="${nodePort}" />
 			<var name="password" value="test" />
 			<var name="userEmailAddress" value="test@liferay.com" />
-			<var name="userScreenName" value="${userScreenName}" />
 		</execute>
+	</command>
+
+	<command name="editPasswordCP">
+		<execute macro="Panel#expandPanel">
+			<var name="panelHeading" value="Password" />
+		</execute>
+
+		<execute function="Type" locator1="UsersAndOrganizationsEditUser#PASSWORD_NEW_PASSWORD_FIELD" value1="${newPassword}" />
+		<execute function="Type" locator1="UsersAndOrganizationsEditUser#PASSWORD_ENTER_AGAIN_FIELD" value1="${newPassword}" />
+
+		<execute macro="PortletEntry#save" />
 	</command>
 
 	<command name="editPasswordInvalidCP">
