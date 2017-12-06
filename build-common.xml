@@ -245,29 +245,6 @@ Error-Prone was automatically installed. Please rerun your task.
 		</condition>
 	</fail>
 
-	<fail>
-		<condition>
-			<and>
-				<equals arg1="${microsoft.translator.subscription.key}" arg2="" />
-				<or>
-					<isset property="microsoft.translator.client.id" />
-					<isset property="microsoft.translator.client.secret" />
-				</or>
-			</and>
-		</condition>
-.
-
-Properties "microsoft.translator.client.id" and
-"microsoft.translator.client.secret" are deprecated. Please remove these
-properties, or set "microsoft.translator.subscription.key" instead, then rerun
-your task.
-
-Subscription to the Translator Text Translation API on Microsoft Cognitive
-Services is required. Basic subscriptions, up to 2 million characters a month,
-are free. See http://docs.microsofttranslator.com/text-translate.html for more
-information.
-	</fail>
-
 	<property name="whip.agent" value="-javaagent:${project.dir}/${junit.whip.jar}=${junit.whip.includes};${junit.whip.excludes}" />
 
 	<macrodef name="app-server-properties-reset">
@@ -1042,7 +1019,7 @@ information.
 								datatype="int"
 								operand1="${artifact.version.micro}"
 								operand2="1"
-								operation="add"
+								operation="+"
 								result="artifact.version.micro"
 							/>
 
@@ -1052,6 +1029,23 @@ information.
 								token="Bundle-Version: ${artifact.version}"
 								value="Bundle-Version: ${artifact.version.major.minor}.${artifact.version.micro}"
 							/>
+
+							<replaceregexp
+								file="bnd.bnd"
+								match="\Q/.bnd/ant-baseline-cache/com.liferay.${processed.artifact.name}-\E\d+\.\d+\.\d+\.jar"
+								replace="/.bnd/ant-baseline-cache/com.liferay.${processed.artifact.name}-${artifact.version.major.minor}.0.jar"
+							/>
+
+							<exec executable="git" failonerror="true">
+								<arg value="add" />
+								<arg value="bnd.bnd" />
+							</exec>
+
+							<exec executable="git" failonerror="true">
+								<arg value="commit" />
+								<arg value="-m" />
+								<arg value="artifact:ignore ${artifact.name} ${artifact.version} prep next" />
+							</exec>
 						</then>
 					</if>
 
@@ -1069,6 +1063,23 @@ information.
 
 							<echo file="${project.dir}/modules/.releng/${artifact.name}.properties">artifact.git.id=${artifact.git.id}
 artifact.url=${remote.repository.url}/com/liferay/portal/com.liferay.${processed.artifact.name}/${artifact.version}/com.liferay.${processed.artifact.name}-${artifact.version}.@{packaging}</echo>
+
+							<exec dir="${project.dir}/modules/.releng" executable="git" failonerror="true">
+								<arg value="add" />
+								<arg value="${artifact.name}.properties" />
+							</exec>
+
+							<exec executable="git" failonerror="true">
+								<arg value="commit" />
+								<arg value="-m" />
+								<arg value="artifact:ignore ${artifact.name} ${artifact.version} releng" />
+							</exec>
+
+							<gradle-execute dir="${project.dir}/modules" task="lockDependencyVersion">
+								<arg value="--build-file=releng.gradle" />
+								<arg value="-PdependencyName=com.liferay.${processed.artifact.name}" />
+								<arg value="-PdependencyVersion=${artifact.version.major.minor}.0" />
+							</gradle-execute>
 						</then>
 					</if>
 
@@ -1501,7 +1512,6 @@ rerun your task.
 					<propertyref name="timeout.app.server.wait" />
 					<propertyref name="upgrade.table.dir" />
 					<propertyref prefix="ivy.pom." />
-					<propertyref prefix="microsoft.translator." />
 					<propertyref prefix="nodejs.npm." />
 					<propertyref prefix="sonatype." />
 					<propertyref regex=".+\.ignore\.local$" />
@@ -1585,7 +1595,6 @@ rerun your task.
 					<propertyref name="-plugin" />
 					<propertyref name="-releaserepo" />
 					<propertyref prefix="ivy.pom." />
-					<propertyref prefix="microsoft.translator." />
 					<propertyref prefix="sonatype." />
 					<propertyref regex="^\s*app\.server\.(?:glassfish|jboss|jetty|jonas|resin|tcat|tcserver|tomcat|weblogic|websphere|wildfly).*\.dir" />
 				</propertyset>

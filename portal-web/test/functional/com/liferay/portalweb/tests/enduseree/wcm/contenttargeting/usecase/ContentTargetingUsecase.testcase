@@ -3178,7 +3178,7 @@
 				<var name="portlet" value="Users and Organizations" />
 			</execute>
 
-			<execute macro="User#editPasswordCP">
+			<execute macro="User#editPasswordAndReset">
 				<var name="userEmailAddress" value="${userScreenName}@liferay.com" />
 				<var name="userScreenName" value="${userScreenName}" />
 			</execute>
@@ -3739,7 +3739,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="password" value="password" />
 			<var name="userEmailAddress" value="female@liferay.com" />
 			<var name="userScreenName" value="female" />
@@ -3903,7 +3903,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="password" value="password" />
 			<var name="userEmailAddress" value="female@liferay.com" />
 			<var name="userScreenName" value="female" />
@@ -4120,7 +4120,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="userEmailAddress" value="userea@liferay.com" />
 			<var name="userScreenName" value="usersn" />
 		</execute>

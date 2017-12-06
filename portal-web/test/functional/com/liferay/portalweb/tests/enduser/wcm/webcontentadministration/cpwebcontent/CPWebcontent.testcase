@@ -1942,7 +1942,7 @@
 		</execute>
 
 		<execute macro="LexiconEntry#gotoEntry">
-			<var name="webContentTitle" value="WC WebContent Title" />
+			<var name="rowEntry" value="WC WebContent Title" />
 		</execute>
 
 		<execute macro="WebContent#editCP">
@@ -2821,7 +2821,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="userEmailAddress" value="userea@liferay.com" />
 			<var name="userScreenName" value="usersn" />
 		</execute>

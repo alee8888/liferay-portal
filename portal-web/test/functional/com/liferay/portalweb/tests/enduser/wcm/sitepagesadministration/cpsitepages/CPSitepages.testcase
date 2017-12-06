@@ -69,6 +69,8 @@
 
 			<execute macro="SitePages#addPublicPage">
 				<var name="pageName" value="${portlet} Full Page Application" />
+				<var name="portlet" value="${portlet}" />
+				<var name="sitePageType" value="Full Page Application" />
 			</execute>
 
 			<execute macro="Navigator#gotoPage">
@@ -956,7 +958,7 @@
 			<var name="portlet" value="Users and Organizations" />
 		</execute>
 
-		<execute macro="User#editPasswordCP">
+		<execute macro="User#editPasswordAndReset">
 			<var name="userEmailAddress" value="userea@liferay.com" />
 			<var name="userScreenName" value="usersn" />
 		</execute>
