@@ -10,6 +10,13 @@
 		</if>
 
 		<if>
+			<equals arg1="${searchAssetType}" arg2="Blogs Entry" />
+			<then>
+				<var name="typeURL" value="com.liferay.blogs.model.BlogsEntry" />
+			</then>
+		</if>
+
+		<if>
 			<equals arg1="${searchAssetType}" arg2="Web Content" />
 			<then>
 				<var name="typeURL" value="com.liferay.journal.model.JournalArticle" />
