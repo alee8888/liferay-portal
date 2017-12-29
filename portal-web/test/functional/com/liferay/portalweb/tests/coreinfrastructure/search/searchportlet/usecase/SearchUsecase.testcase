@@ -1500,7 +1500,9 @@
 
 		<execute function="AssertLocation" value1="${portalURL}/web/guest/search-page?keywordparameter=Blogs%20Entry%20Title" />
 
-		<execute function="Click" locator1="TypeFacet#BLOGS_ENTRY" />
+		<execute macro="SearchFacetPortlet#checkFacetOption">
+			<var name="facetOption" value="Blogs Entry" />
+		</execute>
 
 		<execute function="AssertLocation" value1="${portalURL}/web/guest/search-page?keywordparameter=Blogs%20Entry%20Title&amp;type=com.liferay.blogs.model.BlogsEntry" />
 	</command>
