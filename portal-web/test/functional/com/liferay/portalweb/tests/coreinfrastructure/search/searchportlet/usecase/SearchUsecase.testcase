@@ -1426,13 +1426,21 @@
 			<var name="searchTerm" value="Potato" />
 		</execute>
 
+		<execute macro="SearchFacetPortlet#checkFacetOption">
+			<var name="facetOption" value="Blogs Entry" />
+		</execute>
+
+		<execute macro="SearchFacetPortlet#assertSingleFacetURL">
+			<var name="searchAssetType" value="Blogs Entry" />
+			<var name="searchPage" value="Search Page" />
+			<var name="searchTerm" value="Potato" />
+		</execute>
+
+		<execute macro="SearchFacetPortlet#checkFacetOption">
+			<var name="facetOption" value="Document" />
+		</execute>
+
 		<var method="TestPropsUtil#get('portal.url')" name="portalURL" />
-
-		<execute function="Click" locator1="TypeFacet#BLOGS_ENTRY" />
-
-		<execute function="AssertLocation" value1="${portalURL}/web/guest/search-page?q=Potato&amp;type=com.liferay.blogs.model.BlogsEntry" />
-
-		<execute function="Click" locator1="TypeFacet#DOCUMENT" />
 
 		<execute function="AssertLocation" value1="${portalURL}/web/guest/search-page?q=Potato&amp;type=com.liferay.blogs.model.BlogsEntry&amp;type=com.liferay.document.library.kernel.model.DLFileEntry" />
 	</command>
