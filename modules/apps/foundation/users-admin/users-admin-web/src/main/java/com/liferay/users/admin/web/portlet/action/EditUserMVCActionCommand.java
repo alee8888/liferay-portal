@@ -144,10 +144,8 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 		int birthdayYear = ParamUtil.getInteger(actionRequest, "birthdayYear");
 		String comments = ParamUtil.getString(actionRequest, "comments");
 		String jobTitle = ParamUtil.getString(actionRequest, "jobTitle");
-		long[] groupIds = UsersAdminUtil.getGroupIds(actionRequest);
 		long[] organizationIds = UsersAdminUtil.getOrganizationIds(
 			actionRequest);
-		long[] userGroupIds = UsersAdminUtil.getUserGroupIds(actionRequest);
 		boolean sendEmail = true;
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
@@ -158,11 +156,10 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 			screenName, emailAddress, facebookId, null,
 			LocaleUtil.fromLanguageId(languageId), firstName, middleName,
 			lastName, prefixId, suffixId, male, birthdayMonth, birthdayDay,
-			birthdayYear, jobTitle, groupIds, organizationIds, null,
-			userGroupIds, new ArrayList<Address>(),
-			new ArrayList<EmailAddress>(), new ArrayList<Phone>(),
-			new ArrayList<Website>(), new ArrayList<AnnouncementsDelivery>(),
-			sendEmail, serviceContext);
+			birthdayYear, jobTitle, null, organizationIds, null, null,
+			new ArrayList<Address>(), new ArrayList<EmailAddress>(),
+			new ArrayList<Phone>(), new ArrayList<Website>(),
+			new ArrayList<AnnouncementsDelivery>(), sendEmail, serviceContext);
 
 		user = _userService.updateUser(
 			user.getUserId(), StringPool.BLANK, StringPool.BLANK,
@@ -171,9 +168,8 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 			user.getOpenId(), true, null, languageId, user.getTimeZoneId(),
 			user.getGreeting(), comments, firstName, middleName, lastName,
 			prefixId, suffixId, male, birthdayMonth, birthdayDay, birthdayYear,
-			null, null, null, null, null, jobTitle, groupIds, organizationIds,
-			null, null, userGroupIds, null, null, null, null, null,
-			serviceContext);
+			null, null, null, null, null, jobTitle, null, organizationIds, null,
+			null, null, null, null, null, null, null, serviceContext);
 
 		long publicLayoutSetPrototypeId = ParamUtil.getLong(
 			actionRequest, "publicLayoutSetPrototypeId");
@@ -525,10 +521,8 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 			user, actionRequest, "comments");
 		String jobTitle = BeanParamUtil.getString(
 			user, actionRequest, "jobTitle");
-		long[] groupIds = UsersAdminUtil.getGroupIds(actionRequest);
 		long[] organizationIds = UsersAdminUtil.getOrganizationIds(
 			actionRequest);
-		long[] userGroupIds = UsersAdminUtil.getUserGroupIds(actionRequest);
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			User.class.getName(), actionRequest);
@@ -540,9 +534,9 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 			user.getGreeting(), comments, firstName, middleName, lastName,
 			prefixId, suffixId, male, birthdayMonth, birthdayDay, birthdayYear,
 			contact.getSmsSn(), contact.getFacebookSn(), contact.getJabberSn(),
-			contact.getSkypeSn(), contact.getTwitterSn(), jobTitle, groupIds,
-			organizationIds, null, null, userGroupIds, null, null, null, null,
-			null, serviceContext);
+			contact.getSkypeSn(), contact.getTwitterSn(), jobTitle, null,
+			organizationIds, null, null, null, null, null, null, null, null,
+			serviceContext);
 
 		if (oldScreenName.equals(user.getScreenName())) {
 			oldScreenName = StringPool.BLANK;
