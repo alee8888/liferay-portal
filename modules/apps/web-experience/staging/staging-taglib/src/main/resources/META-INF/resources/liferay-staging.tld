@@ -107,6 +107,7 @@
 		</attribute>
 	</tag>
 	<tag>
+		<description>Displays the group name suffixed with <![CDATA[<code>(Staging)</code>]]> (e.g., Test (Staging)). This is useful for distinguishing a site as a staged group.</description>
 		<name>descriptive-name</name>
 		<tag-class>com.liferay.staging.taglib.servlet.taglib.DescriptiveNameTag</tag-class>
 		<body-content>JSP</body-content>
@@ -122,24 +123,30 @@
 		<tag-class>com.liferay.staging.taglib.servlet.taglib.ExportEntityTag</tag-class>
 		<body-content>JSP</body-content>
 		<attribute>
-			<description>The className of the entity that will be exported. Either className or classNameId should be passed.</description>
+			<description>The class name of the entity that will be exported. Either class name or class name ID should be passed.</description>
 			<name>className</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 		<attribute>
-			<description>The classNameId of the entity that will be exported. Either className or classNameId should be passed.</description>
+			<description>The class name ID of the entity that will be exported. Either class name or class name ID should be passed.</description>
 			<name>classNameId</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<type>long</type>
 		</attribute>
 		<attribute>
-			<description>The classPK of the entity that will be exported.</description>
-			<name>classPK</name>
-			<required>true</required>
+			<description>The group ID of the entity that will be exported.</description>
+			<name>groupId</name>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<type>long</type>
+		</attribute>
+		<attribute>
+			<description>The uuid of the entity that will be exported.</description>
+			<name>uuid</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>
 	<tag>
