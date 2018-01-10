@@ -19,7 +19,7 @@ import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.service.FragmentCollectionServiceUtil;
 import com.liferay.fragment.service.FragmentEntryServiceUtil;
-import com.liferay.fragment.service.permission.FragmentPermission;
+import com.liferay.fragment.web.internal.security.permission.FragmentPermission;
 import com.liferay.fragment.web.util.FragmentPortletUtil;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
@@ -53,6 +53,22 @@ public class FragmentDisplayContext {
 		_renderRequest = renderRequest;
 		_renderResponse = renderResponse;
 		_request = request;
+	}
+
+	public String getCssContent() throws PortalException {
+		if (Validator.isNotNull(_cssContent)) {
+			return _cssContent;
+		}
+
+		_cssContent = ParamUtil.getString(_request, "cssContent");
+
+		FragmentEntry fragmentEntry = getFragmentEntry();
+
+		if ((fragmentEntry != null) && Validator.isNull(_cssContent)) {
+			_cssContent = fragmentEntry.getCss();
+		}
+
+		return _cssContent;
 	}
 
 	public String getDisplayStyle() {
@@ -320,6 +336,38 @@ public class FragmentDisplayContext {
 		return fragmentEntry.getName();
 	}
 
+	public String getHtmlContent() throws PortalException {
+		if (Validator.isNotNull(_htmlContent)) {
+			return _htmlContent;
+		}
+
+		_htmlContent = ParamUtil.getString(_request, "htmlContent");
+
+		FragmentEntry fragmentEntry = getFragmentEntry();
+
+		if ((fragmentEntry != null) && Validator.isNull(_htmlContent)) {
+			_htmlContent = fragmentEntry.getHtml();
+		}
+
+		return _htmlContent;
+	}
+
+	public String getJsContent() throws PortalException {
+		if (Validator.isNotNull(_jsContent)) {
+			return _jsContent;
+		}
+
+		_jsContent = ParamUtil.getString(_request, "jsContent");
+
+		FragmentEntry fragmentEntry = getFragmentEntry();
+
+		if ((fragmentEntry != null) && Validator.isNull(_jsContent)) {
+			_jsContent = fragmentEntry.getJs();
+		}
+
+		return _jsContent;
+	}
+
 	public String getKeywords() {
 		if (_keywords != null) {
 			return _keywords;
@@ -397,7 +445,6 @@ public class FragmentDisplayContext {
 
 		if (FragmentPermission.contains(
 				themeDisplay.getPermissionChecker(),
-				FragmentPermission.RESOURCE_NAME, FragmentPortletKeys.FRAGMENT,
 				themeDisplay.getSiteGroupId(), actionId)) {
 
 			return true;
@@ -451,6 +498,7 @@ public class FragmentDisplayContext {
 		return false;
 	}
 
+	private String _cssContent;
 	private String _displayStyle;
 	private FragmentCollection _fragmentCollection;
 	private Long _fragmentCollectionId;
@@ -458,6 +506,8 @@ public class FragmentDisplayContext {
 	private SearchContainer _fragmentEntriesSearchContainer;
 	private FragmentEntry _fragmentEntry;
 	private Long _fragmentEntryId;
+	private String _htmlContent;
+	private String _jsContent;
 	private String _keywords;
 	private String _orderByCol;
 	private String _orderByType;
