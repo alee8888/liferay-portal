@@ -16,6 +16,7 @@ package com.liferay.user.associated.data.aggregator;
 
 import aQute.bnd.annotation.ProviderType;
 
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.user.associated.data.entity.UADEntity;
 
 import java.util.List;
@@ -30,6 +31,6 @@ public interface UADEntityAggregator {
 
 	public List<UADEntity> getUADEntities(long userId);
 
-	public UADEntity getUADEntity(String uadEntityId);
+	public UADEntity getUADEntity(String uadEntityId) throws PortalException;
 
 }
