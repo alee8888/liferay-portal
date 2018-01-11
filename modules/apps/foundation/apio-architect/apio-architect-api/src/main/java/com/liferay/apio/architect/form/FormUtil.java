@@ -14,16 +14,16 @@
 
 package com.liferay.apio.architect.form;
 
-import com.liferay.apio.architect.alias.form.FieldFormConsumer;
-import com.liferay.apio.architect.functional.Try;
+import static com.liferay.apio.architect.date.DateTransformer.asDate;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import com.liferay.apio.architect.alias.form.FieldFormBiConsumer;
+import com.liferay.apio.architect.functional.Try;
 
 import java.util.Date;
 import java.util.Map;
-import java.util.TimeZone;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import javax.ws.rs.BadRequestException;
 
@@ -48,7 +48,7 @@ public class FormUtil {
 	 * @return a field form consumer for optional strings
 	 * @review
 	 */
-	public static <T> FieldFormConsumer<T, Boolean> getOptionalBoolean(
+	public static <T> FieldFormBiConsumer<T, Boolean> getOptionalBoolean(
 		Map<String, Object> body, T t) {
 
 		return (key, function) -> _getBoolean(
@@ -65,7 +65,7 @@ public class FormUtil {
 	 * @return a date field form consumer for optional dates
 	 * @review
 	 */
-	public static <T> FieldFormConsumer<T, Date> getOptionalDate(
+	public static <T> FieldFormBiConsumer<T, Date> getOptionalDate(
 		Map<String, Object> body, T t) {
 
 		return (key, function) -> _getDate(body, key, false, function.apply(t));
@@ -81,11 +81,27 @@ public class FormUtil {
 	 * @return a field form consumer for optional double numbers
 	 * @review
 	 */
-	public static <T> FieldFormConsumer<T, Double> getOptionalDouble(
+	public static <T> FieldFormBiConsumer<T, Double> getOptionalDouble(
 		Map<String, Object> body, T t) {
 
 		return (key, function) -> _getDouble(
 			body, key, false, function.apply(t));
+	}
+
+	/**
+	 * Returns a stream containing the optional {@code FormField} extracted from
+	 * a map.
+	 *
+	 * @param  map the map whose keys are the {@code FormField} names
+	 * @param  fieldType the {@code FieldType} of the fields of this map
+	 * @return a stream containing the optional {@code FormField} extracted from
+	 *         the map
+	 * @review
+	 */
+	public static Stream<FormField> getOptionalFormFieldStream(
+		Map<String, ?> map, FieldType fieldType) {
+
+		return _getFormFieldStream(map, false, fieldType);
 	}
 
 	/**
@@ -98,7 +114,7 @@ public class FormUtil {
 	 * @return a field form consumer for optional long numbers
 	 * @review
 	 */
-	public static <T> FieldFormConsumer<T, Long> getOptionalLong(
+	public static <T> FieldFormBiConsumer<T, Long> getOptionalLong(
 		Map<String, Object> body, T t) {
 
 		return (key, function) -> _getLong(body, key, false, function.apply(t));
@@ -114,7 +130,7 @@ public class FormUtil {
 	 * @return a field form consumer for optional strings
 	 * @review
 	 */
-	public static <T> FieldFormConsumer<T, String> getOptionalString(
+	public static <T> FieldFormBiConsumer<T, String> getOptionalString(
 		Map<String, Object> body, T t) {
 
 		return (key, function) -> _getString(
@@ -131,7 +147,7 @@ public class FormUtil {
 	 * @return a date field form consumer for required booleans
 	 * @review
 	 */
-	public static <T> FieldFormConsumer<T, Boolean> getRequiredBoolean(
+	public static <T> FieldFormBiConsumer<T, Boolean> getRequiredBoolean(
 		Map<String, Object> body, T t) {
 
 		return (key, function) -> _getBoolean(
@@ -148,7 +164,7 @@ public class FormUtil {
 	 * @return a date field form consumer for required dates
 	 * @review
 	 */
-	public static <T> FieldFormConsumer<T, Date> getRequiredDate(
+	public static <T> FieldFormBiConsumer<T, Date> getRequiredDate(
 		Map<String, Object> body, T t) {
 
 		return (key, function) -> _getDate(body, key, true, function.apply(t));
@@ -165,11 +181,27 @@ public class FormUtil {
 	 * @return a date field form consumer for required double numbers
 	 * @review
 	 */
-	public static <T> FieldFormConsumer<T, Double> getRequiredDouble(
+	public static <T> FieldFormBiConsumer<T, Double> getRequiredDouble(
 		Map<String, Object> body, T t) {
 
 		return (key, function) -> _getDouble(
 			body, key, true, function.apply(t));
+	}
+
+	/**
+	 * Returns a stream containing the required {@code FormField} extracted from
+	 * a map.
+	 *
+	 * @param  map the map whose keys are the {@code FormField} names
+	 * @param  fieldType the {@code FieldType} of the fields of this map
+	 * @return a stream containing the required {@code FormField} extracted from
+	 *         the map
+	 * @review
+	 */
+	public static Stream<FormField> getRequiredFormFieldStream(
+		Map<String, ?> map, FieldType fieldType) {
+
+		return _getFormFieldStream(map, true, fieldType);
 	}
 
 	/**
@@ -183,7 +215,7 @@ public class FormUtil {
 	 * @return a date field form consumer for required long numbers
 	 * @review
 	 */
-	public static <T> FieldFormConsumer<T, Long> getRequiredLong(
+	public static <T> FieldFormBiConsumer<T, Long> getRequiredLong(
 		Map<String, Object> body, T t) {
 
 		return (key, function) -> _getLong(body, key, true, function.apply(t));
@@ -199,7 +231,7 @@ public class FormUtil {
 	 * @return a date field form consumer for required strings
 	 * @review
 	 */
-	public static <T> FieldFormConsumer<T, String> getRequiredString(
+	public static <T> FieldFormBiConsumer<T, String> getRequiredString(
 		Map<String, Object> body, T t) {
 
 		return (key, function) -> _getString(
@@ -232,15 +264,7 @@ public class FormUtil {
 		_getString(
 			body, key, required, message,
 			string -> {
-				TimeZone timeZone = TimeZone.getTimeZone("UTC");
-
-				DateFormat dateFormat = new SimpleDateFormat(
-					"yyyy-MM-dd'T'HH:mm'Z'");
-
-				dateFormat.setTimeZone(timeZone);
-
-				Try<Date> dateTry = Try.fromFallible(
-					() -> dateFormat.parse(string));
+				Try<Date> dateTry = asDate(string);
 
 				Date date = dateTry.orElseThrow(
 					() -> new BadRequestException(message));
@@ -275,6 +299,16 @@ public class FormUtil {
 		else if (required) {
 			throw new BadRequestException("Field \"" + key + "\" is required");
 		}
+	}
+
+	private static Stream<FormField> _getFormFieldStream(
+		Map<String, ?> map, Boolean required, FieldType fieldType) {
+
+		Set<String> keys = map.keySet();
+
+		Stream<String> stream = keys.stream();
+
+		return stream.map(name -> new FormField(name, required, fieldType));
 	}
 
 	private static void _getLong(

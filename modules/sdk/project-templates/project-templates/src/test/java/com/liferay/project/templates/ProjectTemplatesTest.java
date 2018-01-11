@@ -1176,6 +1176,8 @@ public class ProjectTemplatesTest {
 			gradleProjectDir,
 			"src/main/resources/META-INF/resources/View.es.js");
 
+		_testNotExists(gradleProjectDir, "gulpfile.js");
+
 		_testContains(
 			gradleProjectDir, "build.gradle",
 			"apply plugin: \"com.liferay.plugin\"");
@@ -1196,6 +1198,8 @@ public class ProjectTemplatesTest {
 		File mavenProjectDir = _buildTemplateWithMaven(
 			"soy-portlet", "foo", "com.test", "-DclassName=Foo",
 			"-Dpackage=com.liferay.test");
+
+		_testExists(mavenProjectDir, "gulpfile.js");
 
 		String gradleBundleFileName = "build/libs/com.liferay.test-1.0.0.jar";
 		String mavenBundleFileName = "target/foo-1.0.0.jar";
@@ -2398,8 +2402,10 @@ public class ProjectTemplatesTest {
 				zipFile1 = new ZipFile(warFile1);
 				zipFile2 = new ZipFile(warFile2);
 
-				for (String change : changed.keySet()) {
-					ZipArchiveEntry[] zipArchiveEntries = changed.get(change);
+				for (Map.Entry<String, ZipArchiveEntry[]> entry :
+						changed.entrySet()) {
+
+					ZipArchiveEntry[] zipArchiveEntries = entry.getValue();
 
 					ZipArchiveEntry zipArchiveEntry1 = zipArchiveEntries[0];
 					ZipArchiveEntry zipArchiveEntry2 = zipArchiveEntries[0];
@@ -2541,6 +2547,29 @@ public class ProjectTemplatesTest {
 
 		File projectDir = _buildTemplateWithGradle(template, name);
 
+		_testNotContains(
+			projectDir, "src/main/resources/META-INF/resources/init.jsp",
+			"<%@ page import=\"" + packageName + ".constants." + className +
+				"WebKeys\" %>");
+		_testNotContains(
+			projectDir, "src/main/resources/META-INF/resources/view.jsp",
+			"<aui:script require=\"<%= bootstrapRequire %>\">",
+			bootstrapRequire);
+
+		String packagePath = packageName.replaceAll("\\.", "\\/");
+
+		_testNotExists(
+			projectDir,
+			"src/main/java/" + packagePath + "/constants/" + className +
+				"WebKeys.java");
+
+		File tempDir = projectDir.getParentFile();
+
+		FileUtil.deleteDir(tempDir.toPath());
+
+		projectDir = _buildTemplateWithGradle(
+			template, name, "--liferayVersion", "7.1");
+
 		_testContains(
 			projectDir, "src/main/resources/META-INF/resources/init.jsp",
 			"<%@ page import=\"" + packageName + ".constants." + className +
@@ -2549,6 +2578,11 @@ public class ProjectTemplatesTest {
 			projectDir, "src/main/resources/META-INF/resources/view.jsp",
 			"<aui:script require=\"<%= bootstrapRequire %>\">",
 			bootstrapRequire);
+
+		_testExists(
+			projectDir,
+			"src/main/java/" + packagePath + "/constants/" + className +
+				"WebKeys.java");
 	}
 
 	private File _testBuildTemplatePortlet(

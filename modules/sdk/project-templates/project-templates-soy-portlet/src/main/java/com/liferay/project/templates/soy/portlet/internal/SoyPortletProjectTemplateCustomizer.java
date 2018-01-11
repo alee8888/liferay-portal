@@ -18,7 +18,6 @@ import com.liferay.project.templates.ProjectTemplateCustomizer;
 import com.liferay.project.templates.ProjectTemplatesArgs;
 
 import java.io.File;
-import java.io.IOException;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,33 +33,27 @@ public class SoyPortletProjectTemplateCustomizer
 
 	@Override
 	public void onAfterGenerateProject(
-		File destinationDir,
-		ArchetypeGenerationResult archetypeGenerationResult) {
+			ProjectTemplatesArgs projectTemplatesArgs, File destinationDir,
+			ArchetypeGenerationResult archetypeGenerationResult)
+		throws Exception {
 
-		if ((archetypeGenerationResult.getCause() == null) &&
-			_projectTemplateArgs.isGradle()) {
-
+		if (projectTemplatesArgs.isGradle()) {
 			Path destinationDirPath = destinationDir.toPath();
 
-			Path gulpfileJsPath = destinationDirPath.resolve("gulpfile.js");
+			Path projectDirPath = destinationDirPath.resolve(
+				projectTemplatesArgs.getName());
 
-			try {
-				Files.deleteIfExists(gulpfileJsPath);
-			}
-			catch (IOException ioe) {
-				archetypeGenerationResult.setCause(ioe);
-			}
+			Path gulpfileJsPath = projectDirPath.resolve("gulpfile.js");
+
+			Files.deleteIfExists(gulpfileJsPath);
 		}
 	}
 
 	@Override
 	public void onBeforeGenerateProject(
-		ProjectTemplatesArgs projectTemplatesArgs,
-		ArchetypeGenerationRequest archetypeGenerationRequest) {
-
-		_projectTemplateArgs = projectTemplatesArgs;
+			ProjectTemplatesArgs projectTemplatesArgs,
+			ArchetypeGenerationRequest archetypeGenerationRequest)
+		throws Exception {
 	}
-
-	private ProjectTemplatesArgs _projectTemplateArgs;
 
 }

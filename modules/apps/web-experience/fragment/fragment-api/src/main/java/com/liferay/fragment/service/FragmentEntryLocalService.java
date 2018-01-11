@@ -72,6 +72,10 @@ public interface FragmentEntryLocalService extends BaseLocalService,
 	public FragmentEntry addFragmentEntry(FragmentEntry fragmentEntry);
 
 	public FragmentEntry addFragmentEntry(long userId, long groupId,
+		long fragmentCollectionId, java.lang.String name,
+		ServiceContext serviceContext) throws PortalException;
+
+	public FragmentEntry addFragmentEntry(long userId, long groupId,
 		long fragmentCollectionId, java.lang.String name, java.lang.String css,
 		java.lang.String html, java.lang.String js,
 		ServiceContext serviceContext) throws PortalException;
@@ -217,6 +221,9 @@ public interface FragmentEntryLocalService extends BaseLocalService,
 	*/
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getFragmentEntriesCount();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getFragmentEntriesCount(long fragmentCollectionId);
 
 	/**
 	* Returns the fragment entry with the primary key.
