@@ -29,10 +29,10 @@ import com.liferay.blogs.exception.NoSuchEntryException;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalService;
 import com.liferay.blogs.service.BlogsEntryService;
-import com.liferay.blogs.util.BlogsEntryAttachmentFileEntryUtil;
 import com.liferay.blogs.util.BlogsEntryImageSelectorHelper;
 import com.liferay.document.library.kernel.exception.FileSizeException;
 import com.liferay.friendly.url.exception.DuplicateFriendlyURLEntryException;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.editor.EditorConstants;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -47,7 +47,6 @@ import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
-import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -67,7 +66,6 @@ import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -487,11 +485,14 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 				coverImageImageSelector, smallImageImageSelector,
 				serviceContext);
 
-			content = _updateContent(entry, content, themeDisplay);
+			String updatedContent = _updateContent(
+				entry, content, themeDisplay);
 
-			entry.setContent(content);
+			if (!content.equals(updatedContent)) {
+				entry.setContent(updatedContent);
 
-			_blogsEntryLocalService.updateBlogsEntry(entry);
+				_blogsEntryLocalService.updateBlogsEntry(entry);
+			}
 		}
 		else {
 
@@ -547,20 +548,11 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 			BlogsEntry entry, String content, ThemeDisplay themeDisplay)
 		throws PortalException {
 
-		Folder folder = _blogsEntryLocalService.addAttachmentsFolder(
-			themeDisplay.getUserId(), entry.getGroupId());
-
-		content = _attachmentContentUpdater.updateContent(
+		return _attachmentContentUpdater.updateContent(
 			content, ContentTypes.TEXT_HTML,
-			tempFileEntry ->
-				BlogsEntryAttachmentFileEntryUtil.
-					addBlogsEntryAttachmentFileEntry(
-						entry.getGroupId(), themeDisplay.getUserId(),
-						entry.getEntryId(), folder.getFolderId(),
-						tempFileEntry.getTitle(), tempFileEntry.getMimeType(),
-						tempFileEntry.getContentStream()));
-
-		return content;
+			tempFileEntry -> _blogsEntryLocalService.addAttachmentFileEntry(
+				entry, themeDisplay.getUserId(), tempFileEntry.getTitle(),
+				tempFileEntry.getMimeType(), tempFileEntry.getContentStream()));
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

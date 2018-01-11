@@ -97,8 +97,9 @@
 			<finder-column name="groupId" />
 			<finder-column name="fragmentCollectionId" />
 		</finder>
-		<finder name="G_N" return-type="FragmentEntry" unique="true">
+		<finder name="G_FCI_N" return-type="FragmentEntry" unique="true">
 			<finder-column name="groupId" />
+			<finder-column name="fragmentCollectionId" />
 			<finder-column name="name" />
 		</finder>
 		<finder name="G_FCI_LikeN" return-type="Collection">
@@ -155,6 +156,7 @@
 		<exception>DuplicateFragmentCollection</exception>
 		<exception>DuplicateFragmentEntry</exception>
 		<exception>FragmentCollectionName</exception>
+		<exception>FragmentEntryContent</exception>
 		<exception>FragmentEntryName</exception>
 		<exception>RequiredFragmentEntry</exception>
 	</exceptions>

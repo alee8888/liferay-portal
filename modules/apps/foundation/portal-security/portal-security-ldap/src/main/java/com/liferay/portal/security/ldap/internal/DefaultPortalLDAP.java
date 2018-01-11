@@ -15,6 +15,7 @@
 package com.liferay.portal.security.ldap.internal;
 
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
@@ -28,7 +29,6 @@ import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.Props;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.ldap.PortalLDAP;
@@ -39,6 +39,7 @@ import com.liferay.portal.security.ldap.configuration.SystemLDAPConfiguration;
 import com.liferay.portal.security.ldap.validator.LDAPFilterValidator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
@@ -653,8 +654,10 @@ public class DefaultPortalLDAP implements PortalLDAP {
 
 		PropertiesUtil.merge(userMappings, contactMappings);
 
+		Collection<Object> values = userMappings.values();
+
 		String[] mappedUserAttributeIds = ArrayUtil.toStringArray(
-			userMappings.values().toArray(new Object[userMappings.size()]));
+			values.toArray(new Object[userMappings.size()]));
 
 		Attributes attributes = _getAttributes(
 			ldapContext, fullDistinguishedName, mappedUserAttributeIds);
