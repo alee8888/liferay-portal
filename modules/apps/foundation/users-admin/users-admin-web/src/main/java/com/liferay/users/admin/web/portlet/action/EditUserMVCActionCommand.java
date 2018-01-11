@@ -16,24 +16,19 @@ package com.liferay.users.admin.web.portlet.action;
 
 import com.liferay.admin.kernel.util.PortalMyAccountApplicationType;
 import com.liferay.announcements.kernel.model.AnnouncementsDelivery;
-import com.liferay.announcements.kernel.model.AnnouncementsEntryConstants;
 import com.liferay.announcements.kernel.service.AnnouncementsDeliveryLocalService;
 import com.liferay.asset.kernel.exception.AssetCategoryException;
 import com.liferay.asset.kernel.exception.AssetTagException;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.bean.BeanParamUtil;
-import com.liferay.portal.kernel.exception.AddressCityException;
-import com.liferay.portal.kernel.exception.AddressStreetException;
-import com.liferay.portal.kernel.exception.AddressZipException;
 import com.liferay.portal.kernel.exception.CompanyMaxUsersException;
 import com.liferay.portal.kernel.exception.ContactBirthdayException;
 import com.liferay.portal.kernel.exception.ContactNameException;
 import com.liferay.portal.kernel.exception.EmailAddressException;
 import com.liferay.portal.kernel.exception.GroupFriendlyURLException;
-import com.liferay.portal.kernel.exception.NoSuchCountryException;
 import com.liferay.portal.kernel.exception.NoSuchListTypeException;
-import com.liferay.portal.kernel.exception.NoSuchRegionException;
 import com.liferay.portal.kernel.exception.NoSuchUserException;
 import com.liferay.portal.kernel.exception.PhoneNumberException;
 import com.liferay.portal.kernel.exception.PhoneNumberExtensionException;
@@ -41,7 +36,6 @@ import com.liferay.portal.kernel.exception.RequiredUserException;
 import com.liferay.portal.kernel.exception.UserEmailAddressException;
 import com.liferay.portal.kernel.exception.UserFieldException;
 import com.liferay.portal.kernel.exception.UserIdException;
-import com.liferay.portal.kernel.exception.UserPasswordException;
 import com.liferay.portal.kernel.exception.UserReminderQueryException;
 import com.liferay.portal.kernel.exception.UserScreenNameException;
 import com.liferay.portal.kernel.exception.UserSmsException;
@@ -56,7 +50,6 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.ListType;
 import com.liferay.portal.kernel.model.ListTypeConstants;
-import com.liferay.portal.kernel.model.PasswordPolicy;
 import com.liferay.portal.kernel.model.Phone;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroupRole;
@@ -87,19 +80,15 @@ import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.InvokerPortletImpl;
 import com.liferay.portlet.admin.util.AdminUtil;
-import com.liferay.portlet.announcements.model.impl.AnnouncementsDeliveryImpl;
 import com.liferay.sites.kernel.util.SitesUtil;
 import com.liferay.users.admin.constants.UsersAdminPortletKeys;
-import com.liferay.users.admin.kernel.util.UsersAdmin;
 import com.liferay.users.admin.kernel.util.UsersAdminUtil;
 
 import java.util.ArrayList;
@@ -142,21 +131,6 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		boolean autoPassword = ParamUtil.getBoolean(
-			actionRequest, "autoPassword", true);
-		String password1 = actionRequest.getParameter("password1");
-		String password2 = actionRequest.getParameter("password2");
-
-		String reminderQueryQuestion = ParamUtil.getString(
-			actionRequest, "reminderQueryQuestion");
-
-		if (reminderQueryQuestion.equals(UsersAdmin.CUSTOM_QUESTION)) {
-			reminderQueryQuestion = ParamUtil.getString(
-				actionRequest, "reminderQueryCustomQuestion");
-		}
-
-		String reminderQueryAnswer = ParamUtil.getString(
-			actionRequest, "reminderQueryAnswer");
 		boolean autoScreenName = ParamUtil.getBoolean(
 			actionRequest, "autoScreenName");
 		String screenName = ParamUtil.getString(actionRequest, "screenName");
@@ -165,8 +139,6 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 		long facebookId = 0;
 		String openId = ParamUtil.getString(actionRequest, "openId");
 		String languageId = ParamUtil.getString(actionRequest, "languageId");
-		String timeZoneId = ParamUtil.getString(actionRequest, "timeZoneId");
-		String greeting = ParamUtil.getString(actionRequest, "greeting");
 		String firstName = ParamUtil.getString(actionRequest, "firstName");
 		String middleName = ParamUtil.getString(actionRequest, "middleName");
 		String lastName = ParamUtil.getString(actionRequest, "lastName");
@@ -191,26 +163,24 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 		List<UserGroupRole> userGroupRoles = UsersAdminUtil.getUserGroupRoles(
 			actionRequest);
 		long[] userGroupIds = UsersAdminUtil.getUserGroupIds(actionRequest);
-		List<Address> addresses = UsersAdminUtil.getAddresses(actionRequest);
 		List<EmailAddress> emailAddresses = UsersAdminUtil.getEmailAddresses(
 			actionRequest);
 		List<Phone> phones = UsersAdminUtil.getPhones(actionRequest);
 		List<Website> websites = UsersAdminUtil.getWebsites(actionRequest);
-		List<AnnouncementsDelivery> announcementsDeliveries =
-			getAnnouncementsDeliveries(actionRequest);
 		boolean sendEmail = true;
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			User.class.getName(), actionRequest);
 
 		User user = _userService.addUser(
-			themeDisplay.getCompanyId(), autoPassword, password1, password2,
-			autoScreenName, screenName, emailAddress, facebookId, openId,
+			themeDisplay.getCompanyId(), true, null, null, autoScreenName,
+			screenName, emailAddress, facebookId, openId,
 			LocaleUtil.fromLanguageId(languageId), firstName, middleName,
 			lastName, prefixId, suffixId, male, birthdayMonth, birthdayDay,
 			birthdayYear, jobTitle, groupIds, organizationIds, roleIds,
-			userGroupIds, addresses, emailAddresses, phones, websites,
-			announcementsDeliveries, sendEmail, serviceContext);
+			userGroupIds, new ArrayList<Address>(), emailAddresses, phones,
+			websites, new ArrayList<AnnouncementsDelivery>(), sendEmail,
+			serviceContext);
 
 		if (!userGroupRoles.isEmpty()) {
 			for (UserGroupRole userGroupRole : userGroupRoles) {
@@ -219,15 +189,15 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 
 			user = _userService.updateUser(
 				user.getUserId(), StringPool.BLANK, StringPool.BLANK,
-				StringPool.BLANK, false, reminderQueryQuestion,
-				reminderQueryAnswer, user.getScreenName(),
-				user.getEmailAddress(), facebookId, openId, true, null,
-				languageId, timeZoneId, greeting, comments, firstName,
-				middleName, lastName, prefixId, suffixId, male, birthdayMonth,
-				birthdayDay, birthdayYear, smsSn, facebookSn, jabberSn, skypeSn,
-				twitterSn, jobTitle, groupIds, organizationIds, roleIds,
-				userGroupRoles, userGroupIds, addresses, emailAddresses, phones,
-				websites, announcementsDeliveries, serviceContext);
+				StringPool.BLANK, user.getPasswordReset(), null, null,
+				user.getScreenName(), user.getEmailAddress(), facebookId,
+				openId, true, null, languageId, user.getTimeZoneId(),
+				user.getGreeting(), comments, firstName, middleName, lastName,
+				prefixId, suffixId, male, birthdayMonth, birthdayDay,
+				birthdayYear, smsSn, facebookSn, jabberSn, skypeSn, twitterSn,
+				jobTitle, groupIds, organizationIds, roleIds, userGroupRoles,
+				userGroupIds, null, emailAddresses, phones, websites, null,
+				serviceContext);
 		}
 
 		long publicLayoutSetPrototypeId = ParamUtil.getLong(
@@ -396,10 +366,7 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 
 				mvcPath = "/error.jsp";
 			}
-			else if (e instanceof AddressCityException ||
-					 e instanceof AddressStreetException ||
-					 e instanceof AddressZipException ||
-					 e instanceof AssetCategoryException ||
+			else if (e instanceof AssetCategoryException ||
 					 e instanceof AssetTagException ||
 					 e instanceof CompanyMaxUsersException ||
 					 e instanceof ContactBirthdayException ||
@@ -407,16 +374,13 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 					 e instanceof EmailAddressException ||
 					 e instanceof GroupFriendlyURLException ||
 					 e instanceof MembershipPolicyException ||
-					 e instanceof NoSuchCountryException ||
 					 e instanceof NoSuchListTypeException ||
-					 e instanceof NoSuchRegionException ||
 					 e instanceof PhoneNumberException ||
 					 e instanceof PhoneNumberExtensionException ||
 					 e instanceof RequiredUserException ||
 					 e instanceof UserEmailAddressException ||
 					 e instanceof UserFieldException ||
 					 e instanceof UserIdException ||
-					 e instanceof UserPasswordException ||
 					 e instanceof UserReminderQueryException ||
 					 e instanceof UserScreenNameException ||
 					 e instanceof UserSmsException ||
@@ -434,30 +398,11 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 					SessionErrors.add(actionRequest, e.getClass(), e);
 				}
 
-				String password1 = actionRequest.getParameter("password1");
-				String password2 = actionRequest.getParameter("password2");
-
-				boolean submittedPassword = false;
-
-				if (!Validator.isBlank(password1) ||
-					!Validator.isBlank(password2)) {
-
-					submittedPassword = true;
-				}
-
 				if (e instanceof CompanyMaxUsersException ||
-					e instanceof RequiredUserException || submittedPassword) {
+					e instanceof RequiredUserException) {
 
 					String redirect = portal.escapeRedirect(
 						ParamUtil.getString(actionRequest, "redirect"));
-
-					if (submittedPassword) {
-						User user = portal.getSelectedUser(actionRequest);
-
-						redirect = http.setParameter(
-							redirect, actionResponse.getNamespace() + "p_u_i_d",
-							user.getUserId());
-					}
 
 					if (Validator.isNotNull(redirect)) {
 						sendRedirect(actionRequest, actionResponse, redirect);
@@ -474,43 +419,25 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
+	/**
+	* @deprecated As of 2.5.0, with no direct replacement
+	*/
+	@Deprecated
 	protected List<AnnouncementsDelivery> getAnnouncementsDeliveries(
 		ActionRequest actionRequest) {
 
-		List<AnnouncementsDelivery> announcementsDeliveries = new ArrayList<>();
-
-		for (String type : AnnouncementsEntryConstants.TYPES) {
-			boolean email = ParamUtil.getBoolean(
-				actionRequest, "announcementsType" + type + "Email");
-			boolean sms = ParamUtil.getBoolean(
-				actionRequest, "announcementsType" + type + "Sms");
-
-			AnnouncementsDelivery announcementsDelivery =
-				new AnnouncementsDeliveryImpl();
-
-			announcementsDelivery.setType(type);
-			announcementsDelivery.setEmail(email);
-			announcementsDelivery.setSms(sms);
-
-			announcementsDeliveries.add(announcementsDelivery);
-		}
-
-		return announcementsDeliveries;
+		return null;
 	}
 
+	/**
+	* @deprecated As of 2.5.0, with no direct replacement
+	*/
+	@Deprecated
 	protected List<AnnouncementsDelivery> getAnnouncementsDeliveries(
 			ActionRequest actionRequest, User user)
 		throws Exception {
 
-		if (actionRequest.getParameter(
-				"announcementsType" + AnnouncementsEntryConstants.TYPES[0] +
-					"Email") == null) {
-
-			return _announcementsDeliveryLocalService.getUserDeliveries(
-				user.getUserId());
-		}
-
-		return getAnnouncementsDeliveries(actionRequest);
+		return null;
 	}
 
 	protected long getListTypeId(
@@ -526,11 +453,12 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 		return listType.getListTypeId();
 	}
 
-	@Reference(unbind = "-")
+	/**
+	* @deprecated As of 2.5.0, with no direct replacement
+	*/
+	@Deprecated
 	protected void setAnnouncementsDeliveryLocalService(
 		AnnouncementsDeliveryLocalService announcementsDeliveryLocalService) {
-
-		_announcementsDeliveryLocalService = announcementsDeliveryLocalService;
 	}
 
 	@Reference(unbind = "-")
@@ -577,35 +505,6 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 		String oldPassword = AdminUtil.getUpdateUserPassword(
 			actionRequest, user.getUserId());
 
-		String newPassword1 = actionRequest.getParameter("password1");
-		String newPassword2 = actionRequest.getParameter("password2");
-
-		boolean passwordReset = false;
-
-		PasswordPolicy passwordPolicy = user.getPasswordPolicy();
-
-		if ((user.getLastLoginDate() == null) &&
-			((passwordPolicy == null) ||
-			 (passwordPolicy.isChangeable() &&
-			  passwordPolicy.isChangeRequired()))) {
-
-			passwordReset = true;
-		}
-		else {
-			passwordReset = ParamUtil.getBoolean(
-				actionRequest, "passwordReset");
-		}
-
-		String reminderQueryQuestion = BeanParamUtil.getString(
-			user, actionRequest, "reminderQueryQuestion");
-
-		if (reminderQueryQuestion.equals(UsersAdmin.CUSTOM_QUESTION)) {
-			reminderQueryQuestion = BeanParamUtil.getStringSilent(
-				user, actionRequest, "reminderQueryCustomQuestion");
-		}
-
-		String reminderQueryAnswer = BeanParamUtil.getString(
-			user, actionRequest, "reminderQueryAnswer");
 		String oldScreenName = user.getScreenName();
 		String screenName = BeanParamUtil.getString(
 			user, actionRequest, "screenName");
@@ -614,6 +513,7 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 			user, actionRequest, "emailAddress");
 		long facebookId = user.getFacebookId();
 		String openId = BeanParamUtil.getString(user, actionRequest, "openId");
+
 		boolean deleteLogo = ParamUtil.getBoolean(actionRequest, "deleteLogo");
 
 		byte[] portraitBytes = null;
@@ -628,10 +528,6 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 
 		String languageId = BeanParamUtil.getString(
 			user, actionRequest, "languageId");
-		String timeZoneId = BeanParamUtil.getString(
-			user, actionRequest, "timeZoneId");
-		String greeting = BeanParamUtil.getString(
-			user, actionRequest, "greeting");
 		String firstName = BeanParamUtil.getString(
 			user, actionRequest, "firstName");
 		String middleName = BeanParamUtil.getString(
@@ -685,30 +581,25 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 		}
 
 		long[] userGroupIds = UsersAdminUtil.getUserGroupIds(actionRequest);
-		List<Address> addresses = UsersAdminUtil.getAddresses(
-			actionRequest, user.getAddresses());
 		List<EmailAddress> emailAddresses = UsersAdminUtil.getEmailAddresses(
 			actionRequest, user.getEmailAddresses());
 		List<Phone> phones = UsersAdminUtil.getPhones(
 			actionRequest, user.getPhones());
 		List<Website> websites = UsersAdminUtil.getWebsites(
 			actionRequest, user.getWebsites());
-		List<AnnouncementsDelivery> announcementsDeliveries =
-			getAnnouncementsDeliveries(actionRequest, user);
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			User.class.getName(), actionRequest);
 
 		user = _userService.updateUser(
-			user.getUserId(), oldPassword, newPassword1, newPassword2,
-			passwordReset, reminderQueryQuestion, reminderQueryAnswer,
-			screenName, emailAddress, facebookId, openId, !deleteLogo,
-			portraitBytes, languageId, timeZoneId, greeting, comments,
-			firstName, middleName, lastName, prefixId, suffixId, male,
-			birthdayMonth, birthdayDay, birthdayYear, smsSn, facebookSn,
-			jabberSn, skypeSn, twitterSn, jobTitle, groupIds, organizationIds,
-			roleIds, userGroupRoles, userGroupIds, addresses, emailAddresses,
-			phones, websites, announcementsDeliveries, serviceContext);
+			user.getUserId(), oldPassword, null, null, user.getPasswordReset(),
+			null, null, screenName, emailAddress, facebookId, openId,
+			!deleteLogo, portraitBytes, languageId, user.getTimeZoneId(),
+			user.getGreeting(), comments, firstName, middleName, lastName,
+			prefixId, suffixId, male, birthdayMonth, birthdayDay, birthdayYear,
+			smsSn, facebookSn, jabberSn, skypeSn, twitterSn, jobTitle, groupIds,
+			organizationIds, roleIds, userGroupRoles, userGroupIds, null,
+			emailAddresses, phones, websites, null, serviceContext);
 
 		if (oldScreenName.equals(user.getScreenName())) {
 			oldScreenName = StringPool.BLANK;
@@ -737,16 +628,6 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 			PortletSession portletSession = actionRequest.getPortletSession();
 
 			InvokerPortletImpl.clearResponses(portletSession);
-
-			// Password
-
-			if (PropsValues.SESSION_STORE_PASSWORD &&
-				Validator.isNotNull(newPassword1)) {
-
-				portletSession.setAttribute(
-					WebKeys.USER_PASSWORD, newPassword1,
-					PortletSession.APPLICATION_SCOPE);
-			}
 
 			updateLanguageId = true;
 		}
@@ -831,8 +712,6 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 		return dynamicActionRequest;
 	}
 
-	private AnnouncementsDeliveryLocalService
-		_announcementsDeliveryLocalService;
 	private DLAppLocalService _dlAppLocalService;
 	private ListTypeLocalService _listTypeLocalService;
 	private UserService _userService;
