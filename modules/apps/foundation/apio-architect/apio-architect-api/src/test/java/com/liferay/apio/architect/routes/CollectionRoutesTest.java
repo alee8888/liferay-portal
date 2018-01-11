@@ -22,7 +22,6 @@ import static com.spotify.hamcrest.optional.OptionalMatchers.emptyOptional;
 
 import static java.util.Collections.singletonMap;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
@@ -30,6 +29,7 @@ import static org.hamcrest.core.Is.is;
 
 import com.liferay.apio.architect.alias.routes.CreateItemFunction;
 import com.liferay.apio.architect.alias.routes.GetPageFunction;
+import com.liferay.apio.architect.form.Form;
 import com.liferay.apio.architect.pagination.Page;
 import com.liferay.apio.architect.pagination.PageItems;
 import com.liferay.apio.architect.pagination.Pagination;
@@ -49,7 +49,8 @@ public class CollectionRoutesTest {
 
 	@Test
 	public void testEmptyBuilderBuildsEmptyRoutes() {
-		Builder<String> builder = new Builder<>(String.class, PROVIDE_FUNCTION);
+		Builder<String> builder = new Builder<>(
+			String.class, "name", PROVIDE_FUNCTION);
 
 		CollectionRoutes<String> collectionRoutes = builder.build();
 
@@ -66,7 +67,8 @@ public class CollectionRoutesTest {
 
 	@Test
 	public void testFiveParameterBuilderMethodsCreatesValidRoutes() {
-		Builder<String> builder = new Builder<>(String.class, PROVIDE_FUNCTION);
+		Builder<String> builder = new Builder<>(
+			String.class, "name", PROVIDE_FUNCTION);
 
 		CollectionRoutes<String> collectionRoutes = builder.addCreator(
 			this::_testAndReturnFourParameterCreatorRoute, String.class,
@@ -81,7 +83,8 @@ public class CollectionRoutesTest {
 
 	@Test
 	public void testFourParameterBuilderMethodsCreatesValidRoutes() {
-		Builder<String> builder = new Builder<>(String.class, PROVIDE_FUNCTION);
+		Builder<String> builder = new Builder<>(
+			String.class, "name", PROVIDE_FUNCTION);
 
 		CollectionRoutes<String> collectionRoutes = builder.addCreator(
 			this::_testAndReturnThreeParameterCreatorRoute, String.class,
@@ -96,7 +99,8 @@ public class CollectionRoutesTest {
 
 	@Test
 	public void testOneParameterBuilderMethodsCreatesValidRoutes() {
-		Builder<String> builder = new Builder<>(String.class, PROVIDE_FUNCTION);
+		Builder<String> builder = new Builder<>(
+			String.class, "name", PROVIDE_FUNCTION);
 
 		CollectionRoutes<String> collectionRoutes = builder.addCreator(
 			this::_testAndReturnNoParameterCreatorRoute, FORM_BUILDER_FUNCTION
@@ -109,7 +113,8 @@ public class CollectionRoutesTest {
 
 	@Test
 	public void testThreeParameterBuilderMethodsCreatesValidRoutes() {
-		Builder<String> builder = new Builder<>(String.class, PROVIDE_FUNCTION);
+		Builder<String> builder = new Builder<>(
+			String.class, "name", PROVIDE_FUNCTION);
 
 		CollectionRoutes<String> collectionRoutes = builder.addCreator(
 			this::_testAndReturnTwoParameterCreatorRoute, String.class,
@@ -124,7 +129,8 @@ public class CollectionRoutesTest {
 
 	@Test
 	public void testTwoParameterBuilderMethodsCreatesValidRoutes() {
-		Builder<String> builder = new Builder<>(String.class, PROVIDE_FUNCTION);
+		Builder<String> builder = new Builder<>(
+			String.class, "name", PROVIDE_FUNCTION);
 
 		CollectionRoutes<String> collectionRoutes = builder.addCreator(
 			this::_testAndReturnOneParameterCreatorRoute, String.class,
@@ -140,7 +146,7 @@ public class CollectionRoutesTest {
 		Map<String, Object> body, String string, Long aLong, Boolean aBoolean,
 		Integer integer) {
 
-		assertThat(integer, is(equalTo(2017)));
+		assertThat(integer, is(2017));
 
 		return _testAndReturnThreeParameterCreatorRoute(
 			body, string, aLong, aBoolean);
@@ -150,7 +156,7 @@ public class CollectionRoutesTest {
 		Pagination pagination, String string, Long aLong, Boolean aBoolean,
 		Integer integer) {
 
-		assertThat(integer, is(equalTo(2017)));
+		assertThat(integer, is(2017));
 
 		return _testAndReturnThreeParameterGetterRoute(
 			pagination, string, aLong, aBoolean);
@@ -159,7 +165,7 @@ public class CollectionRoutesTest {
 	private String _testAndReturnNoParameterCreatorRoute(
 		Map<String, Object> body) {
 
-		assertThat(body, is(equalTo(_body)));
+		assertThat(body, is(_body));
 
 		return "Apio";
 	}
@@ -167,7 +173,7 @@ public class CollectionRoutesTest {
 	private PageItems<String> _testAndReturnNoParameterGetterRoute(
 		Pagination pagination) {
 
-		assertThat(pagination, is(equalTo(PAGINATION)));
+		assertThat(pagination, is(PAGINATION));
 
 		return new PageItems<>(Collections.singletonList("Apio"), 1);
 	}
@@ -175,7 +181,7 @@ public class CollectionRoutesTest {
 	private String _testAndReturnOneParameterCreatorRoute(
 		Map<String, Object> body, String string) {
 
-		assertThat(string, is(equalTo("Apio")));
+		assertThat(string, is("Apio"));
 
 		return _testAndReturnNoParameterCreatorRoute(body);
 	}
@@ -183,7 +189,7 @@ public class CollectionRoutesTest {
 	private PageItems<String> _testAndReturnOneParameterGetterRoute(
 		Pagination pagination, String string) {
 
-		assertThat(string, is(equalTo("Apio")));
+		assertThat(string, is("Apio"));
 
 		return _testAndReturnNoParameterGetterRoute(pagination);
 	}
@@ -207,7 +213,7 @@ public class CollectionRoutesTest {
 	private String _testAndReturnTwoParameterCreatorRoute(
 		Map<String, Object> body, String string, Long aLong) {
 
-		assertThat(aLong, is(equalTo(42L)));
+		assertThat(aLong, is(42L));
 
 		return _testAndReturnOneParameterCreatorRoute(body, string);
 	}
@@ -215,13 +221,23 @@ public class CollectionRoutesTest {
 	private PageItems<String> _testAndReturnTwoParameterGetterRoute(
 		Pagination pagination, String string, Long aLong) {
 
-		assertThat(aLong, is(equalTo(42L)));
+		assertThat(aLong, is(42L));
 
 		return _testAndReturnOneParameterGetterRoute(pagination, string);
 	}
 
 	private void _testCollectionRoutes(
 		CollectionRoutes<String> collectionRoutes) {
+
+		Optional<Form> optional = collectionRoutes.getForm();
+
+		Form form = optional.get();
+
+		assertThat(form.id, is("c/name"));
+
+		Map body = (Map)form.get(_body);
+
+		assertThat(body, is(_body));
 
 		Optional<CreateItemFunction<String>> createItemFunctionOptional =
 			collectionRoutes.getCreateItemFunctionOptional();
@@ -235,8 +251,8 @@ public class CollectionRoutesTest {
 			_body
 		);
 
-		assertThat(singleModel.getModelClass(), is(equalTo(String.class)));
-		assertThat(singleModel.getModel(), is(equalTo("Apio")));
+		assertThat(singleModel.getModelClass(), is(String.class));
+		assertThat(singleModel.getModel(), is("Apio"));
 
 		Optional<GetPageFunction<String>> getPageFunctionOptional =
 			collectionRoutes.getGetPageFunctionOptional();
@@ -247,7 +263,7 @@ public class CollectionRoutesTest {
 
 		assertThat(page.getItems(), hasSize(1));
 		assertThat(page.getItems(), hasItem("Apio"));
-		assertThat(page.getTotalCount(), is(equalTo(1)));
+		assertThat(page.getTotalCount(), is(1));
 	}
 
 	private final Map<String, Object> _body = singletonMap("key", "value");

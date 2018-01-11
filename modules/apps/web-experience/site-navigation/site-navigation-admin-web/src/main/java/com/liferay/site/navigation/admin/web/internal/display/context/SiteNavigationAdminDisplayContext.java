@@ -33,13 +33,14 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.site.navigation.admin.web.internal.constants.SiteNavigationAdminPortletKeys;
+import com.liferay.site.navigation.admin.constants.SiteNavigationAdminPortletKeys;
 import com.liferay.site.navigation.admin.web.internal.constants.SiteNavigationAdminWebKeys;
+import com.liferay.site.navigation.admin.web.internal.security.permission.SiteNavigationPermission;
 import com.liferay.site.navigation.admin.web.internal.util.SiteNavigationMenuPortletUtil;
 import com.liferay.site.navigation.constants.SiteNavigationActionKeys;
 import com.liferay.site.navigation.model.SiteNavigationMenu;
+import com.liferay.site.navigation.service.SiteNavigationMenuLocalServiceUtil;
 import com.liferay.site.navigation.service.SiteNavigationMenuServiceUtil;
-import com.liferay.site.navigation.service.permission.SiteNavigationPermission;
 import com.liferay.site.navigation.type.SiteNavigationMenuItemType;
 import com.liferay.site.navigation.type.SiteNavigationMenuItemTypeRegistry;
 
@@ -224,6 +225,14 @@ public class SiteNavigationAdminDisplayContext {
 		return portletURL;
 	}
 
+	public SiteNavigationMenu getPrimarySiteNavigationMenu() {
+		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		return SiteNavigationMenuLocalServiceUtil.
+			fetchPrimarySiteNavigationMenu(themeDisplay.getScopeGroupId());
+	}
+
 	public SearchContainer getSearchContainer() throws Exception {
 		if (_searchContainer != null) {
 			return _searchContainer;
@@ -354,14 +363,26 @@ public class SiteNavigationAdminDisplayContext {
 		return _siteNavigationMenuItemTypeRegistry;
 	}
 
+	public boolean isNotPrimarySiteNavigationMenu() {
+		SiteNavigationMenu primarySiteNavigationMenu =
+			getPrimarySiteNavigationMenu();
+
+		if ((primarySiteNavigationMenu == null) ||
+			(primarySiteNavigationMenu.getSiteNavigationMenuId() ==
+				getSiteNavigationMenuId())) {
+
+			return false;
+		}
+
+		return true;
+	}
+
 	public boolean isShowAddButton() {
 		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		if (SiteNavigationPermission.contains(
 				themeDisplay.getPermissionChecker(),
-				SiteNavigationPermission.RESOURCE_NAME,
-				SiteNavigationAdminPortletKeys.SITE_NAVIGATION_ADMIN,
 				themeDisplay.getSiteGroupId(),
 				SiteNavigationActionKeys.ADD_SITE_NAVIGATION_MENU)) {
 

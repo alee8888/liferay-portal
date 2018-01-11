@@ -76,7 +76,7 @@ public class UpdateWorkflowDefinitionMVCActionCommand
 		catch (WorkflowException we) {
 			hideDefaultErrorMessage(actionRequest);
 
-			SessionErrors.add(actionRequest, we.getClass());
+			SessionErrors.add(actionRequest, we.getClass(), we);
 
 			return false;
 		}
@@ -92,9 +92,8 @@ public class UpdateWorkflowDefinitionMVCActionCommand
 	protected void addSuccessMessage(
 		ActionRequest actionRequest, ActionResponse actionResponse) {
 
-		ResourceBundle resourceBundle =
-			resourceBundleLoader.loadResourceBundle(
-				portal.getLocale(actionRequest));
+		ResourceBundle resourceBundle = resourceBundleLoader.loadResourceBundle(
+			portal.getLocale(actionRequest));
 
 		String successMessage = getSuccessMessage(resourceBundle);
 
@@ -118,6 +117,8 @@ public class UpdateWorkflowDefinitionMVCActionCommand
 			throw new WorkflowDefinitionTitleException();
 		}
 
+		String name = ParamUtil.getString(actionRequest, "name");
+
 		String content = ParamUtil.getString(actionRequest, "content");
 
 		if (Validator.isNull(content)) {
@@ -129,7 +130,7 @@ public class UpdateWorkflowDefinitionMVCActionCommand
 		WorkflowDefinition workflowDefinition =
 			workflowDefinitionManager.deployWorkflowDefinition(
 				themeDisplay.getCompanyId(), themeDisplay.getUserId(),
-				getTitle(titleMap), content.getBytes());
+				getTitle(titleMap), name, content.getBytes());
 
 		addSuccessMessage(actionRequest, actionResponse);
 
@@ -216,9 +217,9 @@ public class UpdateWorkflowDefinitionMVCActionCommand
 	@Reference
 	protected Portal portal;
 
+	protected ResourceBundleLoader resourceBundleLoader;
+
 	@Reference
 	protected WorkflowDefinitionManager workflowDefinitionManager;
-
-	protected ResourceBundleLoader resourceBundleLoader;
 
 }
