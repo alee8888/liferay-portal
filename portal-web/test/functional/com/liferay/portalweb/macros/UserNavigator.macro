@@ -8,7 +8,7 @@
 	</command>
 
 	<command name="gotoPreferences">
-		<execute macro="Navigator#gotoNavItem">
+		<execute macro="Navigator#gotoNavUnderline">
 			<var name="navItem" value="Preferences" />
 		</execute>
 	</command>
