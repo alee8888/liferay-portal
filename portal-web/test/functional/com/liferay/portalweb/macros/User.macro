@@ -1393,10 +1393,6 @@
 	<command name="editUserDisplaySettingsTimeZonePacific">
 		<execute function="AssertClick" locator1="NavBar#PREFERENCES" value1="Preferences" />
 
-		<execute macro="Panel#expandPanel">
-			<var name="panelHeading" value="Display Settings" />
-		</execute>
-
 		<if>
 			<condition function="IsTextNotEqual" locator1="UsersAndOrganizationsEditUser#DISPLAY_SETTINGS_AMERICA_TIME_ZONE_SELECT" value1="(UTC -07:00) Pacific Daylight Time"  />
 			<then>
@@ -1412,10 +1408,6 @@
 		<execute macro="PortletEntry#save" />
 
 		<execute function="AssertClick" locator1="NavBar#PREFERENCES" value1="Preferences" />
-
-		<execute macro="Panel#expandPanel">
-			<var name="panelHeading" value="Display Settings" />
-		</execute>
 
 		<if>
 			<condition function="IsTextNotEqual" locator1="UsersAndOrganizationsEditUser#DISPLAY_SETTINGS_AMERICA_TIME_ZONE_SELECT" value1="(UTC -07:00) Pacific Daylight Time"  />
