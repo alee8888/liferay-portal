@@ -18,6 +18,14 @@
 		</if>
 	</command>
 
+	<command name="gotoOrganizations">
+		<execute macro="UserNavigator#gotoGeneral" />
+
+		<execute macro="Navigator#gotoNavNested">
+			<var name="navNested" value="Organizations" />
+		</execute>
+	</command>
+
 	<command name="gotoPassword">
 		<execute macro="UserNavigator#gotoPreferences" />
 
