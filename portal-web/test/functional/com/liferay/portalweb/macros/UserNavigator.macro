@@ -24,6 +24,14 @@
 		</execute>
 	</command>
 
+	<command name="gotoProfileAndPrivateArea">
+		<execute macro="UserNavigator#gotoGeneral" />
+
+		<execute macro="Navigator#gotoNavNested">
+			<var name="navNested" value="Profile and Private Area" />
+		</execute>
+	</command>
+
 	<command name="gotoRoles">
 		<execute macro="UserNavigator#gotoGeneral" />
 
