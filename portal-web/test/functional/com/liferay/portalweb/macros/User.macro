@@ -2324,9 +2324,7 @@
 	</command>
 
 	<command name="viewUserInfomationSitesCP">
-		<execute macro="Panel#expandPanel">
-			<var name="panelHeading" value="Sites" />
-		</execute>
+		<execute macro="UserNavigator#gotoMemberships" />
 
 		<var name="key_siteName" value="${siteName}" />
 
