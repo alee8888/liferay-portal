@@ -1379,11 +1379,9 @@
 	<!-- The time zone option should change automatically because of Daylight Savings Time (DST). Since Los Angeles switches between Pacific Daylight Time (PDT), (UTC -07:00) and Pacific Standard Time (PST), (UTC -08:00), this macro will have to be updated accordingly. -->
 
 	<command name="editUserDisplaySettingsTimeZonePacific">
-		<execute function="AssertClick" locator1="UsersAndOrganizations#MISCELLANEOUS" value1="Miscellaneous" />
+		<execute function="AssertClick" locator1="NavBar#PREFERENCES" value1="Preferences" />
 
-		<execute macro="Panel#expandPanel">
-			<var name="panelHeading" value="Display Settings" />
-		</execute>
+		<execute function="AssertClick" locator1="UsersAndOrganizationsEditUser#DISPLAY_SETTINGS_NAVIGATION" value1="Display Settings" />
 
 		<if>
 			<condition function="IsTextNotEqual" locator1="UsersAndOrganizationsEditUser#DISPLAY_SETTINGS_AMERICA_TIME_ZONE_SELECT" value1="(UTC -07:00) Pacific Daylight Time"  />
@@ -1399,11 +1397,9 @@
 
 		<execute macro="PortletEntry#save" />
 
-		<execute function="AssertClick" locator1="UsersAndOrganizations#MISCELLANEOUS" value1="Miscellaneous" />
+		<execute function="AssertClick" locator1="NavBar#PREFERENCES" value1="Preferences" />
 
-		<execute macro="Panel#expandPanel">
-			<var name="panelHeading" value="Display Settings" />
-		</execute>
+		<execute function="AssertClick" locator1="UsersAndOrganizationsEditUser#DISPLAY_SETTINGS_NAVIGATION" value1="Display Settings" />
 
 		<if>
 			<condition function="IsTextNotEqual" locator1="UsersAndOrganizationsEditUser#DISPLAY_SETTINGS_AMERICA_TIME_ZONE_SELECT" value1="(UTC -07:00) Pacific Daylight Time"  />

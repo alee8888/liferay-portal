@@ -290,6 +290,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DISPLAY_SETTINGS_NAVIGATION</td>
+	<td>//ul[contains(@class,'nav')]/li/a[contains(.,'Display Settings')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
