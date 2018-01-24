@@ -235,10 +235,6 @@ if (selContact != null) {
 </div>
 
 <aui:script>
-	function <portlet:namespace />createURL(href, value, onclick) {
-		return '<a href="' + href + '"' + (onclick ? ' onclick="' + onclick + '" ' : '') + '>' + value + '</a>';
-	}
-
 	function <portlet:namespace />saveUser(cmd) {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = cmd;
 
