@@ -21,6 +21,7 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 import com.liferay.portal.configuration.metatype.definitions.ExtendedAttributeDefinition;
 import com.liferay.portal.configuration.metatype.definitions.ExtendedObjectClassDefinition;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -193,6 +194,11 @@ public class ConfigurationModel implements ExtendedObjectClassDefinition {
 		}
 
 		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		return HashUtil.hash(0, getID());
 	}
 
 	public boolean isCompanyFactory() {
