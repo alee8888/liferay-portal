@@ -9375,6 +9375,15 @@ module.framework.properties.blacklist.portal.profile.names=${blacklist.portal.pr
 			</then>
 		</if>
 
+		<get-testcase-property property.name="blade.templates" />
+
+		<if>
+			<isset property="blade.templates" />
+			<then>
+				<antcall target="deploy-blade-templates" />
+			</then>
+		</if>
+
 		<get-testcase-property property.name="openam.enabled" />
 
 		<if>
