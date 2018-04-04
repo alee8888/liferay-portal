@@ -51,10 +51,7 @@
 			<var name="portletName" value="com.npm.billboardjs Portlet" />
 		</execute>
 
-		<execute macro="Portlet#viewPG">
-			<var name="portletBody" value="data1data2" />
-			<var name="portletName" value="com.npm.billboardjs Portlet" />
-		</execute>
+		<execute function="AssertElementPresent" locator1="BladeNPMTemplates#BILLBOARDJS_BODY" />
 	</command>
 
 	<command name="DeployIsomorphicTemplate" priority="4">
