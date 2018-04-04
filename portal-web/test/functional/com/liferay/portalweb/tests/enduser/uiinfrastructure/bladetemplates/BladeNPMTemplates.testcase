@@ -23,8 +23,9 @@
 		<execute macro="Page#tearDownCP" />
 	</tear-down>
 
-	<command name="DeployAngularTemplate" priority="4">
+	<command name="AngularTemplateSmoke" priority="4">
 		<property name="blade.templates" value="angular" />
+		<property name="test.name.skip.portal.instance" value="BladeNPMTemplates#AngularTemplateSmoke" />
 
 		<execute macro="Navigator#gotoPage">
 			<var name="pageName" value="Templates Page" />
@@ -40,7 +41,7 @@
 		</execute>
 	</command>
 
-	<command name="DeployBillboardjsTemplate" priority="4">
+	<command name="BillboardjsTemplateSmoke" priority="4">
 		<property name="blade.templates" value="billboardjs" />
 
 		<execute macro="Navigator#gotoPage">
@@ -57,7 +58,7 @@
 		</execute>
 	</command>
 
-	<command name="DeployIsomorphicTemplate" priority="4">
+	<command name="IsomorphicTemplateSmoke" priority="4">
 		<property name="blade.templates" value="isomorphic" />
 
 		<execute macro="Navigator#gotoPage">
@@ -74,7 +75,7 @@
 		</execute>
 	</command>
 
-	<command name="DeployJQueryTemplate" priority="4">
+	<command name="JQueryTemplateSmoke" priority="4">
 		<property name="blade.templates" value="jquery" />
 
 		<execute macro="Navigator#gotoPage">
@@ -91,7 +92,7 @@
 		</execute>
 	</command>
 
-	<command name="DeployMetaljsTemplate" priority="4">
+	<command name="MetaljsTemplateSmoke" priority="4">
 		<property name="blade.templates" value="metaljs" />
 
 		<execute macro="Navigator#gotoPage">
@@ -108,7 +109,7 @@
 		</execute>
 	</command>
 
-	<command name="DeployReactTemplate" priority="4">
+	<command name="ReactTemplateSmoke" priority="4">
 		<property name="blade.templates" value="react" />
 
 		<execute macro="Navigator#gotoPage">
@@ -125,7 +126,7 @@
 		</execute>
 	</command>
 
-	<command name="DeploySimpleTemplate" priority="4">
+	<command name="SimpleTemplateSmoke" priority="4">
 		<property name="blade.templates" value="simple" />
 
 		<execute macro="Navigator#gotoPage">
@@ -142,7 +143,7 @@
 		</execute>
 	</command>
 
-	<command name="DeployVuejsTemplate" priority="4">
+	<command name="VueJSTemplateSmoke" priority="4">
 		<property name="blade.templates" value="vuejs" />
 
 		<execute macro="Navigator#gotoPage">
