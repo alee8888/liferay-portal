@@ -1,4 +1,5 @@
 <definition component-name="portal-test-plugins">
+	<property name="portal.acceptance" value="npm" />
 	<property name="portal.release" value="true" />
 	<property name="portal.upstream" value="true" />
 	<property name="testray.main.component.name" value="Test Plugins" />
@@ -50,6 +51,11 @@
 		</execute>
 
 		<execute macro="Portlet#addPG">
+			<var name="portletName" value="com.npm.billboardjs Portlet" />
+		</execute>
+
+		<execute macro="Portlet#viewPG">
+			<var name="portletBody" value="data1data2" />
 			<var name="portletName" value="com.npm.billboardjs Portlet" />
 		</execute>
 
