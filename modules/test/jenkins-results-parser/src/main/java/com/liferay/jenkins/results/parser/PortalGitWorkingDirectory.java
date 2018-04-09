@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
+
 /**
  * @author Michael Hashimoto
  * @author Peter Yoo
@@ -70,6 +72,18 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 		return modifiedModuleDirsList;
 	}
 
+	public List<File> getModifiedNPMTestModuleDirsList() throws IOException {
+		List<File> modifiedModuleDirsList = new ArrayList<>();
+
+		for (File modifiedModuleDir : getModifiedModuleDirsList()) {
+			if (_isNPMTestModuleDir(modifiedModuleDir)) {
+				modifiedModuleDirsList.add(modifiedModuleDir);
+			}
+		}
+
+		return modifiedModuleDirsList;
+	}
+
 	public List<File> getModuleDirsList() throws IOException {
 		final File modulesDir = new File(getWorkingDirectory(), "modules");
 
@@ -85,8 +99,7 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 
 				@Override
 				public FileVisitResult postVisitDirectory(
-						Path filePath, IOException exc)
-					throws IOException {
+					Path filePath, IOException exc) {
 
 					if (_module == null) {
 						return FileVisitResult.CONTINUE;
@@ -111,8 +124,7 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 
 				@Override
 				public FileVisitResult preVisitDirectory(
-						Path filePath, BasicFileAttributes attrs)
-					throws IOException {
+					Path filePath, BasicFileAttributes attrs) {
 
 					Module currentModule = Module.getModule(filePath);
 
@@ -142,6 +154,38 @@ public class PortalGitWorkingDirectory extends GitWorkingDirectory {
 		Collections.sort(moduleDirsList);
 
 		return moduleDirsList;
+	}
+
+	private boolean _isNPMTestModuleDir(File moduleDir) {
+		List<File> packageJSONFiles = JenkinsResultsParserUtil.findFiles(
+			moduleDir, "package\\.json");
+
+		for (File packageJSONFile : packageJSONFiles) {
+			JSONObject jsonObject = null;
+
+			try {
+				jsonObject = JenkinsResultsParserUtil.createJSONObject(
+					JenkinsResultsParserUtil.read(packageJSONFile));
+			}
+			catch (IOException ioe) {
+				throw new RuntimeException(
+					"Unable to read file " + packageJSONFile.getPath(), ioe);
+			}
+
+			if (!jsonObject.has("scripts")) {
+				continue;
+			}
+
+			JSONObject scriptsJSONObject = jsonObject.getJSONObject("scripts");
+
+			if (!scriptsJSONObject.has("test")) {
+				continue;
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private static class Module {

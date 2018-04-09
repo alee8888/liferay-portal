@@ -25,14 +25,14 @@ public interface DDMFormInstanceFinder {
 	public int countByKeywords(long companyId, long groupId,
 		java.lang.String keywords);
 
-	public int filterCountByC_G(long companyId, long groupId);
-
 	public int countByC_G_N_D(long companyId, long groupId,
 		java.lang.String[] names, java.lang.String[] descriptions,
 		boolean andOperator);
 
 	public int filterCountByKeywords(long companyId, long groupId,
 		java.lang.String keywords);
+
+	public int filterCountByC_G(long companyId, long groupId);
 
 	public int filterCountByC_G_N_D(long companyId, long groupId,
 		java.lang.String[] names, java.lang.String[] descriptions,

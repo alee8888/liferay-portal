@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,12 +46,10 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 
 		super(batchName, gitWorkingDirectory, testSuiteName);
 
-		_setTestRelevantChanges();
-
 		_setTestClassNamesExcludesRelativeGlobs();
 		_setTestClassNamesIncludesRelativeGlobs();
 
-		_setTestClassFiles();
+		setTestClassFiles();
 
 		_setAxisTestClassGroups();
 	}
@@ -109,230 +106,7 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 		return relevantTestClassNameRelativeGlobs;
 	}
 
-	private int _getAxisMaxSize() {
-		String axisMaxSize = _getAxisMaxSizePropertyValue();
-
-		if (axisMaxSize != null) {
-			return Integer.parseInt(axisMaxSize);
-		}
-
-		return _DEFAULT_AXIS_MAX_SIZE;
-	}
-
-	private String _getAxisMaxSizePropertyValue() {
-		List<String> propertyNames = new ArrayList<>();
-
-		if (testSuiteName != null) {
-			propertyNames.add(
-				JenkinsResultsParserUtil.combine(
-					"test.batch.axis.max.size[", batchName, "][", testSuiteName,
-					"]"));
-
-			propertyNames.add(
-				_getWildcardPropertyName(
-					portalTestProperties, "test.batch.axis.max.size",
-					testSuiteName));
-
-			propertyNames.add(
-				JenkinsResultsParserUtil.combine(
-					"test.batch.axis.max.size[", testSuiteName, "]"));
-		}
-
-		propertyNames.add(
-			JenkinsResultsParserUtil.combine(
-				"test.batch.axis.max.size[", batchName, "]"));
-
-		propertyNames.add(
-			_getWildcardPropertyName(
-				portalTestProperties, "test.batch.axis.max.size"));
-
-		propertyNames.add("test.batch.axis.max.size");
-
-		return _getFirstPropertyValue(portalTestProperties, propertyNames);
-	}
-
-	private String _getFirstPropertyValue(
-		Properties properties, List<String> propertyNames) {
-
-		for (String propertyName : propertyNames) {
-			if (propertyName == null) {
-				continue;
-			}
-
-			if (properties.containsKey(propertyName)) {
-				String propertyValue = properties.getProperty(propertyName);
-
-				if ((propertyValue != null) && !propertyValue.isEmpty()) {
-					return propertyValue;
-				}
-			}
-		}
-
-		return null;
-	}
-
-	private String _getTestClassNamesExcludesPropertyValue() {
-		List<String> propertyNames = new ArrayList<>();
-
-		if (testSuiteName != null) {
-			propertyNames.add(
-				JenkinsResultsParserUtil.combine(
-					"test.batch.class.names.excludes[", batchName, "][",
-					testSuiteName, "]"));
-
-			propertyNames.add(
-				_getWildcardPropertyName(
-					portalTestProperties, "test.batch.class.names.excludes",
-					testSuiteName));
-
-			propertyNames.add(
-				JenkinsResultsParserUtil.combine(
-					"test.batch.class.names.excludes[", testSuiteName, "]"));
-		}
-
-		propertyNames.add(
-			_getWildcardPropertyName(
-				portalTestProperties, "test.batch.class.names.excludes"));
-
-		propertyNames.add(
-			JenkinsResultsParserUtil.combine(
-				"test.batch.class.names.excludes[", batchName, "]"));
-
-		propertyNames.add("test.batch.class.names.excludes");
-
-		propertyNames.add("test.class.names.excludes");
-
-		return _getFirstPropertyValue(portalTestProperties, propertyNames);
-	}
-
-	private String _getTestClassNamesIncludesPropertyValue() {
-		List<String> propertyNames = new ArrayList<>();
-
-		if (testSuiteName != null) {
-			propertyNames.add(
-				JenkinsResultsParserUtil.combine(
-					"test.batch.class.names.includes[", batchName, "][",
-					testSuiteName, "]"));
-
-			propertyNames.add(
-				_getWildcardPropertyName(
-					portalTestProperties, "test.batch.class.names.includes",
-					testSuiteName));
-
-			propertyNames.add(
-				JenkinsResultsParserUtil.combine(
-					"test.batch.class.names.includes[", testSuiteName, "]"));
-		}
-
-		propertyNames.add(
-			JenkinsResultsParserUtil.combine(
-				"test.batch.class.names.includes[", batchName, "]"));
-
-		propertyNames.add(
-			_getWildcardPropertyName(
-				portalTestProperties, "test.batch.class.names.includes"));
-
-		propertyNames.add("test.batch.class.names.includes");
-
-		propertyNames.add("test.class.names.includes");
-
-		return _getFirstPropertyValue(portalTestProperties, propertyNames);
-	}
-
-	private List<PathMatcher> _getTestClassNamesPathMatchers(
-		List<String> testClassNamesRelativeGlobs) {
-
-		List<PathMatcher> pathMatchers = new ArrayList<>();
-
-		File workingDirectory = gitWorkingDirectory.getWorkingDirectory();
-
-		String workingDirectoryPath = workingDirectory.getAbsolutePath();
-
-		for (String testClassNamesRelativeGlob : testClassNamesRelativeGlobs) {
-			FileSystem fileSystem = FileSystems.getDefault();
-
-			pathMatchers.add(
-				fileSystem.getPathMatcher(
-					JenkinsResultsParserUtil.combine(
-						"glob:", workingDirectoryPath, "/",
-						testClassNamesRelativeGlob)));
-		}
-
-		return pathMatchers;
-	}
-
-	private String _getWildcardPropertyName(
-		Properties properties, String propertyName) {
-
-		return _getWildcardPropertyName(properties, propertyName, null);
-	}
-
-	private String _getWildcardPropertyName(
-		Properties properties, String propertyName, String testSuiteName) {
-
-		for (String wildcardPropertyName : properties.stringPropertyNames()) {
-			if (!wildcardPropertyName.startsWith(propertyName)) {
-				continue;
-			}
-
-			Matcher matcher = _propertyNamePattern.matcher(
-				wildcardPropertyName);
-
-			if (matcher.find()) {
-				String batchNameMatcher = matcher.group("batchName");
-
-				batchNameMatcher = batchNameMatcher.replace("*", ".+");
-
-				if (!batchName.matches(batchNameMatcher)) {
-					continue;
-				}
-
-				String testSuiteNameMatcher = matcher.group("testSuiteName");
-
-				if (testSuiteName != testSuiteNameMatcher) {
-					continue;
-				}
-
-				return wildcardPropertyName;
-			}
-		}
-
-		return null;
-	}
-
-	private void _setAxisTestClassGroups() {
-		int testClassFileCount = testClassFiles.size();
-
-		if (testClassFileCount == 0) {
-			return;
-		}
-
-		int axisMaxSize = _getAxisMaxSize();
-
-		int axisCount = (int)Math.ceil(
-			(double)testClassFileCount / axisMaxSize);
-
-		int axisSize = (int)Math.ceil((double)testClassFileCount / axisCount);
-
-		int id = 0;
-
-		for (List<File> axisTestClassFiles :
-				Lists.partition(testClassFiles, axisSize)) {
-
-			AxisTestClassGroup axisTestClassGroup = new AxisTestClassGroup(
-				this, id);
-
-			axisTestClassGroups.put(id, axisTestClassGroup);
-
-			for (File axisTestClassFile : axisTestClassFiles) {
-				axisTestClassGroup.addTestClassFile(axisTestClassFile);
-			}
-
-			id++;
-		}
-	}
-
-	private void _setTestClassFiles() {
+	protected void setTestClassFiles() {
 		File workingDirectory = gitWorkingDirectory.getWorkingDirectory();
 
 		try {
@@ -386,12 +160,12 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 
 					private boolean _pathExcluded(Path path) {
 						return _pathMatches(
-							path, _testClassNamesExcludesPathMatchers);
+							path, testClassNamesExcludesPathMatchers);
 					}
 
 					private boolean _pathIncluded(Path path) {
 						return _pathMatches(
-							path, _testClassNamesIncludesPathMatchers);
+							path, testClassNamesIncludesPathMatchers);
 					}
 
 					private boolean _pathMatches(
@@ -418,6 +192,175 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 		Collections.sort(testClassFiles);
 	}
 
+	protected final List<PathMatcher> testClassNamesExcludesPathMatchers =
+		new ArrayList<>();
+	protected final List<PathMatcher> testClassNamesIncludesPathMatchers =
+		new ArrayList<>();
+
+	private int _getAxisMaxSize() {
+		String axisMaxSize = _getAxisMaxSizePropertyValue();
+
+		if (axisMaxSize != null) {
+			return Integer.parseInt(axisMaxSize);
+		}
+
+		return _DEFAULT_AXIS_MAX_SIZE;
+	}
+
+	private String _getAxisMaxSizePropertyValue() {
+		List<String> propertyNames = new ArrayList<>();
+
+		if (testSuiteName != null) {
+			propertyNames.add(
+				JenkinsResultsParserUtil.combine(
+					"test.batch.axis.max.size[", batchName, "][", testSuiteName,
+					"]"));
+
+			propertyNames.add(
+				getWildcardPropertyName(
+					portalTestProperties, "test.batch.axis.max.size",
+					testSuiteName));
+
+			propertyNames.add(
+				JenkinsResultsParserUtil.combine(
+					"test.batch.axis.max.size[", testSuiteName, "]"));
+		}
+
+		propertyNames.add(
+			JenkinsResultsParserUtil.combine(
+				"test.batch.axis.max.size[", batchName, "]"));
+
+		propertyNames.add(
+			getWildcardPropertyName(
+				portalTestProperties, "test.batch.axis.max.size"));
+
+		propertyNames.add("test.batch.axis.max.size");
+
+		return getFirstPropertyValue(portalTestProperties, propertyNames);
+	}
+
+	private String _getTestClassNamesExcludesPropertyValue() {
+		List<String> propertyNames = new ArrayList<>();
+
+		if (testSuiteName != null) {
+			propertyNames.add(
+				JenkinsResultsParserUtil.combine(
+					"test.batch.class.names.excludes[", batchName, "][",
+					testSuiteName, "]"));
+
+			propertyNames.add(
+				getWildcardPropertyName(
+					portalTestProperties, "test.batch.class.names.excludes",
+					testSuiteName));
+
+			propertyNames.add(
+				JenkinsResultsParserUtil.combine(
+					"test.batch.class.names.excludes[", testSuiteName, "]"));
+		}
+
+		propertyNames.add(
+			getWildcardPropertyName(
+				portalTestProperties, "test.batch.class.names.excludes"));
+
+		propertyNames.add(
+			JenkinsResultsParserUtil.combine(
+				"test.batch.class.names.excludes[", batchName, "]"));
+
+		propertyNames.add("test.batch.class.names.excludes");
+
+		propertyNames.add("test.class.names.excludes");
+
+		return getFirstPropertyValue(portalTestProperties, propertyNames);
+	}
+
+	private String _getTestClassNamesIncludesPropertyValue() {
+		List<String> propertyNames = new ArrayList<>();
+
+		if (testSuiteName != null) {
+			propertyNames.add(
+				JenkinsResultsParserUtil.combine(
+					"test.batch.class.names.includes[", batchName, "][",
+					testSuiteName, "]"));
+
+			propertyNames.add(
+				getWildcardPropertyName(
+					portalTestProperties, "test.batch.class.names.includes",
+					testSuiteName));
+
+			propertyNames.add(
+				JenkinsResultsParserUtil.combine(
+					"test.batch.class.names.includes[", testSuiteName, "]"));
+		}
+
+		propertyNames.add(
+			JenkinsResultsParserUtil.combine(
+				"test.batch.class.names.includes[", batchName, "]"));
+
+		propertyNames.add(
+			getWildcardPropertyName(
+				portalTestProperties, "test.batch.class.names.includes"));
+
+		propertyNames.add("test.batch.class.names.includes");
+
+		propertyNames.add("test.class.names.includes");
+
+		return getFirstPropertyValue(portalTestProperties, propertyNames);
+	}
+
+	private List<PathMatcher> _getTestClassNamesPathMatchers(
+		List<String> testClassNamesRelativeGlobs) {
+
+		List<PathMatcher> pathMatchers = new ArrayList<>();
+
+		File workingDirectory = gitWorkingDirectory.getWorkingDirectory();
+
+		String workingDirectoryPath = workingDirectory.getAbsolutePath();
+
+		for (String testClassNamesRelativeGlob : testClassNamesRelativeGlobs) {
+			FileSystem fileSystem = FileSystems.getDefault();
+
+			pathMatchers.add(
+				fileSystem.getPathMatcher(
+					JenkinsResultsParserUtil.combine(
+						"glob:", workingDirectoryPath, "/",
+						testClassNamesRelativeGlob)));
+		}
+
+		return pathMatchers;
+	}
+
+	private void _setAxisTestClassGroups() {
+		int testClassFileCount = testClassFiles.size();
+
+		if (testClassFileCount == 0) {
+			return;
+		}
+
+		int axisMaxSize = _getAxisMaxSize();
+
+		int axisCount = (int)Math.ceil(
+			(double)testClassFileCount / axisMaxSize);
+
+		int axisSize = (int)Math.ceil((double)testClassFileCount / axisCount);
+
+		int id = 0;
+
+		for (List<File> axisTestClassFiles :
+				Lists.partition(testClassFiles, axisSize)) {
+
+			AxisTestClassGroup axisTestClassGroup = new AxisTestClassGroup(
+				this, id);
+
+			axisTestClassGroups.put(id, axisTestClassGroup);
+
+			for (File axisTestClassFile : axisTestClassFiles) {
+				axisTestClassGroup.addTestClassFile(axisTestClassFile);
+			}
+
+			id++;
+		}
+	}
+
 	private void _setTestClassNamesExcludesRelativeGlobs() {
 		String testClassNamesExcludesPropertyValue =
 			_getTestClassNamesExcludesPropertyValue();
@@ -431,13 +374,13 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 		List<String> testClassNamesExcludesRelativeGlobs = Arrays.asList(
 			testClassNamesExcludesPropertyValue.split(","));
 
-		if (_testRelevantChanges) {
+		if (testRelevantChanges) {
 			testClassNamesExcludesRelativeGlobs =
 				getRelevantTestClassNamesRelativeGlobs(
 					testClassNamesExcludesRelativeGlobs);
 		}
 
-		_testClassNamesExcludesPathMatchers.addAll(
+		testClassNamesExcludesPathMatchers.addAll(
 			_getTestClassNamesPathMatchers(
 				testClassNamesExcludesRelativeGlobs));
 	}
@@ -455,52 +398,20 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 		List<String> testClassNamesIncludesRelativeGlobs = Arrays.asList(
 			testClassNamesIncludesPropertyValue.split(","));
 
-		if (_testRelevantChanges) {
+		if (testRelevantChanges) {
 			testClassNamesIncludesRelativeGlobs =
 				getRelevantTestClassNamesRelativeGlobs(
 					testClassNamesIncludesRelativeGlobs);
 		}
 
-		_testClassNamesIncludesPathMatchers.addAll(
+		testClassNamesIncludesPathMatchers.addAll(
 			_getTestClassNamesPathMatchers(
 				testClassNamesIncludesRelativeGlobs));
 	}
 
-	private void _setTestRelevantChanges() {
-		List<String> propertyNames = new ArrayList<>();
-
-		if (testSuiteName != null) {
-			propertyNames.add(
-				JenkinsResultsParserUtil.combine(
-					"test.relevant.changes[", testSuiteName, "]"));
-		}
-
-		propertyNames.add("test.relevant.changes");
-
-		String propertyValue = _getFirstPropertyValue(
-			portalTestProperties, propertyNames);
-
-		if (propertyValue != null) {
-			_testRelevantChanges = Boolean.parseBoolean(propertyValue);
-
-			return;
-		}
-
-		_testRelevantChanges = _DEFAULT_TEST_RELEVANT_CHANGES;
-	}
-
 	private static final int _DEFAULT_AXIS_MAX_SIZE = 5000;
-
-	private static final boolean _DEFAULT_TEST_RELEVANT_CHANGES = false;
 
 	private final Pattern _packagePathPattern = Pattern.compile(
 		".*/(?<packagePath>com/.*)");
-	private final Pattern _propertyNamePattern = Pattern.compile(
-		"[^\\]]+\\[(?<batchName>[^\\]]+)\\](\\[(?<testSuiteName>[^\\]]+)\\])?");
-	private final List<PathMatcher> _testClassNamesExcludesPathMatchers =
-		new ArrayList<>();
-	private final List<PathMatcher> _testClassNamesIncludesPathMatchers =
-		new ArrayList<>();
-	private boolean _testRelevantChanges;
 
 }

@@ -411,6 +411,8 @@ mariadb.executable=${mariadb.executable}]]></echo>
 		<sequential>
 			<trycatch property="exception.message">
 				<try>
+					<antcall target="setup-libs" />
+
 					<antcall target="prepare-test-build">
 						<param name="test.class.groups.size" value="${test.batch.size}" />
 						<param name="test.plugin.groups.size" value="${test.batch.size}" />
@@ -429,6 +431,8 @@ mariadb.executable=${mariadb.executable}]]></echo>
 		<sequential>
 			<trycatch property="exception.message">
 				<try>
+					<antcall target="setup-libs" />
+
 					<antcall target="prepare-test-build-custom">
 						<param name="app.server.type" value="${app.server.type}" />
 					</antcall>
@@ -540,6 +544,8 @@ app.server.type=@{app.server.type}]]></echo>
 		<attribute default="tomcat" name="app.server.type" />
 
 		<sequential>
+			<antcall inheritAll="false" target="setup-libs" />
+
 			<antcall inheritAll="false" target="setup-sdk" />
 
 			<unzip
@@ -2026,6 +2032,23 @@ app.server.type=@{app.server.type}]]></echo>
 
 	<target name="functional-bundle-marketplaceapp-smoke-wildfly-mysql56-jdk8">
 		<antcall target="functional-bundle-wildfly-mysql56-jdk8" />
+	</target>
+
+	<target name="functional-bundle-tcserver-mysql56-jdk8">
+		<run-functional-test
+			app.server.type="tcserver"
+			database.type="mysql"
+			test.build.fix.pack.zip.url="${test.build.fix.pack.zip.url}"
+			test.fix.pack.base.url="${test.fix.pack.base.url}"
+			test.license.xml.url="${test.license.xml.url}"
+			test.plugin.zip.url="${test.plugin.zip.url}"
+			test.plugins.war.zip.url="${test.plugins.war.zip.url}"
+			test.portal.bundle.dependencies.zip.url="${test.portal.bundle.dependencies.zip.url}"
+			test.portal.bundle.osgi.zip.url="${test.portal.bundle.osgi.zip.url}"
+			test.portal.bundle.war.url="${test.portal.bundle.war.url}"
+			test.portal.lpkg.name="${test.portal.lpkg.name}"
+			test.sql.zip.url="${test.sql.zip.url}"
+		/>
 	</target>
 
 	<target name="functional-bundle-tomcat-db2105-jdk8">

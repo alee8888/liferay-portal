@@ -159,11 +159,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>INFO_NO_RESULTS_FOUND</td>
-	<td>//div[contains(@class,'empty-result-message')]//div[contains(@class,'text-center')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>INFO_EXPLANATION_POST</td>
 	<td>//div[contains(@id,'explanationPost')]/div[@class='alert alert-info']</td>
 	<td></td>
@@ -220,11 +215,6 @@
 </tr>
 <tr>
 	<td>SUCCESS</td>
-	<td>//div[contains(@class,'alert') and contains(@class,'alert-success')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SUCCESS_LOCALIZED</td>
 	<td>//div[contains(@class,'alert') and contains(@class,'alert-success')]</td>
 	<td></td>
 </tr>

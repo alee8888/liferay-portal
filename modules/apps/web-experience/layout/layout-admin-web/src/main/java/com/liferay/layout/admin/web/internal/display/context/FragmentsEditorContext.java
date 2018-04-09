@@ -21,6 +21,15 @@ import com.liferay.fragment.service.FragmentCollectionServiceUtil;
 import com.liferay.fragment.service.FragmentEntryLinkLocalServiceUtil;
 import com.liferay.fragment.service.FragmentEntryServiceUtil;
 import com.liferay.fragment.util.FragmentEntryRenderUtil;
+import com.liferay.item.selector.ItemSelector;
+import com.liferay.item.selector.ItemSelectorCriterion;
+import com.liferay.item.selector.ItemSelectorReturnType;
+import com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType;
+import com.liferay.item.selector.criteria.URLItemSelectorReturnType;
+import com.liferay.item.selector.criteria.image.criterion.ImageItemSelectorCriterion;
+import com.liferay.item.selector.criteria.url.criterion.URLItemSelectorCriterion;
+import com.liferay.layout.admin.web.internal.constants.LayoutAdminWebKeys;
+import com.liferay.layout.admin.web.internal.util.SoyContextFactoryUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.editor.configuration.EditorConfiguration;
 import com.liferay.portal.kernel.editor.configuration.EditorConfigurationFactoryUtil;
@@ -60,6 +69,8 @@ public class FragmentsEditorContext {
 		_classPK = classPK;
 
 		_classNameId = PortalUtil.getClassNameId(className);
+		_itemSelector = (ItemSelector)request.getAttribute(
+			LayoutAdminWebKeys.ITEM_SELECTOR);
 	}
 
 	public SoyContext getEditorContext() throws PortalException {
@@ -68,7 +79,7 @@ public class FragmentsEditorContext {
 
 		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
 
-		SoyContext soyContext = new SoyContext();
+		SoyContext soyContext = SoyContextFactoryUtil.createSoyContext();
 
 		soyContext.put(
 			"addFragmentEntryLinkURL",
@@ -96,6 +107,14 @@ public class FragmentsEditorContext {
 			"fragmentCollections", _getSoyContextFragmentCollections());
 		soyContext.put(
 			"fragmentEntryLinks", _getSoyContextFragmentEntryLinks());
+
+		PortletURL itemSelectorURL = _itemSelector.getItemSelectorURL(
+			RequestBackedPortletURLFactoryUtil.create(_request),
+			_renderResponse.getNamespace() + "selectImage",
+			_getImageItemSelectorCriterion(), _getURLItemSelectorCriterion());
+
+		soyContext.put("imageSelectorURL", itemSelectorURL.toString());
+
 		soyContext.put("portletNamespace", _renderResponse.getNamespace());
 		soyContext.put(
 			"renderFragmentEntryURL",
@@ -119,7 +138,7 @@ public class FragmentsEditorContext {
 		List<SoyContext> soyContexts = new ArrayList<>();
 
 		for (FragmentEntry fragmentEntry : fragmentEntries) {
-			SoyContext soyContext = new SoyContext();
+			SoyContext soyContext = SoyContextFactoryUtil.createSoyContext();
 
 			soyContext.put(
 				"fragmentEntryId", fragmentEntry.getFragmentEntryId());
@@ -142,6 +161,22 @@ public class FragmentsEditorContext {
 		return actionURL.toString();
 	}
 
+	private ItemSelectorCriterion _getImageItemSelectorCriterion() {
+		List<ItemSelectorReturnType> desiredItemSelectorReturnTypes =
+			new ArrayList<>();
+
+		desiredItemSelectorReturnTypes.add(
+			new FileEntryItemSelectorReturnType());
+
+		ItemSelectorCriterion imageItemSelectorCriterion =
+			new ImageItemSelectorCriterion();
+
+		imageItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
+			desiredItemSelectorReturnTypes);
+
+		return imageItemSelectorCriterion;
+	}
+
 	private List<SoyContext> _getSoyContextFragmentCollections() {
 		List<SoyContext> soyContexts = new ArrayList<>();
 
@@ -162,7 +197,7 @@ public class FragmentsEditorContext {
 				continue;
 			}
 
-			SoyContext soyContext = new SoyContext();
+			SoyContext soyContext = SoyContextFactoryUtil.createSoyContext();
 
 			soyContext.put(
 				"fragmentCollectionId",
@@ -195,7 +230,7 @@ public class FragmentsEditorContext {
 				FragmentEntryServiceUtil.fetchFragmentEntry(
 					fragmentEntryLink.getFragmentEntryId());
 
-			SoyContext soyContext = new SoyContext();
+			SoyContext soyContext = SoyContextFactoryUtil.createSoyContext();
 
 			soyContext.putHTML(
 				"content",
@@ -220,8 +255,24 @@ public class FragmentsEditorContext {
 		return soyContexts;
 	}
 
+	private ItemSelectorCriterion _getURLItemSelectorCriterion() {
+		ItemSelectorCriterion urlItemSelectorCriterion =
+			new URLItemSelectorCriterion();
+
+		List<ItemSelectorReturnType> desiredItemSelectorReturnTypes =
+			new ArrayList<>();
+
+		desiredItemSelectorReturnTypes.add(new URLItemSelectorReturnType());
+
+		urlItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
+			desiredItemSelectorReturnTypes);
+
+		return urlItemSelectorCriterion;
+	}
+
 	private final long _classNameId;
 	private final long _classPK;
+	private final ItemSelector _itemSelector;
 	private final RenderResponse _renderResponse;
 	private final HttpServletRequest _request;
 

@@ -87,10 +87,6 @@ public class JSPTagAttributesCheck extends TagAttributesCheck {
 			String fileName, String absolutePath, String content)
 		throws Exception {
 
-		if (isSubrepository() || isReadOnly(absolutePath)) {
-			return content;
-		}
-
 		content = formatIncorrectLineBreak(fileName, content);
 
 		content = _formatSingleLineTagAttributes(absolutePath, content);
@@ -340,7 +336,7 @@ public class JSPTagAttributesCheck extends TagAttributesCheck {
 		String utilTaglibSrcDirName = _getUtilTaglibSrcDirName();
 
 		outerLoop:
-		for (String tldFileName : _getTLDFileNames()) {
+		for (String tldFileName : tldFileNames) {
 			tldFileName = StringUtil.replace(
 				tldFileName, CharPool.BACK_SLASH, CharPool.SLASH);
 
