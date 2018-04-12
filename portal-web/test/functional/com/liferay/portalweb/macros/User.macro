@@ -1076,6 +1076,10 @@
 					<execute function="Confirm" value1="Are you sure you want to deactivate the selected users?" />
 
 					<execute macro="Alert#viewSuccessMessage" />
+
+					<execute function="AssertElementNotPresent" locator1="UsersAndOrganizations#USER_TABLE_NAME">
+						<var name="key_userScreenName" value="${screenName}" />
+					</execute>
 				</then>
 			</elseif>
 		</if>
