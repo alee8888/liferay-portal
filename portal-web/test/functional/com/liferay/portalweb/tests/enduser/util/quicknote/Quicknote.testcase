@@ -34,7 +34,7 @@
 		</if>
 	</tear-down>
 
-	<command name="AddQuickNote" priority="2">
+	<command ignore="true" name="AddQuickNote" priority="2">
 		<execute macro="Portlet#addPG">
 			<var name="portletName" value="Quick Note" />
 		</execute>
