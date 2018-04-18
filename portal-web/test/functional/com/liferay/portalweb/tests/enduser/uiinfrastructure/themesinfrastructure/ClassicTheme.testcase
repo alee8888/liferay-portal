@@ -1,0 +1,74 @@
+<definition component-name="portal-user-interface">
+	<property name="portal.release" value="true" />
+	<property name="portal.upstream" value="true" />
+	<property name="testray.main.component.name" value="User Interface" />
+
+	<set-up>
+		<execute macro="TestCase#setUpPortalInstance" />
+
+		<execute macro="User#firstLoginPG" />
+	</set-up>
+
+	<tear-down>
+		<var method="TestPropsUtil#get('test.portal.instance')" name="testPortalInstance" />
+
+		<if>
+			<equals arg1="${testPortalInstance}" arg2="true" />
+			<then>
+				<execute macro="PortalInstances#tearDownCP" />
+			</then>
+		</if>
+	</tear-down>
+
+	<command name="ConfigureSettingsSinglePage" priority="5">
+		<execute macro="ProductMenu#gotoPortlet">
+			<var name="category" value="Navigation" />
+			<var name="panel" value="Site Administration" />
+			<var name="portlet" value="Site Pages" />
+		</execute>
+
+		<execute macro="SitePages#addPublicPage">
+			<var name="pageName" value="Classic Theme Page" />
+		</execute>
+
+		<execute macro="SitePages#gotoPageMenuItem">
+			<var name="menuItem" value="Configure" />
+			<var name="pageName" value="Classic Theme Page" />
+		</execute>
+
+		<execute macro="Navigator#gotoNavTab">
+			<var name="navTab" value="Look and Feel" />
+		</execute>
+
+		<execute function="Click" locator1="Radio#SPECIFIC_LOOK" />
+
+		<execute macro="SitePages#configureThemeSettings">
+			<var name="bulletStyle" value="Arrows" />
+			<var name="showHeaderSearch" value="false" />
+			<var name="showMaxMinAppLinks" value="true" />
+		</execute>
+
+		<execute macro="SitePages#gotoPageMenuItem">
+			<var name="menuItem" value="Configure" />
+			<var name="pageName" value="Classic Theme Page" />
+		</execute>
+
+		<execute macro="Navigator#gotoNavTab">
+			<var name="navTab" value="Look and Feel" />
+		</execute>
+
+		<execute function="AssertSelectedLabel" locator1="Select#BULLET_STYLE" value1="Arrows" />
+
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Classic Theme Page" />
+		</execute>
+
+		<execute function="AssertElementNotPresent" locator1="Search#TEMPLATE_SEARCH_BAR" />
+
+		<execute macro="Portlet#addPG">
+			<var name="portletName" value="Hello World" />
+		</execute>
+
+		<execute macro="Portlet#viewPortletOptionsMenulistItemsAddedByTheme" />
+	</command>
+</definition>
