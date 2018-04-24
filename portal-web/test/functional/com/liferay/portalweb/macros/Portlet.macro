@@ -556,6 +556,20 @@
 		</execute>
 	</command>
 
+	<command name="viewPortletOptionsMenulistItemsAddedByTheme">
+		<execute function="MouseOver#mouseOverNotVisible" locator1="Portlet#OPTIONS_ICON" />
+
+		<execute function="Click" locator1="Portlet#OPTIONS_ICON" />
+
+		<execute function="AssertTextEquals" locator1="MenuItem#ANY_MENU_ITEM" value1="Maximize">
+			<var name="key_menuItem" value="Maximize" />
+		</execute>
+
+		<execute function="AssertTextEquals" locator1="MenuItem#ANY_MENU_ITEM" value1="Minimize">
+			<var name="key_menuItem" value="Minimize" />
+		</execute>
+	</command>
+
 	<command name="viewSpecificPG">
 		<var name="key_portletTitleName" value="${portletName}" />
 

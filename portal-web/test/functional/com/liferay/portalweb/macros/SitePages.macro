@@ -180,6 +180,61 @@
 		<execute macro="PortletEntry#save" />
 	</command>
 
+	<command name="configureThemeSettings">
+		<if>
+			<isset var="bulletStyle" />
+			<then>
+				<execute function="Select" locator1="Select#BULLET_STYLE" value1="${bulletStyle}" />
+			</then>
+		</if>
+
+		<if>
+			<isset var="showHeaderSearch" />
+			<then>
+				<if>
+					<equals arg1="${showHeaderSearch}" arg2="true" />
+					<then>
+						<execute function="Check#checkToggleSwitch" locator1="ToggleSwitch#ANY_TOGGLE_SWITCH">
+							<var name="key_toggleSwitchLabel" value="Show Header Search" />
+						</execute>
+					</then>
+					<elseif>
+						<equals arg1="${showHeaderSearch}" arg2="false" />
+						<then>
+							<execute function="Uncheck#uncheckToggleSwitch" locator1="ToggleSwitch#ANY_TOGGLE_SWITCH">
+								<var name="key_toggleSwitchLabel" value="Show Header Search" />
+							</execute>
+						</then>
+					</elseif>
+				</if>
+			</then>
+		</if>
+
+		<if>
+			<isset var="showMaxMinAppLinks" />
+			<then>
+				<if>
+					<equals arg1="${showMaxMinAppLinks}" arg2="true" />
+					<then>
+						<execute function="Check#checkToggleSwitch" locator1="ToggleSwitch#ANY_TOGGLE_SWITCH">
+							<var name="key_toggleSwitchLabel" value="Show Maximize/Minimize Application Links" />
+						</execute>
+					</then>
+					<elseif>
+						<equals arg1="${showMaxMinAppLinks}" arg2="false" />
+						<then>
+							<execute function="Uncheck#uncheckToggleSwitch" locator1="ToggleSwitch#ANY_TOGGLE_SWITCH">
+								<var name="key_toggleSwitchLabel" value="Show Maximize/Minimize Application Links" />
+							</execute>
+						</then>
+					</elseif>
+				</if>
+			</then>
+		</if>
+
+		<execute macro="PortletEntry#save" />
+	</command>
+
 	<command name="deletePage">
 		<execute function="Click" locator1="SitePages#LIST_GROUP_ITEM_ELLIPSIS_ICON">
 			<var name="key_pageName" value="${pageName}" />
