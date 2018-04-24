@@ -10,4 +10,23 @@
 	<command name="selectSpecificLookAndFeel">
 		<execute function="Click" locator1="Radio#SPECIFIC_LOOK" />
 	</command>
+
+	<command name="toggleHeaderSearch">
+		<if>
+			<equals arg1="${showHeaderSearch}" arg2="true" />
+			<then>
+				<execute function="Check#checkToggleSwitch" locator1="ToggleSwitch#ANY_TOGGLE_SWITCH">
+					<var name="key_toggleSwitchLabel" value="Show Header Search" />
+				</execute>
+			</then>
+			<elseif>
+				<equals arg1="${showHeaderSearch}" arg2="false" />
+				<then>
+					<execute function="Uncheck#uncheckToggleSwitch" locator1="ToggleSwitch#ANY_TOGGLE_SWITCH">
+						<var name="key_toggleSwitchLabel" value="Show Header Search" />
+					</execute>
+				</then>
+			</elseif>
+		</if>
+	</command>
 </definition>
