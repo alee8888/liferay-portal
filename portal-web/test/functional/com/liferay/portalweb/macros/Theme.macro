@@ -29,4 +29,23 @@
 			</elseif>
 		</if>
 	</command>
+
+	<command name="toggleMaxMinAppLinks">
+		<if>
+			<equals arg1="${showMaxMinAppLinks}" arg2="true" />
+			<then>
+				<execute function="Check#checkToggleSwitch" locator1="ToggleSwitch#ANY_TOGGLE_SWITCH">
+					<var name="key_toggleSwitchLabel" value="Show Maximize/Minimize Application Links" />
+				</execute>
+			</then>
+			<elseif>
+				<equals arg1="${showMaxMinAppLinks}" arg2="false" />
+				<then>
+					<execute function="Uncheck#uncheckToggleSwitch" locator1="ToggleSwitch#ANY_TOGGLE_SWITCH">
+						<var name="key_toggleSwitchLabel" value="Show Maximize/Minimize Application Links" />
+					</execute>
+				</then>
+			</elseif>
+		</if>
+	</command>
 </definition>
