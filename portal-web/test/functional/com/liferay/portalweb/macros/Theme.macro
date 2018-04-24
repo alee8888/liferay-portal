@@ -48,4 +48,8 @@
 			</elseif>
 		</if>
 	</command>
+
+	<command name="viewBulletStyle">
+		<execute function="AssertSelectedLabel" locator1="Select#BULLET_STYLE" value1="${bulletStyle}" />
+	</command>
 </definition>
