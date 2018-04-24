@@ -1,0 +1,5 @@
+<definition>
+	<command name="selectSameLookAndFeel">
+		<execute function="Click" locator1="Radio#SAME_LOOK" />
+	</command>
+</definition>
