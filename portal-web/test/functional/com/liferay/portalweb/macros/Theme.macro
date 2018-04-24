@@ -2,4 +2,8 @@
 	<command name="selectSameLookAndFeel">
 		<execute function="Click" locator1="Radio#SAME_LOOK" />
 	</command>
+
+	<command name="selectSpecificLookAndFeel">
+		<execute function="Click" locator1="Radio#SPECIFIC_LOOK" />
+	</command>
 </definition>
