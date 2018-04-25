@@ -962,6 +962,8 @@
 				<execute function="Type" locator1="TextInput#NEW_PASSWORD" value1="test1" />
 				<execute function="Type" locator1="TextInput#ENTER_AGAIN" value1="test1" />
 
+				<execute macro="Button#clickSave" />
+
 				<execute macro="Alert#viewRequiredField" />
 
 				<execute macro="User#logoutPG" />
