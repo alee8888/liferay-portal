@@ -40,17 +40,17 @@
 			<var name="navTab" value="Look and Feel" />
 		</execute>
 
-		<execute macro="Theme#selectSpecificLookAndFeel" />
+		<execute macro="Theme#configureLookAndFeelSpecificLook" />
 
-		<execute macro="Theme#selectBulletStyle">
+		<execute macro="Theme#configureLookAndFeelBulletStyle">
 			<var name="bulletStyle" value="Arrows" />
 		</execute>
 
-		<execute macro="Theme#toggleHeaderSearch">
+		<execute macro="Theme#configureLookAndFeelShowHeaderSearch">
 			<var name="showHeaderSearch" value="false" />
 		</execute>
 
-		<execute macro="Theme#toggleMaxMinAppLinks">
+		<execute macro="Theme#configureLookAndFeelShowMaxMinAppLinks">
 			<var name="showMaxMinAppLinks" value="true" />
 		</execute>
 

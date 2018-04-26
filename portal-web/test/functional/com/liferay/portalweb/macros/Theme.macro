@@ -1,17 +1,13 @@
 <definition>
-	<command name="selectBulletStyle">
+	<command name="configureLookAndFeelBulletStyle">
 		<execute function="Select" locator1="Select#BULLET_STYLE" value1="${bulletStyle}" />
 	</command>
 
-	<command name="selectSameLookAndFeel">
+	<command name="configureLookAndFeelSameLook">
 		<execute function="Click" locator1="Radio#SAME_LOOK" />
 	</command>
 
-	<command name="selectSpecificLookAndFeel">
-		<execute function="Click" locator1="Radio#SPECIFIC_LOOK" />
-	</command>
-
-	<command name="toggleHeaderSearch">
+	<command name="configureLookAndFeelShowHeaderSearch">
 		<if>
 			<equals arg1="${showHeaderSearch}" arg2="true" />
 			<then>
@@ -30,7 +26,7 @@
 		</if>
 	</command>
 
-	<command name="toggleMaxMinAppLinks">
+	<command name="configureLookAndFeelShowMaxMinAppLinks">
 		<if>
 			<equals arg1="${showMaxMinAppLinks}" arg2="true" />
 			<then>
@@ -47,6 +43,10 @@
 				</then>
 			</elseif>
 		</if>
+	</command>
+
+	<command name="configureLookAndFeelSpecificLook">
+		<execute function="Click" locator1="Radio#SPECIFIC_LOOK" />
 	</command>
 
 	<command name="viewBulletStyle">
