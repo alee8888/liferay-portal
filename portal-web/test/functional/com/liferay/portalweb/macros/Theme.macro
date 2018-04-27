@@ -1,0 +1,65 @@
+<definition>
+	<command name="selectBulletStyle">
+		<execute function="Select" locator1="Select#BULLET_STYLE" value1="${bulletStyle}" />
+	</command>
+
+	<command name="selectSameLookAndFeel">
+		<execute function="Click" locator1="Radio#SAME_LOOK" />
+	</command>
+
+	<command name="selectSpecificLookAndFeel">
+		<execute function="Click" locator1="Radio#SPECIFIC_LOOK" />
+	</command>
+
+	<command name="toggleHeaderSearch">
+		<if>
+			<equals arg1="${showHeaderSearch}" arg2="true" />
+			<then>
+				<execute function="Check#checkToggleSwitch" locator1="ToggleSwitch#ANY_TOGGLE_SWITCH">
+					<var name="key_toggleSwitchLabel" value="Show Header Search" />
+				</execute>
+			</then>
+			<elseif>
+				<equals arg1="${showHeaderSearch}" arg2="false" />
+				<then>
+					<execute function="Uncheck#uncheckToggleSwitch" locator1="ToggleSwitch#ANY_TOGGLE_SWITCH">
+						<var name="key_toggleSwitchLabel" value="Show Header Search" />
+					</execute>
+				</then>
+			</elseif>
+		</if>
+	</command>
+
+	<command name="toggleMaxMinAppLinks">
+		<if>
+			<equals arg1="${showMaxMinAppLinks}" arg2="true" />
+			<then>
+				<execute function="Check#checkToggleSwitch" locator1="ToggleSwitch#ANY_TOGGLE_SWITCH">
+					<var name="key_toggleSwitchLabel" value="Show Maximize/Minimize Application Links" />
+				</execute>
+			</then>
+			<elseif>
+				<equals arg1="${showMaxMinAppLinks}" arg2="false" />
+				<then>
+					<execute function="Uncheck#uncheckToggleSwitch" locator1="ToggleSwitch#ANY_TOGGLE_SWITCH">
+						<var name="key_toggleSwitchLabel" value="Show Maximize/Minimize Application Links" />
+					</execute>
+				</then>
+			</elseif>
+		</if>
+	</command>
+
+	<command name="viewBulletStyle">
+		<execute function="AssertSelectedLabel" locator1="Select#BULLET_STYLE" value1="${bulletStyle}" />
+	</command>
+
+	<command name="viewMaxMinPortletOptions">
+		<execute function="AssertTextEquals" locator1="MenuItem#ANY_MENU_ITEM" value1="Maximize">
+			<var name="key_menuItem" value="Maximize" />
+		</execute>
+
+		<execute function="AssertTextEquals" locator1="MenuItem#ANY_MENU_ITEM" value1="Minimize">
+			<var name="key_menuItem" value="Minimize" />
+		</execute>
+	</command>
+</definition>
