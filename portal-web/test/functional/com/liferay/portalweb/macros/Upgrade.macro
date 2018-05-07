@@ -493,6 +493,120 @@
 		</execute>
 	</command>
 
+	<command name="editAssetsAfterUpgrade">
+		<execute macro="Navigator#openURL" />
+
+		<execute macro="Upgrade#editWebContentAfterUpgrade" />
+
+		<execute macro="WebContent#viewPGViaWCD">
+			<var name="webContentContent" value="Web Content Content Edit" />
+		</execute>
+
+		<execute macro="Upgrade#editDocumentAfterUpgrade" />
+
+		<execute macro="DMDocument#viewPG">
+			<var name="dmDocumentTitle" value="Document1 Edit" />
+		</execute>
+
+		<execute macro="Upgrade#editMessageBoardThreadAfterUpgrade" />
+
+		<execute macro="MessageboardsThread#viewPG">
+			<var name="threadBody" value="Message Boards Body Edit" />
+			<var name="threadSubject" value="Message Boards Subject Edit" />
+		</execute>
+
+		<execute macro="Upgrade#editWikiPageAfterUpgrade" />
+
+		<execute macro="WikiPage#viewFrontPagePG">
+			<var name="wikiPageContent" value="Wiki Front Page Content Edit" />
+			<var name="wikiPageTitle" value="FrontPage" />
+		</execute>
+
+		<execute macro="Upgrade#editBlogEntryAfterUpgrade" />
+
+		<execute macro="BlogsEntry#viewEntry">
+			<var name="entryContent" value="Blogs Entry Content Edit" />
+			<var name="entryTitle" value="Blogs Entry Title Edit" />
+		</execute>
+	</command>
+
+	<command name="editBlogEntryAfterUpgrade">
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Blogs" />
+		</execute>
+
+		<execute macro="BlogsNavigator#gotoEditPG">
+			<var name="entryTitle" value="Blogs Entry Title" />
+		</execute>
+
+		<execute macro="BlogsEntry#editTitle">
+			<var name="entryTitle" value="Blogs Entry Title" />
+			<var name="entryTitleEdit" value="Blogs Entry Title Edit" />
+		</execute>
+
+		<execute macro="BlogsEntry#editContent">
+			<var name="entryContent" value="Blogs Entry Content" />
+			<var name="entryContentEdit" value="Blogs Entry Content Edit" />
+		</execute>
+	</command>
+
+	<command name="editDocumentAfterUpgrade">
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Document" />
+		</execute>
+
+		<execute macro="DMDocument#editPG">
+			<var name="dmDocumentTitle" value="Document1" />
+			<var name="dmDocumentTitleEdit" value="Document1 Edit" />
+		</execute>
+	</command>
+
+	<command name="editMessageBoardThreadAfterUpgrade">
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Message Boards" />
+		</execute>
+
+		<execute macro="MessageboardsThread#gotoPG">
+			<var name="lastPostUserName" value="Test Test" />
+			<var name="replyCount" value="1" />
+			<var name="startedByUserName" value="Test Test" />
+			<var name="threadBody" value="Message Boards Body" />
+			<var name="threadSubject" value="Message Boards Subject" />
+		</execute>
+
+		<execute macro="MessageboardsThread#editPG">
+			<var name="threadBodyEdit" value="Message Boards Body Edit" />
+			<var name="threadSubjectEdit" value="Message Boards Subject Edit" />
+		</execute>
+	</command>
+
+	<command name="editWebContentAfterUpgrade">
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Web Content" />
+		</execute>
+
+		<execute macro="WebContentNavigator#gotoEditPGViaWCD">
+			<var name="menuItem" value="Edit Web Content" />
+			<var name="webContentTitle" value="Web Content Title" />
+		</execute>
+
+		<execute macro="WebContent#editPGViaWCD">
+			<var name="webContentContentEdit" value="Web Content Content Edit" />
+			<var name="webContentText" value="Web Content Content Edit" />
+			<var name="webContentTitleEdit" value="Web Content Title Edit" />
+		</execute>
+	</command>
+
+	<command name="editWikiPageAfterUpgrade">
+		<execute macro="Navigator#gotoPage">
+			<var name="pageName" value="Wiki" />
+		</execute>
+
+		<execute macro="WikiPage#editFrontPagePG">
+			<var name="wikiPageContentEdit" value="Wiki Front Page Content Edit" />
+		</execute>
+	</command>
+
 	<command name="publishStagedSite">
 		<execute macro="Navigator#openSiteURL">
 			<var name="siteName" value="Staging Site Staging" />
