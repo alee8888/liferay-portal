@@ -30,6 +30,10 @@
 		<execute macro="Upgrade#viewUpgrade" />
 
 		<execute macro="Upgrade#searchForAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#editAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#addAssetsAfterUpgrade" />
 	</command>
 
 	<command name="ViewPortalSmokeArchive612" priority="5">
@@ -41,6 +45,10 @@
 		<execute macro="Upgrade#viewUpgrade" />
 
 		<execute macro="Upgrade#searchForAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#editAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#addAssetsAfterUpgrade" />
 	</command>
 
 	<command name="ViewPortalSmokeArchive6130" priority="5">
@@ -52,6 +60,10 @@
 		<execute macro="Upgrade#viewUpgrade" />
 
 		<execute macro="Upgrade#searchForAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#editAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#addAssetsAfterUpgrade" />
 	</command>
 
 	<command name="ViewPortalSmokeArchive621015" priority="5">
@@ -63,6 +75,10 @@
 		<execute macro="Upgrade#viewUpgrade" />
 
 		<execute macro="Upgrade#searchForAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#editAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#addAssetsAfterUpgrade" />
 	</command>
 
 	<command name="ViewPortalSmokeArchive623" priority="5">
@@ -74,6 +90,10 @@
 		<execute macro="Upgrade#viewUpgrade" />
 
 		<execute macro="Upgrade#searchForAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#editAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#addAssetsAfterUpgrade" />
 	</command>
 
 	<command name="ViewPortalSmokeArchive625" priority="5">
@@ -85,6 +105,10 @@
 		<execute macro="Upgrade#viewUpgrade" />
 
 		<execute macro="Upgrade#searchForAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#editAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#addAssetsAfterUpgrade" />
 	</command>
 
 	<command name="ViewPortalSmokeArchive70106" priority="5">
@@ -96,6 +120,10 @@
 		<execute macro="Upgrade#viewUpgrade" />
 
 		<execute macro="Upgrade#searchForAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#editAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#addAssetsAfterUpgrade" />
 	</command>
 
 	<command name="ViewPortalSmokeArchive704" priority="5">
@@ -108,5 +136,9 @@
 		<execute macro="Upgrade#viewUpgrade" />
 
 		<execute macro="Upgrade#searchForAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#editAssetsAfterUpgrade" />
+
+		<execute macro="Upgrade#addAssetsAfterUpgrade" />
 	</command>
 </definition>
