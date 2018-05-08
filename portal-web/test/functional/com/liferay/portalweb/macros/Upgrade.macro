@@ -681,7 +681,6 @@
 
 		<execute macro="WebContent#editPGViaWCD">
 			<var name="webContentContentEdit" value="Web Content Content Edit" />
-			<var name="webContentText" value="Web Content Content Edit" />
 			<var name="webContentTitleEdit" value="Web Content Title Edit" />
 		</execute>
 	</command>
