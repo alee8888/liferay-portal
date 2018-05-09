@@ -198,6 +198,8 @@ public class DLAdminManagementToolbarDisplayContext {
 
 		clearResultsURL.setParameter(
 			"mvcRenderCommandName", "/document_library/view");
+		clearResultsURL.setParameter(
+			"folderId", String.valueOf(_getFolderId()));
 
 		return clearResultsURL.toString();
 	}
@@ -275,7 +277,13 @@ public class DLAdminManagementToolbarDisplayContext {
 		long folderId = _getFolderId();
 
 		searchURL.setParameter("folderId", String.valueOf(folderId));
-		searchURL.setParameter("searchFolderId", String.valueOf(folderId));
+
+		long searchFolderId = ParamUtil.getLong(
+			_request, "searchFolderId", folderId);
+
+		searchURL.setParameter(
+			"searchFolderId", String.valueOf(searchFolderId));
+
 		searchURL.setParameter(
 			"showRepositoryTabs", Boolean.toString(folderId == 0));
 
@@ -559,6 +567,10 @@ public class DLAdminManagementToolbarDisplayContext {
 	}
 
 	private long _getFolderId() {
+		if (_isSearch()) {
+			return ParamUtil.getLong(_request, "folderId");
+		}
+
 		return _dlAdminDisplayContext.getFolderId();
 	}
 

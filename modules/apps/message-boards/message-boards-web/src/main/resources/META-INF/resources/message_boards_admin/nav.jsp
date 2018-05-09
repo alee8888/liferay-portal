@@ -35,14 +35,14 @@ bannedUsersURL.setParameter("mvcRenderCommandName", "/message_boards/view_banned
 
 <clay:navigation-bar
 	inverted="<%= true %>"
-	items='<%=
+	navigationItems='<%=
 		new JSPNavigationItemList(pageContext) {
 			{
 				add(
 					navigationItem -> {
 						navigationItem.setActive(navItemSelected.equals("threads"));
 						navigationItem.setHref(messageBoardsHomeURL);
-						navigationItem.setLabel(LanguageUtil.get(request, "threads"));
+						navigationItem.setLabel(LanguageUtil.get(request, "content"));
 					});
 
 				add(

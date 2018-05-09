@@ -29,10 +29,10 @@ BlogsGroupServiceOverriddenConfiguration blogsGroupServiceOverriddenConfiguratio
 
 		<div class="btn-group-item">
 			<clay:link
-				buttonStyle="borderless"
-				elementClasses="btn-sm"
+				buttonStyle="secondary"
+				elementClasses="btn-outline-borderless btn-outline-secondary btn-sm"
 				href="<%= rssURL %>"
-				icon="rss"
+				icon="rss-full"
 				label='<%= LanguageUtil.get(request, "rss") %>'
 			/>
 		</div>
@@ -90,7 +90,7 @@ BlogsGroupServiceOverriddenConfiguration blogsGroupServiceOverriddenConfiguratio
 				buttonStyle="primary"
 				elementClasses="btn-sm"
 				href="<%= editEntryURL %>"
-				label='<%= LanguageUtil.get(request, "new-blog-entry") %>'
+				label='<%= LanguageUtil.get(request, "new-entry") %>'
 			/>
 		</div>
 	</c:if>

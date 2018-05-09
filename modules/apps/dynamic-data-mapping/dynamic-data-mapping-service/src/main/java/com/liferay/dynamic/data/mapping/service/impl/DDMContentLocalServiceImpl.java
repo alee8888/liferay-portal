@@ -39,7 +39,7 @@ public class DDMContentLocalServiceImpl extends DDMContentLocalServiceBaseImpl {
 
 		User user = userLocalService.getUser(userId);
 
-		validate(name, data);
+		validate(0, name, data);
 
 		long contentId = counterLocalService.increment();
 
@@ -105,7 +105,7 @@ public class DDMContentLocalServiceImpl extends DDMContentLocalServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		validate(name, data);
+		validate(contentId, name, data);
 
 		DDMContent content = ddmContentPersistence.findByPrimaryKey(contentId);
 
@@ -118,13 +118,17 @@ public class DDMContentLocalServiceImpl extends DDMContentLocalServiceBaseImpl {
 		return content;
 	}
 
-	protected void validate(String name, String data) throws PortalException {
+	protected void validate(long contentId, String name, String data)
+		throws PortalException {
+
 		if (Validator.isNull(name)) {
-			throw new ContentNameException("Name is null");
+			throw new ContentNameException(
+				"Content " + contentId + " has a null name");
 		}
 
 		if (Validator.isNull(data)) {
-			throw new ContentException("Data is null");
+			throw new ContentException(
+				"Content " + contentId + " has null data");
 		}
 	}
 

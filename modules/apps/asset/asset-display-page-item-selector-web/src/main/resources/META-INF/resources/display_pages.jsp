@@ -21,15 +21,16 @@ AssetDisplayPagesItemSelectorViewDisplayContext assetDisplayPagesItemSelectorVie
 %>
 
 <clay:management-toolbar
-	filterItems="<%= assetDisplayPagesItemSelectorViewDisplayContext.getFilterDropdownItems() %>"
+	clearResultsURL="<%= assetDisplayPagesItemSelectorViewDisplayContext.getClearResultsURL() %>"
+	filterDropdownItems="<%= assetDisplayPagesItemSelectorViewDisplayContext.getFilterDropdownItems() %>"
+	itemsTotal="<%= assetDisplayPagesItemSelectorViewDisplayContext.getTotalItems() %>"
 	searchActionURL="<%= assetDisplayPagesItemSelectorViewDisplayContext.getSearchActionURL() %>"
 	searchContainerId="displayPages"
+	searchFormName="searchFm"
 	selectable="<%= false %>"
-	showSearch="<%= false %>"
 	sortingOrder="<%= assetDisplayPagesItemSelectorViewDisplayContext.getOrderByType() %>"
 	sortingURL="<%= assetDisplayPagesItemSelectorViewDisplayContext.getSortingURL() %>"
-	totalItems="<%= assetDisplayPagesItemSelectorViewDisplayContext.getTotalItems() %>"
-	viewTypes="<%= assetDisplayPagesItemSelectorViewDisplayContext.getViewTypeItems() %>"
+	viewTypeItems="<%= assetDisplayPagesItemSelectorViewDisplayContext.getViewTypeItems() %>"
 />
 
 <aui:form cssClass="container-fluid-1280" name="fm">
@@ -50,7 +51,7 @@ AssetDisplayPagesItemSelectorViewDisplayContext assetDisplayPagesItemSelectorVie
 
 			data.put("id", layoutPageTemplateEntry.getLayoutPageTemplateEntryId());
 			data.put("name", layoutPageTemplateEntry.getName());
-			data.put("type", "display-page");
+			data.put("type", "asset-display-page");
 			%>
 
 			<liferay-ui:search-container-column-text>
