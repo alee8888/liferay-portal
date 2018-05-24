@@ -171,6 +171,7 @@ page import="com.liferay.users.admin.kernel.util.UsersAdminUtil" %><%@
 page import="com.liferay.users.admin.user.action.contributor.UserActionContributor" %><%@
 page import="com.liferay.users.admin.web.internal.constants.UsersAdminWebKeys" %><%@
 page import="com.liferay.users.admin.web.internal.display.context.InitDisplayContext" %><%@
+page import="com.liferay.users.admin.web.internal.display.context.SelectOrganizationManagementToolbarDisplayContext" %><%@
 page import="com.liferay.users.admin.web.internal.display.context.UserActionDisplayContext" %><%@
 page import="com.liferay.users.admin.web.internal.display.context.UserDisplayContext" %><%@
 page import="com.liferay.users.admin.web.internal.display.context.ViewOrganizationsManagementToolbarDisplayContext" %><%@
