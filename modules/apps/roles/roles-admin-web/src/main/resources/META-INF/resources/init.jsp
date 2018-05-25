@@ -132,6 +132,7 @@ page import="com.liferay.portlet.usersadmin.search.UserSearch" %><%@
 page import="com.liferay.roles.admin.constants.RolesAdminPortletKeys" %><%@
 page import="com.liferay.roles.admin.kernel.util.RolesAdminUtil" %><%@
 page import="com.liferay.roles.admin.web.internal.display.context.RoleDisplayContext" %><%@
+page import="com.liferay.roles.admin.web.internal.display.context.SelectRoleManagementToolbarDisplayContext" %><%@
 page import="com.liferay.roles.admin.web.internal.search.RoleChecker" %><%@
 page import="com.liferay.roles.admin.web.internal.util.PortletDisplayTemplateUtil" %><%@
 page import="com.liferay.taglib.search.ResultRow" %><%@
