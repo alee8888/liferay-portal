@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portlet.rolesadmin.search.RoleSearch;
 import com.liferay.portlet.rolesadmin.search.RoleSearchTerms;
@@ -91,6 +92,23 @@ public class SelectRoleManagementToolbarDisplayContext {
 		if (ArrayUtil.isNotEmpty(keywords)) {
 			portletURL.setParameter("keywords", keywords[keywords.length - 1]);
 		}
+
+		String organizationId = ParamUtil.getString(_request, "organizationId");
+
+		if (Validator.isNotNull(organizationId)) {
+			portletURL.setParameter("organizationId", organizationId);
+		}
+
+		String organizationIds = ParamUtil.getString(
+			_request, "organizationIds");
+
+		if (Validator.isNotNull(organizationIds)) {
+			portletURL.setParameter("organizationIds", organizationIds);
+		}
+
+		int step = ParamUtil.getInteger(_request, "step", 1);
+
+		portletURL.setParameter("step", String.valueOf(step));
 
 		return portletURL;
 	}
