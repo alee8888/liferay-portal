@@ -93,6 +93,12 @@ public class SelectRoleManagementToolbarDisplayContext {
 			portletURL.setParameter("keywords", keywords[keywords.length - 1]);
 		}
 
+		long groupId = ParamUtil.getLong(_request, "groupId");
+
+		if (groupId != 0) {
+			portletURL.setParameter("groupId", String.valueOf(groupId));
+		}
+
 		String organizationId = ParamUtil.getString(_request, "organizationId");
 
 		if (Validator.isNotNull(organizationId)) {
