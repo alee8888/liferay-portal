@@ -286,9 +286,16 @@ public class EditRoleAssignmentsManagementToolbarDisplayContext {
 	public PortletURL getPortletURL() {
 		PortletURL portletURL = _renderResponse.createRenderURL();
 
-		portletURL.setParameter("mvcPath", "/edit_role_assignments.jsp");
+		if (_tabs3.equals("current")) {
+			portletURL.setParameter("mvcPath", "/edit_role_assignments.jsp");
+		}
+		else {
+			portletURL.setParameter("mvcPath", "/select_assignees.jsp");
+		}
+
 		portletURL.setParameter("tabs1", "assignees");
 		portletURL.setParameter("tabs2", getTabs2());
+		portletURL.setParameter("tabs3", _tabs3);
 		portletURL.setParameter("roleId", String.valueOf(_role.getRoleId()));
 
 		String redirect = ParamUtil.getString(_request, "redirect");
