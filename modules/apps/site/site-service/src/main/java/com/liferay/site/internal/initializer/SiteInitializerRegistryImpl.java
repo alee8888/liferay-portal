@@ -71,9 +71,7 @@ public class SiteInitializerRegistryImpl implements SiteInitializerRegistry {
 		List<ServiceWrapper<SiteInitializer>> serviceWrappers =
 			ListUtil.fromCollection(_serviceTrackerMap.values());
 
-		for (ServiceWrapper<SiteInitializer> serviceWrapper :
-				serviceWrappers) {
-
+		for (ServiceWrapper<SiteInitializer> serviceWrapper : serviceWrappers) {
 			SiteInitializer siteInitializer = serviceWrapper.getService();
 
 			if (!active || (active && siteInitializer.isActive(companyId))) {
@@ -87,7 +85,7 @@ public class SiteInitializerRegistryImpl implements SiteInitializerRegistry {
 	@Activate
 	protected void activate(BundleContext bundleContext) {
 		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
-			bundleContext, SiteInitializer.class, "group.initializer.key",
+			bundleContext, SiteInitializer.class, "site.initializer.key",
 			ServiceTrackerCustomizerFactory.<SiteInitializer>serviceWrapper(
 				bundleContext));
 	}

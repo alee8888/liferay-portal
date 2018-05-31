@@ -136,12 +136,13 @@ public class PoshiProseStatement {
 		return proseStatementMatchingString;
 	}
 
-	protected static final String[] KEYWORDS = {"And", "Given", "Then", "When"};
+	protected static final String[] KEYWORDS =
+		{"*", "And", "Given", "Then", "When"};
 
 	private static final String _LINE_SEPARATOR = System.lineSeparator();
 
 	private static final Pattern _multiLineStringPattern = Pattern.compile(
-		"(?s)\\s*\"\"\"\\s*\\w*\\s*(.*?)\\s*\"\"\"");
+		"(?s)\\s*\"\"\".*?\\R(.*?)\\s*\"\"\"");
 	private static final Pattern _varValuePattern = Pattern.compile(
 		"\"(.*?)\"");
 
