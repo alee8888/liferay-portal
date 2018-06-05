@@ -29,11 +29,21 @@ PortletURL sortingURL = PortletURLUtil.clone(portletURL, renderResponse);
 sortingURL.setParameter("orderByType", orderByType.equals("asc") ? "desc" : "asc");
 %>
 
-<aui:nav-bar markupView="lexicon">
-	<aui:nav cssClass="navbar-nav">
-		<aui:nav-item label="live-sessions" selected="<%= true %>" />
-	</aui:nav>
-</aui:nav-bar>
+<clay:navigation-bar
+	inverted="<%= true %>"
+	navigationItems='<%=
+		new JSPNavigationItemList(pageContext) {
+			{
+				add(
+					navigationItem -> {
+						navigationItem.setActive(true);
+						navigationItem.setHref(StringPool.BLANK);
+						navigationItem.setLabel(LanguageUtil.get(request, "live-sessions"));
+					});
+			}
+		}
+	%>'
+/>
 
 <clay:management-toolbar
 	selectable="<%= false %>"
