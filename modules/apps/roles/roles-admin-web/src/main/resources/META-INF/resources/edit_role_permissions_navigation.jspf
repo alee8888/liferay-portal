@@ -44,7 +44,7 @@ PanelCategoryRegistry panelCategoryRegistry = (PanelCategoryRegistry)request.get
 		<span class="inline-item"><clay:icon symbol="caret-bottom" /></span>
 	</a>
 
-	<div class="collapse menubar-collapse lfr-permission-navigation" id="<portlet:namespace />permissionNavigationDataContainer">
+	<div class="collapse lfr-permission-navigation menubar-collapse" id="<portlet:namespace />permissionNavigationDataContainer">
 		<div class="nav-form search" id="<portlet:namespace />permissionNavigationSearchContainer">
 			<input class="field form-control search-query" id="<portlet:namespace />permissionNavigationSearch" placeholder="<%= LanguageUtil.get(request, "search") %>" type="text" />
 		</div>
@@ -75,11 +75,11 @@ PanelCategoryRegistry panelCategoryRegistry = (PanelCategoryRegistry)request.get
 			<li class="nav-item permission-navigation-item-summary">
 
 				<%
-					String summaryLinkClass = "nav-link permission-navigation-link";
+				String summaryLinkClass = "nav-link permission-navigation-link";
 
-					if (Validator.isNull(portletResource)) {
-						summaryLinkClass += " active";
-					}
+				if (Validator.isNull(portletResource)) {
+					summaryLinkClass += " active";
+				}
 				%>
 
 				<aui:a cssClass="<%= summaryLinkClass %>" data="<%= data %>" href="<%= viewPermissionsURL.toString() %>">
@@ -129,10 +129,14 @@ PanelCategoryRegistry panelCategoryRegistry = (PanelCategoryRegistry)request.get
 							<liferay-ui:message key="control-panel" />
 
 							<span class="collapse-icon-closed">
-								<clay:icon symbol="caret-right" />
+								<clay:icon
+									symbol="caret-right"
+								/>
 							</span>
 							<span class="collapse-icon-open">
-								<clay:icon symbol="caret-bottom" />
+								<clay:icon
+									symbol="caret-bottom"
+								/>
 							</span>
 						</a>
 
@@ -154,10 +158,14 @@ PanelCategoryRegistry panelCategoryRegistry = (PanelCategoryRegistry)request.get
 											<a class="collapse-icon nav-link permission-navigation-item-header toggler-header toggler-header-collapsed" href="javascript:;">
 												<%= panelCategory.getLabel(locale) %>
 												<span class="collapse-icon-closed">
-													<clay:icon symbol="caret-right" />
+													<clay:icon
+														symbol="caret-right"
+													/>
 												</span>
 												<span class="collapse-icon-open">
-													<clay:icon symbol="caret-bottom" />
+													<clay:icon
+														symbol="caret-bottom"
+													/>
 												</span>
 											</a>
 
@@ -216,10 +224,14 @@ PanelCategoryRegistry panelCategoryRegistry = (PanelCategoryRegistry)request.get
 					<liferay-ui:message key="site-administration" />
 
 					<span class="collapse-icon-closed">
-						<clay:icon symbol="caret-right" />
+						<clay:icon
+							symbol="caret-right"
+						/>
 					</span>
 					<span class="collapse-icon-open">
-						<clay:icon symbol="caret-bottom" />
+						<clay:icon
+							symbol="caret-bottom"
+						/>
 					</span>
 				</a>
 
@@ -236,10 +248,14 @@ PanelCategoryRegistry panelCategoryRegistry = (PanelCategoryRegistry)request.get
 									<a class="collapse-icon nav-link permission-navigation-item-header toggler-header toggler-header-collapsed" href="javascript:;">
 										<%= panelCategory.getLabel(locale) %>
 										<span class="collapse-icon-closed">
-											<clay:icon symbol="caret-right" />
+											<clay:icon
+												symbol="caret-right"
+											/>
 										</span>
 										<span class="collapse-icon-open">
-											<clay:icon symbol="caret-bottom" />
+											<clay:icon
+												symbol="caret-bottom"
+											/>
 										</span>
 									</a>
 
@@ -295,10 +311,14 @@ PanelCategoryRegistry panelCategoryRegistry = (PanelCategoryRegistry)request.get
 								<liferay-ui:message key="applications" />
 
 								<span class="collapse-icon-closed">
-									<clay:icon symbol="caret-right" />
+									<clay:icon
+										symbol="caret-right"
+									/>
 								</span>
 								<span class="collapse-icon-open">
-									<clay:icon symbol="caret-bottom" />
+									<clay:icon
+										symbol="caret-bottom"
+									/>
 								</span>
 							</a>
 
@@ -351,10 +371,14 @@ PanelCategoryRegistry panelCategoryRegistry = (PanelCategoryRegistry)request.get
 						<liferay-ui:message key="user" />
 
 						<span class="collapse-icon-closed">
-							<clay:icon symbol="caret-right" />
+							<clay:icon
+								symbol="caret-right"
+							/>
 						</span>
 						<span class="collapse-icon-open">
-							<clay:icon symbol="caret-bottom" />
+							<clay:icon
+								symbol="caret-bottom"
+							/>
 						</span>
 					</a>
 
@@ -371,10 +395,14 @@ PanelCategoryRegistry panelCategoryRegistry = (PanelCategoryRegistry)request.get
 										<a class="collapse-icon nav-link permission-navigation-item-header toggler-header toggler-header-collapsed" href="javascript:;">
 											<%= panelCategory.getLabel(locale) %>
 											<span class="collapse-icon-closed">
-												<clay:icon symbol="caret-right" />
+												<clay:icon
+													symbol="caret-right"
+												/>
 											</span>
 											<span class="collapse-icon-open">
-												<clay:icon symbol="caret-bottom" />
+												<clay:icon
+													symbol="caret-bottom"
+												/>
 											</span>
 										</a>
 
