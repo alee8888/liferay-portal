@@ -26,8 +26,6 @@ String redirect = ParamUtil.getString(request, "redirect");
 
 String backURL = ParamUtil.getString(request, "backURL", redirect);
 
-String permissionContentContainerClass = " col-md-12";
-
 long roleId = ParamUtil.getLong(request, "roleId");
 
 Role role = RoleServiceUtil.fetchRole(roleId);
@@ -47,6 +45,8 @@ portletURL.setParameter("roleId", String.valueOf(role.getRoleId()));
 request.setAttribute("edit_role_permissions.jsp-role", role);
 
 request.setAttribute("edit_role_permissions.jsp-portletResource", portletResource);
+
+String permissionContentContainerClass = " col-md-12";
 
 if (!portletName.equals(PortletKeys.SERVER_ADMIN)) {
 	permissionContentContainerClass = " col-lg-9";
