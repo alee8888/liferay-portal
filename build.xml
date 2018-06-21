@@ -1249,6 +1249,8 @@ if isAppInstalled('DefaultApplication'):
 
 	print AdminConfig.save()
 
+AdminTask.setTraceSpecification('[-serverName server1 -nodeName liferay-node -persist true -traceSpecification *=severe=enabled]')
+
 appManager = AdminControl.queryNames('type=ApplicationManager,process=server1,*')
 
 if isAppInstalled('liferay-portal'):
