@@ -2302,13 +2302,10 @@ cd('/Servers/AdminServer')
 set('ListenAddress', '')
 set('ListenPort', 8080)
 
-props = java.util.Properties()
-props.put("com.google.javascript.jscomp","SEVERE")
-
 create('AdminServer', 'Log')
 cd('/Servers/AdminServer/Log/AdminServer')
 
-cmo.setPlatformLoggerLevels(props)
+cmo.setStdoutSeverity(weblogic.logging.Severities.ERROR_TEXT)
 
 writeDomain('${app.server.weblogic.instance.dir}')
 
