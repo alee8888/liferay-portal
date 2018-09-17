@@ -168,6 +168,7 @@ page import="com.liferay.users.admin.user.action.contributor.UserActionContribut
 page import="com.liferay.users.admin.web.internal.CustomFieldsUtil" %><%@
 page import="com.liferay.users.admin.web.internal.constants.UsersAdminWebKeys" %><%@
 page import="com.liferay.users.admin.web.internal.display.context.InitDisplayContext" %><%@
+page import="com.liferay.users.admin.web.internal.display.context.OrganizationScreenNavigationDisplayContext" %><%@
 page import="com.liferay.users.admin.web.internal.display.context.SelectOrganizationManagementToolbarDisplayContext" %><%@
 page import="com.liferay.users.admin.web.internal.display.context.SelectOrganizationUsersManagementToolbarDisplayContext" %><%@
 page import="com.liferay.users.admin.web.internal.display.context.SelectUserGroupManagementToolbarDisplayContext" %><%@
@@ -176,7 +177,6 @@ page import="com.liferay.users.admin.web.internal.display.context.UserDisplayCon
 page import="com.liferay.users.admin.web.internal.display.context.ViewOrganizationsManagementToolbarDisplayContext" %><%@
 page import="com.liferay.users.admin.web.internal.display.context.ViewTreeManagementToolbarDisplayContext" %><%@
 page import="com.liferay.users.admin.web.internal.display.context.ViewUsersManagementToolbarDisplayContext" %><%@
-page import="com.liferay.users.admin.web.internal.frontend.taglib.servlet.taglib.OrganizationScreenNavigationDisplayContext" %><%@
 page import="com.liferay.users.admin.web.internal.search.OrganizationResultRowSplitter" %><%@
 page import="com.liferay.users.admin.web.internal.util.UsersAdminPortletURLUtil" %>
 
