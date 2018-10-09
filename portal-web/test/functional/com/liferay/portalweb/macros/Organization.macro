@@ -54,9 +54,7 @@
 
 		<execute macro="PortletEntry#save" />
 
-		<execute macro="Organization#gotoOrganizationInformationCP">
-			<var name="panel" value="Categorization" />
-		</execute>
+		<execute macro="UsersAndOrganizationsNavigator#gotoInformation" />
 
 		<execute function="AssertTextEquals" locator1="UsersAndOrganizationsEditOrganization#CATEGORIZATION_TAG" value1="${tagName}" />
 	</command>
@@ -394,9 +392,7 @@
 			<var name="menuItem" value="Edit" />
 		</execute>
 
-		<execute macro="Organization#gotoOrganizationInformationCP">
-			<var name="panel" value="${panel}" />
-		</execute>
+		<execute macro="UsersAndOrganizationsNavigator#gotoInformation" />
 	</command>
 
 	<command name="editSiteCP">
@@ -466,19 +462,6 @@
 
 	<command name="gotoMiscellaneousCP">
 		<execute function="AssertClick" locator1="UsersAndOrganizations#MISCELLANEOUS" value1="Miscellaneous" />
-
-		<if>
-			<isset var="panel" />
-			<then>
-				<execute macro="Panel#expandPanel">
-					<var name="panel" value="${panel}" />
-				</execute>
-			</then>
-		</if>
-	</command>
-
-	<command name="gotoOrganizationInformationCP">
-		<execute function="AssertClick" locator1="UsersAndOrganizations#ORGANIZATION_INFORMATION" value1="Organization Information" />
 
 		<if>
 			<isset var="panel" />
