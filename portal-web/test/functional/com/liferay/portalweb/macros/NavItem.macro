@@ -26,6 +26,12 @@
 		</execute>
 	</command>
 
+	<command name="gotoInformation">
+		<execute macro="NavItem#click">
+			<var name="navItem" value="Information" />
+		</execute>
+	</command>
+
 	<command name="gotoOrganizations">
 		<execute macro="NavItem#click">
 			<var name="navItem" value="Organizations" />
