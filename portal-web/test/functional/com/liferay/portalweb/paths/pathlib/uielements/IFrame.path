@@ -24,6 +24,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DIALOG_2</td>
+	<td>//iframe[contains(@class,'dialog-iframe-modal')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DIALOG_BOX</td>
 	<td>//div[contains(@class,'modal-header')]/h3</td>
 	<td></td>
