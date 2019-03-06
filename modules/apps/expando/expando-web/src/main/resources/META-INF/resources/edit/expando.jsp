@@ -85,7 +85,7 @@ renderResponse.setTitle(modelResourceName + ": " + ((column == null) ? LanguageU
 </portlet:actionURL>
 
 <liferay-frontend:edit-form
-	action="<%= editExpandoURL %>"
+	onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "setIndexTypeValue(); " %>'
 >
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="columnId" type="hidden" value="<%= columnId %>" />
@@ -144,3 +144,20 @@ if (column != null) {
 
 PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, ((column == null) ? "add-attribute" : "edit")), currentURL);
 %>
+
+<aui:script>
+	function <portlet:namespace />setIndexTypeValue () {
+		var form = AUI.$(document.<portlet:namespace />fm);
+
+		var searchableAsKeyword = $('#<portlet:namespace />searchable').prop("checked");
+
+		if (searchableAsKeyword) {
+			form.fm('index-type').val('<%= ExpandoColumnConstants.INDEX_TYPE_KEYWORD %>');
+		}
+		else {
+			form.fm('index-type').val('<%= ExpandoColumnConstants.INDEX_TYPE_NONE %>');
+		}
+
+		submitForm(form, '<%= editExpandoURL.toString() %>');
+	}
+</aui:script>
