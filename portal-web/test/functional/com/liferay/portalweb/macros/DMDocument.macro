@@ -1958,9 +1958,8 @@ definition {
 				value1 = "Live"
 			);
 
-			AssertTextNotPresent(
-				locator1 = "DocumentsAndMedia#ICON_DOCUMENT_TITLE",
-				value1 = "${dmDocumentTitle}"
+			LexiconCard.viewCardNotPresent(
+				card = "${dmDocumentTitle}"
 			);
 
 			AssertTextEquals(
