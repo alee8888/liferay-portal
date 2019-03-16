@@ -105,6 +105,14 @@ public class ExpandoColumnConstants {
 
 	public static final String NUMBER_LABEL = "custom.field.number";
 
+	public static final String[] NUMBER_TYPES = {"Decimal", "Integer"};
+
+	public static final String PRECISION_16_BIT = "16-bit";
+
+	public static final String PRECISION_32_BIT = "32-bit";
+
+	public static final String PRECISION_64_BIT = "64-bit";
+
 	public static final String PROPERTY_DISPLAY_TYPE = "display-type";
 
 	public static final String PROPERTY_DISPLAY_TYPE_CHECKBOX = "checkbox";
@@ -164,6 +172,10 @@ public class ExpandoColumnConstants {
 
 	public static final String STRING_LOCALIZED_LABEL =
 		"custom.field.java.lang.String.localized";
+
+	public static final String TYPE_DECIMAL = "Decimal";
+
+	public static final String TYPE_INTEGER = "Integer";
 
 	public static final int[] TYPES = {
 		BOOLEAN, BOOLEAN_ARRAY, DATE, DATE_ARRAY, DOUBLE, DOUBLE_ARRAY, FLOAT,
