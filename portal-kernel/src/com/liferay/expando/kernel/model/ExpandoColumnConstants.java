@@ -223,6 +223,31 @@ public class ExpandoColumnConstants {
 		return StringPool.BLANK;
 	}
 
+	public static final String getNumberType(int type) {
+		if ((type == DOUBLE) || (type == FLOAT)) {
+			return TYPE_DECIMAL;
+		}
+		else if ((type == LONG) || (type == INTEGER) || (type == SHORT)) {
+			return TYPE_INTEGER;
+		}
+
+		return StringPool.BLANK;
+	}
+
+	public static final String getPrecisionType(int type) {
+		if ((type == DOUBLE) || (type == LONG)) {
+			return PRECISION_64_BIT;
+		}
+		else if ((type == FLOAT) || (type == INTEGER)) {
+			return PRECISION_32_BIT;
+		}
+		else if (type == SHORT) {
+			return PRECISION_16_BIT;
+		}
+
+		return StringPool.BLANK;
+	}
+
 	public static final Serializable getSerializable(int type, String value) {
 		if (type == BOOLEAN) {
 			return GetterUtil.getBoolean(value);
