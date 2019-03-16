@@ -120,6 +120,32 @@
 				Liferay.Util.toggleBoxes('<portlet:namespace />localize-field', '<portlet:namespace />textLocalizedField');
 			</aui:script>
 		</c:if>
+
+		<c:if test="<%= propertyDisplayType.equals(ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_NUMBER) %>">
+			<aui:field-wrapper>
+				<c:choose>
+					<c:when test="<%= column != null %>">
+						<aui:select disabled="<%= true %>" label="number-type" name="numberType">
+							<aui:option label="<%= ExpandoColumnConstants.getNumberType(type) %>" />
+						</aui:select>
+					</c:when>
+					<c:otherwise>
+						<aui:select label="number-type" name="numberType" onChange="setPrecisionType()">
+
+							<%
+							for (String numberType : ExpandoColumnConstants.NUMBER_TYPES) {
+							%>
+
+								<aui:option label="<%= numberType %>" />
+
+							<%
+							}
+							%>ƒ
+						</aui:select>
+					</c:otherwise>
+				</c:choose>
+			</aui:field-wrapper>
+		</c:if>
 	</c:otherwise>
 </c:choose>
 

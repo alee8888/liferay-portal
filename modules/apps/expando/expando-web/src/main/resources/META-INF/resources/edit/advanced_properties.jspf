@@ -19,6 +19,28 @@
 	collapsible="<%= true %>"
 	label="advanced-properties"
 >
+	<c:if test="<%= propertyDisplayType.equals(ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_NUMBER) %>">
+		<aui:field-wrapper cssClass="custom-precision-type-field-wrapper">
+			<c:choose>
+				<c:when test="<%= column != null %>">
+					<aui:select disabled="<%= true %>" label="precision" name="precisionType">
+						<aui:option label="<%= ExpandoColumnConstants.getPrecisionType(type) %>" />
+					</aui:select>
+				</c:when>
+				<c:otherwise>
+					<aui:select label="precision" name="precisionType">
+						<aui:option label="<%= ExpandoColumnConstants.PRECISION_64_BIT %>" />
+						<aui:option label="<%= ExpandoColumnConstants.PRECISION_32_BIT %>" />
+					</aui:select>
+				</c:otherwise>
+			</c:choose>
+
+			<div class="form-text">
+				<liferay-ui:message key="custom-field-precision-help" />
+			</div>
+		</aui:field-wrapper>
+	</c:if>
+
 	<aui:field-wrapper>
 		<aui:input label="visible-with-update-permission" name="Property--visible-with-update-permission--" type="toggle-switch" value="<%= propertyVisibleWithUpdatePermission %>" />
 
@@ -106,3 +128,38 @@
 		</aui:field-wrapper>
 	</c:if>
 </liferay-frontend:fieldset>
+
+<script>
+	function populatePrecisionType(precisionTypeForm, integerBit) {
+		var integerBitOptions = "";
+
+		for (var bit of integerBit) {
+			integerBitOptions += "<option value=\"" + bit + "\">" + bit + "</option>";
+		}
+
+		precisionTypeForm.innerHTML = integerBitOptions;
+	}
+
+	function setPrecisionType() {
+		var numberTypeForm = document.getElementById('<portlet:namespace />numberType');
+
+		var currentSelectedNumberType = numberTypeForm.value;
+
+		var precisionTypeForm = document.getElementById('<portlet:namespace />precisionType');
+
+		precisionTypeForm.options.length = 0
+
+		if (currentSelectedNumberType && numberTypeForm && precisionTypeForm) {
+			if (currentSelectedNumberType == '<%= ExpandoColumnConstants.TYPE_DECIMAL %>') {
+				var integerBit = ['<%= ExpandoColumnConstants.PRECISION_64_BIT %>', '<%= ExpandoColumnConstants.PRECISION_32_BIT %>'];
+
+				populatePrecisionType(precisionTypeForm, integerBit);
+			}
+			else if (currentSelectedNumberType == '<%= ExpandoColumnConstants.TYPE_INTEGER %>') {
+				var integerBit = ['<%= ExpandoColumnConstants.PRECISION_64_BIT %>', '<%= ExpandoColumnConstants.PRECISION_32_BIT %>', '<%= ExpandoColumnConstants.PRECISION_16_BIT %>'];
+
+				populatePrecisionType(precisionTypeForm, integerBit);
+			}
+		}
+	}
+</script>
