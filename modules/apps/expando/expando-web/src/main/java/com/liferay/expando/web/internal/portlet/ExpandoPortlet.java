@@ -111,13 +111,23 @@ public class ExpandoPortlet extends MVCPortlet {
 			if (dataType.equals(ExpandoColumnConstants.TYPE_DECIMAL) &&
 				precisionType.equals(ExpandoColumnConstants.PRECISION_64_BIT)) {
 
-				type = ExpandoColumnConstants.DOUBLE;
+				if (type == ExpandoColumnConstants.STRING_ARRAY) {
+					type = ExpandoColumnConstants.DOUBLE_ARRAY;
+				}
+				else {
+					type = ExpandoColumnConstants.DOUBLE;
+				}
 			}
 			else if (dataType.equals(ExpandoColumnConstants.TYPE_DECIMAL) &&
 					 precisionType.equals(
 						 ExpandoColumnConstants.PRECISION_32_BIT)) {
 
-				type = ExpandoColumnConstants.FLOAT;
+				if (type == ExpandoColumnConstants.STRING_ARRAY) {
+					type = ExpandoColumnConstants.FLOAT_ARRAY;
+				}
+				else {
+					type = ExpandoColumnConstants.FLOAT;
+				}
 			}
 			else if (dataType.equals(ExpandoColumnConstants.TYPE_INTEGER) &&
 					 precisionType.equals(
