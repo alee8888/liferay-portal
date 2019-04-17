@@ -25,7 +25,13 @@ String label = (String)request.getAttribute("liferay-product-navigation:personal
 
 <style type="text/css">
 	#clay_dropdown_portal .dropdown-menu-personal-menu {
-		max-height: fit-content;
+		max-height: 95vh;
+	}
+
+	@media (max-width: 980px) {
+		#clay_dropdown_portal .dropdown-menu-personal-menu {
+			top: 0 !important;
+		}
 	}
 
 	#clay_dropdown_portal .dropdown-menu-personal-menu .dropdown-item-indicator {
