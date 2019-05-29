@@ -53,4 +53,24 @@ definition {
 		AssertTextPresent(value1 = "My Dashboard");
 	}
 
+	@priority = "4"
+	test ConfigureShowInControlMenu {
+		AssertElementNotPresent.assertElementNotPresent(locator1 = "UserBar#USER_AVATAR_IN_CONTROL_MENU");
+
+		AssertElementPresent.assertElementPresent(locator1 = "UserBar#USER_AVATAR_IN_NAVIGATION_USER_PERSONAL_BAR_PORTLET");
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "Users",
+			configurationName = "Personal Menu",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.editConfigurationUsersPersonalMenuShowInControlMenu(toggleSwitchLabel = "Show in Control Menu");
+
+		Navigator.openURL();
+
+		AssertElementPresent.assertElementPresent(locator1 = "UserBar#USER_AVATAR_IN_CONTROL_MENU");
+
+		AssertElementPresent.assertElementPresent(locator1 = "UserBar#USER_AVATAR_IN_NAVIGATION_USER_PERSONAL_BAR_PORTLET");
+	}
+
 }
