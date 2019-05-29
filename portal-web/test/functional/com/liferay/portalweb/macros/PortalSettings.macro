@@ -464,6 +464,14 @@ definition {
 		PortletEntry.update();
 	}
 
+	macro editConfigurationUsersPersonalMenuShowInControlMenu {
+		Check.checkToggleSwitch(
+			key_toggleSwitchLabel = "${toggleSwitchLabel}",
+			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+		PortletEntry.update();
+	}
+
 	macro editDefaultLandingPageCP {
 		Type(
 			locator1 = "PortalSettings#DEFAULT_LANDING_PAGE_FIELD",
