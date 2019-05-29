@@ -44,6 +44,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>USER_FULL_NAME</td>
+	<td>//div[@id='clay_dropdown_portal']//li[@class='dropdown-subheader']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>USER_PROFILE</td>
 	<td>//a[contains(.,'Profile')]</td>
 	<td></td>
