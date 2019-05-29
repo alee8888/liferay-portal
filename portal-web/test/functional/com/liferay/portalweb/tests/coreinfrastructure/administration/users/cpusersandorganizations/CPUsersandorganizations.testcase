@@ -1792,6 +1792,10 @@ definition {
 			password = "test",
 			userEmailAddress = "userea@liferay.com");
 
+		UserBar.gotoDropdown();
+
+		UserBar.viewFullName(userName = "userfn userln");
+
 		User.logoutPG();
 
 		User.loginUserPG();
