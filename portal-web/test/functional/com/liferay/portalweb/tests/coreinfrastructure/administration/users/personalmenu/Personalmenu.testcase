@@ -73,4 +73,11 @@ definition {
 		AssertElementPresent.assertElementPresent(locator1 = "UserBar#USER_AVATAR_IN_NAVIGATION_USER_PERSONAL_BAR_PORTLET");
 	}
 
+	@priority = "4"
+	test NavigateToMySites {
+		UserBar.gotoDropdownItem(dropdownItem = "My Sites");
+
+		Site.viewSelectSiteViaPersonalMenuMySites(siteName = "Liferay");
+	}
+
 }
