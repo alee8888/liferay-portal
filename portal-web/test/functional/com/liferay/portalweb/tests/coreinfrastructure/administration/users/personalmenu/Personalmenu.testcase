@@ -74,6 +74,37 @@ definition {
 	}
 
 	@priority = "4"
+	test EnableStaging {
+		ProductMenu.gotoPortlet(
+			category = "Publishing",
+			panel = "Site Administration",
+			portlet = "Staging");
+
+		Staging.activateStagingCP(siteName = "Liferay");
+
+		Navigator.gotoStagedSitePage(
+			pageName = "Home",
+			siteName = "Liferay");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Portlet.viewTitle(portletName = "My Workflow Tasks");
+
+		ProductMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Organizations");
+
+		AssertTextEquals(
+			locator1 = "Portlet#HEADER",
+			value1 = "My Organizations");
+
+		AssertElementPresent.assertElementPresent(locator1 = "UsersAndOrganizations#MY_ORGANIZATION_PORTLET");
+	}
+
+	@priority = "4"
 	test NavigateToMySites {
 		UserBar.gotoDropdownItem(dropdownItem = "My Sites");
 
