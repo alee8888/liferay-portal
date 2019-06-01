@@ -29,7 +29,12 @@
 	<td>//select[contains(@id,'countryId') and contains(.,'${key_countryName}')]</td>
 	<td></td>
 </tr>
-
+<!--MY_ORGANIZATION-->
+<tr>
+	<td>MY_ORGANIZATION_PORTLET</td>
+	<td>//div[contains(@class,'MyOrganizationsPortlet')]//div[@class='portlet-body']</td>
+	<td></td>
+</tr>
 <!--ORGANIZATION_TABLE-->
 <tr>
 	<td>ORGANIZATION_TABLE_NAME</td>
