@@ -107,7 +107,7 @@ const initSPA = function() {
 					globals.capturedFormButtonElement =
 						globals.document.activeElement;
 				} else {
-					globals.capturedFormButtonElement = form.one(
+					globals.capturedFormButtonElement = formElement.querySelector(
 						buttonSelector
 					);
 				}
