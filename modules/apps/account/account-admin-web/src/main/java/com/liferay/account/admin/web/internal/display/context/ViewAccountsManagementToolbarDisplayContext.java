@@ -16,6 +16,7 @@ package com.liferay.account.admin.web.internal.display.context;
 
 import com.liferay.account.admin.web.internal.display.AccountDisplay;
 import com.liferay.frontend.taglib.clay.servlet.taglib.display.context.SearchContainerManagementToolbarDisplayContext;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
 import com.liferay.petra.string.StringPool;
@@ -145,6 +146,23 @@ public class ViewAccountsManagementToolbarDisplayContext
 	}
 
 	@Override
+	public CreationMenu getCreationMenu() {
+		return new CreationMenu() {
+			{
+				addPrimaryDropdownItem(
+					dropdownItem -> {
+						dropdownItem.setHref(
+							liferayPortletResponse.createRenderURL(),
+							"mvcRenderCommandName",
+							"/account_admin/edit_account");
+						dropdownItem.setLabel(
+							LanguageUtil.get(request, "add-account"));
+					});
+			}
+		};
+	}
+
+	@Override
 	public String getDefaultEventHandler() {
 		return "ACCOUNTS_MANAGEMENT_TOOLBAR_DEFAULT_EVENT_HANDLER";
 	}
@@ -173,6 +191,11 @@ public class ViewAccountsManagementToolbarDisplayContext
 	@Override
 	public Boolean isDisabled() {
 		return false;
+	}
+
+	@Override
+	public Boolean isShowCreationMenu() {
+		return true;
 	}
 
 	@Override
