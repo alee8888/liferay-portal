@@ -21,8 +21,12 @@ long accountEntryId = ParamUtil.getLong(request, "accountEntryId");
 
 AccountEntry accountEntry = null;
 
+AccountDisplay accountDisplay = null;
+
 if (accountEntryId > 0) {
 	accountEntry = AccountEntryLocalServiceUtil.getAccountEntry(accountEntryId);
+
+	accountDisplay = AccountDisplay.of(accountEntry);
 }
 %>
 
@@ -38,16 +42,17 @@ if (accountEntryId > 0) {
 			</aui:field-wrapper>
 
 			<aui:field-wrapper cssClass="form-group lfr-input-text-container">
-				<aui:input label="website" name="url" type="text" />
+				<aui:input label="website" name="url" type="text" value="<%= (accountEntry != null) ? accountDisplay.getWebsite() : StringPool.BLANK %>" />
 			</aui:field-wrapper>
 		</aui:col>
 
 		<aui:col width="<%= 40 %>">
 			<div class="text-center">
 				<liferay-ui:logo-selector
-					currentLogoURL='<%= themeDisplay.getPathImage() + "/organization_logo?img_id=0" %>'
-					defaultLogo="<%= true %>"
+					currentLogoURL='<%= (accountDisplay == null) || (accountDisplay.getLogoId() == 0) ? themeDisplay.getPathImage() + "/organization_logo?img_id=0" : accountDisplay.getLogoURL(themeDisplay) %>'
+					defaultLogo="<%= (accountDisplay == null) || (accountDisplay.getLogoId() == 0) %>"
 					defaultLogoURL='<%= themeDisplay.getPathImage() + "/organization_logo?img_id=0" %>'
+					tempImageFileName="<%= String.valueOf(accountEntryId) %>"
 				/>
 			</div>
 		</aui:col>
