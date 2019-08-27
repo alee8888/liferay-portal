@@ -79,7 +79,7 @@ public interface AccountEntryLocalService
 
 	public AccountEntry addAccountEntry(
 			long userId, long parentAccountEntryId, String name,
-			String description, long logoId, int status)
+			String description, byte[] logoBytes, int status)
 		throws PortalException;
 
 	/**
@@ -264,6 +264,12 @@ public interface AccountEntryLocalService
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	public AccountEntry updateAccountEntry(AccountEntry accountEntry);
+
+	public AccountEntry updateAccountEntry(
+			Long accountEntryId, long parentAccountEntryId, String name,
+			String description, boolean deleteLogo, byte[] logoBytes,
+			int status)
+		throws PortalException;
 
 	public AccountEntry updateStatus(AccountEntry accountEntry, int status);
 

@@ -74,11 +74,11 @@ public class AccountEntryLocalServiceWrapper
 	@Override
 	public com.liferay.account.model.AccountEntry addAccountEntry(
 			long userId, long parentAccountEntryId, String name,
-			String description, long logoId, int status)
+			String description, byte[] logoBytes, int status)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _accountEntryLocalService.addAccountEntry(
-			userId, parentAccountEntryId, name, description, logoId, status);
+			userId, parentAccountEntryId, name, description, logoBytes, status);
 	}
 
 	/**
@@ -358,6 +358,18 @@ public class AccountEntryLocalServiceWrapper
 		com.liferay.account.model.AccountEntry accountEntry) {
 
 		return _accountEntryLocalService.updateAccountEntry(accountEntry);
+	}
+
+	@Override
+	public com.liferay.account.model.AccountEntry updateAccountEntry(
+			Long accountEntryId, long parentAccountEntryId, String name,
+			String description, boolean deleteLogo, byte[] logoBytes,
+			int status)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _accountEntryLocalService.updateAccountEntry(
+			accountEntryId, parentAccountEntryId, name, description, deleteLogo,
+			logoBytes, status);
 	}
 
 	@Override

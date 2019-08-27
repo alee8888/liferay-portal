@@ -72,11 +72,11 @@ public class AccountEntryLocalServiceUtil {
 
 	public static com.liferay.account.model.AccountEntry addAccountEntry(
 			long userId, long parentAccountEntryId, String name,
-			String description, long logoId, int status)
+			String description, byte[] logoBytes, int status)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().addAccountEntry(
-			userId, parentAccountEntryId, name, description, logoId, status);
+			userId, parentAccountEntryId, name, description, logoBytes, status);
 	}
 
 	/**
@@ -335,6 +335,17 @@ public class AccountEntryLocalServiceUtil {
 		com.liferay.account.model.AccountEntry accountEntry) {
 
 		return getService().updateAccountEntry(accountEntry);
+	}
+
+	public static com.liferay.account.model.AccountEntry updateAccountEntry(
+			Long accountEntryId, long parentAccountEntryId, String name,
+			String description, boolean deleteLogo, byte[] logoBytes,
+			int status)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().updateAccountEntry(
+			accountEntryId, parentAccountEntryId, name, description, deleteLogo,
+			logoBytes, status);
 	}
 
 	public static com.liferay.account.model.AccountEntry updateStatus(
