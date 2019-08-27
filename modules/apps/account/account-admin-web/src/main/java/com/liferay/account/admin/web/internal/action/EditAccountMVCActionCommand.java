@@ -107,12 +107,20 @@ public class EditAccountMVCActionCommand extends BaseMVCActionCommand {
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
+		String redirect = ParamUtil.getString(actionRequest, "redirect");
 
 		try {
 			AccountEntry accountEntry = null;
 
 			if (cmd.equals(Constants.ADD)) {
 				accountEntry = addAccountEntry(actionRequest);
+			}
+			else if (cmd.equals(Constants.UPDATE)) {
+				updateAccountEntry(actionRequest);
+			}
+
+			if (Validator.isNotNull(redirect)) {
+				sendRedirect(actionRequest, actionResponse, redirect);
 			}
 		}
 		catch (Exception e) {
