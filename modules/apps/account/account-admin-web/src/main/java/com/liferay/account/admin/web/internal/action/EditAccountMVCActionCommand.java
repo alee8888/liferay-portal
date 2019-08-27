@@ -18,11 +18,13 @@ import com.liferay.account.constants.AccountsPortletKeys;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.counter.kernel.service.CounterLocalService;
+import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.Website;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -32,10 +34,13 @@ import com.liferay.portal.kernel.service.WebsiteLocalService;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -66,23 +71,31 @@ public class EditAccountMVCActionCommand extends BaseMVCActionCommand {
 			actionRequest, "parentAccountEntryId");
 		String name = ParamUtil.getString(actionRequest, "name");
 		String description = ParamUtil.getString(actionRequest, "description");
-		long logoId = ParamUtil.getInteger(actionRequest, "logoId");
 		int status = ParamUtil.getInteger(actionRequest, "status");
+
+		byte[] logoBytes = null;
+
+		long fileEntryId = ParamUtil.getLong(actionRequest, "fileEntryId");
+
+		if (fileEntryId > 0) {
+			FileEntry fileEntry = _dlAppLocalService.getFileEntry(fileEntryId);
+
+			logoBytes = FileUtil.getBytes(fileEntry.getContentStream());
+		}
 
 		AccountEntry accountEntry = _accountEntryLocalService.addAccountEntry(
 			themeDisplay.getUserId(), parentAccountEntryId, name, description,
-			logoId, status);
+			logoBytes, status);
 
-		String website = ParamUtil.getString(actionRequest, "website");
+		String url = ParamUtil.getString(actionRequest, "url");
 
-		if (Validator.isNotNull(website)) {
+		if (Validator.isNotNull(url)) {
 			ServiceContext serviceContext = ServiceContextFactory.getInstance(
 				AccountEntry.class.getName(), actionRequest);
 
 			_addWebsite(
 				themeDisplay.getUserId(), AccountEntry.class.getName(),
-				accountEntry.getAccountEntryId(), website, 0, true,
-				serviceContext);
+				accountEntry.getAccountEntryId(), url, 0, true, serviceContext);
 		}
 
 		return accountEntry;
@@ -118,6 +131,41 @@ public class EditAccountMVCActionCommand extends BaseMVCActionCommand {
 		}
 	}
 
+	protected void updateAccountEntry(ActionRequest actionRequest)
+		throws Exception {
+
+		long accountEntryId = ParamUtil.getLong(
+			actionRequest, "accountEntryId");
+
+		AccountEntry accountEntry = _accountEntryLocalService.getAccountEntry(
+			accountEntryId);
+
+		long parentAccountEntryId = ParamUtil.getInteger(
+			actionRequest, "parentAccountEntryId");
+		String name = ParamUtil.getString(actionRequest, "name");
+		String description = ParamUtil.getString(actionRequest, "description");
+		boolean deleteLogo = ParamUtil.getBoolean(actionRequest, "deleteLogo");
+		int status = ParamUtil.getInteger(actionRequest, "status");
+
+		byte[] logoBytes = null;
+
+		long fileEntryId = ParamUtil.getLong(actionRequest, "fileEntryId");
+
+		if (fileEntryId > 0) {
+			FileEntry fileEntry = _dlAppLocalService.getFileEntry(fileEntryId);
+
+			logoBytes = FileUtil.getBytes(fileEntry.getContentStream());
+		}
+
+		_accountEntryLocalService.updateAccountEntry(
+			accountEntryId, parentAccountEntryId, name, description, deleteLogo,
+			logoBytes, status);
+
+		String url = ParamUtil.getString(actionRequest, "url");
+
+		_updateWebsite(accountEntry, url);
+	}
+
 	private void _addWebsite(
 			long userId, String className, long classPK, String url,
 			long typeId, boolean primary, ServiceContext serviceContext)
@@ -143,6 +191,22 @@ public class EditAccountMVCActionCommand extends BaseMVCActionCommand {
 		_websiteLocalService.updateWebsite(website);
 	}
 
+	private void _updateWebsite(AccountEntry accountEntry, String url)
+		throws PortalException {
+
+		List<Website> websites = _websiteLocalService.getWebsites(
+			accountEntry.getCompanyId(), AccountEntry.class.getName(),
+			accountEntry.getPrimaryKey());
+
+		if (!websites.isEmpty()) {
+			Website website = websites.get(0);
+
+			website.setUrl(url);
+
+			_websiteLocalService.updateWebsite(website);
+		}
+	}
+
 	@Reference
 	private AccountEntryLocalService _accountEntryLocalService;
 
@@ -151,6 +215,9 @@ public class EditAccountMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private CounterLocalService _counterLocalService;
+
+	@Reference
+	private DLAppLocalService _dlAppLocalService;
 
 	@Reference
 	private Portal _portal;
