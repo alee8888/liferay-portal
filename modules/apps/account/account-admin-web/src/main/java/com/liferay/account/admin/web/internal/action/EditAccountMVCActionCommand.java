@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
@@ -114,6 +115,10 @@ public class EditAccountMVCActionCommand extends BaseMVCActionCommand {
 
 			if (cmd.equals(Constants.ADD)) {
 				accountEntry = addAccountEntry(actionRequest);
+
+				redirect = _http.setParameter(
+					redirect, actionResponse.getNamespace() + "accountEntryId",
+					accountEntry.getAccountEntryId());
 			}
 			else if (cmd.equals(Constants.UPDATE)) {
 				updateAccountEntry(actionRequest);
@@ -226,6 +231,9 @@ public class EditAccountMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private DLAppLocalService _dlAppLocalService;
+
+	@Reference
+	private Http _http;
 
 	@Reference
 	private Portal _portal;

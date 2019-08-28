@@ -32,6 +32,12 @@ String backURL = ParamUtil.getString(request, "backURL", viewURL.toString());
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(backURL);
 
+PortletURL redirectURL = renderResponse.createRenderURL();
+
+redirectURL.setParameter("mvcPath", "/edit_account.jsp");
+redirectURL.setParameter("redirect", currentURL);
+redirectURL.setParameter("accountEntryId", String.valueOf(accountEntryId));
+
 renderResponse.setTitle((accountEntry == null) ? LanguageUtil.get(request, "add-account") : LanguageUtil.format(request, "edit-x", accountEntry.getName(), false));
 %>
 
@@ -41,7 +47,7 @@ renderResponse.setTitle((accountEntry == null) ? LanguageUtil.get(request, "add-
 	action="<%= editAccountURL %>"
 >
 	<aui:input name="accountEntryId" type="hidden" value="<%= accountEntryId %>" />
-	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
+	<aui:input name="redirect" type="hidden" value="<%= redirectURL %>" />
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= (accountEntry == null) ? Constants.ADD : Constants.UPDATE %>" />
 
 	<liferay-frontend:edit-form-body>
