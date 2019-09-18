@@ -16,10 +16,12 @@ package com.liferay.account.admin.web.internal.frontend.taglib.servlet.taglib;
 
 import com.liferay.account.admin.web.internal.constants.AccountScreenNavigationEntryConstants;
 import com.liferay.account.admin.web.internal.constants.AccountWebKeys;
+import com.liferay.account.admin.web.internal.display.AccountDisplay;
 import com.liferay.account.admin.web.internal.display.AccountDisplayUtil;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.util.ParamUtil;
 
 import java.io.IOException;
@@ -33,13 +35,17 @@ import org.osgi.service.component.annotations.Reference;
  * @author Albert Lee
  */
 public abstract class BaseAccountScreenNavigationCategory
-	implements ScreenNavigationCategory, ScreenNavigationEntry {
+	implements ScreenNavigationCategory, ScreenNavigationEntry<AccountDisplay> {
 
 	public abstract String getJspPath();
 
 	public String getScreenNavigationKey() {
 		return AccountScreenNavigationEntryConstants.
 			SCREEN_NAVIGATION_KEY_ACCOUNT;
+	}
+
+	public boolean isVisible(User user, AccountDisplay accountDisplay) {
+		return true;
 	}
 
 	public void render(
