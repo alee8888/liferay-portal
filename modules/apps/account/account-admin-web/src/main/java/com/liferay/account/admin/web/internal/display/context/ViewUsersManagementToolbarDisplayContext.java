@@ -77,10 +77,26 @@ public class ViewUsersManagementToolbarDisplayContext
 			{
 				addPrimaryDropdownItem(
 					dropdownItem -> {
-						dropdownItem.setHref(
-							liferayPortletResponse.createRenderURL(),
-							"mvcRenderCommandName",
-							"/account_users_admin/add_user");
+						PortletURL accountSelectorURL =
+							liferayPortletResponse.createRenderURL();
+
+						accountSelectorURL.setParameter(
+							"mvcPath", "/select_an_account.jsp");
+						accountSelectorURL.setParameter(
+							"accountNavigation", "accounts");
+						accountSelectorURL.setWindowState(
+							LiferayWindowState.POP_UP);
+
+						dropdownItem.putData(
+							"redirectURL", currentURLObj.toString());
+						dropdownItem.putData(
+							"accountSelectorURL",
+							accountSelectorURL.toString());
+						dropdownItem.putData(
+							"portletTitle",
+							LanguageUtil.get(request, "select-an-account"));
+						dropdownItem.putData("action", "selectAccount");
+
 						dropdownItem.setLabel(
 							LanguageUtil.get(request, "add-user"));
 					});
@@ -264,6 +280,9 @@ public class ViewUsersManagementToolbarDisplayContext
 						dropdownItem.putData(
 							"accountSelectorURL",
 							accountSelectorURL.toString());
+						dropdownItem.putData(
+							"portletTitle",
+							LanguageUtil.get(request, "select-accounts"));
 						dropdownItem.putData("action", "selectAccount");
 
 						dropdownItem.setLabel(

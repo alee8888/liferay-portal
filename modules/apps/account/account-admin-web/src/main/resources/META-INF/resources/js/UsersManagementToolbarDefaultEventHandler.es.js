@@ -19,7 +19,7 @@ class UsersManagementToolbarDefaultEventHandler extends DefaultEventHandler {
 		this._openAccountSelector(
 			Liferay.Language.get('select'),
 			this.ns('selectAccounts'),
-			Liferay.Language.get('select-accounts'),
+			Liferay.Language.get(itemData.portletTitle),
 			itemData.accountSelectorURL,
 			selectedItems => {
 				var portletURL = Liferay.Util.PortletURL.createPortletURL(
