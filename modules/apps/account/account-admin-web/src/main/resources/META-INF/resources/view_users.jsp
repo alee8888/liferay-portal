@@ -20,6 +20,8 @@
 SearchContainer usersDisplaySearchContainer = AccountUserDisplaySearchContainerFactory.create(liferayPortletRequest, liferayPortletResponse);
 
 ViewUsersManagementToolbarDisplayContext viewUsersManagementToolbarDisplayContext = new ViewUsersManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, usersDisplaySearchContainer);
+
+PortletURL backURL = renderResponse.createRenderURL();
 %>
 
 <clay:management-toolbar
@@ -84,3 +86,21 @@ ViewUsersManagementToolbarDisplayContext viewUsersManagementToolbarDisplayContex
 	componentId="<%= viewUsersManagementToolbarDisplayContext.getDefaultEventHandler() %>"
 	module="js/UsersManagementToolbarDefaultEventHandler.es"
 />
+
+<aui:script>
+	<portlet:renderURL var="addUserURL">
+		<portlet:param name="mvcRenderCommandName" value="/account_admin/add_account_user" />
+		<portlet:param name="backURL" value="<%= backURL.toString() %>" />
+	</portlet:renderURL>
+
+	Liferay.on('addNewAccountUser', function(event) {
+		var portletURL = Liferay.Util.PortletURL.createPortletURL(
+			'<%= addUserURL %>',
+			{
+				accountEntryId: event.accountEntryId
+			}
+		);
+
+		window.location.href = portletURL;
+	});
+</aui:script>

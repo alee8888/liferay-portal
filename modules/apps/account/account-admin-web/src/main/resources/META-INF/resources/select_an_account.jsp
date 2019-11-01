@@ -71,3 +71,33 @@ SelectAnAccountManagementToolbarDisplayContext selectAnAccountManagementToolbarD
 		</liferay-ui:search-container>
 	</aui:form>
 </aui:container>
+
+<aui:script use="liferay-search-container">
+	var searchContainer = Liferay.SearchContainer.get(
+		'<portlet:namespace />accounts'
+	);
+
+	var searchContainerContentBox = searchContainer.get('contentBox');
+
+	searchContainerContentBox.delegate(
+		'click',
+		function(event) {
+			var node = event.currentTarget;
+
+			<portlet:namespace/>closePopup(node.getData('accountentryid'));
+		},
+		'.choose-account'
+	);
+
+	function <portlet:namespace/>closePopup(accountEntryId) {
+		var Util = Liferay.Util;
+
+		var openingLiferay = Util.getOpener().Liferay;
+
+		openingLiferay.fire('addNewAccountUser', {
+			accountEntryId: accountEntryId
+		});
+
+		Util.getWindow().hide();
+	}
+</aui:script>
