@@ -21,9 +21,13 @@ AccountDisplay accountDisplay = (AccountDisplay)request.getAttribute(AccountWebK
 
 PortletURL backURL = renderResponse.createRenderURL();
 
-backURL.setParameter("mvcRenderCommandName", "/account_admin/edit_account");
-backURL.setParameter("screenNavigationCategoryKey", AccountScreenNavigationEntryConstants.CATEGORY_KEY_USERS);
-backURL.setParameter("accountEntryId", String.valueOf(accountDisplay.getAccountId()));
+String getBackURL = ParamUtil.getString(request, "backURL");
+
+if (getBackURL == null) {
+	backURL.setParameter("mvcRenderCommandName", "/account_admin/edit_account");
+	backURL.setParameter("screenNavigationCategoryKey", AccountScreenNavigationEntryConstants.CATEGORY_KEY_USERS);
+	backURL.setParameter("accountEntryId", String.valueOf(accountDisplay.getAccountId()));
+}
 
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(String.valueOf(backURL));
