@@ -35,6 +35,41 @@ class UsersManagementToolbarDefaultEventHandler extends DefaultEventHandler {
 		);
 	}
 
+	selectAnAccount(itemData) {
+		Liferay.Util.selectEntity(
+			{
+				dialog: {
+					constrain: true,
+					modal: true
+				},
+				eventName: this.ns('selectAnAccount'),
+				id: this.ns('selectAnAccount'),
+				title: Liferay.Language.get(itemData.portletTitle),
+				uri: itemData.accountSelectorURL
+			},
+			event => {
+				var addNewAccountUserURL =
+					Liferay.Util.PortletURL.createPortletURL;
+
+				addNewAccountUserURL.setParamter(
+					'mvcRenderCommandName',
+					'/account_admin/add_account_user'
+				);
+				addNewAccountUserURL.setParamter(
+					'backURL',
+					itemData.redirectURL
+				);
+
+				addNewAccountUserURL,
+					{
+						accountEntryIds: event.accountEntryId
+					};
+
+				window.location.href = addNewAccountUserURL;
+			}
+		);
+	}
+
 	_openAccountSelector(
 		dialogButtonLabel,
 		eventName,
