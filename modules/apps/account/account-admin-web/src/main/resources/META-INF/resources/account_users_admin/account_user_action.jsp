@@ -20,6 +20,8 @@
 ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
 
 AccountUserDisplay accountUserDisplay = (AccountUserDisplay)row.getObject();
+
+long userId = accountUserDisplay.getUserId();
 %>
 
 <liferay-ui:icon-menu
@@ -29,6 +31,25 @@ AccountUserDisplay accountUserDisplay = (AccountUserDisplay)row.getObject();
 	message="<%= StringPool.BLANK %>"
 	showWhenSingleIcon="<%= true %>"
 >
+
+	<%
+	boolean hasUpdatePermission = UserPermissionUtil.contains(permissionChecker, accountUserDisplay.getUserId(), ActionKeys.UPDATE);
+	%>
+
+	<c:if test="<%= hasUpdatePermission %>">
+		<portlet:renderURL var="editUserURL">
+			<portlet:param name="mvcRenderCommandName" value="/account_admin/edit_account_user" />
+			<portlet:param name="backURL" value="<%= currentURL %>" />
+			<portlet:param name="p_u_i_d" value="<%= String.valueOf(userId) %>" />
+			<portlet:param name="userId" value="<%= String.valueOf(userId) %>" />
+		</portlet:renderURL>
+
+		<liferay-ui:icon
+			message="edit"
+			url="<%= editUserURL %>"
+		/>
+	</c:if>
+
 	<c:if test="<%= !PropsValues.PORTAL_JAAS_ENABLE && PropsValues.PORTAL_IMPERSONATION_ENABLE && (accountUserDisplay.getUserId() != user.getUserId()) && !themeDisplay.isImpersonated() && UserPermissionUtil.contains(permissionChecker, accountUserDisplay.getUserId(), ActionKeys.IMPERSONATE) %>">
 		<liferay-security:doAsURL
 			doAsUserId="<%= accountUserDisplay.getUserId() %>"
