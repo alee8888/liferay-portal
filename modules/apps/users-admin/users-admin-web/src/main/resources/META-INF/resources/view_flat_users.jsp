@@ -33,6 +33,7 @@ else {
 }
 
 String navigation = ParamUtil.getString(request, "navigation", "active");
+String domain = ParamUtil.getString(request, "domain", "company-users");
 String toolbarItem = ParamUtil.getString(request, "toolbarItem", "view-all-users");
 
 if (navigation.equals("active")) {
@@ -48,7 +49,7 @@ if (!ParamUtil.getBoolean(renderRequest, "advancedSearch")) {
 
 request.setAttribute(UsersAdminWebKeys.STATUS, status);
 
-ViewUsersManagementToolbarDisplayContext viewUsersManagementToolbarDisplayContext = new ViewUsersManagementToolbarDisplayContext(request, renderRequest, renderResponse, displayStyle, navigation, status);
+ViewUsersManagementToolbarDisplayContext viewUsersManagementToolbarDisplayContext = new ViewUsersManagementToolbarDisplayContext(request, renderRequest, renderResponse, displayStyle, navigation, domain, status);
 
 SearchContainer searchContainer = viewUsersManagementToolbarDisplayContext.getSearchContainer();
 
