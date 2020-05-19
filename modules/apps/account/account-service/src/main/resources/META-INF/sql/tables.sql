@@ -30,6 +30,17 @@ create table AccountEntryUserRel (
 	accountUserId LONG
 );
 
+create table AccountGroup (
+	mvccVersion LONG default 0 not null,
+	externalReferenceCode VARCHAR(75) null,
+	accountGroupId LONG not null primary key,
+	companyId LONG,
+	userId LONG,
+	createDate DATE null,
+	name VARCHAR(75) null,
+	description VARCHAR(75) null
+);
+
 create table AccountRole (
 	mvccVersion LONG default 0 not null,
 	accountRoleId LONG not null primary key,
