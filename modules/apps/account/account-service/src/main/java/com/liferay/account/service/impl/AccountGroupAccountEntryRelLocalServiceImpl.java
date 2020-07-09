@@ -23,6 +23,8 @@ import com.liferay.account.service.base.AccountGroupAccountEntryRelLocalServiceB
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 
+import java.util.List;
+
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -93,6 +95,22 @@ public class AccountGroupAccountEntryRelLocalServiceImpl
 			accountGroupAccountEntryRelPersistence.removeByAGI_AEI(
 				accountGroupId, accountEntryId);
 		}
+	}
+
+	@Override
+	public List<AccountGroupAccountEntryRel>
+		getAccountGroupAccountEntryRelsByAccountGroupId(long accountGroupId) {
+
+		return accountGroupAccountEntryRelPersistence.findByAccountGroupId(
+			accountGroupId);
+	}
+
+	@Override
+	public long getAccountGroupAccountEntryRelsCountByAccountGroupId(
+		long accountGroupId) {
+
+		return accountGroupAccountEntryRelPersistence.countByAccountGroupId(
+			accountGroupId);
 	}
 
 	@Reference
