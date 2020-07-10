@@ -15,6 +15,8 @@
 package com.liferay.account.service.impl;
 
 import com.liferay.account.model.AccountGroup;
+import com.liferay.account.model.AccountGroupAccountEntryRel;
+import com.liferay.account.service.AccountGroupAccountEntryRelLocalService;
 import com.liferay.account.service.base.AccountGroupLocalServiceBaseImpl;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
@@ -32,6 +34,7 @@ import com.liferay.portal.kernel.util.Validator;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Brian Wing Shun Chan
@@ -63,6 +66,23 @@ public class AccountGroupLocalServiceImpl
 		accountGroup.setDescription(description);
 
 		return accountGroupPersistence.update(accountGroup);
+	}
+
+	@Override
+	public AccountGroup deleteAccountGroup(AccountGroup accountGroup) {
+		List<AccountGroupAccountEntryRel> accountGroupAccountEntryRels =
+			_accountGroupAccountEntryRelLocalService.
+				getAccountGroupAccountEntryRelsByAccountGroupId(
+					accountGroup.getAccountGroupId());
+
+		for (AccountGroupAccountEntryRel accountGroupAccountEntryRel :
+				accountGroupAccountEntryRels) {
+
+			_accountGroupAccountEntryRelLocalService.
+				deleteAccountGroupAccountEntryRel(accountGroupAccountEntryRel);
+		}
+
+		return accountGroupPersistence.remove(accountGroup);
 	}
 
 	@Override
@@ -127,5 +147,9 @@ public class AccountGroupLocalServiceImpl
 
 		return dynamicQuery;
 	}
+
+	@Reference
+	private AccountGroupAccountEntryRelLocalService
+		_accountGroupAccountEntryRelLocalService;
 
 }
