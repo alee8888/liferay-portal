@@ -16,6 +16,7 @@ package com.liferay.account.service.impl;
 
 import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.exception.DuplicateAccountGroupAccountEntryRelException;
+import com.liferay.account.exception.NoSuchGroupAccountEntryRelException;
 import com.liferay.account.model.AccountGroupAccountEntryRel;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountGroupLocalService;
@@ -85,6 +86,15 @@ public class AccountGroupAccountEntryRelLocalServiceImpl
 			accountGroupAccountEntryRelPersistence.removeByAGI_AEI(
 				accountGroupId, accountEntryId);
 		}
+	}
+
+	@Override
+	public AccountGroupAccountEntryRel getAccountGroupAccountEntryRel(
+			long accountGroupId, long accountEntryId)
+		throws NoSuchGroupAccountEntryRelException {
+
+		return accountGroupAccountEntryRelPersistence.findByAGI_AEI(
+			accountGroupId, accountEntryId);
 	}
 
 	@Override
