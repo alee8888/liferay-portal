@@ -14,6 +14,7 @@
 
 package com.liferay.account.service;
 
+import com.liferay.account.exception.NoSuchGroupAccountEntryRelException;
 import com.liferay.account.model.AccountGroupAccountEntryRel;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
@@ -225,6 +226,11 @@ public interface AccountGroupAccountEntryRelLocalService
 	public AccountGroupAccountEntryRel getAccountGroupAccountEntryRel(
 			long AccountGroupAccountEntryRelId)
 		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public AccountGroupAccountEntryRel getAccountGroupAccountEntryRel(
+			long accountGroupId, long accountEntryId)
+		throws NoSuchGroupAccountEntryRelException;
 
 	/**
 	 * Returns a range of all the account group account entry rels.

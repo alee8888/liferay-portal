@@ -268,6 +268,16 @@ public class AccountGroupAccountEntryRelLocalServiceUtil {
 			AccountGroupAccountEntryRelId);
 	}
 
+	public static com.liferay.account.model.AccountGroupAccountEntryRel
+			getAccountGroupAccountEntryRel(
+				long accountGroupId, long accountEntryId)
+		throws com.liferay.account.exception.
+			NoSuchGroupAccountEntryRelException {
+
+		return getService().getAccountGroupAccountEntryRel(
+			accountGroupId, accountEntryId);
+	}
+
 	/**
 	 * Returns a range of all the account group account entry rels.
 	 *

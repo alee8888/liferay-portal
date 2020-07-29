@@ -284,6 +284,17 @@ public class AccountGroupAccountEntryRelLocalServiceWrapper
 			getAccountGroupAccountEntryRel(AccountGroupAccountEntryRelId);
 	}
 
+	@Override
+	public com.liferay.account.model.AccountGroupAccountEntryRel
+			getAccountGroupAccountEntryRel(
+				long accountGroupId, long accountEntryId)
+		throws com.liferay.account.exception.
+			NoSuchGroupAccountEntryRelException {
+
+		return _accountGroupAccountEntryRelLocalService.
+			getAccountGroupAccountEntryRel(accountGroupId, accountEntryId);
+	}
+
 	/**
 	 * Returns a range of all the account group account entry rels.
 	 *
