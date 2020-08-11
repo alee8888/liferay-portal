@@ -47,17 +47,17 @@ public class AccountGroupInformationScreenNavigationCategory
 
 	@Override
 	public String getCategoryKey() {
-		return AccountScreenNavigationEntryConstants.CATEGORY_KEY_INFORMATION;
+		return AccountScreenNavigationEntryConstants.CATEGORY_KEY_DETAILS;
 	}
 
 	@Override
 	public String getEntryKey() {
-		return AccountScreenNavigationEntryConstants.ENTRY_KEY_INFORMATION;
+		return AccountScreenNavigationEntryConstants.ENTRY_KEY_DETAILS;
 	}
 
 	@Override
 	public String getLabel(Locale locale) {
-		return LanguageUtil.get(locale, "information");
+		return LanguageUtil.get(locale, "details");
 	}
 
 	@Override
