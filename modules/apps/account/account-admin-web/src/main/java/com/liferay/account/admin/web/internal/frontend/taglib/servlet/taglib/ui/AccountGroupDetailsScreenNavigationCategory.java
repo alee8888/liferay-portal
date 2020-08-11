@@ -41,7 +41,7 @@ import org.osgi.service.component.annotations.Reference;
 	},
 	service = {ScreenNavigationCategory.class, ScreenNavigationEntry.class}
 )
-public class AccountGroupInformationScreenNavigationCategory
+public class AccountGroupDetailsScreenNavigationCategory
 	implements ScreenNavigationCategory,
 			   ScreenNavigationEntry<AccountGroupDisplay> {
 
@@ -74,7 +74,7 @@ public class AccountGroupInformationScreenNavigationCategory
 
 		jspRenderer.renderJSP(
 			httpServletRequest, httpServletResponse,
-			"/account_groups_admin/account_group/information.jsp");
+			"/account_groups_admin/account_group/details.jsp");
 	}
 
 	@Reference
