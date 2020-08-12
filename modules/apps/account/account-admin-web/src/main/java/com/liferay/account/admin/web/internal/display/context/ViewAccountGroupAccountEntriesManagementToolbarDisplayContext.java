@@ -15,7 +15,6 @@
 package com.liferay.account.admin.web.internal.display.context;
 
 import com.liferay.account.admin.web.internal.display.AccountEntryDisplay;
-import com.liferay.frontend.taglib.clay.servlet.taglib.display.context.SearchContainerManagementToolbarDisplayContext;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
@@ -39,7 +38,7 @@ import javax.servlet.http.HttpServletRequest;
  * @author Albert Lee
  */
 public class ViewAccountGroupAccountEntriesManagementToolbarDisplayContext
-	extends SearchContainerManagementToolbarDisplayContext {
+	extends ViewAccountEntriesManagementToolbarDisplayContext {
 
 	public ViewAccountGroupAccountEntriesManagementToolbarDisplayContext(
 		HttpServletRequest httpServletRequest,
