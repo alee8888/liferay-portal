@@ -71,6 +71,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
 import com.liferay.portal.service.base.UserServiceBaseImpl;
 import com.liferay.portal.util.PropsValues;
+import com.liferay.portlet.admin.util.OmniadminUtil;
 import com.liferay.users.admin.kernel.util.UsersAdminUtil;
 
 import java.util.ArrayList;
@@ -3232,6 +3233,15 @@ public class UserServiceImpl extends UserServiceBaseImpl {
 
 			throw new UserEmailAddressException.MustNotUseCompanyMx(
 				emailAddress);
+		}
+
+		User creatorUser = getUserById(creatorUserId);
+
+		if (!OmniadminUtil.isOmniadmin(creatorUserId) &&
+			(creatorUser.getCompanyId() != companyId)) {
+
+			throw new PrincipalException(
+				"Only the OmniAdmin can add users to another company");
 		}
 	}
 
