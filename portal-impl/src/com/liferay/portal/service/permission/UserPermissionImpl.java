@@ -100,6 +100,10 @@ public class UserPermissionImpl
 			if (userId != ResourceConstants.PRIMKEY_DNE) {
 				user = UserLocalServiceUtil.getUserById(userId);
 
+				if (permissionChecker.isOmniadmin()) {
+					return true;
+				}
+
 				if (!actionId.equals(ActionKeys.VIEW) &&
 					!permissionChecker.isOmniadmin() &&
 					(PortalUtil.isOmniadmin(user) ||
