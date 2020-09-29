@@ -58,6 +58,13 @@ ViewAccountGroupsManagementToolbarDisplayContext viewAccountGroupsManagementTool
 					value="<%= HtmlUtil.escape(accountGroupDisplay.getDescription()) %>"
 				/>
 
+				<liferay-ui:search-container-column-text
+					cssClass="table-cell-expand"
+					href="<%= rowURL %>"
+					name="accounts"
+					value="<%= String.valueOf(accountGroupDisplay.getAccountEntriesCount()) %>"
+				/>
+
 				<liferay-ui:search-container-column-jsp
 					path="/account_groups_admin/account_group_action.jsp"
 				/>
