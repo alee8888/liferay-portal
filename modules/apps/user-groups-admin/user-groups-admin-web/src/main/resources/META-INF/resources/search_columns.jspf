@@ -62,9 +62,8 @@
 		<liferay-ui:search-container-column-text
 			cssClass="table-cell-ws-nowrap"
 			name="users"
-		>
-			<%= LanguageUtil.format(request, usersCount > 1 ? "x-users" : "x-user", usersCount, false) %>
-		</liferay-ui:search-container-column-text>
+			value="<%= String.valueOf(usersCount) %>"
+		/>
 
 		<liferay-ui:search-container-column-jsp
 			path="/user_group_action.jsp"
