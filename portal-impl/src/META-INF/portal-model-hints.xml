@@ -629,7 +629,9 @@
 		<field name="userName" type="String" />
 		<field name="createDate" type="Date" />
 		<field name="modifiedDate" type="Date" />
-		<field localized="true" name="name" type="String" />
+		<field localized="true" name="name" type="String">
+			<validator name="required" />
+		</field>
 		<field name="billingAllowed" type="boolean" />
 		<field name="shippingAllowed" type="boolean" />
 		<field name="a2" type="String" />
