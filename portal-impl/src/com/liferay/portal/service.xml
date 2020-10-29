@@ -333,6 +333,9 @@
 
 		<!-- Finder methods -->
 
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
 		<finder name="Active" return-type="Collection">
 			<finder-column name="active" />
 		</finder>
@@ -344,6 +347,28 @@
 		</finder>
 		<finder name="Name" return-type="Country" unique="true">
 			<finder-column name="name" />
+		</finder>
+		<finder name="C_A" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="active" />
+		</finder>
+		<finder name="C_A2" return-type="Country" unique="true">
+			<finder-column name="companyId" />
+			<finder-column name="a2" />
+		</finder>
+		<finder name="C_N" return-type="Country" unique="true">
+			<finder-column name="companyId" />
+			<finder-column name="number" />
+		</finder>
+		<finder name="C_A_B" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="active" />
+			<finder-column name="billingAllowed" />
+		</finder>
+		<finder name="C_A_S" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="active" />
+			<finder-column name="shippingAllowed" />
 		</finder>
 	</entity>
 	<entity local-service="true" name="EmailAddress" remote-service="true" uuid="true">
