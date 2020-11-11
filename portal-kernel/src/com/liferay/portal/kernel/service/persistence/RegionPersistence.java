@@ -628,7 +628,7 @@ public interface RegionPersistence extends BasePersistence<Region> {
 	 * @param countryId the country ID
 	 * @return the matching regions
 	 */
-	public java.util.List<Region> findByC_A(boolean active, long countryId);
+	public java.util.List<Region> findByA_C(boolean active, long countryId);
 
 	/**
 	 * Returns a range of all the regions where active = &#63; and countryId = &#63;.
@@ -643,7 +643,7 @@ public interface RegionPersistence extends BasePersistence<Region> {
 	 * @param end the upper bound of the range of regions (not inclusive)
 	 * @return the range of matching regions
 	 */
-	public java.util.List<Region> findByC_A(
+	public java.util.List<Region> findByA_C(
 		boolean active, long countryId, int start, int end);
 
 	/**
@@ -660,7 +660,7 @@ public interface RegionPersistence extends BasePersistence<Region> {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching regions
 	 */
-	public java.util.List<Region> findByC_A(
+	public java.util.List<Region> findByA_C(
 		boolean active, long countryId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<Region>
 			orderByComparator);
@@ -680,7 +680,7 @@ public interface RegionPersistence extends BasePersistence<Region> {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching regions
 	 */
-	public java.util.List<Region> findByC_A(
+	public java.util.List<Region> findByA_C(
 		boolean active, long countryId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<Region>
 			orderByComparator,
@@ -695,7 +695,7 @@ public interface RegionPersistence extends BasePersistence<Region> {
 	 * @return the first matching region
 	 * @throws NoSuchRegionException if a matching region could not be found
 	 */
-	public Region findByC_A_First(
+	public Region findByA_C_First(
 			boolean active, long countryId,
 			com.liferay.portal.kernel.util.OrderByComparator<Region>
 				orderByComparator)
@@ -709,7 +709,7 @@ public interface RegionPersistence extends BasePersistence<Region> {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching region, or <code>null</code> if a matching region could not be found
 	 */
-	public Region fetchByC_A_First(
+	public Region fetchByA_C_First(
 		boolean active, long countryId,
 		com.liferay.portal.kernel.util.OrderByComparator<Region>
 			orderByComparator);
@@ -723,7 +723,7 @@ public interface RegionPersistence extends BasePersistence<Region> {
 	 * @return the last matching region
 	 * @throws NoSuchRegionException if a matching region could not be found
 	 */
-	public Region findByC_A_Last(
+	public Region findByA_C_Last(
 			boolean active, long countryId,
 			com.liferay.portal.kernel.util.OrderByComparator<Region>
 				orderByComparator)
@@ -737,7 +737,7 @@ public interface RegionPersistence extends BasePersistence<Region> {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching region, or <code>null</code> if a matching region could not be found
 	 */
-	public Region fetchByC_A_Last(
+	public Region fetchByA_C_Last(
 		boolean active, long countryId,
 		com.liferay.portal.kernel.util.OrderByComparator<Region>
 			orderByComparator);
@@ -752,7 +752,7 @@ public interface RegionPersistence extends BasePersistence<Region> {
 	 * @return the previous, current, and next region
 	 * @throws NoSuchRegionException if a region with the primary key could not be found
 	 */
-	public Region[] findByC_A_PrevAndNext(
+	public Region[] findByA_C_PrevAndNext(
 			long regionId, boolean active, long countryId,
 			com.liferay.portal.kernel.util.OrderByComparator<Region>
 				orderByComparator)
@@ -764,7 +764,7 @@ public interface RegionPersistence extends BasePersistence<Region> {
 	 * @param active the active
 	 * @param countryId the country ID
 	 */
-	public void removeByC_A(boolean active, long countryId);
+	public void removeByA_C(boolean active, long countryId);
 
 	/**
 	 * Returns the number of regions where active = &#63; and countryId = &#63;.
@@ -773,7 +773,7 @@ public interface RegionPersistence extends BasePersistence<Region> {
 	 * @param countryId the country ID
 	 * @return the number of matching regions
 	 */
-	public int countByC_A(boolean active, long countryId);
+	public int countByA_C(boolean active, long countryId);
 
 	/**
 	 * Returns the region where countryId = &#63; and regionCode = &#63; or throws a <code>NoSuchRegionException</code> if it could not be found.

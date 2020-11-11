@@ -217,11 +217,11 @@ public class RegionPersistenceTest {
 	}
 
 	@Test
-	public void testCountByC_A() throws Exception {
-		_persistence.countByC_A(
+	public void testCountByA_C() throws Exception {
+		_persistence.countByA_C(
 			RandomTestUtil.randomBoolean(), RandomTestUtil.nextLong());
 
-		_persistence.countByC_A(RandomTestUtil.randomBoolean(), 0L);
+		_persistence.countByA_C(RandomTestUtil.randomBoolean(), 0L);
 	}
 
 	@Test

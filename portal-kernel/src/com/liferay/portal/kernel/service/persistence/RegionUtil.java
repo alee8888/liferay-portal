@@ -799,8 +799,8 @@ public class RegionUtil {
 	 * @param countryId the country ID
 	 * @return the matching regions
 	 */
-	public static List<Region> findByC_A(boolean active, long countryId) {
-		return getPersistence().findByC_A(active, countryId);
+	public static List<Region> findByA_C(boolean active, long countryId) {
+		return getPersistence().findByA_C(active, countryId);
 	}
 
 	/**
@@ -816,10 +816,10 @@ public class RegionUtil {
 	 * @param end the upper bound of the range of regions (not inclusive)
 	 * @return the range of matching regions
 	 */
-	public static List<Region> findByC_A(
+	public static List<Region> findByA_C(
 		boolean active, long countryId, int start, int end) {
 
-		return getPersistence().findByC_A(active, countryId, start, end);
+		return getPersistence().findByA_C(active, countryId, start, end);
 	}
 
 	/**
@@ -836,11 +836,11 @@ public class RegionUtil {
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching regions
 	 */
-	public static List<Region> findByC_A(
+	public static List<Region> findByA_C(
 		boolean active, long countryId, int start, int end,
 		OrderByComparator<Region> orderByComparator) {
 
-		return getPersistence().findByC_A(
+		return getPersistence().findByA_C(
 			active, countryId, start, end, orderByComparator);
 	}
 
@@ -859,11 +859,11 @@ public class RegionUtil {
 	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching regions
 	 */
-	public static List<Region> findByC_A(
+	public static List<Region> findByA_C(
 		boolean active, long countryId, int start, int end,
 		OrderByComparator<Region> orderByComparator, boolean useFinderCache) {
 
-		return getPersistence().findByC_A(
+		return getPersistence().findByA_C(
 			active, countryId, start, end, orderByComparator, useFinderCache);
 	}
 
@@ -876,12 +876,12 @@ public class RegionUtil {
 	 * @return the first matching region
 	 * @throws NoSuchRegionException if a matching region could not be found
 	 */
-	public static Region findByC_A_First(
+	public static Region findByA_C_First(
 			boolean active, long countryId,
 			OrderByComparator<Region> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchRegionException {
 
-		return getPersistence().findByC_A_First(
+		return getPersistence().findByA_C_First(
 			active, countryId, orderByComparator);
 	}
 
@@ -893,11 +893,11 @@ public class RegionUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the first matching region, or <code>null</code> if a matching region could not be found
 	 */
-	public static Region fetchByC_A_First(
+	public static Region fetchByA_C_First(
 		boolean active, long countryId,
 		OrderByComparator<Region> orderByComparator) {
 
-		return getPersistence().fetchByC_A_First(
+		return getPersistence().fetchByA_C_First(
 			active, countryId, orderByComparator);
 	}
 
@@ -910,12 +910,12 @@ public class RegionUtil {
 	 * @return the last matching region
 	 * @throws NoSuchRegionException if a matching region could not be found
 	 */
-	public static Region findByC_A_Last(
+	public static Region findByA_C_Last(
 			boolean active, long countryId,
 			OrderByComparator<Region> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchRegionException {
 
-		return getPersistence().findByC_A_Last(
+		return getPersistence().findByA_C_Last(
 			active, countryId, orderByComparator);
 	}
 
@@ -927,11 +927,11 @@ public class RegionUtil {
 	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
 	 * @return the last matching region, or <code>null</code> if a matching region could not be found
 	 */
-	public static Region fetchByC_A_Last(
+	public static Region fetchByA_C_Last(
 		boolean active, long countryId,
 		OrderByComparator<Region> orderByComparator) {
 
-		return getPersistence().fetchByC_A_Last(
+		return getPersistence().fetchByA_C_Last(
 			active, countryId, orderByComparator);
 	}
 
@@ -945,12 +945,12 @@ public class RegionUtil {
 	 * @return the previous, current, and next region
 	 * @throws NoSuchRegionException if a region with the primary key could not be found
 	 */
-	public static Region[] findByC_A_PrevAndNext(
+	public static Region[] findByA_C_PrevAndNext(
 			long regionId, boolean active, long countryId,
 			OrderByComparator<Region> orderByComparator)
 		throws com.liferay.portal.kernel.exception.NoSuchRegionException {
 
-		return getPersistence().findByC_A_PrevAndNext(
+		return getPersistence().findByA_C_PrevAndNext(
 			regionId, active, countryId, orderByComparator);
 	}
 
@@ -960,8 +960,8 @@ public class RegionUtil {
 	 * @param active the active
 	 * @param countryId the country ID
 	 */
-	public static void removeByC_A(boolean active, long countryId) {
-		getPersistence().removeByC_A(active, countryId);
+	public static void removeByA_C(boolean active, long countryId) {
+		getPersistence().removeByA_C(active, countryId);
 	}
 
 	/**
@@ -971,8 +971,8 @@ public class RegionUtil {
 	 * @param countryId the country ID
 	 * @return the number of matching regions
 	 */
-	public static int countByC_A(boolean active, long countryId) {
-		return getPersistence().countByC_A(active, countryId);
+	public static int countByA_C(boolean active, long countryId) {
+		return getPersistence().countByA_C(active, countryId);
 	}
 
 	/**

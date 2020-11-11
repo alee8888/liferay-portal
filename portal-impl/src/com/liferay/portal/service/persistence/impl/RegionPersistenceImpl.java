@@ -2168,9 +2168,9 @@ public class RegionPersistenceImpl
 	private static final String _FINDER_COLUMN_COUNTRYID_COUNTRYID_2 =
 		"region.countryId = ?";
 
-	private FinderPath _finderPathWithPaginationFindByC_A;
-	private FinderPath _finderPathWithoutPaginationFindByC_A;
-	private FinderPath _finderPathCountByC_A;
+	private FinderPath _finderPathWithPaginationFindByA_C;
+	private FinderPath _finderPathWithoutPaginationFindByA_C;
+	private FinderPath _finderPathCountByA_C;
 
 	/**
 	 * Returns all the regions where active = &#63; and countryId = &#63;.
@@ -2180,8 +2180,8 @@ public class RegionPersistenceImpl
 	 * @return the matching regions
 	 */
 	@Override
-	public List<Region> findByC_A(boolean active, long countryId) {
-		return findByC_A(
+	public List<Region> findByA_C(boolean active, long countryId) {
+		return findByA_C(
 			active, countryId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 	}
 
@@ -2199,10 +2199,10 @@ public class RegionPersistenceImpl
 	 * @return the range of matching regions
 	 */
 	@Override
-	public List<Region> findByC_A(
+	public List<Region> findByA_C(
 		boolean active, long countryId, int start, int end) {
 
-		return findByC_A(active, countryId, start, end, null);
+		return findByA_C(active, countryId, start, end, null);
 	}
 
 	/**
@@ -2220,11 +2220,11 @@ public class RegionPersistenceImpl
 	 * @return the ordered range of matching regions
 	 */
 	@Override
-	public List<Region> findByC_A(
+	public List<Region> findByA_C(
 		boolean active, long countryId, int start, int end,
 		OrderByComparator<Region> orderByComparator) {
 
-		return findByC_A(
+		return findByA_C(
 			active, countryId, start, end, orderByComparator, true);
 	}
 
@@ -2244,7 +2244,7 @@ public class RegionPersistenceImpl
 	 * @return the ordered range of matching regions
 	 */
 	@Override
-	public List<Region> findByC_A(
+	public List<Region> findByA_C(
 		boolean active, long countryId, int start, int end,
 		OrderByComparator<Region> orderByComparator, boolean useFinderCache) {
 
@@ -2255,12 +2255,12 @@ public class RegionPersistenceImpl
 			(orderByComparator == null)) {
 
 			if (useFinderCache) {
-				finderPath = _finderPathWithoutPaginationFindByC_A;
+				finderPath = _finderPathWithoutPaginationFindByA_C;
 				finderArgs = new Object[] {active, countryId};
 			}
 		}
 		else if (useFinderCache) {
-			finderPath = _finderPathWithPaginationFindByC_A;
+			finderPath = _finderPathWithPaginationFindByA_C;
 			finderArgs = new Object[] {
 				active, countryId, start, end, orderByComparator
 			};
@@ -2298,9 +2298,9 @@ public class RegionPersistenceImpl
 
 			sb.append(_SQL_SELECT_REGION_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_A_ACTIVE_2);
+			sb.append(_FINDER_COLUMN_A_C_ACTIVE_2);
 
-			sb.append(_FINDER_COLUMN_C_A_COUNTRYID_2);
+			sb.append(_FINDER_COLUMN_A_C_COUNTRYID_2);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(
@@ -2355,12 +2355,12 @@ public class RegionPersistenceImpl
 	 * @throws NoSuchRegionException if a matching region could not be found
 	 */
 	@Override
-	public Region findByC_A_First(
+	public Region findByA_C_First(
 			boolean active, long countryId,
 			OrderByComparator<Region> orderByComparator)
 		throws NoSuchRegionException {
 
-		Region region = fetchByC_A_First(active, countryId, orderByComparator);
+		Region region = fetchByA_C_First(active, countryId, orderByComparator);
 
 		if (region != null) {
 			return region;
@@ -2390,11 +2390,11 @@ public class RegionPersistenceImpl
 	 * @return the first matching region, or <code>null</code> if a matching region could not be found
 	 */
 	@Override
-	public Region fetchByC_A_First(
+	public Region fetchByA_C_First(
 		boolean active, long countryId,
 		OrderByComparator<Region> orderByComparator) {
 
-		List<Region> list = findByC_A(
+		List<Region> list = findByA_C(
 			active, countryId, 0, 1, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -2414,12 +2414,12 @@ public class RegionPersistenceImpl
 	 * @throws NoSuchRegionException if a matching region could not be found
 	 */
 	@Override
-	public Region findByC_A_Last(
+	public Region findByA_C_Last(
 			boolean active, long countryId,
 			OrderByComparator<Region> orderByComparator)
 		throws NoSuchRegionException {
 
-		Region region = fetchByC_A_Last(active, countryId, orderByComparator);
+		Region region = fetchByA_C_Last(active, countryId, orderByComparator);
 
 		if (region != null) {
 			return region;
@@ -2449,17 +2449,17 @@ public class RegionPersistenceImpl
 	 * @return the last matching region, or <code>null</code> if a matching region could not be found
 	 */
 	@Override
-	public Region fetchByC_A_Last(
+	public Region fetchByA_C_Last(
 		boolean active, long countryId,
 		OrderByComparator<Region> orderByComparator) {
 
-		int count = countByC_A(active, countryId);
+		int count = countByA_C(active, countryId);
 
 		if (count == 0) {
 			return null;
 		}
 
-		List<Region> list = findByC_A(
+		List<Region> list = findByA_C(
 			active, countryId, count - 1, count, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -2480,7 +2480,7 @@ public class RegionPersistenceImpl
 	 * @throws NoSuchRegionException if a region with the primary key could not be found
 	 */
 	@Override
-	public Region[] findByC_A_PrevAndNext(
+	public Region[] findByA_C_PrevAndNext(
 			long regionId, boolean active, long countryId,
 			OrderByComparator<Region> orderByComparator)
 		throws NoSuchRegionException {
@@ -2494,12 +2494,12 @@ public class RegionPersistenceImpl
 
 			Region[] array = new RegionImpl[3];
 
-			array[0] = getByC_A_PrevAndNext(
+			array[0] = getByA_C_PrevAndNext(
 				session, region, active, countryId, orderByComparator, true);
 
 			array[1] = region;
 
-			array[2] = getByC_A_PrevAndNext(
+			array[2] = getByA_C_PrevAndNext(
 				session, region, active, countryId, orderByComparator, false);
 
 			return array;
@@ -2512,7 +2512,7 @@ public class RegionPersistenceImpl
 		}
 	}
 
-	protected Region getByC_A_PrevAndNext(
+	protected Region getByA_C_PrevAndNext(
 		Session session, Region region, boolean active, long countryId,
 		OrderByComparator<Region> orderByComparator, boolean previous) {
 
@@ -2529,9 +2529,9 @@ public class RegionPersistenceImpl
 
 		sb.append(_SQL_SELECT_REGION_WHERE);
 
-		sb.append(_FINDER_COLUMN_C_A_ACTIVE_2);
+		sb.append(_FINDER_COLUMN_A_C_ACTIVE_2);
 
-		sb.append(_FINDER_COLUMN_C_A_COUNTRYID_2);
+		sb.append(_FINDER_COLUMN_A_C_COUNTRYID_2);
 
 		if (orderByComparator != null) {
 			String[] orderByConditionFields =
@@ -2631,9 +2631,9 @@ public class RegionPersistenceImpl
 	 * @param countryId the country ID
 	 */
 	@Override
-	public void removeByC_A(boolean active, long countryId) {
+	public void removeByA_C(boolean active, long countryId) {
 		for (Region region :
-				findByC_A(
+				findByA_C(
 					active, countryId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 					null)) {
 
@@ -2649,8 +2649,8 @@ public class RegionPersistenceImpl
 	 * @return the number of matching regions
 	 */
 	@Override
-	public int countByC_A(boolean active, long countryId) {
-		FinderPath finderPath = _finderPathCountByC_A;
+	public int countByA_C(boolean active, long countryId) {
+		FinderPath finderPath = _finderPathCountByA_C;
 
 		Object[] finderArgs = new Object[] {active, countryId};
 
@@ -2661,9 +2661,9 @@ public class RegionPersistenceImpl
 
 			sb.append(_SQL_COUNT_REGION_WHERE);
 
-			sb.append(_FINDER_COLUMN_C_A_ACTIVE_2);
+			sb.append(_FINDER_COLUMN_A_C_ACTIVE_2);
 
-			sb.append(_FINDER_COLUMN_C_A_COUNTRYID_2);
+			sb.append(_FINDER_COLUMN_A_C_COUNTRYID_2);
 
 			String sql = sb.toString();
 
@@ -2695,10 +2695,10 @@ public class RegionPersistenceImpl
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_C_A_ACTIVE_2 =
+	private static final String _FINDER_COLUMN_A_C_ACTIVE_2 =
 		"region.active = ? AND ";
 
-	private static final String _FINDER_COLUMN_C_A_COUNTRYID_2 =
+	private static final String _FINDER_COLUMN_A_C_COUNTRYID_2 =
 		"region.countryId = ?";
 
 	private FinderPath _finderPathFetchByC_R;
@@ -3580,8 +3580,8 @@ public class RegionPersistenceImpl
 			new String[] {Long.class.getName()}, new String[] {"countryId"},
 			false);
 
-		_finderPathWithPaginationFindByC_A = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByC_A",
+		_finderPathWithPaginationFindByA_C = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByA_C",
 			new String[] {
 				Boolean.class.getName(), Long.class.getName(),
 				Integer.class.getName(), Integer.class.getName(),
@@ -3589,13 +3589,13 @@ public class RegionPersistenceImpl
 			},
 			new String[] {"active_", "countryId"}, true);
 
-		_finderPathWithoutPaginationFindByC_A = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByC_A",
+		_finderPathWithoutPaginationFindByA_C = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByA_C",
 			new String[] {Boolean.class.getName(), Long.class.getName()},
 			new String[] {"active_", "countryId"}, true);
 
-		_finderPathCountByC_A = new FinderPath(
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByC_A",
+		_finderPathCountByA_C = new FinderPath(
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByA_C",
 			new String[] {Boolean.class.getName(), Long.class.getName()},
 			new String[] {"active_", "countryId"}, false);
 
