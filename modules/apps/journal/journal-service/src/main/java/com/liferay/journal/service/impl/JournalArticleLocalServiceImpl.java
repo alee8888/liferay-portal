@@ -6808,7 +6808,7 @@ public class JournalArticleLocalServiceImpl
 			return;
 		}
 
-		Set<Long> tempFileEntryIds = new HashSet<>();
+		Map<Long, FileEntry> tempFileEntryIdsMap = new HashMap<>();
 
 		try {
 			for (Element dynamicContentElement :
@@ -6839,21 +6839,27 @@ public class JournalArticleLocalServiceImpl
 				if (tempFile) {
 					FileEntry tempFileEntry = fileEntry;
 
-					Folder folder = article.addImagesFolder();
+					fileEntry = tempFileEntryIdsMap.get(
+						tempFileEntry.getFileEntryId());
 
-					String fileEntryName = DLUtil.getUniqueFileName(
-						folder.getGroupId(), folder.getFolderId(),
-						fileEntry.getFileName());
+					if (fileEntry == null) {
+						Folder folder = article.addImagesFolder();
 
-					fileEntry = _portletFileRepository.addPortletFileEntry(
-						folder.getGroupId(), fileEntry.getUserId(),
-						JournalArticle.class.getName(),
-						article.getResourcePrimKey(),
-						JournalConstants.SERVICE_NAME, folder.getFolderId(),
-						fileEntry.getContentStream(), fileEntryName,
-						fileEntry.getMimeType(), false);
+						String fileEntryName = DLUtil.getUniqueFileName(
+							folder.getGroupId(), folder.getFolderId(),
+							tempFileEntry.getFileName());
 
-					tempFileEntryIds.add(tempFileEntry.getFileEntryId());
+						fileEntry = _portletFileRepository.addPortletFileEntry(
+							folder.getGroupId(), tempFileEntry.getUserId(),
+							JournalArticle.class.getName(),
+							article.getResourcePrimKey(),
+							JournalConstants.SERVICE_NAME, folder.getFolderId(),
+							tempFileEntry.getContentStream(), fileEntryName,
+							tempFileEntry.getMimeType(), false);
+
+						tempFileEntryIdsMap.put(
+							tempFileEntry.getFileEntryId(), fileEntry);
+					}
 				}
 
 				JSONObject cdataJSONObject = JSONFactoryUtil.createJSONObject(
@@ -6873,7 +6879,7 @@ public class JournalArticleLocalServiceImpl
 			}
 		}
 		finally {
-			for (Long tempFileEntryId : tempFileEntryIds) {
+			for (Long tempFileEntryId : tempFileEntryIdsMap.keySet()) {
 				TempFileEntryUtil.deleteTempFileEntry(tempFileEntryId);
 			}
 		}
