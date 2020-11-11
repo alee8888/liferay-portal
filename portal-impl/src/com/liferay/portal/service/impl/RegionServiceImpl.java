@@ -111,7 +111,7 @@ public class RegionServiceImpl extends RegionServiceBaseImpl {
 	@AccessControlled(guestAccessEnabled = true)
 	@Override
 	public List<Region> getRegions(long countryId, boolean active) {
-		return regionPersistence.findByC_A(
+		return regionPersistence.findByA_C(
 			active, countryId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 			_getOrderByComparator(countryId));
 	}
