@@ -2040,7 +2040,7 @@
 		<finder name="CountryId" return-type="Collection">
 			<finder-column name="countryId" />
 		</finder>
-		<finder name="C_A" return-type="Collection">
+		<finder name="A_C" return-type="Collection">
 			<finder-column name="active" />
 			<finder-column name="countryId" />
 		</finder>
