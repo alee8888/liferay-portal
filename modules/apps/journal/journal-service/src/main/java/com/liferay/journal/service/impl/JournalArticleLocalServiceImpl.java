@@ -6808,7 +6808,7 @@ public class JournalArticleLocalServiceImpl
 			return;
 		}
 
-		Map<Long, FileEntry> tempFileEntryIdsMap = new HashMap<>();
+		Map<Long, FileEntry> tempFileEntries = new HashMap<>();
 
 		try {
 			for (Element dynamicContentElement :
@@ -6839,7 +6839,7 @@ public class JournalArticleLocalServiceImpl
 				if (tempFile) {
 					FileEntry tempFileEntry = fileEntry;
 
-					fileEntry = tempFileEntryIdsMap.get(
+					fileEntry = tempFileEntries.get(
 						tempFileEntry.getFileEntryId());
 
 					if (fileEntry == null) {
@@ -6857,7 +6857,7 @@ public class JournalArticleLocalServiceImpl
 							tempFileEntry.getContentStream(), fileEntryName,
 							tempFileEntry.getMimeType(), false);
 
-						tempFileEntryIdsMap.put(
+						tempFileEntries.put(
 							tempFileEntry.getFileEntryId(), fileEntry);
 					}
 				}
@@ -6879,7 +6879,7 @@ public class JournalArticleLocalServiceImpl
 			}
 		}
 		finally {
-			for (Long tempFileEntryId : tempFileEntryIdsMap.keySet()) {
+			for (Long tempFileEntryId : tempFileEntries.keySet()) {
 				TempFileEntryUtil.deleteTempFileEntry(tempFileEntryId);
 			}
 		}
