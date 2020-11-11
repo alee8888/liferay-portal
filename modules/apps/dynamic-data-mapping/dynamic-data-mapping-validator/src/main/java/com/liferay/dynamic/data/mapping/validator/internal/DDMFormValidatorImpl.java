@@ -187,7 +187,6 @@ public class DDMFormValidatorImpl implements DDMFormValidator {
 			validateDDMFormFieldOptionsProperties(
 				ddmFormField, "columns", ddmFormAvailableLocales,
 				ddmFormDefaultLocale);
-
 			validateDDMFormFieldOptionsProperties(
 				ddmFormField, "rows", ddmFormAvailableLocales,
 				ddmFormDefaultLocale);
