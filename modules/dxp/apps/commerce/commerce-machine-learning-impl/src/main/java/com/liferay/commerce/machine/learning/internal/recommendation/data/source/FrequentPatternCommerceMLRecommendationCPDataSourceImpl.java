@@ -110,9 +110,9 @@ public class FrequentPatternCommerceMLRecommendationCPDataSourceImpl
 			if (_log.isTraceEnabled()) {
 				StringBuilder sb = new StringBuilder();
 
-				sb.append("Recommended item: ");
+				sb.append("Recommended entry ");
 				sb.append(recommendedEntryClassPK);
-				sb.append(" score: ");
+				sb.append(" has score ");
 				sb.append(frequentPatternCommerceMLRecommendation.getScore());
 
 				_log.trace(sb.toString());
