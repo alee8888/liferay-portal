@@ -66,10 +66,11 @@ public interface CountryLocalService
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.portal.service.impl.CountryLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the country local service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link CountryLocalServiceUtil} if injection and service tracking are not available.
 	 */
 	public Country addCountry(
-		boolean active, String a2, String a3, boolean billingAllowed,
-		String idd, String name, String number, double position,
-		boolean shippingAllowed, boolean subjectToVAT,
-		Map<String, String> titleMap, ServiceContext serviceContext);
+			boolean active, String a2, String a3, boolean billingAllowed,
+			String idd, String name, String number, double position,
+			boolean shippingAllowed, boolean subjectToVAT,
+			Map<String, String> titleMap, ServiceContext serviceContext)
+		throws PortalException;
 
 	/**
 	 * Adds the country to the database. Also notifies the appropriate model listeners.
@@ -269,7 +270,7 @@ public interface CountryLocalService
 	public Country getCountry(long countryId) throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public Country getCountry(long companyId, String a2);
+	public Country getCountry(long companyId, String a2) throws PortalException;
 
 	/**
 	 * Returns the country with the matching UUID and company.
@@ -327,10 +328,11 @@ public interface CountryLocalService
 	public Country updateCountry(Country country);
 
 	public Country updateCountry(
-		long countryId, boolean active, String a2, String a3,
-		boolean billingAllowed, String idd, String name, String number,
-		double position, boolean shippingAllowed, boolean subjectToVAT,
-		Map<String, String> titleMap);
+			long countryId, boolean active, String a2, String a3,
+			boolean billingAllowed, String idd, String name, String number,
+			double position, boolean shippingAllowed, boolean subjectToVAT,
+			Map<String, String> titleMap)
+		throws PortalException;
 
 	public CountryLocalization updateCountryLocalization(
 			Country country, String languageId, String title)

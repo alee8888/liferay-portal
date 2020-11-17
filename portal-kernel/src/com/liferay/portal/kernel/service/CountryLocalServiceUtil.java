@@ -36,10 +36,12 @@ public class CountryLocalServiceUtil {
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.CountryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
 	 */
 	public static com.liferay.portal.kernel.model.Country addCountry(
-		boolean active, String a2, String a3, boolean billingAllowed,
-		String idd, String name, String number, double position,
-		boolean shippingAllowed, boolean subjectToVAT,
-		java.util.Map<String, String> titleMap, ServiceContext serviceContext) {
+			boolean active, String a2, String a3, boolean billingAllowed,
+			String idd, String name, String number, double position,
+			boolean shippingAllowed, boolean subjectToVAT,
+			java.util.Map<String, String> titleMap,
+			ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().addCountry(
 			active, a2, a3, billingAllowed, idd, name, number, position,
@@ -318,7 +320,8 @@ public class CountryLocalServiceUtil {
 	}
 
 	public static com.liferay.portal.kernel.model.Country getCountry(
-		long companyId, String a2) {
+			long companyId, String a2)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().getCountry(companyId, a2);
 	}
@@ -403,10 +406,11 @@ public class CountryLocalServiceUtil {
 	}
 
 	public static com.liferay.portal.kernel.model.Country updateCountry(
-		long countryId, boolean active, String a2, String a3,
-		boolean billingAllowed, String idd, String name, String number,
-		double position, boolean shippingAllowed, boolean subjectToVAT,
-		java.util.Map<String, String> titleMap) {
+			long countryId, boolean active, String a2, String a3,
+			boolean billingAllowed, String idd, String name, String number,
+			double position, boolean shippingAllowed, boolean subjectToVAT,
+			java.util.Map<String, String> titleMap)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().updateCountry(
 			countryId, active, a2, a3, billingAllowed, idd, name, number,
