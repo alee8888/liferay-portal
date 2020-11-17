@@ -30,12 +30,13 @@ public class CountryLocalServiceWrapper
 
 	@Override
 	public com.liferay.portal.kernel.model.Country addCountry(
-		boolean active, java.lang.String a2, java.lang.String a3,
-		boolean billingAllowed, java.lang.String idd, java.lang.String name,
-		java.lang.String number, double position, boolean shippingAllowed,
-		boolean subjectToVAT,
-		java.util.Map<java.lang.String, java.lang.String> titleMap,
-		ServiceContext serviceContext) {
+			boolean active, java.lang.String a2, java.lang.String a3,
+			boolean billingAllowed, java.lang.String idd, java.lang.String name,
+			java.lang.String number, double position, boolean shippingAllowed,
+			boolean subjectToVAT,
+			java.util.Map<java.lang.String, java.lang.String> titleMap,
+			ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _countryLocalService.addCountry(
 			active, a2, a3, billingAllowed, idd, name, number, position,
@@ -333,7 +334,8 @@ public class CountryLocalServiceWrapper
 
 	@Override
 	public com.liferay.portal.kernel.model.Country getCountry(
-		long companyId, java.lang.String a2) {
+			long companyId, java.lang.String a2)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _countryLocalService.getCountry(companyId, a2);
 	}
@@ -428,11 +430,12 @@ public class CountryLocalServiceWrapper
 
 	@Override
 	public com.liferay.portal.kernel.model.Country updateCountry(
-		long countryId, boolean active, java.lang.String a2,
-		java.lang.String a3, boolean billingAllowed, java.lang.String idd,
-		java.lang.String name, java.lang.String number, double position,
-		boolean shippingAllowed, boolean subjectToVAT,
-		java.util.Map<java.lang.String, java.lang.String> titleMap) {
+			long countryId, boolean active, java.lang.String a2,
+			java.lang.String a3, boolean billingAllowed, java.lang.String idd,
+			java.lang.String name, java.lang.String number, double position,
+			boolean shippingAllowed, boolean subjectToVAT,
+			java.util.Map<java.lang.String, java.lang.String> titleMap)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _countryLocalService.updateCountry(
 			countryId, active, a2, a3, billingAllowed, idd, name, number,
