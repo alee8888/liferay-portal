@@ -46,6 +46,7 @@ import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 import com.liferay.portal.kernel.service.persistence.CountryLocalizationPersistence;
 import com.liferay.portal.kernel.service.persistence.CountryPersistence;
+import com.liferay.portal.kernel.service.persistence.RegionPersistence;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -679,6 +680,47 @@ public abstract class CountryLocalServiceBaseImpl
 		this.countryLocalizationPersistence = countryLocalizationPersistence;
 	}
 
+	/**
+	 * Returns the region local service.
+	 *
+	 * @return the region local service
+	 */
+	public com.liferay.portal.kernel.service.RegionLocalService
+		getRegionLocalService() {
+
+		return regionLocalService;
+	}
+
+	/**
+	 * Sets the region local service.
+	 *
+	 * @param regionLocalService the region local service
+	 */
+	public void setRegionLocalService(
+		com.liferay.portal.kernel.service.RegionLocalService
+			regionLocalService) {
+
+		this.regionLocalService = regionLocalService;
+	}
+
+	/**
+	 * Returns the region persistence.
+	 *
+	 * @return the region persistence
+	 */
+	public RegionPersistence getRegionPersistence() {
+		return regionPersistence;
+	}
+
+	/**
+	 * Sets the region persistence.
+	 *
+	 * @param regionPersistence the region persistence
+	 */
+	public void setRegionPersistence(RegionPersistence regionPersistence) {
+		this.regionPersistence = regionPersistence;
+	}
+
 	public void afterPropertiesSet() {
 		persistedModelLocalServiceRegistry.register(
 			"com.liferay.portal.kernel.model.Country", countryLocalService);
@@ -745,6 +787,15 @@ public abstract class CountryLocalServiceBaseImpl
 
 	@BeanReference(type = CountryLocalizationPersistence.class)
 	protected CountryLocalizationPersistence countryLocalizationPersistence;
+
+	@BeanReference(
+		type = com.liferay.portal.kernel.service.RegionLocalService.class
+	)
+	protected com.liferay.portal.kernel.service.RegionLocalService
+		regionLocalService;
+
+	@BeanReference(type = RegionPersistence.class)
+	protected RegionPersistence regionPersistence;
 
 	@BeanReference(type = PersistedModelLocalServiceRegistry.class)
 	protected PersistedModelLocalServiceRegistry
