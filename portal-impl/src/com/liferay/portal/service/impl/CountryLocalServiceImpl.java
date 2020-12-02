@@ -103,9 +103,13 @@ public class CountryLocalServiceImpl extends CountryLocalServiceBaseImpl {
 
 		countryPersistence.remove(country);
 
-		// Addresses
+		// Regions
 
 		long countryId = country.getCountryId();
+
+		regionPersistence.removeByCountryId(countryId);
+
+		// Addresses
 
 		addressLocalService.deleteCountryAddresses(countryId);
 
