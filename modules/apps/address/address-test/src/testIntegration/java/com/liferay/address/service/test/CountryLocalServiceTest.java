@@ -124,12 +124,12 @@ public class CountryLocalServiceTest {
 			country.getName(), number, position, !shippingAllowed,
 			!subjectToVAT, null);
 
-		Assert.assertEquals(billingAllowed, updatedCountry.isBillingAllowed());
+		Assert.assertEquals(!billingAllowed, updatedCountry.isBillingAllowed());
 		Assert.assertEquals(number, updatedCountry.getNumber());
 		Assert.assertEquals(position, updatedCountry.getPosition(), 0);
 		Assert.assertEquals(
-			shippingAllowed, updatedCountry.isShippingAllowed());
-		Assert.assertEquals(subjectToVAT, updatedCountry.isSubjectToVAT());
+			!shippingAllowed, updatedCountry.isShippingAllowed());
+		Assert.assertEquals(!subjectToVAT, updatedCountry.isSubjectToVAT());
 	}
 
 	private Country _addCountry(
