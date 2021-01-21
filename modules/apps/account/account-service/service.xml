@@ -27,6 +27,7 @@
 		<column name="emailAddress" type="String" />
 		<column name="logoId" type="long" />
 		<column name="name" type="String" />
+		<column name="taxExemptionCode" type="String" />
 		<column name="taxIdNumber" type="String" />
 		<column name="type" type="String" />
 		<column name="status" type="int" />
