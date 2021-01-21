@@ -56,7 +56,8 @@ create table AccountGroupRel (
 	AccountGroupRelId LONG not null primary key,
 	companyId LONG,
 	accountGroupId LONG,
-	accountEntryId LONG
+	classNameId LONG,
+	classPK LONG
 );
 
 create table AccountRole (
