@@ -59,6 +59,7 @@ public class AccountEntryWrapper
 		attributes.put("emailAddress", getEmailAddress());
 		attributes.put("logoId", getLogoId());
 		attributes.put("name", getName());
+		attributes.put("taxExemptionCode", getTaxExemptionCode());
 		attributes.put("taxIdNumber", getTaxIdNumber());
 		attributes.put("type", getType());
 		attributes.put("status", getStatus());
@@ -166,6 +167,12 @@ public class AccountEntryWrapper
 
 		if (name != null) {
 			setName(name);
+		}
+
+		String taxExemptionCode = (String)attributes.get("taxExemptionCode");
+
+		if (taxExemptionCode != null) {
+			setTaxExemptionCode(taxExemptionCode);
 		}
 
 		String taxIdNumber = (String)attributes.get("taxIdNumber");
@@ -365,6 +372,16 @@ public class AccountEntryWrapper
 	@Override
 	public int getStatus() {
 		return model.getStatus();
+	}
+
+	/**
+	 * Returns the tax exemption code of this account entry.
+	 *
+	 * @return the tax exemption code of this account entry
+	 */
+	@Override
+	public String getTaxExemptionCode() {
+		return model.getTaxExemptionCode();
 	}
 
 	/**
@@ -580,6 +597,16 @@ public class AccountEntryWrapper
 	@Override
 	public void setStatus(int status) {
 		model.setStatus(status);
+	}
+
+	/**
+	 * Sets the tax exemption code of this account entry.
+	 *
+	 * @param taxExemptionCode the tax exemption code of this account entry
+	 */
+	@Override
+	public void setTaxExemptionCode(String taxExemptionCode) {
+		model.setTaxExemptionCode(taxExemptionCode);
 	}
 
 	/**

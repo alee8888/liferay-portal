@@ -77,7 +77,7 @@ public class AccountEntryCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(39);
+		StringBundler sb = new StringBundler(41);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -111,6 +111,8 @@ public class AccountEntryCacheModel
 		sb.append(logoId);
 		sb.append(", name=");
 		sb.append(name);
+		sb.append(", taxExemptionCode=");
+		sb.append(taxExemptionCode);
 		sb.append(", taxIdNumber=");
 		sb.append(taxIdNumber);
 		sb.append(", type=");
@@ -194,6 +196,13 @@ public class AccountEntryCacheModel
 			accountEntryImpl.setName(name);
 		}
 
+		if (taxExemptionCode == null) {
+			accountEntryImpl.setTaxExemptionCode("");
+		}
+		else {
+			accountEntryImpl.setTaxExemptionCode(taxExemptionCode);
+		}
+
 		if (taxIdNumber == null) {
 			accountEntryImpl.setTaxIdNumber("");
 		}
@@ -240,6 +249,7 @@ public class AccountEntryCacheModel
 
 		logoId = objectInput.readLong();
 		name = objectInput.readUTF();
+		taxExemptionCode = objectInput.readUTF();
 		taxIdNumber = objectInput.readUTF();
 		type = objectInput.readUTF();
 
@@ -309,6 +319,13 @@ public class AccountEntryCacheModel
 			objectOutput.writeUTF(name);
 		}
 
+		if (taxExemptionCode == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(taxExemptionCode);
+		}
+
 		if (taxIdNumber == null) {
 			objectOutput.writeUTF("");
 		}
@@ -342,6 +359,7 @@ public class AccountEntryCacheModel
 	public String emailAddress;
 	public long logoId;
 	public String name;
+	public String taxExemptionCode;
 	public String taxIdNumber;
 	public String type;
 	public int status;

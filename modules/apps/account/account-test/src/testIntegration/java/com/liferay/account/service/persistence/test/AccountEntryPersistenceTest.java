@@ -154,6 +154,8 @@ public class AccountEntryPersistenceTest {
 
 		newAccountEntry.setName(RandomTestUtil.randomString());
 
+		newAccountEntry.setTaxExemptionCode(RandomTestUtil.randomString());
+
 		newAccountEntry.setTaxIdNumber(RandomTestUtil.randomString());
 
 		newAccountEntry.setType(RandomTestUtil.randomString());
@@ -208,6 +210,9 @@ public class AccountEntryPersistenceTest {
 			existingAccountEntry.getLogoId(), newAccountEntry.getLogoId());
 		Assert.assertEquals(
 			existingAccountEntry.getName(), newAccountEntry.getName());
+		Assert.assertEquals(
+			existingAccountEntry.getTaxExemptionCode(),
+			newAccountEntry.getTaxExemptionCode());
 		Assert.assertEquals(
 			existingAccountEntry.getTaxIdNumber(),
 			newAccountEntry.getTaxIdNumber());
@@ -271,8 +276,9 @@ public class AccountEntryPersistenceTest {
 			"userName", true, "createDate", true, "modifiedDate", true,
 			"defaultBillingAddressId", true, "defaultShippingAddressId", true,
 			"parentAccountEntryId", true, "description", true, "domains", true,
-			"emailAddress", true, "logoId", true, "name", true, "taxIdNumber",
-			true, "type", true, "status", true);
+			"emailAddress", true, "logoId", true, "name", true,
+			"taxExemptionCode", true, "taxIdNumber", true, "type", true,
+			"status", true);
 	}
 
 	@Test
@@ -585,6 +591,8 @@ public class AccountEntryPersistenceTest {
 		accountEntry.setLogoId(RandomTestUtil.nextLong());
 
 		accountEntry.setName(RandomTestUtil.randomString());
+
+		accountEntry.setTaxExemptionCode(RandomTestUtil.randomString());
 
 		accountEntry.setTaxIdNumber(RandomTestUtil.randomString());
 

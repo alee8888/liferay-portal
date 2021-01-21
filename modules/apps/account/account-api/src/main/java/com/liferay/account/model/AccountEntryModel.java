@@ -318,6 +318,21 @@ public interface AccountEntryModel
 	public void setName(String name);
 
 	/**
+	 * Returns the tax exemption code of this account entry.
+	 *
+	 * @return the tax exemption code of this account entry
+	 */
+	@AutoEscape
+	public String getTaxExemptionCode();
+
+	/**
+	 * Sets the tax exemption code of this account entry.
+	 *
+	 * @param taxExemptionCode the tax exemption code of this account entry
+	 */
+	public void setTaxExemptionCode(String taxExemptionCode);
+
+	/**
 	 * Returns the tax ID number of this account entry.
 	 *
 	 * @return the tax ID number of this account entry

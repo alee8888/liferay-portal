@@ -51,6 +51,7 @@ public class AccountEntrySoap implements Serializable {
 		soapModel.setEmailAddress(model.getEmailAddress());
 		soapModel.setLogoId(model.getLogoId());
 		soapModel.setName(model.getName());
+		soapModel.setTaxExemptionCode(model.getTaxExemptionCode());
 		soapModel.setTaxIdNumber(model.getTaxIdNumber());
 		soapModel.setType(model.getType());
 		soapModel.setStatus(model.getStatus());
@@ -235,6 +236,14 @@ public class AccountEntrySoap implements Serializable {
 		_name = name;
 	}
 
+	public String getTaxExemptionCode() {
+		return _taxExemptionCode;
+	}
+
+	public void setTaxExemptionCode(String taxExemptionCode) {
+		_taxExemptionCode = taxExemptionCode;
+	}
+
 	public String getTaxIdNumber() {
 		return _taxIdNumber;
 	}
@@ -275,6 +284,7 @@ public class AccountEntrySoap implements Serializable {
 	private String _emailAddress;
 	private long _logoId;
 	private String _name;
+	private String _taxExemptionCode;
 	private String _taxIdNumber;
 	private String _type;
 	private int _status;
