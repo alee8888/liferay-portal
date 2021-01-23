@@ -22,6 +22,7 @@ import com.liferay.account.service.AccountGroupLocalService;
 import com.liferay.account.service.base.AccountGroupRelLocalServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 
 import java.util.List;
 
@@ -67,6 +68,37 @@ public class AccountGroupRelLocalServiceImpl
 	}
 
 	@Override
+	public AccountGroupRel addAccountGroupRel(
+		long accountGroupId, String className, long classPK)
+		throws PortalException {
+
+		long classNameId = _classNameLocalService.getClassNameId(className);
+
+		AccountGroupRel accountGroupRel =
+			accountGroupRelPersistence.fetchByA_C_C(
+				accountGroupId, classNameId, classPK);
+
+		if (accountGroupRel != null) {
+			throw new DuplicateAccountGroupRelException();
+		}
+
+		_accountGroupLocalService.getAccountGroup(accountGroupId);
+
+		if (classPK != AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT) {
+			_accountEntryLocalService.getAccountEntry(classPK);
+		}
+
+		accountGroupRel = createAccountGroupRel(
+			counterLocalService.increment());
+
+		accountGroupRel.setAccountGroupId(accountGroupId);
+		accountGroupRel.setClassNameId(classNameId);
+		accountGroupRel.setClassPK(classPK);
+
+		return addAccountGroupRel(accountGroupRel);
+	}
+
+	@Override
 	public void addAccountGroupRels(
 			long accountGroupId, long[] accountEntryIds)
 		throws PortalException {
@@ -76,6 +108,16 @@ public class AccountGroupRelLocalServiceImpl
 		}
 	}
 
+	@Override
+	public void addAccountGroupRels(
+			long accountGroupId, String className, long[] classPKs)
+		throws PortalException {
+
+		for (long classPK : classPKs) {
+			addAccountGroupRel(accountGroupId, className, classPK);
+		}
+	}
+	
 	@Override
 	public void deleteAccountGroupRels(
 			long accountGroupId, long[] accountEntryIds)
@@ -88,6 +130,18 @@ public class AccountGroupRelLocalServiceImpl
 	}
 
 	@Override
+	public void deleteAccountGroupRels(
+		long accountGroupId, String className, long[] classPKs)
+		throws PortalException {
+
+		for (long classPK : classPKs) {
+			accountGroupRelPersistence.removeByA_C_C(
+				accountGroupId,
+				_classNameLocalService.getClassNameId(className), classPK);
+		}
+	}
+
+	@Override
 	public AccountGroupRel fetchAccountGroupRel(
 		long accountGroupId, long accountEntryId) {
 
@@ -96,10 +150,27 @@ public class AccountGroupRelLocalServiceImpl
 	}
 
 	@Override
+	public AccountGroupRel fetchAccountGroupRel(
+		long accountGroupId, String className, long classPK) {
+
+		return accountGroupRelPersistence.fetchByA_C_C(
+			accountGroupId, _classNameLocalService.getClassNameId(className),
+			classPK);
+	}
+
+	@Override
 	public List<AccountGroupRel>
 		getAccountGroupRelsByAccountEntryId(long accountEntryId) {
 
 		return accountGroupRelPersistence.findByAccountEntryId(accountEntryId);
+	}
+
+	@Override
+	public List<AccountGroupRel> getAccountGroupRels(
+		String className, long classPK) {
+
+		return accountGroupRelPersistence.findByC_C(
+			_classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
@@ -119,5 +190,8 @@ public class AccountGroupRelLocalServiceImpl
 
 	@Reference
 	private AccountGroupLocalService _accountGroupLocalService;
+
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
 
 }
