@@ -41,35 +41,7 @@ public class AccountGroupRelLocalServiceImpl
 
 	@Override
 	public AccountGroupRel addAccountGroupRel(
-			long accountGroupId, long accountEntryId)
-		throws PortalException {
-
-		AccountGroupRel accountGroupRel =
-			accountGroupRelPersistence.fetchByAGI_AEI(
-				accountGroupId, accountEntryId);
-
-		if (accountGroupRel != null) {
-			throw new DuplicateAccountGroupRelException();
-		}
-
-		_accountGroupLocalService.getAccountGroup(accountGroupId);
-
-		if (accountEntryId != AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT) {
-			_accountEntryLocalService.getAccountEntry(accountEntryId);
-		}
-
-		accountGroupRel = createAccountGroupRel(
-			counterLocalService.increment());
-
-		accountGroupRel.setAccountGroupId(accountGroupId);
-		accountGroupRel.setAccountEntryId(accountEntryId);
-
-		return addAccountGroupRel(accountGroupRel);
-	}
-
-	@Override
-	public AccountGroupRel addAccountGroupRel(
-		long accountGroupId, String className, long classPK)
+			long accountGroupId, String className, long classPK)
 		throws PortalException {
 
 		long classNameId = _classNameLocalService.getClassNameId(className);
@@ -100,16 +72,6 @@ public class AccountGroupRelLocalServiceImpl
 
 	@Override
 	public void addAccountGroupRels(
-			long accountGroupId, long[] accountEntryIds)
-		throws PortalException {
-
-		for (long accountEntryId : accountEntryIds) {
-			addAccountGroupRel(accountGroupId, accountEntryId);
-		}
-	}
-
-	@Override
-	public void addAccountGroupRels(
 			long accountGroupId, String className, long[] classPKs)
 		throws PortalException {
 
@@ -117,21 +79,10 @@ public class AccountGroupRelLocalServiceImpl
 			addAccountGroupRel(accountGroupId, className, classPK);
 		}
 	}
-	
-	@Override
-	public void deleteAccountGroupRels(
-			long accountGroupId, long[] accountEntryIds)
-		throws PortalException {
-
-		for (long accountEntryId : accountEntryIds) {
-			accountGroupRelPersistence.removeByAGI_AEI(
-				accountGroupId, accountEntryId);
-		}
-	}
 
 	@Override
 	public void deleteAccountGroupRels(
-		long accountGroupId, String className, long[] classPKs)
+			long accountGroupId, String className, long[] classPKs)
 		throws PortalException {
 
 		for (long classPK : classPKs) {
@@ -143,26 +94,11 @@ public class AccountGroupRelLocalServiceImpl
 
 	@Override
 	public AccountGroupRel fetchAccountGroupRel(
-		long accountGroupId, long accountEntryId) {
-
-		return accountGroupRelPersistence.fetchByAGI_AEI(
-			accountGroupId, accountEntryId);
-	}
-
-	@Override
-	public AccountGroupRel fetchAccountGroupRel(
 		long accountGroupId, String className, long classPK) {
 
 		return accountGroupRelPersistence.fetchByA_C_C(
 			accountGroupId, _classNameLocalService.getClassNameId(className),
 			classPK);
-	}
-
-	@Override
-	public List<AccountGroupRel>
-		getAccountGroupRelsByAccountEntryId(long accountEntryId) {
-
-		return accountGroupRelPersistence.findByAccountEntryId(accountEntryId);
 	}
 
 	@Override
