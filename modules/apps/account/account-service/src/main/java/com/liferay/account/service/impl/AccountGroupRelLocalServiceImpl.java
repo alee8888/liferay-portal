@@ -16,16 +16,17 @@ package com.liferay.account.service.impl;
 
 import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.exception.DuplicateAccountGroupRelException;
+import com.liferay.account.model.AccountEntry;
 import com.liferay.account.model.AccountGroupRel;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountGroupLocalService;
 import com.liferay.account.service.base.AccountGroupRelLocalServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 
 import java.util.List;
 
-import com.liferay.portal.kernel.service.ClassNameLocalService;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -39,37 +40,22 @@ import org.osgi.service.component.annotations.Reference;
 public class AccountGroupRelLocalServiceImpl
 	extends AccountGroupRelLocalServiceBaseImpl {
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #addAccountGroupRel(long, String, long)}
+	 */
+	@Deprecated
 	@Override
 	public AccountGroupRel addAccountGroupRel(
 			long accountGroupId, long accountEntryId)
 		throws PortalException {
 
-		AccountGroupRel accountGroupRel =
-			accountGroupRelPersistence.fetchByAGI_AEI(
-				accountGroupId, accountEntryId);
-
-		if (accountGroupRel != null) {
-			throw new DuplicateAccountGroupRelException();
-		}
-
-		_accountGroupLocalService.getAccountGroup(accountGroupId);
-
-		if (accountEntryId != AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT) {
-			_accountEntryLocalService.getAccountEntry(accountEntryId);
-		}
-
-		accountGroupRel = createAccountGroupRel(
-			counterLocalService.increment());
-
-		accountGroupRel.setAccountGroupId(accountGroupId);
-		accountGroupRel.setAccountEntryId(accountEntryId);
-
-		return addAccountGroupRel(accountGroupRel);
+		return addAccountGroupRel(
+			accountGroupId, AccountEntry.class.getName(), accountEntryId);
 	}
 
 	@Override
 	public AccountGroupRel addAccountGroupRel(
-		long accountGroupId, String className, long classPK)
+			long accountGroupId, String className, long classPK)
 		throws PortalException {
 
 		long classNameId = _classNameLocalService.getClassNameId(className);
@@ -98,14 +84,16 @@ public class AccountGroupRelLocalServiceImpl
 		return addAccountGroupRel(accountGroupRel);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #addAccountGroupRels(long, String, long[])}
+	 */
+	@Deprecated
 	@Override
-	public void addAccountGroupRels(
-			long accountGroupId, long[] accountEntryIds)
+	public void addAccountGroupRels(long accountGroupId, long[] accountEntryIds)
 		throws PortalException {
 
-		for (long accountEntryId : accountEntryIds) {
-			addAccountGroupRel(accountGroupId, accountEntryId);
-		}
+		addAccountGroupRels(
+			accountGroupId, AccountEntry.class.getName(), accountEntryIds);
 	}
 
 	@Override
@@ -117,21 +105,23 @@ public class AccountGroupRelLocalServiceImpl
 			addAccountGroupRel(accountGroupId, className, classPK);
 		}
 	}
-	
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #deleteAccountGroupRels(long, String, long[])}
+	 */
+	@Deprecated
 	@Override
 	public void deleteAccountGroupRels(
 			long accountGroupId, long[] accountEntryIds)
 		throws PortalException {
 
-		for (long accountEntryId : accountEntryIds) {
-			accountGroupRelPersistence.removeByAGI_AEI(
-				accountGroupId, accountEntryId);
-		}
+		deleteAccountGroupRels(
+			accountGroupId, AccountEntry.class.getName(), accountEntryIds);
 	}
 
 	@Override
 	public void deleteAccountGroupRels(
-		long accountGroupId, String className, long[] classPKs)
+			long accountGroupId, String className, long[] classPKs)
 		throws PortalException {
 
 		for (long classPK : classPKs) {
@@ -141,12 +131,16 @@ public class AccountGroupRelLocalServiceImpl
 		}
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #fetchAccountGroupRel(long, String, long)}
+	 */
+	@Deprecated
 	@Override
 	public AccountGroupRel fetchAccountGroupRel(
 		long accountGroupId, long accountEntryId) {
 
-		return accountGroupRelPersistence.fetchByAGI_AEI(
-			accountGroupId, accountEntryId);
+		return fetchAccountGroupRel(
+			accountGroupId, AccountEntry.class.getName(), accountEntryId);
 	}
 
 	@Override
@@ -158,36 +152,36 @@ public class AccountGroupRelLocalServiceImpl
 			classPK);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), replaced by {@link #getAccountGroupRelsByAccountEntryId(String, long)}
+	 */
+	@Deprecated
 	@Override
-	public List<AccountGroupRel>
-		getAccountGroupRelsByAccountEntryId(long accountEntryId) {
+	public List<AccountGroupRel> getAccountGroupRelsByAccountEntryId(
+		long accountEntryId) {
 
-		return accountGroupRelPersistence.findByAccountEntryId(
-			accountEntryId);
+		return getAccountGroupRelsByAccountEntryId(
+			AccountEntry.class.getName(), accountEntryId);
 	}
 
 	@Override
-	public List<AccountGroupRel>
-	getAccountGroupRelsByAccountEntryId(String className, long classPK) {
+	public List<AccountGroupRel> getAccountGroupRelsByAccountEntryId(
+		String className, long classPK) {
 
 		return accountGroupRelPersistence.findByC_C(
 			_classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
-	public List<AccountGroupRel>
-		getAccountGroupRelsByAccountGroupId(long accountGroupId) {
+	public List<AccountGroupRel> getAccountGroupRelsByAccountGroupId(
+		long accountGroupId) {
 
-		return accountGroupRelPersistence.findByAccountGroupId(
-			accountGroupId);
+		return accountGroupRelPersistence.findByAccountGroupId(accountGroupId);
 	}
 
 	@Override
-	public long getAccountGroupRelsCountByAccountGroupId(
-		long accountGroupId) {
-
-		return accountGroupRelPersistence.countByAccountGroupId(
-			accountGroupId);
+	public long getAccountGroupRelsCountByAccountGroupId(long accountGroupId) {
+		return accountGroupRelPersistence.countByAccountGroupId(accountGroupId);
 	}
 
 	@Reference
