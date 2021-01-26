@@ -48,15 +48,11 @@ public class AccountEntryModelListener extends BaseModelListener<AccountEntry> {
 		// Account Groups
 
 		List<AccountGroupRel> accountGroupRels =
-			_accountGroupRelLocalService.
-				getAccountGroupRelsByAccountEntryId(
-					accountEntry.getAccountEntryId());
+			_accountGroupRelLocalService.getAccountGroupRelsByAccountEntryId(
+				accountEntry.getAccountEntryId());
 
-		for (AccountGroupRel accountGroupRel :
-				accountGroupRels) {
-
-			_accountGroupRelLocalService.
-				deleteAccountGroupRel(accountGroupRel);
+		for (AccountGroupRel accountGroupRel : accountGroupRels) {
+			_accountGroupRelLocalService.deleteAccountGroupRel(accountGroupRel);
 		}
 
 		// Account Organizations
@@ -126,8 +122,7 @@ public class AccountEntryModelListener extends BaseModelListener<AccountEntry> {
 	private AccountEntryUserRelLocalService _accountEntryUserRelLocalService;
 
 	@Reference
-	private AccountGroupRelLocalService
-		_accountGroupRelLocalService;
+	private AccountGroupRelLocalService _accountGroupRelLocalService;
 
 	@Reference
 	private AccountRoleLocalService _accountRoleLocalService;

@@ -99,24 +99,19 @@ public class AccountGroupRelLocalServiceImpl
 	public List<AccountGroupRel>
 		getAccountGroupRelsByAccountEntryId(long accountEntryId) {
 
-		return accountGroupRelPersistence.findByAccountEntryId(
-			accountEntryId);
+		return accountGroupRelPersistence.findByAccountEntryId(accountEntryId);
 	}
 
 	@Override
-	public List<AccountGroupRel>
-		getAccountGroupRelsByAccountGroupId(long accountGroupId) {
-
-		return accountGroupRelPersistence.findByAccountGroupId(
-			accountGroupId);
-	}
-
-	@Override
-	public long getAccountGroupRelsCountByAccountGroupId(
+	public List<AccountGroupRel> getAccountGroupRelsByAccountGroupId(
 		long accountGroupId) {
 
-		return accountGroupRelPersistence.countByAccountGroupId(
-			accountGroupId);
+		return accountGroupRelPersistence.findByAccountGroupId(accountGroupId);
+	}
+
+	@Override
+	public long getAccountGroupRelsCountByAccountGroupId(long accountGroupId) {
+		return accountGroupRelPersistence.countByAccountGroupId(accountGroupId);
 	}
 
 	@Reference

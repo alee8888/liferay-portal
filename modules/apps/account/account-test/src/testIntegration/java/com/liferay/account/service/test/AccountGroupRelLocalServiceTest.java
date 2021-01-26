@@ -21,8 +21,8 @@ import com.liferay.account.model.AccountEntry;
 import com.liferay.account.model.AccountGroup;
 import com.liferay.account.model.AccountGroupRel;
 import com.liferay.account.service.AccountEntryLocalService;
-import com.liferay.account.service.AccountGroupRelLocalService;
 import com.liferay.account.service.AccountGroupLocalService;
+import com.liferay.account.service.AccountGroupRelLocalService;
 import com.liferay.account.service.test.util.AccountEntryTestUtil;
 import com.liferay.account.service.test.util.AccountGroupTestUtil;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
@@ -68,16 +68,14 @@ public class AccountGroupRelLocalServiceTest {
 	@Test
 	public void testAddAccountGroupRel() throws Exception {
 		AccountGroupRel accountGroupRel =
-			_accountGroupRelLocalService.
-				addAccountGroupRel(
-					_accountGroup.getAccountGroupId(),
-					_accountEntry.getAccountEntryId());
+			_accountGroupRelLocalService.addAccountGroupRel(
+				_accountGroup.getAccountGroupId(),
+				_accountEntry.getAccountEntryId());
 
 		Assert.assertNotNull(accountGroupRel);
 		Assert.assertNotNull(
-			_accountGroupRelLocalService.
-				fetchAccountGroupRel(
-					accountGroupRel.getPrimaryKey()));
+			_accountGroupRelLocalService.fetchAccountGroupRel(
+				accountGroupRel.getPrimaryKey()));
 	}
 
 	@Test
@@ -93,11 +91,10 @@ public class AccountGroupRelLocalServiceTest {
 				_accountEntryLocalService, RandomTestUtil.randomString(),
 				RandomTestUtil.randomString()));
 
-		_accountGroupRelLocalService.
-			addAccountGroupRels(
-				_accountGroup.getAccountGroupId(),
-				ListUtil.toLongArray(
-					accountEntries, AccountEntry.ACCOUNT_ENTRY_ID_ACCESSOR));
+		_accountGroupRelLocalService.addAccountGroupRels(
+			_accountGroup.getAccountGroupId(),
+			ListUtil.toLongArray(
+				accountEntries, AccountEntry.ACCOUNT_ENTRY_ID_ACCESSOR));
 
 		Assert.assertEquals(
 			2,
@@ -106,13 +103,10 @@ public class AccountGroupRelLocalServiceTest {
 					_accountGroup.getAccountGroupId()));
 
 		List<AccountGroupRel> accountGroupRels =
-			_accountGroupRelLocalService.
-				getAccountGroupRelsByAccountGroupId(
-					_accountGroup.getAccountGroupId());
+			_accountGroupRelLocalService.getAccountGroupRelsByAccountGroupId(
+				_accountGroup.getAccountGroupId());
 
-		for (AccountGroupRel accountGroupRel :
-				accountGroupRels) {
-
+		for (AccountGroupRel accountGroupRel : accountGroupRels) {
 			Assert.assertEquals(
 				_accountGroup.getAccountGroupId(),
 				accountGroupRel.getAccountGroupId());
@@ -160,24 +154,20 @@ public class AccountGroupRelLocalServiceTest {
 
 	@Test
 	public void testDeleteAccountGroupRels() throws Exception {
-		_accountGroupRelLocalService.
-			addAccountGroupRels(
-				_accountGroup.getAccountGroupId(),
-				new long[] {_accountEntry.getAccountEntryId()});
+		_accountGroupRelLocalService.addAccountGroupRels(
+			_accountGroup.getAccountGroupId(),
+			new long[] {_accountEntry.getAccountEntryId()});
 
 		List<AccountGroupRel> accountGroupRels =
-			_accountGroupRelLocalService.
-				getAccountGroupRelsByAccountGroupId(
-					_accountGroup.getAccountGroupId());
+			_accountGroupRelLocalService.getAccountGroupRelsByAccountGroupId(
+				_accountGroup.getAccountGroupId());
 
 		Assert.assertEquals(
-			accountGroupRels.toString(), 1,
-			accountGroupRels.size());
+			accountGroupRels.toString(), 1, accountGroupRels.size());
 
-		_accountGroupRelLocalService.
-			deleteAccountGroupRels(
-				_accountGroup.getAccountGroupId(),
-				new long[] {_accountEntry.getAccountEntryId()});
+		_accountGroupRelLocalService.deleteAccountGroupRels(
+			_accountGroup.getAccountGroupId(),
+			new long[] {_accountEntry.getAccountEntryId()});
 
 		Assert.assertEquals(
 			0,
@@ -194,10 +184,9 @@ public class AccountGroupRelLocalServiceTest {
 	private AccountGroup _accountGroup;
 
 	@Inject
-	private AccountGroupRelLocalService
-		_accountGroupRelLocalService;
+	private AccountGroupLocalService _accountGroupLocalService;
 
 	@Inject
-	private AccountGroupLocalService _accountGroupLocalService;
+	private AccountGroupRelLocalService _accountGroupRelLocalService;
 
 }

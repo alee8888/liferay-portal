@@ -20,8 +20,8 @@ import com.liferay.account.model.AccountRole;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountEntryOrganizationRelLocalService;
 import com.liferay.account.service.AccountEntryUserRelLocalService;
-import com.liferay.account.service.AccountGroupRelLocalService;
 import com.liferay.account.service.AccountGroupLocalService;
+import com.liferay.account.service.AccountGroupRelLocalService;
 import com.liferay.account.service.AccountRoleLocalService;
 import com.liferay.account.service.test.util.AccountEntryTestUtil;
 import com.liferay.account.service.test.util.AccountGroupTestUtil;
@@ -161,11 +161,10 @@ public class AccountEntryModelListenerWhenDeletingAccountEntryTest {
 	private AccountEntryUserRelLocalService _accountEntryUserRelLocalService;
 
 	@Inject
-	private AccountGroupRelLocalService
-		_accountGroupRelLocalService;
+	private AccountGroupLocalService _accountGroupLocalService;
 
 	@Inject
-	private AccountGroupLocalService _accountGroupLocalService;
+	private AccountGroupRelLocalService _accountGroupRelLocalService;
 
 	@Inject
 	private AccountRoleLocalService _accountRoleLocalService;

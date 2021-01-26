@@ -47,10 +47,8 @@ public class AccountGroupAccountEntryRowChecker extends EmptyOnClickRowChecker {
 
 		try {
 			AccountGroupRel accountGroupRel =
-				AccountGroupRelLocalServiceUtil.
-					fetchAccountGroupRel(
-						_accountGroupId,
-						accountEntryDisplay.getAccountEntryId());
+				AccountGroupRelLocalServiceUtil.fetchAccountGroupRel(
+					_accountGroupId, accountEntryDisplay.getAccountEntryId());
 
 			if (accountGroupRel != null) {
 				return true;
