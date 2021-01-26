@@ -55,14 +55,12 @@ public class AssignAccountGroupAccountEntriesMVCActionCommand
 		try (SafeClosable safeClosable =
 				ProxyModeThreadLocal.setWithSafeClosable(true)) {
 
-			_accountGroupRelLocalService.
-				addAccountGroupRels(
-					accountGroupId, accountEntryIds);
+			_accountGroupRelLocalService.addAccountGroupRels(
+				accountGroupId, accountEntryIds);
 		}
 	}
 
 	@Reference
-	private AccountGroupRelLocalService
-		_accountGroupRelLocalService;
+	private AccountGroupRelLocalService _accountGroupRelLocalService;
 
 }

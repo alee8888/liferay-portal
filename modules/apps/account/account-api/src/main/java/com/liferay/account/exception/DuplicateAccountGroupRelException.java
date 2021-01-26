@@ -19,8 +19,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 /**
  * @author Brian Wing Shun Chan
  */
-public class DuplicateAccountGroupRelException
-	extends PortalException {
+public class DuplicateAccountGroupRelException extends PortalException {
 
 	public DuplicateAccountGroupRelException() {
 	}
@@ -29,9 +28,7 @@ public class DuplicateAccountGroupRelException
 		super(msg);
 	}
 
-	public DuplicateAccountGroupRelException(
-		String msg, Throwable throwable) {
-
+	public DuplicateAccountGroupRelException(String msg, Throwable throwable) {
 		super(msg, throwable);
 	}
 

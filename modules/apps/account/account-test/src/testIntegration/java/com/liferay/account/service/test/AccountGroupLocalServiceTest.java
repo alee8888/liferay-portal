@@ -18,8 +18,8 @@ import com.liferay.account.exception.DefaultAccountGroupException;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.model.AccountGroup;
 import com.liferay.account.service.AccountEntryLocalService;
-import com.liferay.account.service.AccountGroupRelLocalService;
 import com.liferay.account.service.AccountGroupLocalService;
+import com.liferay.account.service.AccountGroupRelLocalService;
 import com.liferay.account.service.test.util.AccountEntryTestUtil;
 import com.liferay.account.service.test.util.AccountGroupTestUtil;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
@@ -83,9 +83,7 @@ public class AccountGroupLocalServiceTest {
 	}
 
 	@Test
-	public void testDeleteAccountGroupWithAccountGroupRel()
-		throws Exception {
-
+	public void testDeleteAccountGroupWithAccountGroupRel() throws Exception {
 		AccountGroup accountGroup = _addAccountGroup();
 		AccountEntry accountEntry = AccountEntryTestUtil.addAccountEntry(
 			_accountEntryLocalService);
@@ -286,11 +284,10 @@ public class AccountGroupLocalServiceTest {
 	private AccountEntryLocalService _accountEntryLocalService;
 
 	@Inject
-	private AccountGroupRelLocalService
-		_accountGroupRelLocalService;
+	private AccountGroupLocalService _accountGroupLocalService;
 
 	@Inject
-	private AccountGroupLocalService _accountGroupLocalService;
+	private AccountGroupRelLocalService _accountGroupRelLocalService;
 
 	@Inject
 	private UserLocalService _userLocalService;

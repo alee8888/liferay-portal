@@ -61,9 +61,8 @@ public class AccountEntryModelDocumentContributor
 
 	private long[] _getAccountGroupIds(AccountEntry accountEntry) {
 		return ListUtil.toLongArray(
-			_accountGroupRelLocalService.
-				getAccountGroupRelsByAccountEntryId(
-					accountEntry.getAccountEntryId()),
+			_accountGroupRelLocalService.getAccountGroupRelsByAccountEntryId(
+				accountEntry.getAccountEntryId()),
 			AccountGroupRel::getAccountGroupId);
 	}
 
@@ -92,8 +91,7 @@ public class AccountEntryModelDocumentContributor
 		_accountEntryOrganizationRelLocalService;
 
 	@Reference
-	private AccountGroupRelLocalService
-		_accountGroupRelLocalService;
+	private AccountGroupRelLocalService _accountGroupRelLocalService;
 
 	@Reference
 	private AccountUserRetriever _accountUserRetriever;

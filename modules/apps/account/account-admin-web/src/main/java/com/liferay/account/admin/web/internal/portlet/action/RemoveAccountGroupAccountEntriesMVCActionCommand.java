@@ -58,9 +58,8 @@ public class RemoveAccountGroupAccountEntriesMVCActionCommand
 			long[] accountEntryIds = ParamUtil.getLongValues(
 				actionRequest, "accountEntryIds");
 
-			_accountGroupRelLocalService.
-				deleteAccountGroupRels(
-					accountGroupId, accountEntryIds);
+			_accountGroupRelLocalService.deleteAccountGroupRels(
+				accountGroupId, accountEntryIds);
 
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
 
@@ -82,7 +81,6 @@ public class RemoveAccountGroupAccountEntriesMVCActionCommand
 	}
 
 	@Reference
-	private AccountGroupRelLocalService
-		_accountGroupRelLocalService;
+	private AccountGroupRelLocalService _accountGroupRelLocalService;
 
 }

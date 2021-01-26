@@ -33,16 +33,14 @@ public class AccountGroupRelModelListener
 	extends BaseModelListener<AccountGroupRel> {
 
 	@Override
-	public void onAfterCreate(
-			AccountGroupRel accountGroupRel)
+	public void onAfterCreate(AccountGroupRel accountGroupRel)
 		throws ModelListenerException {
 
 		_reindexAccountEntry(accountGroupRel.getAccountEntryId());
 	}
 
 	@Override
-	public void onAfterRemove(
-			AccountGroupRel accountGroupRel)
+	public void onAfterRemove(AccountGroupRel accountGroupRel)
 		throws ModelListenerException {
 
 		_reindexAccountEntry(accountGroupRel.getAccountEntryId());

@@ -75,11 +75,8 @@ public class AccountGroupLocalServiceImpl
 			accountGroupRelPersistence.findByAccountGroupId(
 				accountGroup.getAccountGroupId());
 
-		for (AccountGroupRel accountGroupRel :
-				accountGroupRels) {
-
-			accountGroupRelPersistence.remove(
-				accountGroupRel);
+		for (AccountGroupRel accountGroupRel : accountGroupRels) {
+			accountGroupRelPersistence.remove(accountGroupRel);
 		}
 
 		return accountGroup;
