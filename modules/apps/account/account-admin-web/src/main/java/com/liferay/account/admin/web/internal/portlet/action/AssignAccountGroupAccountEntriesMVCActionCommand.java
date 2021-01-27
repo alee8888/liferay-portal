@@ -15,6 +15,7 @@
 package com.liferay.account.admin.web.internal.portlet.action;
 
 import com.liferay.account.constants.AccountPortletKeys;
+import com.liferay.account.model.AccountEntry;
 import com.liferay.account.service.AccountGroupRelLocalService;
 import com.liferay.petra.lang.SafeClosable;
 import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocal;
@@ -56,7 +57,7 @@ public class AssignAccountGroupAccountEntriesMVCActionCommand
 				ProxyModeThreadLocal.setWithSafeClosable(true)) {
 
 			_accountGroupRelLocalService.addAccountGroupRels(
-				accountGroupId, accountEntryIds);
+				accountGroupId, AccountEntry.class.getName(), accountEntryIds);
 		}
 	}
 

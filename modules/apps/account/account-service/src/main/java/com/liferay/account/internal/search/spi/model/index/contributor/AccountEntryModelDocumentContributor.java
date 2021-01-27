@@ -61,8 +61,8 @@ public class AccountEntryModelDocumentContributor
 
 	private long[] _getAccountGroupIds(AccountEntry accountEntry) {
 		return ListUtil.toLongArray(
-			_accountGroupRelLocalService.getAccountGroupRelsByAccountEntryId(
-				accountEntry.getAccountEntryId()),
+			_accountGroupRelLocalService.getAccountGroupRels(
+				AccountEntry.class.getName(), accountEntry.getAccountEntryId()),
 			AccountGroupRel::getAccountGroupId);
 	}
 
