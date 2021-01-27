@@ -22,8 +22,10 @@ import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.SearchException;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Drew Brokke
@@ -36,14 +38,24 @@ public class AccountGroupRelModelListener
 	public void onAfterCreate(AccountGroupRel accountGroupRel)
 		throws ModelListenerException {
 
-		_reindexAccountEntry(accountGroupRel.getAccountEntryId());
+		if (accountGroupRel.getClassNameId() ==
+				_classNameLocalService.getClassNameId(
+					AccountEntry.class.getName())) {
+
+			_reindexAccountEntry(accountGroupRel.getClassPK());
+		}
 	}
 
 	@Override
 	public void onAfterRemove(AccountGroupRel accountGroupRel)
 		throws ModelListenerException {
 
-		_reindexAccountEntry(accountGroupRel.getAccountEntryId());
+		if (accountGroupRel.getClassNameId() ==
+				_classNameLocalService.getClassNameId(
+					AccountEntry.class.getName())) {
+
+			_reindexAccountEntry(accountGroupRel.getClassPK());
+		}
 	}
 
 	private void _reindexAccountEntry(long accountEntryId) {
@@ -57,5 +69,8 @@ public class AccountGroupRelModelListener
 			throw new ModelListenerException(searchException);
 		}
 	}
+
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
 
 }
