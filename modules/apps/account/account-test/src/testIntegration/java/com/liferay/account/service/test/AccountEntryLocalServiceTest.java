@@ -864,7 +864,8 @@ public class AccountEntryLocalServiceTest {
 		AccountEntry accountEntry = _addAccountEntry();
 
 		_accountGroupRelLocalService.addAccountGroupRel(
-			accountGroupId, accountEntry.getAccountEntryId());
+			accountGroupId, AccountEntry.class.getName(),
+			accountEntry.getAccountEntryId());
 
 		return accountEntry;
 	}
