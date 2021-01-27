@@ -119,7 +119,7 @@ public class AccountEntryModelListenerWhenDeletingAccountEntryTest {
 			RandomTestUtil.randomString());
 
 		_accountGroupRelLocalService.addAccountGroupRel(
-			accountGroup.getAccountGroupId(),
+			accountGroup.getAccountGroupId(), AccountEntry.class.getName(),
 			_accountEntry.getAccountEntryId());
 
 		_accountEntryLocalService.deleteAccountEntry(

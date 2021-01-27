@@ -89,7 +89,8 @@ public class AccountGroupLocalServiceTest {
 			_accountEntryLocalService);
 
 		_accountGroupRelLocalService.addAccountGroupRel(
-			accountGroup.getAccountGroupId(), accountEntry.getAccountEntryId());
+			accountGroup.getAccountGroupId(), AccountEntry.class.getName(),
+			accountEntry.getAccountEntryId());
 
 		_accountGroupLocalService.deleteAccountGroup(accountGroup);
 
