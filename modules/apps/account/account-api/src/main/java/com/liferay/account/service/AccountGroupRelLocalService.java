@@ -75,11 +75,27 @@ public interface AccountGroupRelLocalService
 	@Indexable(type = IndexableType.REINDEX)
 	public AccountGroupRel addAccountGroupRel(AccountGroupRel accountGroupRel);
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x)
+	 */
+	@Deprecated
 	public AccountGroupRel addAccountGroupRel(
 			long accountGroupId, long accountEntryId)
 		throws PortalException;
 
+	public AccountGroupRel addAccountGroupRel(
+			long accountGroupId, String className, long classPK)
+		throws PortalException;
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x)
+	 */
+	@Deprecated
 	public void addAccountGroupRels(long accountGroupId, long[] accountEntryIds)
+		throws PortalException;
+
+	public void addAccountGroupRels(
+			long accountGroupId, String className, long[] classPKs)
 		throws PortalException;
 
 	/**
@@ -126,8 +142,16 @@ public interface AccountGroupRelLocalService
 	public AccountGroupRel deleteAccountGroupRel(long AccountGroupRelId)
 		throws PortalException;
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x)
+	 */
+	@Deprecated
 	public void deleteAccountGroupRels(
 			long accountGroupId, long[] accountEntryIds)
+		throws PortalException;
+
+	public void deleteAccountGroupRels(
+			long accountGroupId, String className, long[] classPKs)
 		throws PortalException;
 
 	/**
@@ -209,9 +233,17 @@ public interface AccountGroupRelLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public AccountGroupRel fetchAccountGroupRel(long AccountGroupRelId);
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x)
+	 */
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public AccountGroupRel fetchAccountGroupRel(
 		long accountGroupId, long accountEntryId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public AccountGroupRel fetchAccountGroupRel(
+		long accountGroupId, String className, long classPK);
 
 	/**
 	 * Returns the account group rel with the primary key.
@@ -238,9 +270,17 @@ public interface AccountGroupRelLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<AccountGroupRel> getAccountGroupRels(int start, int end);
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x)
+	 */
+	@Deprecated
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<AccountGroupRel> getAccountGroupRelsByAccountEntryId(
 		long accountEntryId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<AccountGroupRel> getAccountGroupRelsByAccountEntryId(
+		String className, long classPK);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<AccountGroupRel> getAccountGroupRelsByAccountGroupId(

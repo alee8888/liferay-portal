@@ -50,6 +50,10 @@ public class AccountGroupRelLocalServiceWrapper
 		return _accountGroupRelLocalService.addAccountGroupRel(accountGroupRel);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x)
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.account.model.AccountGroupRel addAccountGroupRel(
 			long accountGroupId, long accountEntryId)
@@ -60,11 +64,33 @@ public class AccountGroupRelLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.account.model.AccountGroupRel addAccountGroupRel(
+			long accountGroupId, String className, long classPK)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _accountGroupRelLocalService.addAccountGroupRel(
+			accountGroupId, className, classPK);
+	}
+
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x)
+	 */
+	@Deprecated
+	@Override
 	public void addAccountGroupRels(long accountGroupId, long[] accountEntryIds)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_accountGroupRelLocalService.addAccountGroupRels(
 			accountGroupId, accountEntryIds);
+	}
+
+	@Override
+	public void addAccountGroupRels(
+			long accountGroupId, String className, long[] classPKs)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_accountGroupRelLocalService.addAccountGroupRels(
+			accountGroupId, className, classPKs);
 	}
 
 	/**
@@ -130,6 +156,10 @@ public class AccountGroupRelLocalServiceWrapper
 			AccountGroupRelId);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x)
+	 */
+	@Deprecated
 	@Override
 	public void deleteAccountGroupRels(
 			long accountGroupId, long[] accountEntryIds)
@@ -137,6 +167,15 @@ public class AccountGroupRelLocalServiceWrapper
 
 		_accountGroupRelLocalService.deleteAccountGroupRels(
 			accountGroupId, accountEntryIds);
+	}
+
+	@Override
+	public void deleteAccountGroupRels(
+			long accountGroupId, String className, long[] classPKs)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_accountGroupRelLocalService.deleteAccountGroupRels(
+			accountGroupId, className, classPKs);
 	}
 
 	/**
@@ -255,12 +294,24 @@ public class AccountGroupRelLocalServiceWrapper
 			AccountGroupRelId);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x)
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.account.model.AccountGroupRel fetchAccountGroupRel(
 		long accountGroupId, long accountEntryId) {
 
 		return _accountGroupRelLocalService.fetchAccountGroupRel(
 			accountGroupId, accountEntryId);
+	}
+
+	@Override
+	public com.liferay.account.model.AccountGroupRel fetchAccountGroupRel(
+		long accountGroupId, String className, long classPK) {
+
+		return _accountGroupRelLocalService.fetchAccountGroupRel(
+			accountGroupId, className, classPK);
 	}
 
 	/**
@@ -297,12 +348,24 @@ public class AccountGroupRelLocalServiceWrapper
 		return _accountGroupRelLocalService.getAccountGroupRels(start, end);
 	}
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x)
+	 */
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.account.model.AccountGroupRel>
 		getAccountGroupRelsByAccountEntryId(long accountEntryId) {
 
 		return _accountGroupRelLocalService.getAccountGroupRelsByAccountEntryId(
 			accountEntryId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.account.model.AccountGroupRel>
+		getAccountGroupRelsByAccountEntryId(String className, long classPK) {
+
+		return _accountGroupRelLocalService.getAccountGroupRelsByAccountEntryId(
+			className, classPK);
 	}
 
 	@Override
