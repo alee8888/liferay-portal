@@ -52,19 +52,20 @@ public class AccountGroupRelLocalServiceWrapper
 
 	@Override
 	public com.liferay.account.model.AccountGroupRel addAccountGroupRel(
-			long accountGroupId, long accountEntryId)
+			long accountGroupId, String className, long classPK)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _accountGroupRelLocalService.addAccountGroupRel(
-			accountGroupId, accountEntryId);
+			accountGroupId, className, classPK);
 	}
 
 	@Override
-	public void addAccountGroupRels(long accountGroupId, long[] accountEntryIds)
+	public void addAccountGroupRels(
+			long accountGroupId, String className, long[] classPKs)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_accountGroupRelLocalService.addAccountGroupRels(
-			accountGroupId, accountEntryIds);
+			accountGroupId, className, classPKs);
 	}
 
 	/**
@@ -132,11 +133,11 @@ public class AccountGroupRelLocalServiceWrapper
 
 	@Override
 	public void deleteAccountGroupRels(
-			long accountGroupId, long[] accountEntryIds)
+			long accountGroupId, String className, long[] classPKs)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_accountGroupRelLocalService.deleteAccountGroupRels(
-			accountGroupId, accountEntryIds);
+			accountGroupId, className, classPKs);
 	}
 
 	/**
@@ -257,10 +258,10 @@ public class AccountGroupRelLocalServiceWrapper
 
 	@Override
 	public com.liferay.account.model.AccountGroupRel fetchAccountGroupRel(
-		long accountGroupId, long accountEntryId) {
+		long accountGroupId, String className, long classPK) {
 
 		return _accountGroupRelLocalService.fetchAccountGroupRel(
-			accountGroupId, accountEntryId);
+			accountGroupId, className, classPK);
 	}
 
 	/**
@@ -299,10 +300,10 @@ public class AccountGroupRelLocalServiceWrapper
 
 	@Override
 	public java.util.List<com.liferay.account.model.AccountGroupRel>
-		getAccountGroupRelsByAccountEntryId(long accountEntryId) {
+		getAccountGroupRels(String className, long classPK) {
 
-		return _accountGroupRelLocalService.getAccountGroupRelsByAccountEntryId(
-			accountEntryId);
+		return _accountGroupRelLocalService.getAccountGroupRels(
+			className, classPK);
 	}
 
 	@Override

@@ -76,10 +76,11 @@ public interface AccountGroupRelLocalService
 	public AccountGroupRel addAccountGroupRel(AccountGroupRel accountGroupRel);
 
 	public AccountGroupRel addAccountGroupRel(
-			long accountGroupId, long accountEntryId)
+			long accountGroupId, String className, long classPK)
 		throws PortalException;
 
-	public void addAccountGroupRels(long accountGroupId, long[] accountEntryIds)
+	public void addAccountGroupRels(
+			long accountGroupId, String className, long[] classPKs)
 		throws PortalException;
 
 	/**
@@ -127,7 +128,7 @@ public interface AccountGroupRelLocalService
 		throws PortalException;
 
 	public void deleteAccountGroupRels(
-			long accountGroupId, long[] accountEntryIds)
+			long accountGroupId, String className, long[] classPKs)
 		throws PortalException;
 
 	/**
@@ -211,7 +212,7 @@ public interface AccountGroupRelLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public AccountGroupRel fetchAccountGroupRel(
-		long accountGroupId, long accountEntryId);
+		long accountGroupId, String className, long classPK);
 
 	/**
 	 * Returns the account group rel with the primary key.
@@ -239,8 +240,8 @@ public interface AccountGroupRelLocalService
 	public List<AccountGroupRel> getAccountGroupRels(int start, int end);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<AccountGroupRel> getAccountGroupRelsByAccountEntryId(
-		long accountEntryId);
+	public List<AccountGroupRel> getAccountGroupRels(
+		String className, long classPK);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<AccountGroupRel> getAccountGroupRelsByAccountGroupId(

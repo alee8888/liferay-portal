@@ -55,17 +55,18 @@ public class AccountGroupRelLocalServiceUtil {
 	}
 
 	public static com.liferay.account.model.AccountGroupRel addAccountGroupRel(
-			long accountGroupId, long accountEntryId)
+			long accountGroupId, String className, long classPK)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return getService().addAccountGroupRel(accountGroupId, accountEntryId);
+		return getService().addAccountGroupRel(
+			accountGroupId, className, classPK);
 	}
 
 	public static void addAccountGroupRels(
-			long accountGroupId, long[] accountEntryIds)
+			long accountGroupId, String className, long[] classPKs)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		getService().addAccountGroupRels(accountGroupId, accountEntryIds);
+		getService().addAccountGroupRels(accountGroupId, className, classPKs);
 	}
 
 	/**
@@ -126,10 +127,11 @@ public class AccountGroupRelLocalServiceUtil {
 	}
 
 	public static void deleteAccountGroupRels(
-			long accountGroupId, long[] accountEntryIds)
+			long accountGroupId, String className, long[] classPKs)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		getService().deleteAccountGroupRels(accountGroupId, accountEntryIds);
+		getService().deleteAccountGroupRels(
+			accountGroupId, className, classPKs);
 	}
 
 	/**
@@ -241,10 +243,11 @@ public class AccountGroupRelLocalServiceUtil {
 	}
 
 	public static com.liferay.account.model.AccountGroupRel
-		fetchAccountGroupRel(long accountGroupId, long accountEntryId) {
+		fetchAccountGroupRel(
+			long accountGroupId, String className, long classPK) {
 
 		return getService().fetchAccountGroupRel(
-			accountGroupId, accountEntryId);
+			accountGroupId, className, classPK);
 	}
 
 	/**
@@ -279,9 +282,9 @@ public class AccountGroupRelLocalServiceUtil {
 	}
 
 	public static java.util.List<com.liferay.account.model.AccountGroupRel>
-		getAccountGroupRelsByAccountEntryId(long accountEntryId) {
+		getAccountGroupRels(String className, long classPK) {
 
-		return getService().getAccountGroupRelsByAccountEntryId(accountEntryId);
+		return getService().getAccountGroupRels(className, classPK);
 	}
 
 	public static java.util.List<com.liferay.account.model.AccountGroupRel>
