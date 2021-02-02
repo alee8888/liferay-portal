@@ -12,22 +12,19 @@
  * details.
  */
 
-package com.liferay.account.internal.upgrade.v1_3_0;
+package com.liferay.account.internal.upgrade.v2_0_0;
 
-import com.liferay.account.internal.upgrade.v1_3_0.util.AccountGroupTable;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 
 /**
- * @author Pei-Jung Lan
+ * @author Albert Lee
  */
-public class UpgradeAccountGroup extends UpgradeProcess {
+public class UpgradeAccountGroupRel extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		if (!hasColumn("AccountGroup", "defaultAccountGroup")) {
-			alter(
-				AccountGroupTable.class,
-				new AlterTableAddColumn("defaultAccountGroup", "BOOLEAN"));
+		if (hasTable("AccountGroupAccountEntryRel")) {
+			runSQL("drop table AccountGroupAccountEntryRel");
 		}
 	}
 
