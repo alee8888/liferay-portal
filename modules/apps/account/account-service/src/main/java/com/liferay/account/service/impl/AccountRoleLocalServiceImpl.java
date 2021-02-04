@@ -68,14 +68,26 @@ public class AccountRoleLocalServiceImpl
 
 		accountRole.setCompanyId(user.getCompanyId());
 
-		Role role = roleLocalService.addRole(
-			userId, AccountRole.class.getName(), accountRole.getAccountRoleId(),
-			name, titleMap, descriptionMap, RoleConstants.TYPE_ACCOUNT, null,
-			null);
+		Role role = roleLocalService.createRole(
+			counterLocalService.increment());
+
+		role.setCompanyId(user.getCompanyId());
+		role.setUserId(userId);
+		role.setUserName(user.getFullName());
+		role.setClassName(AccountRole.class.getName());
+		role.setClassPK(accountRole.getAccountRoleId());
+		role.setName(name);
+		role.setTitleMap(titleMap);
+		role.setDescriptionMap(descriptionMap);
+		role.setType(RoleConstants.TYPE_ACCOUNT);
 
 		accountRole.setRoleId(role.getRoleId());
 
-		return addAccountRole(accountRole);
+		accountRole = addAccountRole(accountRole);
+
+		roleLocalService.addRole(role);
+
+		return accountRole;
 	}
 
 	@Override
