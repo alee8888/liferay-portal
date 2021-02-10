@@ -16,6 +16,8 @@ package com.liferay.account.admin.web.internal.portlet.action;
 
 import com.liferay.account.constants.AccountPortletKeys;
 import com.liferay.account.model.AccountEntry;
+import com.liferay.petra.lang.SafeClosable;
+import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocal;
 import com.liferay.portal.kernel.model.Address;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
@@ -89,10 +91,18 @@ public class EditAccountEntryAddressMVCActionCommand
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
 		if (cmd.equals(Constants.ADD)) {
-			addAccountEntryAddress(actionRequest);
+			try (SafeClosable safeClosable =
+					ProxyModeThreadLocal.setWithSafeClosable(true)) {
+
+				addAccountEntryAddress(actionRequest);
+			}
 		}
 		else if (cmd.equals(Constants.UPDATE)) {
-			updateAccountEntryAddress(actionRequest);
+			try (SafeClosable safeClosable =
+					ProxyModeThreadLocal.setWithSafeClosable(true)) {
+
+				updateAccountEntryAddress(actionRequest);
+			}
 		}
 
 		String redirect = ParamUtil.getString(actionRequest, "redirect");
