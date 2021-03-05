@@ -48,22 +48,22 @@
 
 		<column name="classNameId" type="long" />
 		<column name="classPK" type="long" />
-		<column name="name" type="String" />
+		<column name="countryId" type="long" />
+		<column name="regionId" type="long" />
+		<column name="typeId" type="long" />
+		<column name="city" type="String" />
 		<column name="description" type="String" />
+		<column name="latitude" type="double" />
+		<column name="longitude" type="double" />
+		<column name="mailing" type="boolean" />
+		<column name="name" type="String" />
+		<column name="primary" type="boolean" />
 		<column name="street1" type="String" />
 		<column name="street2" type="String" />
 		<column name="street3" type="String" />
-		<column name="city" type="String" />
-		<column name="zip" type="String" />
-		<column name="regionId" type="long" />
-		<column name="countryId" type="long" />
-		<column name="latitude" type="double" />
-		<column name="longitude" type="double" />
-		<column name="typeId" type="long" />
-		<column name="mailing" type="boolean" />
-		<column name="primary" type="boolean" />
 		<column name="validationDate" type="Date" />
 		<column name="validationStatus" type="int" />
+		<column name="zip" type="String" />
 
 		<!-- Order -->
 
@@ -79,11 +79,11 @@
 		<finder name="UserId" return-type="Collection">
 			<finder-column name="userId" />
 		</finder>
-		<finder name="RegionId" return-type="Collection">
-			<finder-column name="regionId" />
-		</finder>
 		<finder name="CountryId" return-type="Collection">
 			<finder-column name="countryId" />
+		</finder>
+		<finder name="RegionId" return-type="Collection">
+			<finder-column name="regionId" />
 		</finder>
 		<finder name="C_C" return-type="Collection">
 			<finder-column name="companyId" />
