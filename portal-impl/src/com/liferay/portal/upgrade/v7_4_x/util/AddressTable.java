@@ -33,14 +33,15 @@ public class AddressTable {
 		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
 		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
 		{"modifiedDate", Types.TIMESTAMP}, {"classNameId", Types.BIGINT},
-		{"classPK", Types.BIGINT}, {"name", Types.VARCHAR},
-		{"description", Types.VARCHAR}, {"street1", Types.VARCHAR},
-		{"street2", Types.VARCHAR}, {"street3", Types.VARCHAR},
-		{"city", Types.VARCHAR}, {"zip", Types.VARCHAR},
-		{"regionId", Types.BIGINT}, {"countryId", Types.BIGINT},
+		{"classPK", Types.BIGINT}, {"countryId", Types.BIGINT},
+		{"regionId", Types.BIGINT}, {"typeId", Types.BIGINT},
+		{"city", Types.VARCHAR}, {"description", Types.VARCHAR},
 		{"latitude", Types.DOUBLE}, {"longitude", Types.DOUBLE},
-		{"typeId", Types.BIGINT}, {"mailing", Types.BOOLEAN},
-		{"primary_", Types.BOOLEAN}
+		{"mailing", Types.BOOLEAN}, {"name", Types.VARCHAR},
+		{"primary_", Types.BOOLEAN}, {"street1", Types.VARCHAR},
+		{"street2", Types.VARCHAR}, {"street3", Types.VARCHAR},
+		{"validationDate", Types.TIMESTAMP},
+		{"validationStatus", Types.INTEGER}, {"zip", Types.VARCHAR}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -69,9 +70,25 @@ TABLE_COLUMNS_MAP.put("classNameId", Types.BIGINT);
 
 TABLE_COLUMNS_MAP.put("classPK", Types.BIGINT);
 
-TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
+TABLE_COLUMNS_MAP.put("countryId", Types.BIGINT);
+
+TABLE_COLUMNS_MAP.put("regionId", Types.BIGINT);
+
+TABLE_COLUMNS_MAP.put("typeId", Types.BIGINT);
+
+TABLE_COLUMNS_MAP.put("city", Types.VARCHAR);
 
 TABLE_COLUMNS_MAP.put("description", Types.VARCHAR);
+
+TABLE_COLUMNS_MAP.put("latitude", Types.DOUBLE);
+
+TABLE_COLUMNS_MAP.put("longitude", Types.DOUBLE);
+
+TABLE_COLUMNS_MAP.put("mailing", Types.BOOLEAN);
+
+TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
+
+TABLE_COLUMNS_MAP.put("primary_", Types.BOOLEAN);
 
 TABLE_COLUMNS_MAP.put("street1", Types.VARCHAR);
 
@@ -79,27 +96,15 @@ TABLE_COLUMNS_MAP.put("street2", Types.VARCHAR);
 
 TABLE_COLUMNS_MAP.put("street3", Types.VARCHAR);
 
-TABLE_COLUMNS_MAP.put("city", Types.VARCHAR);
+TABLE_COLUMNS_MAP.put("validationDate", Types.TIMESTAMP);
+
+TABLE_COLUMNS_MAP.put("validationStatus", Types.INTEGER);
 
 TABLE_COLUMNS_MAP.put("zip", Types.VARCHAR);
 
-TABLE_COLUMNS_MAP.put("regionId", Types.BIGINT);
-
-TABLE_COLUMNS_MAP.put("countryId", Types.BIGINT);
-
-TABLE_COLUMNS_MAP.put("latitude", Types.DOUBLE);
-
-TABLE_COLUMNS_MAP.put("longitude", Types.DOUBLE);
-
-TABLE_COLUMNS_MAP.put("typeId", Types.BIGINT);
-
-TABLE_COLUMNS_MAP.put("mailing", Types.BOOLEAN);
-
-TABLE_COLUMNS_MAP.put("primary_", Types.BOOLEAN);
-
 }
 	public static final String TABLE_SQL_CREATE =
-"create table Address (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,addressId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,name VARCHAR(255) null,description STRING null,street1 VARCHAR(255) null,street2 VARCHAR(255) null,street3 VARCHAR(255) null,city VARCHAR(75) null,zip VARCHAR(75) null,regionId LONG,countryId LONG,latitude DOUBLE,longitude DOUBLE,typeId LONG,mailing BOOLEAN,primary_ BOOLEAN)";
+"create table Address (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,addressId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,countryId LONG,regionId LONG,typeId LONG,city VARCHAR(75) null,description STRING null,latitude DOUBLE,longitude DOUBLE,mailing BOOLEAN,name VARCHAR(255) null,primary_ BOOLEAN,street1 VARCHAR(255) null,street2 VARCHAR(255) null,street3 VARCHAR(255) null,validationDate DATE null,validationStatus INTEGER,zip VARCHAR(75) null)";
 
 	public static final String TABLE_SQL_DROP = "drop table Address";
 
