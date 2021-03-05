@@ -62,6 +62,8 @@
 		<column name="typeId" type="long" />
 		<column name="mailing" type="boolean" />
 		<column name="primary" type="boolean" />
+		<column name="validationDate" type="Date" />
+		<column name="validationStatus" type="int" />
 
 		<!-- Order -->
 
