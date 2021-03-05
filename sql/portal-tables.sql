@@ -30,20 +30,22 @@ create table Address (
 	modifiedDate DATE null,
 	classNameId LONG,
 	classPK LONG,
-	name VARCHAR(255) null,
+	countryId LONG,
+	regionId LONG,
+	typeId LONG,
+	city VARCHAR(75) null,
 	description STRING null,
+	latitude DOUBLE,
+	longitude DOUBLE,
+	mailing BOOLEAN,
+	name VARCHAR(255) null,
+	primary_ BOOLEAN,
 	street1 VARCHAR(255) null,
 	street2 VARCHAR(255) null,
 	street3 VARCHAR(255) null,
-	city VARCHAR(75) null,
-	zip VARCHAR(75) null,
-	regionId LONG,
-	countryId LONG,
-	latitude DOUBLE,
-	longitude DOUBLE,
-	typeId LONG,
-	mailing BOOLEAN,
-	primary_ BOOLEAN
+	validationDate DATE null,
+	validationStatus INTEGER,
+	zip VARCHAR(75) null
 );
 
 create table AnnouncementsDelivery (

@@ -258,19 +258,61 @@ public interface AddressModel
 	public void setClassPK(long classPK);
 
 	/**
-	 * Returns the name of this address.
+	 * Returns the country ID of this address.
 	 *
-	 * @return the name of this address
+	 * @return the country ID of this address
 	 */
-	@AutoEscape
-	public String getName();
+	public long getCountryId();
 
 	/**
-	 * Sets the name of this address.
+	 * Sets the country ID of this address.
 	 *
-	 * @param name the name of this address
+	 * @param countryId the country ID of this address
 	 */
-	public void setName(String name);
+	public void setCountryId(long countryId);
+
+	/**
+	 * Returns the region ID of this address.
+	 *
+	 * @return the region ID of this address
+	 */
+	public long getRegionId();
+
+	/**
+	 * Sets the region ID of this address.
+	 *
+	 * @param regionId the region ID of this address
+	 */
+	public void setRegionId(long regionId);
+
+	/**
+	 * Returns the type ID of this address.
+	 *
+	 * @return the type ID of this address
+	 */
+	public long getTypeId();
+
+	/**
+	 * Sets the type ID of this address.
+	 *
+	 * @param typeId the type ID of this address
+	 */
+	public void setTypeId(long typeId);
+
+	/**
+	 * Returns the city of this address.
+	 *
+	 * @return the city of this address
+	 */
+	@AutoEscape
+	public String getCity();
+
+	/**
+	 * Sets the city of this address.
+	 *
+	 * @param city the city of this address
+	 */
+	public void setCity(String city);
 
 	/**
 	 * Returns the description of this address.
@@ -286,6 +328,91 @@ public interface AddressModel
 	 * @param description the description of this address
 	 */
 	public void setDescription(String description);
+
+	/**
+	 * Returns the latitude of this address.
+	 *
+	 * @return the latitude of this address
+	 */
+	public double getLatitude();
+
+	/**
+	 * Sets the latitude of this address.
+	 *
+	 * @param latitude the latitude of this address
+	 */
+	public void setLatitude(double latitude);
+
+	/**
+	 * Returns the longitude of this address.
+	 *
+	 * @return the longitude of this address
+	 */
+	public double getLongitude();
+
+	/**
+	 * Sets the longitude of this address.
+	 *
+	 * @param longitude the longitude of this address
+	 */
+	public void setLongitude(double longitude);
+
+	/**
+	 * Returns the mailing of this address.
+	 *
+	 * @return the mailing of this address
+	 */
+	public boolean getMailing();
+
+	/**
+	 * Returns <code>true</code> if this address is mailing.
+	 *
+	 * @return <code>true</code> if this address is mailing; <code>false</code> otherwise
+	 */
+	public boolean isMailing();
+
+	/**
+	 * Sets whether this address is mailing.
+	 *
+	 * @param mailing the mailing of this address
+	 */
+	public void setMailing(boolean mailing);
+
+	/**
+	 * Returns the name of this address.
+	 *
+	 * @return the name of this address
+	 */
+	@AutoEscape
+	public String getName();
+
+	/**
+	 * Sets the name of this address.
+	 *
+	 * @param name the name of this address
+	 */
+	public void setName(String name);
+
+	/**
+	 * Returns the primary of this address.
+	 *
+	 * @return the primary of this address
+	 */
+	public boolean getPrimary();
+
+	/**
+	 * Returns <code>true</code> if this address is primary.
+	 *
+	 * @return <code>true</code> if this address is primary; <code>false</code> otherwise
+	 */
+	public boolean isPrimary();
+
+	/**
+	 * Sets whether this address is primary.
+	 *
+	 * @param primary the primary of this address
+	 */
+	public void setPrimary(boolean primary);
 
 	/**
 	 * Returns the street1 of this address.
@@ -333,19 +460,32 @@ public interface AddressModel
 	public void setStreet3(String street3);
 
 	/**
-	 * Returns the city of this address.
+	 * Returns the validation date of this address.
 	 *
-	 * @return the city of this address
+	 * @return the validation date of this address
 	 */
-	@AutoEscape
-	public String getCity();
+	public Date getValidationDate();
 
 	/**
-	 * Sets the city of this address.
+	 * Sets the validation date of this address.
 	 *
-	 * @param city the city of this address
+	 * @param validationDate the validation date of this address
 	 */
-	public void setCity(String city);
+	public void setValidationDate(Date validationDate);
+
+	/**
+	 * Returns the validation status of this address.
+	 *
+	 * @return the validation status of this address
+	 */
+	public int getValidationStatus();
+
+	/**
+	 * Sets the validation status of this address.
+	 *
+	 * @param validationStatus the validation status of this address
+	 */
+	public void setValidationStatus(int validationStatus);
 
 	/**
 	 * Returns the zip of this address.
@@ -361,117 +501,5 @@ public interface AddressModel
 	 * @param zip the zip of this address
 	 */
 	public void setZip(String zip);
-
-	/**
-	 * Returns the region ID of this address.
-	 *
-	 * @return the region ID of this address
-	 */
-	public long getRegionId();
-
-	/**
-	 * Sets the region ID of this address.
-	 *
-	 * @param regionId the region ID of this address
-	 */
-	public void setRegionId(long regionId);
-
-	/**
-	 * Returns the country ID of this address.
-	 *
-	 * @return the country ID of this address
-	 */
-	public long getCountryId();
-
-	/**
-	 * Sets the country ID of this address.
-	 *
-	 * @param countryId the country ID of this address
-	 */
-	public void setCountryId(long countryId);
-
-	/**
-	 * Returns the latitude of this address.
-	 *
-	 * @return the latitude of this address
-	 */
-	public double getLatitude();
-
-	/**
-	 * Sets the latitude of this address.
-	 *
-	 * @param latitude the latitude of this address
-	 */
-	public void setLatitude(double latitude);
-
-	/**
-	 * Returns the longitude of this address.
-	 *
-	 * @return the longitude of this address
-	 */
-	public double getLongitude();
-
-	/**
-	 * Sets the longitude of this address.
-	 *
-	 * @param longitude the longitude of this address
-	 */
-	public void setLongitude(double longitude);
-
-	/**
-	 * Returns the type ID of this address.
-	 *
-	 * @return the type ID of this address
-	 */
-	public long getTypeId();
-
-	/**
-	 * Sets the type ID of this address.
-	 *
-	 * @param typeId the type ID of this address
-	 */
-	public void setTypeId(long typeId);
-
-	/**
-	 * Returns the mailing of this address.
-	 *
-	 * @return the mailing of this address
-	 */
-	public boolean getMailing();
-
-	/**
-	 * Returns <code>true</code> if this address is mailing.
-	 *
-	 * @return <code>true</code> if this address is mailing; <code>false</code> otherwise
-	 */
-	public boolean isMailing();
-
-	/**
-	 * Sets whether this address is mailing.
-	 *
-	 * @param mailing the mailing of this address
-	 */
-	public void setMailing(boolean mailing);
-
-	/**
-	 * Returns the primary of this address.
-	 *
-	 * @return the primary of this address
-	 */
-	public boolean getPrimary();
-
-	/**
-	 * Returns <code>true</code> if this address is primary.
-	 *
-	 * @return <code>true</code> if this address is primary; <code>false</code> otherwise
-	 */
-	public boolean isPrimary();
-
-	/**
-	 * Sets whether this address is primary.
-	 *
-	 * @param primary the primary of this address
-	 */
-	public void setPrimary(boolean primary);
 
 }

@@ -144,9 +144,25 @@ public class AddressPersistenceTest {
 
 		newAddress.setClassPK(RandomTestUtil.nextLong());
 
-		newAddress.setName(RandomTestUtil.randomString());
+		newAddress.setCountryId(RandomTestUtil.nextLong());
+
+		newAddress.setRegionId(RandomTestUtil.nextLong());
+
+		newAddress.setTypeId(RandomTestUtil.nextLong());
+
+		newAddress.setCity(RandomTestUtil.randomString());
 
 		newAddress.setDescription(RandomTestUtil.randomString());
+
+		newAddress.setLatitude(RandomTestUtil.nextDouble());
+
+		newAddress.setLongitude(RandomTestUtil.nextDouble());
+
+		newAddress.setMailing(RandomTestUtil.randomBoolean());
+
+		newAddress.setName(RandomTestUtil.randomString());
+
+		newAddress.setPrimary(RandomTestUtil.randomBoolean());
 
 		newAddress.setStreet1(RandomTestUtil.randomString());
 
@@ -154,23 +170,11 @@ public class AddressPersistenceTest {
 
 		newAddress.setStreet3(RandomTestUtil.randomString());
 
-		newAddress.setCity(RandomTestUtil.randomString());
+		newAddress.setValidationDate(RandomTestUtil.nextDate());
+
+		newAddress.setValidationStatus(RandomTestUtil.nextInt());
 
 		newAddress.setZip(RandomTestUtil.randomString());
-
-		newAddress.setRegionId(RandomTestUtil.nextLong());
-
-		newAddress.setCountryId(RandomTestUtil.nextLong());
-
-		newAddress.setLatitude(RandomTestUtil.nextDouble());
-
-		newAddress.setLongitude(RandomTestUtil.nextDouble());
-
-		newAddress.setTypeId(RandomTestUtil.nextLong());
-
-		newAddress.setMailing(RandomTestUtil.randomBoolean());
-
-		newAddress.setPrimary(RandomTestUtil.randomBoolean());
 
 		_addresses.add(_persistence.update(newAddress));
 
@@ -201,31 +205,37 @@ public class AddressPersistenceTest {
 			existingAddress.getClassNameId(), newAddress.getClassNameId());
 		Assert.assertEquals(
 			existingAddress.getClassPK(), newAddress.getClassPK());
-		Assert.assertEquals(existingAddress.getName(), newAddress.getName());
+		Assert.assertEquals(
+			existingAddress.getCountryId(), newAddress.getCountryId());
+		Assert.assertEquals(
+			existingAddress.getRegionId(), newAddress.getRegionId());
+		Assert.assertEquals(
+			existingAddress.getTypeId(), newAddress.getTypeId());
+		Assert.assertEquals(existingAddress.getCity(), newAddress.getCity());
 		Assert.assertEquals(
 			existingAddress.getDescription(), newAddress.getDescription());
+		AssertUtils.assertEquals(
+			existingAddress.getLatitude(), newAddress.getLatitude());
+		AssertUtils.assertEquals(
+			existingAddress.getLongitude(), newAddress.getLongitude());
+		Assert.assertEquals(
+			existingAddress.isMailing(), newAddress.isMailing());
+		Assert.assertEquals(existingAddress.getName(), newAddress.getName());
+		Assert.assertEquals(
+			existingAddress.isPrimary(), newAddress.isPrimary());
 		Assert.assertEquals(
 			existingAddress.getStreet1(), newAddress.getStreet1());
 		Assert.assertEquals(
 			existingAddress.getStreet2(), newAddress.getStreet2());
 		Assert.assertEquals(
 			existingAddress.getStreet3(), newAddress.getStreet3());
-		Assert.assertEquals(existingAddress.getCity(), newAddress.getCity());
+		Assert.assertEquals(
+			Time.getShortTimestamp(existingAddress.getValidationDate()),
+			Time.getShortTimestamp(newAddress.getValidationDate()));
+		Assert.assertEquals(
+			existingAddress.getValidationStatus(),
+			newAddress.getValidationStatus());
 		Assert.assertEquals(existingAddress.getZip(), newAddress.getZip());
-		Assert.assertEquals(
-			existingAddress.getRegionId(), newAddress.getRegionId());
-		Assert.assertEquals(
-			existingAddress.getCountryId(), newAddress.getCountryId());
-		AssertUtils.assertEquals(
-			existingAddress.getLatitude(), newAddress.getLatitude());
-		AssertUtils.assertEquals(
-			existingAddress.getLongitude(), newAddress.getLongitude());
-		Assert.assertEquals(
-			existingAddress.getTypeId(), newAddress.getTypeId());
-		Assert.assertEquals(
-			existingAddress.isMailing(), newAddress.isMailing());
-		Assert.assertEquals(
-			existingAddress.isPrimary(), newAddress.isPrimary());
 	}
 
 	@Test
@@ -261,17 +271,17 @@ public class AddressPersistenceTest {
 	}
 
 	@Test
-	public void testCountByRegionId() throws Exception {
-		_persistence.countByRegionId(RandomTestUtil.nextLong());
-
-		_persistence.countByRegionId(0L);
-	}
-
-	@Test
 	public void testCountByCountryId() throws Exception {
 		_persistence.countByCountryId(RandomTestUtil.nextLong());
 
 		_persistence.countByCountryId(0L);
+	}
+
+	@Test
+	public void testCountByRegionId() throws Exception {
+		_persistence.countByRegionId(RandomTestUtil.nextLong());
+
+		_persistence.countByRegionId(0L);
 	}
 
 	@Test
@@ -346,11 +356,12 @@ public class AddressPersistenceTest {
 			"Address", "mvccVersion", true, "uuid", true,
 			"externalReferenceCode", true, "addressId", true, "companyId", true,
 			"userId", true, "userName", true, "createDate", true,
-			"modifiedDate", true, "classNameId", true, "classPK", true, "name",
-			true, "description", true, "street1", true, "street2", true,
-			"street3", true, "city", true, "zip", true, "regionId", true,
-			"countryId", true, "latitude", true, "longitude", true, "typeId",
-			true, "mailing", true, "primary", true);
+			"modifiedDate", true, "classNameId", true, "classPK", true,
+			"countryId", true, "regionId", true, "typeId", true, "city", true,
+			"description", true, "latitude", true, "longitude", true, "mailing",
+			true, "name", true, "primary", true, "street1", true, "street2",
+			true, "street3", true, "validationDate", true, "validationStatus",
+			true, "zip", true);
 	}
 
 	@Test
@@ -642,9 +653,25 @@ public class AddressPersistenceTest {
 
 		address.setClassPK(RandomTestUtil.nextLong());
 
-		address.setName(RandomTestUtil.randomString());
+		address.setCountryId(RandomTestUtil.nextLong());
+
+		address.setRegionId(RandomTestUtil.nextLong());
+
+		address.setTypeId(RandomTestUtil.nextLong());
+
+		address.setCity(RandomTestUtil.randomString());
 
 		address.setDescription(RandomTestUtil.randomString());
+
+		address.setLatitude(RandomTestUtil.nextDouble());
+
+		address.setLongitude(RandomTestUtil.nextDouble());
+
+		address.setMailing(RandomTestUtil.randomBoolean());
+
+		address.setName(RandomTestUtil.randomString());
+
+		address.setPrimary(RandomTestUtil.randomBoolean());
 
 		address.setStreet1(RandomTestUtil.randomString());
 
@@ -652,23 +679,11 @@ public class AddressPersistenceTest {
 
 		address.setStreet3(RandomTestUtil.randomString());
 
-		address.setCity(RandomTestUtil.randomString());
+		address.setValidationDate(RandomTestUtil.nextDate());
+
+		address.setValidationStatus(RandomTestUtil.nextInt());
 
 		address.setZip(RandomTestUtil.randomString());
-
-		address.setRegionId(RandomTestUtil.nextLong());
-
-		address.setCountryId(RandomTestUtil.nextLong());
-
-		address.setLatitude(RandomTestUtil.nextDouble());
-
-		address.setLongitude(RandomTestUtil.nextDouble());
-
-		address.setTypeId(RandomTestUtil.nextLong());
-
-		address.setMailing(RandomTestUtil.randomBoolean());
-
-		address.setPrimary(RandomTestUtil.randomBoolean());
 
 		_addresses.add(_persistence.update(address));
 

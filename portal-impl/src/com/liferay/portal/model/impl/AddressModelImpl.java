@@ -81,14 +81,15 @@ public class AddressModelImpl
 		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
 		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
 		{"modifiedDate", Types.TIMESTAMP}, {"classNameId", Types.BIGINT},
-		{"classPK", Types.BIGINT}, {"name", Types.VARCHAR},
-		{"description", Types.VARCHAR}, {"street1", Types.VARCHAR},
-		{"street2", Types.VARCHAR}, {"street3", Types.VARCHAR},
-		{"city", Types.VARCHAR}, {"zip", Types.VARCHAR},
-		{"regionId", Types.BIGINT}, {"countryId", Types.BIGINT},
+		{"classPK", Types.BIGINT}, {"countryId", Types.BIGINT},
+		{"regionId", Types.BIGINT}, {"typeId", Types.BIGINT},
+		{"city", Types.VARCHAR}, {"description", Types.VARCHAR},
 		{"latitude", Types.DOUBLE}, {"longitude", Types.DOUBLE},
-		{"typeId", Types.BIGINT}, {"mailing", Types.BOOLEAN},
-		{"primary_", Types.BOOLEAN}
+		{"mailing", Types.BOOLEAN}, {"name", Types.VARCHAR},
+		{"primary_", Types.BOOLEAN}, {"street1", Types.VARCHAR},
+		{"street2", Types.VARCHAR}, {"street3", Types.VARCHAR},
+		{"validationDate", Types.TIMESTAMP},
+		{"validationStatus", Types.INTEGER}, {"zip", Types.VARCHAR}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -106,24 +107,26 @@ public class AddressModelImpl
 		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("classNameId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("classPK", Types.BIGINT);
-		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("countryId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("regionId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("typeId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("city", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("description", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("latitude", Types.DOUBLE);
+		TABLE_COLUMNS_MAP.put("longitude", Types.DOUBLE);
+		TABLE_COLUMNS_MAP.put("mailing", Types.BOOLEAN);
+		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("primary_", Types.BOOLEAN);
 		TABLE_COLUMNS_MAP.put("street1", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("street2", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("street3", Types.VARCHAR);
-		TABLE_COLUMNS_MAP.put("city", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("validationDate", Types.TIMESTAMP);
+		TABLE_COLUMNS_MAP.put("validationStatus", Types.INTEGER);
 		TABLE_COLUMNS_MAP.put("zip", Types.VARCHAR);
-		TABLE_COLUMNS_MAP.put("regionId", Types.BIGINT);
-		TABLE_COLUMNS_MAP.put("countryId", Types.BIGINT);
-		TABLE_COLUMNS_MAP.put("latitude", Types.DOUBLE);
-		TABLE_COLUMNS_MAP.put("longitude", Types.DOUBLE);
-		TABLE_COLUMNS_MAP.put("typeId", Types.BIGINT);
-		TABLE_COLUMNS_MAP.put("mailing", Types.BOOLEAN);
-		TABLE_COLUMNS_MAP.put("primary_", Types.BOOLEAN);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table Address (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,addressId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,name VARCHAR(255) null,description STRING null,street1 VARCHAR(255) null,street2 VARCHAR(255) null,street3 VARCHAR(255) null,city VARCHAR(75) null,zip VARCHAR(75) null,regionId LONG,countryId LONG,latitude DOUBLE,longitude DOUBLE,typeId LONG,mailing BOOLEAN,primary_ BOOLEAN)";
+		"create table Address (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,addressId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,countryId LONG,regionId LONG,typeId LONG,city VARCHAR(75) null,description STRING null,latitude DOUBLE,longitude DOUBLE,mailing BOOLEAN,name VARCHAR(255) null,primary_ BOOLEAN,street1 VARCHAR(255) null,street2 VARCHAR(255) null,street3 VARCHAR(255) null,validationDate DATE null,validationStatus INTEGER,zip VARCHAR(75) null)";
 
 	public static final String TABLE_SQL_DROP = "drop table Address";
 
@@ -250,20 +253,22 @@ public class AddressModelImpl
 		model.setModifiedDate(soapModel.getModifiedDate());
 		model.setClassNameId(soapModel.getClassNameId());
 		model.setClassPK(soapModel.getClassPK());
-		model.setName(soapModel.getName());
+		model.setCountryId(soapModel.getCountryId());
+		model.setRegionId(soapModel.getRegionId());
+		model.setTypeId(soapModel.getTypeId());
+		model.setCity(soapModel.getCity());
 		model.setDescription(soapModel.getDescription());
+		model.setLatitude(soapModel.getLatitude());
+		model.setLongitude(soapModel.getLongitude());
+		model.setMailing(soapModel.isMailing());
+		model.setName(soapModel.getName());
+		model.setPrimary(soapModel.isPrimary());
 		model.setStreet1(soapModel.getStreet1());
 		model.setStreet2(soapModel.getStreet2());
 		model.setStreet3(soapModel.getStreet3());
-		model.setCity(soapModel.getCity());
+		model.setValidationDate(soapModel.getValidationDate());
+		model.setValidationStatus(soapModel.getValidationStatus());
 		model.setZip(soapModel.getZip());
-		model.setRegionId(soapModel.getRegionId());
-		model.setCountryId(soapModel.getCountryId());
-		model.setLatitude(soapModel.getLatitude());
-		model.setLongitude(soapModel.getLongitude());
-		model.setTypeId(soapModel.getTypeId());
-		model.setMailing(soapModel.isMailing());
-		model.setPrimary(soapModel.isPrimary());
 
 		return model;
 	}
@@ -452,13 +457,37 @@ public class AddressModelImpl
 		attributeGetterFunctions.put("classPK", Address::getClassPK);
 		attributeSetterBiConsumers.put(
 			"classPK", (BiConsumer<Address, Long>)Address::setClassPK);
-		attributeGetterFunctions.put("name", Address::getName);
+		attributeGetterFunctions.put("countryId", Address::getCountryId);
 		attributeSetterBiConsumers.put(
-			"name", (BiConsumer<Address, String>)Address::setName);
+			"countryId", (BiConsumer<Address, Long>)Address::setCountryId);
+		attributeGetterFunctions.put("regionId", Address::getRegionId);
+		attributeSetterBiConsumers.put(
+			"regionId", (BiConsumer<Address, Long>)Address::setRegionId);
+		attributeGetterFunctions.put("typeId", Address::getTypeId);
+		attributeSetterBiConsumers.put(
+			"typeId", (BiConsumer<Address, Long>)Address::setTypeId);
+		attributeGetterFunctions.put("city", Address::getCity);
+		attributeSetterBiConsumers.put(
+			"city", (BiConsumer<Address, String>)Address::setCity);
 		attributeGetterFunctions.put("description", Address::getDescription);
 		attributeSetterBiConsumers.put(
 			"description",
 			(BiConsumer<Address, String>)Address::setDescription);
+		attributeGetterFunctions.put("latitude", Address::getLatitude);
+		attributeSetterBiConsumers.put(
+			"latitude", (BiConsumer<Address, Double>)Address::setLatitude);
+		attributeGetterFunctions.put("longitude", Address::getLongitude);
+		attributeSetterBiConsumers.put(
+			"longitude", (BiConsumer<Address, Double>)Address::setLongitude);
+		attributeGetterFunctions.put("mailing", Address::getMailing);
+		attributeSetterBiConsumers.put(
+			"mailing", (BiConsumer<Address, Boolean>)Address::setMailing);
+		attributeGetterFunctions.put("name", Address::getName);
+		attributeSetterBiConsumers.put(
+			"name", (BiConsumer<Address, String>)Address::setName);
+		attributeGetterFunctions.put("primary", Address::getPrimary);
+		attributeSetterBiConsumers.put(
+			"primary", (BiConsumer<Address, Boolean>)Address::setPrimary);
 		attributeGetterFunctions.put("street1", Address::getStreet1);
 		attributeSetterBiConsumers.put(
 			"street1", (BiConsumer<Address, String>)Address::setStreet1);
@@ -468,33 +497,19 @@ public class AddressModelImpl
 		attributeGetterFunctions.put("street3", Address::getStreet3);
 		attributeSetterBiConsumers.put(
 			"street3", (BiConsumer<Address, String>)Address::setStreet3);
-		attributeGetterFunctions.put("city", Address::getCity);
+		attributeGetterFunctions.put(
+			"validationDate", Address::getValidationDate);
 		attributeSetterBiConsumers.put(
-			"city", (BiConsumer<Address, String>)Address::setCity);
+			"validationDate",
+			(BiConsumer<Address, Date>)Address::setValidationDate);
+		attributeGetterFunctions.put(
+			"validationStatus", Address::getValidationStatus);
+		attributeSetterBiConsumers.put(
+			"validationStatus",
+			(BiConsumer<Address, Integer>)Address::setValidationStatus);
 		attributeGetterFunctions.put("zip", Address::getZip);
 		attributeSetterBiConsumers.put(
 			"zip", (BiConsumer<Address, String>)Address::setZip);
-		attributeGetterFunctions.put("regionId", Address::getRegionId);
-		attributeSetterBiConsumers.put(
-			"regionId", (BiConsumer<Address, Long>)Address::setRegionId);
-		attributeGetterFunctions.put("countryId", Address::getCountryId);
-		attributeSetterBiConsumers.put(
-			"countryId", (BiConsumer<Address, Long>)Address::setCountryId);
-		attributeGetterFunctions.put("latitude", Address::getLatitude);
-		attributeSetterBiConsumers.put(
-			"latitude", (BiConsumer<Address, Double>)Address::setLatitude);
-		attributeGetterFunctions.put("longitude", Address::getLongitude);
-		attributeSetterBiConsumers.put(
-			"longitude", (BiConsumer<Address, Double>)Address::setLongitude);
-		attributeGetterFunctions.put("typeId", Address::getTypeId);
-		attributeSetterBiConsumers.put(
-			"typeId", (BiConsumer<Address, Long>)Address::setTypeId);
-		attributeGetterFunctions.put("mailing", Address::getMailing);
-		attributeSetterBiConsumers.put(
-			"mailing", (BiConsumer<Address, Boolean>)Address::setMailing);
-		attributeGetterFunctions.put("primary", Address::getPrimary);
-		attributeSetterBiConsumers.put(
-			"primary", (BiConsumer<Address, Boolean>)Address::setPrimary);
 
 		_attributeGetterFunctions = Collections.unmodifiableMap(
 			attributeGetterFunctions);
@@ -782,22 +797,87 @@ public class AddressModelImpl
 
 	@JSON
 	@Override
-	public String getName() {
-		if (_name == null) {
-			return "";
-		}
-		else {
-			return _name;
-		}
+	public long getCountryId() {
+		return _countryId;
 	}
 
 	@Override
-	public void setName(String name) {
+	public void setCountryId(long countryId) {
 		if (_columnOriginalValues == Collections.EMPTY_MAP) {
 			_setColumnOriginalValues();
 		}
 
-		_name = name;
+		_countryId = countryId;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public long getOriginalCountryId() {
+		return GetterUtil.getLong(
+			this.<Long>getColumnOriginalValue("countryId"));
+	}
+
+	@JSON
+	@Override
+	public long getRegionId() {
+		return _regionId;
+	}
+
+	@Override
+	public void setRegionId(long regionId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_regionId = regionId;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public long getOriginalRegionId() {
+		return GetterUtil.getLong(
+			this.<Long>getColumnOriginalValue("regionId"));
+	}
+
+	@JSON
+	@Override
+	public long getTypeId() {
+		return _typeId;
+	}
+
+	@Override
+	public void setTypeId(long typeId) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_typeId = typeId;
+	}
+
+	@JSON
+	@Override
+	public String getCity() {
+		if (_city == null) {
+			return "";
+		}
+		else {
+			return _city;
+		}
+	}
+
+	@Override
+	public void setCity(String city) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_city = city;
 	}
 
 	@JSON
@@ -818,6 +898,118 @@ public class AddressModelImpl
 		}
 
 		_description = description;
+	}
+
+	@JSON
+	@Override
+	public double getLatitude() {
+		return _latitude;
+	}
+
+	@Override
+	public void setLatitude(double latitude) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_latitude = latitude;
+	}
+
+	@JSON
+	@Override
+	public double getLongitude() {
+		return _longitude;
+	}
+
+	@Override
+	public void setLongitude(double longitude) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_longitude = longitude;
+	}
+
+	@JSON
+	@Override
+	public boolean getMailing() {
+		return _mailing;
+	}
+
+	@JSON
+	@Override
+	public boolean isMailing() {
+		return _mailing;
+	}
+
+	@Override
+	public void setMailing(boolean mailing) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_mailing = mailing;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public boolean getOriginalMailing() {
+		return GetterUtil.getBoolean(
+			this.<Boolean>getColumnOriginalValue("mailing"));
+	}
+
+	@JSON
+	@Override
+	public String getName() {
+		if (_name == null) {
+			return "";
+		}
+		else {
+			return _name;
+		}
+	}
+
+	@Override
+	public void setName(String name) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_name = name;
+	}
+
+	@JSON
+	@Override
+	public boolean getPrimary() {
+		return _primary;
+	}
+
+	@JSON
+	@Override
+	public boolean isPrimary() {
+		return _primary;
+	}
+
+	@Override
+	public void setPrimary(boolean primary) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_primary = primary;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getColumnOriginalValue(String)}
+	 */
+	@Deprecated
+	public boolean getOriginalPrimary() {
+		return GetterUtil.getBoolean(
+			this.<Boolean>getColumnOriginalValue("primary_"));
 	}
 
 	@JSON
@@ -882,22 +1074,32 @@ public class AddressModelImpl
 
 	@JSON
 	@Override
-	public String getCity() {
-		if (_city == null) {
-			return "";
-		}
-		else {
-			return _city;
-		}
+	public Date getValidationDate() {
+		return _validationDate;
 	}
 
 	@Override
-	public void setCity(String city) {
+	public void setValidationDate(Date validationDate) {
 		if (_columnOriginalValues == Collections.EMPTY_MAP) {
 			_setColumnOriginalValues();
 		}
 
-		_city = city;
+		_validationDate = validationDate;
+	}
+
+	@JSON
+	@Override
+	public int getValidationStatus() {
+		return _validationStatus;
+	}
+
+	@Override
+	public void setValidationStatus(int validationStatus) {
+		if (_columnOriginalValues == Collections.EMPTY_MAP) {
+			_setColumnOriginalValues();
+		}
+
+		_validationStatus = validationStatus;
 	}
 
 	@JSON
@@ -918,163 +1120,6 @@ public class AddressModelImpl
 		}
 
 		_zip = zip;
-	}
-
-	@JSON
-	@Override
-	public long getRegionId() {
-		return _regionId;
-	}
-
-	@Override
-	public void setRegionId(long regionId) {
-		if (_columnOriginalValues == Collections.EMPTY_MAP) {
-			_setColumnOriginalValues();
-		}
-
-		_regionId = regionId;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnOriginalValue(String)}
-	 */
-	@Deprecated
-	public long getOriginalRegionId() {
-		return GetterUtil.getLong(
-			this.<Long>getColumnOriginalValue("regionId"));
-	}
-
-	@JSON
-	@Override
-	public long getCountryId() {
-		return _countryId;
-	}
-
-	@Override
-	public void setCountryId(long countryId) {
-		if (_columnOriginalValues == Collections.EMPTY_MAP) {
-			_setColumnOriginalValues();
-		}
-
-		_countryId = countryId;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnOriginalValue(String)}
-	 */
-	@Deprecated
-	public long getOriginalCountryId() {
-		return GetterUtil.getLong(
-			this.<Long>getColumnOriginalValue("countryId"));
-	}
-
-	@JSON
-	@Override
-	public double getLatitude() {
-		return _latitude;
-	}
-
-	@Override
-	public void setLatitude(double latitude) {
-		if (_columnOriginalValues == Collections.EMPTY_MAP) {
-			_setColumnOriginalValues();
-		}
-
-		_latitude = latitude;
-	}
-
-	@JSON
-	@Override
-	public double getLongitude() {
-		return _longitude;
-	}
-
-	@Override
-	public void setLongitude(double longitude) {
-		if (_columnOriginalValues == Collections.EMPTY_MAP) {
-			_setColumnOriginalValues();
-		}
-
-		_longitude = longitude;
-	}
-
-	@JSON
-	@Override
-	public long getTypeId() {
-		return _typeId;
-	}
-
-	@Override
-	public void setTypeId(long typeId) {
-		if (_columnOriginalValues == Collections.EMPTY_MAP) {
-			_setColumnOriginalValues();
-		}
-
-		_typeId = typeId;
-	}
-
-	@JSON
-	@Override
-	public boolean getMailing() {
-		return _mailing;
-	}
-
-	@JSON
-	@Override
-	public boolean isMailing() {
-		return _mailing;
-	}
-
-	@Override
-	public void setMailing(boolean mailing) {
-		if (_columnOriginalValues == Collections.EMPTY_MAP) {
-			_setColumnOriginalValues();
-		}
-
-		_mailing = mailing;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnOriginalValue(String)}
-	 */
-	@Deprecated
-	public boolean getOriginalMailing() {
-		return GetterUtil.getBoolean(
-			this.<Boolean>getColumnOriginalValue("mailing"));
-	}
-
-	@JSON
-	@Override
-	public boolean getPrimary() {
-		return _primary;
-	}
-
-	@JSON
-	@Override
-	public boolean isPrimary() {
-		return _primary;
-	}
-
-	@Override
-	public void setPrimary(boolean primary) {
-		if (_columnOriginalValues == Collections.EMPTY_MAP) {
-			_setColumnOriginalValues();
-		}
-
-		_primary = primary;
-	}
-
-	/**
-	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #getColumnOriginalValue(String)}
-	 */
-	@Deprecated
-	public boolean getOriginalPrimary() {
-		return GetterUtil.getBoolean(
-			this.<Boolean>getColumnOriginalValue("primary_"));
 	}
 
 	@Override
@@ -1149,20 +1194,22 @@ public class AddressModelImpl
 		addressImpl.setModifiedDate(getModifiedDate());
 		addressImpl.setClassNameId(getClassNameId());
 		addressImpl.setClassPK(getClassPK());
-		addressImpl.setName(getName());
+		addressImpl.setCountryId(getCountryId());
+		addressImpl.setRegionId(getRegionId());
+		addressImpl.setTypeId(getTypeId());
+		addressImpl.setCity(getCity());
 		addressImpl.setDescription(getDescription());
+		addressImpl.setLatitude(getLatitude());
+		addressImpl.setLongitude(getLongitude());
+		addressImpl.setMailing(isMailing());
+		addressImpl.setName(getName());
+		addressImpl.setPrimary(isPrimary());
 		addressImpl.setStreet1(getStreet1());
 		addressImpl.setStreet2(getStreet2());
 		addressImpl.setStreet3(getStreet3());
-		addressImpl.setCity(getCity());
+		addressImpl.setValidationDate(getValidationDate());
+		addressImpl.setValidationStatus(getValidationStatus());
 		addressImpl.setZip(getZip());
-		addressImpl.setRegionId(getRegionId());
-		addressImpl.setCountryId(getCountryId());
-		addressImpl.setLatitude(getLatitude());
-		addressImpl.setLongitude(getLongitude());
-		addressImpl.setTypeId(getTypeId());
-		addressImpl.setMailing(isMailing());
-		addressImpl.setPrimary(isPrimary());
 
 		addressImpl.resetOriginalValues();
 
@@ -1296,12 +1343,18 @@ public class AddressModelImpl
 
 		addressCacheModel.classPK = getClassPK();
 
-		addressCacheModel.name = getName();
+		addressCacheModel.countryId = getCountryId();
 
-		String name = addressCacheModel.name;
+		addressCacheModel.regionId = getRegionId();
 
-		if ((name != null) && (name.length() == 0)) {
-			addressCacheModel.name = null;
+		addressCacheModel.typeId = getTypeId();
+
+		addressCacheModel.city = getCity();
+
+		String city = addressCacheModel.city;
+
+		if ((city != null) && (city.length() == 0)) {
+			addressCacheModel.city = null;
 		}
 
 		addressCacheModel.description = getDescription();
@@ -1311,6 +1364,22 @@ public class AddressModelImpl
 		if ((description != null) && (description.length() == 0)) {
 			addressCacheModel.description = null;
 		}
+
+		addressCacheModel.latitude = getLatitude();
+
+		addressCacheModel.longitude = getLongitude();
+
+		addressCacheModel.mailing = isMailing();
+
+		addressCacheModel.name = getName();
+
+		String name = addressCacheModel.name;
+
+		if ((name != null) && (name.length() == 0)) {
+			addressCacheModel.name = null;
+		}
+
+		addressCacheModel.primary = isPrimary();
 
 		addressCacheModel.street1 = getStreet1();
 
@@ -1336,13 +1405,16 @@ public class AddressModelImpl
 			addressCacheModel.street3 = null;
 		}
 
-		addressCacheModel.city = getCity();
+		Date validationDate = getValidationDate();
 
-		String city = addressCacheModel.city;
-
-		if ((city != null) && (city.length() == 0)) {
-			addressCacheModel.city = null;
+		if (validationDate != null) {
+			addressCacheModel.validationDate = validationDate.getTime();
 		}
+		else {
+			addressCacheModel.validationDate = Long.MIN_VALUE;
+		}
+
+		addressCacheModel.validationStatus = getValidationStatus();
 
 		addressCacheModel.zip = getZip();
 
@@ -1351,20 +1423,6 @@ public class AddressModelImpl
 		if ((zip != null) && (zip.length() == 0)) {
 			addressCacheModel.zip = null;
 		}
-
-		addressCacheModel.regionId = getRegionId();
-
-		addressCacheModel.countryId = getCountryId();
-
-		addressCacheModel.latitude = getLatitude();
-
-		addressCacheModel.longitude = getLongitude();
-
-		addressCacheModel.typeId = getTypeId();
-
-		addressCacheModel.mailing = isMailing();
-
-		addressCacheModel.primary = isPrimary();
 
 		return addressCacheModel;
 	}
@@ -1451,20 +1509,22 @@ public class AddressModelImpl
 	private boolean _setModifiedDate;
 	private long _classNameId;
 	private long _classPK;
-	private String _name;
+	private long _countryId;
+	private long _regionId;
+	private long _typeId;
+	private String _city;
 	private String _description;
+	private double _latitude;
+	private double _longitude;
+	private boolean _mailing;
+	private String _name;
+	private boolean _primary;
 	private String _street1;
 	private String _street2;
 	private String _street3;
-	private String _city;
+	private Date _validationDate;
+	private int _validationStatus;
 	private String _zip;
-	private long _regionId;
-	private long _countryId;
-	private double _latitude;
-	private double _longitude;
-	private long _typeId;
-	private boolean _mailing;
-	private boolean _primary;
 
 	public <T> T getColumnValue(String columnName) {
 		columnName = _attributeNames.getOrDefault(columnName, columnName);
@@ -1507,20 +1567,22 @@ public class AddressModelImpl
 		_columnOriginalValues.put("modifiedDate", _modifiedDate);
 		_columnOriginalValues.put("classNameId", _classNameId);
 		_columnOriginalValues.put("classPK", _classPK);
-		_columnOriginalValues.put("name", _name);
+		_columnOriginalValues.put("countryId", _countryId);
+		_columnOriginalValues.put("regionId", _regionId);
+		_columnOriginalValues.put("typeId", _typeId);
+		_columnOriginalValues.put("city", _city);
 		_columnOriginalValues.put("description", _description);
+		_columnOriginalValues.put("latitude", _latitude);
+		_columnOriginalValues.put("longitude", _longitude);
+		_columnOriginalValues.put("mailing", _mailing);
+		_columnOriginalValues.put("name", _name);
+		_columnOriginalValues.put("primary_", _primary);
 		_columnOriginalValues.put("street1", _street1);
 		_columnOriginalValues.put("street2", _street2);
 		_columnOriginalValues.put("street3", _street3);
-		_columnOriginalValues.put("city", _city);
+		_columnOriginalValues.put("validationDate", _validationDate);
+		_columnOriginalValues.put("validationStatus", _validationStatus);
 		_columnOriginalValues.put("zip", _zip);
-		_columnOriginalValues.put("regionId", _regionId);
-		_columnOriginalValues.put("countryId", _countryId);
-		_columnOriginalValues.put("latitude", _latitude);
-		_columnOriginalValues.put("longitude", _longitude);
-		_columnOriginalValues.put("typeId", _typeId);
-		_columnOriginalValues.put("mailing", _mailing);
-		_columnOriginalValues.put("primary_", _primary);
 	}
 
 	private static final Map<String, String> _attributeNames;
@@ -1567,33 +1629,37 @@ public class AddressModelImpl
 
 		columnBitmasks.put("classPK", 1024L);
 
-		columnBitmasks.put("name", 2048L);
+		columnBitmasks.put("countryId", 2048L);
 
-		columnBitmasks.put("description", 4096L);
+		columnBitmasks.put("regionId", 4096L);
 
-		columnBitmasks.put("street1", 8192L);
+		columnBitmasks.put("typeId", 8192L);
 
-		columnBitmasks.put("street2", 16384L);
+		columnBitmasks.put("city", 16384L);
 
-		columnBitmasks.put("street3", 32768L);
+		columnBitmasks.put("description", 32768L);
 
-		columnBitmasks.put("city", 65536L);
+		columnBitmasks.put("latitude", 65536L);
 
-		columnBitmasks.put("zip", 131072L);
+		columnBitmasks.put("longitude", 131072L);
 
-		columnBitmasks.put("regionId", 262144L);
+		columnBitmasks.put("mailing", 262144L);
 
-		columnBitmasks.put("countryId", 524288L);
+		columnBitmasks.put("name", 524288L);
 
-		columnBitmasks.put("latitude", 1048576L);
+		columnBitmasks.put("primary_", 1048576L);
 
-		columnBitmasks.put("longitude", 2097152L);
+		columnBitmasks.put("street1", 2097152L);
 
-		columnBitmasks.put("typeId", 4194304L);
+		columnBitmasks.put("street2", 4194304L);
 
-		columnBitmasks.put("mailing", 8388608L);
+		columnBitmasks.put("street3", 8388608L);
 
-		columnBitmasks.put("primary_", 16777216L);
+		columnBitmasks.put("validationDate", 16777216L);
+
+		columnBitmasks.put("validationStatus", 33554432L);
+
+		columnBitmasks.put("zip", 67108864L);
 
 		_columnBitmasks = Collections.unmodifiableMap(columnBitmasks);
 	}

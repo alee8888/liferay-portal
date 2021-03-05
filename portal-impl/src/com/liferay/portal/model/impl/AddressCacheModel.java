@@ -76,7 +76,7 @@ public class AddressCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(51);
+		StringBundler sb = new StringBundler(55);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -100,34 +100,38 @@ public class AddressCacheModel
 		sb.append(classNameId);
 		sb.append(", classPK=");
 		sb.append(classPK);
-		sb.append(", name=");
-		sb.append(name);
+		sb.append(", countryId=");
+		sb.append(countryId);
+		sb.append(", regionId=");
+		sb.append(regionId);
+		sb.append(", typeId=");
+		sb.append(typeId);
+		sb.append(", city=");
+		sb.append(city);
 		sb.append(", description=");
 		sb.append(description);
+		sb.append(", latitude=");
+		sb.append(latitude);
+		sb.append(", longitude=");
+		sb.append(longitude);
+		sb.append(", mailing=");
+		sb.append(mailing);
+		sb.append(", name=");
+		sb.append(name);
+		sb.append(", primary=");
+		sb.append(primary);
 		sb.append(", street1=");
 		sb.append(street1);
 		sb.append(", street2=");
 		sb.append(street2);
 		sb.append(", street3=");
 		sb.append(street3);
-		sb.append(", city=");
-		sb.append(city);
+		sb.append(", validationDate=");
+		sb.append(validationDate);
+		sb.append(", validationStatus=");
+		sb.append(validationStatus);
 		sb.append(", zip=");
 		sb.append(zip);
-		sb.append(", regionId=");
-		sb.append(regionId);
-		sb.append(", countryId=");
-		sb.append(countryId);
-		sb.append(", latitude=");
-		sb.append(latitude);
-		sb.append(", longitude=");
-		sb.append(longitude);
-		sb.append(", typeId=");
-		sb.append(typeId);
-		sb.append(", mailing=");
-		sb.append(mailing);
-		sb.append(", primary=");
-		sb.append(primary);
 		sb.append("}");
 
 		return sb.toString();
@@ -180,12 +184,15 @@ public class AddressCacheModel
 
 		addressImpl.setClassNameId(classNameId);
 		addressImpl.setClassPK(classPK);
+		addressImpl.setCountryId(countryId);
+		addressImpl.setRegionId(regionId);
+		addressImpl.setTypeId(typeId);
 
-		if (name == null) {
-			addressImpl.setName("");
+		if (city == null) {
+			addressImpl.setCity("");
 		}
 		else {
-			addressImpl.setName(name);
+			addressImpl.setCity(city);
 		}
 
 		if (description == null) {
@@ -194,6 +201,19 @@ public class AddressCacheModel
 		else {
 			addressImpl.setDescription(description);
 		}
+
+		addressImpl.setLatitude(latitude);
+		addressImpl.setLongitude(longitude);
+		addressImpl.setMailing(mailing);
+
+		if (name == null) {
+			addressImpl.setName("");
+		}
+		else {
+			addressImpl.setName(name);
+		}
+
+		addressImpl.setPrimary(primary);
 
 		if (street1 == null) {
 			addressImpl.setStreet1("");
@@ -216,12 +236,14 @@ public class AddressCacheModel
 			addressImpl.setStreet3(street3);
 		}
 
-		if (city == null) {
-			addressImpl.setCity("");
+		if (validationDate == Long.MIN_VALUE) {
+			addressImpl.setValidationDate(null);
 		}
 		else {
-			addressImpl.setCity(city);
+			addressImpl.setValidationDate(new Date(validationDate));
 		}
+
+		addressImpl.setValidationStatus(validationStatus);
 
 		if (zip == null) {
 			addressImpl.setZip("");
@@ -229,14 +251,6 @@ public class AddressCacheModel
 		else {
 			addressImpl.setZip(zip);
 		}
-
-		addressImpl.setRegionId(regionId);
-		addressImpl.setCountryId(countryId);
-		addressImpl.setLatitude(latitude);
-		addressImpl.setLongitude(longitude);
-		addressImpl.setTypeId(typeId);
-		addressImpl.setMailing(mailing);
-		addressImpl.setPrimary(primary);
 
 		addressImpl.resetOriginalValues();
 
@@ -261,27 +275,30 @@ public class AddressCacheModel
 		classNameId = objectInput.readLong();
 
 		classPK = objectInput.readLong();
-		name = objectInput.readUTF();
-		description = objectInput.readUTF();
-		street1 = objectInput.readUTF();
-		street2 = objectInput.readUTF();
-		street3 = objectInput.readUTF();
-		city = objectInput.readUTF();
-		zip = objectInput.readUTF();
+
+		countryId = objectInput.readLong();
 
 		regionId = objectInput.readLong();
 
-		countryId = objectInput.readLong();
+		typeId = objectInput.readLong();
+		city = objectInput.readUTF();
+		description = objectInput.readUTF();
 
 		latitude = objectInput.readDouble();
 
 		longitude = objectInput.readDouble();
 
-		typeId = objectInput.readLong();
-
 		mailing = objectInput.readBoolean();
+		name = objectInput.readUTF();
 
 		primary = objectInput.readBoolean();
+		street1 = objectInput.readUTF();
+		street2 = objectInput.readUTF();
+		street3 = objectInput.readUTF();
+		validationDate = objectInput.readLong();
+
+		validationStatus = objectInput.readInt();
+		zip = objectInput.readUTF();
 	}
 
 	@Override
@@ -322,11 +339,17 @@ public class AddressCacheModel
 
 		objectOutput.writeLong(classPK);
 
-		if (name == null) {
+		objectOutput.writeLong(countryId);
+
+		objectOutput.writeLong(regionId);
+
+		objectOutput.writeLong(typeId);
+
+		if (city == null) {
 			objectOutput.writeUTF("");
 		}
 		else {
-			objectOutput.writeUTF(name);
+			objectOutput.writeUTF(city);
 		}
 
 		if (description == null) {
@@ -335,6 +358,21 @@ public class AddressCacheModel
 		else {
 			objectOutput.writeUTF(description);
 		}
+
+		objectOutput.writeDouble(latitude);
+
+		objectOutput.writeDouble(longitude);
+
+		objectOutput.writeBoolean(mailing);
+
+		if (name == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(name);
+		}
+
+		objectOutput.writeBoolean(primary);
 
 		if (street1 == null) {
 			objectOutput.writeUTF("");
@@ -357,12 +395,9 @@ public class AddressCacheModel
 			objectOutput.writeUTF(street3);
 		}
 
-		if (city == null) {
-			objectOutput.writeUTF("");
-		}
-		else {
-			objectOutput.writeUTF(city);
-		}
+		objectOutput.writeLong(validationDate);
+
+		objectOutput.writeInt(validationStatus);
 
 		if (zip == null) {
 			objectOutput.writeUTF("");
@@ -370,20 +405,6 @@ public class AddressCacheModel
 		else {
 			objectOutput.writeUTF(zip);
 		}
-
-		objectOutput.writeLong(regionId);
-
-		objectOutput.writeLong(countryId);
-
-		objectOutput.writeDouble(latitude);
-
-		objectOutput.writeDouble(longitude);
-
-		objectOutput.writeLong(typeId);
-
-		objectOutput.writeBoolean(mailing);
-
-		objectOutput.writeBoolean(primary);
 	}
 
 	public long mvccVersion;
@@ -397,19 +418,21 @@ public class AddressCacheModel
 	public long modifiedDate;
 	public long classNameId;
 	public long classPK;
-	public String name;
+	public long countryId;
+	public long regionId;
+	public long typeId;
+	public String city;
 	public String description;
+	public double latitude;
+	public double longitude;
+	public boolean mailing;
+	public String name;
+	public boolean primary;
 	public String street1;
 	public String street2;
 	public String street3;
-	public String city;
+	public long validationDate;
+	public int validationStatus;
 	public String zip;
-	public long regionId;
-	public long countryId;
-	public double latitude;
-	public double longitude;
-	public long typeId;
-	public boolean mailing;
-	public boolean primary;
 
 }

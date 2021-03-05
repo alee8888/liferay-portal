@@ -508,13 +508,21 @@
 		<field name="modifiedDate" type="Date" />
 		<field name="classNameId" type="long" />
 		<field name="classPK" type="long" />
+		<field name="countryId" type="long" />
+		<field name="regionId" type="long" />
+		<field name="typeId" type="long" />
+		<field name="city" type="String" />
+		<field name="description" type="String">
+			<hint-collection name="TEXTAREA" />
+		</field>
+		<field name="latitude" type="double" />
+		<field name="longitude" type="double" />
+		<field name="mailing" type="boolean" />
 		<field name="name" type="String">
 			<hint name="max-length">255</hint>
 			<validator name="required" />
 		</field>
-		<field name="description" type="String">
-			<hint-collection name="TEXTAREA" />
-		</field>
+		<field name="primary" type="boolean" />
 		<field name="street1" type="String">
 			<hint name="max-length">255</hint>
 			<validator name="required" />
@@ -525,15 +533,9 @@
 		<field name="street3" type="String">
 			<hint name="max-length">255</hint>
 		</field>
-		<field name="city" type="String" />
+		<field name="validationDate" type="Date" />
+		<field name="validationStatus" type="int" />
 		<field name="zip" type="String" />
-		<field name="regionId" type="long" />
-		<field name="countryId" type="long" />
-		<field name="latitude" type="double" />
-		<field name="longitude" type="double" />
-		<field name="typeId" type="long" />
-		<field name="mailing" type="boolean" />
-		<field name="primary" type="boolean" />
 	</model>
 	<model name="com.liferay.portal.kernel.model.BrowserTracker">
 		<field name="mvccVersion" type="long" />

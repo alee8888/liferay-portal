@@ -56,34 +56,38 @@ public class AddressTable extends BaseTable<AddressTable> {
 		"classNameId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
 	public final Column<AddressTable, Long> classPK = createColumn(
 		"classPK", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
-	public final Column<AddressTable, String> name = createColumn(
-		"name", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+	public final Column<AddressTable, Long> countryId = createColumn(
+		"countryId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
+	public final Column<AddressTable, Long> regionId = createColumn(
+		"regionId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
+	public final Column<AddressTable, Long> typeId = createColumn(
+		"typeId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
+	public final Column<AddressTable, String> city = createColumn(
+		"city", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<AddressTable, String> description = createColumn(
 		"description", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+	public final Column<AddressTable, Double> latitude = createColumn(
+		"latitude", Double.class, Types.DOUBLE, Column.FLAG_DEFAULT);
+	public final Column<AddressTable, Double> longitude = createColumn(
+		"longitude", Double.class, Types.DOUBLE, Column.FLAG_DEFAULT);
+	public final Column<AddressTable, Boolean> mailing = createColumn(
+		"mailing", Boolean.class, Types.BOOLEAN, Column.FLAG_DEFAULT);
+	public final Column<AddressTable, String> name = createColumn(
+		"name", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+	public final Column<AddressTable, Boolean> primary = createColumn(
+		"primary_", Boolean.class, Types.BOOLEAN, Column.FLAG_DEFAULT);
 	public final Column<AddressTable, String> street1 = createColumn(
 		"street1", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<AddressTable, String> street2 = createColumn(
 		"street2", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
 	public final Column<AddressTable, String> street3 = createColumn(
 		"street3", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
-	public final Column<AddressTable, String> city = createColumn(
-		"city", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+	public final Column<AddressTable, Date> validationDate = createColumn(
+		"validationDate", Date.class, Types.TIMESTAMP, Column.FLAG_DEFAULT);
+	public final Column<AddressTable, Integer> validationStatus = createColumn(
+		"validationStatus", Integer.class, Types.INTEGER, Column.FLAG_DEFAULT);
 	public final Column<AddressTable, String> zip = createColumn(
 		"zip", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
-	public final Column<AddressTable, Long> regionId = createColumn(
-		"regionId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
-	public final Column<AddressTable, Long> countryId = createColumn(
-		"countryId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
-	public final Column<AddressTable, Double> latitude = createColumn(
-		"latitude", Double.class, Types.DOUBLE, Column.FLAG_DEFAULT);
-	public final Column<AddressTable, Double> longitude = createColumn(
-		"longitude", Double.class, Types.DOUBLE, Column.FLAG_DEFAULT);
-	public final Column<AddressTable, Long> typeId = createColumn(
-		"typeId", Long.class, Types.BIGINT, Column.FLAG_DEFAULT);
-	public final Column<AddressTable, Boolean> mailing = createColumn(
-		"mailing", Boolean.class, Types.BOOLEAN, Column.FLAG_DEFAULT);
-	public final Column<AddressTable, Boolean> primary = createColumn(
-		"primary_", Boolean.class, Types.BOOLEAN, Column.FLAG_DEFAULT);
 
 	private AddressTable() {
 		super("Address", AddressTable::new);
