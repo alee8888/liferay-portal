@@ -72,6 +72,18 @@ public class UpgradeAddress extends UpgradeProcess {
 				AddressTable.class,
 				new AlterTableAddColumn("longitude", "DOUBLE"));
 		}
+
+		if (!hasColumn("Address", "validationDate")) {
+			alter(
+				AddressTable.class,
+				new AlterTableAddColumn("validationDate", "DATE null"));
+		}
+
+		if (!hasColumn("Address", "validationStatus")) {
+			alter(
+				AddressTable.class,
+				new AlterTableAddColumn("validationStatus", "INTEGER"));
+		}
 	}
 
 }
