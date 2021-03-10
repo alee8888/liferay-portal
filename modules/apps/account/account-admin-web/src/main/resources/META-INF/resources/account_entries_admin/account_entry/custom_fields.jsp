@@ -28,6 +28,35 @@ AccountEntryDisplay accountEntryDisplay = (AccountEntryDisplay)request.getAttrib
 			<liferay-ui:message key="custom-fields" />
 		</h4>
 	</clay:content-col>
+
+	<c:if test="<%= PortletPermissionUtil.contains(permissionChecker, PortletKeys.EXPANDO, ActionKeys.ACCESS_IN_CONTROL_PANEL) %>">
+		<clay:content-col>
+
+			<%
+			boolean hasVisibleCustomFields = CustomFieldsUtil.hasVisibleCustomFields(company.getCompanyId(), AccountEntry.class);
+
+			PortletProvider.Action action = PortletProvider.Action.EDIT;
+
+			if (hasVisibleCustomFields) {
+				action = PortletProvider.Action.MANAGE;
+			}
+
+			PortletURL customFieldsURL = PortletProviderUtil.getPortletURL(request, ExpandoColumn.class.getName(), action);
+
+			customFieldsURL.setParameter("redirect", currentURL);
+			customFieldsURL.setParameter("modelResource", AccountEntry.class.getName());
+			%>
+
+			<liferay-ui:icon
+				cssClass="modify-link"
+				label="<%= true %>"
+				linkCssClass="btn btn-secondary btn-sm"
+				message='<%= hasVisibleCustomFields ? "manage" : "add" %>'
+				method="get"
+				url="<%= customFieldsURL.toString() %>"
+			/>
+		</clay:content-col>
+	</c:if>
 </clay:content-row>
 
 <liferay-expando:custom-attribute-list
