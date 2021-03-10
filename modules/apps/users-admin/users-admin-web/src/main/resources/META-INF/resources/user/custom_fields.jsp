@@ -33,11 +33,11 @@ User selUser = (User)request.getAttribute(UsersAdminWebKeys.SELECTED_USER);
 		<clay:content-col>
 
 			<%
-			boolean hasVisibleCustomFields = CustomFieldsUtil.hasVisibleCustomFields(company.getCompanyId(), User.class);
+			boolean hasVisibleAttributes = ExpandoUtil.hasVisibleAttributes(company.getCompanyId(), User.class);
 
 			PortletProvider.Action action = PortletProvider.Action.EDIT;
 
-			if (hasVisibleCustomFields) {
+			if (hasVisibleAttributes) {
 				action = PortletProvider.Action.MANAGE;
 			}
 
@@ -51,7 +51,7 @@ User selUser = (User)request.getAttribute(UsersAdminWebKeys.SELECTED_USER);
 				cssClass="modify-link"
 				label="<%= true %>"
 				linkCssClass="btn btn-secondary btn-sm"
-				message='<%= hasVisibleCustomFields ? "manage" : "add" %>'
+				message='<%= hasVisibleAttributes ? "manage" : "add" %>'
 				method="get"
 				url="<%= customFieldsURL.toString() %>"
 			/>

@@ -37,6 +37,7 @@ page import="com.liferay.announcements.kernel.model.AnnouncementsEntryConstants"
 page import="com.liferay.announcements.kernel.service.AnnouncementsDeliveryLocalServiceUtil" %><%@
 page import="com.liferay.asset.kernel.model.AssetVocabularyConstants" %><%@
 page import="com.liferay.expando.kernel.model.ExpandoColumn" %><%@
+page import="com.liferay.expando.util.ExpandoUtil" %><%@
 page import="com.liferay.petra.string.CharPool" %><%@
 page import="com.liferay.petra.string.StringBundler" %><%@
 page import="com.liferay.petra.string.StringPool" %><%@
@@ -188,7 +189,6 @@ page import="com.liferay.users.admin.web.internal.display.context.ViewFlatUsersD
 page import="com.liferay.users.admin.web.internal.display.context.ViewOrganizationsManagementToolbarDisplayContext" %><%@
 page import="com.liferay.users.admin.web.internal.display.context.ViewTreeManagementToolbarDisplayContext" %><%@
 page import="com.liferay.users.admin.web.internal.util.CSSClassNames" %><%@
-page import="com.liferay.users.admin.web.internal.util.CustomFieldsUtil" %><%@
 page import="com.liferay.users.admin.web.internal.util.UsersAdminPortletURLUtil" %>
 
 <%@ page import="java.text.Format" %>
