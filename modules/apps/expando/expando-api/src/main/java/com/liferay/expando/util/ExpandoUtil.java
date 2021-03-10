@@ -12,7 +12,7 @@
  * details.
  */
 
-package com.liferay.users.admin.web.internal.util;
+package com.liferay.expando.util;
 
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.model.ExpandoColumnConstants;
@@ -23,13 +23,11 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import java.util.Enumeration;
 
 /**
- * @author Drew Brokke
+ * @author Albert Lee
  */
-public class CustomFieldsUtil {
+public class ExpandoUtil {
 
-	public static boolean hasVisibleCustomFields(
-		long companyId, Class<?> clazz) {
-
+	public static boolean hasVisibleAttributes(long companyId, Class<?> clazz) {
 		ExpandoBridge expandoBridge = ExpandoBridgeFactoryUtil.getExpandoBridge(
 			companyId, clazz.getName());
 
