@@ -46,7 +46,7 @@ Organization organization = organizationScreenNavigationDisplayContext.getOrgani
 	</div>
 </clay:sheet-section>
 
-<c:if test="<%= ExpandoUtil.hasVisibleAttributes(company.getCompanyId(), Organization.class) %>">
+<c:if test="<%= ExpandoAttributesUtil.hasVisibleAttributes(company.getCompanyId(), Organization.class) %>">
 	<clay:sheet-section>
 		<h4 class="sheet-tertiary-title"><liferay-ui:message key="custom-fields" /></h4>
 

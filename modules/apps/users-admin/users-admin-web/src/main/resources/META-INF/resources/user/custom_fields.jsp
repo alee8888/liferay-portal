@@ -33,7 +33,7 @@ User selUser = (User)request.getAttribute(UsersAdminWebKeys.SELECTED_USER);
 		<clay:content-col>
 
 			<%
-			boolean hasVisibleAttributes = ExpandoUtil.hasVisibleAttributes(company.getCompanyId(), User.class);
+			boolean hasVisibleAttributes = ExpandoAttributesUtil.hasVisibleAttributes(company.getCompanyId(), User.class);
 
 			PortletProvider.Action action = PortletProvider.Action.EDIT;
 

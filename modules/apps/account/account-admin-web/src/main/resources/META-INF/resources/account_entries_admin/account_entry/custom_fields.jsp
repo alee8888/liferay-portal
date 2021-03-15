@@ -33,7 +33,7 @@ AccountEntryDisplay accountEntryDisplay = (AccountEntryDisplay)request.getAttrib
 		<clay:content-col>
 
 			<%
-			boolean hasVisibleAttributes = ExpandoUtil.hasVisibleAttributes(company.getCompanyId(), AccountEntry.class);
+			boolean hasVisibleAttributes = ExpandoAttributesUtil.hasVisibleAttributes(company.getCompanyId(), AccountEntry.class);
 
 			PortletProvider.Action action = PortletProvider.Action.EDIT;
 
