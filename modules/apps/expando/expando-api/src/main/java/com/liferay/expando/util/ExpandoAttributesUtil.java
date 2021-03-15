@@ -25,7 +25,7 @@ import java.util.Enumeration;
 /**
  * @author Albert Lee
  */
-public class ExpandoUtil {
+public class ExpandoAttributesUtil {
 
 	public static boolean hasVisibleAttributes(long companyId, Class<?> clazz) {
 		ExpandoBridge expandoBridge = ExpandoBridgeFactoryUtil.getExpandoBridge(
