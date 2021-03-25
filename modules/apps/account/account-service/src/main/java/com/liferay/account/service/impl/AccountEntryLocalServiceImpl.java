@@ -488,8 +488,7 @@ public class AccountEntryLocalServiceImpl
 			(Long)dslQuery(
 				_getGroupByStep(
 					DSLQueryFactoryUtil.countDistinct(
-						AccountEntryTable.INSTANCE.accountEntryId.as(
-							"COUNT_VALUE")),
+						AccountEntryTable.INSTANCE.accountEntryId),
 					userId, parentAccountEntryId, keywords, types, status)));
 	}
 
