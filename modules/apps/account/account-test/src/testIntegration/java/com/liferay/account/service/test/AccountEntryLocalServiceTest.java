@@ -1039,6 +1039,12 @@ public class AccountEntryLocalServiceTest {
 			userAccountEntries.toString(), expectedAccountEntries.size(),
 			userAccountEntries.size());
 
+		Assert.assertEquals(
+			expectedAccountEntries.size(),
+			_accountEntryLocalService.getUserAccountEntriesCount(
+				user.getUserId(), AccountConstants.ACCOUNT_ENTRY_ID_DEFAULT,
+				null, new String[] {type}));
+
 		userAccountEntries = ListUtil.sort(userAccountEntries);
 
 		for (int i = 0; i < expectedAccountEntries.size(); i++) {
