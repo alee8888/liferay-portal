@@ -47,6 +47,7 @@ import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
@@ -55,6 +56,7 @@ import com.liferay.portal.service.base.AddressLocalServiceBaseImpl;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -204,6 +206,14 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 		for (Address address : addresses) {
 			addressLocalService.deleteAddress(address);
 		}
+	}
+
+	@Override
+	public Address fetchByExternalReferenceCode(
+		String externalReferenceCode, long companyId) {
+
+		return addressPersistence.fetchByC_ERC(
+			companyId, externalReferenceCode, true);
 	}
 
 	@Override

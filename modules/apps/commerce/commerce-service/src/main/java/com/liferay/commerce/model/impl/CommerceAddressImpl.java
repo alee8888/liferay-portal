@@ -14,14 +14,18 @@
 
 package com.liferay.commerce.model.impl;
 
+import com.liferay.commerce.account.model.CommerceAccount;
 import com.liferay.commerce.model.CommerceAddress;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.Address;
 import com.liferay.portal.kernel.model.Country;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.service.CountryLocalServiceUtil;
 import com.liferay.portal.kernel.service.RegionLocalServiceUtil;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 
 /**
  * @author Andrea Di Giorgi
@@ -29,6 +33,41 @@ import java.util.Objects;
 public class CommerceAddressImpl extends CommerceAddressBaseImpl {
 
 	public CommerceAddressImpl() {
+	}
+
+	public static CommerceAddress fromAddress(Address address) {
+		if (address == null) {
+			return null;
+		}
+
+		CommerceAddress commerceAddress = new CommerceAddressImpl();
+
+		commerceAddress.setCity(address.getCity());
+
+		Map<String, BiConsumer<CommerceAddress, Object>>
+			attributeSetterBiConsumers =
+			commerceAddress.getAttributeSetterBiConsumers();
+
+		Map<String, Object> modelAttributes = address.getModelAttributes();
+
+		for (Map.Entry<String, Object> entry : modelAttributes.entrySet()) {
+			String key = entry.getKey();
+
+			BiConsumer<CommerceAddress, Object>
+				commerceAddressObjectBiConsumer =
+				attributeSetterBiConsumers.get(key);
+
+			if (commerceAddressObjectBiConsumer != null) {
+				Object value = entry.getValue();
+
+				commerceAddressObjectBiConsumer.accept(commerceAddress, value);
+			}
+		}
+
+		commerceAddress.setPhoneNumber(address.getPhoneNumber());
+		commerceAddress.setType((int)address.getTypeId());
+
+		return commerceAddress;
 	}
 
 	@Override

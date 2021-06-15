@@ -14,6 +14,7 @@
 
 package com.liferay.commerce.service.impl;
 
+import com.liferay.account.model.AccountEntry;
 import com.liferay.commerce.constants.CommerceAddressConstants;
 import com.liferay.commerce.exception.CommerceAddressCityException;
 import com.liferay.commerce.exception.CommerceAddressCountryException;
@@ -24,9 +25,12 @@ import com.liferay.commerce.exception.CommerceAddressZipException;
 import com.liferay.commerce.model.CommerceAddress;
 import com.liferay.commerce.model.CommerceGeocoder;
 import com.liferay.commerce.model.CommerceOrder;
+import com.liferay.commerce.model.impl.CommerceAddressImpl;
 import com.liferay.commerce.search.facet.NegatableMultiValueFacet;
 import com.liferay.commerce.service.base.CommerceAddressLocalServiceBaseImpl;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.Address;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
@@ -41,21 +45,25 @@ import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.service.AddressLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.spring.extender.service.ServiceReference;
+import com.liferay.account.constants.AccountListTypeConstants;
 
 import java.io.Serializable;
 
 import java.math.BigDecimal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -307,17 +315,22 @@ public class CommerceAddressLocalServiceImpl
 			int start, int end, Sort sort)
 		throws PortalException {
 
-		SearchContext searchContext = buildSearchContext(
-			new int[] {
-				CommerceAddressConstants.ADDRESS_TYPE_BILLING,
-				CommerceAddressConstants.ADDRESS_TYPE_BILLING_AND_SHIPPING
-			},
-			companyId, className, classPK, keywords, start, end, sort);
+		BaseModelSearchResult<Address> billingAddresses =
+			AddressLocalServiceUtil.searchAddresses(
+			companyId, className, classPK, keywords,
+				LinkedHashMapBuilder.<String, Object>put("typeNames", Arrays.asList(
+					AccountListTypeConstants.ACCOUNT_ENTRY_ADDRESS_TYPE_BILLING,
+					AccountListTypeConstants.ACCOUNT_ENTRY_ADDRESS_TYPE_BILLING_AND_SHIPPING)).build(), start, end, sort);
 
-		BaseModelSearchResult<CommerceAddress> billingAddresses =
-			searchCommerceAddresses(searchContext);
+		List<CommerceAddress> billingCommerceAddresses = null;
 
-		return billingAddresses.getBaseModels();
+		for(Address address : billingAddresses.getBaseModels()){
+			if(address != null) {
+				billingCommerceAddresses.add(CommerceAddressImpl.fromAddress(address));
+			}
+		}
+
+		return billingCommerceAddresses;
 	}
 
 	@Override
@@ -325,15 +338,12 @@ public class CommerceAddressLocalServiceImpl
 			long companyId, String className, long classPK, String keywords)
 		throws PortalException {
 
-		SearchContext searchContext = buildSearchContext(
-			new int[] {
-				CommerceAddressConstants.ADDRESS_TYPE_BILLING,
-				CommerceAddressConstants.ADDRESS_TYPE_BILLING_AND_SHIPPING
-			},
-			companyId, className, classPK, keywords, -1, -1, null);
-
-		BaseModelSearchResult<CommerceAddress> billingAddresses =
-			searchCommerceAddresses(searchContext);
+		BaseModelSearchResult<Address> billingAddresses =
+			AddressLocalServiceUtil.searchAddresses(
+				companyId, className, classPK, keywords,
+				LinkedHashMapBuilder.<String, Object>put("typeNames", Arrays.asList(
+					AccountListTypeConstants.ACCOUNT_ENTRY_ADDRESS_TYPE_BILLING,
+					AccountListTypeConstants.ACCOUNT_ENTRY_ADDRESS_TYPE_BILLING_AND_SHIPPING)).build(), QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
 
 		return billingAddresses.getLength();
 	}
