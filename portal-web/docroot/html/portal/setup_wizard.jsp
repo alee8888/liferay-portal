@@ -476,7 +476,13 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-md-12 text-center text-md-left">
-					<liferay-ui:message key="powered-by" /> <a class="text-white" href="http://www.liferay.com" rel="external">Liferay</a>
+					<liferay-util:buffer
+						var="poweredByLiferay"
+					>
+						<a class="text-white" href="http://www.liferay.com" rel="external">Liferay</a>
+					</liferay-util:buffer>
+
+					<liferay-ui:message arguments="<%= poweredByLiferay %>" key="powered-by-x" />
 				</div>
 			</div>
 		</div>
