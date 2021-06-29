@@ -67,7 +67,12 @@
 
 	<footer id="footer" role="contentinfo">
 		<p class="powered-by">
-			<@liferay.language key="powered-by" /> <a href="http://www.liferay.com" rel="external">Liferay</a>
+			<#assign powered_by_liferay = '<a href="http://www.liferay.com" rel="external">Liferay</a>' />
+
+			<@liferay.language_format
+				arguments="${powered_by_liferay}"
+				key="powered-by-x"
+			/>
 		</p>
 	</footer>
 </div>

@@ -89,9 +89,12 @@
 				<div class="container">
 					<div class="row">
 						<div class="col-md-12 text-center text-md-left">
-							<@liferay.language key="powered-by" />
+							<#assign powered_by_liferay = '<a class="text-white" href="http://www.liferay.com" rel="external">Liferay</a>' />
 
-							<a class="text-white" href="http://www.liferay.com" rel="external">Liferay</a>
+							<@liferay.language_format
+								arguments="${powered_by_liferay}"
+								key="powered-by-x"
+							/>
 						</div>
 					</div>
 				</div>
