@@ -27,6 +27,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
 import com.liferay.portal.configuration.metatype.definitions.ExtendedAttributeDefinition;
+import com.liferay.portal.configuration.persistence.ConfigurationOverridePropertiesUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -59,6 +60,10 @@ public class ConfigurationModelToDDMFormConverter {
 		_configurationModel = configurationModel;
 		_locale = locale;
 		_resourceBundle = resourceBundle;
+
+		_overridePropertiesMap =
+			ConfigurationOverridePropertiesUtil.getOverrideProperties(
+				_configurationModel.getBaseID());
 	}
 
 	public DDMForm getDDMForm() {
@@ -204,6 +209,7 @@ public class ConfigurationModelToDDMFormConverter {
 		setDDMFormFieldLabel(attributeDefinition, ddmFormField);
 		setDDMFormFieldOptions(ddmFormField, ddmFormFieldOptions);
 		setDDMFormFieldPredefinedValue(attributeDefinition, ddmFormField);
+		setDDMFormFieldReadOnly(attributeDefinition, ddmFormField);
 		setDDMFormFieldRequired(attributeDefinition, ddmFormField, required);
 		setDDMFormFieldTip(attributeDefinition, ddmFormField);
 		setDDMFormFieldVisibilityExpression(attributeDefinition, ddmFormField);
@@ -354,6 +360,18 @@ public class ConfigurationModelToDDMFormConverter {
 		ddmFormField.setPredefinedValue(predefinedValue);
 	}
 
+	protected void setDDMFormFieldReadOnly(
+		AttributeDefinition attributeDefinition, DDMFormField ddmFormField) {
+
+		if ((_overridePropertiesMap == null) ||
+			!_overridePropertiesMap.containsKey(ddmFormField.getName())) {
+
+			return;
+		}
+
+		ddmFormField.setReadOnly(true);
+	}
+
 	protected void setDDMFormFieldRepeatable(
 		AttributeDefinition attributeDefinition, DDMFormField ddmFormField) {
 
@@ -450,6 +468,8 @@ public class ConfigurationModelToDDMFormConverter {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ConfigurationModelToDDMFormConverter.class);
+
+	private static Map<String, Object> _overridePropertiesMap;
 
 	private final ConfigurationModel _configurationModel;
 	private final Locale _locale;
