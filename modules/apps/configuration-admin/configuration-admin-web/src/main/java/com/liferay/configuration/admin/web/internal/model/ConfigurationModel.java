@@ -83,6 +83,10 @@ public class ConfigurationModel implements ExtendedObjectClassDefinition {
 		return _extendedObjectClassDefinition.getAttributeDefinitions(filter);
 	}
 
+	public String getBaseID() {
+		return _extendedObjectClassDefinition.getID();
+	}
+
 	public String getBundleLocation() {
 		return _bundleLocation;
 	}
@@ -164,7 +168,7 @@ public class ConfigurationModel implements ExtendedObjectClassDefinition {
 			return configurationModel.getFactoryPid();
 		}
 
-		return _extendedObjectClassDefinition.getID();
+		return getBaseID();
 	}
 
 	public Map<String, String> getHintAttributes() {
@@ -183,7 +187,7 @@ public class ConfigurationModel implements ExtendedObjectClassDefinition {
 			return _configuration.getPid();
 		}
 
-		return _extendedObjectClassDefinition.getID();
+		return getBaseID();
 	}
 
 	public String getLabel() {
