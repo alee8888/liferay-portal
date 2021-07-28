@@ -404,10 +404,26 @@ public class ConfigurationModelToDDMFormConverter {
 		List<String> descriptionArguments = StringUtil.split(
 			extensionAttributes.get("description-arguments"));
 
-		tip.addString(
-			_locale,
-			translate(
-				attributeDefinition.getDescription(), descriptionArguments));
+		String fieldDescription = translate(
+			attributeDefinition.getDescription(), descriptionArguments);
+
+		if ((_overridePropertiesMap != null) &&
+			_overridePropertiesMap.containsKey(ddmFormField.getName())) {
+
+			String overridePropertiesTip = translate(
+				"this-field-has-been-set-by-a-portal-property-and-cannot-be-" +
+					"changed-here");
+
+			if (fieldDescription == null) {
+				fieldDescription = overridePropertiesTip;
+			}
+			else {
+				fieldDescription =
+					fieldDescription + StringPool.SPACE + overridePropertiesTip;
+			}
+		}
+
+		tip.addString(_locale, fieldDescription);
 
 		ddmFormField.setTip(tip);
 	}
