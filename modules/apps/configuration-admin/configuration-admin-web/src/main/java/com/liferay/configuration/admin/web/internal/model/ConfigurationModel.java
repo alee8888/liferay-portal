@@ -19,6 +19,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition.Scope;
 import com.liferay.portal.configuration.metatype.definitions.ExtendedAttributeDefinition;
 import com.liferay.portal.configuration.metatype.definitions.ExtendedObjectClassDefinition;
+import com.liferay.portal.configuration.persistence.ConfigurationOverridePropertiesUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -28,6 +29,7 @@ import com.liferay.portal.kernel.util.Validator;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
@@ -57,6 +59,14 @@ public class ConfigurationModel implements ExtendedObjectClassDefinition {
 		_configuration = configuration;
 		_extendedObjectClassDefinition = extendedObjectClassDefinition;
 		_factory = factory;
+
+		_overrideConfigurationPropertiesMap =
+			ConfigurationOverridePropertiesUtil.getOverrideProperties(
+				_extendedObjectClassDefinition.getID());
+
+		if (_overrideConfigurationPropertiesMap == null) {
+			_overrideConfigurationPropertiesMap = Collections.emptyMap();
+		}
 	}
 
 	public ConfigurationModel(
@@ -355,5 +365,6 @@ public class ConfigurationModel implements ExtendedObjectClassDefinition {
 	private final Configuration _configuration;
 	private final ExtendedObjectClassDefinition _extendedObjectClassDefinition;
 	private final boolean _factory;
+	private Map<String, Object> _overrideConfigurationPropertiesMap;
 
 }
