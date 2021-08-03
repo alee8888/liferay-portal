@@ -32,7 +32,9 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.SetUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Collections;
 import java.util.List;
@@ -391,16 +393,38 @@ public class ConfigurationModelToDDMFormConverter {
 
 		LocalizedValue tip = new LocalizedValue(_locale);
 
+		String result = StringPool.BLANK;
+
 		Map<String, String> extensionAttributes = _getExtensionAttributes(
 			attributeDefinition);
 
 		List<String> descriptionArguments = StringUtil.split(
 			extensionAttributes.get("description-arguments"));
 
-		tip.addString(
-			_locale,
-			translate(
-				attributeDefinition.getDescription(), descriptionArguments));
+		String fieldDescription = translate(
+			attributeDefinition.getDescription(), descriptionArguments);
+
+		if (Validator.isNotNull(fieldDescription)) {
+			result += fieldDescription;
+		}
+
+		if (_configurationModel.hasConfigurationOverrideProperty(
+				attributeDefinition.getID())) {
+
+			String overridePropertiesTip = LanguageUtil.get(
+				ResourceBundleUtil.getBundle(
+					_locale, ConfigurationModelToDDMFormConverter.class),
+				"this-field-has-been-set-by-a-portal-property-and-cannot-be-" +
+					"changed-here");
+
+			if (result.length() > 0) {
+				result += StringPool.SPACE;
+			}
+
+			result += overridePropertiesTip;
+		}
+
+		tip.addString(_locale, result);
 
 		ddmFormField.setTip(tip);
 	}
