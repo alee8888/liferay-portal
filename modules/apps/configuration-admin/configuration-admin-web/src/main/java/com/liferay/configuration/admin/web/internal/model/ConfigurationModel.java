@@ -249,6 +249,10 @@ public class ConfigurationModel implements ExtendedObjectClassDefinition {
 		return true;
 	}
 
+	public Boolean hasConfigurationOverrideProperty(String key) {
+		return _overrideConfigurationPropertiesMap.containsKey(key);
+	}
+
 	@Override
 	public int hashCode() {
 		return HashUtil.hash(0, getID());
