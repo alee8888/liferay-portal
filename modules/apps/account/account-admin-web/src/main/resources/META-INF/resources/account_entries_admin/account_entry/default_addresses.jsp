@@ -174,6 +174,7 @@ AccountEntryDisplay accountEntryDisplay = (AccountEntryDisplay)request.getAttrib
 
 <portlet:renderURL var="selectDefaultAddressURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
 	<portlet:param name="mvcPath" value="/account_entries_admin/account_entry/select_default_address.jsp" />
+	<portlet:param name="redirect" value="<%= currentURL %>" />
 	<portlet:param name="accountEntryId" value="<%= String.valueOf(accountEntryDisplay.getAccountEntryId()) %>" />
 </portlet:renderURL>
 
