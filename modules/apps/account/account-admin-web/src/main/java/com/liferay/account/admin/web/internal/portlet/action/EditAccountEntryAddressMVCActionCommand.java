@@ -100,11 +100,10 @@ public class EditAccountEntryAddressMVCActionCommand
 			updateAccountEntryAddress(actionRequest);
 		}
 
-		String defaultAddressType = ParamUtil.getString(
-			actionRequest, "defaultAddressType");
+		String defaultType = ParamUtil.getString(actionRequest, "defaultType");
 
-		if (Objects.equals("billing", defaultAddressType) ||
-			Objects.equals("shipping", defaultAddressType)) {
+		if (Objects.equals("billing", defaultType) ||
+			Objects.equals("shipping", defaultType)) {
 
 			long accountEntryId = ParamUtil.getLong(
 				actionRequest, "accountEntryId");
@@ -118,10 +117,10 @@ public class EditAccountEntryAddressMVCActionCommand
 				addressId = accountEntryAddress.getAddressId();
 			}
 
-			if (Objects.equals("billing", defaultAddressType)) {
+			if (Objects.equals("billing", defaultType)) {
 				accountEntry.setDefaultBillingAddressId(addressId);
 			}
-			else if (Objects.equals("shipping", defaultAddressType)) {
+			else if (Objects.equals("shipping", defaultType)) {
 				accountEntry.setDefaultShippingAddressId(addressId);
 			}
 

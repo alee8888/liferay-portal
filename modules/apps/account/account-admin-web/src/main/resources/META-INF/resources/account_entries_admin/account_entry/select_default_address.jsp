@@ -39,7 +39,7 @@ accountEntryAddressDisplaySearchContainer.setRowChecker(null);
 	<portlet:param name="mvcRenderCommandName" value="/account_admin/edit_account_entry_address" />
 	<portlet:param name="backURL" value='<%= ParamUtil.getString(request, "redirect") %>' />
 	<portlet:param name="accountEntryId" value='<%= ParamUtil.getString(request, "accountEntryId") %>' />
-	<portlet:param name="defaultAddressType" value="<%= type %>" />
+	<portlet:param name="defaultType" value="<%= type %>" />
 </portlet:renderURL>
 
 <clay:management-toolbar

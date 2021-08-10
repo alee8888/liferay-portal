@@ -23,7 +23,7 @@ long accountEntryAddressId = ParamUtil.getLong(renderRequest, "accountEntryAddre
 
 Address address = AddressLocalServiceUtil.fetchAddress(accountEntryAddressId);
 
-String defaultAddressType = ParamUtil.getString(request, "defaultAddressType");
+String defaultType = ParamUtil.getString(request, "defaultType");
 
 AccountEntryDisplay accountEntryDisplay = (AccountEntryDisplay)request.getAttribute(AccountWebKeys.ACCOUNT_ENTRY_DISPLAY);
 
@@ -42,7 +42,7 @@ renderResponse.setTitle((accountEntryAddressId == 0) ? LanguageUtil.get(request,
 	<aui:input name="redirect" type="hidden" value="<%= backURL %>" />
 	<aui:input name="accountEntryAddressId" type="hidden" value="<%= accountEntryAddressId %>" />
 	<aui:input name="accountEntryId" type="hidden" value="<%= accountEntryDisplay.getAccountEntryId() %>" />
-	<aui:input name="defaultAddressType" type="hidden" value="<%= defaultAddressType %>" />
+	<aui:input name="defaultType" type="hidden" value="<%= defaultType %>" />
 
 	<liferay-frontend:edit-form-body>
 		<aui:model-context bean="<%= address %>" model="<%= Address.class %>" />
@@ -56,8 +56,8 @@ renderResponse.setTitle((accountEntryAddressId == 0) ? LanguageUtil.get(request,
 			<%
 			String[] types = null;
 
-			if (Objects.equals("billing", defaultAddressType) || Objects.equals("shipping", defaultAddressType)) {
-				types = new String[] {defaultAddressType, AccountListTypeConstants.ACCOUNT_ENTRY_ADDRESS_TYPE_BILLING_AND_SHIPPING};
+			if (Objects.equals("billing", defaultType) || Objects.equals("shipping", defaultType)) {
+				types = new String[] {defaultType, AccountListTypeConstants.ACCOUNT_ENTRY_ADDRESS_TYPE_BILLING_AND_SHIPPING};
 			}
 			else {
 				types = new String[] {AccountListTypeConstants.ACCOUNT_ENTRY_ADDRESS_TYPE_BILLING, AccountListTypeConstants.ACCOUNT_ENTRY_ADDRESS_TYPE_BILLING_AND_SHIPPING, AccountListTypeConstants.ACCOUNT_ENTRY_ADDRESS_TYPE_SHIPPING};
