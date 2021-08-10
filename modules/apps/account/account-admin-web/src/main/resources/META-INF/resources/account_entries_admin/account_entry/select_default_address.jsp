@@ -45,8 +45,6 @@ accountEntryAddressDisplaySearchContainer.setRowChecker(null);
 <clay:management-toolbar
 	additionalProps='<%=
 		HashMapBuilder.<String, Object>put(
-			"accountAddressType", type
-		).put(
 			"addAccountEntryDefaultAddressURL", addAccountEntryDefaultAddressURL.toString()
 		).build()
 	%>'
