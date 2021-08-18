@@ -40,7 +40,10 @@ import javax.servlet.http.HttpServletRequest;
 public class AccountUserActionDropdownItemsProvider {
 
 	public AccountUserActionDropdownItemsProvider(
-		AccountEntryDisplay accountEntryDisplay, AccountUserDisplay accountUserDisplay, PermissionChecker permissionChecker, RenderRequest renderRequest, RenderResponse renderResponse) {
+		AccountEntryDisplay accountEntryDisplay,
+		AccountUserDisplay accountUserDisplay,
+		PermissionChecker permissionChecker, RenderRequest renderRequest,
+		RenderResponse renderResponse) {
 
 		_accountEntryDisplay = accountEntryDisplay;
 		_accountUserDisplay = accountUserDisplay;
@@ -55,8 +58,9 @@ public class AccountUserActionDropdownItemsProvider {
 
 	public List<DropdownItem> getActionDropdownItems() throws Exception {
 		return DropdownItemListBuilder.add(
-			() -> AccountEntryPermission.contains(_permissionChecker,
-				_accountEntryDisplay.getAccountEntryId(), ActionKeys.MANAGE_USERS),
+			() -> AccountEntryPermission.contains(
+				_permissionChecker, _accountEntryDisplay.getAccountEntryId(),
+				ActionKeys.MANAGE_USERS),
 			dropdownItem -> {
 				dropdownItem.putData("action", "removeAccountUsers");
 				dropdownItem.putData(
@@ -68,7 +72,8 @@ public class AccountUserActionDropdownItemsProvider {
 					).setRedirect(
 						_themeDisplay.getURLCurrent()
 					).setParameter(
-						"accountEntryId", _accountEntryDisplay.getAccountEntryId()
+						"accountEntryId",
+						_accountEntryDisplay.getAccountEntryId()
 					).setParameter(
 						"accountUserIds", _accountUserDisplay.getUserId()
 					).buildString());
@@ -78,11 +83,11 @@ public class AccountUserActionDropdownItemsProvider {
 		).build();
 	}
 
-	private final HttpServletRequest _httpServletRequest;
-	private final RenderResponse _renderResponse;
-	private final ThemeDisplay _themeDisplay;
 	private final AccountEntryDisplay _accountEntryDisplay;
 	private final AccountUserDisplay _accountUserDisplay;
+	private final HttpServletRequest _httpServletRequest;
 	private final PermissionChecker _permissionChecker;
+	private final RenderResponse _renderResponse;
+	private final ThemeDisplay _themeDisplay;
 
 }
