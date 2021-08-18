@@ -92,11 +92,16 @@ renderResponse.setTitle(accountEntryDisplay.getName());
 					value="<%= accountUser.getAccountRoleNamesString(accountEntryDisplay.getAccountEntryId(), locale) %>"
 				/>
 
-				<c:if test="<%= AccountEntryPermission.contains(permissionChecker, accountEntryDisplay.getAccountEntryId(), ActionKeys.MANAGE_USERS) %>">
-					<liferay-ui:search-container-column-jsp
-						path="/account_entries_admin/account_user_action.jsp"
-					/>
-				</c:if>
+				<%
+				AccountUserActionDropdownItemsProvider accountUserActionDropdownItemsProvider = new AccountUserActionDropdownItemsProvider(accountEntryDisplay, accountUser, permissionChecker, renderRequest, renderResponse);
+				%>
+
+				<liferay-ui:search-container-column-text>
+				    <clay:dropdown-actions
+				        dropdownItems="<%= accountUserActionDropdownItemsProvider.getActionDropdownItems() %>"
+				        propsTransformer="account_entries_admin/js/AccountUserDropdownDefaultPropsTransformer"
+				    />
+				</liferay-ui:search-container-column-text>
 			</liferay-ui:search-container-row>
 
 			<liferay-ui:search-iterator
