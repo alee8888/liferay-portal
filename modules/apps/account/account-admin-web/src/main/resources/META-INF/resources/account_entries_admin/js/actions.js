@@ -12,9 +12,38 @@
  * details.
  */
 
-import {openSelectionModal} from 'frontend-js-web';
+import {openSelectionModal, postForm} from 'frontend-js-web';
 
 export const ACTIONS = {
+    assignRoleAccountUsers(itemData, portletNamespace) {
+        openSelectionModal({
+            buttonAddLabel: Liferay.Language.get('done'),
+            multiple: true,
+            onSelect: (selectedItems) => {
+                if (selectedItems.length) {
+                    const assignRoleAccountUsersFm = document.getElementById(
+                        `${portletNamespace}fm`
+                    );
+
+                    if (!assignRoleAccountUsersFm) {
+                        return;
+                    }
+
+                    const input = document.createElement('input');
+
+                    input.name = `${portletNamespace}accountRoleIds`;
+                    input.value = 'selectedItems.map((item) => item.value)';
+
+                    submitForm(
+                        assignRoleAccountUsersFm,
+                        itemData.editRoleAccountUsersURL
+                    );
+                }
+            },
+            title: Liferay.Language.get('assign-roles'),
+            url: itemData.assignRoleAccountUsersURL,
+        });
+    },
 	removeAccountUsers(itemData) {
 		if (
 			confirm(

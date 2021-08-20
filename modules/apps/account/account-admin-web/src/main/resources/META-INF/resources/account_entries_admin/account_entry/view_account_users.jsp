@@ -97,10 +97,10 @@ renderResponse.setTitle(accountEntryDisplay.getName());
 				%>
 
 				<liferay-ui:search-container-column-text>
-				    <clay:dropdown-actions
-				        dropdownItems="<%= accountUserActionDropdownItemsProvider.getActionDropdownItems() %>"
-				        propsTransformer="account_entries_admin/js/AccountUserDropdownDefaultPropsTransformer"
-				    />
+					<clay:dropdown-actions
+						dropdownItems="<%= accountUserActionDropdownItemsProvider.getActionDropdownItems() %>"
+						propsTransformer="account_entries_admin/js/AccountUserDropdownDefaultPropsTransformer"
+					/>
 				</liferay-ui:search-container-column-text>
 			</liferay-ui:search-container-row>
 
