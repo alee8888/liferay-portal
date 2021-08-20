@@ -14,20 +14,21 @@
 
 package com.liferay.account.admin.web.internal.portlet.action;
 
+import com.liferay.account.admin.web.internal.constants.AccountWebKeys;
 import com.liferay.account.constants.AccountPortletKeys;
-import com.liferay.account.service.AccountRoleLocalService;
-import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
-import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
+import com.liferay.account.admin.web.internal.display.AccountEntryDisplay;
+import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
 import com.liferay.portal.kernel.util.ParamUtil;
 
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionResponse;
+import javax.portlet.PortletException;
+import javax.portlet.RenderRequest;
+import javax.portlet.RenderResponse;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 /**
- * @author Pei-Jung Lan
+ * @author Albert Lee
  */
 @Component(
 	immediate = true,
@@ -35,32 +36,30 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.name=" + AccountPortletKeys.ACCOUNT_ENTRIES_ADMIN,
 		"mvc.command.name=/account_admin/assign_account_role_users"
 	},
-	service = MVCActionCommand.class
+	service = MVCRenderCommand.class
 )
-public class AssignAccountRoleUsersMVCActionCommand
-	extends BaseMVCActionCommand {
+public class AssignAccountRoleUsersMVCRenderCommand
+	implements MVCRenderCommand {
 
 	@Override
-	protected void doProcessAction(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
+	public String render(
+			RenderRequest renderRequest, RenderResponse renderResponse)
+		throws PortletException {
 
 		long accountEntryId = ParamUtil.getLong(
-			actionRequest, "accountEntryId");
-		long[] accountRoleIds = ParamUtil.getLongValues(
-			actionRequest, "Alb");
-		long[] accountUserIds = ParamUtil.getLongValues(
-			actionRequest, "accountUserIds");
+			renderRequest, "accountEntryId");
 
-		for (long accountRoleId : accountRoleIds) {
-			for (long accountUserId : accountUserIds) {
-				_accountRoleLocalService.associateUser(
-					accountEntryId, accountRoleId, accountUserId);
-			}
-		}
+		renderRequest.setAttribute(
+			AccountWebKeys.ACCOUNT_ENTRY_DISPLAY,
+			AccountEntryDisplay.of(accountEntryId));
+
+		long accountUserId = ParamUtil.getLong(renderRequest, "accountUserId");
+
+		renderRequest.setAttribute(
+			AccountWebKeys.ACCOUNT_ENTRY_DISPLAY,
+			AccountEntryDisplay.of(accountUserId));
+
+		return "/account_entries_admin/select_account_roles.jsp";
 	}
-
-	@Reference
-	private AccountRoleLocalService _accountRoleLocalService;
 
 }
