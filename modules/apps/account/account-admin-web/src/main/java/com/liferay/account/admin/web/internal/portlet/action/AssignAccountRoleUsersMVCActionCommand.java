@@ -48,7 +48,7 @@ public class AssignAccountRoleUsersMVCActionCommand
 		long accountEntryId = ParamUtil.getLong(
 			actionRequest, "accountEntryId");
 		long[] accountRoleIds = ParamUtil.getLongValues(
-			actionRequest, "Alb");
+			actionRequest, "accountRoleIds");
 		long[] accountUserIds = ParamUtil.getLongValues(
 			actionRequest, "accountUserIds");
 
