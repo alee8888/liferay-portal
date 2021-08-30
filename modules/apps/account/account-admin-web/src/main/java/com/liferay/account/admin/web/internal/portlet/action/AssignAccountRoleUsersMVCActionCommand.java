@@ -48,13 +48,16 @@ public class AssignAccountRoleUsersMVCActionCommand
 
 		long accountEntryId = ParamUtil.getLong(
 			actionRequest, "accountEntryId");
-		long accountRoleId = ParamUtil.getLong(actionRequest, "accountRoleId");
+		long[] accountRoleIds = ParamUtil.getLongValues(
+			actionRequest, "accountRoleIds");
 		long[] accountUserIds = ParamUtil.getLongValues(
 			actionRequest, "accountUserIds");
 
-		for (long accountUserId : accountUserIds) {
-			_accountRoleLocalService.associateUser(
-				accountEntryId, accountRoleId, accountUserId);
+		for (long accountRoleId : accountRoleIds) {
+			for (long accountUserId : accountUserIds) {
+				_accountRoleLocalService.associateUser(
+					accountEntryId, accountRoleId, accountUserId);
+			}
 		}
 	}
 
