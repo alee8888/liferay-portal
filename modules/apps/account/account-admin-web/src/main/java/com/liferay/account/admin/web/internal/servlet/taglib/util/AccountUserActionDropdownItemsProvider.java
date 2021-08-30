@@ -14,6 +14,7 @@
 
 package com.liferay.account.admin.web.internal.servlet.taglib.util;
 
+import com.liferay.account.admin.web.internal.constants.AccountWebKeys;
 import com.liferay.account.admin.web.internal.display.AccountEntryDisplay;
 import com.liferay.account.admin.web.internal.display.AccountUserDisplay;
 import com.liferay.account.admin.web.internal.security.permission.resource.AccountEntryPermission;
@@ -21,6 +22,7 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
 import com.liferay.petra.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -58,6 +60,48 @@ public class AccountUserActionDropdownItemsProvider {
 
 	public List<DropdownItem> getActionDropdownItems() throws Exception {
 		return DropdownItemListBuilder.add(
+			() -> AccountEntryPermission.contains(
+				_permissionChecker, _accountEntryDisplay.getAccountEntryId(),
+				ActionKeys.MANAGE_USERS),
+			dropdownItem -> {
+				dropdownItem.putData("action", "assignRoleAccountUsers");
+				dropdownItem.putData(
+					"assignRoleAccountUsersURL",
+					PortletURLBuilder.createRenderURL(
+						_renderResponse
+					).setMVCPath(
+						"/account_entries_admin/select_account_roles.jsp"
+					).setRedirect(
+						_themeDisplay.getURLCurrent()
+					).setParameter(
+						AccountWebKeys.ACCOUNT_ENTRY_DISPLAY,
+						_accountEntryDisplay
+					).setParameter(
+						"accountEntryId",
+						_accountEntryDisplay.getAccountEntryId()
+					).setParameter(
+						"accountUserIds", _accountUserDisplay.getUserId()
+					).setWindowState(
+						LiferayWindowState.POP_UP
+					).buildString());
+				dropdownItem.putData(
+					"editRoleAccountUsersURL",
+					PortletURLBuilder.createActionURL(
+						_renderResponse
+					).setActionName(
+						"/account_admin/assign_account_role_users"
+					).setRedirect(
+						_themeDisplay.getURLCurrent()
+					).setParameter(
+						"accountEntryId",
+						_accountEntryDisplay.getAccountEntryId()
+					).setParameter(
+						"accountUserIds", _accountUserDisplay.getUserId()
+					).buildString());
+				dropdownItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, "assign-roles"));
+			}
+		).add(
 			() -> AccountEntryPermission.contains(
 				_permissionChecker, _accountEntryDisplay.getAccountEntryId(),
 				ActionKeys.MANAGE_USERS),
