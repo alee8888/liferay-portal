@@ -59,6 +59,7 @@ page import="com.liferay.account.admin.web.internal.display.context.ViewAccountG
 page import="com.liferay.account.admin.web.internal.display.context.ViewAccountOrganizationsManagementToolbarDisplayContext" %><%@
 page import="com.liferay.account.admin.web.internal.display.context.ViewAccountRoleAssigneesManagementToolbarDisplayContext" %><%@
 page import="com.liferay.account.admin.web.internal.display.context.ViewAccountRolesManagementToolbarDisplayContext" %><%@
+page import="com.liferay.account.admin.web.internal.display.context.ViewAccountUserRolesManagementToolbarDisplayContext" %><%@
 page import="com.liferay.account.admin.web.internal.display.context.ViewAccountUsersManagementToolbarDisplayContext" %><%@
 page import="com.liferay.account.admin.web.internal.security.permission.resource.AccountEntryPermission" %><%@
 page import="com.liferay.account.admin.web.internal.security.permission.resource.AccountPermission" %><%@
