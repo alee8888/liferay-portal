@@ -485,6 +485,17 @@ public class AccountEntryLocalServiceUtil {
 			userId, parentAccountEntryId, keywords, types, status, start, end);
 	}
 
+	public static List<AccountEntry> getUserAccountEntries(
+			long userId, Long parentAccountEntryId, String keywords,
+			String[] types, Integer status, int start, int end,
+			OrderByComparator<AccountEntry> orderByComparator)
+		throws PortalException {
+
+		return getService().getUserAccountEntries(
+			userId, parentAccountEntryId, keywords, types, status, start, end,
+			orderByComparator);
+	}
+
 	public static int getUserAccountEntriesCount(
 			long userId, Long parentAccountEntryId, String keywords,
 			String[] types)

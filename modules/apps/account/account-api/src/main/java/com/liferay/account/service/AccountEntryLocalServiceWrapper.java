@@ -557,6 +557,20 @@ public class AccountEntryLocalServiceWrapper
 	}
 
 	@Override
+	public java.util.List<com.liferay.account.model.AccountEntry>
+			getUserAccountEntries(
+				long userId, Long parentAccountEntryId, String keywords,
+				String[] types, Integer status, int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.account.model.AccountEntry> orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _accountEntryLocalService.getUserAccountEntries(
+			userId, parentAccountEntryId, keywords, types, status, start, end,
+			orderByComparator);
+	}
+
+	@Override
 	public int getUserAccountEntriesCount(
 			long userId, Long parentAccountEntryId, String keywords,
 			String[] types)
