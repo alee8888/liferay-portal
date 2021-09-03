@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -136,7 +137,10 @@ public class AccountEntryDisplaySearchContainerFactory {
 					PortalUtil.getUserId(liferayPortletRequest), null, keywords,
 					types, _getStatus(navigation),
 					accountEntryDisplaySearchContainer.getStart(),
-					accountEntryDisplaySearchContainer.getEnd()),
+					accountEntryDisplaySearchContainer.getEnd(),
+					OrderByComparatorFactoryUtil.create(
+						"AccountEntry", orderByCol,
+						!_isReverseOrder(orderByType))),
 				AccountEntryLocalServiceUtil.getUserAccountEntriesCount(
 					PortalUtil.getUserId(liferayPortletRequest), null, keywords,
 					types, _getStatus(navigation)));
