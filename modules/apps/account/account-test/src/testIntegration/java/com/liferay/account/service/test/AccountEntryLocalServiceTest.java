@@ -58,6 +58,7 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.search.test.util.SearchTestRule;
 import com.liferay.portal.test.rule.Inject;
@@ -537,6 +538,39 @@ public class AccountEntryLocalServiceTest {
 						new long[] {accountEntryMember.getUserId()})),
 				type);
 		}
+	}
+
+	@Test
+	public void testGetUserAccountEntriesOrderByColumn() throws Exception {
+		User accountEntryOwner = UserTestUtil.addUser();
+
+		long accountEntryOwnerUserId = accountEntryOwner.getUserId();
+
+		List<AccountEntry> expectedList = Arrays.asList(
+			_addUserAccountEntry(
+				accountEntryOwnerUserId, RandomTestUtil.randomString(), null,
+				AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS, null),
+			_addUserAccountEntry(
+				accountEntryOwnerUserId, RandomTestUtil.randomString(), null,
+				AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS, null),
+			_addUserAccountEntry(
+				accountEntryOwnerUserId, RandomTestUtil.randomString(), null,
+				AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS, null));
+
+		expectedList.sort(
+			Comparator.comparing(
+				AccountEntry::getName, String.CASE_INSENSITIVE_ORDER));
+
+		List<AccountEntry> actualList =
+			_accountEntryLocalService.getUserAccountEntries(
+				accountEntryOwnerUserId, null, null,
+				new String[] {AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS},
+				WorkflowConstants.STATUS_APPROVED, QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS,
+				OrderByComparatorFactoryUtil.create(
+					"AccountEntry", "name", true));
+
+		Assert.assertEquals(expectedList, actualList);
 	}
 
 	@Test
