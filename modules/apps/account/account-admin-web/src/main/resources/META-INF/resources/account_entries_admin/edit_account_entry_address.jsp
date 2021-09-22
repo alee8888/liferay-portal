@@ -81,6 +81,8 @@ renderResponse.setTitle((accountEntryAddressId == 0) ? LanguageUtil.get(request,
 
 		</aui:select>
 
+		<aui:select label="country" name="addressCountryId" required="<%= true %>" />
+
 		<aui:input name="street1" required="<%= true %>" />
 
 		<aui:input name="street2" />
@@ -103,11 +105,9 @@ renderResponse.setTitle((accountEntryAddressId == 0) ? LanguageUtil.get(request,
 			</div>
 
 			<div class="form-group-item">
-				<aui:select label="country" name="addressCountryId" required="<%= true %>" />
+				<aui:input maxlength='<%= ModelHintsUtil.getMaxLength(Phone.class.getName(), "number") %>' name="phoneNumber" type="text" />
 			</div>
 		</div>
-
-		<aui:input maxlength='<%= ModelHintsUtil.getMaxLength(Phone.class.getName(), "number") %>' name="phoneNumber" type="text" />
 	</liferay-frontend:edit-form-body>
 
 	<liferay-frontend:edit-form-footer>
