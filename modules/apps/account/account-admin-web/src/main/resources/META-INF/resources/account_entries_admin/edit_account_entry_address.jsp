@@ -130,3 +130,87 @@ renderResponse.setTitle((accountEntryAddressId == 0) ? LanguageUtil.get(request,
 		},
 	]);
 </script>
+
+<aui:script use="liferay-form">
+	var form = Liferay.Form.get('<portlet:namespace />fm');
+
+	var oldFieldRules = form.get('fieldRules');
+
+	addRequiredValidator(
+		'<portlet:namespace />addressCountryId',
+		'country_required'
+	);
+
+	var country = document.getElementById('<portlet:namespace />addressCountryId');
+
+	country.addEventListener('change', (event) => {
+		getRegionCount(event.currentTarget.value);
+
+		var formValidator = form.formValidator;
+
+		formValidator.resetField('<portlet:namespace />addressRegionId');
+	});
+
+	if (country.value !== '0') {
+		getRegionCount(country.value);
+	}
+
+	function addRequiredValidator(fieldName, validatorName) {
+		var newFieldRules = [
+			{
+				body: function (val, fieldNode, ruleValue) {
+					return val !== '0';
+				},
+				custom: true,
+				errorMessage:
+					'<%= LanguageUtil.get(request, "this-field-is-required") %>',
+				fieldName: fieldName,
+				validatorName: validatorName,
+			},
+		];
+
+		var fieldRules = oldFieldRules.concat(newFieldRules);
+
+		form.set('fieldRules', fieldRules);
+	}
+
+	function getRegionCount(countryId) {
+		Liferay.Service(
+			'/region/get-regions-count',
+			{
+				active: true,
+				countryId: countryId,
+			},
+			(response, err) => {
+				if (err) {
+					console.error(err);
+				}
+				else {
+					var region = document.getElementById(
+						'<portlet:namespace />addressRegionId'
+					);
+
+					if (response == '0') {
+						region.disabled = true;
+					}
+					else {
+						region.disabled = false;
+
+						var formValidator = form.formValidator;
+
+						if (
+							!formValidator.get('rules')[
+								'<portlet:namespace />addressRegionId'
+							]
+						) {
+							addRequiredValidator(
+								'<portlet:namespace />addressRegionId',
+								'region_required'
+							);
+						}
+					}
+				}
+			}
+		);
+	}
+</aui:script>
