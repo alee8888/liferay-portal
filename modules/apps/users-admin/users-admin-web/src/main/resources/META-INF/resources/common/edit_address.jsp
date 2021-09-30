@@ -73,6 +73,10 @@ PortalUtil.addPortletBreadcrumbEntry(request, editContactInformationDisplayConte
 
 				<aui:select label="type" listType="<%= editContactInformationDisplayContext.getClassName() + ListTypeConstants.ADDRESS %>" name="addressTypeId" />
 
+				<liferay-ui:error exception="<%= NoSuchCountryException.class %>" message="please-select-a-country" />
+
+				<aui:select label="country" name="addressCountryId" />
+
 				<liferay-ui:error exception="<%= AddressStreetException.class %>" message="please-enter-a-valid-street" />
 
 				<aui:input fieldParam="addressStreet1" id="addressStreet1" name="street1" required="<%= true %>" />
@@ -84,10 +88,6 @@ PortalUtil.addPortletBreadcrumbEntry(request, editContactInformationDisplayConte
 				<liferay-ui:error exception="<%= AddressCityException.class %>" message="please-enter-a-valid-city" />
 
 				<aui:input fieldParam="addressCity" id="addressCity" name="city" required="<%= true %>" />
-
-				<liferay-ui:error exception="<%= NoSuchCountryException.class %>" message="please-select-a-country" />
-
-				<aui:select label="country" name="addressCountryId" />
 
 				<liferay-ui:error exception="<%= NoSuchRegionException.class %>" message="please-select-a-region" />
 
