@@ -75,7 +75,7 @@ renderResponse.setTitle((accountEntryAddressId == 0) ? LanguageUtil.get(request,
 
 		</aui:select>
 
-		<aui:select label="country" name="addressCountryId" required="<%= true %>" />
+		<aui:select label="country" name="addressCountryId" />
 
 		<aui:input name="street1" required="<%= true %>" />
 
