@@ -160,7 +160,7 @@ public class ConfigurationModelToDDMFormConverterTest extends Mockito {
 		DDMFormField ddmFormField = ddmFormFieldsMap.get("Integer");
 
 		Assert.assertNotNull(ddmFormField);
-		Assert.assertEquals(DDMFormFieldType.TEXT, ddmFormField.getType());
+		Assert.assertEquals(DDMFormFieldType.NUMERIC, ddmFormField.getType());
 		Assert.assertEquals("integer", ddmFormField.getDataType());
 		Assert.assertFalse(ddmFormField.isRepeatable());
 		Assert.assertTrue(ddmFormField.isRequired());
