@@ -16,6 +16,7 @@ package com.liferay.account.admin.web.internal.portlet.action;
 
 import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.constants.AccountPortletKeys;
+import com.liferay.account.exception.AccountEntryDomainsException;
 import com.liferay.account.exception.DuplicateAccountEntryExternalReferenceCodeException;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.service.AccountEntryService;
@@ -140,8 +141,9 @@ public class EditAccountEntryMVCActionCommand extends BaseMVCActionCommand {
 				actionResponse.setRenderParameter(
 					"mvcPath", "/account_entries_admin/error.jsp");
 			}
-			else if (exception instanceof
-						DuplicateAccountEntryExternalReferenceCodeException) {
+			else if (exception instanceof AccountEntryDomainsException ||
+					 exception instanceof
+						 DuplicateAccountEntryExternalReferenceCodeException) {
 
 				SessionErrors.add(actionRequest, exception.getClass());
 
